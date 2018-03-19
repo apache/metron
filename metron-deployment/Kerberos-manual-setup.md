@@ -30,6 +30,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 * [Start Metron](#start-metron)
 * [Push Data](#push-data)
 * [More Information](#more-information)
+* [Elasticseach X-Pack](#x-pack)
 
 Setup
 -----
@@ -533,3 +534,207 @@ In order to correct this, you should:
 ### References
 
 * [https://github.com/apache/storm/blob/master/SECURITY.md](https://github.com/apache/storm/blob/master/SECURITY.md)
+
+X-Pack
+------
+
+First, stop the random_access_indexing topology through the Storm UI or from the CLI, e.g.
+
+```
+storm kill random_access_indexing
+```
+
+Here are instructions for enabling X-Pack with Elasticsearch and Kibana: https://www.elastic.co/guide/en/x-pack/5.6/installing-xpack.html
+
+You need to be sure to add the appropriate username and password for Elasticsearch and Kibana to enable external connections from Metron components. e.g. the following will create a user "transport_client_user" with password "changeme" and "superuser" credentials.
+
+```
+sudo /usr/share/elasticsearch/bin/x-pack/users useradd transport_client_user -p changeme -r superuser
+```
+
+Once you've picked a password to connect to ES, you need to upload a 1-line file to HDFS with that password in it. Metron will use this file to securely read the password in order to connect to ES securely.
+
+Here is an example using "changeme" as the password
+
+```
+echo changeme > /tmp/xpack-password
+sudo -u hdfs hdfs dfs -mkdir /apps/metron/elasticsearch/
+sudo -u hdfs hdfs dfs -put /tmp/xpack-password /apps/metron/elasticsearch/
+sudo -u hdfs hdfs dfs -chown metron:metron /apps/metron/elasticsearch/xpack-password
+```
+
+New settings have been added to configure the Elasticsearch client. By default the client will run as the normal ES prebuilt transport client. If you enable X-Pack you should set the es.client.class as shown below.
+
+Add the es settings to global.json
+
+```
+/usr/metron/0.4.3/config/zookeeper/global.json ->
+
+  "es.client.settings" : {
+      "es.client.class" : "org.elasticsearch.xpack.client.PreBuiltXPackTransportClient",
+      "es.xpack.username" : "transport_client_user",
+      "es.xpack.password.file" : "/apps/metron/elasticsearch/xpack-password"
+  }
+```
+
+Submit the update to Zookeeper
+
+```
+$METRON_HOME/bin/zk_load_configs.sh -m PUSH -i METRON_HOME/config/zookeeper/ -z $ZOOKEEPER
+```
+
+The last step before restarting the topology is to create a custom X-Pack shaded and relocated jar. This is up to you because of licensing restrictions, but here is a sample Maven pom file that should help.
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+	Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.elasticsearch</groupId>
+    <artifactId>elasticsearch-xpack-shaded</artifactId>
+    <name>elasticsearch-xpack-shaded</name>
+    <packaging>jar</packaging>
+    <version>5.6.2</version>
+    <repositories>
+        <repository>
+            <id>elasticsearch-releases</id>
+            <url>https://artifacts.elastic.co/maven</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    <dependencies>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>x-pack-transport</artifactId>
+            <version>5.6.2</version>
+            <exclusions>
+              <exclusion>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-smile</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-cbor</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>log4j</groupId>
+                <artifactId>log4j</artifactId>
+              </exclusion>
+              <exclusion> <!-- this is causing a weird build error if not excluded - Error creating shaded jar: null: IllegalArgumentException -->
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+          </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <configuration>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                          <filters>
+                            <filter>
+                              <artifact>*:*</artifact>
+                              <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                              </excludes>
+                            </filter>
+                          </filters>
+                          <relocations>
+                                <relocation>
+                                    <pattern>org.apache.logging.log4j</pattern>
+                                    <shadedPattern>org.apache.metron.logging.log4j</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.slf4j.impl*</exclude>
+                                    <exclude>org.slf4j:slf4j-log4j*</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <transformers>
+                                <transformer
+                                  implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                     <resources>
+                                        <resource>.yaml</resource>
+                                        <resource>LICENSE.txt</resource>
+                                        <resource>ASL2.0</resource>
+                                        <resource>NOTICE.txt</resource>
+                                      </resources>
+                                </transformer>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass></mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+Once you've built the elasticsearch-xpack-shaded-5.6.2.jar, it needs to be made available to Storm when you submit the topology. Create a contrib directory for indexing and put the jar file in this directory.
+
+```
+/usr/metron/0.4.3/indexing_contrib/elasticsearch-xpack-shaded-5.6.2.jar
+```
+
+Now you can restart the Elasticsearch topology. Note, you should perform this step manually, as follows.
+
+```
+$METRON_HOME/bin/start_elasticsearch_topology.sh
+```
+
+Once you've performed these steps, you shoud be able to start seeing data in your ES indexes.
