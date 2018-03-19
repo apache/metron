@@ -358,7 +358,7 @@ A list of zero or more Profile definitions.
 
 *Optional*
 
-Indicates whether processing time or event time should be used.
+Indicates whether processing time or event time is used. By default, processing time is enabled.
 
 ##### Processing Time
 
