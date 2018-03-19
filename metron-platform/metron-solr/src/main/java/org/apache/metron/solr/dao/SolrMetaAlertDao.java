@@ -162,8 +162,8 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
   @Override
   public Document getLatest(String guid, String sensorType) throws IOException {
     if (getMetAlertSensorName().equals(sensorType)) {
-      // Unfortunately, we can't just defer to the indexDao for this. Child alerts in Solr end up having
-      // to be dug out.
+      // Unfortunately, we can't just defer to the indexDao for this. Child alerts in Solr end up
+      // having to be dug out.
       String guidClause = Constants.GUID + ":" + guid;
       SolrQuery query = new SolrQuery();
       query.setQuery(guidClause)
@@ -333,7 +333,10 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
 
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
-    return null;
+    String baseQuery = groupRequest.getQuery();
+    String adjustedQuery = "(" + baseQuery + ") AND -" + MetaAlertDao.METAALERT_FIELD + ":[* TO *]";
+    groupRequest.setQuery(adjustedQuery);
+    return solrDao.group(groupRequest);
   }
 
   @Override

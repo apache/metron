@@ -71,6 +71,13 @@ public abstract class MetaAlertIntegrationTest {
   protected static final String NAME_FIELD = "name";
   protected static final String DATE_FORMAT = "yyyy.MM.dd.HH";
 
+  protected ArrayList<String> allIndices = new ArrayList<String>() {
+    {
+      add(getTestIndexName());
+      add(METAALERT_TYPE);
+    }
+  };
+
   protected static MetaAlertDao metaDao;
 
   /**
@@ -703,7 +710,7 @@ public abstract class MetaAlertIntegrationTest {
         setQuery(
             "(ip_src_addr:192.168.1.1 AND ip_src_port:8010)"
                 + " OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8010)");
-        setIndices(Collections.singletonList("*"));
+        setIndices(allIndices);
         setFrom(0);
         setSize(5);
         setSort(Collections.singletonList(new SortField() {
@@ -726,7 +733,7 @@ public abstract class MetaAlertIntegrationTest {
         setQuery(
             "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
                 + " OR (alert.ip_src_addr:192.168.1.3 AND alert.ip_src_port:8008)");
-        setIndices(Collections.singletonList("*"));
+        setIndices(allIndices);
         setFrom(0);
         setSize(1);
         setSort(Collections.singletonList(new SortField() {
@@ -772,7 +779,7 @@ public abstract class MetaAlertIntegrationTest {
     GroupResponse groupResponse = metaDao.group(new GroupRequest() {
       {
         setQuery("ip_src_addr:192.168.1.1");
-        setIndices(Collections.singletonList("*"));
+        setIndices(allIndices);
         setScoreField("score_field");
         setGroups(groupList);
       }

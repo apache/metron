@@ -28,8 +28,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.MetaAlertDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.Group;
 import org.apache.metron.indexing.dao.search.GroupOrder;
@@ -57,6 +60,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.util.regexp.Base.Meta;
 
 public class SolrSearchDao implements SearchDao {
 
@@ -103,7 +107,8 @@ public class SolrSearchDao implements SearchDao {
         .setRows(0)
         .setQuery(groupRequest.getQuery());
 
-    query.set("collection", "bro,snort");
+    String indices = StringUtils.join(groupRequest.getIndices(), ',');
+    query.set("collection", indices);
     Optional<String> scoreField = groupRequest.getScoreField();
     if (scoreField.isPresent()) {
       query.set("stats", true);
@@ -178,6 +183,9 @@ public class SolrSearchDao implements SearchDao {
 
     String collections = searchRequest.getIndices().stream().collect(Collectors.joining(","));
     query.set("collection", collections);
+    // TODO figure out how to set this not here. Possibly pull into SolrUtils.
+    String childClause = "*,[child parentFilter=" + MetaAlertDao.STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString() + "]";
+    query.set("fl", childClause);
 
     return query;
   }
@@ -220,6 +228,7 @@ public class SolrSearchDao implements SearchDao {
     return searchResponse;
   }
 
+  // TODO delete this if necessary
 //  private SearchResult getSearchResult(SolrDocument solrDocument, Optional<List<String>> fields) {
 //    SearchResult searchResult = new SearchResult();
 //    searchResult.setId((String) solrDocument.getFieldValue(Constants.GUID));
@@ -288,7 +297,7 @@ public class SolrSearchDao implements SearchDao {
       groupResult.setTotal(pivotField.getCount());
       Optional<String> scoreField = groupRequest.getScoreField();
       if (scoreField.isPresent()) {
-        groupResult.setScore((Double) pivotField.getFieldStatsInfo().get("score").getSum());
+        groupResult.setScore((Double) pivotField.getFieldStatsInfo().get(scoreField.get()).getSum());
       }
       if (index < groups.size() - 1) {
         groupResult.setGroupedBy(groups.get(index + 1).getField());
@@ -299,7 +308,7 @@ public class SolrSearchDao implements SearchDao {
     return searchResultGroups;
   }
 
-
+// TODO delete this if we're good.
 //  <T> Optional<T> searchByGuid(String guid, String sensorType) {
 //    Collection<String> sensorTypes = sensorType != null ? Collections.singleton(sensorType) : null;
 //    List<T> results = searchByGuids(Collections.singleton(guid), sensorTypes, callback);
