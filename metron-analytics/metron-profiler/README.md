@@ -345,7 +345,7 @@ The Profiler configuration contains only two fields; only one of which is requir
 | Name                              |               | Description
 |---                                |---            |---
 | [profiles](#profiles)             | Required      | A list of zero or more Profile definitions.
-| [timestampField](#timestampfield) | Optional      | Indicates whether processing time or event time should be used.
+| [timestampField](#timestampfield) | Optional      | Indicates whether processing time or event time should be used. By default, processing time is enabled.
 
 
 #### `profiles`
