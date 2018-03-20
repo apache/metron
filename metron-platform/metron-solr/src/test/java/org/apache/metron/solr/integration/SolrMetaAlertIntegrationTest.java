@@ -22,7 +22,6 @@ import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_FIELD;
 import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,6 +51,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
+
   private static final String COLLECTION = "test";
 
   private static IndexDao solrDao;
@@ -59,6 +59,9 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
   @BeforeClass
   public static void setupBefore() throws Exception {
+    // Solr doesn't need retries, it'll show up after a commit.
+
+    MAX_RETRIES = 1;
     // setup the client
     solr = new SolrComponent.Builder().build();
     solr.start();
@@ -87,7 +90,8 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   @Before
   public void setup()
       throws IOException, InterruptedException, SolrServerException, KeeperException {
-    solr.addCollection(metaDao.getMetaAlertIndex(), "../metron-solr/src/test/resources/config/metaalert/conf");
+    solr.addCollection(metaDao.getMetaAlertIndex(),
+        "../metron-solr/src/test/resources/config/metaalert/conf");
     solr.addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf");
   }
 
@@ -160,16 +164,13 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     Assert.assertEquals("meta_active",
         searchResponse.getResults().get(0).getSource().get("guid"));
 
-    ArrayList<String> indices = new ArrayList<>();
-    indices.add(getTestIndexName());
-    indices.add(METAALERT_TYPE);
     // Query against all indices. Only the single active meta alert should be returned.
     // The child alerts should be hidden.
     searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery(
             "ip_src_addr:192.168.1.1 AND ip_src_port:8010");
-        setIndices(indices);
+        setIndices(allIndices);
         setFrom(0);
         setSize(5);
         setSort(Collections.singletonList(new SortField() {
@@ -191,7 +192,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
       {
         setQuery(
             "ip_src_addr:192.168.1.3 AND ip_src_port:8008");
-        setIndices(indices);
+        setIndices(allIndices);
         setFrom(0);
         setSize(1);
         setSort(Collections.singletonList(new SortField() {
@@ -281,5 +282,10 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     } catch (SolrServerException e) {
       throw new IOException("Unable to commit", e);
     }
+  }
+
+  @Override
+  protected void setEmptiedMetaAlertField(Map<String, Object> docMap) {
+    docMap.remove(MetaAlertDao.METAALERT_FIELD);
   }
 }

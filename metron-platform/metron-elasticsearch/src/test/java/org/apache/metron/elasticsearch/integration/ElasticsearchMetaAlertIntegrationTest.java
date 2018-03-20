@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -87,6 +88,9 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
   @BeforeClass
   public static void setupBefore() throws Exception {
+    // Ensure ES can retry as needed.
+    MAX_RETRIES = 10;
+
     // setup the client
     es = new ElasticSearchComponent.Builder()
         .withHttpPort(9211)
@@ -194,5 +198,10 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   @Override
   protected String getTestIndexName() {
     return INDEX;
+  }
+
+  @Override
+  protected void setEmptiedMetaAlertField(Map<String, Object> docMap) {
+    docMap.put(MetaAlertDao.METAALERT_FIELD, new ArrayList<>());
   }
 }

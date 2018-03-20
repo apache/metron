@@ -63,7 +63,7 @@ import org.junit.Test;
 public abstract class MetaAlertIntegrationTest {
 
   // To change back after testing
-  protected static final int MAX_RETRIES = 1;
+  protected static int MAX_RETRIES = 10;
   protected static final int SLEEP_MS = 500;
   protected static final String SENSOR_NAME = "test";
 
@@ -545,10 +545,7 @@ public abstract class MetaAlertIntegrationTest {
 
       for (int i = 0; i < numChildAlerts; ++i) {
         Map<String, Object> expectedAlert = new HashMap<>(childAlerts.get(i));
-        // TODO expect this might need to handle empty metaalert representations.
-        // e.g. ES expects empty list, Solr expects nothing
-//        expectedAlert.put("metaalerts", new ArrayList<>());
-        expectedAlert.remove("metaalerts");
+        setEmptiedMetaAlertField(expectedAlert);
         findUpdatedDoc(expectedAlert, "message_" + i, SENSOR_NAME);
       }
 
@@ -1118,4 +1115,8 @@ public abstract class MetaAlertIntegrationTest {
   // Allow for impls to do any commit they need to do.
   protected void commit() throws IOException {
   }
+
+  // Different stores can have different representations of empty metaalerts field.
+  // E.g. Solr expects the field to not be present, ES expects it to be empty.
+  protected abstract void setEmptiedMetaAlertField(Map<String, Object> docMap);
 }
