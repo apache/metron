@@ -18,6 +18,7 @@
 package org.apache.metron.enrichment.parallel;
 
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
+import com.google.common.base.Joiner;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
@@ -152,6 +153,10 @@ public class ParallelEnricher {
     for(Map.Entry<String, List<JSONObject>> task : tasks.entrySet()) {
       //task is the list of enrichment tasks for the task.getKey() adapter
       EnrichmentAdapter<CacheKey> adapter = enrichmentsByType.get(task.getKey());
+      if(adapter == null) {
+        throw new IllegalStateException("Unable to find an adapter for " + task.getKey()
+                + ", possible adapters are: " + Joiner.on(",").join(enrichmentsByType.keySet()));
+      }
       for(JSONObject m : task.getValue()) {
         /* now for each unit of work (each of these only has one element in them)
          * the key is the field name and the value is value associated with that field.

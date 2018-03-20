@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.parallel;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
@@ -24,6 +25,7 @@ import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.adapters.stellar.StellarAdapter;
 import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.json.simple.JSONObject;
@@ -32,6 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ParallelEnricherTest {
@@ -61,6 +64,7 @@ public class ParallelEnricherTest {
   private static ParallelEnricher enricher;
   private static Context stellarContext;
   private static AtomicInteger numAccesses = new AtomicInteger(0);
+  private static Map<String, EnrichmentAdapter<CacheKey>> enrichmentsByType;
   @BeforeClass
   public static void setup() {
     ConcurrencyContext infrastructure = new ConcurrencyContext();
@@ -75,7 +79,8 @@ public class ParallelEnricherTest {
       }
     }.ofType("ENRICHMENT");
     adapter.initializeAdapter(new HashMap<>());
-    enricher = new ParallelEnricher(ImmutableMap.of("stellar", adapter), infrastructure, false);
+    enrichmentsByType = ImmutableMap.of("stellar", adapter);
+    enricher = new ParallelEnricher(enrichmentsByType, infrastructure, false);
   }
 
   @Test
@@ -153,5 +158,37 @@ public class ParallelEnricherTest {
     Assert.assertEquals(2, ret.get("foo"));
     Assert.assertEquals("TEST", ret.get("ALL_CAPS"));
     Assert.assertEquals(1, result.getEnrichmentErrors().size());
+  }
+
+  /**
+   * {
+  "enrichment": {
+    "fieldMap": {
+      "hbaseThreatIntel" : [ "ip_src_addr"]
+      }
+    ,"fieldToTypeMap": { }
+  },
+  "threatIntel": { }
+}
+   */
+  @Multiline
+  public static String badConfigWrongEnrichmentType;
+
+  @Test
+  public void testBadConfigWrongEnrichmentType() throws Exception {
+    SensorEnrichmentConfig config = JSONUtils.INSTANCE.load(badConfigWrongEnrichmentType, SensorEnrichmentConfig.class);
+    config.getConfiguration().putIfAbsent("stellarContext", stellarContext);
+    JSONObject message = new JSONObject() {{
+      put(Constants.SENSOR_TYPE, "test");
+    }};
+    try {
+      enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
+      Assert.fail("This is an invalid config, we should have failed.");
+    }
+    catch(IllegalStateException ise) {
+      Assert.assertEquals(ise.getMessage()
+              , "Unable to find an adapter for hbaseThreatIntel, possible adapters are: " + Joiner.on(",").join(enrichmentsByType.keySet())
+      );
+    }
   }
 }
