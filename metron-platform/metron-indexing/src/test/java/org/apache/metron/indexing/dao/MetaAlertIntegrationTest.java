@@ -756,9 +756,9 @@ public abstract class MetaAlertIntegrationTest {
     List<Map<String, Object>> alerts = buildAlerts(2);
     alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
     alerts.get(0).put("ip_src_addr", "192.168.1.1");
-    alerts.get(0).put("score_field", 1);
+    alerts.get(0).put("score", 1);
     alerts.get(1).put("ip_src_addr", "192.168.1.1");
-    alerts.get(1).put("score_field", 10);
+    alerts.get(1).put("score", 10);
     addRecords(alerts, getTestIndexName(), SENSOR_NAME);
 
     // Put the nested type into the test index, so that it'll match appropriately
@@ -780,7 +780,7 @@ public abstract class MetaAlertIntegrationTest {
       {
         setQuery("ip_src_addr:192.168.1.1");
         setIndices(allIndices);
-        setScoreField("score_field");
+        setScoreField("score");
         setGroups(groupList);
       }
     });

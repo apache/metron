@@ -327,8 +327,11 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
 
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
+    // TODO figure out colon in sensor:type
+    String sensorType = Constants.SENSOR_TYPE.replace(".", "\\:");
     String baseQuery = groupRequest.getQuery();
-    String adjustedQuery = "(" + baseQuery + ") AND -" + MetaAlertDao.METAALERT_FIELD + ":[* TO *]";
+    String adjustedQuery = baseQuery + " -" + MetaAlertDao.METAALERT_FIELD + ":[* TO *]"
+        + " -" + sensorType + ":" + MetaAlertDao.METAALERT_TYPE;
     groupRequest.setQuery(adjustedQuery);
     return solrDao.group(groupRequest);
   }
