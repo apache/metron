@@ -57,8 +57,32 @@
       <type>value-list</type>
       <entries>
         <entry>
-          <value>DAYS</value>
+          <value>HOURS</value>
         </entry>
+        <entry>
+          <value>MINUTES</value>
+        </entry>
+        <entry>
+          <value>SECONDS</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+  <property>
+    <name>profiler_window_duration</name>
+    <value>30</value>
+    <description>The duration of each profile window. This value should be defined along with profiler.window.duration.units</description>
+    <display-name>Window Duration</display-name>
+  </property>
+  <property>
+    <name>profiler_window_units</name>
+    <value>SECONDS</value>
+    <description>The units used to specify the profiler.window.duration. This value should be defined along with profiler.window.duration.</description>
+    <display-name>Window Units</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
         <entry>
           <value>HOURS</value>
         </entry>
@@ -71,7 +95,6 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-
   </property>
   <property>
     <name>profiler_ttl</name>
@@ -104,8 +127,54 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-
-
+  </property>
+  <property>
+    <name>profiler_window_lag</name>
+    <value>1</value>
+    <description>The maximum time lag for timestamps. Timestamps cannot arrive out-of-order by more than this amount.</description>
+    <display-name>Window Time Lag</display-name>
+  </property>
+  <property>
+    <name>profiler_window_lag_units</name>
+    <value>MINUTES</value>
+    <description>The units used to specify the Event Time Lag.</description>
+    <display-name>Window Lag Units</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>HOURS</value>
+        </entry>
+        <entry>
+          <value>MINUTES</value>
+        </entry>
+        <entry>
+          <value>SECONDS</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+  <property>
+    <name>profiler_topology_message_timeout_secs</name>
+    <description>The maximum amount of time a message has to complete before it is considered failed.</description>
+    <display-name>Profiler Topology Message Timeout</display-name>
+    <value>900</value>
+  </property>
+  <property>
+    <name>profiler_topology_max_spout_pending</name>
+    <description>Profiler Topology Spout Max Pending Tuples</description>
+    <display-name>Spout Max Pending Tuples</display-name>
+    <value/>
+    <value-attributes>
+        <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+  <property>
+    <name>profiler_max_routes_per_bolt</name>
+    <value>100000</value>
+    <description>The max number of routes allowed per bolt. The number of routes increases as the number of profiles and entities increases.</description>
+    <display-name>Max Routes Per Bolt</display-name>
   </property>
   <property>
     <name>profiler_hbase_table</name>

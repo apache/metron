@@ -17,33 +17,41 @@
  *  limitations under the License.
  *
  */
-
-package org.apache.metron.profiler;
+package org.apache.metron.profiler.clock;
 
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
-import org.apache.metron.stellar.dsl.Context;
-import org.json.simple.JSONObject;
-
-import java.util.List;
 
 /**
- * Routes incoming telemetry messages through the Profiler.
+ * Creates a {@link Clock} based on the profiler configuration.
  *
- * <p>If a message is needed by multiple profiles, then multiple {@link MessageRoute} values
- * will be returned.  If a message is not needed by any profiles, then no {@link MessageRoute} values
- * will be returned.
+ * <p>If the Profiler is configured to use event time, a {@link EventTimeClock} will
+ * be created.  Otherwise, a {@link WallClock} will be created.
  *
- * @see MessageRoute
+ * <p>The default implementation of a {@link ClockFactory}.
  */
-public interface MessageRouter {
+public class DefaultClockFactory implements ClockFactory {
 
   /**
-   * Finds all routes for a telemetry message.
-   *
-   * @param message The telemetry message that needs routed.
-   * @param config The configuration for the Profiler.
-   * @param context The Stellar execution context.
-   * @return A list of all the routes for the message.
+   * @param config The profiler configuration.
+   * @return The appropriate Clock based on the profiler configuration.
    */
-  List<MessageRoute> route(JSONObject message, ProfilerConfig config, Context context);
+  @Override
+  public Clock createClock(ProfilerConfig config) {
+    Clock clock;
+
+    boolean isEventTime = config.getTimestampField().isPresent();
+    if(isEventTime) {
+
+      // using event time
+      String timestampField = config.getTimestampField().get();
+      clock = new EventTimeClock(timestampField);
+
+    } else {
+
+      // using processing time
+      clock = new WallClock();
+    }
+
+    return clock;
+  }
 }

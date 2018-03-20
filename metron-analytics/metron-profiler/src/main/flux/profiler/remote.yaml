@@ -17,10 +17,12 @@
 name: "profiler"
 
 config:
-    topology.worker.childopts: ${topology.worker.childopts}
     topology.workers: ${profiler.workers}
     topology.acker.executors: ${profiler.executors}
+    topology.worker.childopts: ${topology.worker.childopts}
     topology.auto-credentials: ${topology.auto-credentials}
+    topology.message.timeout.secs: ${topology.message.timeout.secs}
+    topology.max.spout.pending: ${topology.max.spout.pending}
 
 components:
 
@@ -107,11 +109,23 @@ components:
             -   name: "withProducerConfigs"
                 args: [ref: "kafkaWriterProps"]
 
-    -   id: "kafkaDestinationHandler"
-        className: "org.apache.metron.profiler.bolt.KafkaDestinationHandler"
+    -   id: "kafkaEmitter"
+        className: "org.apache.metron.profiler.bolt.KafkaEmitter"
 
-    -   id: "hbaseDestinationHandler"
-        className: "org.apache.metron.profiler.bolt.HBaseDestinationHandler"
+    -   id: "hbaseEmitter"
+        className: "org.apache.metron.profiler.bolt.HBaseEmitter"
+
+    -   id: "windowDuration"
+        className: "org.apache.storm.topology.base.BaseWindowedBolt$Duration"
+        constructorArgs:
+            - ${profiler.window.duration}
+            - "${profiler.window.duration.units}"
+
+    -   id: "windowLag"
+        className: "org.apache.storm.topology.base.BaseWindowedBolt$Duration"
+        constructorArgs:
+            - ${profiler.window.lag}
+            - "${profiler.window.lag.units}"
 
 spouts:
 
@@ -129,17 +143,23 @@ bolts:
 
     -   id: "builderBolt"
         className: "org.apache.metron.profiler.bolt.ProfileBuilderBolt"
-        constructorArgs:
-            - "${kafka.zk}"
         configMethods:
+            - name: "withZookeeperUrl"
+              args: ["${kafka.zk}"]
             - name: "withPeriodDuration"
               args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
             - name: "withProfileTimeToLive"
               args: [${profiler.ttl}, "${profiler.ttl.units}"]
-            - name: "withDestinationHandler"
-              args: [ref: "kafkaDestinationHandler"]
-            - name: "withDestinationHandler"
-              args: [ref: "hbaseDestinationHandler"]
+            - name: "withEmitter"
+              args: [ref: "kafkaEmitter"]
+            - name: "withEmitter"
+              args: [ref: "hbaseEmitter"]
+            - name: "withTumblingWindow"
+              args: [ref: "windowDuration"]
+            - name: "withLag"
+              args: [ref: "windowLag"]
+            - name: "withMaxNumberOfRoutes"
+              args: [${profiler.max.routes.per.bolt}]
 
     -   id: "hbaseBolt"
         className: "org.apache.metron.hbase.bolt.HBaseBolt"
