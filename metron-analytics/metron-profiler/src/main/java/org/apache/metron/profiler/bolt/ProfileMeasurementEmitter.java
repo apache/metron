@@ -23,14 +23,17 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 
 /**
- * This class handles the mechanics of emitting a profile measurement to a
- * stream responsible for writing to a specific destination.
+ * Handles the mechanics of emitting a {@link ProfileMeasurement} to an output
+ * stream.
  *
- * The measurements produced by a profile can be written to one or more
- * destinations; HBase, Kafka, etc.  Each of the destinations leverage a
- * separate stream within the topology definition.
+ * <p>The Profiler allows the measurements produced by a profile to be written to
+ * multiple endpoints such as HBase and Kafka.  Each of these endpoints will have
+ * a unique stream that the measurements are written to.
+ *
+ * <p>Implementors of this interface are responsible for defining and managing the
+ * output stream for a specific endpoint.
  */
-public interface DestinationHandler {
+public interface ProfileMeasurementEmitter {
 
   /**
    * Each destination leverages a unique stream.  This method defines

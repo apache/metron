@@ -23,19 +23,24 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 
 /**
- * Handles emitting a ProfileMeasurement to the stream which writes
- * profile measurements to HBase.
+ * Responsible for emitting a {@link ProfileMeasurement} to an output stream that will
+ * persist data in HBase.
  */
-public class HBaseDestinationHandler implements DestinationHandler, Serializable {
+public class HBaseEmitter implements ProfileMeasurementEmitter, Serializable {
+
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * The stream identifier used for this destination;
    */
-  private String streamId = "hbase";
+  private  String streamId = "hbase";
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {

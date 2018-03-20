@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one
  *  or more contributor license agreements.  See the NOTICE file
  *  distributed with this work for additional information
@@ -17,25 +16,39 @@
  *  limitations under the License.
  *
  */
-
-package org.apache.metron.profiler.clock;
-
-import org.json.simple.JSONObject;
-
-import java.util.Optional;
+package org.apache.metron.profiler.bolt;
 
 /**
- * A {@link Clock} that advances based on system time.
+ * Signals that a flush should occur.
  *
- * <p>This {@link Clock} is used to advance time when the Profiler is running
- * on processing time, rather than event time.
+ * <p>The flush signal can be turned on or off like a switch as needed.  Most useful for testing.
  */
-public class WallClock implements Clock {
+public class ManualFlushSignal implements FlushSignal {
+
+  private boolean flushNow = false;
+
+  public void setFlushNow(boolean flushNow) {
+    this.flushNow = flushNow;
+  }
 
   @Override
-  public Optional<Long> currentTimeMillis(JSONObject message) {
+  public boolean isTimeToFlush() {
+    return flushNow;
+  }
 
-    // the message does not matter; use system time
-    return Optional.of(System.currentTimeMillis());
+  @Override
+  public void update(long timestamp) {
+    // nothing to do
+  }
+
+  @Override
+  public void reset() {
+    // nothing to do.
+  }
+
+  @Override
+  public long currentTimeMillis() {
+    // not needed
+    return 0;
   }
 }
