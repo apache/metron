@@ -52,6 +52,7 @@ import java.util.function.Supplier;
 
 public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
+  public static final String JAVA_SECURITY_CONFIG_PROPERTY = "java.security.auth.login.config";
 
   public enum SolrProperties {
     ZOOKEEPER_QUORUM("solr.zookeeper"),
@@ -250,7 +251,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     if (stormConfig == null) {
       return false;
     }
-    String value = (String) stormConfig.get("java.security.auth.login.config");
+    String value = (String) stormConfig.get(JAVA_SECURITY_CONFIG_PROPERTY);
     return value != null && !value.isEmpty();
   }
 }
