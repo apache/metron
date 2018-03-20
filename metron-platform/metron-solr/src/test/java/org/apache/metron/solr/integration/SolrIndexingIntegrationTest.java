@@ -36,11 +36,11 @@ import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.solr.integration.components.SolrComponent;
-import org.junit.Before;
 
 public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
 
   private String collection = "yaf";
+
   private FieldNameConverter fieldNameConverter = fieldName -> fieldName;
   @Override
   public FieldNameConverter getFieldNameConverter() {
@@ -50,7 +50,8 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
   @Override
   public InMemoryComponent getSearchComponent(final Properties topologyProperties) throws Exception {
     SolrComponent solrComponent = new SolrComponent.Builder()
-            .withPostStartCallback(new Function<SolrComponent, Void>() {
+        .addInitialCollection(collection, "../metron-solr/src/test/resources/solr/conf")
+        .withPostStartCallback(new Function<SolrComponent, Void>() {
               @Nullable
               @Override
               public Void apply(@Nullable SolrComponent solrComponent) {
@@ -71,10 +72,11 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
     return solrComponent;
   }
 
-  @Before
-  public void setup() {
-
-  }
+//  @Before
+//  public void setup()
+//      throws InterruptedException, SolrServerException, KeeperException, IOException {
+//    solrComponent.addInitialCollection(collection, "../metron-solr/src/test/resources/config/" + collection + "/conf");
+//  }
 
   @Override
   public Processor<List<Map<String, Object>>> getProcessor(final List<byte[]> inputMessages) {

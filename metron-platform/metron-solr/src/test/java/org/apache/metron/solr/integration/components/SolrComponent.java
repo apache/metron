@@ -52,7 +52,7 @@ public class SolrComponent implements InMemoryComponent {
 
     private int port = 8983;
     private String solrXmlPath = "../metron-solr/src/test/resources/solr/solr.xml";
-    //    private Map<String, String> collections = new HashMap<>();
+    private Map<String, String> initialCollections = new HashMap<>();
     private Function<SolrComponent, Void> postStartCallback;
 
     public Builder withPort(int port) {
@@ -65,10 +65,10 @@ public class SolrComponent implements InMemoryComponent {
       return this;
     }
 
-//    public Builder addCollection(String name, String configPath) {
-//      collections.put(name, configPath);
-//      return this;
-//    }
+    public Builder addInitialCollection(String name, String configPath) {
+      initialCollections.put(name, configPath);
+      return this;
+    }
 
     public Builder withPostStartCallback(Function<SolrComponent, Void> f) {
       postStartCallback = f;
@@ -77,19 +77,21 @@ public class SolrComponent implements InMemoryComponent {
 
     public SolrComponent build() throws Exception {
 //      if (collections.isEmpty()) throw new Exception("Must add at least 1 collection");
-      return new SolrComponent(port, solrXmlPath, postStartCallback);
+      return new SolrComponent(port, solrXmlPath, initialCollections, postStartCallback);
     }
   }
 
   private int port;
   private String solrXmlPath;
+  private Map<String, String> collections;
   private MiniSolrCloudCluster miniSolrCloudCluster;
   private Function<SolrComponent, Void> postStartCallback;
 
-  private SolrComponent(int port, String solrXmlPath,
+  private SolrComponent(int port, String solrXmlPath, Map<String, String> collections,
       Function<SolrComponent, Void> postStartCallback) {
     this.port = port;
     this.solrXmlPath = solrXmlPath;
+    this.collections = collections;
     this.postStartCallback = postStartCallback;
   }
 
@@ -100,11 +102,11 @@ public class SolrComponent implements InMemoryComponent {
       baseDir.deleteOnExit();
       miniSolrCloudCluster = new MiniSolrCloudCluster(1, baseDir.toPath(),
           JettyConfig.builder().setPort(port).build());
-//      for(String name: collections.keySet()) {
-//        String configPath = collections.get(name);
-//        miniSolrCloudCluster.uploadConfigSet(new File(configPath).toPath(), name);
-//        CollectionAdminRequest.createCollection(name, 1, 1).process(miniSolrCloudCluster.getSolrClient());
-//      }
+      for(String name: collections.keySet()) {
+        String configPath = collections.get(name);
+        miniSolrCloudCluster.uploadConfigSet(new File(configPath).toPath(), name);
+        CollectionAdminRequest.createCollection(name, 1, 1).process(miniSolrCloudCluster.getSolrClient());
+      }
       if (postStartCallback != null) {
         postStartCallback.apply(this);
       }
@@ -125,10 +127,7 @@ public class SolrComponent implements InMemoryComponent {
   public void reset() {
     try {
       miniSolrCloudCluster.deleteAllCollections();
-      ;
-//      miniSolrCloudCluster.deleteCollection("metron");
     } catch (Exception e) {
-//    } catch (SolrServerException | IOException e) {
       // Do nothing
     }
   }
