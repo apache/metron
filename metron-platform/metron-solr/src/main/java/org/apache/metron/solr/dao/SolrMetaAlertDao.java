@@ -197,8 +197,6 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     // Searches for all alerts containing the meta alert guid in it's "metalerts" array
     // The query has to match the parentFilter to avoid errors.  Guid must also be explicitly
     // included.
-
-//    {!parent which=status:active}guid:message_0
     String activeClause = STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString();
     String guidClause = Constants.GUID + ":" + guid;
     String fullClause = "{!parent which=" + activeClause + "}" + guidClause;
@@ -208,6 +206,7 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
         .addSort(Constants.GUID,
             SolrQuery.ORDER.asc); // Just do basic sorting to track where we are
 
+    // Use Solr's Cursors to handle the paging, rather than doing it manually.
     List<SearchResult> allResults = new ArrayList<>();
     try {
       String cursorMark = CursorMarkParams.CURSOR_MARK_START;
@@ -224,10 +223,8 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
         }
         cursorMark = nextCursorMark;
       }
-    } catch (IOException ioe) {
-      // TODO fill this in with something reasonable
-    } catch (SolrServerException e) {
-      // TODO fill this in with something reasonable
+    } catch (IOException | SolrServerException e) {
+      throw new InvalidSearchException("Unable to complete search", e);
     }
 
     SearchResponse searchResponse = new SearchResponse();
@@ -273,10 +270,7 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
           // Use the index in the request if it exists
           Optional<String> index = guidToIndices.get(alert.getGuid());
           if (!index.isPresent()) {
-            // TODO Figure out what to do for Solr here? Do we need to create a collection equivalent?
-            // Look up the index from Elasticsearch if one is not supplied in the request
             index = Optional.ofNullable(guidToSensorTypes.get(alert.getGuid()));
-//            index = elasticsearchDao.getIndexName(alert.getGuid(), guidToSensorTypes.get(alert.getGuid()));
             if (!index.isPresent()) {
               throw new IllegalArgumentException("Could not find index for " + alert.getGuid());
             }
@@ -378,8 +372,10 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
 
     try {
       solrDao.getClient().commit(METAALERTS_COLLECTION);
-      // TODO remove this
-      solrDao.getClient().commit("test");
+      // TODO What if we aren't passed an index?
+      if (index.isPresent()) {
+        solrDao.getClient().commit(index.get());
+      }
     } catch (SolrServerException e) {
       throw new IOException("Unable to update document", e);
     }

@@ -60,7 +60,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.util.regexp.Base.Meta;
 
 public class SolrSearchDao implements SearchDao {
 
@@ -171,9 +170,14 @@ public class SolrSearchDao implements SearchDao {
 
     // handle search fields
     Optional<List<String>> fields = searchRequest.getFields();
+    String fieldList = "*";
     if (fields.isPresent()) {
-      fields.get().forEach(query::addField);
+      fieldList = StringUtils.join(fields.get(), ",");
     }
+    // TODO figure out how to set this not here. Possibly pull into SolrUtils.
+    String childClause = fieldList + ",[child parentFilter=" + MetaAlertDao.STATUS_FIELD + ":"
+        + MetaAlertStatus.ACTIVE.getStatusString() + "]";
+    query.set("fl", childClause);
 
     //handle facet fields
     Optional<List<String>> facetFields = searchRequest.getFacetFields();
@@ -183,9 +187,6 @@ public class SolrSearchDao implements SearchDao {
 
     String collections = searchRequest.getIndices().stream().collect(Collectors.joining(","));
     query.set("collection", collections);
-    // TODO figure out how to set this not here. Possibly pull into SolrUtils.
-    String childClause = "*,[child parentFilter=" + MetaAlertDao.STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString() + "]";
-    query.set("fl", childClause);
 
     return query;
   }
