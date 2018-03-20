@@ -17,12 +17,16 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
+import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.collections.MapUtils;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
@@ -33,6 +37,8 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.cluster.metadata.IndexMetaData;
+import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,10 +82,13 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
   @Override
   public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+    MapUtils.debugPrint(System.out,"batch update", updates);
     String indexPostfix = ElasticsearchUtils
         .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
 
     BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
+
+    System.out.println("INDICES BEFORE: " + client.admin().cluster().prepareState().get().getState().getMetaData().getIndices());
 
     // Get the indices we'll actually be using for each Document.
     for (Map.Entry<Document, Optional<String>> updateEntry : updates.entrySet()) {
@@ -96,6 +105,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     }
 
     BulkResponse bulkResponse = bulkRequestBuilder.get();
+    System.out.println("INDICES AFTER: " + client.admin().cluster().prepareState().get().getState().getMetaData().getIndices());
     if (bulkResponse.hasFailures()) {
       LOG.error("Bulk Request has failures: {}", bulkResponse.buildFailureMessage());
       throw new IOException(

@@ -323,6 +323,11 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   }
 
   @Override
+  protected String getTestIndexFullName() {
+    return INDEX_WITH_SEPARATOR;
+  }
+
+  @Override
   protected void setEmptiedMetaAlertField(Map<String, Object> docMap) {
     docMap.put(MetaAlertDao.METAALERT_FIELD, new ArrayList<>());
   }

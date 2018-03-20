@@ -150,7 +150,7 @@ public abstract class MetaAlertIntegrationTest {
   public void shouldGetAllMetaAlertsForAlert() throws Exception {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(3);
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlerts
     List<Map<String, Object>> metaAlerts = buildMetaAlerts(12, MetaAlertStatus.ACTIVE,
@@ -213,7 +213,7 @@ public abstract class MetaAlertIntegrationTest {
   public void shouldCreateMetaAlert() throws Exception {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(3);
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -225,7 +225,7 @@ public abstract class MetaAlertIntegrationTest {
       MetaAlertCreateRequest metaAlertCreateRequest = new MetaAlertCreateRequest() {{
         setAlerts(new ArrayList<GetRequest>() {{
           add(new GetRequest("message_1", SENSOR_NAME));
-          add(new GetRequest("message_2", SENSOR_NAME, getTestIndexName()));
+          add(new GetRequest("message_2", SENSOR_NAME, getTestIndexFullName()));
         }});
         setGroups(Collections.singletonList("group"));
       }};
@@ -282,7 +282,7 @@ public abstract class MetaAlertIntegrationTest {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(4);
     alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlert
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
@@ -370,7 +370,7 @@ public abstract class MetaAlertIntegrationTest {
     alerts.get(1).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
     alerts.get(2).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
     alerts.get(3).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlert
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
@@ -469,7 +469,7 @@ public abstract class MetaAlertIntegrationTest {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(2);
     alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlert
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.INACTIVE,
@@ -520,7 +520,7 @@ public abstract class MetaAlertIntegrationTest {
     for (Map<String, Object> alert : childAlerts) {
       alert.put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
     }
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlerts
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
@@ -660,7 +660,7 @@ public abstract class MetaAlertIntegrationTest {
     alerts.get(0).put("score", 1);
     alerts.get(1).put("ip_src_addr", "192.168.1.1");
     alerts.get(1).put("score", 10);
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Put the nested type into the test index, so that it'll match appropriately
     setupTypings();
@@ -705,7 +705,7 @@ public abstract class MetaAlertIntegrationTest {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(2);
     alerts.get(0).put(METAALERT_FIELD, Arrays.asList("meta_active", "meta_inactive"));
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlerts
     Map<String, Object> activeMetaAlert = buildMetaAlert("meta_active", MetaAlertStatus.ACTIVE,
@@ -736,7 +736,8 @@ public abstract class MetaAlertIntegrationTest {
       String guid = "" + message0.get(Constants.GUID);
       // TODO keep the index name here?
       metaDao
-          .update(new Document(message0, guid, SENSOR_NAME, null), Optional.of(getTestIndexName()));
+          .update(new Document(message0, guid, SENSOR_NAME, null),
+              Optional.of(getTestIndexFullName()));
 
       {
         // Verify alerts are up-to-date
@@ -807,7 +808,7 @@ public abstract class MetaAlertIntegrationTest {
     List<Map<String, Object>> alerts = buildAlerts(2);
     alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
     alerts.get(1).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Put the nested type into the test index, so that it'll match appropriately
     setupTypings();
@@ -871,6 +872,7 @@ public abstract class MetaAlertIntegrationTest {
 
   protected void findUpdatedDoc(Map<String, Object> message0, String guid, String sensorType)
       throws InterruptedException, IOException, OriginalNotFoundException {
+    // TODO clean all of this up.  ALL OF IT
     commit();
     System.out.println("GUID: " + guid);
     MapUtils.debugPrint(System.out, "expected", message0);
@@ -1019,7 +1021,13 @@ public abstract class MetaAlertIntegrationTest {
 
   protected abstract void setupTypings();
 
+  // Get the base index name without any adjustments (e.g. without ES's "_index")
   protected abstract String getTestIndexName();
+
+  // Get the full name of the test index.  E.g. Elasticsearch appends "_index"
+  protected String getTestIndexFullName() {
+    return getTestIndexName();
+  }
 
   // Allow for impls to do any commit they need to do.
   protected void commit() throws IOException {
