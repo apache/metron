@@ -181,7 +181,7 @@ class IndexingCommands:
     def start_batch_indexing_topology(self, env):
         Logger.info('Starting ' + self.__batch_indexing_topology)
 
-        if not self.is_topology_active(env):
+        if not self.is_batch_topology_active(env):
             if self.__params.security_enabled:
                 metron_security.kinit(self.__params.kinit_path_local,
                                       self.__params.metron_keytab_path,
@@ -200,7 +200,7 @@ class IndexingCommands:
     def start_random_access_indexing_topology(self, env):
         Logger.info('Starting ' + self.__random_access_indexing_topology)
 
-        if not self.is_topology_active(env):
+        if not self.is_random_access_topology_active(env):
             if self.__params.security_enabled:
                 metron_security.kinit(self.__params.kinit_path_local,
                                       self.__params.metron_keytab_path,
@@ -263,21 +263,48 @@ class IndexingCommands:
 
     def restart_indexing_topology(self, env):
         Logger.info('Restarting the indexing topologies')
-        self.stop_indexing_topology(env)
+        self.restart_batch_indexing_topology(env)
+        self.restart_random_access_indexing_topology(env)
+
+    def restart_batch_indexing_topology(self, env):
+        Logger.info('Restarting the batch indexing topology')
+        self.stop_batch_indexing_topology(env)
 
         # Wait for old topology to be cleaned up by Storm, before starting again.
         retries = 0
-        topology_active = self.is_topology_active(env)
-        while self.is_topology_active(env) and retries < 3:
-            Logger.info('Existing topology still active. Will wait and retry')
+        topology_active = self.is_batch_topology_active(env)
+        while topology_active and retries < 3:
+            Logger.info('Existing batch topology still active. Will wait and retry')
             time.sleep(10)
             retries += 1
+            topology_active = self.is_batch_topology_active(env)
 
         if not topology_active:
             Logger.info('Waiting for storm kill to complete')
             time.sleep(30)
-            self.start_indexing_topology(env)
-            Logger.info('Done restarting the indexing topologies')
+            self.start_batch_indexing_topology(env)
+            Logger.info('Done restarting the batch indexing topology')
+        else:
+            Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')
+
+    def restart_random_access_indexing_topology(self, env):
+        Logger.info('Restarting the random access indexing topology')
+        self.stop_random_access_indexing_topology(env)
+
+        # Wait for old topology to be cleaned up by Storm, before starting again.
+        retries = 0
+        topology_active = self.is_random_access_topology_active(env)
+        while topology_active and retries < 3:
+            Logger.info('Existing random access topology still active. Will wait and retry')
+            time.sleep(10)
+            retries += 1
+            topology_active = self.is_random_access_topology_active(env)
+
+        if not topology_active:
+            Logger.info('Waiting for storm kill to complete')
+            time.sleep(30)
+            self.start_random_access_indexing_topology(env)
+            Logger.info('Done restarting the random access indexing topology')
         else:
             Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')
 
