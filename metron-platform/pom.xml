@@ -46,6 +46,7 @@
 		<module>metron-enrichment</module>
 		<module>metron-solr</module>
 		<module>metron-parsers</module>
+		<module>metron-parsers-contrib</module>
 		<module>metron-pcap-backend</module>
 		<module>metron-data-management</module>
 		<module>metron-pcap</module>

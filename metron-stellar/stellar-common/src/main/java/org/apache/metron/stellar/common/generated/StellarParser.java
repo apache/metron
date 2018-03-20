@@ -1,4 +1,4 @@
-// Generated from org/apache/metron/stellar/common/generated/Stellar.g4 by ANTLR 4.5
+// Generated from org\apache\metron\stellar\common\generated\Stellar.g4 by ANTLR 4.5
 package org.apache.metron.stellar.common.generated;
 
 //CHECKSTYLE:OFF

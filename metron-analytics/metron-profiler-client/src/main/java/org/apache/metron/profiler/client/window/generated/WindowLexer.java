@@ -1,4 +1,4 @@
-// Generated from org/apache/metron/profiler/client/window/generated/Window.g4 by ANTLR 4.5
+// Generated from org\apache\metron\profiler\client\window\generated\Window.g4 by ANTLR 4.5
 package org.apache.metron.profiler.client.window.generated;
 
 //CHECKSTYLE:OFF

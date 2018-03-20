@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>nl.qsight</groupId>
+    <artifactId>metron-parsers-contrib</artifactId>
+    <version>1.0.0</version>
+
+    <properties>
+        <!-- The java version to conform to.  Metron works all the way to 1.8 -->
+        <java_version>1.8</java_version>
+        <!-- The version of Metron that we'll be targetting. -->
+        <metron_version>0.4.1</metron_version>
+        <!-- To complete the simulation, we'll depend on a common dependency -->
+        <guava_version>19.0</guava_version>
+        <!-- We will shade our dependencies to create a single jar at the end -->
+        <shade_version>2.4.3</shade_version>
+    </properties>
+    <dependencies>
+        <!--
+        We want to depend on Metron, but ensure that the scope is "provided"
+        as we do not want to include it in our bundle.
+        -->
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-parsers</artifactId>
+            <version>${metron_version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava_version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hubspot.jinjava</groupId>
+            <artifactId>jinjava</artifactId>
+            <version>2.0.5</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.9.9</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <!-- We will set up the shade plugin to create a single jar at the
+                  end of the build lifecycle.  We will exclude some things and
+                  relocate others to simulate a real situation.
+
+                  One thing to note is that it's a good practice to shade and
+                  relocate common libraries that may be dependencies in Metron.
+                  Your jar will be merged with the parserconfig jar, so the metron
+                  version will be included for all overlapping classes.
+                  So, shade and relocate to ensure that YOUR version of the library is used.
+             -->
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${shade_version}</version>
+                <configuration>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <artifactSet>
+                        <excludes>
+                            <!-- Exclude slf4j for no reason other than to illustrate how to exclude dependencies.
+                                 The metron team has nothing against slf4j. :-)
+                             -->
+                            <exclude>*slf4j*</exclude>
+                        </excludes>
+                    </artifactSet>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>uber</shadedClassifierName>
+                            <filters>
+                                <filter>
+                                    <!-- Sometimes these get added and confuse the uber jar out of shade -->
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <relocations>
+                                <!-- Relocate guava as it's used in Metron and I really want 0.19 -->
+                                <relocation>
+                                    <pattern>com.google</pattern>
+                                    <shadedPattern>com.thirdparty.guava</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <artifactSet>
+                                <excludes>
+                                    <!-- We can also exclude by artifactId and groupId -->
+                                    <exclude>storm:storm-core:*</exclude>
+                                    <exclude>storm:storm-lib:*</exclude>
+                                    <exclude>org.slf4j.impl*</exclude>
+                                    <exclude>org.slf4j:slf4j-log4j*</exclude>
+                                </excludes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--
+            We want to make sure we compile using java 1.8.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                    <source>${java_version}</source>
+                    <compilerArgument>-Xlint:unchecked</compilerArgument>
+                    <target>${java_version}</target>
+                    <showWarnings>true</showWarnings>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
