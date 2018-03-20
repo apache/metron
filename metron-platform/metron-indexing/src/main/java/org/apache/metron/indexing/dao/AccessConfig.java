@@ -29,6 +29,7 @@ public class AccessConfig {
   private Supplier<Map<String, Object>> globalConfigSupplier;
   private Map<String, String> optionalSettings = new HashMap<>();
   private TableProvider tableProvider = null;
+  private Boolean isKerberosEnabled = false;
 
   /**
    * @return A supplier which will return the current global config.
@@ -83,5 +84,16 @@ public class AccessConfig {
 
   public void setTableProvider(TableProvider tableProvider) {
     this.tableProvider = tableProvider;
+  }
+
+  /**
+   * @return True if clients should be configured for Kerberos
+   */
+  public Boolean getKerberosEnabled() {
+    return isKerberosEnabled;
+  }
+
+  public void setKerberosEnabled(Boolean kerberosEnabled) {
+    isKerberosEnabled = kerberosEnabled;
   }
 }
