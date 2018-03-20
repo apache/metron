@@ -307,41 +307,4 @@ public class SolrSearchDao implements SearchDao {
     }
     return searchResultGroups;
   }
-
-// TODO delete this if we're good.
-//  <T> Optional<T> searchByGuid(String guid, String sensorType) {
-//    Collection<String> sensorTypes = sensorType != null ? Collections.singleton(sensorType) : null;
-//    List<T> results = searchByGuids(Collections.singleton(guid), sensorTypes, callback);
-//    if (results.size() > 0) {
-//      return Optional.of(results.get(0));
-//    } else {
-//      return Optional.empty();
-//    }
-//  }
-
-//  private Document toDocument(SolrDocument solrDocument) {
-//    Map<String, Object> document = new HashMap<>();
-//    solrDocument.getFieldNames().stream()
-//        .filter(name -> !name.equals(SolrDao.VERSION_FIELD))
-//        .forEach(name -> document.put(name, solrDocument.getFieldValue(name)));
-//    // Make sure to put child documents in
-//    // TODO Make this actually recurse all layers
-//    // TODO Can we make it possible to name child docs?
-//    if (solrDocument.hasChildDocuments()) {
-//      List<Map<String, Object>> childDocuments = new ArrayList<>();
-//      for (SolrDocument childDoc : solrDocument.getChildDocuments()) {
-//        Map<String, Object> childDocMap = new HashMap<>();
-//        solrDocument.getFieldNames().stream()
-//            .filter(name -> !name.equals(SolrDao.VERSION_FIELD))
-//            .forEach(name -> childDocMap.put(name, childDoc.getFieldValue(name)));
-//        childDocuments.add(childDocMap);
-//      }
-//
-//      // TODO Make this not live here.  It's absurd.
-//      document.put(MetaAlertDao.ALERT_FIELD, childDocuments);
-//    }
-//    return new Document(document,
-//        (String) solrDocument.getFieldValue(Constants.GUID),
-//        (String) solrDocument.getFieldValue("source:type"), 0L);
-//  }
 }
