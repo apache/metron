@@ -75,8 +75,7 @@ public class SolrComponent implements InMemoryComponent {
       return this;
     }
 
-    public SolrComponent build() throws Exception {
-//      if (collections.isEmpty()) throw new Exception("Must add at least 1 collection");
+    public SolrComponent build() {
       return new SolrComponent(port, solrXmlPath, initialCollections, postStartCallback);
     }
   }

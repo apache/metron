@@ -275,8 +275,6 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     try {
       List<String> collections = solr.getSolrClient().listCollections();
       for (String collection : collections) {
-        // TODO remove this
-        System.out.println("***** COMMITTING COLLECTION: " + collection);
         solr.getSolrClient().commit(collection);
       }
     } catch (SolrServerException e) {

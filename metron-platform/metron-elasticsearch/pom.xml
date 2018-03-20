@@ -210,27 +210,12 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
             <version>${global_log4j_core_version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${global_log4j_core_version}</version>
             <scope>compile</scope>
-        </dependency>
-        <!-- TODO Revert changes in this POM before committing -->
-        <!-- Use 2.7 to get ES working in integration tests working in IntelliJ -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>2.7</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.7</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

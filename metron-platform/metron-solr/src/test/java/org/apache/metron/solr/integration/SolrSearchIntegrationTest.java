@@ -83,15 +83,10 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
 
   @SuppressWarnings("unchecked")
   protected static void loadTestData() throws ParseException, IOException, SolrServerException {
-//    CloudSolrClient solrClient = solrComponent.getSolrClient();
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
     solrComponent.addDocs("bro", broArray);
-//    solrClient.setDefaultCollection("bro");
-//    solrClient.commit();
     JSONArray snortArray = (JSONArray) new JSONParser().parse(snortData);
     solrComponent.addDocs("snort", snortArray);
-//    solrClient.setDefaultCollection("snort");
-//    solrClient.commit();
   }
 
   @Override

@@ -459,9 +459,8 @@ public abstract class MetaAlertIntegrationTest {
 
       Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert",
           Collections.singletonList(new GetRequest("message_3", SENSOR_NAME))));
-      findUpdatedDocTest(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
+      findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
-
   }
 
   @Test
@@ -890,34 +889,6 @@ public abstract class MetaAlertIntegrationTest {
       }
     }
 
-    throw new OriginalNotFoundException(
-        "Count not find " + guid + " after " + MAX_RETRIES + " tries");
-  }
-
-
-  // TODO kill this whole method when done debugging
-  protected void findUpdatedDocTest(Map<String, Object> message0, String guid, String sensorType)
-      throws InterruptedException, IOException, OriginalNotFoundException {
-    commit();
-    System.out.println("GUID: " + guid);
-    MapUtils.debugPrint(System.out, "expected", message0);
-    for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
-      Document doc = metaDao.getLatest(guid, sensorType);
-      MapUtils.debugPrint(System.out, "actual", doc.getDocument());
-      // Change the underlying document alerts lists to sets to avoid ordering issues.
-      convertAlertsFieldToSet(doc.getDocument());
-      convertAlertsFieldToSet(message0);
-
-      if (doc.getDocument() != null && message0.equals(doc.getDocument())) {
-        convertAlertsFieldToList(doc.getDocument());
-        convertAlertsFieldToList(message0);
-        return;
-      }
-    }
-
-//    while(true) {
-//
-//    }
     throw new OriginalNotFoundException(
         "Count not find " + guid + " after " + MAX_RETRIES + " tries");
   }
