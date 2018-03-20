@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.MetaAlertDao;
@@ -87,7 +88,6 @@ public class SolrSearchDao implements SearchDao {
     }
     SolrQuery query = buildSearchRequest(searchRequest);
     try {
-      System.out.println("SolrSearchDao query is: " + query);
       QueryResponse response = client.query(query);
       return buildSearchResponse(searchRequest, response);
     } catch (IOException | SolrServerException e) {
@@ -229,20 +229,19 @@ public class SolrSearchDao implements SearchDao {
     return searchResponse;
   }
 
-  // TODO delete this if necessary
-//  private SearchResult getSearchResult(SolrDocument solrDocument, Optional<List<String>> fields) {
-//    SearchResult searchResult = new SearchResult();
-//    searchResult.setId((String) solrDocument.getFieldValue(Constants.GUID));
-//    Map<String, Object> source;
-//    if (fields.isPresent()) {
-//      source = new HashMap<>();
-//      fields.get().forEach(field -> source.put(field, solrDocument.getFieldValue(field)));
-//    } else {
-//      source = solrDocument.getFieldValueMap();
-//    }
-//    searchResult.setSource(source);
-//    return searchResult;
-//  }
+  private SearchResult getSearchResult(SolrDocument solrDocument, Optional<List<String>> fields) {
+    SearchResult searchResult = new SearchResult();
+    searchResult.setId((String) solrDocument.getFieldValue(Constants.GUID));
+    Map<String, Object> source;
+    if (fields.isPresent()) {
+      source = new HashMap<>();
+      fields.get().forEach(field -> source.put(field, solrDocument.getFieldValue(field)));
+    } else {
+      source = solrDocument.getFieldValueMap();
+    }
+    searchResult.setSource(source);
+    return searchResult;
+  }
 
   private Map<String, Map<String, Long>> getFacetCounts(List<String> fields,
       QueryResponse solrResponse) {

@@ -50,7 +50,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
   @Override
   public InMemoryComponent getSearchComponent(final Properties topologyProperties) throws Exception {
     SolrComponent solrComponent = new SolrComponent.Builder()
-        .addInitialCollection(collection, "../metron-solr/src/test/resources/solr/conf")
+        .addInitialCollection(collection, "../metron-solr/src/main/config/schema/yaf")
         .withPostStartCallback(new Function<SolrComponent, Void>() {
               @Nullable
               @Override
@@ -71,12 +71,6 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
             .build();
     return solrComponent;
   }
-
-//  @Before
-//  public void setup()
-//      throws InterruptedException, SolrServerException, KeeperException, IOException {
-//    solrComponent.addInitialCollection(collection, "../metron-solr/src/test/resources/config/" + collection + "/conf");
-//  }
 
   @Override
   public Processor<List<Map<String, Object>>> getProcessor(final List<byte[]> inputMessages) {
