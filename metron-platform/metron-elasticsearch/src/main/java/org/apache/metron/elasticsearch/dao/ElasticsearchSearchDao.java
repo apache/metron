@@ -239,8 +239,6 @@ public class ElasticsearchSearchDao implements SearchDao {
       searchBuilder.fetchSource(true);
     }
 
-    Optional<List<String>> facetFields = searchRequest.getFacetFields();
-
     // handle facet fields
     if (searchRequest.getFacetFields().isPresent()) {
       // https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/_bucket_aggregations.html

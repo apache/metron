@@ -170,7 +170,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
       {
         setQuery(
             "ip_src_addr:192.168.1.1 AND ip_src_port:8010");
-        setIndices(allIndices);
+        setIndices(queryIndices);
         setFrom(0);
         setSize(5);
         setSort(Collections.singletonList(new SortField() {
@@ -192,7 +192,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
       {
         setQuery(
             "ip_src_addr:192.168.1.3 AND ip_src_port:8008");
-        setIndices(allIndices);
+        setIndices(queryIndices);
         setFrom(0);
         setSize(1);
         setSort(Collections.singletonList(new SortField() {

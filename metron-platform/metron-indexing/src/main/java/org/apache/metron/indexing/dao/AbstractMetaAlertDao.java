@@ -51,8 +51,8 @@ import org.apache.metron.stellar.common.utils.ConversionUtils;
 public abstract class AbstractMetaAlertDao implements MetaAlertDao {
 
   // TODO refactor and rename appropriate constants to use neutral names.  Or not?
-  protected IndexDao indexDao;
   //  protected String index = METAALERTS_INDEX;
+  protected IndexDao indexDao;
   protected String threatTriageField = THREAT_FIELD_DEFAULT;
 
   /**

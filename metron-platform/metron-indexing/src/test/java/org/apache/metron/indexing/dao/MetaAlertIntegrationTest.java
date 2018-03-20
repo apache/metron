@@ -71,12 +71,16 @@ public abstract class MetaAlertIntegrationTest {
   protected static final String NAME_FIELD = "name";
   protected static final String DATE_FORMAT = "yyyy.MM.dd.HH";
 
+  // Separate the raw indices from the query indices. ES for example, modifies the indices to
+  // have a separator
   protected ArrayList<String> allIndices = new ArrayList<String>() {
     {
       add(getTestIndexName());
-      add(METAALERT_TYPE);
+      add(metaDao.getMetaAlertIndex());
     }
   };
+
+  protected ArrayList<String> queryIndices = allIndices;
 
   protected static MetaAlertDao metaDao;
 
@@ -645,107 +649,7 @@ public abstract class MetaAlertIntegrationTest {
         searchResponse.getResults().get(0).getSource().get(STATUS_FIELD));
   }
 
-  @Test
-  public void shouldSearchByNestedAlert() throws Exception {
-    // Load alerts
-    List<Map<String, Object>> alerts = buildAlerts(4);
-    alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
-    alerts.get(0).put("ip_src_addr", "192.168.1.1");
-    alerts.get(0).put("ip_src_port", 8010);
-    alerts.get(1).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
-    alerts.get(1).put("ip_src_addr", "192.168.1.2");
-    alerts.get(1).put("ip_src_port", 8009);
-    alerts.get(2).put("ip_src_addr", "192.168.1.3");
-    alerts.get(2).put("ip_src_port", 8008);
-    alerts.get(3).put("ip_src_addr", "192.168.1.4");
-    alerts.get(3).put("ip_src_port", 8007);
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
 
-    // Put the nested type into the test index, so that it'll match appropriately
-    setupTypings();
-
-    // Load metaAlerts
-    Map<String, Object> activeMetaAlert = buildMetaAlert("meta_active", MetaAlertStatus.ACTIVE,
-        Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
-    Map<String, Object> inactiveMetaAlert = buildMetaAlert("meta_inactive",
-        MetaAlertStatus.INACTIVE,
-        Optional.of(Arrays.asList(alerts.get(2), alerts.get(3))));
-    // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), metaDao.getMetaAlertIndex(),
-        METAALERT_TYPE);
-
-    // Verify load was successful
-    findCreatedDocs(Arrays.asList(
-        new GetRequest("message_0", SENSOR_NAME),
-        new GetRequest("message_1", SENSOR_NAME),
-        new GetRequest("message_2", SENSOR_NAME),
-        new GetRequest("message_3", SENSOR_NAME),
-        new GetRequest("meta_active", METAALERT_TYPE),
-        new GetRequest("meta_inactive", METAALERT_TYPE)));
-
-    SearchResponse searchResponse = metaDao.search(new SearchRequest() {
-      {
-        setQuery(
-            "(ip_src_addr:192.168.1.1 AND ip_src_port:8009) OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8009)");
-        setIndices(Collections.singletonList(METAALERT_TYPE));
-        setFrom(0);
-        setSize(5);
-        setSort(Collections.singletonList(new SortField() {
-          {
-            setField(Constants.GUID);
-          }
-        }));
-      }
-    });
-    // Should not have results because nested alerts shouldn't be flattened
-    Assert.assertEquals(0, searchResponse.getTotal());
-
-    // Query against all indices. Only the single active meta alert should be returned.
-    // The child alerts should be hidden.
-    searchResponse = metaDao.search(new SearchRequest() {
-      {
-        setQuery(
-            "(ip_src_addr:192.168.1.1 AND ip_src_port:8010)"
-                + " OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8010)");
-        setIndices(allIndices);
-        setFrom(0);
-        setSize(5);
-        setSort(Collections.singletonList(new SortField() {
-          {
-            setField(Constants.GUID);
-          }
-        }));
-      }
-    });
-
-    // Nested query should match a nested alert
-    Assert.assertEquals(1, searchResponse.getTotal());
-    Assert.assertEquals("meta_active",
-        searchResponse.getResults().get(0).getSource().get("guid"));
-
-    // Query against all indices. The child alert has no actual attached meta alerts, and should
-    // be returned on its own.
-    searchResponse = metaDao.search(new SearchRequest() {
-      {
-        setQuery(
-            "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
-                + " OR (alert.ip_src_addr:192.168.1.3 AND alert.ip_src_port:8008)");
-        setIndices(allIndices);
-        setFrom(0);
-        setSize(1);
-        setSort(Collections.singletonList(new SortField() {
-          {
-            setField(Constants.GUID);
-          }
-        }));
-      }
-    });
-
-    // Nested query should match a plain alert
-    Assert.assertEquals(1, searchResponse.getTotal());
-    Assert.assertEquals("message_2",
-        searchResponse.getResults().get(0).getSource().get("guid"));
-  }
 
   @Test
   public void shouldHidesAlertsOnGroup() throws Exception {
@@ -776,7 +680,7 @@ public abstract class MetaAlertIntegrationTest {
     GroupResponse groupResponse = metaDao.group(new GroupRequest() {
       {
         setQuery("ip_src_addr:192.168.1.1");
-        setIndices(allIndices);
+        setIndices(queryIndices);
         setScoreField("score");
         setGroups(groupList);
       }
@@ -789,6 +693,11 @@ public abstract class MetaAlertIntegrationTest {
     // No delta, since no ops happen
     Assert.assertEquals(10.0d, result.getScore(), 0.0d);
   }
+
+  // This test is important enough that everyone should implement it, but is pretty specific to
+  // implementation
+  @Test
+  public abstract void shouldSearchByNestedAlert() throws Exception;
 
   @SuppressWarnings("unchecked")
   @Test
