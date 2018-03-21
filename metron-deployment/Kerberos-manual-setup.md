@@ -688,6 +688,10 @@ The last step before restarting the topology is to create a custom X-Pack shaded
                             </filter>
                           </filters>
                           <relocations>
+				<relocation>
+                                    <pattern>io.netty</pattern>
+                                    <shadedPattern>org.apache.metron.io.netty</shadedPattern>
+                                </relocation>
                                 <relocation>
                                     <pattern>org.apache.logging.log4j</pattern>
                                     <shadedPattern>org.apache.metron.logging.log4j</shadedPattern>
