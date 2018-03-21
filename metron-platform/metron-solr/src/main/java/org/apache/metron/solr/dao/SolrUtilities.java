@@ -88,9 +88,6 @@ public class SolrUtilities {
           }
           solrInputDocument.addChildDocument(childDocument);
         }
-        if (alerts.size() == 0) {
-          solrInputDocument.addChildDocuments(new ArrayList<>());
-        }
       } else {
         solrInputDocument.addField(field.getKey(), field.getValue());
       }

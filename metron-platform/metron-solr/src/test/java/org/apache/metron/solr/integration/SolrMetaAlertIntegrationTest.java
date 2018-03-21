@@ -289,6 +289,11 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
   @Override
   protected boolean isFiniteDoubleOnly() {
-    return true;
+    return false;
+  }
+
+  @Override
+  protected boolean isEmptyMetaAlertList() {
+    return false;
   }
 }

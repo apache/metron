@@ -336,4 +336,9 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   protected boolean isFiniteDoubleOnly() {
     return true;
   }
+
+  @Override
+  protected boolean isEmptyMetaAlertList() {
+    return true;
+  }
 }

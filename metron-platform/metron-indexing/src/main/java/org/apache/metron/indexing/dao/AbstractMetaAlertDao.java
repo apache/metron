@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,7 +31,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.apache.commons.collections.MapUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
@@ -114,6 +112,9 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
       throws IOException {
     Map<Document, Optional<String>> updates = new HashMap<>();
     Document metaAlert = getLatest(metaAlertGuid, METAALERT_TYPE);
+    List<Map<String, Object>> alertsBefore = new ArrayList<>();
+    alertsBefore
+        .addAll((List<Map<String, Object>>) metaAlert.getDocument().get(MetaAlertDao.ALERT_FIELD));
     if (MetaAlertStatus.ACTIVE.getStatusString()
         .equals(metaAlert.getDocument().get(STATUS_FIELD))) {
       Iterable<Document> alerts = getAllLatest(alertRequests);
@@ -121,6 +122,12 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
           Collectors.toList());
       boolean metaAlertUpdated = removeAlertsFromMetaAlert(metaAlert, alertGuids);
       if (metaAlertUpdated) {
+        List<Map<String, Object>> alertsAfter = (List<Map<String, Object>>) metaAlert.getDocument()
+            .get(MetaAlertDao.ALERT_FIELD);
+        // If we have no alerts left, we might need to handle the deletes manually. Thanks Solr.
+        if (alertsAfter.size() < alertsBefore.size() && alertsAfter.size() == 0) {
+          deleteRemainingMetaAlerts(alertsBefore);
+        }
         calculateMetaScores(metaAlert);
         updates.put(metaAlert, Optional.of(getMetaAlertIndex()));
         for (Document alert : alerts) {
@@ -134,6 +141,11 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
     } else {
       throw new IllegalStateException("Removing alerts from an INACTIVE meta alert is not allowed");
     }
+  }
+
+  // Do nothing by default.  It's implementation weirdness can be handled.
+  protected void deleteRemainingMetaAlerts(
+      List<Map<String, Object>> alertsBefore) throws IOException {
   }
 
   protected boolean removeAlertsFromMetaAlert(Document metaAlert, Collection<String> alertGuids) {
