@@ -108,6 +108,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   }
 
   @Test
+  @Override
   public void shouldSearchByNestedAlert() throws Exception {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(4);
@@ -209,6 +210,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
         searchResponse.getResults().get(0).getSource().get("guid"));
   }
 
+  @Override
   protected long getMatchingAlertCount(String fieldName, Object fieldValue)
       throws InterruptedException {
     long cnt = 0;
@@ -224,6 +226,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     return cnt;
   }
 
+  @Override
   protected long getMatchingMetaAlertCount(String fieldName, String fieldValue)
       throws InterruptedException {
     long cnt = 0;

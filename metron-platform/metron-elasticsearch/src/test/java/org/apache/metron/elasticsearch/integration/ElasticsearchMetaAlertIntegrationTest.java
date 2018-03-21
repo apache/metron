@@ -154,6 +154,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   }
 
   @Test
+  @Override
   public void shouldSearchByNestedAlert() throws Exception {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(4);
@@ -256,6 +257,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
         searchResponse.getResults().get(0).getSource().get("guid"));
   }
 
+  @Override
   protected long getMatchingAlertCount(String fieldName, Object fieldValue)
       throws IOException, InterruptedException {
     long cnt = 0;
@@ -271,6 +273,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     return cnt;
   }
 
+  @Override
   protected long getMatchingMetaAlertCount(String fieldName, String fieldValue)
       throws IOException, InterruptedException {
     long cnt = 0;
@@ -297,6 +300,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     return cnt;
   }
 
+  @Override
   protected void addRecords(List<Map<String, Object>> inputData, String index, String docType)
       throws IOException {
     es.add(index, docType, inputData.stream().map(m -> {
@@ -310,6 +314,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     );
   }
 
+  @Override
   protected void setupTypings() {
     ((ElasticsearchDao) esDao).getClient().admin().indices().preparePutMapping(INDEX_WITH_SEPARATOR)
         .setType("test_doc")
