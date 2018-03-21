@@ -146,7 +146,7 @@ public class KafkaEmitterTest {
     assertEquals(measurement.getPeriod().getPeriod(),             actual.get("period"));
     assertEquals(measurement.getPeriod().getStartTimeMillis(),    actual.get("period.start"));
     assertEquals(measurement.getPeriod().getEndTimeMillis(),      actual.get("period.end"));
-    assertEquals("profiler",                             actual.get("source.type"));
+    assertEquals("profiler",                                      actual.get("source.type"));
     assertNotNull(actual.get("timestamp"));
 
     // validate that the triage value has been added
@@ -213,7 +213,7 @@ public class KafkaEmitterTest {
     assertEquals(measurement.getPeriod().getPeriod(),             actual.get("period"));
     assertEquals(measurement.getPeriod().getStartTimeMillis(),    actual.get("period.start"));
     assertEquals(measurement.getPeriod().getEndTimeMillis(),      actual.get("period.end"));
-    assertEquals("profiler",                             actual.get("source.type"));
+    assertEquals("profiler",                                      actual.get("source.type"));
 
     // the invalid expression should be skipped and not included in the message
     assertFalse(actual.containsKey("invalid"));
