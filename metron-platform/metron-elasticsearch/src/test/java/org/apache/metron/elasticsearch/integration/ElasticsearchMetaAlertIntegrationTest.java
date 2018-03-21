@@ -234,7 +234,6 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
     // Query against all indices. The child alert has no actual attached meta alerts, and should
     // be returned on its own.
-    System.out.println("INDICES ARE: " + allIndices);
     searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery(

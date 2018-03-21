@@ -26,7 +26,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.collections.MapUtils;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
@@ -82,13 +81,10 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
   @Override
   public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
-    MapUtils.debugPrint(System.out,"batch update", updates);
     String indexPostfix = ElasticsearchUtils
         .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
 
     BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
-
-    System.out.println("INDICES BEFORE: " + client.admin().cluster().prepareState().get().getState().getMetaData().getIndices());
 
     // Get the indices we'll actually be using for each Document.
     for (Map.Entry<Document, Optional<String>> updateEntry : updates.entrySet()) {
@@ -105,7 +101,6 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     }
 
     BulkResponse bulkResponse = bulkRequestBuilder.get();
-    System.out.println("INDICES AFTER: " + client.admin().cluster().prepareState().get().getState().getMetaData().getIndices());
     if (bulkResponse.hasFailures()) {
       LOG.error("Bulk Request has failures: {}", bulkResponse.buildFailureMessage());
       throw new IOException(
