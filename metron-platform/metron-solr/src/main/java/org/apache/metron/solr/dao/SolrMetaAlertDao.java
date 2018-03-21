@@ -54,7 +54,6 @@ import org.apache.solr.common.params.CursorMarkParams;
 public class SolrMetaAlertDao extends AbstractMetaAlertDao {
 
   private static final String METAALERTS_COLLECTION = "metaalert";
-
   private static final String CHILD_DOCUMENTS = "_childDocuments_";
 
   private SolrDao solrDao;

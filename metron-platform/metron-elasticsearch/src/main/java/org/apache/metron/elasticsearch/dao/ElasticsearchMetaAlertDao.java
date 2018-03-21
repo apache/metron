@@ -66,8 +66,6 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
   public static final String SOURCE_TYPE = Constants.SENSOR_TYPE.replace('.', ':');
   public static final String THREAT_TRIAGE_FIELD = THREAT_FIELD_DEFAULT.replace('.', ':');
   private static final String METAALERTS_INDEX = "metaalert_index";
-  private static final String STATUS_PATH = "/status";
-  private static final String ALERT_PATH = "/alert";
 
   private ElasticsearchDao elasticsearchDao;
 
@@ -272,45 +270,6 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
       addAlertsToMetaAlert(metaAlert, Collections.singleton(alert));
     }
     return metaAlertUpdated;
-  }
-
-
-
-  /**
-   * Does not allow patches on the "alerts" or "status" fields.  These fields must be updated with their
-   * dedicated methods.
-   *
-   * @param request The patch request
-   * @param timestamp Optionally a timestamp to set. If not specified then current time is used.
-   * @throws OriginalNotFoundException
-   * @throws IOException
-   */
-  @Override
-  public void patch(PatchRequest request, Optional<Long> timestamp)
-      throws OriginalNotFoundException, IOException {
-    if (isPatchAllowed(request)) {
-      Document d = getPatchedDocument(request, timestamp);
-      indexDao.update(d, Optional.ofNullable(request.getIndex()));
-    } else {
-      throw new IllegalArgumentException(
-          "Meta alert patches are not allowed for /alert or /status paths.  "
-              + "Please use the add/remove alert or update status functions instead.");
-    }
-  }
-
-  protected boolean isPatchAllowed(PatchRequest request) {
-    if(request.getPatch() != null && !request.getPatch().isEmpty()) {
-      for(Map<String, Object> patch : request.getPatch()) {
-        Object pathObj = patch.get("path");
-        if(pathObj != null && pathObj instanceof String) {
-          String path = (String)pathObj;
-          if (STATUS_PATH.equals(path) || ALERT_PATH.equals(path)) {
-            return false;
-          }
-        }
-      }
-    }
-    return true;
   }
 
   /**

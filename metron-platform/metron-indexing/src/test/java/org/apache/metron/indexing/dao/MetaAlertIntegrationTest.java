@@ -63,6 +63,7 @@ import org.junit.Test;
 
 public abstract class MetaAlertIntegrationTest {
 
+  private static final String META_INDEX_FLAG = "%META_INDEX%";
   // To change back after testing
   protected static int MAX_RETRIES = 10;
   protected static final int SLEEP_MS = 500;
@@ -88,7 +89,7 @@ public abstract class MetaAlertIntegrationTest {
   /**
    {
    "guid": "meta_alert",
-   "index": "metaalert_index",
+   "index": "%META_INDEX%",
    "patch": [
    {
    "op": "add",
@@ -105,7 +106,7 @@ public abstract class MetaAlertIntegrationTest {
   /**
    {
    "guid": "meta_alert",
-   "index": "metaalert_index",
+   "index": "%META_INDEX%",
    "patch": [
    {
    "op": "add",
@@ -127,7 +128,7 @@ public abstract class MetaAlertIntegrationTest {
   /**
    {
    "guid": "meta_alert",
-   "index": "metaalert_index",
+   "index": "%META_INDEX%",
    "patch": [
    {
    "op": "add",
@@ -562,11 +563,9 @@ public abstract class MetaAlertIntegrationTest {
 
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
 
-      System.out.println("*** SEARCHING FOR CHILD ALERTS");
       for (int i = 0; i < numChildAlerts; ++i) {
         Map<String, Object> expectedAlert = new HashMap<>(alerts.get(i));
         expectedAlert.put("metaalerts", Collections.singletonList("meta_alert"));
-        System.out.println("*** LOOKING FOR ALERT: " + i);
         findUpdatedDoc(expectedAlert, "message_" + i, SENSOR_NAME);
       }
 
@@ -793,9 +792,7 @@ public abstract class MetaAlertIntegrationTest {
     }
   }
 
-  // TODO remove the @Ignore once Solr works
   @Test
-  @Ignore
   public void shouldPatchAllowedMetaAlerts() throws Exception {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(2);
@@ -822,7 +819,8 @@ public abstract class MetaAlertIntegrationTest {
     expectedMetaAlert.put(NAME_FIELD, "New Meta Alert");
     {
       // Verify a patch to a field other than "status" or "alert" can be patched
-      PatchRequest patchRequest = JSONUtils.INSTANCE.load(namePatchRequest, PatchRequest.class);
+      String namePatch = namePatchRequest.replace(META_INDEX_FLAG, metaDao.getMetaAlertIndex());
+      PatchRequest patchRequest = JSONUtils.INSTANCE.load(namePatch, PatchRequest.class);
       metaDao.patch(patchRequest, Optional.of(System.currentTimeMillis()));
 
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
@@ -831,7 +829,8 @@ public abstract class MetaAlertIntegrationTest {
     {
       // Verify a patch to an alert field should throw an exception
       try {
-        PatchRequest patchRequest = JSONUtils.INSTANCE.load(alertPatchRequest, PatchRequest.class);
+        String alertPatch = alertPatchRequest.replace(META_INDEX_FLAG, metaDao.getMetaAlertIndex());
+        PatchRequest patchRequest = JSONUtils.INSTANCE.load(alertPatch, PatchRequest.class);
         metaDao.patch(patchRequest, Optional.of(System.currentTimeMillis()));
 
         Assert.fail("A patch on the alert field should throw an exception");
@@ -848,7 +847,8 @@ public abstract class MetaAlertIntegrationTest {
     {
       // Verify a patch to a status field should throw an exception
       try {
-        PatchRequest patchRequest = JSONUtils.INSTANCE.load(statusPatchRequest, PatchRequest.class);
+        String statusPatch = statusPatchRequest.replace(META_INDEX_FLAG, metaDao.getMetaAlertIndex());
+        PatchRequest patchRequest = JSONUtils.INSTANCE.load(statusPatch, PatchRequest.class);
         metaDao.patch(patchRequest, Optional.of(System.currentTimeMillis()));
 
         Assert.fail("A patch on the status field should throw an exception");
@@ -865,13 +865,9 @@ public abstract class MetaAlertIntegrationTest {
 
   protected void findUpdatedDoc(Map<String, Object> message0, String guid, String sensorType)
       throws InterruptedException, IOException, OriginalNotFoundException {
-    // TODO clean all of this up.  ALL OF IT
     commit();
-    System.out.println("GUID: " + guid);
-    MapUtils.debugPrint(System.out, "expected", message0);
     for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
       Document doc = metaDao.getLatest(guid, sensorType);
-      MapUtils.debugPrint(System.out, "actual", doc.getDocument());
       // Change the underlying document alerts lists to sets to avoid ordering issues.
       convertAlertsFieldToSet(doc.getDocument());
       convertAlertsFieldToSet(message0);
@@ -944,7 +940,6 @@ public abstract class MetaAlertIntegrationTest {
       Map<String, Object> alerts = new HashMap<>();
       alerts.put(Constants.GUID, guid);
       alerts.put(metaDao.getSourceTypeField(), SENSOR_NAME);
-      // TODO Why does this need to be cast for Solr? Does it need for ES?
       alerts.put(MetaAlertDao.THREAT_FIELD_DEFAULT, (double) i);
       alerts.put("timestamp", System.currentTimeMillis());
       inputData.add(alerts);
