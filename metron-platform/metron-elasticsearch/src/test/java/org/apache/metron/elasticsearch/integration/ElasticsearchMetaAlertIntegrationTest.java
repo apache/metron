@@ -331,4 +331,9 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   protected void setEmptiedMetaAlertField(Map<String, Object> docMap) {
     docMap.put(MetaAlertDao.METAALERT_FIELD, new ArrayList<>());
   }
+
+  @Override
+  protected boolean isFiniteDoubleOnly() {
+    return true;
+  }
 }

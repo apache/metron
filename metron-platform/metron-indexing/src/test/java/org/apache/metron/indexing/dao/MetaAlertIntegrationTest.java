@@ -449,13 +449,20 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put(ALERT_FIELD, metaAlertAlerts);
 
       expectedMetaAlert.put("average", 0.0d);
-      // TODO handle +/- INF and NaN properly for Solr and ES
-      expectedMetaAlert.put("min", Double.POSITIVE_INFINITY);
-      expectedMetaAlert.put("median", Double.NaN);
-      expectedMetaAlert.put("max", Double.NEGATIVE_INFINITY);
       expectedMetaAlert.put("count", 0);
       expectedMetaAlert.put("sum", 0.0d);
       expectedMetaAlert.put(metaDao.getThreatTriageField(), 0.0d);
+
+      // Handle the cases with non-finite Double values on a per store basis
+      if (isFiniteDoubleOnly()) {
+        expectedMetaAlert.put("min", String.valueOf(Double.POSITIVE_INFINITY));
+        expectedMetaAlert.put("median", String.valueOf(Double.NaN));
+        expectedMetaAlert.put("max", String.valueOf(Double.NEGATIVE_INFINITY));
+      } else {
+        expectedMetaAlert.put("min", Double.POSITIVE_INFINITY);
+        expectedMetaAlert.put("median", Double.NaN);
+        expectedMetaAlert.put("max", Double.NEGATIVE_INFINITY);
+      }
 
       Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert",
           Collections.singletonList(new GetRequest("message_3", SENSOR_NAME))));
@@ -647,7 +654,6 @@ public abstract class MetaAlertIntegrationTest {
     Assert.assertEquals(MetaAlertStatus.ACTIVE.getStatusString(),
         searchResponse.getResults().get(0).getSource().get(STATUS_FIELD));
   }
-
 
 
   @Test
@@ -1007,4 +1013,8 @@ public abstract class MetaAlertIntegrationTest {
   // Different stores can have different representations of empty metaalerts field.
   // E.g. Solr expects the field to not be present, ES expects it to be empty.
   protected abstract void setEmptiedMetaAlertField(Map<String, Object> docMap);
+
+  // Different stores may choose to store non finite double values as Strings.
+  // E.g. NaN may be a string, not a double value.
+  protected abstract boolean isFiniteDoubleOnly();
 }

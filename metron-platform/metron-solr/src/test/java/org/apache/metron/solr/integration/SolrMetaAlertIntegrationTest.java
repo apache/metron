@@ -286,4 +286,9 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   protected void setEmptiedMetaAlertField(Map<String, Object> docMap) {
     docMap.remove(MetaAlertDao.METAALERT_FIELD);
   }
+
+  @Override
+  protected boolean isFiniteDoubleOnly() {
+    return true;
+  }
 }
