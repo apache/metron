@@ -11,16 +11,16 @@
   ],
   "parsers": {
     "key_value_parser": {
-      "class": "nl.qsight.links.io.KeyValueLink",
+      "class": "org.apache.metron.parsers.contrib.links.io.KeyValueLink",
       "pair_delimiter": "|",
       "key_value_delimiter": ":",
       "valid_key_characters": "a-zA-z"
     },
     "trim_whitespaces": {
-      "class" : "nl.qsight.links.fields.TrimValueLink"
+      "class" : "org.apache.metron.parsers.contrib.links.fields.TrimValueLink"
     },
     "parse_datetime": {
-      "class": "nl.qsight.links.io.TimestampLink",
+      "class": "org.apache.metron.parsers.contrib.links.io.TimestampLink",
       "patterns": [
         [
           "([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})",
@@ -36,7 +36,7 @@
       "input": "{{TIME}}"
     },
     "parse_macaddress": {
-      "class": "nl.qsight.links.io.RegexLink",
+      "class": "org.apache.metron.parsers.contrib.links.io.RegexLink",
       "pattern": "(Client-identifier: )([^\\|]++)",
       "selector": {
         "mac_address": "2"
@@ -44,7 +44,7 @@
       "input": "{{original_string}}"
     },
     "parse_message_type": {
-      "class": "nl.qsight.links.io.RegexLink",
+      "class": "org.apache.metron.parsers.contrib.links.io.RegexLink",
       "pattern": "(DHCP message type: \\d \\|)([\\w]++)",
       "selector": {
         "message_type": "2"
@@ -52,7 +52,7 @@
       "input": "{{original_string}}"
     },
     "parse_hostname": {
-      "class": "nl.qsight.links.io.RegexLink",
+      "class": "org.apache.metron.parsers.contrib.links.io.RegexLink",
       "pattern": "(Host name: )([^\\|]++)",
       "selector": {
         "hostname": "2"
@@ -60,10 +60,10 @@
       "input": "{{original_string}}"
     },
     "normalize_fields": {
-      "class" : "nl.qsight.links.fields.NormalizeFieldLink"
+      "class" : "org.apache.metron.parsers.contrib.links.fields.NormalizeFieldLink"
     },
     "rename_fields": {
-      "class": "nl.qsight.links.fields.RenameLink",
+      "class": "org.apache.metron.parsers.contrib.links.fields.RenameLink",
       "rename": {
         "ciaddr": "ip_src_addr"
       }

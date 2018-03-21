@@ -7,7 +7,7 @@
   ],
   "parsers": {
     "values_splitter": {
-      "class": "nl.qsight.links.io.SplitLink",
+      "class": "org.apache.metron.parsers.contrib.links.io.SplitLink",
       "delimiter": "|",
       "selector": {
         "1": "start-time",
@@ -38,7 +38,7 @@
       }
     },
     "parse_datetime": {
-      "class": "nl.qsight.links.io.TimestampLink",
+      "class": "org.apache.metron.parsers.contrib.links.io.TimestampLink",
       "patterns": [
         [
           "([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})",
@@ -54,10 +54,10 @@
       "input": "{{end-time}}"
     },
     "trim_whitespaces": {
-      "class" : "nl.qsight.links.fields.TrimValueLink"
+      "class" : "org.apache.metron.parsers.contrib.links.fields.TrimValueLink"
     },
     "rename_fields": {
-      "class": "nl.qsight.links.fields.RenameLink",
+      "class": "org.apache.metron.parsers.contrib.links.fields.RenameLink",
       "rename": {
         "sip": "ip_src_addr",
         "sp": "ip_src_port",
