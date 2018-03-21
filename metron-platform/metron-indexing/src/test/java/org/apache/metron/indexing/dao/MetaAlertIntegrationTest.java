@@ -244,35 +244,17 @@ public abstract class MetaAlertIntegrationTest {
       }
       {
         // Verify alert 1 was properly updated with metaalert field
-        Document alert = metaDao.getLatest("message_1", SENSOR_NAME);
-        Assert.assertEquals(5, alert.getDocument().size());
-        Object metaAlertField = alert.getDocument().get(METAALERT_FIELD);
-        if (metaAlertField instanceof List) {
-          Assert.assertEquals(1, ((List) alert.getDocument().get(METAALERT_FIELD)).size());
-          Assert.assertEquals(metaAlertCreateResponse.getGuid(),
-              ((List) alert.getDocument().get(METAALERT_FIELD)).get(0));
-        } else {
-          // Solr in particular will return this as a single string, rather than a list.
-          Assert.assertTrue(metaAlertField instanceof String);
-          Assert.assertEquals(metaAlertCreateResponse.getGuid(),
-              alert.getDocument().get(METAALERT_FIELD));
-        }
+        Map<String, Object> expectedAlert = new HashMap<>(alerts.get(1));
+        expectedAlert
+            .put(METAALERT_FIELD, Collections.singletonList(metaAlertCreateResponse.getGuid()));
+        findUpdatedDoc(expectedAlert, "message_1", SENSOR_NAME);
       }
       {
         // Verify alert 2 was properly updated with metaalert field
-        Document alert = metaDao.getLatest("message_2", SENSOR_NAME);
-        Assert.assertEquals(5, alert.getDocument().size());
-        Object metaAlertField = alert.getDocument().get(METAALERT_FIELD);
-        if (metaAlertField instanceof List) {
-          Assert.assertEquals(1, ((List) alert.getDocument().get(METAALERT_FIELD)).size());
-          Assert.assertEquals(metaAlertCreateResponse.getGuid(),
-              ((List) alert.getDocument().get(METAALERT_FIELD)).get(0));
-        } else {
-          // Solr in particular will return this as a single string, rather than a list.
-          Assert.assertTrue(metaAlertField instanceof String);
-          Assert.assertEquals(metaAlertCreateResponse.getGuid(),
-              alert.getDocument().get(METAALERT_FIELD));
-        }
+        Map<String, Object> expectedAlert = new HashMap<>(alerts.get(2));
+        expectedAlert
+            .put(METAALERT_FIELD, Collections.singletonList(metaAlertCreateResponse.getGuid()));
+        findUpdatedDoc(expectedAlert, "message_2", SENSOR_NAME);
       }
     }
   }
