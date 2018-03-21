@@ -117,8 +117,10 @@ public class SolrComponent implements InMemoryComponent {
   @Override
   public void stop() {
     try {
+      miniSolrCloudCluster.deleteAllCollections();
       miniSolrCloudCluster.shutdown();
     } catch (Exception e) {
+      // Do nothing
     }
   }
 
