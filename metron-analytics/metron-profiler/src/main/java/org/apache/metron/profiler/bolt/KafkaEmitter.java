@@ -69,8 +69,18 @@ public class KafkaEmitter implements ProfileMeasurementEmitter, Serializable {
       appendTriageValues(measurement, message);
       collector.emit(getStreamId(), new Values(message));
 
+      LOG.debug("Emitted measurement; stream={}, profile={}, entity={}, period={}, start={}, end={}",
+              getStreamId(),
+              measurement.getProfileName(),
+              measurement.getEntity(),
+              measurement.getPeriod().getPeriod(),
+              measurement.getPeriod().getStartTimeMillis(),
+              measurement.getPeriod().getEndTimeMillis());
+
     } else {
-      LOG.debug("No triage values, nothing to emit; profile={}, entity={}, period={}, start={}, end={}",
+
+      LOG.debug("No triage values, nothing to emit; stream={}, profile={}, entity={}, period={}, start={}, end={}",
+              getStreamId(),
               measurement.getProfileName(),
               measurement.getEntity(),
               measurement.getPeriod().getPeriod(),
