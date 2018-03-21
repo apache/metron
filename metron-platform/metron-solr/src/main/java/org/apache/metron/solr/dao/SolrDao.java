@@ -121,4 +121,8 @@ public class SolrDao implements IndexDao {
   public SolrClient getClient() {
     return client;
   }
+
+  public SolrSearchDao getSolrSearchDao() {
+    return solrSearchDao;
+  }
 }

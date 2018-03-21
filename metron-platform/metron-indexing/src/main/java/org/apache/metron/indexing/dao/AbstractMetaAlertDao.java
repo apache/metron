@@ -50,8 +50,6 @@ import org.apache.metron.stellar.common.utils.ConversionUtils;
  */
 public abstract class AbstractMetaAlertDao implements MetaAlertDao {
 
-  // TODO refactor and rename appropriate constants to use neutral names.  Or not?
-  //  protected String index = METAALERTS_INDEX;
   protected IndexDao indexDao;
   protected String threatTriageField = THREAT_FIELD_DEFAULT;
   private static final String STATUS_PATH = "/status";
@@ -71,7 +69,6 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
   public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException {
     Map<Document, Optional<String>> updates = new HashMap<>();
-    // TODO again, type vs index?
     Document metaAlert = getLatest(metaAlertGuid, getMetAlertSensorName());
     if (MetaAlertStatus.ACTIVE.getStatusString()
         .equals(metaAlert.getDocument().get(STATUS_FIELD))) {
@@ -192,7 +189,7 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
           .get(MetaAlertDao.ALERT_FIELD);
       currentAlerts.stream().forEach(currentAlert -> {
         getRequests.add(new GetRequest((String) currentAlert.get(GUID),
-            (String) currentAlert.get(getSourceTypeField())));
+            (String) currentAlert.get(MetaAlertDao.SOURCE_TYPE)));
       });
       Iterable<Document> alerts = getAllLatest(getRequests);
       for (Document alert : alerts) {
@@ -303,8 +300,6 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
   protected Document buildCreateDocument(Iterable<Document> alerts, List<String> groups,
       String alertField) {
     // Need to create a Document from the multiget. Scores will be calculated later
-    // TODO Concerned that SolrUpdateDao won't pick up ALERT_FIELD properly?.
-    // Unsure if schema takes care of it.
     Map<String, Object> metaSource = new HashMap<>();
     List<Map<String, Object>> alertList = new ArrayList<>();
     for (Document alert : alerts) {

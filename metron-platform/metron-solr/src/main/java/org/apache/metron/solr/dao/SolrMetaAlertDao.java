@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AbstractMetaAlertDao;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -48,6 +49,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.CursorMarkParams;
 
@@ -84,11 +86,9 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     //uninitialized.
   }
 
-  // TODO Update this comment if necessary
-
   /**
    * Initializes this implementation by setting the supplied IndexDao and also setting a separate SolrDao.
-   * This is needed for some specific Elasticsearch functions (looking up an index from a GUID for example).
+   * This is needed for some specific Solr functions (looking up an index from a GUID for example).
    * @param indexDao The DAO to wrap for our queries
    * @param threatSort The summary aggregation of the child threat triage scores used
    *                   as the overall threat triage score for the metaalert. This
@@ -142,10 +142,7 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
 
   @Override
   public String getMetAlertSensorName() {
-    // TODO determine if this is right.
-    // Pretty sure the actually correct answer is to kill this and make METAALERT_TYPE work for queries
-    // Just return the collection name instead of a type (since Solr doesn't have one)
-    return METAALERTS_COLLECTION;
+    return METAALERT_TYPE;
   }
 
   @Override
@@ -232,7 +229,6 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     return searchResponse;
   }
 
-  // TODO this is largely identical to ES.  Should refactor to share
   @Override
   public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException {
@@ -251,7 +247,7 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     calculateMetaScores(metaAlert);
 
     // Add source type to be consistent with other sources and allow filtering
-    metaAlert.getDocument().put(Constants.SENSOR_TYPE, MetaAlertDao.METAALERT_TYPE);
+    metaAlert.getDocument().put(MetaAlertDao.SOURCE_TYPE, MetaAlertDao.METAALERT_TYPE);
 
     // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();
@@ -300,8 +296,7 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     String activeStatusClause =
         MetaAlertDao.STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString();
 
-    // TODO figure out colon in sensor:type
-    String sensorType = Constants.SENSOR_TYPE.replace(".", "\\:");
+    String sensorType = ClientUtils.escapeQueryChars(MetaAlertDao.SOURCE_TYPE);
     String metaalertTypeClause = sensorType + ":" + MetaAlertDao.METAALERT_TYPE;
     // Use the 'v=' form in order to ensure complex clauses are properly handled.
     // Per the docs, the 'which=' clause should be used to identify all metaalert parents, not to
@@ -321,22 +316,38 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
             + " OR " + parentChildQuery;
 
     searchRequest.setQuery(fullQuery);
-    return indexDao.search(searchRequest);
+
+    // Build the custom field list
+    Optional<List<String>> fields = searchRequest.getFields();
+    String fieldList = "*";
+    if (fields.isPresent()) {
+      fieldList = StringUtils.join(fields.get(), ",");
+    }
+    String childClause = fieldList + ",[child parentFilter=" + MetaAlertDao.STATUS_FIELD + ":"
+        + MetaAlertStatus.ACTIVE.getStatusString() + "]";
+
+    return solrDao.getSolrSearchDao().search(searchRequest, childClause);
   }
 
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
-    // TODO figure out colon in sensor:type
-    String sensorType = Constants.SENSOR_TYPE.replace(".", "\\:");
+    // Make sure to escape any problematic characters here
+    String sourceType = ClientUtils.escapeQueryChars(MetaAlertDao.SOURCE_TYPE);
     String baseQuery = groupRequest.getQuery();
     String adjustedQuery = baseQuery + " -" + MetaAlertDao.METAALERT_FIELD + ":[* TO *]"
-        + " -" + sensorType + ":" + MetaAlertDao.METAALERT_TYPE;
+        + " -" + sourceType + ":" + MetaAlertDao.METAALERT_TYPE;
     groupRequest.setQuery(adjustedQuery);
     return solrDao.group(groupRequest);
   }
 
+  /**
+   * Updates a document in Solr for a given collection.  Collection is not optional for Solr.
+   * @param update The update to be run
+   * @param collection The index to be updated. Mandatory for Solr
+   * @throws IOException Thrown when an error occurs during the write.
+   */
   @Override
-  public void update(Document update, Optional<String> index) throws IOException {
+  public void update(Document update, Optional<String> collection) throws IOException {
     if (METAALERT_TYPE.equals(update.getSensorType())) {
       // We've been passed an update to the meta alert.
       throw new UnsupportedOperationException("Meta alerts cannot be directly updated");
@@ -345,7 +356,7 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     // index can't be optional, or it won't be committed
 
     Map<Document, Optional<String>> updates = new HashMap<>();
-    updates.put(update, index);
+    updates.put(update, collection);
 
     // We need to update an alert itself. It cannot be delegated in Solr; we need to retrieve all
     // metaalerts and update the entire document for each.
@@ -374,9 +385,8 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
 
     try {
       solrDao.getClient().commit(METAALERTS_COLLECTION);
-      // TODO What if we aren't passed an index?
-      if (index.isPresent()) {
-        solrDao.getClient().commit(index.get());
+      if (collection.isPresent()) {
+        solrDao.getClient().commit(collection.get());
       }
     } catch (SolrServerException e) {
       throw new IOException("Unable to update document", e);

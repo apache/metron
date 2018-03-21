@@ -57,7 +57,7 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   public static Map<String, Collection<String>> METAALERT_STORE = new HashMap<>();
 
   private IndexDao indexDao;
-  private int pageSize=10;
+  private int pageSize = 10;
 
   /**
    * {
@@ -115,11 +115,6 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   @Override
   public String getMetaAlertIndex() {
     return "metaalert_index";
-  }
-
-  @Override
-  public String getSourceTypeField() {
-    return "source:type";
   }
 
   @Override

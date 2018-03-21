@@ -63,7 +63,6 @@ import org.elasticsearch.index.query.QueryStringQueryBuilder;
 
 public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
 
-  public static final String SOURCE_TYPE = Constants.SENSOR_TYPE.replace('.', ':');
   public static final String THREAT_TRIAGE_FIELD = THREAT_FIELD_DEFAULT.replace('.', ':');
   private static final String METAALERTS_INDEX = "metaalert_index";
 
@@ -363,11 +362,6 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
   @Override
   public void setPageSize(int pageSize) {
     this.pageSize = pageSize;
-  }
-
-  @Override
-  public String getSourceTypeField() {
-    return SOURCE_TYPE;
   }
 
   @Override

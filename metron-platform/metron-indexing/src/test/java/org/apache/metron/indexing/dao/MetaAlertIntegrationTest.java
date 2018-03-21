@@ -38,7 +38,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
@@ -58,7 +57,6 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public abstract class MetaAlertIntegrationTest {
@@ -719,15 +717,12 @@ public abstract class MetaAlertIntegrationTest {
       Map<String, Object> message0 = new HashMap<String, Object>(alerts.get(0)) {
         {
           put(NEW_FIELD, "metron");
-          // TODO does this break ES?  This shouldn't be a string
           put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
         }
       };
       String guid = "" + message0.get(Constants.GUID);
-      // TODO keep the index name here?
-      metaDao
-          .update(new Document(message0, guid, SENSOR_NAME, null),
-              Optional.of(getTestIndexFullName()));
+      metaDao.update(new Document(message0, guid, SENSOR_NAME, null),
+          Optional.of(getTestIndexFullName()));
 
       {
         // Verify alerts are up-to-date
@@ -847,7 +842,8 @@ public abstract class MetaAlertIntegrationTest {
     {
       // Verify a patch to a status field should throw an exception
       try {
-        String statusPatch = statusPatchRequest.replace(META_INDEX_FLAG, metaDao.getMetaAlertIndex());
+        String statusPatch = statusPatchRequest
+            .replace(META_INDEX_FLAG, metaDao.getMetaAlertIndex());
         PatchRequest patchRequest = JSONUtils.INSTANCE.load(statusPatch, PatchRequest.class);
         metaDao.patch(patchRequest, Optional.of(System.currentTimeMillis()));
 
@@ -939,7 +935,7 @@ public abstract class MetaAlertIntegrationTest {
       final String guid = "message_" + i;
       Map<String, Object> alerts = new HashMap<>();
       alerts.put(Constants.GUID, guid);
-      alerts.put(metaDao.getSourceTypeField(), SENSOR_NAME);
+      alerts.put(MetaAlertDao.SOURCE_TYPE, SENSOR_NAME);
       alerts.put(MetaAlertDao.THREAT_FIELD_DEFAULT, (double) i);
       alerts.put("timestamp", System.currentTimeMillis());
       inputData.add(alerts);
@@ -961,7 +957,7 @@ public abstract class MetaAlertIntegrationTest {
       Optional<List<Map<String, Object>>> alerts) {
     Map<String, Object> metaAlert = new HashMap<>();
     metaAlert.put(Constants.GUID, guid);
-    metaAlert.put(metaDao.getSourceTypeField(), METAALERT_TYPE);
+    metaAlert.put(MetaAlertDao.SOURCE_TYPE, METAALERT_TYPE);
     metaAlert.put(STATUS_FIELD, status.getStatusString());
     if (alerts.isPresent()) {
       List<Map<String, Object>> alertsList = alerts.get();

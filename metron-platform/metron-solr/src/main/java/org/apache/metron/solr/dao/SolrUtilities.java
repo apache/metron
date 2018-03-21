@@ -53,9 +53,8 @@ public class SolrUtilities {
         .filter(name -> !name.equals(SolrDao.VERSION_FIELD))
         .forEach(name -> document.put(name, solrDocument.getFieldValue(name)));
     // Make sure to put child alerts in
-    // TODO fix this whole replace nonsense.
     if (solrDocument.hasChildDocuments() && solrDocument
-        .getFieldValue(Constants.SENSOR_TYPE.replace('.', ':'))
+        .getFieldValue(MetaAlertDao.SOURCE_TYPE)
         .equals(SolrMetaAlertDao.METAALERT_TYPE)) {
       List<Map<String, Object>> childDocuments = new ArrayList<>();
       for (SolrDocument childDoc : solrDocument.getChildDocuments()) {
@@ -68,11 +67,9 @@ public class SolrUtilities {
 
       document.put(MetaAlertDao.ALERT_FIELD, childDocuments);
     }
-    // TODO fix this whole replace nonsense.
     return new Document(document,
         (String) solrDocument.getFieldValue(Constants.GUID),
-        (String) solrDocument.getFieldValue(Constants.SENSOR_TYPE.replace('.', ':')),
-        0L);
+        (String) solrDocument.getFieldValue(MetaAlertDao.SOURCE_TYPE), 0L);
   }
 
   public static SolrInputDocument toSolrInputDocument(Document document) {

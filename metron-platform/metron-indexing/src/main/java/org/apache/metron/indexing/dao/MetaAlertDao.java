@@ -18,9 +18,9 @@
 
 package org.apache.metron.indexing.dao;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.io.IOException;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
@@ -73,6 +73,7 @@ public interface MetaAlertDao extends IndexDao {
   String ALERT_FIELD = "alert";
   String STATUS_FIELD = "status";
   String GROUPS_FIELD = "groups";
+  String SOURCE_TYPE = Constants.SENSOR_TYPE.replace('.', ':');
 
   /**
    * Given an alert GUID, retrieve all associated meta alerts.
@@ -107,7 +108,8 @@ public interface MetaAlertDao extends IndexDao {
    * @return True or false depending on if any alerts were added
    * @throws IOException
    */
-  boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> getRequests) throws IOException;
+  boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> getRequests)
+      throws IOException;
 
   /**
    * Removes a list of alerts from an existing meta alert.  This will remove each alert object from the "alerts" array in the meta alert
@@ -120,7 +122,8 @@ public interface MetaAlertDao extends IndexDao {
    * @return True or false depending on if any alerts were removed
    * @throws IOException
    */
-  boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> getRequests) throws IOException;
+  boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> getRequests)
+      throws IOException;
 
   /**
    * The meta alert status field can be set to either 'active' or 'inactive' and will control whether or not meta alerts
@@ -159,12 +162,6 @@ public interface MetaAlertDao extends IndexDao {
   String getMetAlertSensorName();
 
   String getMetaAlertIndex();
-
-  // TODO figure out if these two are needed or should be moved back
-  default String getSourceTypeField() {
-    // TODO make sure this works
-    return Constants.SENSOR_TYPE.replace('.', ':');
-  }
 
   default String getThreatTriageField() {
     return THREAT_FIELD_DEFAULT;
