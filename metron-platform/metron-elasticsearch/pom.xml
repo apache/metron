@@ -215,7 +215,6 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${global_log4j_core_version}</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 
