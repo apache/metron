@@ -35,6 +35,8 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.HttpClientUtil;
+import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +71,9 @@ public class SolrDao implements IndexDao {
 
   @Override
   public void init(AccessConfig config) {
+    if (config.getKerberosEnabled()) {
+      HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
+    }
     if (this.client == null) {
       Map<String, Object> globalConfig = config.getGlobalConfigSupplier().get();
       String zkHost = (String) globalConfig.get("solr.zookeeper");
