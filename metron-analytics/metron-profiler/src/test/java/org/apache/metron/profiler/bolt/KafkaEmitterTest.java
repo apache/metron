@@ -43,6 +43,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -58,54 +59,128 @@ public class KafkaEmitterTest {
    *   "foreach": "ip_src_addr",
    *   "init":   { "x": "0" },
    *   "update": { "x": "x + 1" },
-   *   "result": "x"
+   *   "result": {
+   *      "profile": "x",
+   *      "triage": {
+   *        "value": "x"
+   *       }
+   *    }
    * }
    */
   @Multiline
-  private String profileDefinition;
+  private String profileDefinitionWithTriage;
 
-  private KafkaEmitter handler;
+  private KafkaEmitter kafkaEmitter;
   private ProfileConfig profile;
   private OutputCollector collector;
 
   @Before
   public void setup() throws Exception {
-    handler = new KafkaEmitter();
-    profile = createDefinition(profileDefinition);
+    kafkaEmitter = new KafkaEmitter();
+    profile = createDefinition(profileDefinitionWithTriage);
     collector = Mockito.mock(OutputCollector.class);
   }
 
   /**
-   * The handler must serialize the ProfileMeasurement into a JSONObject.
+   * The handler should emit a message when a result/triage expression(s) has been defined.
    */
   @Test
-  public void testSerialization() throws Exception {
+  public void testEmit() throws Exception {
 
+    // create a measurement that has triage values
     ProfileMeasurement measurement = new ProfileMeasurement()
             .withProfileName("profile")
             .withEntity("entity")
             .withPeriod(20000, 15, TimeUnit.MINUTES)
-            .withTriageValues(Collections.singletonMap("triage-key", "triage-value"))
+            .withDefinition(profile)
+            .withTriageValues(Collections.singletonMap("triage-key", "triage-value"));
+
+    // execute the test
+    kafkaEmitter.emit(measurement, collector);
+
+    // a message should be emitted
+    verify(collector, times(1)).emit(eq(kafkaEmitter.getStreamId()), any());
+  }
+
+  /**
+   * The handler should NOT emit a message when there is NO result/triage value(s).
+   */
+  @Test
+  public void testDoNotEmit() throws Exception {
+
+    // create a measurement with NO triage values
+    ProfileMeasurement measurement = new ProfileMeasurement()
+            .withProfileName("profile")
+            .withEntity("entity")
+            .withPeriod(20000, 15, TimeUnit.MINUTES)
             .withDefinition(profile);
-    handler.emit(measurement, collector);
 
-    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-    verify(collector, times(1)).emit(eq(handler.getStreamId()), arg.capture());
+    // execute the test
+    kafkaEmitter.emit(measurement, collector);
 
-    // expect a JSONObject
-    Values values = arg.getValue();
-    assertTrue(values.get(0) instanceof JSONObject);
+    // a message should NOT be emitted
+    verify(collector, times(0)).emit(eq(kafkaEmitter.getStreamId()), any());
+  }
 
-    // validate the json
-    JSONObject actual = (JSONObject) values.get(0);
-    assertEquals(measurement.getDefinition().getProfile(), actual.get("profile"));
-    assertEquals(measurement.getEntity(), actual.get("entity"));
-    assertEquals(measurement.getPeriod().getPeriod(), actual.get("period"));
-    assertEquals(measurement.getPeriod().getStartTimeMillis(), actual.get("period.start"));
-    assertEquals(measurement.getPeriod().getEndTimeMillis(), actual.get("period.end"));
-    assertEquals(measurement.getTriageValues().get("triage-key"), actual.get("triage-key"));
+  /**
+   * Validate that the message generated for Kafka should include the triage value.
+   */
+  @Test
+  public void testTriageValueInMessage() throws Exception {
+
+    // create a measurement that has triage values
+    ProfileMeasurement measurement = new ProfileMeasurement()
+            .withDefinition(profile)
+            .withProfileName(profile.getProfile())
+            .withEntity("entity")
+            .withPeriod(20000, 15, TimeUnit.MINUTES)
+            .withTriageValues(Collections.singletonMap("triage-key", "triage-value"));
+
+    // execute the test
+    kafkaEmitter.emit(measurement, collector);
+    JSONObject actual = expectJsonObject(kafkaEmitter, collector);
+
+    // validate the core parts of the message
+    assertEquals(measurement.getProfileName(),                    actual.get("profile"));
+    assertEquals(measurement.getEntity(),                         actual.get("entity"));
+    assertEquals(measurement.getPeriod().getPeriod(),             actual.get("period"));
+    assertEquals(measurement.getPeriod().getStartTimeMillis(),    actual.get("period.start"));
+    assertEquals(measurement.getPeriod().getEndTimeMillis(),      actual.get("period.end"));
+    assertEquals("profiler",                             actual.get("source.type"));
     assertNotNull(actual.get("timestamp"));
-    assertEquals("profiler", actual.get("source.type"));
+
+    // validate that the triage value has been added
+    assertEquals(measurement.getTriageValues().get("triage-key"), actual.get("triage-key"));
+  }
+
+  /**
+   * Validate that the message generated for Kafka can include multiple triage values.
+   */
+  @Test
+  public void testMultipleTriageValueInMessage() throws Exception {
+
+    // multiple triage values have been defined
+    Map<String, Object> triageValues = ImmutableMap.of(
+            "x", 2,
+            "y", "4",
+            "z", 6.0);
+
+    // create a measurement that has multiple triage values
+    ProfileMeasurement measurement = new ProfileMeasurement()
+            .withDefinition(profile)
+            .withProfileName(profile.getProfile())
+            .withEntity("entity")
+            .withPeriod(20000, 15, TimeUnit.MINUTES)
+            .withTriageValues(triageValues);
+
+    // execute the test
+    kafkaEmitter.emit(measurement, collector);
+    JSONObject actual = expectJsonObject(kafkaEmitter, collector);
+
+    // validate that ALL of the triage values have been added
+    assertEquals(measurement.getTriageValues().get("x"), actual.get("x"));
+    assertEquals(measurement.getTriageValues().get("y"), actual.get("y"));
+    assertEquals(measurement.getTriageValues().get("z"), actual.get("z"));
   }
 
   /**
@@ -120,30 +195,27 @@ public class KafkaEmitterTest {
             "invalid", new OnlineStatisticsProvider(),
             "valid", 4);
 
+    // create the measurement with a Map as a triage value; this is not allowed
     ProfileMeasurement measurement = new ProfileMeasurement()
-            .withProfileName("profile")
+            .withDefinition(profile)
+            .withProfileName(profile.getProfile())
             .withEntity("entity")
             .withPeriod(20000, 15, TimeUnit.MINUTES)
-            .withTriageValues(triageValues)
-            .withDefinition(profile);
-    handler.emit(measurement, collector);
+            .withTriageValues(triageValues);
 
-    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-    verify(collector, times(1)).emit(eq(handler.getStreamId()), arg.capture());
-    Values values = arg.getValue();
-    assertTrue(values.get(0) instanceof JSONObject);
+    // execute the test
+    kafkaEmitter.emit(measurement, collector);
+    JSONObject actual = expectJsonObject(kafkaEmitter, collector);
 
-    // only the triage expression value itself should have been skipped, all others should be there
-    JSONObject actual = (JSONObject) values.get(0);
-    assertEquals(measurement.getDefinition().getProfile(), actual.get("profile"));
-    assertEquals(measurement.getEntity(), actual.get("entity"));
-    assertEquals(measurement.getPeriod().getPeriod(), actual.get("period"));
-    assertEquals(measurement.getPeriod().getStartTimeMillis(), actual.get("period.start"));
-    assertEquals(measurement.getPeriod().getEndTimeMillis(), actual.get("period.end"));
-    assertNotNull(actual.get("timestamp"));
-    assertEquals("profiler", actual.get("source.type"));
+    // validate the core parts of the message still exist
+    assertEquals(measurement.getProfileName(),                    actual.get("profile"));
+    assertEquals(measurement.getEntity(),                         actual.get("entity"));
+    assertEquals(measurement.getPeriod().getPeriod(),             actual.get("period"));
+    assertEquals(measurement.getPeriod().getStartTimeMillis(),    actual.get("period.start"));
+    assertEquals(measurement.getPeriod().getEndTimeMillis(),      actual.get("period.end"));
+    assertEquals("profiler",                             actual.get("source.type"));
 
-    // the invalid expression should be skipped due to invalid type
+    // the invalid expression should be skipped and not included in the message
     assertFalse(actual.containsKey("invalid"));
 
     // but the valid expression should still be there
@@ -156,19 +228,18 @@ public class KafkaEmitterTest {
    */
   @Test
   public void testIntegerIsValidType() throws Exception {
+
+    // create a measurement with a triage value that is an integer
     ProfileMeasurement measurement = new ProfileMeasurement()
-            .withProfileName("profile")
+            .withDefinition(profile)
+            .withProfileName(profile.getProfile())
             .withEntity("entity")
             .withPeriod(20000, 15, TimeUnit.MINUTES)
-            .withTriageValues(Collections.singletonMap("triage-key", 123))
-            .withDefinition(profile);
-    handler.emit(measurement, collector);
+            .withTriageValues(Collections.singletonMap("triage-key", 123));
 
-    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-    verify(collector, times(1)).emit(eq(handler.getStreamId()), arg.capture());
-    Values values = arg.getValue();
-    assertTrue(values.get(0) instanceof JSONObject);
-    JSONObject actual = (JSONObject) values.get(0);
+    // execute the test
+    kafkaEmitter.emit(measurement, collector);
+    JSONObject actual = expectJsonObject(kafkaEmitter, collector);
 
     // the triage expression is valid
     assertEquals(measurement.getTriageValues().get("triage-key"), actual.get("triage-key"));
@@ -180,22 +251,34 @@ public class KafkaEmitterTest {
    */
   @Test
   public void testStringIsValidType() throws Exception {
+
+    // create a measurement with a triage value that is a string
     ProfileMeasurement measurement = new ProfileMeasurement()
-            .withProfileName("profile")
+            .withDefinition(profile)
+            .withProfileName(profile.getProfile())
             .withEntity("entity")
             .withPeriod(20000, 15, TimeUnit.MINUTES)
-            .withTriageValues(Collections.singletonMap("triage-key", "value"))
-            .withDefinition(profile);
-    handler.emit(measurement, collector);
+            .withTriageValues(Collections.singletonMap("triage-key", "value"));
 
-    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-    verify(collector, times(1)).emit(eq(handler.getStreamId()), arg.capture());
-    Values values = arg.getValue();
-    assertTrue(values.get(0) instanceof JSONObject);
-    JSONObject actual = (JSONObject) values.get(0);
+    // execute the test
+    kafkaEmitter.emit(measurement, collector);
+    JSONObject actual = expectJsonObject(kafkaEmitter, collector);
 
     // the triage expression is valid
     assertEquals(measurement.getTriageValues().get("triage-key"), actual.get("triage-key"));
+  }
+
+  /**
+   * Verifies that the KafkaEmitter does emit a JSONObject.
+   * @return The JSONObject that was emitted
+   */
+  private JSONObject expectJsonObject(KafkaEmitter kafkaEmitter, OutputCollector collector) {
+
+    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
+    verify(collector, times(1)).emit(eq(kafkaEmitter.getStreamId()), arg.capture());
+    Values values = arg.getValue();
+    assertTrue(values.get(0) instanceof JSONObject);
+    return (JSONObject) values.get(0);
   }
 
   /**
