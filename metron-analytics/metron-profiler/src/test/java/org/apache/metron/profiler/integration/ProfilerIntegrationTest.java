@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.integration;
 
+import com.google.code.tempusfugit.temporal.Duration;
 import com.google.common.base.Joiner;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.math.util.MathUtils;
@@ -123,6 +124,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static final long periodDurationMillis = TimeUnit.SECONDS.toMillis(15);
   private static final long profileTimeToLiveMillis = TimeUnit.SECONDS.toMillis(20);
   private static final long maxRoutesPerBolt = 100000;
+  private static final Duration testTimeout = seconds(180);
 
   /**
    * Tests the first example contained within the README.
@@ -139,8 +141,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     kafkaComponent.writeMessages(inputTopic, message3, message3, message3);
 
     // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
-            timeout(seconds(180)));
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0, timeout(testTimeout));
 
     // verify - only 10.0.0.2 sends 'HTTP', thus there should be only 1 value
     List<Double> actuals = read(profilerTable.getPutLog(), columnFamily,
@@ -170,8 +171,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     final int expected = 2;
 
     // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() >= expected,
-            timeout(seconds(90)));
+    waitOrTimeout(() -> profilerTable.getPutLog().size() >= expected, timeout(testTimeout));
 
     // verify - expect 2 results as 2 hosts involved; 10.0.0.2 sends 'HTTP' and 10.0.0.3 send 'DNS'
     List<Double> actuals = read(profilerTable.getPutLog(), columnFamily,
@@ -203,8 +203,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     kafkaComponent.writeMessages(inputTopic, message3, message3, message3);
 
     // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
-            timeout(seconds(90)));
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0, timeout(testTimeout));
 
     // verify - only 10.0.0.2 sends 'HTTP', thus there should be only 1 value
     List<Double> actuals = read(profilerTable.getPutLog(), columnFamily,
@@ -231,8 +230,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     kafkaComponent.writeMessages(inputTopic, message3, message3, message3);
 
     // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
-            timeout(seconds(90)));
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0, timeout(testTimeout));
 
     // verify - only 10.0.0.2 sends 'HTTP', thus there should be only 1 value
     byte[] column = columnBuilder.getColumnQualifier("value");
@@ -256,8 +254,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     kafkaComponent.writeMessages(inputTopic, message3, message3, message3);
 
     // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
-            timeout(seconds(90)));
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0, timeout(testTimeout));
 
     List<Double> actuals = read(profilerTable.getPutLog(), columnFamily,
             columnBuilder.getColumnQualifier("value"), Double.class);
@@ -302,8 +299,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     kafkaComponent.writeMessages(inputTopic, message1, message2);
 
     // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
-            timeout(seconds(90)));
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0, timeout(testTimeout));
 
     List<Put> puts = profilerTable.getPutLog();
     assertEquals(1, puts.size());
