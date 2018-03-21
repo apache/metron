@@ -74,7 +74,8 @@ public class IndexConfig {
         }
       });
       config.setIndexSupplier(IndexingCacheUtil.getIndexLookupFunction(cache));
-      config.setTableProvider(TableProvider.create(hbaseProviderImpl, HTableProvider::new));
+      config.setTableProvider(TableProvider.create(hbaseProviderImpl, () -> new HTableProvider()));
+      config.setKerberosEnabled(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false));
       if (indexDaoImpl == null) {
         throw new IllegalStateException("You must provide an index DAO implementation via the " + INDEX_DAO_IMPL + " config");
       }
