@@ -27,10 +27,11 @@ import org.junit.Test;
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
- * Ensures that Profile definitions have the expected defaults
+ * Tests the {@link ProfileConfig} class.
+ *
+ * Ensures that profile definitions have the expected defaults
  * and can be (de)serialized to and from JSON.
  */
 public class ProfileConfigTest {

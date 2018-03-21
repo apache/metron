@@ -23,12 +23,15 @@ package org.apache.metron.profiler;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 
 /**
- * A MessageRoute defines the profile and entity that a telemetry message needs applied to.  This
- * allows a message to be routed to the profile and entity that needs it.
+ * Defines the 'route' a message must take through the Profiler.
  *
- * One telemetry message may need multiple routes.  This is the case when a message is needed by
- * more than one profile.  In this case, there will be multiple MessageRoute objects for a single
- * message.
+ * <p>A {@link MessageRoute} defines the profile and entity that a telemetry message needs applied to.
+ *
+ * <p>If a message is needed by multiple profiles, then multiple {@link MessageRoute} values
+ * will exist.  If a message is not needed by any profiles, then no {@link MessageRoute} values
+ * will exist.
+ *
+ * @see MessageRouter
  */
 public class MessageRoute {
 
@@ -42,6 +45,12 @@ public class MessageRoute {
    */
   private String entity;
 
+  /**
+   * Create a {@link MessageRoute}.
+   *
+   * @param profileDefinition The profile definition.
+   * @param entity The entity.
+   */
   public MessageRoute(ProfileConfig profileDefinition, String entity) {
     this.entity = entity;
     this.profileDefinition = profileDefinition;

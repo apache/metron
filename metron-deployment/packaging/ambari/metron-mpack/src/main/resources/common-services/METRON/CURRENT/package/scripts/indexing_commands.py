@@ -16,12 +16,15 @@ limitations under the License.
 """
 
 import os
+import re
+import requests
 import time
 
 from datetime import datetime
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+from resource_management.libraries.functions import format as ambari_format
 
 import metron_service
 import metron_security
@@ -113,21 +116,9 @@ class IndexingCommands:
 
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables for indexing")
-        if self.__params.security_enabled:
-            metron_security.kinit(self.__params.kinit_path_local,
-                  self.__params.hbase_keytab_path,
-                  self.__params.hbase_principal_name,
-                  execute_user=self.__params.hbase_user)
-        cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
-        add_update_cmd = cmd.format(self.__params.update_hbase_table, self.__params.update_hbase_cf)
-        Execute(add_update_cmd,
-                tries=3,
-                try_sleep=5,
-                logoutput=False,
-                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-                user=self.__params.hbase_user
-                )
-
+        metron_service.create_hbase_table(self.__params,
+                                          self.__params.update_hbase_table,
+                                          self.__params.update_hbase_cf)
         Logger.info("Done creating HBase Tables for indexing")
         self.set_hbase_configured()
 
@@ -190,7 +181,7 @@ class IndexingCommands:
     def start_batch_indexing_topology(self, env):
         Logger.info('Starting ' + self.__batch_indexing_topology)
 
-        if not self.is_topology_active(env):
+        if not self.is_batch_topology_active(env):
             if self.__params.security_enabled:
                 metron_security.kinit(self.__params.kinit_path_local,
                                       self.__params.metron_keytab_path,
@@ -209,7 +200,7 @@ class IndexingCommands:
     def start_random_access_indexing_topology(self, env):
         Logger.info('Starting ' + self.__random_access_indexing_topology)
 
-        if not self.is_topology_active(env):
+        if not self.is_random_access_topology_active(env):
             if self.__params.security_enabled:
                 metron_security.kinit(self.__params.kinit_path_local,
                                       self.__params.metron_keytab_path,
@@ -272,21 +263,48 @@ class IndexingCommands:
 
     def restart_indexing_topology(self, env):
         Logger.info('Restarting the indexing topologies')
-        self.stop_indexing_topology(env)
+        self.restart_batch_indexing_topology(env)
+        self.restart_random_access_indexing_topology(env)
+
+    def restart_batch_indexing_topology(self, env):
+        Logger.info('Restarting the batch indexing topology')
+        self.stop_batch_indexing_topology(env)
 
         # Wait for old topology to be cleaned up by Storm, before starting again.
         retries = 0
-        topology_active = self.is_topology_active(env)
-        while self.is_topology_active(env) and retries < 3:
-            Logger.info('Existing topology still active. Will wait and retry')
+        topology_active = self.is_batch_topology_active(env)
+        while topology_active and retries < 3:
+            Logger.info('Existing batch topology still active. Will wait and retry')
             time.sleep(10)
             retries += 1
+            topology_active = self.is_batch_topology_active(env)
 
         if not topology_active:
             Logger.info('Waiting for storm kill to complete')
             time.sleep(30)
-            self.start_indexing_topology(env)
-            Logger.info('Done restarting the indexing topologies')
+            self.start_batch_indexing_topology(env)
+            Logger.info('Done restarting the batch indexing topology')
+        else:
+            Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')
+
+    def restart_random_access_indexing_topology(self, env):
+        Logger.info('Restarting the random access indexing topology')
+        self.stop_random_access_indexing_topology(env)
+
+        # Wait for old topology to be cleaned up by Storm, before starting again.
+        retries = 0
+        topology_active = self.is_random_access_topology_active(env)
+        while topology_active and retries < 3:
+            Logger.info('Existing random access topology still active. Will wait and retry')
+            time.sleep(10)
+            retries += 1
+            topology_active = self.is_random_access_topology_active(env)
+
+        if not topology_active:
+            Logger.info('Waiting for storm kill to complete')
+            time.sleep(30)
+            self.start_random_access_indexing_topology(env)
+            Logger.info('Done restarting the random access indexing topology')
         else:
             Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')
 
@@ -339,3 +357,48 @@ class IndexingCommands:
             raise Fail("Indexing topology not running")
 
         Logger.info("Indexing service check completed successfully")
+
+    def get_zeppelin_auth_details(self, ses, zeppelin_server_url, env):
+        """
+        With Ambari 2.5+, Zeppelin server is enabled to work with Shiro authentication, which requires user/password
+        for authentication (see https://zeppelin.apache.org/docs/0.6.0/security/shiroauthentication.html for details).
+
+        This method checks if Shiro authentication is enabled on the Zeppelin server. And if enabled, it returns the
+        session connection details to be used for importing Zeppelin notebooks.
+        :param ses: Session handle
+        :param zeppelin_server_url: Zeppelin Server URL
+        :return: ses
+        """
+        from params import params
+        env.set_params(params)
+
+        # Check if authentication is enabled on the Zeppelin server
+        try:
+            ses.get(ambari_format('http://{zeppelin_server_url}/api/login'))
+
+            # Establish connection if authentication is enabled
+            try:
+                Logger.info("Shiro authentication is found to be enabled on the Zeppelin server.")
+                # Read the Shiro admin user credentials from Zeppelin config in Ambari
+                seen_users = False
+                username = None
+                password = None
+                if re.search(r'^\[users\]', params.zeppelin_shiro_ini_content, re.MULTILINE):
+                    seen_users = True
+                    tokens = re.search(r'^admin\ =.*', params.zeppelin_shiro_ini_content, re.MULTILINE).group()
+                    userpassword = tokens.split(',')[0].strip()
+                    username = userpassword.split('=')[0].strip()
+                    password = userpassword.split('=')[1].strip()
+                else:
+                    Logger.error("ERROR: Admin credentials config was not found in shiro.ini. Notebook import may fail.")
+
+                zeppelin_payload = {'userName': username, 'password' : password}
+                ses.post(ambari_format('http://{zeppelin_server_url}/api/login'), data=zeppelin_payload)
+            except:
+                pass
+
+        # If authentication is not enabled, fall back to default method of imporing notebooks
+        except requests.exceptions.RequestException:
+            ses.get(ambari_format('http://{zeppelin_server_url}/api/notebook'))
+
+        return ses

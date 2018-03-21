@@ -18,6 +18,8 @@
 package org.apache.metron.parsers.paloalto;
 
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -28,8 +30,20 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class BasicPaloAltoFirewallParser extends BasicParser {
+
+  private static boolean empty_attribute( final String s ) {
+    return s == null || s.trim().isEmpty() || s.equals("\"\"");
+  }
+
+  private static String unquoted_attribute( String s ) {
+    s = s.trim();
+    if ( s.startsWith( "\"" ) && s.endsWith( "\"" ) )
+      return s.substring( 1, s.length( ) - 1 );
+    return s;
+  }
 
   private static final Logger _LOG = LoggerFactory.getLogger
           (BasicPaloAltoFirewallParser.class);
@@ -37,59 +51,92 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   private static final long serialVersionUID = 3147090149725343999L;
   public static final String PaloAltoDomain = "palo_alto_domain";
   public static final String ReceiveTime = "receive_time";
-  public static final String SerialNum = "serial_num";
+  public static final String SerialNum = "serial";
   public static final String Type = "type";
-  public static final String ThreatContentType = "threat_content_type";
+  public static final String ThreatContentType = "subtype";
   public static final String ConfigVersion = "config_version";
-  public static final String GenerateTime = "generate_time";
-  public static final String SourceAddress = "source_address";
-  public static final String DestinationAddress = "destination_address";
-  public static final String NATSourceIP = "nat_source_ip";
-  public static final String NATDestinationIP = "nat_destination_ip";
+  public static final String GenerateTime = "time_generated";
+  public static final String SourceAddress = "ip_src_addr"; // Palo Alto name: "src"
+  public static final String DestinationAddress = "ip_dst_addr"; // Palo Alto name: "dst"
+  public static final String NATSourceIP = "natsrc";
+  public static final String NATDestinationIP = "natdst";
   public static final String Rule = "rule";
-  public static final String SourceUser = "source_user";
-  public static final String DestinationUser = "destination_user";
-  public static final String Application = "application";
-  public static final String VirtualSystem = "virtual_system";
-  public static final String SourceZone = "source_zone";
-  public static final String DestinationZone = "destination_zone";
-  public static final String InboundInterface = "inbound_interface";
-  public static final String OutboundInterface = "outbound_interface";
+  public static final String SourceUser = "srcuser";
+  public static final String DestinationUser = "dstuser";
+  public static final String Application = "app";
+  public static final String VirtualSystem = "vsys";
+  public static final String SourceZone = "from";
+  public static final String DestinationZone = "to";
+  public static final String InboundInterface = "inbound_if";
+  public static final String OutboundInterface = "outbound_if";
   public static final String LogAction = "log_action";
-  public static final String TimeLogged = "time_logged";
-  public static final String SessionID = "session_id";
-  public static final String RepeatCount = "repeat_count";
-  public static final String SourcePort = "source_port";
-  public static final String DestinationPort = "destination_port";
-  public static final String NATSourcePort = "nats_source_port";
-  public static final String NATDestinationPort = "nats_destination_port";
+  public static final String TimeLogged = "start";
+  public static final String SessionID = "sessionid";
+  public static final String RepeatCount = "repeatcnt";
+  public static final String SourcePort = "ip_src_port"; // Palo Alto name: "sport"
+  public static final String DestinationPort = "ip_dst_port"; // Palo Alto name: "dport"
+  public static final String NATSourcePort = "natsport";
+  public static final String NATDestinationPort = "natdport";
   public static final String Flags = "flags";
-  public static final String IPProtocol = "ip_protocol";
+  public static final String IPProtocol = "protocol"; // Palo Alto name: "proto"
   public static final String Action = "action";
+  public static final String Seqno = "seqno";
+  public static final String ActionFlags = "actionflags";
+  public static final String Category = "category";
+  public static final String DGH1 = "dg_hier_level_1";
+  public static final String DGH2 = "dg_hier_level_2";
+  public static final String DGH3 = "dg_hier_level_3";
+  public static final String DGH4 = "dg_hier_level_4";
+  public static final String VSYSName = "vsys_name";
+  public static final String DeviceName = "device_name";
+  public static final String ActionSource = "action_source";
+  public static final String ParserVersion = "parser_version";
+  public static final String Tokens = "tokens_seen";
+
+  public static final String SourceVmUuid = "source_vm_uuid";
+  public static final String DestinationVmUuid = "destination_vm_uuid";
+  public static final String TunnelId = "tunnel_id";
+  public static final String MonitorTag = "monitor_tag";
+  public static final String ParentSessionId = "parent_session_id";
+  public static final String ParentSessionStartTime = "parent_session_start_time";
+  public static final String TunnelType = "tunnel_type";
 
   //Threat
   public static final String URL = "url";
   public static final String HOST = "host";
-  public static final String ThreatContentName = "threat_content_name";
-  public static final String Category = "category";
+  public static final String ThreatID = "threatid";
+  public static final String Severity = "severity";
   public static final String Direction = "direction";
-  public static final String Seqno = "seqno";
-  public static final String ActionFlags = "action_flags";
-  public static final String SourceCountry = "source_country";
-  public static final String DestinationCountry = "destination_country";
-  public static final String Cpadding = "cpadding";
-  public static final String ContentType = "content_type";
+  public static final String SourceLocation = "srcloc";
+  public static final String DestinationLocation = "dstloc";
+  public static final String ContentType = "contenttype";
+  public static final String PCAPID = "pcap_id";
+  public static final String WFFileDigest = "filedigest";
+  public static final String WFCloud = "cloud";
+  public static final String UserAgent= "user_agent";
+  public static final String WFFileType = "filetype";
+  public static final String XForwardedFor = "xff";
+  public static final String Referer = "referer";
+  public static final String WFSender = "sender";
+  public static final String WFSubject = "subject";
+  public static final String WFRecipient = "recipient";
+  public static final String WFReportID = "reportid";
+  public static final String URLIndex = "url_idx";
+  public static final String HTTPMethod = "http_method";
+  public static final String ThreatCategory = "threat_category";
+  public static final String ContentVersion = "content_version";
+
 
   //Traffic
-  public static final String Bytes = "content_type";
-  public static final String BytesSent = "content_type";
-  public static final String BytesReceived = "content_type";
-  public static final String Packets = "content_type";
-  public static final String StartTime = "content_type";
-  public static final String ElapsedTimeInSec = "content_type";
-  public static final String Padding = "content_type";
+  public static final String Bytes = "bytes";
+  public static final String BytesSent = "bytes_sent";
+  public static final String BytesReceived = "bytes_received";
+  public static final String Packets = "packets";
+  public static final String StartTime = "start";
+  public static final String ElapsedTimeInSec = "elapsed";
   public static final String PktsSent = "pkts_sent";
   public static final String PktsReceived = "pkts_received";
+  public static final String EndReason = "session_end_reason";
 
   @Override
   public void configure(Map<String, Object> parserConfig) {
@@ -117,12 +164,6 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
       parseMessage(toParse, outputMessage);
       long timestamp = System.currentTimeMillis();
       outputMessage.put("timestamp", System.currentTimeMillis());
-      outputMessage.put("ip_src_addr", outputMessage.remove("source_address"));
-      outputMessage.put("ip_src_port", outputMessage.remove("source_port"));
-      outputMessage.put("ip_dst_addr", outputMessage.remove("destination_address"));
-      outputMessage.put("ip_dst_port", outputMessage.remove("destination_port"));
-      outputMessage.put("protocol", outputMessage.remove("ip_protocol"));
-
       outputMessage.put("original_string", toParse);
       messages.add(outputMessage);
       return messages;
@@ -136,77 +177,157 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   @SuppressWarnings("unchecked")
   private void parseMessage(String message, JSONObject outputMessage) {
 
-    String[] tokens = message.split(",");
+    String[] tokens = Iterables.toArray(Splitter.on(Pattern.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")).split(message), String.class);
+    int parser_version = 0;
 
     String type = tokens[3].trim();
 
     //populate common objects
-    outputMessage.put(PaloAltoDomain, tokens[0].trim());
-    outputMessage.put(ReceiveTime, tokens[1].trim());
-    outputMessage.put(SerialNum, tokens[2].trim());
+    if( !empty_attribute( tokens[0] ) ) outputMessage.put(PaloAltoDomain, tokens[0].trim());
+    if( !empty_attribute( tokens[1] ) ) outputMessage.put(ReceiveTime, tokens[1].trim());
+    if( !empty_attribute( tokens[2] ) ) outputMessage.put(SerialNum, tokens[2].trim());
     outputMessage.put(Type, type);
-    outputMessage.put(ThreatContentType, tokens[4].trim());
-    outputMessage.put(ConfigVersion, tokens[5].trim());
-    outputMessage.put(GenerateTime, tokens[6].trim());
-    outputMessage.put(SourceAddress, tokens[7].trim());
-    outputMessage.put(DestinationAddress, tokens[8].trim());
-    outputMessage.put(NATSourceIP, tokens[9].trim());
-    outputMessage.put(NATDestinationIP, tokens[10].trim());
-    outputMessage.put(Rule, tokens[11].trim());
-    outputMessage.put(SourceUser, tokens[12].trim());
-    outputMessage.put(DestinationUser, tokens[13].trim());
-    outputMessage.put(Application, tokens[14].trim());
-    outputMessage.put(VirtualSystem, tokens[15].trim());
-    outputMessage.put(SourceZone, tokens[16].trim());
-    outputMessage.put(DestinationZone, tokens[17].trim());
-    outputMessage.put(InboundInterface, tokens[18].trim());
-    outputMessage.put(OutboundInterface, tokens[19].trim());
-    outputMessage.put(LogAction, tokens[20].trim());
-    outputMessage.put(TimeLogged, tokens[21].trim());
-    outputMessage.put(SessionID, tokens[22].trim());
-    outputMessage.put(RepeatCount, tokens[23].trim());
-    outputMessage.put(SourcePort, tokens[24].trim());
-    outputMessage.put(DestinationPort, tokens[25].trim());
-    outputMessage.put(NATSourcePort, tokens[26].trim());
-    outputMessage.put(NATDestinationPort, tokens[27].trim());
-    outputMessage.put(Flags, tokens[28].trim());
-    outputMessage.put(IPProtocol, tokens[29].trim());
-    outputMessage.put(Action, tokens[30].trim());
+    if( !empty_attribute( tokens[4] ) ) outputMessage.put(ThreatContentType, unquoted_attribute(tokens[4]));
+    if( !empty_attribute( tokens[5] ) ) outputMessage.put(ConfigVersion, tokens[5].trim());
+    if( !empty_attribute( tokens[6] ) ) outputMessage.put(GenerateTime, tokens[6].trim());
+    if( !empty_attribute( tokens[7] ) ) outputMessage.put(SourceAddress, tokens[7].trim());
+    if( !empty_attribute( tokens[8] ) ) outputMessage.put(DestinationAddress, tokens[8].trim());
+    if( !empty_attribute( tokens[9] ) ) outputMessage.put(NATSourceIP, tokens[9].trim());
+    if( !empty_attribute( tokens[10] ) ) outputMessage.put(NATDestinationIP, tokens[10].trim());
+    if( !empty_attribute( tokens[11] ) ) outputMessage.put(Rule, unquoted_attribute(tokens[11]));
+    if( !empty_attribute( tokens[12] ) ) outputMessage.put(SourceUser, unquoted_attribute(tokens[12]));
+    if( !empty_attribute( tokens[13] ) ) outputMessage.put(DestinationUser, unquoted_attribute(tokens[13]));
+    if( !empty_attribute( tokens[14] ) ) outputMessage.put(Application, unquoted_attribute(tokens[14]));
+    if( !empty_attribute( tokens[15] ) ) outputMessage.put(VirtualSystem, unquoted_attribute(tokens[15]));
+    if( !empty_attribute( tokens[16] ) ) outputMessage.put(SourceZone, unquoted_attribute(tokens[16]));
+    if( !empty_attribute( tokens[17] ) ) outputMessage.put(DestinationZone, unquoted_attribute(tokens[17]));
+    if( !empty_attribute( tokens[18] ) ) outputMessage.put(InboundInterface, unquoted_attribute(tokens[18]));
+    if( !empty_attribute( tokens[19] ) ) outputMessage.put(OutboundInterface, unquoted_attribute(tokens[19]));
+    if( !empty_attribute( tokens[20] ) ) outputMessage.put(LogAction, unquoted_attribute(tokens[20]));
+    if( !empty_attribute( tokens[21] ) ) outputMessage.put(TimeLogged, tokens[21].trim());
+    if( !empty_attribute( tokens[22] ) ) outputMessage.put(SessionID, tokens[22].trim());
+    if( !empty_attribute( tokens[23] ) ) outputMessage.put(RepeatCount, tokens[23].trim());
+    if( !empty_attribute( tokens[24] ) ) outputMessage.put(SourcePort, tokens[24].trim());
+    if( !empty_attribute( tokens[25] ) ) outputMessage.put(DestinationPort, tokens[25].trim());
+    if( !empty_attribute( tokens[26] ) ) outputMessage.put(NATSourcePort, tokens[26].trim());
+    if( !empty_attribute( tokens[27] ) ) outputMessage.put(NATDestinationPort, tokens[27].trim());
+    if( !empty_attribute( tokens[28] ) ) outputMessage.put(Flags, tokens[28].trim());
+    if( !empty_attribute( tokens[29] ) ) outputMessage.put(IPProtocol, unquoted_attribute(tokens[29]));
+    if( !empty_attribute( tokens[30] ) ) outputMessage.put(Action, unquoted_attribute(tokens[30]));
 
 
     if ("THREAT".equals(type.toUpperCase())) {
-      outputMessage.put(URL, tokens[31].trim());
-      try {
-        URL url = new URL(tokens[31].trim());
-        outputMessage.put(HOST, url.getHost());
-      } catch (MalformedURLException e) {
+      int p1_offset = 0;
+      if      (tokens.length == 45) parser_version = 60;
+      else if (tokens.length == 53) parser_version = 61;
+      else if (tokens.length == 61) {
+        parser_version = 70;
+        p1_offset = 1;
       }
-      outputMessage.put(ThreatContentName, tokens[32].trim());
-      outputMessage.put(Category, tokens[33].trim());
-      outputMessage.put(Direction, tokens[34].trim());
-      outputMessage.put(Seqno, tokens[35].trim());
-      outputMessage.put(ActionFlags, tokens[36].trim());
-      outputMessage.put(SourceCountry, tokens[37].trim());
-      outputMessage.put(DestinationCountry, tokens[38].trim());
-      outputMessage.put(Cpadding, tokens[39].trim());
-      outputMessage.put(ContentType, tokens[40].trim());
+      else if (tokens.length == 72) {
+        parser_version = 80;
+        p1_offset =1;
+      }
+      outputMessage.put(ParserVersion, parser_version);
+      if( !empty_attribute( tokens[31] ) ) {
+        outputMessage.put(URL, unquoted_attribute(tokens[31]));
+        try {
+            URL url = new URL(unquoted_attribute(tokens[31]));
+            outputMessage.put(HOST, url.getHost());
+        } catch (MalformedURLException e) {
+        }
+      }
+      if( !empty_attribute( tokens[32] ) ) outputMessage.put(ThreatID, tokens[32].trim());
+      if( !empty_attribute( tokens[33] ) ) outputMessage.put(Category, unquoted_attribute(tokens[33]));
+      if( !empty_attribute( tokens[34] ) ) outputMessage.put(Severity, unquoted_attribute(tokens[34]));
+      if( !empty_attribute( tokens[35] ) ) outputMessage.put(Direction, unquoted_attribute(tokens[35]));
+      if( !empty_attribute( tokens[36] ) ) outputMessage.put(Seqno, tokens[36].trim());
+      if( !empty_attribute( tokens[37] ) ) outputMessage.put(ActionFlags, unquoted_attribute(tokens[37]));
+      if( !empty_attribute( tokens[38] ) ) outputMessage.put(SourceLocation, unquoted_attribute(tokens[38]));
+      if( !empty_attribute( tokens[39] ) ) outputMessage.put(DestinationLocation, unquoted_attribute(tokens[39]));
+      if( !empty_attribute( tokens[41] ) ) outputMessage.put(ContentType, unquoted_attribute(tokens[41]));
+      if( !empty_attribute( tokens[42] ) ) outputMessage.put(PCAPID, tokens[42].trim());
+      if( !empty_attribute( tokens[43] ) ) outputMessage.put(WFFileDigest, unquoted_attribute(tokens[43]));
+      if( !empty_attribute( tokens[44] ) ) outputMessage.put(WFCloud, unquoted_attribute(tokens[44]));
+      if ( parser_version >= 61) {
+        if( !empty_attribute( tokens[(45 + p1_offset)] ) ) outputMessage.put(UserAgent, unquoted_attribute(tokens[(45 + p1_offset)]));
+        if( !empty_attribute( tokens[(46 + p1_offset)] ) ) outputMessage.put(WFFileType, unquoted_attribute(tokens[(46 + p1_offset)]));
+        if( !empty_attribute( tokens[(47 + p1_offset)] ) ) outputMessage.put(XForwardedFor, unquoted_attribute(tokens[(47 + p1_offset)]));
+        if( !empty_attribute( tokens[(48 + p1_offset)] ) ) outputMessage.put(Referer, unquoted_attribute(tokens[(48 + p1_offset)]));
+        if( !empty_attribute( tokens[(49 + p1_offset)] ) ) outputMessage.put(WFSender, unquoted_attribute(tokens[(49 + p1_offset)]));
+        if( !empty_attribute( tokens[(50 + p1_offset)] ) ) outputMessage.put(WFSubject, unquoted_attribute(tokens[(50 + p1_offset)]));
+        if( !empty_attribute( tokens[(51 + p1_offset)] ) ) outputMessage.put(WFRecipient, unquoted_attribute(tokens[(51 + p1_offset)]));
+        if( !empty_attribute( tokens[(52 + p1_offset)] ) ) outputMessage.put(WFReportID, unquoted_attribute(tokens[(52 + p1_offset)]));
+      }
+      if ( parser_version >= 70) { 
+        if( !empty_attribute( tokens[45] ) ) outputMessage.put(URLIndex, tokens[45].trim());
+        if( !empty_attribute( tokens[54] ) ) outputMessage.put(DGH1, tokens[54].trim());
+        if( !empty_attribute( tokens[55] ) ) outputMessage.put(DGH2, tokens[55].trim());
+        if( !empty_attribute( tokens[56] ) ) outputMessage.put(DGH3, tokens[56].trim());
+        if( !empty_attribute( tokens[57] ) ) outputMessage.put(DGH4, tokens[57].trim());
+        if( !empty_attribute( tokens[58] ) ) outputMessage.put(VSYSName, unquoted_attribute(tokens[58]));
+        if( !empty_attribute( tokens[59] ) ) outputMessage.put(DeviceName, unquoted_attribute(tokens[59]));
+      }
+      if ( parser_version >= 80) {
+        if( !empty_attribute( tokens[61] ) ) outputMessage.put(SourceVmUuid, tokens[61].trim());
+        if( !empty_attribute( tokens[62] ) ) outputMessage.put(DestinationVmUuid, tokens[62].trim());
+        if( !empty_attribute( tokens[63] ) ) outputMessage.put(HTTPMethod, tokens[63].trim());
+        if( !empty_attribute( tokens[64] ) ) outputMessage.put(TunnelId, tokens[64].trim());
+        if( !empty_attribute( tokens[65] ) ) outputMessage.put(MonitorTag, tokens[65].trim());
+        if( !empty_attribute( tokens[66] ) ) outputMessage.put(ParentSessionId, tokens[66].trim());
+        if( !empty_attribute( tokens[67] ) ) outputMessage.put(ParentSessionStartTime, tokens[67].trim());
+        if( !empty_attribute( tokens[68] ) ) outputMessage.put(TunnelType, tokens[68].trim());
+        if( !empty_attribute( tokens[69] ) ) outputMessage.put(ThreatCategory, tokens[69].trim());
+        if( !empty_attribute( tokens[70] ) ) outputMessage.put(ContentVersion, tokens[70].trim());
+      }
+      if ( parser_version == 0) {
+        outputMessage.put(Tokens, tokens.length);
+      }
 
-    } else {
-      outputMessage.put(Bytes, tokens[31].trim());
-      outputMessage.put(BytesSent, tokens[32].trim());
-      outputMessage.put(BytesReceived, tokens[33].trim());
-      outputMessage.put(Packets, tokens[34].trim());
-      outputMessage.put(StartTime, tokens[35].trim());
-      outputMessage.put(ElapsedTimeInSec, tokens[36].trim());
-      outputMessage.put(Category, tokens[37].trim());
-      outputMessage.put(Padding, tokens[38].trim());
-      outputMessage.put(Seqno, tokens[39].trim());
-      outputMessage.put(ActionFlags, tokens[40].trim());
-      outputMessage.put(SourceCountry, tokens[41].trim());
-      outputMessage.put(DestinationCountry, tokens[42].trim());
-      outputMessage.put(Cpadding, tokens[43].trim());
-      outputMessage.put(PktsSent, tokens[44].trim());
-      outputMessage.put(PktsReceived, tokens[45].trim());
+
+    } else if ("TRAFFIC".equals(type.toUpperCase())) {
+      if      (tokens.length == 46) parser_version = 60;
+      else if (tokens.length == 47) parser_version = 61;
+      else if (tokens.length == 54) parser_version = 70;
+      else if (tokens.length == 61) parser_version = 80;
+      outputMessage.put(ParserVersion, parser_version);
+      if( !empty_attribute( tokens[31] ) ) outputMessage.put(Bytes, tokens[31].trim());
+      if( !empty_attribute( tokens[32] ) ) outputMessage.put(BytesSent, tokens[32].trim());
+      if( !empty_attribute( tokens[33] ) ) outputMessage.put(BytesReceived, tokens[33].trim());
+      if( !empty_attribute( tokens[34] ) ) outputMessage.put(Packets, tokens[34].trim());
+      if( !empty_attribute( tokens[35] ) ) outputMessage.put(StartTime, tokens[35].trim());
+      if( !empty_attribute( tokens[36] ) ) outputMessage.put(ElapsedTimeInSec, tokens[36].trim());
+      if( !empty_attribute( tokens[37] ) ) outputMessage.put(Category, unquoted_attribute(tokens[37]));
+      if( !empty_attribute( tokens[39] ) ) outputMessage.put(Seqno, tokens[39].trim());
+      if( !empty_attribute( tokens[40] ) ) outputMessage.put(ActionFlags, unquoted_attribute(tokens[40]));
+      if( !empty_attribute( tokens[41] ) ) outputMessage.put(SourceLocation, unquoted_attribute(tokens[41]));
+      if( !empty_attribute( tokens[42] ) ) outputMessage.put(DestinationLocation, unquoted_attribute(tokens[42]));
+      if( !empty_attribute( tokens[44] ) ) outputMessage.put(PktsSent, tokens[44].trim());
+      if( !empty_attribute( tokens[45] ) ) outputMessage.put(PktsReceived, tokens[45].trim());
+      if ( parser_version >= 61) {
+        if( !empty_attribute( tokens[46] ) ) outputMessage.put(EndReason, unquoted_attribute(tokens[46]));
+      }
+      if ( parser_version >= 70) {
+        if( !empty_attribute( tokens[47] ) ) outputMessage.put(DGH1, tokens[47].trim());
+        if( !empty_attribute( tokens[48] ) ) outputMessage.put(DGH2, tokens[48].trim());
+        if( !empty_attribute( tokens[49] ) ) outputMessage.put(DGH3, tokens[49].trim());
+        if( !empty_attribute( tokens[50] ) ) outputMessage.put(DGH4, tokens[50].trim());
+        if( !empty_attribute( tokens[51] ) ) outputMessage.put(VSYSName, unquoted_attribute(tokens[51]));
+        if( !empty_attribute( tokens[52] ) ) outputMessage.put(DeviceName, unquoted_attribute(tokens[52]));
+        if( !empty_attribute( tokens[53] ) ) outputMessage.put(ActionSource, unquoted_attribute(tokens[53]));
+      }
+      if ( parser_version >= 80) {
+        if( !empty_attribute( tokens[54] ) ) outputMessage.put(SourceVmUuid, tokens[54].trim());
+        if( !empty_attribute( tokens[55] ) ) outputMessage.put(DestinationVmUuid, tokens[55].trim());
+        if( !empty_attribute( tokens[56] ) ) outputMessage.put(TunnelId, tokens[56].trim());
+        if( !empty_attribute( tokens[57] ) ) outputMessage.put(MonitorTag, tokens[57].trim());
+        if( !empty_attribute( tokens[58] ) ) outputMessage.put(ParentSessionId, tokens[58].trim());
+        if( !empty_attribute( tokens[59] ) ) outputMessage.put(ParentSessionStartTime, tokens[59].trim());
+        if( !empty_attribute( tokens[60] ) ) outputMessage.put(TunnelType, tokens[60].trim());
+      }
+      if ( parser_version == 0) {
+        outputMessage.put(Tokens, tokens.length);
+      }
     }
 
   }

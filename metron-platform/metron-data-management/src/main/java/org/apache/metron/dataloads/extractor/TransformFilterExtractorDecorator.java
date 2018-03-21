@@ -17,7 +17,6 @@
  */
 package org.apache.metron.dataloads.extractor;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -208,8 +207,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator implem
       try {
         return JSONUtils.INSTANCE.load(
                 new ByteArrayInputStream(ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(zkClient.get())),
-                new TypeReference<Map<String, Object>>() {
-                });
+                JSONUtils.MAP_SUPPLIER);
       } catch (Exception e) {
         LOG.warn("Exception thrown while attempting to get global config from Zookeeper.", e);
       }

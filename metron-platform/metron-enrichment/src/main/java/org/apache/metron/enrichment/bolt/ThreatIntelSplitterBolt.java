@@ -37,7 +37,7 @@ public class ThreatIntelSplitterBolt extends EnrichmentSplitterBolt {
       if (config != null) {
         return config.getThreatIntel().getEnrichmentConfigs();
       } else {
-        LOG.info("Unable to retrieve a sensor config of {}", sensorType);
+        LOG.debug("Unable to retrieve a sensor config of {}", sensorType);
       }
     } else {
       LOG.error("Trying to retrieve a field map with sensor type of null");
@@ -52,7 +52,7 @@ public class ThreatIntelSplitterBolt extends EnrichmentSplitterBolt {
       if (config != null) {
         return config.getThreatIntel().getFieldMap();
       } else {
-        LOG.info("Unable to retrieve sensor config: {}", sensorType);
+        LOG.debug("Unable to retrieve sensor config: {}", sensorType);
       }
     } else {
       LOG.error("Trying to retrieve a field map with sensor type of null");

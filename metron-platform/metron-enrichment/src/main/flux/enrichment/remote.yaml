@@ -411,7 +411,7 @@ streams:
         from: "kafkaSpout"
         to: "enrichmentSplitBolt"
         grouping:
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE
 
 #enrichment
     -   name: "enrichmentSplit -> host"
@@ -420,14 +420,15 @@ streams:
         grouping:
             streamId: "host"
             type: FIELDS
-            args: ["key"]
+            args: ["message"]
+
     -   name: "enrichmentSplit -> geo"
         from: "enrichmentSplitBolt"
         to: "geoEnrichmentBolt"
         grouping:
             streamId: "geo"
             type: FIELDS
-            args: ["key"]
+            args: ["message"]
 
     -   name: "enrichmentSplit -> stellar"
         from: "enrichmentSplitBolt"
@@ -435,7 +436,7 @@ streams:
         grouping:
             streamId: "stellar"
             type: FIELDS
-            args: ["key"]
+            args: ["message"]
 
 
     -   name: "enrichmentSplit -> simpleHBaseEnrichmentBolt"
@@ -444,7 +445,7 @@ streams:
         grouping:
             streamId: "hbaseEnrichment"
             type: FIELDS
-            args: ["key"]
+            args: ["message"]
 
     -   name: "splitter -> join"
         from: "enrichmentSplitBolt"
@@ -453,6 +454,7 @@ streams:
             streamId: "message"
             type: FIELDS
             args: ["key"]
+
     -   name: "geo -> join"
         from: "geoEnrichmentBolt"
         to: "enrichmentJoinBolt"
@@ -460,6 +462,7 @@ streams:
             streamId: "geo"
             type: FIELDS
             args: ["key"]
+
     -   name: "stellar -> join"
         from: "stellarEnrichmentBolt"
         to: "enrichmentJoinBolt"
@@ -468,8 +471,6 @@ streams:
             type: FIELDS
             args: ["key"]
 
-
-
     -   name: "simpleHBaseEnrichmentBolt -> join"
         from: "simpleHBaseEnrichmentBolt"
         to: "enrichmentJoinBolt"
@@ -477,6 +478,7 @@ streams:
             streamId: "hbaseEnrichment"
             type: FIELDS
             args: ["key"]
+
     -   name: "host -> join"
         from: "hostEnrichmentBolt"
         to: "enrichmentJoinBolt"
@@ -491,32 +493,28 @@ streams:
         to: "enrichmentErrorOutputBolt"
         grouping:
             streamId: "error"
-            type: FIELDS
-            args: ["message"]
+            type: LOCAL_OR_SHUFFLE
 
     -   name: "stellarEnrichmentBolt -> enrichmentErrorOutputBolt"
         from: "stellarEnrichmentBolt"
         to: "enrichmentErrorOutputBolt"
         grouping:
             streamId: "error"
-            type: FIELDS
-            args: ["message"]
+            type: LOCAL_OR_SHUFFLE
 
     -   name: "hostEnrichmentBolt -> enrichmentErrorOutputBolt"
         from: "hostEnrichmentBolt"
         to: "enrichmentErrorOutputBolt"
         grouping:
             streamId: "error"
-            type: FIELDS
-            args: ["message"]
+            type: LOCAL_OR_SHUFFLE
 
     -   name: "simpleHBaseEnrichmentBolt -> enrichmentErrorOutputBolt"
         from: "simpleHBaseEnrichmentBolt"
         to: "enrichmentErrorOutputBolt"
         grouping:
             streamId: "error"
-            type: FIELDS
-            args: ["message"]
+            type: LOCAL_OR_SHUFFLE
 
 #threat intel
     -   name: "enrichmentJoin -> threatSplit"
@@ -533,14 +531,15 @@ streams:
         grouping:
             streamId: "hbaseThreatIntel"
             type: FIELDS
-            args: ["key"]
+            args: ["message"]
+
     -   name: "threatSplit -> stellarThreatIntel"
         from: "threatIntelSplitBolt"
         to: "stellarThreatIntelBolt"
         grouping:
             streamId: "stellar"
             type: FIELDS
-            args: ["key"]
+            args: ["message"]
 
 
     -   name: "simpleHBaseThreatIntel -> join"
@@ -572,8 +571,7 @@ streams:
         to: "outputBolt"
         grouping:
             streamId: "message"
-            type: FIELDS
-            args: ["key"]
+            type: LOCAL_OR_SHUFFLE
 
     # Error output
     -   name: "simpleHBaseThreatIntelBolt -> threatIntelErrorOutputBolt"
@@ -581,14 +579,12 @@ streams:
         to: "threatIntelErrorOutputBolt"
         grouping:
             streamId: "error"
-            type: FIELDS
-            args: ["message"]
+            type: LOCAL_OR_SHUFFLE
 
     -   name: "stellarThreatIntelBolt -> threatIntelErrorOutputBolt"
         from: "stellarThreatIntelBolt"
         to: "threatIntelErrorOutputBolt"
         grouping:
             streamId: "error"
-            type: FIELDS
-            args: ["message"]
+            type: LOCAL_OR_SHUFFLE
 

@@ -18,15 +18,16 @@
 package org.apache.metron.common.error;
 
 import com.google.common.collect.Sets;
-import com.google.common.primitives.Bytes;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 
-import static org.apache.metron.common.Constants.ErrorFields.RAW_MESSAGE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -53,7 +54,18 @@ public class MetronErrorTest {
     assertEquals(Constants.ErrorType.PARSER_ERROR.getType(), errorJSON.get(Constants.ErrorFields.ERROR_TYPE.getName()));
     assertEquals("error", errorJSON.get(Constants.SENSOR_TYPE));
     assertEquals("sensorType", errorJSON.get(Constants.ErrorFields.FAILED_SENSOR_TYPE.getName()));
-    assertTrue(((String) errorJSON.get(Constants.ErrorFields.HOSTNAME.getName())).length() > 0);
+
+    String hostName = null;
+    try {
+      hostName = InetAddress.getLocalHost().getHostName();
+    } catch (UnknownHostException uhe) {
+      // unable to get the hostname on this machine, don't test it
+    }
+
+    if (!StringUtils.isEmpty(hostName)) {
+      assertTrue(((String) errorJSON.get(Constants.ErrorFields.HOSTNAME.getName())).length() > 0);
+      assertEquals(hostName, (String) errorJSON.get(Constants.ErrorFields.HOSTNAME.getName()));
+    }
     assertTrue(((long) errorJSON.get(Constants.ErrorFields.TIMESTAMP.getName())) > 0);
   }
 

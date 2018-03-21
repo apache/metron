@@ -158,7 +158,7 @@ streams:
         from: "kafkaSpout"
         to: "hdfsIndexingBolt"
         grouping:
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE
 
 
     -   name: "hdfsBolt -> errorIndexingBolt"
@@ -166,4 +166,4 @@ streams:
         to: "indexingErrorBolt"
         grouping:
             streamId: "error"
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE

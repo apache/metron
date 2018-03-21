@@ -63,6 +63,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.kafka.core.ConsumerFactory;
 
+
 @SuppressWarnings("unchecked")
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*") // resolve classloader conflict
@@ -78,6 +79,7 @@ public class KafkaServiceImplTest {
   private AdminUtils$ adminUtils;
 
   private KafkaService kafkaService;
+
 
   private static final KafkaTopic VALID_KAFKA_TOPIC = new KafkaTopic() {{
     setReplicationFactor(2);
@@ -252,15 +254,10 @@ public class KafkaServiceImplTest {
 
   @Test
   public void createTopicShouldFailIfReplicationFactorIsGreaterThanAvailableBrokers() throws Exception {
-    final Map<String, List<PartitionInfo>> topics = new HashMap<>();
-
-    when(kafkaConsumer.listTopics()).thenReturn(topics);
-
+    exception.expect(RestException.class);
+    doThrow(AdminOperationException.class).when(adminUtils).createTopic(eq(zkUtils), eq("t"), eq(1), eq(2), eq(new Properties()), eq(RackAwareMode.Disabled$.MODULE$));
     kafkaService.createTopic(VALID_KAFKA_TOPIC);
 
-    verify(adminUtils).createTopic(eq(zkUtils), eq("t"), eq(1), eq(2), eq(new Properties()), eq(RackAwareMode.Disabled$.MODULE$));
-    verify(kafkaConsumer).listTopics();
-    verifyZeroInteractions(zkUtils);
   }
 
   @Test
@@ -319,4 +316,12 @@ public class KafkaServiceImplTest {
     verify(kafkaProducer).send(new ProducerRecord<>(topicName, expectedMessage));
     verifyZeroInteractions(kafkaProducer);
   }
+
+  @Test
+  public void addACLtoNonExistingTopicShouldReturnFalse() throws Exception{
+    when(kafkaConsumer.listTopics()).thenReturn(Maps.newHashMap());
+    assertFalse(kafkaService.addACLToCurrentUser("non_existent_topic"));
+  }
+
+
 }

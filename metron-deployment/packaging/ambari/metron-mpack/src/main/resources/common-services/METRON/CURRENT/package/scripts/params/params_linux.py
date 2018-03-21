@@ -72,7 +72,6 @@ metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
 zk_configured_flag_file = status_params.zk_configured_flag_file
 parsers_configured_flag_file = status_params.parsers_configured_flag_file
 parsers_acl_configured_flag_file = status_params.parsers_acl_configured_flag_file
-rest_acl_configured_flag_file = status_params.rest_acl_configured_flag_file
 enrichment_kafka_configured_flag_file = status_params.enrichment_kafka_configured_flag_file
 enrichment_kafka_acl_configured_flag_file = status_params.enrichment_kafka_acl_configured_flag_file
 enrichment_hbase_configured_flag_file = status_params.enrichment_hbase_configured_flag_file
@@ -84,6 +83,10 @@ indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_fl
 indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
 elasticsearch_template_installed_flag_file = status_params.elasticsearch_template_installed_flag_file
+rest_kafka_configured_flag_file = status_params.rest_kafka_configured_flag_file
+rest_kafka_acl_configured_flag_file = status_params.rest_kafka_acl_configured_flag_file
+rest_hbase_configured_flag_file = status_params.rest_hbase_configured_flag_file
+rest_hbase_acl_configured_flag_file = status_params.rest_hbase_acl_configured_flag_file
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
 # Elasticsearch hosts and port management
@@ -202,6 +205,7 @@ meta_index_path = tmp_dir + "/metaalert_index.template"
 
 # Zeppelin Notebooks
 metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")
+zeppelin_shiro_ini_content = status_params.zeppelin_shiro_ini_content
 
 # kafka_security
 kafka_security_protocol = config['configurations']['kafka-broker'].get('security.inter.broker.protocol', 'PLAINTEXT')
@@ -248,6 +252,8 @@ metron_rest_pid = 'metron-rest.pid'
 metron_indexing_classpath = config['configurations']['metron-rest-env']['metron_indexing_classpath']
 metron_rest_classpath = config['configurations']['metron-rest-env']['metron_rest_classpath']
 metron_sysconfig = config['configurations']['metron-rest-env']['metron_sysconfig']
+user_settings_hbase_table = status_params.user_settings_hbase_table
+user_settings_hbase_cf = status_params.user_settings_hbase_cf
 
 # Enrichment
 geoip_url = config['configurations']['metron-enrichment-env']['geoip_url']
@@ -281,6 +287,8 @@ profiler_input_topic = config['configurations']['metron-enrichment-env']['enrich
 profiler_kafka_start = config['configurations']['metron-profiler-env']['profiler_kafka_start']
 profiler_period_duration = config['configurations']['metron-profiler-env']['profiler_period_duration']
 profiler_period_units = config['configurations']['metron-profiler-env']['profiler_period_units']
+profiler_window_duration = config['configurations']['metron-profiler-env']['profiler_window_duration']
+profiler_window_units = config['configurations']['metron-profiler-env']['profiler_window_units']
 profiler_ttl = config['configurations']['metron-profiler-env']['profiler_ttl']
 profiler_ttl_units = config['configurations']['metron-profiler-env']['profiler_ttl_units']
 profiler_hbase_batch = config['configurations']['metron-profiler-env']['profiler_hbase_batch']
@@ -296,6 +304,11 @@ profiler_hbase_acl_configured_flag_file = status_params.profiler_hbase_acl_confi
 if not len(profiler_topology_worker_childopts) == 0:
     profiler_topology_worker_childopts += ' '
 profiler_topology_worker_childopts += config['configurations']['metron-profiler-env']['profiler_topology_worker_childopts']
+profiler_max_routes_per_bolt=config['configurations']['metron-profiler-env']['profiler_max_routes_per_bolt']
+profiler_window_lag=config['configurations']['metron-profiler-env']['profiler_window_lag']
+profiler_window_lag_units=config['configurations']['metron-profiler-env']['profiler_window_lag_units']
+profiler_topology_message_timeout_secs=config['configurations']['metron-profiler-env']['profiler_topology_message_timeout_secs']
+profiler_topology_max_spout_pending=config['configurations']['metron-profiler-env']['profiler_topology_max_spout_pending']
 
 # Indexing
 ra_indexing_kafka_start = config['configurations']['metron-indexing-env']['ra_indexing_kafka_start']

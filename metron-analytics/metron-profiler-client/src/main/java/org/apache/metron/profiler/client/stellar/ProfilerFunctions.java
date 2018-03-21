@@ -101,7 +101,10 @@ public class ProfilerFunctions {
         throw new IllegalArgumentException("Invalid profiler configuration", e);
       }
 
-      return new StandAloneProfiler(profilerConfig, periodDurationMillis, context);
+      // the TTL and max routes do not matter here
+      long profileTimeToLiveMillis = Long.MAX_VALUE;
+      long maxNumberOfRoutes = Long.MAX_VALUE;
+      return new StandAloneProfiler(profilerConfig, periodDurationMillis, profileTimeToLiveMillis, maxNumberOfRoutes, context);
     }
   }
 
@@ -138,13 +141,8 @@ public class ProfilerFunctions {
 
       // user must provide the stand alone profiler
       StandAloneProfiler profiler = Util.getArg(1, StandAloneProfiler.class, args);
-      try {
-        for (JSONObject message : messages) {
-          profiler.apply(message);
-        }
-
-      } catch (ExecutionException e) {
-        throw new IllegalArgumentException(format("Failed to apply message; error=%s", e.getMessage()), e);
+      for (JSONObject message : messages) {
+        profiler.apply(message);
       }
 
       return profiler;

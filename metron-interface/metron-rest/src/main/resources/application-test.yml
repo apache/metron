@@ -38,11 +38,14 @@ storm:
   enrichment:
     script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
   indexing:
-    script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+    randomaccess.script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+    batch.script.path: /usr/metron/${metron.version}/bin/start_hdfs_topology.sh
 
 search:
   max:
     results: 100
+  facet:
+    fields: ip_src_addr
 
 index:
   dao:

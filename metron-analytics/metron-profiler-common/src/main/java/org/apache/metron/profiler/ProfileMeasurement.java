@@ -28,10 +28,10 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Represents a single data point within a Profile.
+ * Represents a single data point within a profile.
  *
- * A Profile is effectively a time series.  To this end a Profile is composed
- * of many ProfileMeasurement values which in aggregate form a time series.
+ * <p>A profile contains many individual {@link ProfileMeasurement} values captured over a
+ * period of time.  These values in aggregate form a time series.
  */
 public class ProfileMeasurement {
 

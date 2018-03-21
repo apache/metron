@@ -19,7 +19,6 @@ package org.apache.metron.parsers.bolt;
 
 import static org.apache.metron.common.Constants.METADATA_PREFIX;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
@@ -146,8 +145,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     try {
       keyStr = keyObj == null?null:new String(keyObj);
       if(!StringUtils.isEmpty(keyStr)) {
-        Map<String, Object> metadata = JSONUtils.INSTANCE.load(keyStr, new TypeReference<Map<String, Object>>() {
-        });
+        Map<String, Object> metadata = JSONUtils.INSTANCE.load(keyStr,JSONUtils.MAP_SUPPLIER);
         for(Map.Entry<String, Object> kv : metadata.entrySet()) {
           ret.put(METADATA_PREFIX + kv.getKey(), kv.getValue());
         }

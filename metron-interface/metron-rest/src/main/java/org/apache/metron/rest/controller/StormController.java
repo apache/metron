@@ -147,12 +147,12 @@ public class StormController {
     return new ResponseEntity<>(stormStatusService.deactivateTopology(MetronRestConstants.ENRICHMENT_TOPOLOGY_NAME), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Retrieves the status of the Storm indexing topology")
+  @ApiOperation(value = "Retrieves the status of the Storm random access indexing topology")
   @ApiResponses(value = { @ApiResponse(message = "Returns topology status information", code = 200),
           @ApiResponse(message = "Topology is missing", code = 404) })
-  @RequestMapping(value = "/indexing", method = RequestMethod.GET)
-  ResponseEntity<TopologyStatus> getIndexing() throws RestException {
-    TopologyStatus topologyStatus = stormStatusService.getTopologyStatus(MetronRestConstants.INDEXING_TOPOLOGY_NAME);
+  @RequestMapping(value = "/indexing/randomaccess", method = RequestMethod.GET)
+  ResponseEntity<TopologyStatus> getRandomAccessIndexing() throws RestException {
+    TopologyStatus topologyStatus = stormStatusService.getTopologyStatus(MetronRestConstants.RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME);
     if (topologyStatus != null) {
       return new ResponseEntity<>(topologyStatus, HttpStatus.OK);
     } else {
@@ -160,32 +160,32 @@ public class StormController {
     }
   }
 
-  @ApiOperation(value = "Starts a Storm indexing topology")
+  @ApiOperation(value = "Starts a Storm random access indexing topology")
   @ApiResponse(message = "Returns start response message", code = 200)
-  @RequestMapping(value = "/indexing/start", method = RequestMethod.GET)
-  ResponseEntity<TopologyResponse> startIndexing() throws RestException {
-    return new ResponseEntity<>(stormAdminService.startIndexingTopology(), HttpStatus.OK);
+  @RequestMapping(value = "/indexing/randomaccess/start", method = RequestMethod.GET)
+  ResponseEntity<TopologyResponse> startRandomAccessIndexing() throws RestException {
+    return new ResponseEntity<>(stormAdminService.startIndexingTopology(MetronRestConstants.RANDOM_ACCESS_INDEXING_SCRIPT_PATH_SPRING_PROPERTY), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Stops a Storm enrichment topology")
+  @ApiOperation(value = "Stops a Storm random access indexing topology")
   @ApiResponse(message = "Returns stop response message", code = 200)
-  @RequestMapping(value = "/indexing/stop", method = RequestMethod.GET)
-  ResponseEntity<TopologyResponse> stopIndexing(@ApiParam(name="stopNow", value="Stop the topology immediately")@RequestParam(required = false, defaultValue = "false") boolean stopNow) throws RestException {
-    return new ResponseEntity<>(stormAdminService.stopIndexingTopology(stopNow), HttpStatus.OK);
+  @RequestMapping(value = "/indexing/randomaccess/stop", method = RequestMethod.GET)
+  ResponseEntity<TopologyResponse> stopRandomAccessIndexing(@ApiParam(name="stopNow", value="Stop the topology immediately")@RequestParam(required = false, defaultValue = "false") boolean stopNow) throws RestException {
+    return new ResponseEntity<>(stormAdminService.stopIndexingTopology(MetronRestConstants.RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME ,stopNow), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Activates a Storm indexing topology")
+  @ApiOperation(value = "Activates a Storm random access indexing topology")
   @ApiResponse(message = "Returns activate response message", code = 200)
-  @RequestMapping(value = "/indexing/activate", method = RequestMethod.GET)
-  ResponseEntity<TopologyResponse> activateIndexing() throws RestException {
-    return new ResponseEntity<>(stormStatusService.activateTopology(MetronRestConstants.INDEXING_TOPOLOGY_NAME), HttpStatus.OK);
+  @RequestMapping(value = "/indexing/randomaccess/activate", method = RequestMethod.GET)
+  ResponseEntity<TopologyResponse> activateRandomAccessIndexing() throws RestException {
+    return new ResponseEntity<>(stormStatusService.activateTopology(MetronRestConstants.RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Deactivates a Storm indexing topology")
+  @ApiOperation(value = "Deactivates a Storm random access indexing topology")
   @ApiResponse(message = "Returns deactivate response message", code = 200)
-  @RequestMapping(value = "/indexing/deactivate", method = RequestMethod.GET)
-  ResponseEntity<TopologyResponse> deactivateIndexing() throws RestException {
-    return new ResponseEntity<>(stormStatusService.deactivateTopology(MetronRestConstants.INDEXING_TOPOLOGY_NAME), HttpStatus.OK);
+  @RequestMapping(value = "/indexing/randomaccess/deactivate", method = RequestMethod.GET)
+  ResponseEntity<TopologyResponse> deactivateRandomAccessIndexing() throws RestException {
+    return new ResponseEntity<>(stormStatusService.deactivateTopology(MetronRestConstants.RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME), HttpStatus.OK);
   }
 
   @ApiOperation(value = "Retrieves information about the Storm command line client")
@@ -193,6 +193,47 @@ public class StormController {
   @RequestMapping(value = "/client/status", method = RequestMethod.GET)
   ResponseEntity<Map<String, String>> clientStatus() throws RestException {
     return new ResponseEntity<>(stormAdminService.getStormClientStatus(), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Retrieves the status of the Storm batch indexing topology")
+  @ApiResponses(value = { @ApiResponse(message = "Returns topology status information", code = 200),
+          @ApiResponse(message = "Topology is missing", code = 404) })
+  @RequestMapping(value = "/indexing/batch", method = RequestMethod.GET)
+  ResponseEntity<TopologyStatus> getBatchIndexing() throws RestException {
+    TopologyStatus topologyStatus = stormStatusService.getTopologyStatus(MetronRestConstants.BATCH_INDEXING_TOPOLOGY_NAME);
+    if (topologyStatus != null) {
+      return new ResponseEntity<>(topologyStatus, HttpStatus.OK);
+    } else {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @ApiOperation(value = "Starts a Storm batch indexing topology")
+  @ApiResponse(message = "Returns start response message", code = 200)
+  @RequestMapping(value = "/indexing/batch/start", method = RequestMethod.GET)
+  ResponseEntity<TopologyResponse> startBatchIndexing() throws RestException {
+    return new ResponseEntity<>(stormAdminService.startIndexingTopology(MetronRestConstants.BATCH_INDEXING_SCRIPT_PATH_SPRING_PROPERTY), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Stops a Storm batch indexing topology")
+  @ApiResponse(message = "Returns stop response message", code = 200)
+  @RequestMapping(value = "/indexing/batch/stop", method = RequestMethod.GET)
+  ResponseEntity<TopologyResponse> stopBatchIndexing(@ApiParam(name="stopNow", value="Stop the topology immediately")@RequestParam(required = false, defaultValue = "false") boolean stopNow) throws RestException {
+    return new ResponseEntity<>(stormAdminService.stopIndexingTopology(MetronRestConstants.BATCH_INDEXING_TOPOLOGY_NAME, stopNow), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Activates a Storm batch indexing topology")
+  @ApiResponse(message = "Returns activate response message", code = 200)
+  @RequestMapping(value = "/indexing/batch/activate", method = RequestMethod.GET)
+  ResponseEntity<TopologyResponse> activateBatchIndexing() throws RestException {
+    return new ResponseEntity<>(stormStatusService.activateTopology(MetronRestConstants.BATCH_INDEXING_TOPOLOGY_NAME), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Deactivates a Storm batch indexing topology")
+  @ApiResponse(message = "Returns deactivate response message", code = 200)
+  @RequestMapping(value = "/indexing/batch/deactivate", method = RequestMethod.GET)
+  ResponseEntity<TopologyResponse> deactivateBatchIndexing() throws RestException {
+    return new ResponseEntity<>(stormStatusService.deactivateTopology(MetronRestConstants.BATCH_INDEXING_TOPOLOGY_NAME), HttpStatus.OK);
   }
 
 }

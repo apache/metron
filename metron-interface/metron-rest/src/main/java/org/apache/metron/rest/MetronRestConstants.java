@@ -35,10 +35,12 @@ public class MetronRestConstants {
   public static final String TOPOLOGY_SUMMARY_URL = "/api/v1/topology/summary";
   public static final String TOPOLOGY_URL = "/api/v1/topology";
   public static final String ENRICHMENT_TOPOLOGY_NAME = "enrichment";
-  public static final String INDEXING_TOPOLOGY_NAME = "indexing";
+  public static final String BATCH_INDEXING_TOPOLOGY_NAME = "batch_indexing";
+  public static final String RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME = "random_access_indexing";
   public static final String PARSER_SCRIPT_PATH_SPRING_PROPERTY = "storm.parser.script.path";
   public static final String ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY = "storm.enrichment.script.path";
-  public static final String INDEXING_SCRIPT_PATH_SPRING_PROPERTY = "storm.indexing.script.path";
+  public static final String BATCH_INDEXING_SCRIPT_PATH_SPRING_PROPERTY = "storm.indexing.batch.script.path";
+  public static final String RANDOM_ACCESS_INDEXING_SCRIPT_PATH_SPRING_PROPERTY = "storm.indexing.randomaccess.script.path";
   public static final String PARSER_TOPOLOGY_OPTIONS_SPRING_PROPERTY = "storm.parser.topology.options";
   public static final String KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY = "kafka.security.protocol";
 
@@ -57,6 +59,7 @@ public class MetronRestConstants {
 
   public static final String SEARCH_MAX_RESULTS = "search.max.results";
   public static final String SEARCH_MAX_GROUPS = "search.max.groups";
+  public static final String SEARCH_FACET_FIELDS_SPRING_PROPERTY = "search.facet.fields";
   public static final String INDEX_DAO_IMPL = "index.dao.impl";
   public static final String INDEX_HBASE_TABLE_PROVIDER_IMPL = "index.hbase.provider";
   public static final String INDEX_WRITER_NAME = "index.writer.name";
@@ -66,4 +69,7 @@ public class MetronRestConstants {
 
   public static final String SECURITY_ROLE_USER = "USER";
   public static final String SECURITY_ROLE_ADMIN = "ADMIN";
+
+  public static final String USER_SETTINGS_HBASE_TABLE_SPRING_PROPERTY = "user.settings.table";
+  public static final String USER_SETTINGS_HBASE_CF_SPRING_PROPERTY = "user.settings.cf";
 }

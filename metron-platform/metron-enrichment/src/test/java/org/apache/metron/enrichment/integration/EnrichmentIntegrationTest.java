@@ -17,14 +17,6 @@
  */
 package org.apache.metron.enrichment.integration;
 
-import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULES_KEY;
-import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_COMMENT;
-import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_NAME;
-import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_REASON;
-import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_SCORE;
-import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_SCORE_KEY;
-
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
@@ -55,6 +47,7 @@ import org.apache.metron.enrichment.integration.components.ConfigUploadComponent
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
+import org.apache.metron.enrichment.utils.ThreatIntelUtils;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.integration.BaseIntegrationTest;
@@ -90,13 +83,15 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public static final String DEFAULT_DMACODE= "test dmaCode";
   public static final String DEFAULT_LOCATION_POINT= Joiner.on(',').join(DEFAULT_LATITUDE,DEFAULT_LONGITUDE);
 
-  protected String fluxPath = "../metron-enrichment/src/main/flux/enrichment/remote.yaml";
   protected String templatePath = "../metron-enrichment/src/main/config/enrichment.properties.j2";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   private final List<byte[]> inputMessages = getInputMessages(sampleParsedPath);
 
   private static File geoHdfsFile;
 
+  protected String fluxPath() {
+    return "../metron-enrichment/src/main/flux/enrichment/remote.yaml";
+  }
 
   private static List<byte[]> getInputMessages(String path){
     try{
@@ -163,8 +158,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     String globalConfigStr = null;
     {
       File globalConfig = new File(new File(TestConstants.SAMPLE_CONFIG_PATH), "global.json");
-      Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, new TypeReference<Map<String, Object>>() {
-      });
+      Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER);
       config.put(SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF, MockHBaseTableProvider.class.getName());
       config.put(SimpleHBaseEnrichmentFunctions.ACCESS_TRACKER_TYPE_CONF, "PERSISTENT_BLOOM");
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_TABLE, trackerHBaseTableName);
@@ -192,7 +186,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }});
 
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
-            .withTopologyLocation(new File(fluxPath))
+            .withTopologyLocation(new File(fluxPath()))
             .withTopologyName("test")
             .withTemplateLocation(new File(templatePath))
             .withTopologyProperties(topologyProperties)
@@ -249,8 +243,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
   protected void validateErrors(List<Map<String, Object>> errors) {
     for(Map<String, Object> error : errors) {
-      Assert.assertEquals("java.lang.ArithmeticException: / by zero", error.get(Constants.ErrorFields.MESSAGE.getName()));
-      Assert.assertEquals("com.google.common.util.concurrent.UncheckedExecutionException: java.lang.ArithmeticException: / by zero", error.get(Constants.ErrorFields.EXCEPTION.getName()));
+      Assert.assertTrue(error.get(Constants.ErrorFields.MESSAGE.getName()).toString(), error.get(Constants.ErrorFields.MESSAGE.getName()).toString().contains("/ by zero") );
+      Assert.assertTrue(error.get(Constants.ErrorFields.EXCEPTION.getName()).toString().contains("/ by zero"));
       Assert.assertEquals(Constants.ErrorType.ENRICHMENT_ERROR.getType(), error.get(Constants.ErrorFields.ERROR_TYPE.getName()));
       Assert.assertEquals("{\"error_test\":{},\"source.type\":\"test\"}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
     }
@@ -401,17 +395,17 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(indexedDoc.getOrDefault("is_alert",""), "true");
 
       // validate threat triage score
-      Assert.assertTrue(indexedDoc.containsKey(THREAT_TRIAGE_SCORE_KEY));
-      Double score = (Double) indexedDoc.get(THREAT_TRIAGE_SCORE_KEY);
+      Assert.assertTrue(indexedDoc.containsKey(ThreatIntelUtils.THREAT_TRIAGE_SCORE_KEY));
+      Double score = (Double) indexedDoc.get(ThreatIntelUtils.THREAT_TRIAGE_SCORE_KEY);
       Assert.assertEquals(score, 10d, 1e-7);
 
       // validate threat triage rules
       Joiner joiner = Joiner.on(".");
       Stream.of(
-              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_NAME),
-              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_COMMENT),
-              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_REASON),
-              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_SCORE))
+              joiner.join(ThreatIntelUtils.THREAT_TRIAGE_RULES_KEY, 0, ThreatIntelUtils.THREAT_TRIAGE_RULE_NAME),
+              joiner.join(ThreatIntelUtils.THREAT_TRIAGE_RULES_KEY, 0, ThreatIntelUtils.THREAT_TRIAGE_RULE_COMMENT),
+              joiner.join(ThreatIntelUtils.THREAT_TRIAGE_RULES_KEY, 0, ThreatIntelUtils.THREAT_TRIAGE_RULE_REASON),
+              joiner.join(ThreatIntelUtils.THREAT_TRIAGE_RULES_KEY, 0, ThreatIntelUtils.THREAT_TRIAGE_RULE_SCORE))
               .forEach(key ->
                       Assert.assertTrue(String.format("Missing expected key: '%s'", key), indexedDoc.containsKey(key)));
     }
@@ -473,11 +467,11 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
         enriched = true;
       }
       if (ips.contains(indexedDoc.get(DST_IP))) {
-        Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
+        boolean isEnriched = Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.PRINTER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, DST_IP))
-        );
+                ).apply(new EvaluationPayload(indexedDoc, DST_IP));
+        Assert.assertTrue(isEnriched);
         enriched = true;
       }
     }
@@ -494,11 +488,11 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
         enriched = true;
       }
       if (ips.contains(indexedDoc.get(DST_IP))) {
-        Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
+        boolean isEnriched = Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.WEBSERVER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, DST_IP))
-        );
+                ).apply(new EvaluationPayload(indexedDoc, DST_IP));
+        Assert.assertTrue(isEnriched);
         enriched = true;
       }
     }
@@ -531,7 +525,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
                     , message -> {
                       try {
                         return new HashMap<>(JSONUtils.INSTANCE.load(new String(message)
-                                , new TypeReference<Map<String, Object>>() {}
+                                , JSONUtils.MAP_SUPPLIER 
                         )
                         );
                       } catch (Exception ex) {

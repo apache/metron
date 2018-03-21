@@ -21,6 +21,7 @@ package org.apache.metron.stellar.common.shell.cli;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * An input stream which mirrors System.in, but allows you to 'pause' and 'unpause' it.
@@ -36,8 +37,8 @@ import java.io.InputStream;
  *
  */
 public class PausableInput extends InputStream {
-  InputStream in = System.in;
-  boolean paused = false;
+  private InputStream in = System.in;
+  private AtomicBoolean paused = new AtomicBoolean(false);
   private PausableInput() {
     super();
   }
@@ -46,7 +47,7 @@ public class PausableInput extends InputStream {
    * Stop mirroring stdin
    */
   public void pause() {
-    paused = true;
+    paused.set(true);
   }
 
   /**
@@ -54,8 +55,7 @@ public class PausableInput extends InputStream {
    * @throws IOException
    */
   public void unpause() throws IOException {
-    in.read(new byte[in.available()]);
-    paused = false;
+    paused.set(false);
   }
 
   public final static PausableInput INSTANCE = new PausableInput();
@@ -76,7 +76,14 @@ public class PausableInput extends InputStream {
    */
   @Override
   public int read() throws IOException {
-
+    if(paused.get()) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      return 0;
+    }
     return in.read();
   }
 
@@ -116,7 +123,7 @@ public class PausableInput extends InputStream {
   @Override
   public int read(byte[] b) throws IOException {
 
-    if(paused) {
+    if(paused.get()) {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
@@ -187,7 +194,7 @@ public class PausableInput extends InputStream {
    */
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    if(paused) {
+    if(paused.get()) {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {

@@ -34,7 +34,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 Setup
 -----
 
-1. Deploy the [development environment.](vagrant/full-dev-platform/README.md).
+1. Deploy the [development environment.](development/centos6/README.md).
 
 1. Export the following environment variables.  These need to be set for the remainder of the instructions. Replace `node1` with the appropriate hosts, if you are running Metron anywhere other than Vagrant.
 
@@ -90,7 +90,7 @@ Setup a KDC
     cp -f /etc/krb5.conf /var/lib/ambari-server/resources/scripts
     ```
 
-1. Ensure that the KDC can issue renewable tickets. This may be necessary on a real cluster, but should not be on [Full Dev](vagrant/full-dev-platform/README.md).
+1. Ensure that the KDC can issue renewable tickets. This may be necessary on a real cluster, but should not be on a [single VM](development/centos6/README.md).
 
     Edit `/var/kerberos/krb5kdc/kdc.conf` and ensure the following is added to the `realm` section
 

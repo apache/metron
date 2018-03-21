@@ -49,6 +49,12 @@
                                 <include>**/*</include>
                             </includes>
                         </fileset>
+                        <fileset>
+                            <directory>.npm</directory>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                        </fileset>
                     </filesets>
                 </configuration>
             </plugin>
@@ -145,6 +151,12 @@
                                 </resource>
                                 <resource>
                                     <directory>${metron_dir}/metron-interface/metron-alerts/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-contrib/metron-performance/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

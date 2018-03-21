@@ -17,7 +17,6 @@
  */
 package org.apache.metron.common.configuration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableList;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
@@ -221,8 +220,7 @@ public class StellarEnrichmentTest {
   public static String message;
 
   public static JSONObject getMessage() throws IOException {
-    Map<String, Object> ret = JSONUtils.INSTANCE.load(message, new TypeReference<Map<String, Object>>() {
-    });
+    Map<String, Object> ret = JSONUtils.INSTANCE.load(message, JSONUtils.MAP_SUPPLIER);
     return new JSONObject(ret);
   }
 
