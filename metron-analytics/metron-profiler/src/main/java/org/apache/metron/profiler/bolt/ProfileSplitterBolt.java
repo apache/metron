@@ -197,6 +197,8 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
               route.getEntity(),
               timestamp);
     }
+
+    LOG.debug("Found {} route(s) for message with timestamp={}", routes.size(), timestamp);
   }
 
   /**
