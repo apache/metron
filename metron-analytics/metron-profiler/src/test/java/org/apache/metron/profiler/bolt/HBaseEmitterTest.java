@@ -74,7 +74,8 @@ public class HBaseEmitterTest {
   }
 
   /**
-   * The handler should emit a message when a result/triage expression(s) has been defined.
+   * The handler should emit a message containing the result of executing
+   * the 'result/profile' expression.
    */
   @Test
   public void testEmit() throws Exception {
