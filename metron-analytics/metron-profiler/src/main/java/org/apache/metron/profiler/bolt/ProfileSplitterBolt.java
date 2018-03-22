@@ -191,9 +191,12 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
 
       Values values = createValues(message, timestamp, route);
       collector.emit(input, values);
-    }
 
-    LOG.debug("Found {} route(s) for message with timestamp={}", routes.size(), timestamp);
+      LOG.debug("Found route for message; profile={}, entity={}, timestamp={}",
+              route.getProfileDefinition().getProfile(),
+              route.getEntity(),
+              timestamp);
+    }
   }
 
   /**
