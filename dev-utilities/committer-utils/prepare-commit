@@ -19,9 +19,9 @@
 # not likely to change
 METRON_UPSTREAM="https://git-wip-us.apache.org/repos/asf/metron.git"
 BRO_PLUGIN_UPSTREAM="https://git-wip-us.apache.org/repos/asf/metron-bro-plugin-kafka.git"
-BASE_BRANCH=master
 CONFIG_FILE=~/.metron-prepare-commit
 GITHUB_REMOTE="origin"
+BASE_BRANCH=master
 
 # does a config file already exist?
 if [ -f $CONFIG_FILE ]; then
@@ -114,6 +114,11 @@ if [ ! -d "$WORK" ]; then
   read -p "  origin repo [$ORIGIN]: " INPUT
   [ -n "$INPUT" ] && ORIGIN=$INPUT
 
+  # what branch did the PR get submitted against?  could be a feature branch
+  BASE_BRANCH=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/$PR | python -c 'import sys, json; print json.load(sys.stdin)["base"]["ref"]'`
+  read -p "  base branch to merge into [$BASE_BRANCH]: " INPUT
+  [ -n "$INPUT" ] && BASE_BRANCH=$INPUT
+
   # clone the repository and fetch updates
   mkdir -p $WORK
   git clone $ORIGIN $WORK
@@ -125,11 +130,23 @@ if [ ! -d "$WORK" ]; then
 
   # fetch any changes from upstream
   git remote add upstream $UPSTREAM
-  git fetch upstream $BASE_BRANCH
+  if git fetch upstream "$BASE_BRANCH"; then
 
-  # merge any changes from upstream
-  git checkout $BASE_BRANCH
-  git merge upstream/$BASE_BRANCH
+    if [ $BASE_BRANCH = "master" ]; then
+      # merge any changes from upstream
+      git checkout $BASE_BRANCH
+      git merge upstream/$BASE_BRANCH
+
+    else
+      # create a local branch from the remote feature branch
+      git checkout -B $BASE_BRANCH upstream/$BASE_BRANCH
+
+    fi
+
+  else
+    # unable to fetch the base branch
+    exit $?
+  fi
 
 else
 
