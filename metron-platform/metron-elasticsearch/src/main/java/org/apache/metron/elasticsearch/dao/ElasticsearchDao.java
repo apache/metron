@@ -608,10 +608,12 @@ public class ElasticsearchDao implements IndexDao {
     Map<String, Map<String, Long>> fieldCounts = new HashMap<>();
     for (String field: fields) {
       Map<String, Long> valueCounts = new HashMap<>();
-      Aggregation aggregation = aggregations.get(getFacetAggregationName(field));
-      if (aggregation instanceof Terms) {
-        Terms terms = (Terms) aggregation;
-        terms.getBuckets().stream().forEach(bucket -> valueCounts.put(formatKey(bucket.getKey(), commonColumnMetadata.get(field)), bucket.getDocCount()));
+      if(aggregations != null ){
+        Aggregation aggregation = aggregations.get(getFacetAggregationName(field));
+        if (aggregation instanceof Terms) {
+          Terms terms = (Terms) aggregation;
+          terms.getBuckets().stream().forEach(bucket -> valueCounts.put(formatKey(bucket.getKey(), commonColumnMetadata.get(field)), bucket.getDocCount()));
+        }
       }
       fieldCounts.put(field, valueCounts);
     }
