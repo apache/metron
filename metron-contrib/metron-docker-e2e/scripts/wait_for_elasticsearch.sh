@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -16,8 +16,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-$METRON_HOME/bin/zk_load_configs.sh -z zookeeper:2181 -m PUSH -i $METRON_HOME/config/zookeeper
-
-METRON_REST_CLASSPATH="$METRON_HOME/lib/metron-rest-$METRON_VERSION.jar:$METRON_HOME/lib/metron-parsers-$METRON_VERSION-uber.jar:$METRON_HOME/lib/metron-elasticsearch-$METRON_VERSION-uber.jar"
-
-java -cp $METRON_REST_CLASSPATH org.apache.metron.rest.MetronRestApplication --spring.config.location=$METRON_HOME/config/application-docker.yml --spring.profiles.active=dev --server.port=8082
+ELASTICSEARCH_HOST=$1
+ELASTICSEARCH_PORT=$2
+DELAY=5
+MAX_ATTEMPTS=24
+COUNTER=0
+while [ $COUNTER -lt $MAX_ATTEMPTS ]; do
+  curl -s --output /dev/null -XGET http://$ELASTICSEARCH_HOST:$ELASTICSEARCH_PORT && echo Elasticsearch is up after waiting "$(($DELAY * $COUNTER))" seconds && break
+  sleep $DELAY
+  let COUNTER=COUNTER+1
+done
+if [ $COUNTER -eq $MAX_ATTEMPTS  ]; then echo Could not reach REST after "$(($DELAY * $COUNTER))" seconds; fi

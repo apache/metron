@@ -1,4 +1,3 @@
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -50,10 +49,8 @@ public abstract class SearchIntegrationTest {
   private static final String namespace = SearchIntegrationTest.class.getSimpleName().toLowerCase();
   protected static final String broIndex = namespace + "_bro_index";
   protected static final String snortIndex = namespace + "_snort_index";
-  protected static final String metaAlertIndex = namespace + "_metaalert_index";
   protected static final String broType = namespace + "_bro_doc";
   protected static final String snortType = namespace + "_snort_doc";
-  protected static final String metaAlertType = namespace + "_metaalert_doc";
 
   /**
    * [
@@ -113,7 +110,7 @@ public abstract class SearchIntegrationTest {
    * },
    * {
    * "guid": "snort_2",
-   * "sensorType": "searchintegrationtest_bro"
+   * "sensorType": "searchintegrationtest_snort"
    * }
    * ]
    */
@@ -543,7 +540,6 @@ public abstract class SearchIntegrationTest {
     for (int i = 2; i < 10; i++) {
       Assert.assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
     }
-<<<<<<< HEAD
   }
 
   @Test
@@ -570,27 +566,6 @@ public abstract class SearchIntegrationTest {
     for (int i = 5, j = 0; i > 0; i--, j++) {
       Assert.assertEquals("bro", results.get(j).getSource().get("source:type"));
       Assert.assertEquals(i, results.get(j).getSource().get("timestamp"));
-=======
-    // getColumnMetadata with multiple indices
-    {
-      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("searchintegrationtest_bro", "searchintegrationtest_snort"));
-      Assert.assertEquals(15, fieldTypes.size());
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("source:type"));
-      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-      Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
-      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
-      Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
->>>>>>> upstream/feature/METRON-1344-test-infrastructure
     }
   }
 
@@ -694,7 +669,7 @@ public abstract class SearchIntegrationTest {
 
   @Test
   public void returns_column_data_for_multiple_indices() throws Exception {
-    Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
+    Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("searchintegrationtest_bro", "searchintegrationtest_snort"));
     Assert.assertEquals(15, fieldTypes.size());
     Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
     Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));

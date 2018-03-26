@@ -31,7 +31,18 @@ services:
     depends_on:
       - zookeeper
   elasticsearch:
-    image: elasticsearch:2.3
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.8
+    environment:
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=false
+      - xpack.ml.enabled=false
+      - xpack.graph.enabled=false
+      - xpack.watcher.enabled=false
+      - cluster.name=elasticsearch
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - discovery.zen.minimum_master_nodes=1
+      - discovery.type=single-node
     ports:
       - "9210:9200"
       - "9310:9300"
