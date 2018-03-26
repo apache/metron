@@ -25,6 +25,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
@@ -74,7 +75,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
    * messages.  Once it has not received messages for a period of time, it is
    * moved to the expired cache.
    */
-  private transient Cache<String, ProfileBuilder> activeCache;
+  private transient Cache<Integer, ProfileBuilder> activeCache;
 
   /**
    * A cache of expired profiles.
@@ -85,7 +86,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
    * can flush the state of the expired profile.  If the client does not flush
    * the expired profiles, this state will be lost forever.
    */
-  private transient Cache<String, ProfileBuilder> expiredCache;
+  private transient Cache<Integer, ProfileBuilder> expiredCache;
 
   /**
    * Create a new message distributor.
@@ -222,7 +223,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
    * @param cache The cache to flush.
    * @return The measurements captured when flushing the profiles.
    */
-  private List<ProfileMeasurement> flushCache(Cache<String, ProfileBuilder> cache) {
+  private List<ProfileMeasurement> flushCache(Cache<Integer, ProfileBuilder> cache) {
 
     List<ProfileMeasurement> measurements = new ArrayList<>();
     for(ProfileBuilder profileBuilder: cache.asMap().values()) {
@@ -262,11 +263,19 @@ public class DefaultMessageDistributor implements MessageDistributor {
   /**
    * Builds the key that is used to lookup the {@link ProfileBuilder} within the cache.
    *
+   * <p>The cache key is built using the hash codes of the profile and entity name.  If the profile
+   * definition is ever changed, the same cache entry will not be reused.  This ensures that no
+   * state can be carried over from the old definition into the new, which might result in an
+   * invalid profile measurement.
+   *
    * @param profile The profile definition.
    * @param entity The entity.
    */
-  private String cacheKey(ProfileConfig profile, String entity) {
-    return format("%s:%s", profile, entity);
+  private int cacheKey(ProfileConfig profile, String entity) {
+    return new HashCodeBuilder(17, 37)
+            .append(profile)
+            .append(entity)
+            .hashCode();
   }
 
   public DefaultMessageDistributor withPeriodDurationMillis(long periodDurationMillis) {
@@ -281,29 +290,45 @@ public class DefaultMessageDistributor implements MessageDistributor {
   /**
    * A listener that is notified when profiles expire from the active cache.
    */
-  private class ActiveCacheRemovalListener implements RemovalListener<String, ProfileBuilder> {
+  private class ActiveCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder> {
 
     @Override
-    public void onRemoval(RemovalNotification<String, ProfileBuilder> notification) {
+    public void onRemoval(RemovalNotification<Integer, ProfileBuilder> notification) {
 
-      String key = notification.getKey();
       ProfileBuilder expired = notification.getValue();
+      LOG.warn("Profile expired from active cache; profile={}, entity={}",
+              expired.getDefinition().getProfile(),
+              expired.getEntity());
 
-      LOG.warn("Profile expired from active cache; key={}", key);
-      expiredCache.put(key, expired);
+      // add the profile to the expired cache
+      expiredCache.put(notification.getKey(), expired);
     }
   }
 
   /**
    * A listener that is notified when profiles expire from the active cache.
    */
-  private class ExpiredCacheRemovalListener implements RemovalListener<String, ProfileBuilder> {
+  private class ExpiredCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder> {
 
     @Override
-    public void onRemoval(RemovalNotification<String, ProfileBuilder> notification) {
+    public void onRemoval(RemovalNotification<Integer, ProfileBuilder> notification) {
 
-      String key = notification.getKey();
-      LOG.debug("Profile removed from expired cache; key={}", key);
+      if(notification.wasEvicted()) {
+
+        // the expired profile was NOT flushed in time
+        ProfileBuilder expired = notification.getValue();
+        LOG.warn("Expired profile NOT flushed before removal, some state lost; profile={}, entity={}",
+                expired.getDefinition().getProfile(),
+                expired.getEntity());
+
+      } else {
+
+        // the expired profile was flushed successfully
+        ProfileBuilder expired = notification.getValue();
+        LOG.debug("Expired profile successfully flushed; profile={}, entity={}",
+                expired.getDefinition().getProfile(),
+                expired.getEntity());
+      }
     }
   }
 }
