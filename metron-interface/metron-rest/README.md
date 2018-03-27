@@ -815,19 +815,19 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
       * sensorType - The sensor type
       * patch - An array of [RFC 6902](https://tools.ietf.org/html/rfc6902) patches.
     * Example adding a field called `project` with value `metron` to the `bro` message with UUID of `000-000-0000` :
-  ```
-  {
-     "guid" : "000-000-0000",
-     "sensorType" : "bro",
-     "patch" : [
-      {
-                "op": "add"
-               , "path": "/project"
-               , "value": "metron"
-      }
-              ]
-   }
-  ```
+        ```
+        {
+           "guid" : "000-000-0000",
+           "sensorType" : "bro",
+           "patch" : [
+            {
+                      "op": "add"
+                     , "path": "/project"
+                     , "value": "metron"
+            }
+                    ]
+         }
+        ```
   * Returns:
     * 200 - nothing
     * 404 - document not found
