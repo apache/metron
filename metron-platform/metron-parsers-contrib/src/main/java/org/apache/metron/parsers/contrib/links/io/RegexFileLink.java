@@ -57,9 +57,7 @@ public class RegexFileLink extends ChainLinkIO<String> {
 
         for (String pattern : this.patterns) {
             JSONObject variables = extractVariables(input, pattern);
-            System.out.println(pattern);
             if (variables.keySet().size() > 0) {
-                System.out.println("Match found.");
                 return variables;
             }
         }
@@ -71,6 +69,9 @@ public class RegexFileLink extends ChainLinkIO<String> {
         this.patterns = patterns;
     }
 
+    public List<String> getPatterns() { return this.patterns; }
+
+    @SuppressWarnings("unchecked")
     public JSONObject extractVariables(String logline, String pattern) {
         JSONObject vars = new JSONObject();
 
@@ -78,36 +79,17 @@ public class RegexFileLink extends ChainLinkIO<String> {
         if (pattern.startsWith("[")) return new JSONObject();
         if (pattern.trim().length() == 0) return new JSONObject();
 
-        if (pattern.substring(0, 1).equals("\"") && pattern.substring(pattern.length() - 1).equals("\"")) {
-            pattern = pattern.substring(1, pattern.length() - 1);
-        }
-
-        // Make sure the patterns do not start with ?P
-        pattern = pattern.replaceAll("\\?P\\<", "\\?\\<");
-
         // Find the non-preprocessed group names
         List<String> originalGroups = findGroups(pattern, "\\?\\<([^>]+)\\>");
-
-        // Clean the groups such that these can be used by the Regex parser
-        pattern = pattern.replaceAll("\\<([^>]*)[^a-zA-Z0-9>]{1,}([^>]*)\\>", "<$1$2>");
-        pattern = pattern.replaceAll("\\<([^>]*)[^a-zA-Z0-9>]{1,}([^>]*)\\>", "<$1$2>");
-        pattern = pattern.replaceAll("\\?\\(([a-zA-Z0-9_]+)\\)", "\\\\k<$1>");
-        pattern = pattern.replaceAll("\\\\k\\<([^>]*)[^a-zA-Z0-9>]([^>]*)\\>", "\\\\k<$1$2>");
-
-        // Custom rules
-        pattern = pattern.replaceAll("[\\\\]{1}Type", "Type");
-        pattern = pattern.replaceAll("[\\\\]{1}IPV4", "IPV4");
-        pattern = pattern.replaceAll("[\\\\]{1}User", "User");
-
-        System.out.println(pattern);
 
         // Find all group names
         List<String> groups = findGroups(pattern, "\\?\\<([a-zA-Z0-9]+)\\>");
 
         // Find all groups
-        Pattern regexPattern = Pattern.compile(pattern);
-        Matcher matcher = regexPattern.matcher(logline);
-        if (matcher.matches()) {
+        Pattern regexPattern = Pattern.compile(pattern.trim(), Pattern.CASE_INSENSITIVE);
+        Matcher matcher = regexPattern.matcher(logline.trim());
+
+        if (matcher.find()) {
             for (String group : groups) {
                 String value = matcher.group(group);
 
@@ -153,10 +135,10 @@ public class RegexFileLink extends ChainLinkIO<String> {
                     }
                 }
             } else {
-                throw new IllegalStateException("[Metron] Could not find the file: " + filepath);
+                throw new IllegalStateException("Could not find the file: " + filepath);
             }
         } catch (IOException e) {
-            throw new IllegalStateException("[Metron] Could not load the file: " + filepath);
+            throw new IllegalStateException("Could not load the file: " + filepath);
         }
 
         this.setPatterns(patterns);

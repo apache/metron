@@ -207,6 +207,24 @@ The pair delimiter would be `|` and the key-value delimiter is `=`. The followin
 
 The "pair_delimiter" argument specifies which pair delimiter is used. The "key_value_delimiter" argument specifies the key-value delimiter and the "valid_key_characters" argument specifies the characters of which a key exists. The last argument is a substring of the regular expression for detecting keys and is required for performance issues. The value "A-Z" refers to the fact that the keys consist only of uppercase characters.
 
+#### Regex file link
+
+The Regex file link reads Regex patterns from a file (line separated) and tries to find a match. When there is a match, all named variables (like `(?<number>\d+)`) are stored in the output JSON object.
+
+Instead of specifying a file to load the patterns from, it is also possible to specify the `patterns` field which should be an array of patterns. It is possible to load a file from HDFS (by specifying the `hdfs://` prefix). The file is specified in the `file` field.
+
+```json
+{
+    "chain": ["parse_regexfile"],
+    "parsers": {
+        "keyvalue": {
+            "class": "org.apache.metron.parsers.contrib.links.io.RegexFileLink",
+            "file": "hdfs://my_regex_file.txt"
+        }
+    }
+}
+```
+
 #### Regex link
 
 The regex link executes a regular expression on the input field and uses the first found result for the creation of the output object.
