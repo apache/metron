@@ -262,8 +262,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
     //ensure we always have a source ip and destination ip
     Assert.assertNotNull(jsonDoc.get(SRC_IP));
-    Assert.assertNotNull(jsonDoc.get(DST_IP));
-
     Assert.assertNotNull(jsonDoc.get("ALL_CAPS"));
     Assert.assertNotNull(jsonDoc.get("map.blah"));
     Assert.assertNull(jsonDoc.get("map"));

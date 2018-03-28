@@ -170,6 +170,9 @@ public class ParallelEnricher {
         for(Object o : m.keySet()) {
           String field = (String) o;
           Object value = m.get(o);
+          if(value == null) {
+            continue;
+          }
           CacheKey cacheKey = new CacheKey(field, value, config);
           String prefix = adapter.getOutputPrefix(cacheKey);
           Supplier<JSONObject> supplier = () -> {
