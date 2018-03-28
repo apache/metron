@@ -51,6 +51,8 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.PivotField;
@@ -84,8 +86,8 @@ public class SolrSearchDao implements SearchDao {
       throw new InvalidSearchException(
           "Search result size must be less than " + accessConfig.getMaxSearchResults());
     }
-    SolrQuery query = buildSearchRequest(searchRequest);
     try {
+      SolrQuery query = buildSearchRequest(searchRequest);
       QueryResponse response = client.query(query);
       return buildSearchResponse(searchRequest, response);
     } catch (IOException | SolrServerException e) {
@@ -153,7 +155,7 @@ public class SolrSearchDao implements SearchDao {
   }
 
   private SolrQuery buildSearchRequest(
-      SearchRequest searchRequest) {
+      SearchRequest searchRequest) throws IOException, SolrServerException {
     SolrQuery query = new SolrQuery()
         .setStart(searchRequest.getFrom())
         .setRows(searchRequest.getSize())
@@ -176,7 +178,8 @@ public class SolrSearchDao implements SearchDao {
       facetFields.get().forEach(query::addFacetField);
     }
 
-    String collections = searchRequest.getIndices().stream().collect(Collectors.joining(","));
+    List<String> existingCollections = CollectionAdminRequest.listCollections(client);
+    String collections = searchRequest.getIndices().stream().filter(existingCollections::contains).collect(Collectors.joining(","));
     query.set("collection", collections);
 
     return query;
