@@ -51,20 +51,14 @@ There are two general types types of parsers:
 Currently, we have a few mechanisms for either deferring processing of
 messages or marking messages as invalid.
 
-### Invalid
+### Invalidation Errors
 
-There are two ways for a message to get marked as invalid:
+There are two reasons a message will be marked as invalid:
 * Fail [global validation](../metron-common#validation-framework)
 * Fail the parser's validate function (generally that means to not have a `timestamp` field or a `original_string` field.
 
 Those messages which are marked as invalid are sent to the error queue
 with an indication that they are invalid in the error message.
-
-### Filtered
-
-One can also filter a message by specifying a `filterClassName` in the
-parser config.  Filtered messages are just dropped rather than passed
-through.
 
 ### Parser Errors
 
@@ -72,7 +66,13 @@ Errors, which are defined as unexpected exceptions happening during the
 parse, are sent along to the error queue with a message indicating that
 there was an error in parse along with a stacktrace.  This is to
 distinguish from the invalid messages.
-    
+ 
+## Filtered
+
+One can also filter a message by specifying a `filterClassName` in the
+parser config.  Filtered messages are just dropped rather than passed
+through.
+   
 ## Parser Architecture
 
 ![Architecture](parser_arch.png)
