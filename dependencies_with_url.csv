@@ -22,6 +22,9 @@ com.flipkart.zjsonpatch:zjsonpatch:jar:0.3.4:compile,Apache v2, https://github.c
 com.google.protobuf:protobuf-java:jar:2.5.0:compile,New BSD license,http://code.google.com/p/protobuf
 com.google.protobuf:protobuf-java:jar:2.6.1:compile,New BSD license,http://code.google.com/p/protobuf
 com.jcraft:jsch:jar:0.1.42:compile,BSD,http://www.jcraft.com/jsch/
+com.jayway.jsonpath:json-path:jar:2.3.0:compile,Apache v2,https://github.com/json-path/JsonPath
+net.minidev:accessors-smart:jar:1.2:compile,Apache v2,https://github.com/netplex/json-smart-v2
+net.minidev:json-smart:jar:2.3:compile,Apache v2,https://github.com/netplex/json-smart-v2
 com.maxmind.db:maxmind-db:jar:1.2.1:compile,CC-BY-SA 3.0,https://github.com/maxmind/MaxMind-DB
 com.maxmind.geoip2:geoip2:jar:2.8.0:compile,Apache v2,https://github.com/maxmind/GeoIP2-java
 com.sun.xml.bind:jaxb-impl:jar:2.2.3-1:compile,CDDL,http://jaxb.java.net/
@@ -341,7 +344,7 @@ org.eclipse.persistence:org.eclipse.persistence.asm:jar:2.6.4:compile,EPL 1.0,ht
 org.eclipse.persistence:org.eclipse.persistence.core:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
 org.eclipse.persistence:org.eclipse.persistence.jpa.jpql:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
 org.eclipse.persistence:org.eclipse.persistence.jpa:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
-
+com.github.ben-manes.caffeine:caffeine:jar:2.6.2:compile,ASLv2,https://github.com/ben-manes/caffeine/blob/v2.6.2/LICENSE
 com.google.code.gson:gson:jar:2.2:compile
   org.codehaus.plexus:plexus-classworlds:jar:2.4:compile
   org.codehaus.plexus:plexus-component-annotations:jar:1.5.5:compile

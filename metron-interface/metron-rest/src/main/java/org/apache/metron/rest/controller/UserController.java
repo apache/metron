@@ -26,11 +26,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 
 @RestController
+@RequestMapping("/api/v1/user")
 public class UserController {
 
   @ApiOperation(value = "Retrieves the current user")
   @ApiResponse(message = "Current user", code = 200)
-  @RequestMapping(value = "/api/v1/user", method = RequestMethod.GET)
+  @RequestMapping(method = RequestMethod.GET)
     public String user(Principal user) {
         return user.getName();
     }

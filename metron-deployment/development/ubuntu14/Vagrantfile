@@ -25,7 +25,7 @@ begin
      [ '--ansible-skip-tags', GetoptLong::OPTIONAL_ARGUMENT ]
    )
 
-   opts.quiet = TRUE
+   opts.quiet = true
 
    opts.each do |opt, arg|
      case opt
@@ -79,9 +79,10 @@ Vagrant.configure(2) do |config|
   # provision the host with ansible
   config.vm.provision :ansible do |ansible|
     ansible.playbook = "ansible/playbook.yml"
-    ansible.sudo = true
+    ansible.become = true
     ansible.tags = ansibleTags.split(",") if ansibleTags != ''
     ansible.skip_tags = ansibleSkipTags.split(",") if ansibleSkipTags != ''
     ansible.inventory_path = "ansible/inventory"
+    ansible.compatibility_mode = "1.8"
   end
 end

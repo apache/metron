@@ -43,6 +43,7 @@ There are two general types types of parsers:
       * `UNFOLD` : Unfold inner maps.  So `{ "foo" : { "bar" : 1} }` would turn into `{"foo.bar" : 1}`
       * `ALLOW` : Allow multidimensional maps
       * `ERROR` : Throw an error when a multidimensional map is encountered
+    * `jsonpQuery` : A [JSON Path](#json_path) query string. If present, the result of the JSON Path query should be a list of messages. This is useful if you have a JSON document which contains a list or array of messages embedded in it, and you do not have another means of splitting the message.
     * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.  
     
 ## Parser Architecture
@@ -520,3 +521,14 @@ be customized by modifying the arguments sent to this utility.
  
 Finally, if workers and executors are new to you, the following might be of use to you:
 * [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)
+
+## JSON Path
+
+> "JSONPath expressions always refer to a JSON structure in the same way as XPath expression are used in combination with an XML document."
+> ~ Stefan Goessner
+
+
+- [JSON Path concept](http://goessner.net/articles/JsonPath/)
+- [Read about JSON Path library Apache Metron uses](https://github.com/json-path/JsonPath)
+- [Try JSON Path expressions online](http://jsonpath.herokuapp.com)
+
