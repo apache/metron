@@ -57,6 +57,7 @@ Source10:       metron-config-%{full_version}-archive.tar.gz
 Source11:       metron-management-%{full_version}-archive.tar.gz
 Source12:       metron-maas-service-%{full_version}-archive.tar.gz
 Source13:       metron-alerts-%{full_version}-archive.tar.gz
+Source14:       metron-performance-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -93,6 +94,7 @@ tar -xzf %{SOURCE10} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE11} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE12} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE13} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE14} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
@@ -147,6 +149,7 @@ This package installs the Metron Parser files
 %{metron_home}/bin/start_parser_topology.sh
 %{metron_home}/config/zookeeper/parsers/bro.json
 %{metron_home}/config/zookeeper/parsers/jsonMap.json
+%{metron_home}/config/zookeeper/parsers/jsonMapQuery.json
 %{metron_home}/config/zookeeper/parsers/snort.json
 %{metron_home}/config/zookeeper/parsers/squid.json
 %{metron_home}/config/zookeeper/parsers/websphere.json
@@ -181,6 +184,25 @@ This package installs the Metron Elasticsearch files
 %{metron_home}/bin/start_elasticsearch_topology.sh
 %{metron_home}/config/elasticsearch.properties
 %attr(0644,root,root) %{metron_home}/lib/metron-elasticsearch-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        performance
+Summary:        Metron Performance Tools
+Group:          Applications/Internet
+Provides:       performance = %{version}
+
+%description    performance
+This package installs performance tools useful for Metron
+
+%files          performance
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/lib
+%{metron_home}/bin/load_tool.sh
+%attr(0644,root,root) %{metron_home}/lib/metron-performance-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -258,6 +280,7 @@ This package installs the Metron Enrichment files
 %{metron_home}/config/zookeeper/enrichments/yaf.json
 %{metron_home}/config/zookeeper/enrichments/asa.json
 %{metron_home}/flux/enrichment/remote.yaml
+%{metron_home}/flux/enrichment/remote-unified.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

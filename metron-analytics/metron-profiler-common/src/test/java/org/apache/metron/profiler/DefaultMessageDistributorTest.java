@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler;
 
+import com.google.common.base.Ticker;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
@@ -33,6 +34,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.Assert.assertEquals;
 
 public class DefaultMessageDistributorTest {
@@ -83,16 +87,22 @@ public class DefaultMessageDistributorTest {
 
   private DefaultMessageDistributor distributor;
   private Context context;
+  private long periodDurationMillis = MINUTES.toMillis(15);
+  private long profileTimeToLiveMillis = MINUTES.toMillis(30);
+  private long maxNumberOfRoutes = Long.MAX_VALUE;
 
   @Before
   public void setup() throws Exception {
+
     context = Context.EMPTY_CONTEXT();
     JSONParser parser = new JSONParser();
     messageOne = (JSONObject) parser.parse(inputOne);
     messageTwo = (JSONObject) parser.parse(inputTwo);
+
     distributor = new DefaultMessageDistributor(
-            TimeUnit.MINUTES.toMillis(15),
-            TimeUnit.MINUTES.toMillis(30));
+            periodDurationMillis,
+            profileTimeToLiveMillis,
+            maxNumberOfRoutes);
   }
 
   /**
@@ -108,15 +118,18 @@ public class DefaultMessageDistributorTest {
    */
   @Test
   public void testDistribute() throws Exception {
+
+    // setup
+    long timestamp = 100;
     ProfileConfig definition = createDefinition(profileOne);
     String entity = (String) messageOne.get("ip_src_addr");
     MessageRoute route = new MessageRoute(definition, entity);
 
-    // distribute one message
-    distributor.distribute(messageOne, route, context);
+    // distribute one message and flush
+    distributor.distribute(messageOne, timestamp, route, context);
+    List<ProfileMeasurement> measurements = distributor.flush();
 
     // expect one measurement coming from one profile
-    List<ProfileMeasurement> measurements = distributor.flush();
     assertEquals(1, measurements.size());
     ProfileMeasurement m = measurements.get(0);
     assertEquals(definition.getProfile(), m.getProfileName());
@@ -126,12 +139,17 @@ public class DefaultMessageDistributorTest {
   @Test
   public void testDistributeWithTwoProfiles() throws Exception {
 
-    // distribute one message to the first profile
+    // setup
+    long timestamp = 100;
     String entity = (String) messageOne.get("ip_src_addr");
-    distributor.distribute(messageOne, new MessageRoute(createDefinition(profileOne), entity), context);
+
+    // distribute one message to the first profile
+    MessageRoute routeOne = new MessageRoute(createDefinition(profileOne), entity);
+    distributor.distribute(messageOne, timestamp, routeOne, context);
 
     // distribute another message to the second profile, but same entity
-    distributor.distribute(messageOne, new MessageRoute(createDefinition(profileTwo), entity), context);
+    MessageRoute routeTwo = new MessageRoute(createDefinition(profileTwo), entity);
+    distributor.distribute(messageOne, timestamp, routeTwo, context);
 
     // expect 2 measurements; 1 for each profile
     List<ProfileMeasurement> measurements = distributor.flush();
@@ -141,17 +159,150 @@ public class DefaultMessageDistributorTest {
   @Test
   public void testDistributeWithTwoEntities() throws Exception {
 
+    // setup
+    long timestamp = 100;
+
     // distribute one message
     String entityOne = (String) messageOne.get("ip_src_addr");
-    distributor.distribute(messageOne, new MessageRoute(createDefinition(profileOne), entityOne), context);
+    MessageRoute routeOne = new MessageRoute(createDefinition(profileOne), entityOne);
+    distributor.distribute(messageOne, timestamp, routeOne, context);
 
     // distribute another message with a different entity
     String entityTwo = (String) messageTwo.get("ip_src_addr");
-    distributor.distribute(messageTwo, new MessageRoute(createDefinition(profileTwo), entityTwo), context);
+    MessageRoute routeTwo =  new MessageRoute(createDefinition(profileTwo), entityTwo);
+    distributor.distribute(messageTwo, timestamp, routeTwo, context);
 
     // expect 2 measurements; 1 for each entity
     List<ProfileMeasurement> measurements = distributor.flush();
     assertEquals(2, measurements.size());
+  }
+
+  /**
+   * A profile should expire after a fixed period of time.  This test ensures that
+   * profiles are not expired before they are supposed to be.
+   */
+  @Test
+  public void testNotYetTimeToExpireProfiles() throws Exception {
+
+    // the ticker drives time to allow us to test cache expiration
+    FixedTicker ticker = new FixedTicker();
+
+    // setup
+    ProfileConfig definition = createDefinition(profileOne);
+    String entity = (String) messageOne.get("ip_src_addr");
+    MessageRoute route = new MessageRoute(definition, entity);
+    distributor = new DefaultMessageDistributor(
+            periodDurationMillis,
+            profileTimeToLiveMillis,
+            maxNumberOfRoutes,
+            ticker);
+
+    // distribute one message
+    distributor.distribute(messageOne, 1000000, route, context);
+
+    // advance time to just shy of the profile TTL
+    ticker.advanceTime(profileTimeToLiveMillis - 1000, MILLISECONDS);
+
+    // the profile should NOT have expired yet
+    assertEquals(0, distributor.flushExpired().size());
+    assertEquals(1, distributor.flush().size());
+  }
+
+  /**
+   * A profile should expire after a fixed period of time.
+   */
+  @Test
+  public void testProfilesShouldExpire() throws Exception {
+
+    // the ticker drives time to allow us to test cache expiration
+    FixedTicker ticker = new FixedTicker();
+
+    // setup
+    ProfileConfig definition = createDefinition(profileOne);
+    String entity = (String) messageOne.get("ip_src_addr");
+    MessageRoute route = new MessageRoute(definition, entity);
+    distributor = new DefaultMessageDistributor(
+            periodDurationMillis,
+            profileTimeToLiveMillis,
+            maxNumberOfRoutes,
+            ticker);
+
+    // distribute one message
+    distributor.distribute(messageOne, 100000, route, context);
+
+    // advance time to just beyond the period duration
+    ticker.advanceTime(profileTimeToLiveMillis + 1000, MILLISECONDS);
+
+    // the profile should have expired by now
+    assertEquals(1, distributor.flushExpired().size());
+    assertEquals(0, distributor.flush().size());
+  }
+
+  /**
+   * An expired profile is only kept around for a fixed period of time.  It should be removed, if it
+   * has been on the expired cache for too long.
+   */
+  @Test
+  public void testExpiredProfilesShouldBeRemoved() throws Exception {
+
+    // the ticker drives time to allow us to test cache expiration
+    FixedTicker ticker = new FixedTicker();
+
+    // setup
+    ProfileConfig definition = createDefinition(profileOne);
+    String entity = (String) messageOne.get("ip_src_addr");
+    MessageRoute route = new MessageRoute(definition, entity);
+    distributor = new DefaultMessageDistributor(
+            periodDurationMillis,
+            profileTimeToLiveMillis,
+            maxNumberOfRoutes,
+            ticker);
+
+    // distribute one message
+    distributor.distribute(messageOne, 1000000, route, context);
+
+    // advance time a couple of hours
+    ticker.advanceTime(2, HOURS);
+
+    // the profile should have been expired
+    assertEquals(0, distributor.flush().size());
+
+    // advance time a couple of hours
+    ticker.advanceTime(2, HOURS);
+
+    // the profile should have been removed from the expired cache
+    assertEquals(0, distributor.flushExpired().size());
+  }
+
+  /**
+   * An implementation of Ticker that can be used to drive time
+   * when testing the Guava caches.
+   */
+  private class FixedTicker extends Ticker {
+
+    /**
+     * The time that will be reported.
+     */
+    private long timestampNanos;
+
+    public FixedTicker() {
+      this.timestampNanos = Ticker.systemTicker().read();
+    }
+
+    public FixedTicker startAt(long timestampNanos) {
+      this.timestampNanos = timestampNanos;
+      return this;
+    }
+
+    public FixedTicker advanceTime(long time, TimeUnit units) {
+      this.timestampNanos += units.toNanos(time);
+      return this;
+    }
+
+    @Override
+    public long read() {
+      return this.timestampNanos;
+    }
   }
 
 }

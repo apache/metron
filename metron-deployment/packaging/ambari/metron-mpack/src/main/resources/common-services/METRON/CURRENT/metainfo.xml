@@ -241,6 +241,13 @@
               </auto-deploy>
             </dependency>
             <dependency>
+              <name>HBASE/HBASE_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                  <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
               <scope>cluster</scope>
               <auto-deploy>
@@ -413,6 +420,10 @@
             <package>
               <name>metron-maas-service</name>
             </package>
+            <package>
+              <name>metron-performance</name>
+            </package>
+
           </packages>
         </osSpecific>
         <osSpecific>

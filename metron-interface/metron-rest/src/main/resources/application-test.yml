@@ -44,6 +44,8 @@ storm:
 search:
   max:
     results: 100
+  facet:
+    fields: ip_src_addr
 
 index:
   dao:

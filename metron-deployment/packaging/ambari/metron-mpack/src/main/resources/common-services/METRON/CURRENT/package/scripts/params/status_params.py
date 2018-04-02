@@ -37,7 +37,6 @@ zk_configured_flag_file = metron_zookeeper_config_path + '/../metron_zookeeper_c
 parsers = config['configurations']['metron-parsers-env']['parsers']
 parsers_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_configured'
 parsers_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_acl_configured'
-rest_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_rest_acl_configured'
 
 # Enrichment
 metron_enrichment_topology = 'enrichment'
@@ -81,6 +80,12 @@ elasticsearch_template_installed_flag_file = metron_zookeeper_config_path + '/..
 
 # REST
 metron_rest_port = config['configurations']['metron-rest-env']['metron_rest_port']
+rest_kafka_configured_flag_file = metron_zookeeper_config_path + '/../metron_rest_kafka_configured'
+rest_kafka_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_rest_kafka_acl_configured'
+rest_hbase_configured_flag_file = metron_zookeeper_config_path + '/../metron_rest_hbase_configured'
+rest_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_rest_hbase_acl_configured'
+user_settings_hbase_table = config['configurations']['metron-rest-env']['user_settings_hbase_table']
+user_settings_hbase_cf = config['configurations']['metron-rest-env']['user_settings_hbase_cf']
 
 # Alerts UI
 metron_alerts_ui_host = default("/clusterHostInfo/metron_alerts_ui_hosts", [hostname])[0]

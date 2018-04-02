@@ -152,7 +152,6 @@ describe('meta-alerts workflow', function() {
     let groupByItems = {
       'source:type': '1',
       'ip_dst_addr': '7',
-      'host': '9',
       'enrichm...:country': '3',
       'ip_src_addr': '2'
     };
@@ -215,8 +214,8 @@ describe('meta-alerts workflow', function() {
     expect(tablePage.getPaginationText()).toEqualBcoz('1 - 25 of 150', 'pagination text to be present');
 
     // Meta Alert should appear in Filters
-    alertFacetsPage.toggleFacetState(4);
-    expect(alertFacetsPage.getFacetValues(4)).toEqual({'metaalert': '1' }, 'for source:type facet');
+    alertFacetsPage.toggleFacetState(3);
+    expect(alertFacetsPage.getFacetValues(3)).toEqual({'metaalert': '1' }, 'for source:type facet');
 
     // Meta Alert should not appear in Groups
     expect(treePage.getGroupByItemNames()).toEqualBcoz(Object.keys(groupByItems), 'Group By Elements names should be present');

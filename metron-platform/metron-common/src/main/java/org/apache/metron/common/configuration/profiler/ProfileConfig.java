@@ -89,6 +89,9 @@ public class ProfileConfig implements Serializable {
    */
   private Long expires;
 
+  public ProfileConfig() {
+  }
+
   /**
    * A profile definition requires at the very least the profile name, the foreach, and result
    * expressions.
@@ -114,12 +117,22 @@ public class ProfileConfig implements Serializable {
     this.profile = profile;
   }
 
+  public ProfileConfig withProfile(String profile) {
+    this.profile = profile;
+    return this;
+  }
+
   public String getForeach() {
     return foreach;
   }
 
   public void setForeach(String foreach) {
     this.foreach = foreach;
+  }
+
+  public ProfileConfig withForeach(String foreach) {
+    this.foreach = foreach;
+    return this;
   }
 
   public String getOnlyif() {
@@ -130,12 +143,27 @@ public class ProfileConfig implements Serializable {
     this.onlyif = onlyif;
   }
 
+  public ProfileConfig withOnlyif(String onlyif) {
+    this.onlyif = onlyif;
+    return this;
+  }
+
   public Map<String, String> getInit() {
     return init;
   }
 
   public void setInit(Map<String, String> init) {
     this.init = init;
+  }
+
+  public ProfileConfig withInit(Map<String, String> init) {
+    this.init.putAll(init);
+    return this;
+  }
+
+  public ProfileConfig withInit(String var, String expression) {
+    this.init.put(var, expression);
+    return this;
   }
 
   public Map<String, String> getUpdate() {
@@ -146,12 +174,27 @@ public class ProfileConfig implements Serializable {
     this.update = update;
   }
 
+  public ProfileConfig withUpdate(Map<String, String> update) {
+    this.update.putAll(update);
+    return this;
+  }
+
+  public ProfileConfig withUpdate(String var, String expression) {
+    this.update.put(var, expression);
+    return this;
+  }
+
   public List<String> getGroupBy() {
     return groupBy;
   }
 
   public void setGroupBy(List<String> groupBy) {
     this.groupBy = groupBy;
+  }
+
+  public ProfileConfig withGroupBy(List<String> groupBy) {
+    this.groupBy = groupBy;
+    return this;
   }
 
   public ProfileResult getResult() {
@@ -162,12 +205,22 @@ public class ProfileConfig implements Serializable {
     this.result = result;
   }
 
+  public ProfileConfig withResult(String profileExpression) {
+    this.result = new ProfileResult(profileExpression);
+    return this;
+  }
+
   public Long getExpires() {
     return expires;
   }
 
   public void setExpires(Long expiresDays) {
     this.expires = expiresDays;
+  }
+
+  public ProfileConfig withExpires(Long expiresDays) {
+    this.expires = TimeUnit.DAYS.toMillis(expiresDays);
+    return this;
   }
 
   @Override

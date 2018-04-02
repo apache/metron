@@ -17,16 +17,11 @@
  */
 package org.apache.metron.indexing.dao;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.zjsonpatch.JsonPatch;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -45,9 +40,6 @@ import org.apache.metron.indexing.dao.update.ReplaceRequest;
  * Document reads and writes require a GUID and sensor type with an index being optional.
  */
 public interface IndexDao {
-
-  public static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
-      new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
 
   /**
    * Return search response based on the search request
@@ -136,7 +128,7 @@ public interface IndexDao {
 
   default Document getPatchedDocument(PatchRequest request
       , Optional<Long> timestamp
-      ) throws OriginalNotFoundException, IOException {
+  ) throws OriginalNotFoundException, IOException {
     Map<String, Object> latest = request.getSource();
     if(latest == null) {
       Document latestDoc = getLatest(request.getGuid(), request.getSensorType());
@@ -147,14 +139,11 @@ public interface IndexDao {
         throw new OriginalNotFoundException("Unable to patch an document that doesn't exist and isn't specified.");
       }
     }
-    JsonNode originalNode = _mapper.get().convertValue(latest, JsonNode.class);
-    JsonNode patched = JsonPatch.apply(request.getPatch(), originalNode);
-    Map<String, Object> updated = _mapper.get()
-        .convertValue(patched, new TypeReference<Map<String, Object>>() {});
-    return new Document( updated
-        , request.getGuid()
-        , request.getSensorType()
-        , timestamp.orElse(System.currentTimeMillis()));
+    Map<String, Object> updated = JSONUtils.INSTANCE.applyPatch(request.getPatch(), latest);
+    return new Document(updated
+            , request.getGuid()
+            , request.getSensorType()
+            , timestamp.orElse(System.currentTimeMillis()));
   }
 
   /**
