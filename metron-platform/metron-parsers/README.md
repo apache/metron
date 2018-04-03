@@ -45,7 +45,34 @@ There are two general types types of parsers:
       * `ERROR` : Throw an error when a multidimensional map is encountered
     * `jsonpQuery` : A [JSON Path](#json_path) query string. If present, the result of the JSON Path query should be a list of messages. This is useful if you have a JSON document which contains a list or array of messages embedded in it, and you do not have another means of splitting the message.
     * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.  
-    
+
+## Parser Error Routing
+
+Currently, we have a few mechanisms for either deferring processing of
+messages or marking messages as invalid.
+
+### Invalidation Errors
+
+There are two reasons a message will be marked as invalid:
+* Fail [global validation](../metron-common#validation-framework)
+* Fail the parser's validate function (generally that means to not have a `timestamp` field or a `original_string` field.
+
+Those messages which are marked as invalid are sent to the error queue
+with an indication that they are invalid in the error message.
+
+### Parser Errors
+
+Errors, which are defined as unexpected exceptions happening during the
+parse, are sent along to the error queue with a message indicating that
+there was an error in parse along with a stacktrace.  This is to
+distinguish from the invalid messages.
+ 
+## Filtered
+
+One can also filter a message by specifying a `filterClassName` in the
+parser config.  Filtered messages are just dropped rather than passed
+through.
+   
 ## Parser Architecture
 
 ![Architecture](parser_arch.png)
