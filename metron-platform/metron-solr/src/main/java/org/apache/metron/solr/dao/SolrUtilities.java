@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.common.Constants;
-import org.apache.metron.indexing.dao.MetaAlertDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.solr.common.SolrDocument;
@@ -54,8 +54,8 @@ public class SolrUtilities {
         .forEach(name -> document.put(name, solrDocument.getFieldValue(name)));
     // Make sure to put child alerts in
     if (solrDocument.hasChildDocuments() && solrDocument
-        .getFieldValue(MetaAlertDao.SOURCE_TYPE)
-        .equals(SolrMetaAlertDao.METAALERT_TYPE)) {
+        .getFieldValue(MetaAlertConstants.SOURCE_TYPE)
+        .equals(MetaAlertConstants.METAALERT_TYPE)) {
       List<Map<String, Object>> childDocuments = new ArrayList<>();
       for (SolrDocument childDoc : solrDocument.getChildDocuments()) {
         Map<String, Object> childDocMap = new HashMap<>();
@@ -65,17 +65,17 @@ public class SolrUtilities {
         childDocuments.add(childDocMap);
       }
 
-      document.put(MetaAlertDao.ALERT_FIELD, childDocuments);
+      document.put(MetaAlertConstants.ALERT_FIELD, childDocuments);
     }
     return new Document(document,
         (String) solrDocument.getFieldValue(Constants.GUID),
-        (String) solrDocument.getFieldValue(MetaAlertDao.SOURCE_TYPE), 0L);
+        (String) solrDocument.getFieldValue(MetaAlertConstants.SOURCE_TYPE), 0L);
   }
 
   public static SolrInputDocument toSolrInputDocument(Document document) {
     SolrInputDocument solrInputDocument = new SolrInputDocument();
     for (Map.Entry<String, Object> field : document.getDocument().entrySet()) {
-      if (field.getKey().equals(MetaAlertDao.ALERT_FIELD)) {
+      if (field.getKey().equals(MetaAlertConstants.ALERT_FIELD)) {
         // We have a children, that needs to be translated as a child doc, not a field.
         List<Map<String, Object>> alerts = (List<Map<String, Object>>) field.getValue();
         for (Map<String, Object> alert : alerts) {

@@ -18,10 +18,12 @@
 
 package org.apache.metron.indexing.dao;
 
-import static org.apache.metron.indexing.dao.MetaAlertDao.ALERT_FIELD;
-import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_FIELD;
-import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
-import static org.apache.metron.indexing.dao.MetaAlertDao.STATUS_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.SOURCE_TYPE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.STATUS_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -42,6 +44,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.Group;
@@ -717,7 +720,7 @@ public abstract class MetaAlertIntegrationTest {
       Map<String, Object> message0 = new HashMap<String, Object>(alerts.get(0)) {
         {
           put(NEW_FIELD, "metron");
-          put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
+          put(THREAT_FIELD_DEFAULT, 10.0d);
         }
       };
       String guid = "" + message0.get(Constants.GUID);
@@ -935,8 +938,8 @@ public abstract class MetaAlertIntegrationTest {
       final String guid = "message_" + i;
       Map<String, Object> alerts = new HashMap<>();
       alerts.put(Constants.GUID, guid);
-      alerts.put(MetaAlertDao.SOURCE_TYPE, SENSOR_NAME);
-      alerts.put(MetaAlertDao.THREAT_FIELD_DEFAULT, (double) i);
+      alerts.put(SOURCE_TYPE, SENSOR_NAME);
+      alerts.put(THREAT_FIELD_DEFAULT, (double) i);
       alerts.put("timestamp", System.currentTimeMillis());
       inputData.add(alerts);
     }
@@ -957,7 +960,7 @@ public abstract class MetaAlertIntegrationTest {
       Optional<List<Map<String, Object>>> alerts) {
     Map<String, Object> metaAlert = new HashMap<>();
     metaAlert.put(Constants.GUID, guid);
-    metaAlert.put(MetaAlertDao.SOURCE_TYPE, METAALERT_TYPE);
+    metaAlert.put(SOURCE_TYPE, METAALERT_TYPE);
     metaAlert.put(STATUS_FIELD, status.getStatusString());
     if (alerts.isPresent()) {
       List<Map<String, Object>> alertsList = alerts.get();

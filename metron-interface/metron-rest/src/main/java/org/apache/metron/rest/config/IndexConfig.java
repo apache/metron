@@ -26,7 +26,7 @@ import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.IndexDaoFactory;
-import org.apache.metron.indexing.dao.MetaAlertDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
 import org.apache.metron.indexing.util.IndexingCacheUtil;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;

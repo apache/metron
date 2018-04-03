@@ -18,8 +18,10 @@
 
 package org.apache.metron.elasticsearch.integration;
 
-import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_FIELD;
-import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_DOC;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
@@ -42,7 +44,6 @@ import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.MetaAlertIntegrationTest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -136,7 +137,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
   @Before
   public void setup() throws IOException {
-    es.createIndexWithMapping(metaDao.getMetaAlertIndex(), MetaAlertDao.METAALERT_DOC, template.replace("%MAPPING_NAME%", "metaalert"));
+    es.createIndexWithMapping(metaDao.getMetaAlertIndex(), METAALERT_DOC, template.replace("%MAPPING_NAME%", "metaalert"));
     es.createIndexWithMapping(
         INDEX_WITH_SEPARATOR, "index_doc", template.replace("%MAPPING_NAME%", "index"));
   }
@@ -278,13 +279,13 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     long cnt = 0;
     for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t, Thread.sleep(SLEEP_MS)) {
       List<Map<String, Object>> docs = es
-          .getAllIndexedDocs(metaDao.getMetaAlertIndex(), MetaAlertDao.METAALERT_DOC);
+          .getAllIndexedDocs(metaDao.getMetaAlertIndex(), METAALERT_DOC);
       cnt = docs
           .stream()
           .filter(d -> {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> alerts = (List<Map<String, Object>>) d
-                .get(MetaAlertDao.ALERT_FIELD);
+                .get(ALERT_FIELD);
 
             for (Map<String, Object> alert : alerts) {
               Object newField = alert.get(fieldName);
@@ -333,7 +334,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
   @Override
   protected void setEmptiedMetaAlertField(Map<String, Object> docMap) {
-    docMap.put(MetaAlertDao.METAALERT_FIELD, new ArrayList<>());
+    docMap.put(METAALERT_FIELD, new ArrayList<>());
   }
 
   @Override

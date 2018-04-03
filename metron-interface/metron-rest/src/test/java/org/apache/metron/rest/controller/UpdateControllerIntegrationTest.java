@@ -25,7 +25,6 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.HBaseDao;
-import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.rest.service.UpdateService;
 import org.junit.Assert;

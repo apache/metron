@@ -188,7 +188,7 @@ The HBase column family to use for message updates.
 ### The `MetaAlertDao`
 
 The goal of meta alerts is to be able to group together a set of alerts while being able to transparently perform actions
-like searches, as if meta alerts were normal alerts.  `org.apache.metron.indexing.dao.MetaAlertDao` extends `IndexDao` and
+like searches, as if meta alerts were normal alerts.  `org.apache.metron.indexing.dao.metaalert.MetaAlertDao` extends `IndexDao` and
 enables several features: 
 * the ability to get all meta alerts associated with an alert
 * creation of a meta alert

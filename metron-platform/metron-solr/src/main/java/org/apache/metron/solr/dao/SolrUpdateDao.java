@@ -22,10 +22,12 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.apache.solr.client.solrj.SolrClient;
@@ -39,11 +41,15 @@ public class SolrUpdateDao implements UpdateDao {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private transient SolrClient client;
+  // TODO I don't know of a way to avoid knowing the collection.  Which means that
   private AccessConfig config;
+  private SolrSearchDao solrSearchDao;
 
-  public SolrUpdateDao(SolrClient client, AccessConfig config) {
+  public SolrUpdateDao(SolrClient client, AccessConfig config,
+      SolrSearchDao solrSearchDao) {
     this.client = client;
     this.config = config;
+    this.solrSearchDao = solrSearchDao;
   }
 
   @Override
@@ -89,5 +95,15 @@ public class SolrUpdateDao implements UpdateDao {
     } catch (SolrServerException e) {
       throw new IOException(e);
     }
+  }
+
+  @Override
+  public Document getLatest(String guid, String sensorType) throws IOException {
+    return solrSearchDao.getLatest(guid, sensorType);
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
+    return solrSearchDao.getAllLatest(getRequests);
   }
 }

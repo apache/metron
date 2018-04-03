@@ -32,8 +32,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -109,7 +111,7 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
 
   @Override
   public String getMetAlertSensorName() {
-    return METAALERT_TYPE;
+    return MetaAlertConstants.METAALERT_TYPE;
   }
 
   @Override
@@ -138,7 +140,7 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public void batchUpdate(Map<Document, Optional<String>> updates) {
     throw new UnsupportedOperationException("InMemoryMetaAlertDao can't do bulk updates");
   }
 
@@ -188,12 +190,13 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
     }
     // Build meta alert json.  Give it a reasonable GUID
     JSONObject metaAlert = new JSONObject();
-    String metaAlertGuid = "meta_" + (InMemoryDao.BACKING_STORE.get(getMetaAlertIndex()).size() + 1);
+    String metaAlertGuid =
+        "meta_" + (InMemoryDao.BACKING_STORE.get(getMetaAlertIndex()).size() + 1);
     metaAlert.put(GUID, metaAlertGuid);
 
     JSONArray groupsArray = new JSONArray();
     groupsArray.addAll(request.getGroups());
-    metaAlert.put(MetaAlertDao.GROUPS_FIELD, groupsArray);
+    metaAlert.put(MetaAlertConstants.GROUPS_FIELD, groupsArray);
 
     // Retrieve the alert for each guid
     // For the purpose of testing, we're just using guids for the alerts field and grabbing the scores.
@@ -209,7 +212,8 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
         List<SearchResult> searchResults = searchResponse.getResults();
         if (searchResults.size() > 1) {
           throw new InvalidCreateException(
-              "Found more than one result for: " + alertRequest.getGuid() + ". Values: " + searchResults
+              "Found more than one result for: " + alertRequest.getGuid() + ". Values: "
+                  + searchResults
           );
         }
 
@@ -217,7 +221,9 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
           SearchResult result = searchResults.get(0);
           alertArray.add(result.getSource());
           Double threatScore = Double
-              .parseDouble(result.getSource().getOrDefault(THREAT_FIELD_DEFAULT, "0").toString());
+              .parseDouble(
+                  result.getSource().getOrDefault(MetaAlertConstants.THREAT_FIELD_DEFAULT, "0")
+                      .toString());
 
           threatScores.add(threatScore);
         }
@@ -227,9 +233,9 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
       alertGuids.add(alertRequest.getGuid());
     }
 
-    metaAlert.put(MetaAlertDao.ALERT_FIELD, alertArray);
+    metaAlert.put(MetaAlertConstants.ALERT_FIELD, alertArray);
     metaAlert.putAll(new MetaScores(threatScores).getMetaScores());
-    metaAlert.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
+    metaAlert.put(MetaAlertConstants.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
 
     // Add the alert to the store, but make sure not to overwrite existing results
     InMemoryDao.BACKING_STORE.get(getMetaAlertIndex()).add(metaAlert.toJSONString());
@@ -243,12 +249,13 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) throws IOException {
+  public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) {
     Collection<String> currentAlertGuids = METAALERT_STORE.get(metaAlertGuid);
     if (currentAlertGuids == null) {
       return false;
     }
-    Collection<String> alertGuids = alertRequests.stream().map(GetRequest::getGuid).collect(Collectors.toSet());
+    Collection<String> alertGuids = alertRequests.stream().map(GetRequest::getGuid)
+        .collect(Collectors.toSet());
     boolean added = currentAlertGuids.addAll(alertGuids);
     if (added) {
       METAALERT_STORE.put(metaAlertGuid, currentAlertGuids);
@@ -257,12 +264,13 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) throws IOException {
+  public boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) {
     Collection<String> currentAlertGuids = METAALERT_STORE.get(metaAlertGuid);
     if (currentAlertGuids == null) {
       return false;
     }
-    Collection<String> alertGuids = alertRequests.stream().map(GetRequest::getGuid).collect(Collectors.toSet());
+    Collection<String> alertGuids = alertRequests.stream().map(GetRequest::getGuid)
+        .collect(Collectors.toSet());
     boolean removed = currentAlertGuids.removeAll(alertGuids);
     if (removed) {
       METAALERT_STORE.put(metaAlertGuid, currentAlertGuids);
@@ -276,12 +284,13 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
       throws IOException {
     boolean statusChanged = false;
     List<String> metaAlerts = InMemoryDao.BACKING_STORE.get(getMetaAlertIndex());
-    for (String metaAlert: metaAlerts) {
+    for (String metaAlert : metaAlerts) {
       JSONObject metaAlertJSON = JSONUtils.INSTANCE.load(metaAlert, JSONObject.class);
       if (metaAlertGuid.equals(metaAlertJSON.get(GUID))) {
-        statusChanged = !status.getStatusString().equals(metaAlertJSON.get(STATUS_FIELD));
+        statusChanged = !status.getStatusString()
+            .equals(metaAlertJSON.get(MetaAlertConstants.STATUS_FIELD));
         if (statusChanged) {
-          metaAlertJSON.put(STATUS_FIELD, status.getStatusString());
+          metaAlertJSON.put(MetaAlertConstants.STATUS_FIELD, status.getStatusString());
           metaAlerts.remove(metaAlert);
           metaAlerts.add(metaAlertJSON.toJSONString());
           InMemoryDao.BACKING_STORE.put(getMetaAlertIndex(), metaAlerts);
@@ -297,4 +306,8 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
     METAALERT_STORE.clear();
   }
 
+  @Override
+  public IndexDao getIndexDao() {
+    return indexDao;
+  }
 }

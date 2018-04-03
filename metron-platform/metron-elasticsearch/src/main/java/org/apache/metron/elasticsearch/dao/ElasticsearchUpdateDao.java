@@ -17,17 +17,16 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
-import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -36,8 +35,6 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.cluster.metadata.IndexMetaData;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,5 +128,15 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     }
 
     return indexRequest;
+  }
+
+  @Override
+  public Document getLatest(String guid, String sensorType) throws IOException {
+    return searchDao.getLatest(guid, sensorType);
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
+    return searchDao.getAllLatest(getRequests);
   }
 }

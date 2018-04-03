@@ -36,14 +36,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.lucene.search.join.ScoreMode;
 import org.apache.metron.common.Constants;
-import org.apache.metron.indexing.dao.AbstractMetaAlertDao;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.MetaAlertDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
+import org.apache.metron.indexing.dao.metaalert.MetaScores;
+import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
@@ -53,27 +55,34 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
-import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.InnerHitBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 
-public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
+public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
-  public static final String THREAT_TRIAGE_FIELD = THREAT_FIELD_DEFAULT.replace('.', ':');
+  public static final String THREAT_TRIAGE_FIELD = MetaAlertConstants.THREAT_FIELD_DEFAULT
+      .replace('.', ':');
   private static final String METAALERTS_INDEX = "metaalert_index";
 
+  protected IndexDao indexDao;
+  protected String metaAlertsIndex = METAALERTS_INDEX;
+  protected String threatTriageField = THREAT_TRIAGE_FIELD;
+  protected String threatSort = MetaAlertConstants.THREAT_SORT_DEFAULT;
+
   private ElasticsearchDao elasticsearchDao;
+
+  protected int pageSize = 500;
 
   /**
    * Wraps an {@link org.apache.metron.indexing.dao.IndexDao} to handle meta alerts.
    * @param indexDao The Dao to wrap
    */
   public ElasticsearchMetaAlertDao(IndexDao indexDao) {
-    this(indexDao, METAALERTS_INDEX, THREAT_FIELD_DEFAULT, THREAT_SORT_DEFAULT);
+    this(indexDao, METAALERTS_INDEX, MetaAlertConstants.THREAT_FIELD_DEFAULT,
+        MetaAlertConstants.THREAT_SORT_DEFAULT);
   }
 
   /**
@@ -84,10 +93,12 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
    *                   as the overall threat triage score for the metaalert. This
    *                   can be either max, min, average, count, median, or sum.
    */
-  public ElasticsearchMetaAlertDao(IndexDao indexDao, String index, String triageLevelField,
+  public ElasticsearchMetaAlertDao(IndexDao indexDao, String metaAlertsIndex, String triageLevelField,
       String threatSort) {
     init(indexDao, Optional.of(threatSort));
     this.threatTriageField = triageLevelField;
+    this.threatSort = threatSort;
+    this.metaAlertsIndex = metaAlertsIndex;
   }
 
   public ElasticsearchMetaAlertDao() {
@@ -140,13 +151,13 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
     QueryBuilder qb = boolQuery()
         .must(
             nestedQuery(
-                ALERT_FIELD,
+                MetaAlertConstants.ALERT_FIELD,
                 boolQuery()
-                    .must(termQuery(ALERT_FIELD + "." + GUID, guid)),
+                    .must(termQuery(MetaAlertConstants.ALERT_FIELD + "." + GUID, guid)),
                 ScoreMode.None
             ).innerHit(new InnerHitBuilder())
         )
-        .must(termQuery(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
+        .must(termQuery(MetaAlertConstants.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
     return queryAllResults(qb);
   }
 
@@ -165,10 +176,11 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
     // Retrieve the documents going into the meta alert and build it
     Iterable<Document> alerts = indexDao.getAllLatest(alertRequests);
 
-    Document metaAlert = buildCreateDocument(alerts, request.getGroups(), ALERT_FIELD);
-    calculateMetaScores(metaAlert);
+    Document metaAlert = buildCreateDocument(alerts, request.getGroups(),
+        MetaAlertConstants.ALERT_FIELD);
+    MetaScores.calculateMetaScores(metaAlert, getThreatTriageField(), getThreatSort());
     // Add source type to be consistent with other sources and allow filtering
-    metaAlert.getDocument().put(SOURCE_TYPE, MetaAlertDao.METAALERT_TYPE);
+    metaAlert.getDocument().put(MetaAlertConstants.SOURCE_TYPE, MetaAlertConstants.METAALERT_TYPE);
 
     // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();
@@ -198,7 +210,7 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
       }
 
       // Kick off any updates.
-      indexDaoUpdate(updates);
+      update(updates);
 
       MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
       createResponse.setCreated(true);
@@ -217,7 +229,7 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
         .must(boolQuery()
             .should(new QueryStringQueryBuilder(searchRequest.getQuery()))
             .should(nestedQuery(
-                ALERT_FIELD,
+                MetaAlertConstants.ALERT_FIELD,
                 new QueryStringQueryBuilder(searchRequest.getQuery()),
                 ScoreMode.None
                 )
@@ -226,17 +238,18 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
         // Ensures that it's a meta alert with active status or that it's an alert (signified by
         // having no status field)
         .must(boolQuery()
-            .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
-            .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
+            .should(termQuery(MetaAlertConstants.STATUS_FIELD,
+                MetaAlertStatus.ACTIVE.getStatusString()))
+            .should(boolQuery().mustNot(existsQuery(MetaAlertConstants.STATUS_FIELD)))
         )
-        .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD))
+        .mustNot(existsQuery(MetaAlertConstants.METAALERT_FIELD))
     );
     return elasticsearchDao.search(searchRequest, qb);
   }
 
   @Override
   public void update(Document update, Optional<String> index) throws IOException {
-    if (METAALERT_TYPE.equals(update.getSensorType())) {
+    if (MetaAlertConstants.METAALERT_TYPE.equals(update.getSensorType())) {
       // We've been passed an update to the meta alert.
       throw new UnsupportedOperationException("Meta alerts cannot be directly updated");
     } else {
@@ -247,7 +260,7 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
       Collection<Document> metaAlerts = getMetaAlertsForAlert(update.getGuid()).getResults()
           .stream()
           .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(),
-              METAALERT_TYPE, 0L))
+              MetaAlertConstants.METAALERT_TYPE, 0L))
           .collect(Collectors.toList());
       // Each meta alert needs to be updated with the new alert
       for (Document metaAlert : metaAlerts) {
@@ -280,13 +293,14 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
     QueryBuilder qb = boolQuery()
         .must(
             nestedQuery(
-                ALERT_FIELD,
+                MetaAlertConstants.ALERT_FIELD,
                 boolQuery()
-                    .must(termQuery(ALERT_FIELD + "." + Constants.GUID, alertGuid)),
+                    .must(termQuery(MetaAlertConstants.ALERT_FIELD + "." + Constants.GUID,
+                        alertGuid)),
                 ScoreMode.None
             ).innerHit(new InnerHitBuilder())
         )
-        .must(termQuery(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
+        .must(termQuery(MetaAlertConstants.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
     return queryAllResults(qb);
   }
 
@@ -304,16 +318,16 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
         .addStoredField("*")
         .setFetchSource(true)
         .setQuery(qb)
-        .setSize(pageSize);
+        .setSize(getPageSize());
     org.elasticsearch.action.search.SearchResponse esResponse = searchRequestBuilder
         .execute()
         .actionGet();
     List<SearchResult> allResults = getSearchResults(esResponse);
     long total = esResponse.getHits().getTotalHits();
-    if (total > pageSize) {
-      int pages = (int) (total / pageSize) + 1;
+    if (total > getPageSize()) {
+      int pages = (int) (total / getPageSize()) + 1;
       for (int i = 1; i < pages; i++) {
-        int from = i * pageSize;
+        int from = i * getPageSize();
         searchRequestBuilder.setFrom(from);
         esResponse = searchRequestBuilder
             .execute()
@@ -350,8 +364,13 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
     // Wrap the query to hide any alerts already contained in meta alerts
     QueryBuilder qb = QueryBuilders.boolQuery()
         .must(new QueryStringQueryBuilder(groupRequest.getQuery()))
-        .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD));
+        .mustNot(existsQuery(MetaAlertConstants.METAALERT_FIELD));
     return elasticsearchDao.group(groupRequest, qb);
+  }
+
+  @Override
+  public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
+    return getIndexDao().getColumnMetadata(indices);
   }
 
   @Override
@@ -365,17 +384,37 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
   }
 
   @Override
+  public IndexDao getIndexDao() {
+    return indexDao;
+  }
+
+  @Override
   public String getThreatTriageField() {
-    return THREAT_TRIAGE_FIELD;
+    return threatTriageField;
+  }
+
+  @Override
+  public String getThreatSort() {
+    return threatSort;
   }
 
   @Override
   public String getMetAlertSensorName() {
-    return METAALERT_TYPE;
+    return MetaAlertConstants.METAALERT_TYPE;
   }
 
   @Override
   public String getMetaAlertIndex() {
-    return METAALERTS_INDEX;
+    return metaAlertsIndex;
+  }
+
+  @Override
+  public Document getLatest(String guid, String sensorType) throws IOException {
+    return indexDao.getLatest(guid, sensorType);
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
+    return indexDao.getAllLatest(getRequests);
   }
 }

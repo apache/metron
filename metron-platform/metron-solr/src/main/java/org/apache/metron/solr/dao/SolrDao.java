@@ -83,7 +83,7 @@ public class SolrDao implements IndexDao {
       this.client = new CloudSolrClient.Builder().withZkHost((String) globalConfig.get("solr.zookeeper")).build();
       this.accessConfig = config;
       this.solrSearchDao = new SolrSearchDao(this.client, this.accessConfig);
-      this.solrUpdateDao = new SolrUpdateDao(this.client, this.accessConfig);
+      this.solrUpdateDao = new SolrUpdateDao(this.client, this.accessConfig, solrSearchDao);
       this.solrColumnMetadataDao = new SolrColumnMetadataDao(zkHost);
     }
   }

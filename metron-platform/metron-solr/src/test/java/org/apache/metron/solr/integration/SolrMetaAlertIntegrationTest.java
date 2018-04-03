@@ -18,8 +18,9 @@
 
 package org.apache.metron.solr.integration;
 
-import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_FIELD;
-import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,7 +32,6 @@ import java.util.Optional;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.MetaAlertIntegrationTest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -237,7 +237,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
           .filter(d -> {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> alerts = (List<Map<String, Object>>) d
-                .get(MetaAlertDao.ALERT_FIELD);
+                .get(ALERT_FIELD);
 
             for (Map<String, Object> alert : alerts) {
               Object newField = alert.get(fieldName);
@@ -287,7 +287,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
   @Override
   protected void setEmptiedMetaAlertField(Map<String, Object> docMap) {
-    docMap.remove(MetaAlertDao.METAALERT_FIELD);
+    docMap.remove(METAALERT_FIELD);
   }
 
   @Override

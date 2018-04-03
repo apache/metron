@@ -16,19 +16,29 @@
  * limitations under the License.
  */
 
-package org.apache.metron.indexing.dao;
+package org.apache.metron.indexing.dao.metaalert;
+
+import static org.apache.metron.common.Constants.GUID;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.apache.metron.common.Constants;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertSearchDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
-import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertUpdateDao;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.Document;
 
 /**
  * The MetaAlertDao exposes methods for interacting with meta alerts.  Meta alerts are objects that contain
@@ -38,6 +48,7 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
  * status field that controls it's inclusion in search results and a groups field that can be used to track
  * the groups a meta alert was created from.
  *
+ * </p>
  * The structure of a meta alert is as follows:
  * {
  *   "guid": "meta alert guid",
@@ -55,25 +66,18 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
  *   "median": 10
  * }
  *
+ * </p>
  * A child alert that has been added to a meta alert will store the meta alert GUID in a "metaalerts" field.
  * This field is an array of meta alert GUIDs, meaning a child alert can be contained in multiple meta alerts.
  * Any update to a child alert will trigger an update to the meta alert so that the alert inside a meta alert
  * and the original alert will be kept in sync.
  *
+ * </p>
  * Other fields can be added to a meta alert through the patch method on the IndexDao interface.  However, attempts
  * to directly change the "alerts" or "status" field will result in an exception.
  */
-public interface MetaAlertDao extends IndexDao {
+public interface MetaAlertDao extends IndexDao, MetaAlertUpdateDao, MetaAlertSearchDao {
 
-  String METAALERT_TYPE = "metaalert";
-  String METAALERT_FIELD = "metaalerts";
-  String METAALERT_DOC = METAALERT_TYPE + "_doc";
-  String THREAT_FIELD_DEFAULT = "threat:triage:score";
-  String THREAT_SORT_DEFAULT = "sum";
-  String ALERT_FIELD = "alert";
-  String STATUS_FIELD = "status";
-  String GROUPS_FIELD = "groups";
-  String SOURCE_TYPE = Constants.SENSOR_TYPE.replace('.', ':');
 
   /**
    * Given an alert GUID, retrieve all associated meta alerts.
@@ -95,50 +99,6 @@ public interface MetaAlertDao extends IndexDao {
   MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException;
 
-
-  /**
-   * Adds a list of alerts to an existing meta alert.  This will add each alert object to the "alerts" array in the meta alert
-   * and also add the meta alert GUID to each child alert's "metaalerts" array.  After alerts have been added the
-   * meta alert scores are recalculated.  Any alerts already in the meta alert are skipped and no updates are
-   * performed if all of the alerts are already in the meta alert.  The most recent version of each child alert is
-   * retrieved using the DAO abstractions.  Alerts cannot be added to an 'inactive' meta alert.
-   *
-   * @param metaAlertGuid The meta alert GUID
-   * @param getRequests Get requests for alerts to be added
-   * @return True or false depending on if any alerts were added
-   * @throws IOException
-   */
-  boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> getRequests)
-      throws IOException;
-
-  /**
-   * Removes a list of alerts from an existing meta alert.  This will remove each alert object from the "alerts" array in the meta alert
-   * and also remove the meta alert GUID from each child alert's "metaalerts" array.  After alerts have been removed the
-   * meta alert scores are recalculated.  Any alerts not contained in the meta alert are skipped and no updates are
-   * performed if no alerts can be found in the meta alert.  Alerts cannot be removed from an 'inactive' meta alert.
-   *
-   * @param metaAlertGuid The meta alert GUID
-   * @param getRequests Get requests for alerts to be removed
-   * @return True or false depending on if any alerts were removed
-   * @throws IOException
-   */
-  boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> getRequests)
-      throws IOException;
-
-  /**
-   * The meta alert status field can be set to either 'active' or 'inactive' and will control whether or not meta alerts
-   * (and child alerts) appear in search results.  An 'active' status will cause meta alerts to appear in search
-   * results instead of it's child alerts and an 'inactive' status will suppress the meta alert from search results
-   * with child alerts appearing in search results as normal.  A change to 'inactive' will cause the meta alert GUID to
-   * be removed from all it's child alert's "metaalerts" field.  A change back to 'active' will have the opposite effect.
-   *
-   * @param metaAlertGuid The GUID of the meta alert
-   * @param status A status value of 'active' or 'inactive'
-   * @return True or false depending on if the status was changed
-   * @throws IOException
-   */
-  boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status) throws IOException;
-
   /**
    * Initializes a Meta Alert DAO with default "sum" meta alert threat sorting.
    * @param indexDao The DAO to wrap for our queries.
@@ -155,15 +115,34 @@ public interface MetaAlertDao extends IndexDao {
    */
   void init(IndexDao indexDao, Optional<String> threatSort);
 
+  /**
+   * Build the Document representing a meta alert to be created.
+   * @param alerts The Elasticsearch results for the meta alerts child documents
+   * @param groups The groups used to create this meta alert
+   * @return A Document representing the new meta alert
+   */
+  default Document buildCreateDocument(Iterable<Document> alerts, List<String> groups,
+      String alertField) {
+    // Need to create a Document from the multiget. Scores will be calculated later
+    Map<String, Object> metaSource = new HashMap<>();
+    List<Map<String, Object>> alertList = new ArrayList<>();
+    for (Document alert : alerts) {
+      alertList.add(alert.getDocument());
+    }
+    metaSource.put(alertField, alertList);
+
+    // Add any meta fields
+    String guid = UUID.randomUUID().toString();
+    metaSource.put(GUID, guid);
+    metaSource.put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
+    metaSource.put(MetaAlertConstants.GROUPS_FIELD, groups);
+    metaSource.put(MetaAlertConstants.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
+
+    return new Document(metaSource, guid, MetaAlertConstants.METAALERT_TYPE,
+        System.currentTimeMillis());
+  }
+
   int getPageSize();
 
   void setPageSize(int pageSize);
-
-  String getMetAlertSensorName();
-
-  String getMetaAlertIndex();
-
-  default String getThreatTriageField() {
-    return THREAT_FIELD_DEFAULT;
-  }
 }
