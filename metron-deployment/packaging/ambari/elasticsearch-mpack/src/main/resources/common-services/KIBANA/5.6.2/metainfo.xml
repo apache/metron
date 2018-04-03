@@ -34,16 +34,6 @@
                         <scriptType>PYTHON</scriptType>
                         <timeout>600</timeout>
                     </commandScript>
-                    <customCommands>
-                        <customCommand>
-                            <name>LOAD_TEMPLATE</name>
-                            <background>false</background>
-                            <commandScript>
-                                <script>scripts/kibana_master.py</script>
-                                <scriptType>PYTHON</scriptType>
-                            </commandScript>
-                        </customCommand>
-                    </customCommands>
                 </component>
             </components>
             <osSpecifics>
