@@ -20,15 +20,22 @@
 
 package org.apache.metron.profiler.clock;
 
-import java.io.Serializable;
+import org.json.simple.JSONObject;
+
+import java.util.Optional;
 
 /**
- * A clock that uses the system clock to provide wall clock time.
+ * A {@link Clock} that advances based on system time.
+ *
+ * <p>This {@link Clock} is used to advance time when the Profiler is running
+ * on processing time, rather than event time.
  */
-public class WallClock implements Clock, Serializable {
+public class WallClock implements Clock {
 
   @Override
-  public long currentTimeMillis() {
-    return System.currentTimeMillis();
+  public Optional<Long> currentTimeMillis(JSONObject message) {
+
+    // the message does not matter; use system time
+    return Optional.of(System.currentTimeMillis());
   }
 }

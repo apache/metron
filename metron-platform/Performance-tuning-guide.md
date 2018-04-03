@@ -545,6 +545,7 @@ modifying the options outlined above, increasing the poll timeout, or both.
 
 ## Reference
 
+* [Enrichment Performance](metron-enrichment/Performance.md)
 * http://storm.apache.org/releases/1.1.0/flux.html
 * https://stackoverflow.com/questions/17257448/what-is-the-task-in-storm-parallelism
 * http://storm.apache.org/releases/current/Understanding-the-parallelism-of-a-Storm-topology.html
@@ -552,4 +553,5 @@ modifying the options outlined above, increasing the poll timeout, or both.
 * https://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-in-a-kafka-cluster/
 * https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.1/bk_storm-component-guide/content/storm-kafkaspout-perf.html
 * http://storm.apache.org/releases/1.1.0/STORM-UI-REST-API.html
+
 

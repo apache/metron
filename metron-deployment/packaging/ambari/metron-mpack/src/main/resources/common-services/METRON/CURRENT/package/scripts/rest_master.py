@@ -26,8 +26,8 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from resource_management.libraries.script import Script
 
+import metron_service
 from rest_commands import RestCommands
-
 
 class RestMaster(Script):
 
@@ -43,11 +43,19 @@ class RestMaster(Script):
              content=Template("metron.j2")
              )
 
+        metron_service.refresh_configs(params)
+
         commands = RestCommands(params)
-        commands.init_kafka_topics()
-        if params.security_enabled and not commands.is_acl_configured():
+
+        if not commands.is_kafka_configured():
+            commands.init_kafka_topics()
+        if not commands.is_hbase_configured():
+            commands.create_hbase_tables()
+        if params.security_enabled and not commands.is_hbase_acl_configured():
+            commands.set_hbase_acls()
+        if params.security_enabled and not commands.is_kafka_acl_configured():
             commands.init_kafka_acls()
-            commands.set_acl_configured()
+            commands.set_kafka_acl_configured()
 
     def start(self, env, upgrade_type=None):
         from params import params

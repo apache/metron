@@ -238,6 +238,24 @@ to modify the flux file, the following might be of use to you:
 * [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)
 * [Flux Docs](http://storm.apache.org/releases/current/flux.html)
 
+### Rest endpoints
+There are rest endpoints available to perform operations like start, stop, activate, deactivate on the `indexing` topologies.
+
+
+|            |
+| ---------- |
+| [ `GET /api/v1/storm/indexing/batch`](../../metron-interface/metron-rest/README.md#get-apiv1stormindexingbatch)|
+| [ `GET /api/v1/storm/indexing/batch/activate`](../../metron-interface/metron-rest/README.md#get-apiv1stormindexingbatchactivate)|
+| [ `GET /api/v1/storm/indexing/batch/deactivate`](../../metron-interface/metron-rest/README.md#get-apiv1stormindexingbatchdeactivate)|
+| [ `GET /api/v1/storm/indexing/batch/start`](../../metron-interface/metron-rest/README.md#get-apiv1stormindexingbatchstart)|
+| [ `GET /api/v1/storm/indexing/batch/stop`](../../metron-interface/metron-rest/README.md#get-apiv1stormindexingbatchstop)|
+| [ `GET /api/v1/storm/indexing/randomaccess`](../../metron-interface/metron-rest/README.md#get-apiv1stormindexingrandomaccess)|
+| [ `GET /api/v1/storm/indexing/randomaccess/activate`](../../metron-interface/metron-rest/README.md#get-apiv1stormindexingrandomaccessactivate)|
+| [ `GET /api/v1/storm/indexing/randomaccess/deactivate`](../../metron-interface/metron-rest/README.md#get-apiv1stormindexingrandomaccessdeactivate)|
+| [ `GET /api/v1/storm/indexing/randomaccess/start`](../../metron-interface/metron-rest/README.md#get-apiv1stormindexingrandomaccessstart)|
+| [ `GET /api/v1/storm/indexing/randomaccess/stop`](../../metron-interface/metron-rest/README.md#get-apiv1stormindexingrandomaccessstop)|
+
+
 ## Zeppelin Notebooks
 Zeppelin notebooks can be added to `/src/main/config/zeppelin/` (and subdirectories can be created for organization).  The placed files must be .json files and be named appropriately.
 These files must be added to the metron.spec file and the RPMs rebuilt to be available to be loaded into Ambari.

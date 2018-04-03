@@ -1,0 +1,12 @@
+{
+  "profiles": [
+    {
+      "profile": "event-time-test",
+      "foreach": "ip_src_addr",
+      "init":   { "counter": "0" },
+      "update": { "counter": "counter + 1" },
+      "result": "counter"
+    }
+  ],
+  "timestampField": "timestamp"
+}

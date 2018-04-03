@@ -49,14 +49,13 @@ describe('metron-alerts tree view', function () {
     let groupByItems = {
       'source:type': '1',
       'ip_dst_addr': '8',
-      'host': '9',
       'enrichm...:country': '3',
       'ip_src_addr': '2'
     };
-    expect(page.getGroupByCount()).toEqualBcoz(Object.keys(groupByItems).length, '5 Group By Elements should be present');
+    expect(page.getGroupByCount()).toEqualBcoz(Object.keys(groupByItems).length, '4 Group By Elements should be present');
     expect(page.getGroupByItemNames()).toEqualBcoz(Object.keys(groupByItems), 'Group By Elements names should be present');
     expect(page.getGroupByItemCounts()).toEqualBcoz(Object.keys(groupByItems).map(key => groupByItems[key]),
-                                                    '5 Group By Elements values should be present');
+                                                    '4 Group By Elements values should be present');
   });
 
   it('drag and drop should change group order', () => {
