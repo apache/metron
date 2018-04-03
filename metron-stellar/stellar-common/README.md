@@ -1423,6 +1423,61 @@ IS_EMAIL
 [Stellar]>>> 
 ```
 
+#### %time
+
+Prints out timing information from the last stellar statement executed. The information has the total
+execution time, and also a break down of execution time by stellar function.
+
+%time supports filter on the timing output.  If you pass one or more strings to %time, only
+execution times with each of those tags will show.  Any functions that do not have ALL the tags passed will not display
+
+To see the tags in your timing, you can run %time without any filters.
+
+A simple example :
+```
+Stellar, Go!
+Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
+[Stellar]>>> Functions loaded, you may refer to functions now...
+
+[Stellar]>>> hex:="91IMOR3F41BMUSJCCG======"
+[Stellar]>>> if( STARTS_WITH(TO_UPPER(DECODE(hex,'BASE32HEX')), "HELLO")) THEN TO_LOWER("OK") ELSE TO_LOWER("FFFF")
+ok
+[Stellar]>>> %time
+->execute : 113ms : 113017132
+-->if( STARTS_WITH(TO_UPPER(DECODE(hex,'BASE32HEX')), "HELLO")) THEN TO_LOWER("OK") ELSE TO_LOWER("FFFF") : 112ms : 112998881
+--->DECODE : 8ms : 8572968 ns
+--->TO_UPPER : 0ms : 20018 ns
+--->STARTS_WITH : 0ms : 30586 ns
+--->TO_LOWER : 0ms : 19085 ns
+
+```
+
+A more complex example with filters:
+
+> Note: if the calls are nested when executed in stellar, then you will see them nested in the output,
+> as shown by the LAMBDA FUNCTION combination below.
+
+```
+[Stellar]>>> foo:=1
+[Stellar]>>> match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }
+TRUE
+[Stellar]>>> %time
+->execute[] : 4242ms : 4242237640ns
+-->match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }[] : 84ms : 84362570ns
+--->lambda[LAMBDA] : 1ms : 1265895ns
+---->TO_UPPER[FUNCTION] : 0ms : 570672ns
+
+[Stellar]>>> %time FUNCTION
+->execute[] : 7594ms : 7594583655ns
+-->match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }[] : 84ms : 84362570ns
+---->TO_UPPER[FUNCTION] : 0ms : 570672ns
+
+[Stellar]>>> %time LAMBDA
+->execute[] : 14374ms : 14374556116ns
+-->match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }[] : 84ms : 84362570ns
+--->lambda[LAMBDA] : 1ms : 1265895ns
+```
+
 ### Advanced Usage
 
 To run the Stellar Shell directly from the Metron source code, run a command like the following.  Ensure that Metron has already been built and installed with `mvn clean install -DskipTests`.

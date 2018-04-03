@@ -38,6 +38,8 @@ import org.apache.metron.stellar.common.shell.specials.MagicListVariables;
 import org.apache.metron.stellar.common.shell.specials.MagicUndefineGlobal;
 import org.apache.metron.stellar.common.shell.specials.QuitCommand;
 import org.apache.metron.stellar.common.shell.specials.SpecialCommand;
+import org.apache.metron.stellar.common.shell.specials.TimeCommand;
+import org.apache.metron.stellar.common.timing.StackWatch;
 import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
@@ -93,6 +95,11 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
    * A registry of all special commands; like %magic, ?doc, and quit.
    */
   private List<SpecialCommand> specials;
+
+  /**
+   * The {@code StackWatch} for the last operation
+   */
+  private Optional<StackWatch> lastWatch = Optional.empty();
 
   /**
    * The Stellar execution context.
@@ -160,7 +167,8 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
             new MagicListVariables(),
             new MagicDefineGlobal(),
             new MagicUndefineGlobal(),
-            new MagicListGlobals()
+            new MagicListGlobals(),
+            new TimeCommand()
     );
   }
 
@@ -338,6 +346,11 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
     return client;
   }
 
+  @Override
+  public Optional<StackWatch> getLastWatch() {
+    return lastWatch;
+  }
+
   /**
    * Creates a Context initialized with configuration stored in Zookeeper.
    * @param properties Properties to configure the context.
@@ -394,7 +407,9 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
    */
   private StellarResult executeStellar(String expression) {
     StellarResult result;
-
+    StackWatch watch = new StackWatch("execute");
+    watch.startTiming(expression);
+    context.setWatch(watch);
     try {
       // execute the stellar expression
       VariableResolver variableResolver = new MapVariableResolver(getVariables());
@@ -403,6 +418,11 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
 
     } catch (Throwable t) {
       result = error(t);
+    }finally {
+      watch.stopTiming();
+      watch.stop();
+      lastWatch = Optional.of(watch);
+      context.clearWatch();
     }
 
     return result;

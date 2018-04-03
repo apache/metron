@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.metron.stellar.common.timing.StackWatch;
 
 public class Context implements Serializable {
 
@@ -45,6 +46,9 @@ public class Context implements Serializable {
 
   private static ThreadLocal<ActivityType> _activityType = ThreadLocal.withInitial(() ->
       null);
+
+  private static ThreadLocal<Optional<StackWatch>> _watch = ThreadLocal
+      .withInitial(Optional::empty);
 
   public static class Builder {
 
@@ -120,5 +124,20 @@ public class Context implements Serializable {
 
   public void setActivityType(ActivityType activityType) {
     _activityType.set(activityType);
+  }
+
+  public Optional<StackWatch> getWatch() {
+    return _watch.get();
+  }
+
+  public void setWatch(StackWatch watch) {
+    clearWatch();
+    _watch.set(Optional.ofNullable(watch));
+  }
+
+  public void clearWatch() {
+    if (_watch.get().isPresent()) {
+      _watch.set(Optional.empty());
+    }
   }
 }

@@ -19,6 +19,7 @@
  */
 package org.apache.metron.stellar.common.shell;
 
+import org.apache.metron.stellar.common.timing.StackWatch;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 
@@ -76,4 +77,10 @@ public interface StellarShellExecutor extends StellarExecutionNotifier {
    * @return The function resolver.
    */
   FunctionResolver getFunctionResolver();
+
+  /**
+   * Returns the {@code StackWatch} from the last operation
+   * @return The StackWatch
+   */
+  Optional<StackWatch> getLastWatch();
 }
