@@ -17,6 +17,9 @@
  */
 package org.apache.metron.common.configuration.enrichment.threatintel;
 
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfiguration;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpressionField;
+
 /**
  * This class represents a rule that is used to triage threats.
  *
@@ -29,6 +32,7 @@ package org.apache.metron.common.configuration.enrichment.threatintel;
  * Tuning the threat triage process involves creating one or more rules, adjusting
  * the score of each rule, and changing the way that each rule's score is aggregated.
  */
+@StellarConfiguration
 public class RiskLevelRule {
 
   /**
@@ -45,6 +49,7 @@ public class RiskLevelRule {
    * A predicate, in the form of a Stellar expression, that determines whether
    * the rule is applied to an alert or not.  This field is required.
    */
+  @StellarExpressionField(name = "rule")
   String rule;
 
   /**
@@ -60,6 +65,7 @@ public class RiskLevelRule {
    * This is expected to be a valid Stellar expression and can refer to any of the
    * fields within the message itself.
    */
+  @StellarExpressionField(name = "reason")
   String reason;
 
   public String getName() {

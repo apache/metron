@@ -15,33 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.stellar.dsl.functions.resolver;
+
+package org.apache.metron.stellar.common.utils.validation;
 
 import java.util.List;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.stellar.dsl.StellarFunctionInfo;
-
-import java.util.function.Function;
+import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatementContainer.ErrorConsumer;
+import org.atteo.classindex.IndexSubclasses;
 
 /**
- * Responsible for function resolution in Stellar.
+ * {@code StellarConfigurationProvider} are used provide Stellar statements
+ * and the context around those statements to the caller.
  */
-public interface FunctionResolver extends Function<String, StellarFunction> {
+@IndexSubclasses
+public interface StellarConfigurationProvider {
+  /**
+   * The Name of this reporter.
+   * @return String
+   */
+  String getName();
 
   /**
-   * Provides metadata about each Stellar function that is resolvable.
+   * Returns a list of all known StellarConfiguredStatementContainer.
+   * @return List of StellarConfiguredStatementContainer
    */
-  Iterable<StellarFunctionInfo> getFunctionInfo();
+  List<StellarConfiguredStatementContainer> provideContainers(ErrorConsumer errorConsumer);
 
-  /**
-   * The names of all Stellar functions that are resolvable.
-   */
-  Iterable<String> getFunctions();
-
-  /**
-   * Initialize the function resolver.
-   * @param context Context used to initialize.
-   */
-  void initialize(Context context);
 }

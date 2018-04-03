@@ -19,8 +19,11 @@
 package org.apache.metron.common.configuration.enrichment.threatintel;
 
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfiguration;
 
+@StellarConfiguration
 public class ThreatIntelConfig extends EnrichmentConfig {
+  @StellarConfiguration
   private ThreatTriageConfig triageConfig = new ThreatTriageConfig();
 
   public ThreatTriageConfig getTriageConfig() {

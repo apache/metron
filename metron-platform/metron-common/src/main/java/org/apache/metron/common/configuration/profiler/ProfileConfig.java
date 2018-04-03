@@ -26,10 +26,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfiguration;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpressionField;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpressionList;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpressionMap;
 
 /**
  * The definition of a single Profile.
  */
+@StellarConfiguration
 public class ProfileConfig implements Serializable {
 
   /**
@@ -52,6 +57,7 @@ public class ProfileConfig implements Serializable {
    * is only applied to a profile if this condition is true. This allows a profile
    * to filter the messages that it receives.
    */
+  @StellarExpressionField(name = "onlyif")
   private String onlyif = "true";
 
   /**
@@ -61,6 +67,7 @@ public class ProfileConfig implements Serializable {
    * period the expression is executed once and stored in a variable with the given
    * name.
    */
+  @StellarExpressionMap(name = "init")
   private Map<String, String> init = new HashMap<>();
 
   /**
@@ -68,12 +75,14 @@ public class ProfileConfig implements Serializable {
    * A map is expected where the key is the variable name and the value is a Stellar
    * expression.  The map can include 0 or more variables/expressions.
    */
+  @StellarExpressionMap(name = "update")
   private Map<String, String> update = new HashMap<>();
 
   /**
    * A list of Stellar expressions that is executed in order and used to group the
    * resulting profile data.
    */
+  @StellarExpressionList(name = "groupBy")
   private List<String> groupBy = new ArrayList<>();
 
   /**
@@ -81,6 +90,7 @@ public class ProfileConfig implements Serializable {
    * expression(s) are expected to in some way summarize the messages that were applied
    * to the profile over the window period.
    */
+  @StellarConfiguration
   private ProfileResult result;
 
   /**

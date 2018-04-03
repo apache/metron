@@ -177,6 +177,8 @@ commons-lang:commons-lang:jar:2.4:compile,ASLv2,http://commons.apache.org/lang/
 commons-lang:commons-lang:jar:2.5:compile,ASLv2,http://commons.apache.org/lang/
 commons-lang:commons-lang:jar:2.6:compile,ASLv2,http://commons.apache.org/lang/
 commons-lang:commons-lang:jar:2.6:provided,ASLv2,http://commons.apache.org/lang/
+commons-lang:commons-lang:jar:3.7:compile,ASLv2,http://commons.apache.org/lang/
+commons-lang:commons-lang:jar:3.7:provided,ASLv2,http://commons.apache.org/lang/
 commons-logging:commons-logging:jar:1.1.1:compile,ASLv2,http://commons.apache.org/logging
 commons-logging:commons-logging:jar:1.1.3:compile,ASLv2,http://commons.apache.org/proper/commons-logging/
 commons-logging:commons-logging:jar:1.2:compile,ASLv2,http://commons.apache.org/proper/commons-logging/

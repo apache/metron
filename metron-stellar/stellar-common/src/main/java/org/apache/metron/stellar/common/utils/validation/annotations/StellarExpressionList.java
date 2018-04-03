@@ -15,33 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.stellar.dsl.functions.resolver;
 
-import java.util.List;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.stellar.dsl.StellarFunctionInfo;
+package org.apache.metron.stellar.common.utils.validation.annotations;
 
-import java.util.function.Function;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Responsible for function resolution in Stellar.
+ * {@code StellarExpressionList} is applied to a field
+ * that is an {@code Iterable} of objects that are Stellar expressions,
+ * Such that calling toString() on that object yields a string of a Stellar expression
  */
-public interface FunctionResolver extends Function<String, StellarFunction> {
-
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD,ElementType.TYPE})
+public @interface StellarExpressionList {
   /**
-   * Provides metadata about each Stellar function that is resolvable.
+   * The Name to be applied to this field.
+   * @return the Name
    */
-  Iterable<StellarFunctionInfo> getFunctionInfo();
+  String name();
 
-  /**
-   * The names of all Stellar functions that are resolvable.
-   */
-  Iterable<String> getFunctions();
-
-  /**
-   * Initialize the function resolver.
-   * @param context Context used to initialize.
-   */
-  void initialize(Context context);
 }

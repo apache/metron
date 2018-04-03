@@ -24,8 +24,12 @@ import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfiguration;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpressionMap;
 
+@StellarConfiguration
 public class EnrichmentConfig {
+  @StellarExpressionMap(innerMapKeys = {"stellar","config"})
   private Map<String, Object> fieldMap = new HashMap<>();
   private Map<String, ConfigHandler> enrichmentConfigs = new HashMap<>();
   private Map<String, List<String>> fieldToTypeMap = new HashMap<>();

@@ -18,13 +18,16 @@
 
 package org.apache.metron.common.field.transformation;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.stellar.dsl.VariableResolver;
-import org.apache.metron.stellar.common.StellarProcessor;
-
-import java.util.*;
 
 public class StellarTransformation implements FieldTransformation {
   @Override

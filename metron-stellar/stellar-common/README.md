@@ -1422,7 +1422,6 @@ IS_EMAIL
   ret: True if the string is a valid email address and false otherwise.
 [Stellar]>>> 
 ```
-
 ### Advanced Usage
 
 To run the Stellar Shell directly from the Metron source code, run a command like the following.  Ensure that Metron has already been built and installed with `mvn clean install -DskipTests`.

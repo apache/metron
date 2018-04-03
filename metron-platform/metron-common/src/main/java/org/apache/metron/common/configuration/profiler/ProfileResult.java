@@ -19,10 +19,12 @@ package org.apache.metron.common.configuration.profiler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfiguration;
 
 /**
  * Defines the 'result' field of a Profile definition.
  */
+@StellarConfiguration
 public class ProfileResult {
 
   /**
@@ -30,6 +32,7 @@ public class ProfileResult {
    * a measurement that is persisted in the profile store.
    */
   @JsonProperty("profile")
+  @StellarConfiguration
   private ProfileResultExpressions profileExpressions;
 
   /**
@@ -38,6 +41,7 @@ public class ProfileResult {
    * triage.
    */
   @JsonProperty("triage")
+  @StellarConfiguration
   private ProfileTriageExpressions triageExpressions;
 
   @JsonCreator
