@@ -20,11 +20,11 @@ This page contains a list other example deployments methods that might not be ac
 
 ## Maintained by Apache Metron
 These examples have been vetted and tested by the Metron community at the time of entry. If there are problems with these steps, please check the mailing lists first or log a Jira ticket.
-| -------------------------------------------------------------------------------------|-------------|
-| [Metron 0.4.0 on CentOS 6 Manual Install](manual-install/Manual_Install_CentOS6.md)  | (July 2017) |
+
+[Metron 0.4.0 on CentOS 6 Manual Install](manual-install/Manual_Install_CentOS6.md) (July 2017)
 
 ## External Resources
 The following are external community contributions that are not actively maintained by the Apache Metron project. However, you might find them helpful. If there are any issues do **NOT** log a JIRA. Reach out to the mailing list or the contributor first.
 
-| -------------|------------|-----|
-| [Metron 0.4.1 - AWS EC2 Single Node Deployment with Vagrant](https://github.com/LTW-GCR-CSOC/Metron0.4.1-GCR-Mods/tree/master/metron-deployment/other-examples/0.4.1SingleNodeEC2Vagrant)     | Global Cybersecurity Resource | (March 2018) |
+
+[Metron 0.4.1 - AWS EC2 Single Node Deployment with Vagrant](https://github.com/LTW-GCR-CSOC/Metron0.4.1-GCR-Mods/tree/master/metron-deployment/other-examples/0.4.1SingleNodeEC2Vagrant)     |  Global Cybersecurity Resource (March 2018)
