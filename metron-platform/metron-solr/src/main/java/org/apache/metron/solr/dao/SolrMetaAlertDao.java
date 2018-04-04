@@ -149,7 +149,7 @@ public class SolrMetaAlertDao implements MetaAlertDao {
 
   @Override
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
-    return getIndexDao().getColumnMetadata(indices);
+    return indexDao.getColumnMetadata(indices);
   }
 
   @Override
