@@ -47,6 +47,7 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.junit.Test;
 
 public class MetaAlertDaoTest {
+
   private class TestMetaAlertDao implements MetaAlertDao {
 
     @Override
