@@ -174,7 +174,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
       notifySpecialListeners(command);
     }
 
-    // notify listeners about the available functions
+    // notify listeners about the available functions TODO functions discovered HERE, not BEFORE in call to initialize()
     for(StellarFunctionInfo fn : functionResolver.getFunctionInfo()) {
       notifyFunctionListeners(fn);
     }
@@ -345,12 +345,14 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
     Context.Builder contextBuilder = new Context.Builder();
     Map<String, Object> globals;
     if (zkClient.isPresent()) {
+      LOG.debug("Zookeeper client present; fetching globals from Zookeeper.");
 
       // fetch globals from zookeeper
       globals = fetchGlobalConfig(zkClient.get());
       contextBuilder.with(ZOOKEEPER_CLIENT, () -> zkClient.get());
 
     } else {
+      LOG.debug("No Zookeeper client; initializing empty globals.");
 
       // use empty globals to allow a user to '%define' their own
       globals = new HashMap<>();
