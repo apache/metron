@@ -40,8 +40,8 @@ import org.apache.metron.indexing.dao.update.UpdateDao;
 public interface MetaAlertUpdateDao extends UpdateDao, DeferredMetaAlertIndexDao,
     RetrieveLatestDao {
 
-  String STATUS_PATH = "/status";
-  String ALERT_PATH = "/alert";
+  String STATUS_PATH = "/" +MetaAlertConstants.STATUS_FIELD;
+  String ALERT_PATH = "/" + MetaAlertConstants.ALERT_FIELD;
 
   @Override
   default void batchUpdate(Map<Document, Optional<String>> updates) {
