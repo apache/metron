@@ -26,6 +26,7 @@ import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -45,7 +47,7 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.junit.Test;
 
 public class MetaAlertDaoTest {
-  private class TestMetaAlertDao extends AbstractMetaAlertDao {
+  private class TestMetaAlertDao implements MetaAlertDao {
 
     @Override
     public SearchResponse getAllMetaAlertsForAlert(String guid) {
@@ -112,6 +114,16 @@ public class MetaAlertDaoTest {
 
     public String getChildField() {
       return ALERT_FIELD;
+    }
+
+    @Override
+    public Document getLatest(String guid, String sensorType) throws IOException {
+      return null;
+    }
+
+    @Override
+    public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
+      return null;
     }
   }
 
