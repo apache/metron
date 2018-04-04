@@ -264,7 +264,6 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
           .collect(Collectors.toList());
       // Each meta alert needs to be updated with the new alert
       for (Document metaAlert : metaAlerts) {
-        // TODO determine if this is kosher
         if (replaceAlertInMetaAlert(metaAlert, update)) {
           updates.put(metaAlert, Optional.of(METAALERTS_INDEX));
         }
