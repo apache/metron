@@ -193,23 +193,28 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             message.put(Constants.GUID, UUID.randomUUID().toString());
           }
 
-          if (parser.validate(message) && (filter == null || filter.emitTuple(message, stellarContext))) {
-            numWritten++;
-            List<FieldValidator> failedValidators = getFailedValidators(message, fieldValidations);
-            if(failedValidators.size() > 0) {
+          if (filter == null || filter.emitTuple(message, stellarContext)) {
+            boolean isInvalid = !parser.validate(message);
+            List<FieldValidator> failedValidators = null;
+            if(!isInvalid) {
+              failedValidators = getFailedValidators(message, fieldValidations);
+              isInvalid = !failedValidators.isEmpty();
+            }
+            if( isInvalid) {
               MetronError error = new MetronError()
                       .withErrorType(Constants.ErrorType.PARSER_INVALID)
                       .withSensorType(getSensorType())
                       .addRawMessage(message);
-              Set<String> errorFields = failedValidators.stream()
+              Set<String> errorFields = failedValidators == null?null:failedValidators.stream()
                       .flatMap(fieldValidator -> fieldValidator.getInput().stream())
                       .collect(Collectors.toSet());
-              if (!errorFields.isEmpty()) {
+              if (errorFields != null && !errorFields.isEmpty()) {
                 error.withErrorFields(errorFields);
               }
               ErrorUtils.handleError(collector, error);
             }
             else {
+              numWritten++;
               writer.write(getSensorType(), tuple, message, getConfigurations(), messageGetStrategy);
             }
           }
