@@ -135,20 +135,17 @@ public class StellarProcessorUtils {
   }
 
   public static void runWithArguments(String function, List<Object> arguments, Object expected) {
-    Supplier<Stream<Map.Entry<String, Object>>> kvStream =
-        () ->
-            StreamSupport.stream(new XRange(arguments.size()), false)
-                .map(i -> new AbstractMap.SimpleImmutableEntry<>("var" + i, arguments.get(i)));
+    Supplier<Stream<Map.Entry<String, Object>>> kvStream = () -> StreamSupport
+            .stream(new XRange(arguments.size()), false)
+            .map(i -> new AbstractMap.SimpleImmutableEntry<>("var" + i, arguments.get(i)));
 
     String args = kvStream.get().map(kv -> kv.getKey()).collect(Collectors.joining(","));
-    Map<String, Object> variables =
-        kvStream.get().collect(Collectors.toMap(kv -> kv.getKey(), kv -> kv.getValue()));
+    Map<String, Object> variables = kvStream.get().collect(Collectors.toMap(kv -> kv.getKey(), kv -> kv.getValue()));
     String stellarStatement = function + "(" + args + ")";
     String reason = stellarStatement + " != " + expected + " with variables: " + variables;
 
     if (expected instanceof Double) {
-      Assert.assertEquals(
-          reason, (Double) expected, (Double) run(stellarStatement, variables), 1e-6);
+      Assert.assertEquals(reason, (Double) expected, (Double) run(stellarStatement, variables), 1e-6);
     } else {
       Assert.assertEquals(reason, expected, run(stellarStatement, variables));
     }
