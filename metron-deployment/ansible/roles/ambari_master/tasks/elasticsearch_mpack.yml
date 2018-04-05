@@ -15,12 +15,12 @@
 #  limitations under the License.
 #
 ---
-- name: Copy MPack to Ambari Host
+- name: Copy Elasticsearch MPack to Ambari Host
   copy:
-    src: "{{ metron_mpack_path }}"
+    src: "{{ elasticsearch_mpack_path }}"
     dest: /tmp
 
-- name: Install MPack on Ambari Host
-  shell: ambari-server install-mpack --mpack=/tmp/metron_mpack-{{ ambari_mpack_version }}.tar.gz
+- name: Install Elasticsearch MPack on Ambari Host
+  shell: ambari-server install-mpack --mpack=/tmp/elasticsearch_mpack-{{ ambari_mpack_version }}.tar.gz
   args:
-    creates: /var/lib/ambari-server/resources/mpacks/metron-ambari.mpack-{{ ambari_mpack_version }}/addon-services
+    creates: /var/lib/ambari-server/resources/mpacks/elasticsearch-ambari.mpack-{{ ambari_mpack_version }}/addon-services
