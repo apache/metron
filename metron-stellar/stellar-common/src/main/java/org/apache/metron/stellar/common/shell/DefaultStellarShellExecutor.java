@@ -52,6 +52,7 @@ import java.io.ByteArrayInputStream;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -271,10 +272,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
       globals = (Map<String, Object>) capability.get();
 
     } else {
-      // if it does not exist, create it.  this creates the global config for the current stellar executor
-      // session only.  this does not change the global config maintained externally in zookeeper
-      globals = new HashMap<>();
-      getContext().addCapability(GLOBAL_CONFIG, () -> globals);
+      throw new IllegalStateException("'GLOBAL_CONFIG' is missing");
     }
 
     return globals;
@@ -344,21 +342,25 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
    * @param zkClient An optional Zookeeper client.
    */
   private Context createContext(Properties properties, Optional<CuratorFramework> zkClient) throws Exception {
-
-    Context.Builder contextBuilder = new Context.Builder()
-            .with(SHELL_VARIABLES, () -> variables)
-            .with(STELLAR_CONFIG, () -> properties);
-
-    // load global configuration from zookeeper
+    Context.Builder contextBuilder = new Context.Builder();
+    Map<String, Object> globals;
     if (zkClient.isPresent()) {
-      Map<String, Object> global = fetchGlobalConfig(zkClient.get());
-      contextBuilder
-              .with(GLOBAL_CONFIG, () -> global)
-              .with(ZOOKEEPER_CLIENT, () -> zkClient.get())
-              .with(STELLAR_CONFIG, () -> getStellarConfig(global, properties));
+
+      // fetch globals from zookeeper
+      globals = fetchGlobalConfig(zkClient.get());
+      contextBuilder.with(ZOOKEEPER_CLIENT, () -> zkClient.get());
+
+    } else {
+
+      // use empty globals to allow a user to '%define' their own
+      globals = new HashMap<>();
     }
 
-    return contextBuilder.build();
+    return contextBuilder
+            .with(SHELL_VARIABLES, () -> variables)
+            .with(GLOBAL_CONFIG, () -> globals)
+            .with(STELLAR_CONFIG, () -> getStellarConfig(globals, properties))
+            .build();
   }
 
   /**
