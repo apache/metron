@@ -179,7 +179,7 @@ public class ElasticsearchUtils {
       lines = HDFSUtils.readFile(hdfsPath);
     } catch (IOException e) {
       throw new IllegalArgumentException(
-          format("Unable to read XPack password file from HDFS location '%s'", hdfsPath));
+          format("Unable to read XPack password file from HDFS location '%s'", hdfsPath), e);
     }
     if (lines.size() == 0) {
       throw new IllegalArgumentException(format("No password found in file '%s'", hdfsPath));
