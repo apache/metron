@@ -14,8 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import errno
 import os
 import requests
+
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
@@ -148,6 +152,34 @@ class Indexing(Script):
             Execute(
               cmd.format(params.es_http_url, template_name),
               logoutput=True)
+
+    @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+    def kibana_dashboard_install(self, env):
+      from params import params
+      env.set_params(params)
+
+      Logger.info("Connecting to Elasticsearch on: %s" % (params.es_http_url))
+
+      kibanaTemplate = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'kibana.template')
+      if not os.path.isfile(kibanaTemplate):
+        raise IOError(
+            errno.ENOENT, os.strerror(errno.ENOENT), kibanaTemplate)
+
+      Logger.info("Loading .kibana index template from %s" % kibanaTemplate)
+      template_cmd = ambari_format(
+          'curl -s -XPOST http://{es_http_url}/_template/.kibana -d @%s' % kibanaTemplate)
+      Execute(template_cmd, logoutput=True)
+
+      kibanaDashboardLoad = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'dashboard-bulkload.json')
+      if not os.path.isfile(kibanaDashboardLoad):
+        raise IOError(
+            errno.ENOENT, os.strerror(errno.ENOENT), kibanaDashboardLoad)
+
+      Logger.info("Loading .kibana dashboard from %s" % kibanaDashboardLoad)
+
+      kibana_cmd = ambari_format(
+          'curl -s -H "Content-Type: application/x-ndjson" -XPOST http://{es_http_url}/.kibana/_bulk --data-binary @%s' % kibanaDashboardLoad)
+      Execute(kibana_cmd, logoutput=True)
 
     def zeppelin_notebook_import(self, env):
         from params import params
