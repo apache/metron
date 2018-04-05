@@ -1,4 +1,4 @@
-{#
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -27,18 +27,11 @@ topology.max.spout.pending={{enrichment_topology_max_spout_pending}}
 kafka.zk={{zookeeper_quorum}}
 kafka.broker={{kafka_brokers}}
 kafka.security.protocol={{kafka_security_protocol}}
-
-# One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST
 kafka.start={{enrichment_kafka_start}}
-
 enrichment.input.topic={{enrichment_input_topic}}
 enrichment.output.topic={{enrichment_output_topic}}
 enrichment.error.topic={{enrichment_error_topic}}
 threat.intel.error.topic={{threatintel_error_topic}}
-
-##### JoinBolt #####
-enrichment.join.cache.size={{enrichment_join_cache_size}}
-threat.intel.join.cache.size={{threatintel_join_cache_size}}
 
 ##### Enrichment #####
 hbase.provider.impl={{enrichment_hbase_provider_impl}}
@@ -53,11 +46,15 @@ threat.intel.simple.hbase.table={{threatintel_hbase_table}}
 threat.intel.simple.hbase.cf={{threatintel_hbase_cf}}
 
 ##### Parallelism #####
-kafka.spout.parallelism={{enrichment_kafka_spout_parallelism}}
-enrichment.split.parallelism={{enrichment_split_parallelism}}
-enrichment.stellar.parallelism={{enrichment_stellar_parallelism}}
-enrichment.join.parallelism={{enrichment_join_parallelism}}
-threat.intel.split.parallelism={{threat_intel_split_parallelism}}
-threat.intel.stellar.parallelism={{threat_intel_stellar_parallelism}}
-threat.intel.join.parallelism={{threat_intel_join_parallelism}}
-kafka.writer.parallelism={{kafka_writer_parallelism}}
+kafka.spout.parallelism={{unified_kafka_spout_parallelism}}
+enrichment.parallelism={{unified_enrichment_parallelism}}
+threat.intel.parallelism={{unified_threat_intel_parallelism}}
+kafka.writer.parallelism={{unified_kafka_writer_parallelism}}
+
+##### Caches #####
+enrichment.cache.size={{unified_enrichment_cache_size}}
+threat.intel.cache.size={{unified_threat_intel_cache_size}}
+
+##### Threads #####
+enrichment.threadpool.size={{unified_enrichment_threadpool_size}}
+enrichment.threadpool.type={{unified_enrichment_threadpool_type}}

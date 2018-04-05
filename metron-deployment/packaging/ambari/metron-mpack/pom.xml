@@ -110,7 +110,8 @@
                                 <resource>
                                     <directory>${basedir}/../../../../metron-platform/metron-enrichment/src/main/config</directory>
                                     <includes>
-                                        <include>enrichment.properties.j2</include>
+                                        <include>enrichment-splitjoin.properties.j2</include>
+                                        <include>enrichment-unified.properties.j2</include>
                                     </includes>
                                     <filtering>false</filtering>
                                 </resource>
@@ -171,8 +172,10 @@
                         <fileset>
                             <directory>${basedir}/src/main/resources/common-services/METRON/CURRENT/package/templates</directory>
                             <includes>
-                                <include>enrichment.properties.j2</include>
+                                <include>enrichment-unified.properties.j2</include>
+                                <include>enrichment-splitjoin.properties.j2</include>
                                 <include>elasticsearch.properties.j2</include>
+                                <include>hdfs.properties.j2</include>
                             </includes>
                         </fileset>
                     </filesets>
