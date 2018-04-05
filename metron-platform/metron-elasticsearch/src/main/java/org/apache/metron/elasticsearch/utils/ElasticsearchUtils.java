@@ -55,6 +55,10 @@ public class ElasticsearchUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String ES_CLIENT_CLASS_DEFAULT = "org.elasticsearch.transport.client.PreBuiltTransportClient";
+  private static final String PWD_FILE_CONFIG_KEY = "es.xpack.password.file";
+  private static final String USERNAME_CONFIG_KEY = "es.xpack.username";
+  private static final String TRANSPORT_CLIENT_USER_KEY = "xpack.security.user";
+
 
   private static ThreadLocal<Map<String, SimpleDateFormat>> DATE_FORMAT_CACHE
           = ThreadLocal.withInitial(() -> new HashMap<>());
@@ -122,7 +126,7 @@ public class ElasticsearchUtils {
    */
   public static TransportClient getClient(Map<String, Object> globalConfiguration) {
     Set<String> customESSettings = new HashSet<>();
-    customESSettings.addAll(Arrays.asList("es.client.class", "es.xpack.username", "es.xpack.password.file"));
+    customESSettings.addAll(Arrays.asList("es.client.class", USERNAME_CONFIG_KEY, PWD_FILE_CONFIG_KEY));
     Settings.Builder settingsBuilder = Settings.builder();
     Map<String, String> esSettings = getEsSettings(globalConfiguration);
     for (Map.Entry<String, String> entry : esSettings.entrySet()) {
@@ -165,9 +169,6 @@ public class ElasticsearchUtils {
    * Append Xpack security settings (if any)
    */
   private static void setXPackSecurityOrNone(Settings.Builder settingsBuilder, Map<String, String> esSettings) {
-    final String PWD_FILE_CONFIG_KEY = "es.xpack.password.file";
-    final String USERNAME_CONFIG_KEY = "es.xpack.username";
-    final String TRANSPORT_CLIENT_USER_KEY = "xpack.security.user";
 
     if (esSettings.containsKey(PWD_FILE_CONFIG_KEY)) {
 

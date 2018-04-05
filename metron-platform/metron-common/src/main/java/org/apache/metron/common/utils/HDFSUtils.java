@@ -50,11 +50,10 @@ public class HDFSUtils {
    * @throws IOException
    */
   public static List<String> readFile(Configuration config, String path) throws IOException {
-    try (FileSystem fs = FileSystem.get(config)) {
-      Path hdfsPath = new Path(path);
-      FSDataInputStream inputStream = fs.open(hdfsPath);
-      return IOUtils.readLines(inputStream, "UTF-8");
-    }
+    FileSystem fs = FileSystem.newInstance(config);
+    Path hdfsPath = new Path(path);
+    FSDataInputStream inputStream = fs.open(hdfsPath);
+    return IOUtils.readLines(inputStream, "UTF-8");
   }
 
 }
