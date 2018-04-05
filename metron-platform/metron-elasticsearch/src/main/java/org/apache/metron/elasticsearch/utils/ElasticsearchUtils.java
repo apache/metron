@@ -161,12 +161,24 @@ public class ElasticsearchUtils {
             String.class);
   }
 
+  /*
+   * Append Xpack security settings (if any)
+   */
   private static void setXPackSecurityOrNone(Settings.Builder settingsBuilder, Map<String, String> esSettings) {
-    if (esSettings.containsKey("es.xpack.password.file")) {
-      // Note, xpack.security.user is user AND password, delimited by colon ":"
-      String xpackUsername = esSettings.get("es.xpack.username");
-      String xpackPassword = getPasswordFromFile(esSettings.get("es.xpack.password.file"));
-      settingsBuilder.put("xpack.security.user", xpackUsername + ":" + xpackPassword);
+    final String PWD_FILE_CONFIG_KEY = "es.xpack.password.file";
+    final String USERNAME_CONFIG_KEY = "es.xpack.username";
+    final String TRANSPORT_CLIENT_USER_KEY = "xpack.security.user";
+
+    if (esSettings.containsKey(PWD_FILE_CONFIG_KEY)) {
+
+      if (!esSettings.containsKey(USERNAME_CONFIG_KEY) || StringUtils.isEmpty(esSettings.get(USERNAME_CONFIG_KEY))) {
+        throw new IllegalArgumentException("X-pack username is required and cannot be empty");
+      }
+
+      settingsBuilder.put(
+         TRANSPORT_CLIENT_USER_KEY,
+         esSettings.get(USERNAME_CONFIG_KEY) + ":" + getPasswordFromFile(esSettings.get(PWD_FILE_CONFIG_KEY))
+      );
     }
   }
 
