@@ -17,8 +17,6 @@
  */
 package org.apache.metron.common.configuration.profiler;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -63,14 +61,8 @@ public class ProfileTriageExpressions {
     return expressions.get(name);
   }
 
-  @JsonAnyGetter
   public Map<String, String> getExpressions() {
     return expressions;
-  }
-
-  @JsonAnySetter
-  public void setExpressions(Map<String, String> expressions) {
-    this.expressions = expressions;
   }
 
   @Override

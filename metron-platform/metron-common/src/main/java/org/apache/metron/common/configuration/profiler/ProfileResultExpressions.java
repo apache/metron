@@ -18,7 +18,7 @@
 package org.apache.metron.common.configuration.profiler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * A Stellar expression that is executed to produce a single
@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public class ProfileResultExpressions {
 
+  @JsonIgnore
   private String expression;
 
   @JsonCreator
@@ -33,7 +34,6 @@ public class ProfileResultExpressions {
     this.expression = expression;
   }
 
-  @JsonValue
   public String getExpression() {
     return expression;
   }
