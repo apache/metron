@@ -24,7 +24,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.metron.hbase.HTableProvider;
@@ -77,6 +77,8 @@ public class HBaseBolt extends BaseRichBolt {
 
   /**
    * The name of the class that should be used as a table provider.
+   *
+   * <p>Defaults to 'org.apache.metron.hbase.HTableProvider'.
    */
   protected String tableProviderClazzName = "org.apache.metron.hbase.HTableProvider";
 
@@ -126,6 +128,8 @@ public class HBaseBolt extends BaseRichBolt {
 
   @Override
   public Map<String, Object> getComponentConfiguration() {
+    LOG.debug("Tick tuples expected every {} second(s)", flushIntervalSecs);
+
     Config conf = new Config();
     conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, flushIntervalSecs);
     return conf;
@@ -136,7 +140,13 @@ public class HBaseBolt extends BaseRichBolt {
     this.collector = collector;
     this.batchHelper = new BatchHelper(batchSize, collector);
 
-    TableProvider provider = this.tableProvider == null ?getTableProvider(tableProviderClazzName):this.tableProvider;
+    TableProvider provider;
+    if(this.tableProvider == null) {
+      provider = createTableProvider(tableProviderClazzName);
+    } else {
+      provider = this.tableProvider;
+    }
+
     hbaseClient = new HBaseClient(provider, HBaseConfiguration.create(), tableName);
   }
 
@@ -147,6 +157,8 @@ public class HBaseBolt extends BaseRichBolt {
 
   @Override
   public void execute(Tuple tuple) {
+    LOG.trace("Received a tuple.");
+
     try {
       if (batchHelper.shouldHandle(tuple)) {
         save(tuple);
@@ -179,12 +191,15 @@ public class HBaseBolt extends BaseRichBolt {
     }
 
     batchHelper.addBatch(tuple);
+    LOG.debug("Added mutation to the batch; size={}", batchHelper.getBatchSize());
   }
 
   /**
    * Flush all saved operations.
    */
   private void flush() {
+    LOG.debug("About to flush a batch of {} mutation(s)", batchHelper.getBatchSize());
+
     this.hbaseClient.mutate();
     batchHelper.ack();
   }
@@ -193,7 +208,8 @@ public class HBaseBolt extends BaseRichBolt {
    * Creates a TableProvider based on a class name.
    * @param connectorImpl The class name of a TableProvider
    */
-  private static TableProvider getTableProvider(String connectorImpl) {
+  private static TableProvider createTableProvider(String connectorImpl) {
+    LOG.trace("Creating table provider; className={}", connectorImpl);
 
     // if class name not defined, use a reasonable default
     if(StringUtils.isEmpty(connectorImpl) || connectorImpl.charAt(0) == '$') {

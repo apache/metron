@@ -154,7 +154,7 @@ public class ZKConfigurationsCacheIntegrationTest {
     }
     {
       //profiler
-      byte[] config = IOUtils.toByteArray(new FileInputStream(new File(profilerDir, "/readme-example-1/profiler.json")));
+      byte[] config = IOUtils.toByteArray(new FileInputStream(new File(profilerDir, "/event-time-test/profiler.json")));
       ConfigurationsUtils.writeProfilerConfigToZookeeper( config, client);
     }
     {
@@ -284,7 +284,7 @@ public class ZKConfigurationsCacheIntegrationTest {
     }
     //profiler
     {
-      File inFile = new File(profilerDir, "/readme-example-1/profiler.json");
+      File inFile = new File(profilerDir, "/event-time-test/profiler.json");
       ProfilerConfig expectedConfig = JSONUtils.INSTANCE.load(inFile, ProfilerConfig.class);
       ProfilerConfigurations config = cache.get( ProfilerConfigurations.class);
       assertEventually(() -> Assert.assertEquals(expectedConfig, config.getProfilerConfig()));
