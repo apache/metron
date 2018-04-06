@@ -195,6 +195,13 @@ public interface MetaAlertUpdateDao extends UpdateDao, DeferredMetaAlertIndexDao
     return currentAlerts.size() != previousSize;
   }
 
+  /**
+   * Removes alerts from a metaalert
+   * @param metaAlertGuid The metaalert guid to be affected.
+   * @param alertRequests A list of GetReqests that will provide the alerts to remove
+   * @return True if there are updates, false otherwise
+   * @throws IOException If an error is thrown during retrieal.
+   */
   @SuppressWarnings("unchecked")
   default boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException {
@@ -211,6 +218,13 @@ public interface MetaAlertUpdateDao extends UpdateDao, DeferredMetaAlertIndexDao
     }
   }
 
+  /**
+   * Builds the set of updates when alerts are removed from a meta alert
+   * @param metaAlert The meta alert to remove alerts from
+   * @param alerts The alert Documents to be removed
+   * @return The updates to be run
+   * @throws IOException If an error is thrown.
+   */
   @SuppressWarnings("unchecked")
   default Map<Document, Optional<String>> buildRemoveAlertsFromMetaAlert(Document metaAlert,
       Iterable<Document> alerts)
