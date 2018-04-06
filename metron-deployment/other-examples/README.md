@@ -27,4 +27,4 @@ These examples have been vetted and tested by the Metron community at the time o
 The following are external community contributions that are not actively maintained by the Apache Metron project. However, you might find them helpful. If there are any issues do **NOT** log a JIRA. Reach out to the mailing list or the contributor first.
 
 
-[Metron 0.4.1 - AWS EC2 Single Node Deployment with Vagrant](././metron-contrib/Metron-041SingleNodeEC2Vagrant)     |  Global Cybersecurity Resource (March 2018)
+[Metron 0.4.1 - AWS EC2 Single Node Deployment with Vagrant](metron-contrib/Metron-041SingleNodeEC2Vagrant)     |  Global Cybersecurity Resource (March 2018)
