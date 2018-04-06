@@ -18,7 +18,7 @@ limitations under the License.
 Metron 0.4.1 - AWS EC2 Single Node Deployment with Vagrant 
 ==================
 
-This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized node in AWS EC2. 
+This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized node in AWS EC2.  
 
 #### What is this good for?
 
@@ -32,7 +32,7 @@ This project fully automates the provisioning and deployment of Apache Metron an
 
 #### What is this **not** good for?
 
-* This single node is **not** intended for processing anything beyond the most basic, low volume work loads.
+* This single node is **not** intended for processing anything beyond the most basic, low volume work loads. For high volumes your experience might be poor you are not using least an m5.4xlarge instance for a single node.
 
 * Additional services should **not** be installed along side Metron in this VM.
 
