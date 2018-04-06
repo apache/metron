@@ -286,42 +286,54 @@ public interface MetaAlertUpdateDao extends UpdateDao, DeferredMetaAlertIndexDao
    */
   default boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
       throws IOException {
-    Map<Document, Optional<String>> updates = new HashMap<>();
     Document metaAlert = getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
     String currentStatus = (String) metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD);
     boolean metaAlertUpdated = !status.getStatusString().equals(currentStatus);
     if (metaAlertUpdated) {
-      metaAlert.getDocument().put(MetaAlertConstants.STATUS_FIELD, status.getStatusString());
-      updates.put(metaAlert, Optional.of(getMetaAlertIndex()));
       List<GetRequest> getRequests = new ArrayList<>();
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
           .get(MetaAlertConstants.ALERT_FIELD);
-      currentAlerts.stream().forEach(currentAlert -> {
-        getRequests.add(new GetRequest((String) currentAlert.get(GUID),
-            (String) currentAlert.get(MetaAlertConstants.SOURCE_TYPE)));
-      });
+      currentAlerts.stream().forEach(currentAlert -> getRequests.add(new GetRequest((String) currentAlert.get(GUID),
+          (String) currentAlert.get(MetaAlertConstants.SOURCE_TYPE))));
       Iterable<Document> alerts = getAllLatest(getRequests);
-      for (Document alert : alerts) {
-        boolean metaAlertAdded = false;
-        boolean metaAlertRemoved = false;
-        // If we're making it active add add the meta alert guid for every alert.
-        if (MetaAlertStatus.ACTIVE.equals(status)) {
-          metaAlertAdded = addMetaAlertToAlert(metaAlert.getGuid(), alert);
-        }
-        // If we're making it inactive, remove the meta alert guid from every alert.
-        if (MetaAlertStatus.INACTIVE.equals(status)) {
-          metaAlertRemoved = removeMetaAlertFromAlert(metaAlert.getGuid(), alert);
-        }
-        if (metaAlertAdded || metaAlertRemoved) {
-          updates.put(alert, Optional.empty());
-        }
-      }
-    }
-    if (metaAlertUpdated) {
+      Map<Document, Optional<String>> updates = buildStatusChangeUpdates(metaAlert, alerts, status);
       update(updates);
     }
     return metaAlertUpdated;
+  }
+
+  /**
+   * Given a Metaalert and a status change, builds the set of updates to be run.
+   * @param metaAlert The metaalert to have status changed
+   * @param alerts
+   * @param status The status to change to
+   * @return The updates to be run
+   */
+  default Map<Document, Optional<String>> buildStatusChangeUpdates(Document metaAlert,
+      Iterable<Document> alerts,
+      MetaAlertStatus status) {
+    metaAlert.getDocument().put(MetaAlertConstants.STATUS_FIELD, status.getStatusString());
+
+    Map<Document, Optional<String>> updates = new HashMap<>();
+    updates.put(metaAlert, Optional.of(getMetaAlertIndex()));
+
+    for (Document alert : alerts) {
+      boolean metaAlertAdded = false;
+      boolean metaAlertRemoved = false;
+      // If we're making it active add add the meta alert guid for every alert.
+      if (MetaAlertStatus.ACTIVE.equals(status)) {
+        metaAlertAdded = addMetaAlertToAlert(metaAlert.getGuid(), alert);
+      }
+      // If we're making it inactive, remove the meta alert guid from every alert.
+      if (MetaAlertStatus.INACTIVE.equals(status)) {
+        metaAlertRemoved = removeMetaAlertFromAlert(metaAlert.getGuid(), alert);
+      }
+      if (metaAlertAdded || metaAlertRemoved) {
+        updates.put(alert, Optional.empty());
+      }
+    }
+    return updates;
   }
 
   /**

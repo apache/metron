@@ -324,13 +324,11 @@ public class MetaAlertUpdateDaoTest {
     Entry<Document, Optional<String>> firstActual = actualIter.next();
     Entry<Document, Optional<String>> secondActual = actualIter.next();
     Entry<Document, Optional<String>> thirdActual = actualIter.next();
-    assertFalse(actualIter.hasNext());
 
     Iterator<Entry<Document, Optional<String>>> expectedIter = expected.entrySet().iterator();
     Entry<Document, Optional<String>> firstExpected = expectedIter.next();
     Entry<Document, Optional<String>> secondExpected = expectedIter.next();
     Entry<Document, Optional<String>> thirdExpected = expectedIter.next();
-    assertFalse(expectedIter.hasNext());
 
     assertEquals(firstExpected, firstActual);
     assertEquals(secondExpected, secondActual);
@@ -339,7 +337,91 @@ public class MetaAlertUpdateDaoTest {
     assertEquals(thirdExpected.getValue(), thirdActual.getValue());
   }
 
+  @Test
+  public void testRemoveAlertsFromMetaAlert() throws IOException {
+    List<Map<String, Object>> alerts = new ArrayList<>();
+    HashMap<String, Object> existingAlert = new HashMap<>();
+    existingAlert.put(Constants.GUID, "child");
+    existingAlert.put(METAALERT_FIELD, Collections.singletonList("has_child"));
+    existingAlert.put(THREAT_FIELD_DEFAULT, 0.0f);
+    alerts.add(existingAlert);
+    HashMap<String, Object> existingAlert2 = new HashMap<>();
+    existingAlert2.put(Constants.GUID, "child2");
+    existingAlert2.put(METAALERT_FIELD, Collections.singletonList("has_child"));
+    existingAlert2.put(THREAT_FIELD_DEFAULT, 0.0f);
+    alerts.add(existingAlert2);
+    HashMap<String, Object> existingAlert3 = new HashMap<>();
+    existingAlert3.put(Constants.GUID, "child3");
+    existingAlert3.put(METAALERT_FIELD, Collections.singletonList("has_child"));
+    existingAlert3.put(THREAT_FIELD_DEFAULT, 0.0f);
+    alerts.add(existingAlert3);
 
+    Map<String, Object> metaAlertDocument = new HashMap<>();
+    metaAlertDocument.put(ALERT_FIELD, alerts);
+    metaAlertDocument.put(Constants.GUID, "has_child");
+    Document hasChild = new Document(
+        metaAlertDocument,
+        "has_child",
+        METAALERT_TYPE,
+        0L
+    );
+
+    List<Document> deletedAlerts = new ArrayList<>();
+    Document existingDocument = new Document(existingAlert, "child", "test", 0L);
+    deletedAlerts.add(existingDocument);
+    Document existingDocument3 = new Document(existingAlert3, "child3", "test", 0L);
+    deletedAlerts.add(existingDocument3);
+
+    Map<Document, Optional<String>> actual = dao
+        .buildRemoveAlertsFromMetaAlert(hasChild, deletedAlerts);
+    assertEquals(3, actual.size());
+
+    Map<String, Object> expectedDeletedAlert = new HashMap<>();
+    expectedDeletedAlert.put(Constants.GUID, "child");
+    expectedDeletedAlert.put(THREAT_FIELD_DEFAULT, 0.0f);
+    expectedDeletedAlert
+        .put(MetaAlertConstants.METAALERT_FIELD, new ArrayList<>());
+    Document expectedDeletedDocument = new Document(expectedDeletedAlert, "child", "test", 0L);
+
+    Map<String, Object> expectedDeletedAlert3 = new HashMap<>();
+    expectedDeletedAlert3.put(Constants.GUID, "child3");
+    expectedDeletedAlert3.put(THREAT_FIELD_DEFAULT, 0.0f);
+    expectedDeletedAlert3
+        .put(MetaAlertConstants.METAALERT_FIELD, new ArrayList<>());
+    Document expectedDeletedDocument2 = new Document(expectedDeletedAlert3, "child3", "test", 0L);
+
+    List<Map<String, Object>> expectedAlerts = new ArrayList<>();
+    expectedAlerts.add(existingAlert2);
+
+    Map<String, Object> expectedMetaAlertMap = new HashMap<>();
+    expectedMetaAlertMap.put(Constants.GUID, "has_child");
+    expectedMetaAlertMap.put(ALERT_FIELD, expectedAlerts);
+    expectedMetaAlertMap.put(THREAT_FIELD_DEFAULT, 0.0f);
+    expectedMetaAlertMap.putAll(new MetaScores(Collections.singletonList(0.0d)).getMetaScores());
+    Document expectedMetaAlertDoc = new Document(expectedMetaAlertMap, "has_child", METAALERT_TYPE,
+        0L);
+
+    Map<Document, Optional<String>> expected = new HashMap<>();
+    expected.put(expectedDeletedDocument, Optional.empty());
+    expected.put(expectedDeletedDocument2, Optional.empty());
+    expected.put(expectedMetaAlertDoc, Optional.of("metaalert_index"));
+
+    Iterator<Entry<Document, Optional<String>>> actualIter = actual.entrySet().iterator();
+    Entry<Document, Optional<String>> firstActual = actualIter.next();
+    Entry<Document, Optional<String>> secondActual = actualIter.next();
+    Entry<Document, Optional<String>> thirdActual = actualIter.next();
+
+    Iterator<Entry<Document, Optional<String>>> expectedIter = expected.entrySet().iterator();
+    Entry<Document, Optional<String>> firstExpected = expectedIter.next();
+    Entry<Document, Optional<String>> secondExpected = expectedIter.next();
+    Entry<Document, Optional<String>> thirdExpected = expectedIter.next();
+
+    assertTrue(metaAlertDocumentEquals(firstExpected.getKey(), firstActual.getKey()));
+    assertEquals(firstExpected.getValue(), firstActual.getValue());
+
+    assertEquals(secondExpected, secondActual);
+    assertEquals(thirdExpected, thirdActual);
+  }
 
   @Test
   public void testRemoveAlertsFromMetaAlertNoChildAlerts() {
@@ -408,6 +490,166 @@ public class MetaAlertUpdateDaoTest {
     expected.getDocument().put(ALERT_FIELD, new ArrayList<>());
     assertTrue(actual);
     assertEquals(expected, hasChild);
+  }
+
+  @Test
+  public void testBuildStatusChangeUpdatesToInactive() {
+    List<Map<String, Object>> alerts = new ArrayList<>();
+    HashMap<String, Object> existingAlert = new HashMap<>();
+    existingAlert.put(Constants.GUID, "child");
+    existingAlert.put(METAALERT_FIELD, Collections.singletonList("has_child"));
+    existingAlert.put(THREAT_FIELD_DEFAULT, 0.0f);
+    alerts.add(existingAlert);
+    Document alert = new Document(existingAlert, "child", "test", 0L);
+    HashMap<String, Object> existingAlert2 = new HashMap<>();
+    existingAlert2.put(Constants.GUID, "child2");
+    existingAlert2.put(METAALERT_FIELD, Collections.singletonList("has_child"));
+    existingAlert2.put(THREAT_FIELD_DEFAULT, 0.0f);
+    alerts.add(existingAlert2);
+    Document alert2 = new Document(existingAlert2, "child2", "test", 0L);
+    List<Document> documents = new ArrayList<>();
+    documents.add(alert);
+    documents.add(alert2);
+
+    Map<String, Object> metaAlertDocument = new HashMap<>();
+    metaAlertDocument.put(ALERT_FIELD, alerts);
+    metaAlertDocument.put(Constants.GUID, "has_child");
+    metaAlertDocument.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
+    Document hasChild = new Document(
+        metaAlertDocument,
+        "has_child",
+        METAALERT_TYPE,
+        0L
+    );
+
+    List<Document> deletedAlerts = new ArrayList<>();
+    Document existingDocument = new Document(existingAlert, "child", "test", 0L);
+    deletedAlerts.add(existingDocument);
+
+    Map<Document, Optional<String>> actual = dao
+        .buildStatusChangeUpdates(hasChild, documents, MetaAlertStatus.INACTIVE);
+    assertEquals(3, actual.size());
+
+    Map<String, Object> expectedDeletedAlert = new HashMap<>();
+    expectedDeletedAlert.put(Constants.GUID, "child");
+    expectedDeletedAlert.put(THREAT_FIELD_DEFAULT, 0.0f);
+    expectedDeletedAlert
+        .put(MetaAlertConstants.METAALERT_FIELD, new ArrayList<>());
+    Document expectedDeletedDocument = new Document(expectedDeletedAlert, "child", "test", 0L);
+
+    Map<String, Object> expectedDeletedAlert2 = new HashMap<>();
+    expectedDeletedAlert2.put(Constants.GUID, "child2");
+    expectedDeletedAlert2.put(THREAT_FIELD_DEFAULT, 0.0f);
+    expectedDeletedAlert2
+        .put(MetaAlertConstants.METAALERT_FIELD, new ArrayList<>());
+    Document expectedDeletedDocument2 = new Document(expectedDeletedAlert2, "child2", "test", 0L);
+
+    List<Map<String, Object>> expectedAlerts = new ArrayList<>();
+    expectedAlerts.add(existingAlert);
+    expectedAlerts.add(existingAlert2);
+
+    Map<String, Object> expectedMetaAlertMap = new HashMap<>();
+    expectedMetaAlertMap.put(Constants.GUID, "has_child");
+    expectedMetaAlertMap.put(ALERT_FIELD, expectedAlerts);
+    expectedMetaAlertMap.put(STATUS_FIELD, MetaAlertStatus.INACTIVE.getStatusString());
+    Document expectedMetaAlertDoc = new Document(expectedMetaAlertMap, "has_child", METAALERT_TYPE,
+        0L);
+
+    Map<Document, Optional<String>> expected = new HashMap<>();
+    expected.put(expectedMetaAlertDoc, Optional.of("metaalert_index"));
+    expected.put(expectedDeletedDocument, Optional.empty());
+    expected.put(expectedDeletedDocument2, Optional.empty());
+
+    Iterator<Entry<Document, Optional<String>>> actualIter = actual.entrySet().iterator();
+    Entry<Document, Optional<String>> firstActual = actualIter.next();
+    Entry<Document, Optional<String>> secondActual = actualIter.next();
+    Entry<Document, Optional<String>> thirdActual = actualIter.next();
+
+    Iterator<Entry<Document, Optional<String>>> expectedIter = expected.entrySet().iterator();
+    Entry<Document, Optional<String>> firstExpected = expectedIter.next();
+    Entry<Document, Optional<String>> secondExpected = expectedIter.next();
+    Entry<Document, Optional<String>> thirdExpected = expectedIter.next();
+
+    assertTrue(metaAlertDocumentEquals(firstExpected.getKey(), firstActual.getKey()));
+    assertEquals(secondExpected, secondActual);
+    assertEquals(thirdExpected, thirdActual);
+  }
+
+  @Test
+  public void testBuildStatusChangeUpdatesToActive() {
+    List<Map<String, Object>> alerts = new ArrayList<>();
+    HashMap<String, Object> existingAlert = new HashMap<>();
+    existingAlert.put(Constants.GUID, "child");
+    existingAlert.put(METAALERT_FIELD, Collections.singletonList("has_child"));
+    existingAlert.put(THREAT_FIELD_DEFAULT, 0.0f);
+    alerts.add(existingAlert);
+    Document alert = new Document(existingAlert, "child", "test", 0L);
+    HashMap<String, Object> existingAlert2 = new HashMap<>();
+    existingAlert2.put(Constants.GUID, "child2");
+    existingAlert2.put(METAALERT_FIELD, Collections.singletonList("has_child"));
+    existingAlert2.put(THREAT_FIELD_DEFAULT, 0.0f);
+    alerts.add(existingAlert2);
+    Document alert2 = new Document(existingAlert2, "child2", "test", 0L);
+    List<Document> documents = new ArrayList<>();
+    documents.add(alert);
+    documents.add(alert2);
+
+    Map<String, Object> metaAlertDocument = new HashMap<>();
+    metaAlertDocument.put(ALERT_FIELD, alerts);
+    metaAlertDocument.put(Constants.GUID, "has_child");
+    metaAlertDocument.put(STATUS_FIELD, MetaAlertStatus.INACTIVE.getStatusString());
+    Document hasChild = new Document(
+        metaAlertDocument,
+        "has_child",
+        METAALERT_TYPE,
+        0L
+    );
+
+    List<Document> deletedAlerts = new ArrayList<>();
+    Document existingDocument = new Document(existingAlert, "child", "test", 0L);
+    deletedAlerts.add(existingDocument);
+
+    Map<Document, Optional<String>> actual = dao
+        .buildStatusChangeUpdates(hasChild, documents, MetaAlertStatus.ACTIVE);
+    assertEquals(1, actual.size());
+
+    Map<String, Object> expectedDeletedAlert = new HashMap<>();
+    expectedDeletedAlert.put(Constants.GUID, "child");
+    expectedDeletedAlert.put(THREAT_FIELD_DEFAULT, 0.0f);
+    expectedDeletedAlert
+        .put(MetaAlertConstants.METAALERT_FIELD, new ArrayList<>());
+    Document expectedDeletedDocument = new Document(expectedDeletedAlert, "child", "test", 0L);
+
+    Map<String, Object> expectedDeletedAlert2 = new HashMap<>();
+    expectedDeletedAlert2.put(Constants.GUID, "child2");
+    expectedDeletedAlert2.put(THREAT_FIELD_DEFAULT, 0.0f);
+    expectedDeletedAlert2
+        .put(MetaAlertConstants.METAALERT_FIELD, new ArrayList<>());
+    Document expectedDeletedDocument2 = new Document(expectedDeletedAlert2, "child2", "test", 0L);
+
+    List<Map<String, Object>> expectedAlerts = new ArrayList<>();
+    expectedAlerts.add(existingAlert);
+    expectedAlerts.add(existingAlert2);
+
+    Map<String, Object> expectedMetaAlertMap = new HashMap<>();
+    expectedMetaAlertMap.put(Constants.GUID, "has_child");
+    expectedMetaAlertMap.put(ALERT_FIELD, expectedAlerts);
+    expectedMetaAlertMap.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
+    Document expectedMetaAlertDoc = new Document(expectedMetaAlertMap, "has_child", METAALERT_TYPE,
+        0L);
+
+    Map<Document, Optional<String>> expected = new HashMap<>();
+    expected.put(expectedMetaAlertDoc, Optional.of("metaalert_index"));
+    expected.put(expectedDeletedDocument, Optional.empty());
+    expected.put(expectedDeletedDocument2, Optional.empty());
+
+    Iterator<Entry<Document, Optional<String>>> actualIter = actual.entrySet().iterator();
+    Entry<Document, Optional<String>> firstActual = actualIter.next();
+
+    Iterator<Entry<Document, Optional<String>>> expectedIter = expected.entrySet().iterator();
+    Entry<Document, Optional<String>> firstExpected = expectedIter.next();
+
+    assertTrue(metaAlertDocumentEquals(firstExpected.getKey(), firstActual.getKey()));
   }
 
   @Test
