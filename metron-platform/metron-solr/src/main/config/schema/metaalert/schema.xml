@@ -15,27 +15,42 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
+
 <schema name="metaalert_doc" version="1.6">
-  <field name="_version_" type="plong" indexed="true" stored="true"/>
-  <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
-  <field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />
-  <field name="score" type="string" indexed="true" stored="true" />
-  <field name="status" type="string" indexed="true" stored="true" />
-  <field name="timestamp" type="timestamp" indexed="true" stored="true" />
-  <field name="source.type" type="string" indexed="true" stored="true" />
-  <dynamicField name="alert.*" type="string" multiValued="false" docValues="true"/>
-  <dynamicField name="*score" type="pfloat" multiValued="false" docValues="true"/>
-  <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
+  <field name="_version_" type="plong" indexed="false" stored="false"/>
+  <field name="_root_" type="string" indexed="true" stored="false" docValues="false"/>
+  <field name="_childDocuments_" type="ignored" stored="true" docValues="true"/>
+
+  <field name="guid" type="string" indexed="true" stored="true" required="true"
+    multiValued="false"/>
+
+  <field name="source:type" type="string" indexed="true" stored="true"/>
+  <field name="timestamp" type="plong" indexed="true" stored="true"/>
+  <field name="score" type="pdouble" indexed="true" stored="true"/>
+  <field name="status" type="string" indexed="true" stored="true"/>
+  <field name="threat:triage:score" type="pdouble" indexed="true" stored="true"/>
+  <field name="average" type="pdouble" indexed="true" stored="true"/>
+  <field name="min" type="pdouble" indexed="true" stored="true"/>
+  <field name="median" type="pdouble" indexed="true" stored="true"/>
+  <field name="max" type="pdouble" indexed="true" stored="true"/>
+  <field name="sum" type="pdouble" indexed="true" stored="true"/>
+  <field name="count" type="pint" indexed="true" stored="true"/>
+
+  <!-- Ensure that metaalerts child field is multivalued -->
+  <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>
+
+  <dynamicField name="*" type="ignored" indexed="true" stored="true" multiValued="false" docValues="true"/>
+
   <uniqueKey>guid</uniqueKey>
-  <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
-  <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
-  <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.TrieIntField" sortMissingLast="false" docValues="true"/>
-  <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.TrieFloatField" sortMissingLast="false" docValues="true"/>
-  <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
-  <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.TrieDoubleField" sortMissingLast="false" docValues="true"/>
-  <fieldType name="bytes" stored="true" indexed="true" multiValued="false" class="solr.BinaryField" sortMissingLast="false" docValues="true"/>
-  <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
-  <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
-  <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
-  <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
+
+  <fieldType name="string" class="solr.StrField" sortMissingLast="true"/>
+  <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+  <fieldType name="pint" class="solr.IntPointField" docValues="true"/>
+  <fieldType name="pfloat" class="solr.FloatPointField" docValues="true"/>
+  <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="pdouble" class="solr.DoublePointField" docValues="true"/>
+  <fieldType name="location" class="solr.LatLonPointSpatialField" docValues="true"/>
+  <fieldType name="ignored" stored="false" indexed="false" multiValued="true"
+    class="solr.StrField"/>
+
 </schema>

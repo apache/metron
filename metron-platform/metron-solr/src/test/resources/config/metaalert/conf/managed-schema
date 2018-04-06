@@ -16,7 +16,7 @@
  limitations under the License.
 -->
 
-<schema name="example" version="1.6">
+<schema name="metaalert_doc" version="1.6">
   <field name="_version_" type="plong" indexed="false" stored="false"/>
   <field name="_root_" type="string" indexed="true" stored="false" docValues="false"/>
   <field name="_childDocuments_" type="ignored" stored="true" docValues="true"/>

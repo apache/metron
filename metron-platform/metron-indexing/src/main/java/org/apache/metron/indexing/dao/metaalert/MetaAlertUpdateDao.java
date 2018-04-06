@@ -106,30 +106,55 @@ public interface MetaAlertUpdateDao extends UpdateDao, DeferredMetaAlertIndexDao
     } // else we have no updates, so don't do anything
   }
 
+  /**
+   * Adds alerts to a metaalert, based on a list of GetRequests provided for retrieval.
+   * @param metaAlertGuid The GUID of the metaalert to be given new children.
+   * @param alertRequests GetRequests for the appropriate alerts to add.
+   * @return True if metaalert is modified, false otherwise.
+   */
   default boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException {
-    Map<Document, Optional<String>> updates = new HashMap<>();
+
     Document metaAlert = getLatest(metaAlertGuid, getMetAlertSensorName());
     if (MetaAlertStatus.ACTIVE.getStatusString()
         .equals(metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD))) {
       Iterable<Document> alerts = getAllLatest(alertRequests);
-      boolean metaAlertUpdated = addAlertsToMetaAlert(metaAlert, alerts);
-      if (metaAlertUpdated) {
-        MetaScores.calculateMetaScores(metaAlert, getThreatTriageField(), getThreatSort());
-        updates.put(metaAlert, Optional.of(getMetaAlertIndex()));
-        for (Document alert : alerts) {
-          if (addMetaAlertToAlert(metaAlert.getGuid(), alert)) {
-            updates.put(alert, Optional.empty());
-          }
-        }
-        update(updates);
-      }
-      return metaAlertUpdated;
+      Map<Document, Optional<String>> updates = buildAddAlertToMetaAlertUpdates(metaAlert, alerts);
+      update(updates);
+      return updates.size() != 0;
     } else {
       throw new IllegalStateException("Adding alerts to an INACTIVE meta alert is not allowed");
     }
   }
 
+  /**
+   * Builds the updates to be run based on a given metaalert and a set of new alerts for the it.
+   * @param metaAlert The base metaalert we're building updates for
+   * @param alerts The alerts being added
+   * @return The set of resulting updates.
+   */
+  default Map<Document, Optional<String>> buildAddAlertToMetaAlertUpdates(Document metaAlert,
+      Iterable<Document> alerts) {
+    Map<Document, Optional<String>> updates = new HashMap<>();
+    boolean metaAlertUpdated = addAlertsToMetaAlert(metaAlert, alerts);
+    if (metaAlertUpdated) {
+      MetaScores.calculateMetaScores(metaAlert, getThreatTriageField(), getThreatSort());
+      updates.put(metaAlert, Optional.of(getMetaAlertIndex()));
+      for (Document alert : alerts) {
+        if (addMetaAlertToAlert(metaAlert.getGuid(), alert)) {
+          updates.put(alert, Optional.empty());
+        }
+      }
+    }
+    return updates;
+  }
+
+  /**
+   * Adds the provided alerts to a given metaalert.
+   * @param metaAlert The metaalert to be given new children.
+   * @param alerts The alerts to be added as children
+   * @return True if metaalert is modified, false otherwise.
+   */
   default boolean addAlertsToMetaAlert(Document metaAlert, Iterable<Document> alerts) {
     boolean alertAdded = false;
     @SuppressWarnings("unchecked")
@@ -148,50 +173,77 @@ public interface MetaAlertUpdateDao extends UpdateDao, DeferredMetaAlertIndexDao
     return alertAdded;
   }
 
+  /**
+   * Removes a given set of alerts from a given alert. AlertGuids that are not found are ignored.
+   * @param metaAlert The metaalert to be mutated.
+   * @param alertGuids The alerts to remove from the metaaelrt.
+   * @return True if the metaAlert changed, false otherwise.
+   */
   default boolean removeAlertsFromMetaAlert(Document metaAlert, Collection<String> alertGuids) {
+    // If we don't have child alerts or nothing is being removed, immediately return false.
+    if (!metaAlert.getDocument().containsKey(MetaAlertConstants.ALERT_FIELD)
+        || alertGuids.size() == 0) {
+      return false;
+    }
+
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
         .get(MetaAlertConstants.ALERT_FIELD);
     int previousSize = currentAlerts.size();
     // Only remove an alert if it is in the meta alert
-    currentAlerts.removeIf(currentAlert -> alertGuids.contains((String) currentAlert.get(GUID)));
+    currentAlerts.removeIf(currentAlert -> alertGuids.contains(currentAlert.get(GUID)));
     return currentAlerts.size() != previousSize;
   }
 
+  @SuppressWarnings("unchecked")
   default boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException {
-    Map<Document, Optional<String>> updates = new HashMap<>();
     Document metaAlert = getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
-    List<Map<String, Object>> alertsBefore = new ArrayList<>();
-    alertsBefore
-        .addAll((List<Map<String, Object>>) metaAlert.getDocument()
-            .get(MetaAlertConstants.ALERT_FIELD));
     if (MetaAlertStatus.ACTIVE.getStatusString()
         .equals(metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD))) {
       Iterable<Document> alerts = getAllLatest(alertRequests);
-      Collection<String> alertGuids = alertRequests.stream().map(GetRequest::getGuid).collect(
-          Collectors.toList());
-      boolean metaAlertUpdated = removeAlertsFromMetaAlert(metaAlert, alertGuids);
-      if (metaAlertUpdated) {
-        List<Map<String, Object>> alertsAfter = (List<Map<String, Object>>) metaAlert.getDocument()
-            .get(MetaAlertConstants.ALERT_FIELD);
-        // If we have no alerts left, we might need to handle the deletes manually. Thanks Solr.
-        if (alertsAfter.size() < alertsBefore.size() && alertsAfter.size() == 0) {
-          deleteRemainingMetaAlerts(alertsBefore);
-        }
-        MetaScores.calculateMetaScores(metaAlert, getThreatTriageField(), getThreatSort());
-        updates.put(metaAlert, Optional.of(getMetaAlertIndex()));
-        for (Document alert : alerts) {
-          if (removeMetaAlertFromAlert(metaAlert.getGuid(), alert)) {
-            updates.put(alert, Optional.empty());
-          }
-        }
-        update(updates);
-      }
-      return metaAlertUpdated;
+      Map<Document, Optional<String>> updates = buildRemoveAlertsFromMetaAlert(metaAlert, alerts);
+
+      update(updates);
+      return updates.size() != 0;
     } else {
       throw new IllegalStateException("Removing alerts from an INACTIVE meta alert is not allowed");
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  default Map<Document, Optional<String>> buildRemoveAlertsFromMetaAlert(Document metaAlert,
+      Iterable<Document> alerts)
+      throws IOException {
+    Map<Document, Optional<String>> updates = new HashMap<>();
+
+    List<String> alertGuids = new ArrayList<>();
+    for (Document alert : alerts) {
+      alertGuids.add(alert.getGuid());
+    }
+    List<Map<String, Object>> alertsBefore = new ArrayList<>();
+    Map<String, Object> documentBefore = metaAlert.getDocument();
+    if (documentBefore.containsKey(MetaAlertConstants.ALERT_FIELD)) {
+      alertsBefore
+          .addAll((List<Map<String, Object>>) documentBefore.get(MetaAlertConstants.ALERT_FIELD));
+    }
+    boolean metaAlertUpdated = removeAlertsFromMetaAlert(metaAlert, alertGuids);
+    if (metaAlertUpdated) {
+      List<Map<String, Object>> alertsAfter = (List<Map<String, Object>>) metaAlert.getDocument()
+          .get(MetaAlertConstants.ALERT_FIELD);
+      // If we have no alerts left, we might need to handle the deletes manually. Thanks Solr.
+      if (alertsAfter.size() < alertsBefore.size() && alertsAfter.size() == 0) {
+        deleteRemainingMetaAlerts(alertsBefore);
+      }
+      MetaScores.calculateMetaScores(metaAlert, getThreatTriageField(), getThreatSort());
+      updates.put(metaAlert, Optional.of(getMetaAlertIndex()));
+      for (Document alert : alerts) {
+        if (removeMetaAlertFromAlert(metaAlert.getGuid(), alert)) {
+          updates.put(alert, Optional.empty());
+        }
+      }
+    }
+    return updates;
   }
 
   // Do nothing by default.  It's implementation weirdness can be handled.
@@ -199,6 +251,12 @@ public interface MetaAlertUpdateDao extends UpdateDao, DeferredMetaAlertIndexDao
       List<Map<String, Object>> alertsBefore) throws IOException {
   }
 
+  /**
+   * Removes a metaalert link from a given alert. An nonexistent link performs no change.
+   * @param metaAlertGuid The metaalert GUID to link.
+   * @param alert The alert to be linked to.
+   * @return True if the alert changed, false otherwise.
+   */
   default boolean removeMetaAlertFromAlert(String metaAlertGuid, Document alert) {
     List<String> metaAlertField = new ArrayList<>();
     @SuppressWarnings("unchecked")
@@ -266,6 +324,12 @@ public interface MetaAlertUpdateDao extends UpdateDao, DeferredMetaAlertIndexDao
     return metaAlertUpdated;
   }
 
+  /**
+   * Adds a metaalert link to a provided alert Document.  Adding an existing link does no change.
+   * @param metaAlertGuid The GUID to be added.
+   * @param alert The alert we're adding the link to.
+   * @return True if the alert is modified, false if not.
+   */
   default boolean addMetaAlertToAlert(String metaAlertGuid, Document alert) {
     List<String> metaAlertField = new ArrayList<>();
     @SuppressWarnings("unchecked")
