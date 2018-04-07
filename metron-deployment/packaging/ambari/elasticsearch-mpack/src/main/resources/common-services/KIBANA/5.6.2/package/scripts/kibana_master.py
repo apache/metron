@@ -16,12 +16,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import errno
-import os
-
-from ambari_commons.os_check import OSCheck
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import Execute
@@ -82,38 +76,6 @@ class Kibana(Script):
         env.set_params(params)
         Logger.info('Status check Kibana')
         service_check("service kibana status", user=params.kibana_user, label="Kibana")
-
-    @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-    def load_template(self, env):
-        import params
-        env.set_params(params)
-
-        hostname = ambari_format("{es_host}")
-        port = int(ambari_format("{es_port}"))
-
-        Logger.info("Connecting to Elasticsearch on host: %s, port: %s" % (hostname, port))
-
-        kibanaTemplate = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'kibana.template')
-        if not os.path.isfile(kibanaTemplate):
-          raise IOError(
-              errno.ENOENT, os.strerror(errno.ENOENT), kibanaTemplate)
-
-        Logger.info("Loading .kibana index template from %s" % kibanaTemplate)
-        template_cmd = ambari_format(
-            'curl -s -XPOST http://{es_host}:{es_port}/_template/.kibana -d @%s' % kibanaTemplate)
-        Execute(template_cmd, logoutput=True)
-
-        kibanaDashboardLoad = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'dashboard-bulkload.json')
-        if not os.path.isfile(kibanaDashboardLoad):
-          raise IOError(
-              errno.ENOENT, os.strerror(errno.ENOENT), kibanaDashboardLoad)
-
-        Logger.info("Loading .kibana dashboard from %s" % kibanaDashboardLoad)
-
-        kibana_cmd = ambari_format(
-            'curl -s -H "Content-Type: application/x-ndjson" -XPOST http://{es_host}:{es_port}/.kibana/_bulk --data-binary @%s' % kibanaDashboardLoad)
-        Execute(kibana_cmd, logoutput=True)
-
 
 if __name__ == "__main__":
     Kibana().execute()

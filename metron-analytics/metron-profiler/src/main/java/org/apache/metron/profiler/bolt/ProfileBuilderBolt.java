@@ -378,10 +378,22 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
    */
   private void emitMeasurements(List<ProfileMeasurement> measurements) {
 
-    // allow each 'emitter' to emit each measurement
+    // flush each profile
     for(ProfileMeasurement measurement: measurements) {
+
+      // allow each 'emitter' to emit the measurement
       for (ProfileMeasurementEmitter emitter : emitters) {
         emitter.emit(measurement, collector);
+
+        LOG.debug("Measurement emitted; stream={}, profile={}, entity={}, value={}, start={}, end={}, duration={}, period={}",
+                emitter.getStreamId(),
+                measurement.getProfileName(),
+                measurement.getEntity(),
+                measurement.getProfileValue(),
+                measurement.getPeriod().getStartTimeMillis(),
+                measurement.getPeriod().getEndTimeMillis(),
+                measurement.getPeriod().getDurationMillis(),
+                measurement.getPeriod().getPeriod());
       }
     }
 

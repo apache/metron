@@ -211,6 +211,15 @@
                 </commandScript>
               </customCommand>
               <customCommand>
+                <name>KIBANA_DASHBOARD_INSTALL</name>
+                <background>false</background>
+                <commandScript>
+                  <script>scripts/indexing_master.py</script>
+                  <scriptType>PYTHON</scriptType>
+                  <timeout>600</timeout>
+                </commandScript>
+              </customCommand>
+              <customCommand>
                 <name>ZEPPELIN_NOTEBOOK_IMPORT</name>
                 <commandScript>
                   <script>scripts/indexing_master.py</script>

@@ -49,6 +49,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
+                <module>packaging/ambari/elasticsearch-mpack</module>
                 <module>packaging/ambari/metron-mpack</module>
             </modules>
         </profile>
