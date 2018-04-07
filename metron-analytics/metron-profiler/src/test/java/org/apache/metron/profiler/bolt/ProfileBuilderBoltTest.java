@@ -48,7 +48,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -67,6 +66,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   private ProfileConfig profile2;
   private ProfileMeasurementEmitter emitter;
   private ManualFlushSignal flushSignal;
+  private ProfileMeasurement measurement;
 
   @Before
   public void setup() throws Exception {
@@ -94,6 +94,12 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
             .withInit(Collections.singletonMap("x", "0"))
             .withUpdate(Collections.singletonMap("x", "x + 1"))
             .withResult("x");
+
+    measurement = new ProfileMeasurement()
+            .withEntity("entity1")
+            .withProfileName("profile1")
+            .withPeriod(1000, 500, TimeUnit.MILLISECONDS)
+            .withProfileValue(22);
 
     flushSignal = new ManualFlushSignal();
     flushSignal.setFlushNow(false);
@@ -127,23 +133,16 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
   /**
    * If the {@code FlushSignal} tells the bolt to flush, it should flush the {@code MessageDistributor}
-   * and emit the {@code ProfileMeasurement} values.
+   * and emit the {@code ProfileMeasurement} values from all active profiles.
    */
   @Test
-  public void testEmitWhenFlush() throws Exception {
+  public void testFlushActiveProfiles() throws Exception {
 
     ProfileBuilderBolt bolt = createBolt();
 
-    // create a profile measurement
-    ProfileMeasurement m = new ProfileMeasurement()
-            .withEntity("entity1")
-            .withProfileName("profile1")
-            .withPeriod(1000, 500, TimeUnit.MILLISECONDS)
-            .withProfileValue(22);
-
     // create a mock that returns the profile measurement above
     MessageDistributor distributor = mock(MessageDistributor.class);
-    when(distributor.flush()).thenReturn(Collections.singletonList(m));
+    when(distributor.flush()).thenReturn(Collections.singletonList(measurement));
     bolt.withMessageDistributor(distributor);
 
     // signal the bolt to flush
@@ -157,30 +156,23 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     // a profile measurement should be emitted by the bolt
     List<ProfileMeasurement> measurements = getProfileMeasurements(outputCollector, 1);
     assertEquals(1, measurements.size());
-    assertEquals(m, measurements.get(0));
+    assertEquals(measurement, measurements.get(0));
   }
 
   /**
    * If the {@code FlushSignal} tells the bolt NOT to flush, nothing should be emitted.
    */
   @Test
-  public void testDoNotEmitWhenNoFlush() throws Exception {
+  public void testDoNotFlushActiveProfiles() throws Exception {
 
     ProfileBuilderBolt bolt = createBolt();
 
-    // create a profile measurement
-    ProfileMeasurement m = new ProfileMeasurement()
-            .withEntity("entity1")
-            .withProfileName("profile1")
-            .withPeriod(1000, 500, TimeUnit.MILLISECONDS)
-            .withProfileValue(22);
-
-    // create a mock that returns the profile measurement above
+    // create a mock where flush() returns the profile measurement above
     MessageDistributor distributor = mock(MessageDistributor.class);
-    when(distributor.flush()).thenReturn(Collections.singletonList(m));
+    when(distributor.flush()).thenReturn(Collections.singletonList(measurement));
     bolt.withMessageDistributor(distributor);
 
-    // no flush signal
+    // there is no flush signal
     flushSignal.setFlushNow(false);
 
     // execute the bolt
@@ -190,6 +182,29 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
     // nothing should have been emitted
     getProfileMeasurements(outputCollector, 0);
+  }
+
+  /**
+   * Expired profiles should be flushed regularly, even if no input telemetry
+   * has been received.
+   */
+  @Test
+  public void testFlushExpiredProfiles() throws Exception {
+
+    ProfileBuilderBolt bolt = createBolt();
+
+    // create a mock where flushExpired() returns the profile measurement above
+    MessageDistributor distributor = mock(MessageDistributor.class);
+    when(distributor.flushExpired()).thenReturn(Collections.singletonList(measurement));
+    bolt.withMessageDistributor(distributor);
+
+    // execute test by flushing expired profiles. this is normally triggered by a timer task.
+    bolt.flushExpired();
+
+    // a profile measurement should be emitted by the bolt
+    List<ProfileMeasurement> measurements = getProfileMeasurements(outputCollector, 1);
+    assertEquals(1, measurements.size());
+    assertEquals(measurement, measurements.get(0));
   }
 
   /**
@@ -230,61 +245,6 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     verify(outputCollector, times(1)).emit(eq("destination1"), any());
     verify(outputCollector, times(1)).emit(eq("destination2"), any());
     verify(outputCollector, times(1)).emit(eq("destination3"), any());
-  }
-
-  @Test
-  public void testFlushExpiredWithTick() throws Exception {
-
-    ProfileBuilderBolt bolt = createBolt();
-
-    // create a mock
-    MessageDistributor distributor = mock(MessageDistributor.class);
-    bolt.withMessageDistributor(distributor);
-
-    // tell the bolt to flush on the first window
-    flushSignal.setFlushNow(true);
-
-    // execute the bolt; include a tick tuple in the window
-    Tuple tuple1 = createTuple("entity", message1, profile1, 100000000L);
-    TupleWindow tupleWindow = createWindow(tuple1, mockTickTuple());
-    bolt.execute(tupleWindow);
-
-    // ensure the expired profiles were flushed when the tick tuple was received
-    verify(distributor).flushExpired();
-  }
-
-  @Test
-  public void testFlushExpiredWithNoTick() throws Exception {
-
-    ProfileBuilderBolt bolt = createBolt();
-
-    // create a mock
-    MessageDistributor distributor = mock(MessageDistributor.class);
-    bolt.withMessageDistributor(distributor);
-
-    // tell the bolt to flush on the first window
-    flushSignal.setFlushNow(true);
-
-    // execute the bolt; NO tick tuple
-    Tuple tuple1 = createTuple("entity", message1, profile1, 100000000L);
-    TupleWindow tupleWindow = createWindow(tuple1);
-    bolt.execute(tupleWindow);
-
-    // there was no tick tuple; the expired profiles should NOT have been flushed
-    verify(distributor, times(0)).flushExpired();
-  }
-
-  /**
-   * Creates a mock tick tuple to use for testing.
-   * @return A mock tick tuple.
-   */
-  private Tuple mockTickTuple() {
-
-    Tuple tuple = mock(Tuple.class);
-    when(tuple.getSourceComponent()).thenReturn("__system");
-    when(tuple.getSourceStreamId()).thenReturn("__tick");
-
-    return tuple;
   }
 
   /**
@@ -334,18 +294,6 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    */
   private ProfileBuilderBolt createBolt() throws IOException {
 
-    return createBolt(30, TimeUnit.SECONDS);
-  }
-
-  /**
-   * Create a ProfileBuilderBolt to test.
-   *
-   * @param windowDuration The event window duration.
-   * @param windowDurationUnits The units of the event window duration.
-   * @return A {@link ProfileBuilderBolt} to test.
-   */
-  private ProfileBuilderBolt createBolt(int windowDuration, TimeUnit windowDurationUnits) throws IOException {
-
     // defines the zk configurations accessible from the bolt
     ProfilerConfigurations configurations = new ProfilerConfigurations();
     configurations.updateGlobalConfig(Collections.emptyMap());
@@ -359,7 +307,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
             .withEmitter(emitter)
             .withProfilerConfigurations(configurations)
             .withPeriodDuration(1, TimeUnit.MINUTES)
-            .withTumblingWindow(new BaseWindowedBolt.Duration(windowDuration, windowDurationUnits));
+            .withTumblingWindow(new BaseWindowedBolt.Duration(30, TimeUnit.SECONDS));
     bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
 
     // set the flush signal AFTER calling 'prepare'

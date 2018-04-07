@@ -59,8 +59,8 @@ import java.util.Optional;
 import java.util.Properties;
 
 import static org.apache.metron.stellar.common.configuration.ConfigurationsUtils.readGlobalConfigBytesFromZookeeper;
-import static org.apache.metron.stellar.common.shell.StellarResult.noop;
 import static org.apache.metron.stellar.common.shell.StellarResult.error;
+import static org.apache.metron.stellar.common.shell.StellarResult.noop;
 import static org.apache.metron.stellar.common.shell.StellarResult.success;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
@@ -271,10 +271,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
       globals = (Map<String, Object>) capability.get();
 
     } else {
-      // if it does not exist, create it.  this creates the global config for the current stellar executor
-      // session only.  this does not change the global config maintained externally in zookeeper
-      globals = new HashMap<>();
-      getContext().addCapability(GLOBAL_CONFIG, () -> globals);
+      throw new IllegalStateException("'GLOBAL_CONFIG' is missing");
     }
 
     return globals;
