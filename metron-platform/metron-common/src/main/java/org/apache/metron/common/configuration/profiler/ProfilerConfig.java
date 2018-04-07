@@ -20,6 +20,9 @@ package org.apache.metron.common.configuration.profiler;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.metron.common.utils.JSONUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
@@ -93,26 +96,35 @@ public class ProfilerConfig implements Serializable {
 
   @Override
   public String toString() {
-    return "ProfilerConfig{" +
-            "profiles=" + profiles +
-            ", timestampField='" + timestampField + '\'' +
-            '}';
+    return new ToStringBuilder(this)
+            .append("profiles", profiles)
+            .append("timestampField", timestampField)
+            .toString();
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
     ProfilerConfig that = (ProfilerConfig) o;
-    if (profiles != null ? !profiles.equals(that.profiles) : that.profiles != null) return false;
-    return timestampField != null ? timestampField.equals(that.timestampField) : that.timestampField == null;
+    return new EqualsBuilder()
+            .append(profiles, that.profiles)
+            .append(timestampField, that.timestampField)
+            .isEquals();
   }
 
   @Override
   public int hashCode() {
-    int result = profiles != null ? profiles.hashCode() : 0;
-    result = 31 * result + (timestampField != null ? timestampField.hashCode() : 0);
-    return result;
+    return new HashCodeBuilder(17, 37)
+            .append(profiles)
+            .append(timestampField)
+            .toHashCode();
   }
 
   /**
