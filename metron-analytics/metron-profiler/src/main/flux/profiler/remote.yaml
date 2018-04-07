@@ -160,6 +160,8 @@ bolts:
               args: [ref: "windowLag"]
             - name: "withMaxNumberOfRoutes"
               args: [${profiler.max.routes.per.bolt}]
+            - name: "withTimestampField"
+              args: ["timestamp"]
 
     -   id: "hbaseBolt"
         className: "org.apache.metron.hbase.bolt.HBaseBolt"
