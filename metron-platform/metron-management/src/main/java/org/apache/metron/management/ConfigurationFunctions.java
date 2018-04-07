@@ -20,7 +20,6 @@ package org.apache.metron.management;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
@@ -49,7 +48,15 @@ import static org.apache.metron.common.configuration.ConfigurationType.GLOBAL;
 import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
 import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
 import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeGlobalConfigToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeProfilerConfigToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeSensorIndexingConfigToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeSensorParserConfigToZookeeper;
 
+/**
+ * Defines functions that enable modification of Metron configuration values.
+ */
 public class ConfigurationFunctions {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -140,9 +147,7 @@ public class ConfigurationFunctions {
       ConfigurationType type = ConfigurationType.valueOf(arg0);
 
       if(GLOBAL == type) {
-        IndexingConfigurations config = cache.get(IndexingConfigurations.class);
-        Map<String, Object> global = config.getGlobalConfig();
-        result = toJSON(global);
+        result = getGlobalConfig();
 
       } else if(PROFILER == type) {
         result = getProfilerConfig(args);
@@ -160,6 +165,18 @@ public class ConfigurationFunctions {
         throw new IllegalArgumentException("Unexpected configuration type: " + type);
       }
 
+      return result;
+    }
+
+    /**
+     * Retrieves the Global configuration.
+     *
+     * @return The Global configuration.
+     */
+    private String getGlobalConfig() {
+      String result;IndexingConfigurations config = cache.get(IndexingConfigurations.class);
+      Map<String, Object> global = config.getGlobalConfig();
+      result = toJSON(global);
       return result;
     }
 
@@ -317,22 +334,22 @@ public class ConfigurationFunctions {
         try {
 
           if(GLOBAL == type) {
-            ConfigurationsUtils.writeGlobalConfigToZookeeper(value.getBytes(), client);
+            writeGlobalConfigToZookeeper(value.getBytes(), client);
 
           } else if(PROFILER == type) {
-            ConfigurationsUtils.writeProfilerConfigToZookeeper(value.getBytes(), client);
+            writeProfilerConfigToZookeeper(value.getBytes(), client);
 
           } else if(ENRICHMENT == type) {
             String sensor = getArg(2, String.class, args);
-            ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensor, value.getBytes(), client);
+            writeSensorEnrichmentConfigToZookeeper(sensor, value.getBytes(), client);
 
           } else if(INDEXING == type) {
             String sensor = getArg(2, String.class, args);
-            ConfigurationsUtils.writeSensorIndexingConfigToZookeeper(sensor, value.getBytes(), client);
+            writeSensorIndexingConfigToZookeeper(sensor, value.getBytes(), client);
 
           } else if (PARSER == type) {
             String sensor = getArg(2, String.class, args);
-            ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensor, value.getBytes(), client);
+            writeSensorParserConfigToZookeeper(sensor, value.getBytes(), client);
           }
 
         } catch(Exception e) {
