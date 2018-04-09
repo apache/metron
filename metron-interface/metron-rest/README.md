@@ -213,11 +213,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 |            |
 | ---------- |
-| [ `POST /api/v1/alert/escalate`](#get-apiv1alertescalate)|
-| [ `GET /api/v1/alert/profile`](#get-apiv1alertprofile)|
-| [ `GET /api/v1/alert/profile/all`](#get-apiv1alertprofileall)|
-| [ `DELETE /api/v1/alert/profile`](#delete-apiv1alertprofile)|
-| [ `POST /api/v1/alert/profile`](#post-apiv1alertprofile)|
+| [ `POST /api/v1/alerts/ui/escalate`](#get-apiv1alertsuiescalate)|
+| [ `GET /api/v1/alerts/ui/settings`](#get-apiv1alertsuisettings)|
+| [ `GET /api/v1/alerts/ui/settings/all`](#get-apiv1alertsuisettingsall)|
+| [ `DELETE /api/v1/alerts/ui/settings`](#delete-apiv1alertsuisettings)|
+| [ `POST /api/v1/alerts/ui/settings`](#post-apiv1alertsuisettings)|
 | [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
 | [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
@@ -273,11 +273,16 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/enrichment/deactivate`](#get-apiv1stormenrichmentdeactivate)|
 | [ `GET /api/v1/storm/enrichment/start`](#get-apiv1stormenrichmentstart)|
 | [ `GET /api/v1/storm/enrichment/stop`](#get-apiv1stormenrichmentstop)|
-| [ `GET /api/v1/storm/indexing`](#get-apiv1stormindexing)|
-| [ `GET /api/v1/storm/indexing/activate`](#get-apiv1stormindexingactivate)|
-| [ `GET /api/v1/storm/indexing/deactivate`](#get-apiv1stormindexingdeactivate)|
-| [ `GET /api/v1/storm/indexing/start`](#get-apiv1stormindexingstart)|
-| [ `GET /api/v1/storm/indexing/stop`](#get-apiv1stormindexingstop)|
+| [ `GET /api/v1/storm/indexing/batch`](#get-apiv1stormindexingbatch)|
+| [ `GET /api/v1/storm/indexing/batch/activate`](#get-apiv1stormindexingbatchactivate)|
+| [ `GET /api/v1/storm/indexing/batch/deactivate`](#get-apiv1stormindexingbatchdeactivate)|
+| [ `GET /api/v1/storm/indexing/batch/start`](#get-apiv1stormindexingbatchstart)|
+| [ `GET /api/v1/storm/indexing/batch/stop`](#get-apiv1stormindexingbatchstop)|
+| [ `GET /api/v1/storm/indexing/randomaccess`](#get-apiv1stormindexingrandomaccess)|
+| [ `GET /api/v1/storm/indexing/randomaccess/activate`](#get-apiv1stormindexingrandomaccessactivate)|
+| [ `GET /api/v1/storm/indexing/randomaccess/deactivate`](#get-apiv1stormindexingrandomaccessdeactivate)|
+| [ `GET /api/v1/storm/indexing/randomaccess/start`](#get-apiv1stormindexingrandomaccessstart)|
+| [ `GET /api/v1/storm/indexing/randomaccess/stop`](#get-apiv1stormindexingrandomaccessstop)|
 | [ `GET /api/v1/storm/parser/activate/{name}`](#get-apiv1stormparseractivatename)|
 | [ `GET /api/v1/storm/parser/deactivate/{name}`](#get-apiv1stormparserdeactivatename)|
 | [ `GET /api/v1/storm/parser/start/{name}`](#get-apiv1stormparserstartname)|
@@ -288,42 +293,41 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `PUT /api/v1/update/replace`](#patch-apiv1updatereplace)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
-### `POST /api/v1/alert/escalate`
+### `POST /api/v1/alerts/ui/escalate`
   * Description: Escalates a list of alerts by producing it to the Kafka escalate topic
   * Input:
     * alerts - The alerts to be escalated
   * Returns:
     * 200 - Alerts were escalated
-
-### `GET /api/v1/alert/profile`
-  * Description: Retrieves the current user's alerts profile
+    
+### `GET /api/v1/alerts/ui/settings`
+  * Description: Retrieves the current user's settings
   * Returns:
-    * 200 - Alerts profile
-    * 404 - The current user does not have an alerts profile
+    * 200 - User settings
+    * 404 - he current user does not have settings
 
-### `GET /api/v1/alert/profile/all`
-  * Description: Retrieves all users' alerts profiles.  Only users that are part of the "ROLE_ADMIN" role are allowed to get all alerts profiles.
+### `GET /api/v1/alerts/ui/settings/all`
+  * Description: Retrieves all users' settings.  Only users that are part of the "ROLE_ADMIN" role are allowed to get all user settings.
   * Returns:
-    * 200 - List of all alerts profiles
-    * 403 - The current user does not have permission to get all alerts profiles
+    * 200 - List of all user settings
+    * 403 - The current user does not have permission to get all user settings
 
-### `DELETE /api/v1/alert/profile`
-  * Description: Deletes a user's alerts profile.  Only users that are part of the "ROLE_ADMIN" role are allowed to delete user alerts profiles.
+### `DELETE /api/v1/alerts/ui/settings`
+  * Description: Deletes a user's settings.  Only users that are part of the "ROLE_ADMIN" role are allowed to delete user settings.
   * Input:
-    * user - The user whose prolife will be deleted
+    * user - The user whose settings will be deleted
   * Returns:
-    * 200 - Alerts profile was deleted
-    * 403 - The current user does not have permission to delete alerts profiles
-    * 404 - Alerts profile could not be found
+    * 200 - User settings were deleted
+    * 403 - The current user does not have permission to delete user settings
+    * 404 - User settings could not be found
 
-### `POST /api/v1/alert/profile`
-  * Description: Creates or updates the current user's alerts profile
+### `POST /api/v1/alerts/ui/settings`
+  * Description: Creates or updates the current user's settings
   * Input:
-    * alertsProfile - The alerts profile to be saved
+    * alertsUIUserSettings - The user settings to be saved
   * Returns:
-    * 200 - Alerts profile updated. Returns saved alerts profile.
-    * 201 - Alerts profile created. Returns saved alerts profile.
-
+    * 200 - User settings updated. Returns saved settings.
+    * 201 - User settings created. Returns saved settings.
 
 ### `GET /api/v1/global/config`
   * Description: Retrieves the current Global Config from Zookeeper
@@ -705,29 +709,57 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns stop response message
 
-### `GET /api/v1/storm/indexing`
-  * Description: Retrieves the status of the Storm indexing topology
+### `GET /api/v1/storm/indexing/batch`
+  * Description: Retrieves the status of the Storm batch indexing topology
   * Returns:
     * 200 - Returns topology status information
     * 404 - Topology is missing
 
-### `GET /api/v1/storm/indexing/activate`
-  * Description: Activates a Storm indexing topology
+### `GET /api/v1/storm/indexing/batch/activate`
+  * Description: Activates a Storm batch indexing topology
   * Returns:
     * 200 - Returns activate response message
 
-### `GET /api/v1/storm/indexing/deactivate`
-  * Description: Deactivates a Storm indexing topology
+### `GET /api/v1/storm/indexing/batch/deactivate`
+  * Description: Deactivates a Storm batch indexing topology
   * Returns:
     * 200 - Returns deactivate response message
 
-### `GET /api/v1/storm/indexing/start`
-  * Description: Starts a Storm indexing topology
+### `GET /api/v1/storm/indexing/batch/start`
+  * Description: Starts a Storm batch indexing topology
   * Returns:
     * 200 - Returns start response message
 
-### `GET /api/v1/storm/indexing/stop`
-  * Description: Stops a Storm enrichment topology
+### `GET /api/v1/storm/indexing/batch/stop`
+  * Description: Stops a Storm batch indexing topology
+  * Input:
+    * stopNow - Stop the topology immediately
+  * Returns:
+    * 200 - Returns stop response message
+
+### `GET /api/v1/storm/indexing/randomaccess`
+  * Description: Retrieves the status of the Storm randomaccess indexing topology
+  * Returns:
+    * 200 - Returns topology status information
+    * 404 - Topology is missing
+
+### `GET /api/v1/storm/indexing/randomaccess/activate`
+  * Description: Activates a Storm randomaccess indexing topology
+  * Returns:
+    * 200 - Returns activate response message
+
+### `GET /api/v1/storm/indexing/randomaccess/deactivate`
+  * Description: Deactivates a Storm randomaccess indexing topology
+  * Returns:
+    * 200 - Returns deactivate response message
+
+### `GET /api/v1/storm/indexing/randomaccess/start`
+  * Description: Starts a Storm randomaccess indexing topology
+  * Returns:
+    * 200 - Returns start response message
+
+### `GET /api/v1/storm/indexing/randomaccess/stop`
+  * Description: Stops a Storm randomaccess indexing topology
   * Input:
     * stopNow - Stop the topology immediately
   * Returns:

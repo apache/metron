@@ -31,7 +31,7 @@ The computer used to deploy Apache Metron will need to have the following compon
 
  - [Ansible](https://github.com/ansible/ansible) (2.0.0.2 or 2.2.2.0)
  - [Docker](https://www.docker.com/community-edition)
- - [Vagrant](https://www.vagrantup.com) 1.8+
+ - [Vagrant](https://www.vagrantup.com) 2.0+
  - [Vagrant Hostmanager Plugin](https://github.com/devopsgroup-io/vagrant-hostmanager)
  - [Virtualbox](https://virtualbox.org) 5.0+
  - Python 2.7

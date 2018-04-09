@@ -190,7 +190,7 @@ public class ElasticsearchDao implements IndexDao {
             .from(searchRequest.getFrom())
             .query(queryBuilder)
             .trackScores(true);
-    Optional<List<String>> fields = searchRequest.getFields();
+    List<String> fields = searchRequest.getFields();
     // column metadata needed to understand the type of each sort field
     Map<String, FieldType> meta;
     try {
@@ -223,18 +223,18 @@ public class ElasticsearchDao implements IndexDao {
     }
 
     // handle search fields
-    if (fields.isPresent()) {
+    if (fields != null) {
       searchBuilder.fetchSource("*", null);
     } else {
       searchBuilder.fetchSource(true);
     }
 
-    Optional<List<String>> facetFields = searchRequest.getFacetFields();
+    List<String> facetFields = searchRequest.getFacetFields();
 
     // handle facet fields
-    if (searchRequest.getFacetFields().isPresent()) {
+    if (facetFields != null) {
       // https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/_bucket_aggregations.html
-      for(String field : searchRequest.getFacetFields().get()) {
+      for(String field : facetFields) {
         String name = getFacetAggregationName(field);
         TermsAggregationBuilder terms = AggregationBuilders.terms( name).field(field);
                // new TermsBuilder(name).field(field);
@@ -278,8 +278,8 @@ public class ElasticsearchDao implements IndexDao {
     searchResponse.setResults(results);
 
     // handle facet fields
-    if (searchRequest.getFacetFields().isPresent()) {
-      List<String> facetFields = searchRequest.getFacetFields().get();
+    if (searchRequest.getFacetFields() != null) {
+      List<String> facetFields = searchRequest.getFacetFields();
       Map<String, FieldType> commonColumnMetadata;
       try {
         commonColumnMetadata = getColumnMetadata(searchRequest.getIndices());
@@ -607,10 +607,12 @@ public class ElasticsearchDao implements IndexDao {
     Map<String, Map<String, Long>> fieldCounts = new HashMap<>();
     for (String field: fields) {
       Map<String, Long> valueCounts = new HashMap<>();
-      Aggregation aggregation = aggregations.get(getFacetAggregationName(field));
-      if (aggregation instanceof Terms) {
-        Terms terms = (Terms) aggregation;
-        terms.getBuckets().stream().forEach(bucket -> valueCounts.put(formatKey(bucket.getKey(), commonColumnMetadata.get(field)), bucket.getDocCount()));
+      if(aggregations != null ){
+        Aggregation aggregation = aggregations.get(getFacetAggregationName(field));
+        if (aggregation instanceof Terms) {
+          Terms terms = (Terms) aggregation;
+          terms.getBuckets().stream().forEach(bucket -> valueCounts.put(formatKey(bucket.getKey(), commonColumnMetadata.get(field)), bucket.getDocCount()));
+        }
       }
       fieldCounts.put(field, valueCounts);
     }
@@ -670,14 +672,14 @@ public class ElasticsearchDao implements IndexDao {
     return searchResultGroups;
   }
 
-  private SearchResult getSearchResult(SearchHit searchHit, Optional<List<String>> fields) {
+  private SearchResult getSearchResult(SearchHit searchHit, List<String> fields) {
     SearchResult searchResult = new SearchResult();
     searchResult.setId(searchHit.getId());
     Map<String, Object> source;
-    if (fields.isPresent()) {
+    if (fields != null) {
       Map<String, Object> resultSourceAsMap = searchHit.getSourceAsMap();
       source = new HashMap<>();
-      fields.get().forEach(field -> {
+      fields.forEach(field -> {
         source.put(field, resultSourceAsMap.get(field));
       });
     } else {

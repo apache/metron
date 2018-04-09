@@ -30,13 +30,19 @@ limitations under the License.
 * [Upgrading MPack Services](#upgrading-mpack-services)
 
 ## Overview
+
 Typically, Ambari Management Pack development will be done in the Vagrant environments. These instructions are specific to Vagrant, but can be adapted for other environemnts (e.g. make sure to be on the correct nodes for server vs agent files)
 
-There is an `mpack.json` file which describes what services the mpack will contains, versions, etc.
+There are two MPacks:
 
-Alongside this are two directories, `addon-services` and `common-services`.
+* Metron - contains artifacts for deploying the Metron service
+* Elasticsearch - contains artifacts for installing Elasticsearch and Kibana services
 
-The layout of `/common-services/METRON.CURRENT` is
+There is an `mpack.json` file for each which describes what services the mpack will contain, versions, etc.
+
+Alongside this are two directories, `addon-services` and `common-services`. Below the Metron MPack is described, but this also applies similarly to the Elasticsearch MPack.
+
+The layout of `/common-services/METRON/CURRENT` is
 * `/configuration`
   * This contains a set of `*-env.xml` files, relevent to particular components or the service as a whole. These are where properties are defined.
 * `/package`
@@ -59,11 +65,11 @@ The layout of `/common-services/METRON.CURRENT` is
 * `service_advisor.py`
   * Handles component layout and validation, along with handling some configurations for other services or that needs configs from other services.
 
-The layout of `/addon-services/METRON.CURRENT` is
+The layout of `/addon-services/METRON/CURRENT` is
 * `/repos`
   * Contains `repoinfo.xml` that defines repositories to install packages from
 * `metainfo.xml`
-  * Limited info version of `/common-services/METRON.CURRENT/metainfo.xml`
+  * Limited info version of `/common-services/METRON/CURRENT/metainfo.xml`
 * `role_command_order.json`
   * Defines the order of service startup and other actions relative to each other.
 
@@ -361,6 +367,7 @@ Ambari stores the Python files from the service in a couple places. We'll want t
 Specifically, the server files live in
 ```
 /var/lib/ambari-server/resources/mpacks/metron-ambari.mpack-0.4.0.0/common-services
+/var/lib/ambari-server/resources/mpacks/elasticsearch-ambari.mpack-0.4.0.0/common-services
 /var/lib/ambari-agent/cache/common-services
 ```
 
@@ -408,6 +415,8 @@ After we've modified files in Ambari and the mpack is working, it is a good idea
   ambari-server restart
   ```
 1. Install the mpack through Ambari as you normally would
+
+1. The same steps can be followed for Elasticsearch and Kibana by similary deploying the ES MPack located in elasticsearch-mpack/target.
 
 ## Configuration involving dependency services
 Metron can define expectations on other services, e.g. Storm's `topology.classpath` should be `/etc/hbase/conf:/etc/hadoop/conf`.
@@ -468,10 +477,12 @@ This is checked in the indexing master
 
 ## Upgrading MPack Services
 
-Apache Metron currently provides three services as part of its MPack
+Apache Metron currently provides one service as part of its Metron MPack
+* Metron
+
+Apache Metron currently provides two services as part of its Elasticsearch MPack
 * Elasticsearch
 * Kibana
-* Metron
 
 There is currently no mechanism provided for multi-version or backwards compatibility. If you upgrade a service, e.g. Elasticsearch 2.x to 5.x, that is the only version that will be
 supported by Ambari via MPack.
