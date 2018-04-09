@@ -95,7 +95,15 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
   private static List<byte[]> getInputMessages(String path){
     try{
-      return TestUtils.readSampleData(path);
+      List<byte[]> ret = TestUtils.readSampleData(path);
+      {
+        //we want one of the fields without a destination IP to ensure that enrichments can function
+        Map<String, Object> sansDestinationIp = JSONUtils.INSTANCE.load(new String(ret.get(ret.size() -1))
+                                                                       , JSONUtils.MAP_SUPPLIER);
+        sansDestinationIp.remove(Constants.Fields.DST_ADDR.getName());
+        ret.add(JSONUtils.INSTANCE.toJSONPretty(sansDestinationIp));
+      }
+      return ret;
     }catch(IOException ioe){
       return null;
     }
@@ -262,8 +270,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
     //ensure we always have a source ip and destination ip
     Assert.assertNotNull(jsonDoc.get(SRC_IP));
-    Assert.assertNotNull(jsonDoc.get(DST_IP));
-
     Assert.assertNotNull(jsonDoc.get("ALL_CAPS"));
     Assert.assertNotNull(jsonDoc.get("map.blah"));
     Assert.assertNull(jsonDoc.get("map"));

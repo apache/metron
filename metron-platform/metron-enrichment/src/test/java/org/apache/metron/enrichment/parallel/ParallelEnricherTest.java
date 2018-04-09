@@ -79,7 +79,39 @@ public class ParallelEnricherTest {
       }
     }.ofType("ENRICHMENT");
     adapter.initializeAdapter(new HashMap<>());
-    enrichmentsByType = ImmutableMap.of("stellar", adapter);
+    EnrichmentAdapter<CacheKey> dummy = new EnrichmentAdapter<CacheKey>() {
+      @Override
+      public void logAccess(CacheKey value) {
+
+      }
+
+      @Override
+      public JSONObject enrich(CacheKey value) {
+        return null;
+      }
+
+      @Override
+      public boolean initializeAdapter(Map<String, Object> config) {
+        return false;
+      }
+
+      @Override
+      public void updateAdapter(Map<String, Object> config) {
+
+      }
+
+      @Override
+      public void cleanup() {
+
+      }
+
+      @Override
+      public String getOutputPrefix(CacheKey value) {
+        return null;
+      }
+    };
+
+    enrichmentsByType = ImmutableMap.of("stellar", adapter, "dummy", dummy);
     enricher = new ParallelEnricher(enrichmentsByType, infrastructure, false);
   }
 
@@ -114,6 +146,31 @@ public class ParallelEnricherTest {
     Assert.assertEquals(2, ret.get("foo"));
     Assert.assertEquals("TEST", ret.get("ALL_CAPS"));
     Assert.assertEquals(0, result.getEnrichmentErrors().size());
+  }
+/**
+   * {
+  "enrichment": {
+    "fieldMap": {
+      "dummy" : ["notthere"]
+    }
+  ,"fieldToTypeMap": { }
+  },
+  "threatIntel": { }
+}
+   */
+  @Multiline
+  public static String nullConfig;
+
+  @Test
+  public void testNullEnrichment() throws Exception {
+    SensorEnrichmentConfig config = JSONUtils.INSTANCE.load(nullConfig, SensorEnrichmentConfig.class);
+    config.getConfiguration().putIfAbsent("stellarContext", stellarContext);
+    JSONObject message = new JSONObject() {{
+      put(Constants.SENSOR_TYPE, "test");
+    }};
+    ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
+    JSONObject ret = result.getResult();
+    Assert.assertEquals("Got the wrong result count: " + ret, 4, ret.size());
   }
 
   /**
