@@ -36,6 +36,7 @@ public class Context implements Serializable {
     , STELLAR_CONFIG
     , CONSOLE
     , SHELL_VARIABLES
+    , CACHE
   }
 
   public enum ActivityType {
