@@ -255,16 +255,24 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     Set<Class<? extends StellarFunction>> ret = new HashSet<>();
     for(ClassLoader cl : cls) {
       for(Class<?> c : ClassIndex.getAnnotated(Stellar.class, cl)) {
-        LOG.debug("{}: Found class: {}", cl.getClass().getCanonicalName(), c.getCanonicalName());
-        boolean isAssignable = StellarFunction.class.isAssignableFrom(c);
-        boolean isFiltered = filterBuilder.apply(c.getCanonicalName());
-        if( isAssignable && isFiltered ) {
-          String className = c.getName();
-          if(!classes.contains(className)) {
-            LOG.debug("{}: Added class: {}", cl.getClass().getCanonicalName(), className);
-            ret.add((Class<? extends StellarFunction>) c);
-            classes.add(className);
+        try {
+          LOG.debug("{}: Found class: {}", cl.getClass().getCanonicalName(), c.getCanonicalName());
+          boolean isAssignable = StellarFunction.class.isAssignableFrom(c);
+          boolean isFiltered = filterBuilder.apply(c.getCanonicalName());
+          if (isAssignable && isFiltered) {
+            String className = c.getName();
+            if (!classes.contains(className)) {
+              LOG.debug("{}: Added class: {}", cl.getClass().getCanonicalName(), className);
+              ret.add((Class<? extends StellarFunction>) c);
+              classes.add(className);
+            }
           }
+        }
+        catch(Error le) {
+          //we have had some error loading a stellar function.  This could mean that
+          //the classpath is unstable (e.g. old copies of jars are on the classpath).
+          LOG.error("Skipping class: " + le.getMessage()
+                   + ", please check that there are not old versions of stellar functions on the classpath.", le);
         }
       }
     }
