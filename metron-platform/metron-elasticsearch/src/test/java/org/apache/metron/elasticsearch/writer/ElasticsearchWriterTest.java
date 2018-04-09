@@ -18,22 +18,19 @@
 
 package org.apache.metron.elasticsearch.writer;
 
-import org.apache.storm.tuple.Tuple;
-import com.google.common.collect.ImmutableList;
-import org.apache.metron.common.writer.BulkWriterResponse;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.*;
-
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.storm.tuple.Tuple;
+import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.junit.Test;
 
 public class ElasticsearchWriterTest {
     @Test
