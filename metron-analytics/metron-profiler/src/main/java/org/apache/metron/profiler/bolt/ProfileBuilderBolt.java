@@ -434,7 +434,7 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
   private void startFlushingExpiredProfiles() {
 
     flushExpiredExecutor = Executors.newSingleThreadScheduledExecutor();
-    flushExpiredExecutor.scheduleAtFixedRate(() -> flushExpired(), 0, periodDurationMillis, TimeUnit.MILLISECONDS);
+    flushExpiredExecutor.scheduleAtFixedRate(() -> flushExpired(), 0, profileTimeToLiveMillis, TimeUnit.MILLISECONDS);
   }
 
   @Override
