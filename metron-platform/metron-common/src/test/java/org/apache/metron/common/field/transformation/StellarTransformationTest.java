@@ -18,19 +18,49 @@
 
 package org.apache.metron.common.field.transformation;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.stellar.common.CachingStellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 
+@RunWith(Parameterized.class)
 public class StellarTransformationTest {
+  Context context;
+  public StellarTransformationTest(Cache<CachingStellarProcessor.Key, Object> cache) {
+    if(cache == null) {
+      context = Context.EMPTY_CONTEXT();
+    }
+    else {
+      context = new Context.Builder().with(Context.Capabilities.CACHE, () -> cache).build();
+    }
+  }
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(
+            new Object[][] {
+                     { CachingStellarProcessor.createCache(ImmutableMap.of(CachingStellarProcessor.MAX_CACHE_SIZE_PARAM, 10)) }
+                   , { CachingStellarProcessor.createCache(ImmutableMap.of(CachingStellarProcessor.MAX_CACHE_SIZE_PARAM, 1)) }
+                   , { CachingStellarProcessor.createCache(ImmutableMap.of(CachingStellarProcessor.MAX_CACHE_SIZE_PARAM, 0)) }
+                   , { null }
+                           }
+                        );
+  }
+
   /**
    {
     "fieldTransformations" : [

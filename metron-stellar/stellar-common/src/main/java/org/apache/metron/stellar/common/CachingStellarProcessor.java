@@ -19,6 +19,7 @@ package org.apache.metron.stellar.common;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
@@ -90,7 +91,7 @@ public class CachingStellarProcessor extends StellarProcessor {
    */
   @Override
   public Object parse(String expression, VariableResolver variableResolver, FunctionResolver functionResolver, Context context) {
-    Optional<Object> cacheOpt = context.getCapability(Context.Capabilities.CACHE);
+    Optional<Object> cacheOpt = context.getCapability(Context.Capabilities.CACHE, false);
     if(cacheOpt.isPresent()) {
       Cache<Key, Object> cache = (Cache<Key, Object>) cacheOpt.get();
       Key k = toKey(expression, variableResolver);
@@ -116,8 +117,8 @@ public class CachingStellarProcessor extends StellarProcessor {
    * @return A cache.
    */
   public static Cache<Key, Object> createCache(Map<String, Object> config) {
-    long maxSize = config == null?MAX_CACHE_SIZE_DEFAULT: (long) config.getOrDefault(MAX_CACHE_SIZE_PARAM, MAX_CACHE_SIZE_DEFAULT);
-    int maxTimeRetain = config == null?MAX_TIME_RETAIN_DEFAULT: (int) config.getOrDefault(MAX_TIME_RETAIN_PARAM, MAX_TIME_RETAIN_DEFAULT);
+    Long maxSize = getParam(config, MAX_CACHE_SIZE_PARAM, MAX_CACHE_SIZE_DEFAULT, Long.class);
+    Integer maxTimeRetain = getParam(config, MAX_TIME_RETAIN_PARAM, MAX_TIME_RETAIN_DEFAULT, Integer.class);
     if(maxSize <= 0) {
       return null;
     }
@@ -125,5 +126,14 @@ public class CachingStellarProcessor extends StellarProcessor {
                    .maximumSize(maxSize)
                    .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
                    .build();
+  }
+
+  private static <T> T getParam(Map<String, Object> config, String key, T defaultVal, Class<T> clazz) {
+    Object o = config.get(key);
+    if(o == null) {
+      return defaultVal;
+    }
+    T ret = ConversionUtils.convert(o, clazz);
+    return ret == null?defaultVal:ret;
   }
 }
