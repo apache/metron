@@ -42,13 +42,11 @@ import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.zookeeper.SimpleEventListener;
 import org.apache.metron.zookeeper.ZKCache;
-import org.apache.storm.StormTimer;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseWindowedBolt;
 import org.apache.storm.tuple.Tuple;
-import org.apache.storm.utils.Utils;
 import org.apache.storm.windowing.TupleWindow;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -59,9 +57,9 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static org.apache.metron.profiler.bolt.ProfileSplitterBolt.ENTITY_TUPLE_FIELD;
@@ -155,8 +153,8 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
   private FlushSignal activeFlushSignal;
 
   /**
-   * A timer that flushes expired profiles on a regular interval. The expired profiles
-   * are flushed on a separate thread.
+   * An executor that flushes expired profiles at a regular interval on a separate
+   * thread.
    *
    * <p>Flushing expired profiles ensures that any profiles that stop receiving messages
    * for an extended period of time will continue to be flushed.
@@ -164,7 +162,7 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
    * <p>This introduces concurrency issues as the bolt is no longer single threaded. Due
    * to this, all access to the {@code MessageDistributor} needs to be protected.
    */
-  private StormTimer expiredFlushTimer;
+  private transient ScheduledExecutorService flushExpiredExecutor;
 
   public ProfileBuilderBolt() {
     this.emitters = new ArrayList<>();
@@ -202,7 +200,7 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
     this.configurations = new ProfilerConfigurations();
     this.activeFlushSignal = new FixedFrequencyFlushSignal(periodDurationMillis);
     setupZookeeper();
-    startExpiredFlushTimer();
+    startFlushingExpiredProfiles();
   }
 
   @Override
@@ -210,7 +208,7 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
     try {
       zookeeperCache.close();
       zookeeperClient.close();
-      expiredFlushTimer.close();
+      flushExpiredExecutor.shutdown();
 
     } catch(Throwable e) {
       LOG.error("Exception when cleaning up", e);
@@ -431,29 +429,12 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
   }
 
   /**
-   * Creates a timer that regularly flushes expired profiles on a separate thread.
+   * Creates a separate thread that regularly flushes expired profiles.
    */
-  private void startExpiredFlushTimer() {
+  private void startFlushingExpiredProfiles() {
 
-    expiredFlushTimer = createTimer("flush-expired-profiles-timer");
-    expiredFlushTimer.scheduleRecurring(0, toSeconds(profileTimeToLiveMillis), () -> flushExpired());
-  }
-
-  /**
-   * Creates a timer that can execute a task on a fixed interval.
-   *
-   * <p>If the timer encounters an exception, the entire process will be killed.
-   *
-   * @param name The name of the timer.
-   * @return The timer.
-   */
-  private StormTimer createTimer(String name) {
-
-    return new StormTimer(name, (thread, exception) -> {
-      String msg = String.format("Unexpected exception in timer task; timer=%s", name);
-      LOG.error(msg, exception);
-      Utils.exitProcess(1, msg);
-    });
+    flushExpiredExecutor = Executors.newSingleThreadScheduledExecutor();
+    flushExpiredExecutor.scheduleAtFixedRate(() -> flushExpired(), 0, periodDurationMillis, TimeUnit.MILLISECONDS);
   }
 
   @Override
