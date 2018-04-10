@@ -88,7 +88,8 @@ public class ConfigurationFunctionsTest {
       "errorWriterNumTasks":1,
       "spoutConfig":{},
       "parserNumTasks":1,
-      "spoutParallelism":1
+      "spoutParallelism":1,
+      "cacheConfig" : {}
     }
    */
   @Multiline
