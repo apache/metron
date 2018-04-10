@@ -46,7 +46,6 @@ public class MetaAlertServiceImpl implements MetaAlertService {
     this.environment = environment;
   }
 
-
   @Override
   public MetaAlertCreateResponse create(MetaAlertCreateRequest createRequest) throws RestException {
     try {

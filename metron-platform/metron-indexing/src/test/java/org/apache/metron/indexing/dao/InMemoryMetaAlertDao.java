@@ -36,7 +36,9 @@ import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertSearchDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertUpdateDao;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -44,6 +46,7 @@ import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchDao;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
@@ -51,10 +54,12 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
+import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-public class InMemoryMetaAlertDao implements MetaAlertDao {
+public class InMemoryMetaAlertDao implements MetaAlertDao, MetaAlertUpdateDao, MetaAlertSearchDao, RetrieveLatestDao,
+    UpdateDao, SearchDao, IndexDao {
 
   public static Map<String, Collection<String>> METAALERT_STORE = new HashMap<>();
 
@@ -121,7 +126,12 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
 
   @Override
   public String getThreatTriageField() {
-    return "threat:triage:field";
+    return MetaAlertConstants.THREAT_FIELD_DEFAULT;
+  }
+
+  @Override
+  public String getThreatSort() {
+    return MetaAlertConstants.THREAT_SORT_DEFAULT;
   }
 
   @Override
@@ -304,10 +314,5 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   public static void clear() {
     InMemoryDao.clear();
     METAALERT_STORE.clear();
-  }
-
-  @Override
-  public IndexDao getIndexDao() {
-    return indexDao;
   }
 }

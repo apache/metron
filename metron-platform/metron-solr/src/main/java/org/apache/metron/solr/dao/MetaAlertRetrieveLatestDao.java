@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,20 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.indexing.dao;
 
-import org.apache.metron.indexing.dao.search.SearchDao;
-import org.apache.metron.indexing.dao.update.UpdateDao;
+package org.apache.metron.solr.dao;
 
-/**
- * The IndexDao provides a common interface for retrieving and storing data in a variety of persistent stores.
- * Document reads and writes require a GUID and sensor type with an index being optional.
- */
-public interface IndexDao extends UpdateDao, SearchDao, RetrieveLatestDao, ColumnMetadataDao {
+public interface MetaAlertRetrieveLatestDao {
 
-  /**
-   * Initialize the DAO with the AccessConfig object.
-   * @param config The config to use for initialization
-   */
-  void init(AccessConfig config);
 }

@@ -44,8 +44,11 @@ import org.apache.commons.math.util.MathUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -67,7 +70,7 @@ public class MetaAlertUpdateDaoTest {
 
   TestMetaAlertUpdateDao dao = new TestMetaAlertUpdateDao();
 
-  private class TestMetaAlertUpdateDao implements MetaAlertUpdateDao {
+  private class TestMetaAlertUpdateDao implements MetaAlertUpdateDao, UpdateDao {
 
     Map<String, Document> documents = new HashMap<>();
 
@@ -121,6 +124,41 @@ public class MetaAlertUpdateDaoTest {
     @Override
     public void update(Document update, Optional<String> index) {
 
+    }
+
+    @Override
+    public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+
+    }
+
+    @Override
+    public void patch(PatchRequest request, Optional<Long> timestamp)
+        throws OriginalNotFoundException, IOException {
+
+    }
+
+    @Override
+    public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
+        throws InvalidCreateException, IOException {
+      return null;
+    }
+
+    @Override
+    public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
+        throws IOException {
+      return false;
+    }
+
+    @Override
+    public boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
+        throws IOException {
+      return false;
+    }
+
+    @Override
+    public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
+        throws IOException {
+      return false;
     }
   }
 
@@ -176,7 +214,7 @@ public class MetaAlertUpdateDaoTest {
   public static String namePatchRequest;
 
   @Test(expected = UnsupportedOperationException.class)
-  public void testBatchUpdateThrowsException() {
+  public void testBatchUpdateThrowsException() throws IOException {
     dao.batchUpdate(null);
   }
 

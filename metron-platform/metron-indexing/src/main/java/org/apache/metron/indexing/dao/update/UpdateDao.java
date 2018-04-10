@@ -20,10 +20,9 @@ package org.apache.metron.indexing.dao.update;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.indexing.dao.RetrieveLatestDao;
 
-public interface UpdateDao extends RetrieveLatestDao {
+public interface UpdateDao {
+
   /**
    * Update a given Document and optionally the index where the document exists.  This is a full
    * update, meaning the current document will be replaced if it exists or a new document will be
@@ -51,31 +50,9 @@ public interface UpdateDao extends RetrieveLatestDao {
    * @throws OriginalNotFoundException If the original is not found, then it cannot be patched.
    * @throws IOException If an error occurs while patching.
    */
-  default void patch(PatchRequest request, Optional<Long> timestamp)
-      throws OriginalNotFoundException, IOException {
-    Document d = getPatchedDocument(request, timestamp);
-    update(d, Optional.ofNullable(request.getIndex()));
-  }
+  void patch(PatchRequest request, Optional<Long> timestamp)
+      throws OriginalNotFoundException, IOException;
 
-  default Document getPatchedDocument(PatchRequest request, Optional<Long> timestamp)
-      throws OriginalNotFoundException, IOException {
-    Map<String, Object> latest = request.getSource();
-    if (latest == null) {
-      Document latestDoc = getLatest(request.getGuid(), request.getSensorType());
-      if (latestDoc != null && latestDoc.getDocument() != null) {
-        latest = latestDoc.getDocument();
-      } else {
-        throw new OriginalNotFoundException(
-            "Unable to patch an document that doesn't exist and isn't specified.");
-      }
-    }
-    Map<String, Object> updated = JSONUtils.INSTANCE.applyPatch(request.getPatch(), latest);
-    return new Document(
-        updated,
-        request.getGuid(),
-        request.getSensorType(),
-        timestamp.orElse(System.currentTimeMillis()));
-  }
 
   /**
    * Replace a document in an index.

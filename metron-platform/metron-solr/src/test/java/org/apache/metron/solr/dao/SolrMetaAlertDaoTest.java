@@ -34,6 +34,8 @@ import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.junit.Test;
 
 public class SolrMetaAlertDaoTest {
@@ -71,6 +73,10 @@ public class SolrMetaAlertDaoTest {
 
       @Override
       public void batchUpdate(Map<Document, Optional<String>> updates) {
+      }
+
+      @Override
+      public void patch(PatchRequest request, Optional<Long> timestamp) {
       }
 
       @Override

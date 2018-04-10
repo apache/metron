@@ -18,10 +18,18 @@
 
 package org.apache.metron.indexing.dao.metaalert;
 
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchDao;
+import org.apache.metron.indexing.dao.search.SearchResponse;
 
 public interface MetaAlertSearchDao extends SearchDao {
 
-  // No MetaAlert specific methods.  Here for consistency with general hierarchy and for future use.
+  /**
+   * Given an alert GUID, retrieve all associated meta alerts.
+   * @param guid The alert GUID to be searched for
+   * @return All meta alerts with a child alert having the GUID
+   * @throws InvalidSearchException If a problem occurs with the search
+   */
+  SearchResponse getAllMetaAlertsForAlert(String guid) throws InvalidSearchException;
 
 }

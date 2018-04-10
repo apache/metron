@@ -17,9 +17,7 @@
  */
 package org.apache.metron.indexing.dao.search;
 
-import org.apache.metron.indexing.dao.RetrieveLatestDao;
-
-public interface SearchDao extends RetrieveLatestDao {
+public interface SearchDao {
 
   /**
    * Return search response based on the search request

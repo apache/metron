@@ -21,9 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.search.Group;
 import org.apache.metron.indexing.dao.search.GroupOrder;
 import org.apache.metron.indexing.dao.search.GroupOrderType;
@@ -46,7 +44,6 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.indexing.dao.search.SortOrder;
-import org.apache.metron.indexing.dao.update.Document;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
@@ -74,7 +71,7 @@ public class SolrSearchDao implements SearchDao {
 
   @Override
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
-    return search(searchRequest,null);
+    return search(searchRequest, null);
   }
 
   // Allow for the fieldList to be explicitly specified, letting things like metaalerts expand on them.
@@ -127,39 +124,6 @@ public class SolrSearchDao implements SearchDao {
       String msg = e.getMessage();
       LOG.error(msg, e);
       throw new InvalidSearchException(msg, e);
-    }
-  }
-
-  @Override
-  public Document getLatest(String guid, String collection) throws IOException {
-    try {
-      SolrDocument solrDocument = client.getById(collection, guid);
-      return SolrUtilities.toDocument(solrDocument);
-    } catch (SolrServerException e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
-    Map<String, Collection<String>> collectionIdMap = new HashMap<>();
-    for (GetRequest getRequest : getRequests) {
-      Collection<String> ids = collectionIdMap
-          .getOrDefault(getRequest.getSensorType(), new HashSet<>());
-      ids.add(getRequest.getGuid());
-      collectionIdMap.put(getRequest.getSensorType(), ids);
-    }
-    try {
-      List<Document> documents = new ArrayList<>();
-      for (String collection : collectionIdMap.keySet()) {
-        SolrDocumentList solrDocumentList = client.getById(collectionIdMap.get(collection),
-            new SolrQuery().set("collection", collection));
-        documents.addAll(
-            solrDocumentList.stream().map(SolrUtilities::toDocument).collect(Collectors.toList()));
-      }
-      return documents;
-    } catch (SolrServerException e) {
-      throw new IOException(e);
     }
   }
 

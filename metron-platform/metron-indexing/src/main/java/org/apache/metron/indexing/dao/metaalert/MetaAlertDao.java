@@ -18,27 +18,8 @@
 
 package org.apache.metron.indexing.dao.metaalert;
 
-import static org.apache.metron.common.Constants.GUID;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertSearchDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertUpdateDao;
-import org.apache.metron.indexing.dao.search.InvalidCreateException;
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.update.Document;
 
 /**
  * The MetaAlertDao exposes methods for interacting with meta alerts.  Meta alerts are objects that contain
@@ -76,28 +57,7 @@ import org.apache.metron.indexing.dao.update.Document;
  * Other fields can be added to a meta alert through the patch method on the IndexDao interface.  However, attempts
  * to directly change the "alerts" or "status" field will result in an exception.
  */
-public interface MetaAlertDao extends IndexDao, MetaAlertUpdateDao, MetaAlertSearchDao {
-
-
-  /**
-   * Given an alert GUID, retrieve all associated meta alerts.
-   * @param guid The alert GUID to be searched for
-   * @return All meta alerts with a child alert having the GUID
-   * @throws InvalidSearchException If a problem occurs with the search
-   */
-  SearchResponse getAllMetaAlertsForAlert(String guid) throws InvalidSearchException;
-
-  /**
-   * Creates a meta alert from a list of child alerts.  The most recent version of each child alert is
-   * retrieved using the DAO abstractions.
-   *
-   * @param request A request object containing get requests for alerts to be added and a list of groups
-   * @return A response indicating success or failure along with the GUID of the new meta alert
-   * @throws InvalidCreateException If a malformed create request is provided
-   * @throws IOException If a problem occurs during communication
-   */
-  MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
-      throws InvalidCreateException, IOException;
+public interface MetaAlertDao extends MetaAlertSearchDao, MetaAlertUpdateDao, IndexDao {
 
   /**
    * Initializes a Meta Alert DAO with default "sum" meta alert threat sorting.
@@ -115,34 +75,15 @@ public interface MetaAlertDao extends IndexDao, MetaAlertUpdateDao, MetaAlertSea
    */
   void init(IndexDao indexDao, Optional<String> threatSort);
 
-  /**
-   * Build the Document representing a meta alert to be created.
-   * @param alerts The Elasticsearch results for the meta alerts child documents
-   * @param groups The groups used to create this meta alert
-   * @return A Document representing the new meta alert
-   */
-  default Document buildCreateDocument(Iterable<Document> alerts, List<String> groups,
-      String alertField) {
-    // Need to create a Document from the multiget. Scores will be calculated later
-    Map<String, Object> metaSource = new HashMap<>();
-    List<Map<String, Object>> alertList = new ArrayList<>();
-    for (Document alert : alerts) {
-      alertList.add(alert.getDocument());
-    }
-    metaSource.put(alertField, alertList);
-
-    // Add any meta fields
-    String guid = UUID.randomUUID().toString();
-    metaSource.put(GUID, guid);
-    metaSource.put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
-    metaSource.put(MetaAlertConstants.GROUPS_FIELD, groups);
-    metaSource.put(MetaAlertConstants.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
-
-    return new Document(metaSource, guid, MetaAlertConstants.METAALERT_TYPE,
-        System.currentTimeMillis());
-  }
-
   int getPageSize();
 
   void setPageSize(int pageSize);
+
+  String getMetAlertSensorName();
+
+  String getMetaAlertIndex();
+
+  String getThreatTriageField();
+
+  String getThreatSort();
 }
