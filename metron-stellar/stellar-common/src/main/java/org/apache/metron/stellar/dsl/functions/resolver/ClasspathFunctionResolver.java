@@ -34,6 +34,7 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 
+import org.atteo.classindex.ClassFilter;
 import org.atteo.classindex.ClassIndex;
 import org.reflections.util.FilterBuilder;
 
@@ -219,6 +220,17 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     }
   }
 
+  protected Iterable<Class<?>> getStellarClasses(ClassLoader cl) {
+    return ClassIndex.getAnnotated(Stellar.class, cl);
+  }
+
+  protected boolean includeClass(Class<?> c, FilterBuilder filterBuilder)
+  {
+    boolean isAssignable = StellarFunction.class.isAssignableFrom(c);
+    boolean isFiltered = filterBuilder.apply(c.getCanonicalName());
+    return isAssignable && isFiltered;
+  }
+
   /**
    * Returns a set of classes that should undergo further interrogation for resolution
    * (aka discovery) of Stellar functions.
@@ -254,12 +266,10 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     Set<String> classes = new HashSet<>();
     Set<Class<? extends StellarFunction>> ret = new HashSet<>();
     for(ClassLoader cl : cls) {
-      for(Class<?> c : ClassIndex.getAnnotated(Stellar.class, cl)) {
+      for(Class<?> c : getStellarClasses(cl)) {
         try {
           LOG.debug("{}: Found class: {}", cl.getClass().getCanonicalName(), c.getCanonicalName());
-          boolean isAssignable = StellarFunction.class.isAssignableFrom(c);
-          boolean isFiltered = filterBuilder.apply(c.getCanonicalName());
-          if (isAssignable && isFiltered) {
+          if (includeClass(c, filterBuilder)) {
             String className = c.getName();
             if (!classes.contains(className)) {
               LOG.debug("{}: Added class: {}", cl.getClass().getCanonicalName(), className);
