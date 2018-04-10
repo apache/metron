@@ -99,7 +99,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     messageGetStrategy = MessageGetters.DEFAULT_BYTES_FROM_POSITION.get();
     this.collector = collector;
     if(getSensorParserConfig() != null) {
-      cache = CachingStellarProcessor.createCache(getSensorParserConfig().getParserConfig());
+      cache = CachingStellarProcessor.createCache(getSensorParserConfig().getCacheConfig());
     }
     initializeStellar();
     if(getSensorParserConfig() != null && filter == null) {

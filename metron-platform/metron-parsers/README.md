@@ -174,6 +174,19 @@ then it is assumed to be a regex and will match any topic matching the pattern (
 * `spoutConfig` : A map representing a custom spout config (this is a map). This can be overridden on the command line.
 * `securityProtocol` : The security protocol to use for reading from kafka (this is a string).  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence.
 * `stormConfig` : The storm config to use (this is a map).  This can be overridden on the command line.  If both are specified, they are merged with CLI properties taking precedence.
+* `cacheConfig` : Cache config for stellar field transformations.   This configures a least frequently used cache.  This is a map with the following keys.
+  * `stellar.cache.maxSize` - The maximum number of elements in the cache. Default `10000`.
+  * `stellar.cache.maxTimeRetain` - The maximum amount of time an element is kept in the cache (in minutes). Default `10` minutes.
+
+  Example of a cache config to contain at max `20000` stellar expressions for at most `20` minutes.:
+```
+{
+  "cacheConfig" : {
+    "stellar.cache.maxSize" : 20000,
+    "stellar.cache.maxTimeRetain" : 20
+  }
+}
+```
 
 The `fieldTransformations` is a complex object which defines a
 transformation which can be done to a message.  This transformation can 
