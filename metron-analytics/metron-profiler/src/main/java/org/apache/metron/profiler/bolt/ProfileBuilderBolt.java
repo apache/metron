@@ -419,16 +419,6 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
   }
 
   /**
-   * Converts milliseconds to seconds and handles an ugly cast.
-   *
-   * @param millis Duration in milliseconds.
-   * @return Duration in seconds.
-   */
-  private int toSeconds(long millis) {
-    return (int) TimeUnit.MILLISECONDS.toSeconds(millis);
-  }
-
-  /**
    * Creates a separate thread that regularly flushes expired profiles.
    */
   private void startFlushingExpiredProfiles() {
