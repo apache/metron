@@ -281,8 +281,15 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
         catch(Error le) {
           //we have had some error loading a stellar function.  This could mean that
           //the classpath is unstable (e.g. old copies of jars are on the classpath).
-          LOG.error("Skipping class: " + le.getMessage()
-                   + ", please check that there are not old versions of stellar functions on the classpath.", le);
+          try {
+            LOG.error("Skipping class " + c.getName() + ": " + le.getMessage()
+                    + ", please check that there are not old versions of stellar functions on the classpath.", le);
+          }
+          catch(Error ie) {
+            //it's possible that getName() will throw an exception if the class is VERY malformed.
+            LOG.error("Skipping class: " + le.getMessage()
+                    + ", please check that there are not old versions of stellar functions on the classpath.", le);
+          }
         }
       }
     }
