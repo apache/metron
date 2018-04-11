@@ -23,6 +23,7 @@ import org.hamcrest.Description;
 import org.mockito.ArgumentMatcher;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class SolrQueryMatcher extends ArgumentMatcher<ModifiableSolrParams> {
 
@@ -35,16 +36,17 @@ public class SolrQueryMatcher extends ArgumentMatcher<ModifiableSolrParams> {
   @Override
   public boolean matches(Object o) {
     SolrQuery solrQuery = (SolrQuery) o;
-    return solrQuery.getStart().equals(expectedSolrQuery.getStart()) &&
-            solrQuery.getRows().equals(expectedSolrQuery.getRows()) &&
-            solrQuery.getQuery().equals(expectedSolrQuery.getQuery()) &&
-            solrQuery.getSorts().equals(expectedSolrQuery.getSorts()) &&
-            ((solrQuery.getFields() == null && expectedSolrQuery.getFields() == null) || solrQuery.getFields().equals(expectedSolrQuery.getFields())) &&
+    return Objects.equals(solrQuery.getStart(), expectedSolrQuery.getStart()) &&
+            Objects.equals(solrQuery.getRows(), expectedSolrQuery.getRows()) &&
+            Objects.equals(solrQuery.getQuery(), expectedSolrQuery.getQuery()) &&
+            Objects.equals(solrQuery.getSorts(), expectedSolrQuery.getSorts()) &&
+            Objects.equals(solrQuery.getFields(), expectedSolrQuery.getFields()) &&
             Arrays.equals(solrQuery.getFacetFields(), expectedSolrQuery.getFacetFields()) &&
-            ((solrQuery.get("stats") == null && expectedSolrQuery.get("stats") == null) || solrQuery.get("stats").equals(expectedSolrQuery.get("stats"))) &&
-            ((solrQuery.get("stats.field") == null && expectedSolrQuery.get("stats.field") == null) || solrQuery.get("stats.field").equals(expectedSolrQuery.get("stats.field"))) &&
-            ((solrQuery.get("facet") == null && expectedSolrQuery.get("facet") == null) || solrQuery.get("facet").equals(expectedSolrQuery.get("facet"))) &&
-            ((solrQuery.get("facet.pivot") == null && expectedSolrQuery.get("facet.pivot") == null) || solrQuery.get("facet.pivot").equals(expectedSolrQuery.get("facet.pivot")));
+            Objects.equals(solrQuery.get("collection"), expectedSolrQuery.get("collection")) &&
+            Objects.equals(solrQuery.get("stats"), expectedSolrQuery.get("stats")) &&
+            Objects.equals(solrQuery.get("stats.field"), expectedSolrQuery.get("stats.field")) &&
+            Objects.equals(solrQuery.get("facet"), expectedSolrQuery.get("facet")) &&
+            Objects.equals(solrQuery.get("facet.pivot"), expectedSolrQuery.get("facet.pivot"));
   }
 
   @Override

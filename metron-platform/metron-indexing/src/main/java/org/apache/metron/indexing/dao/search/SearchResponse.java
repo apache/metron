@@ -77,4 +77,11 @@ public class SearchResponse {
             (getResults() != null ? getResults().equals(that.getResults()) : that.getResults() != null) &&
             (getFacetCounts() != null ? getFacetCounts().equals(that.getFacetCounts()) : that.getFacetCounts() != null);
   }
+
+  @Override
+  public int hashCode() {
+    int result = 31 * (int) getTotal() + (getResults() != null ? getResults().hashCode() : 0);
+    result = 31 * result + (getFacetCounts() != null ? getFacetCounts().hashCode() : 0);
+    return result;
+  }
 }
