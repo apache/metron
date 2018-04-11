@@ -89,7 +89,7 @@ public class JSONMapParser extends BasicParser {
   public static final String JSONP_QUERY = "jsonpQuery";
 
   private MapStrategy mapStrategy = MapStrategy.DROP;
-  private TypeRef<List<Map<String, Object>>> typeRef = null;
+  private transient TypeRef<List<Map<String, Object>>> typeRef = null;
   private String jsonpQuery = null;
 
 
