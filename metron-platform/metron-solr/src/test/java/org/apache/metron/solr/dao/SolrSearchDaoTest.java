@@ -159,6 +159,7 @@ public class SolrSearchDaoTest {
     when(groupRequest.getQuery()).thenReturn("query");
     when(groupRequest.getGroups()).thenReturn(Arrays.asList(group1, group2));
     when(groupRequest.getScoreField()).thenReturn(Optional.of("scoreField"));
+    when(groupRequest.getIndices()).thenReturn(Arrays.asList("bro", "snort"));
     when(client.query(any())).thenReturn(queryResponse);
     doReturn(groupResponse).when(solrSearchDao).buildGroupResponse(groupRequest, queryResponse);
     SolrQuery expectedSolrQuery = new SolrQuery()
