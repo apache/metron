@@ -89,7 +89,7 @@ public class JSONMapParser extends BasicParser {
   public static final String JSONP_QUERY = "jsonpQuery";
 
   private MapStrategy mapStrategy = MapStrategy.DROP;
-  private transient TypeRef<List<Map<String, Object>>> typeRef = null;
+  private TypeRef<List<Map<String, Object>>> typeRef = new TypeRef<List<Map<String, Object>>>() { };
   private String jsonpQuery = null;
 
 
@@ -98,7 +98,6 @@ public class JSONMapParser extends BasicParser {
     String strategyStr = (String) config.getOrDefault(MAP_STRATEGY_CONFIG, MapStrategy.DROP.name());
     mapStrategy = MapStrategy.valueOf(strategyStr);
     if (config.containsKey(JSONP_QUERY)) {
-      typeRef = new TypeRef<List<Map<String, Object>>>() { };
       jsonpQuery = (String) config.get(JSONP_QUERY);
       Configuration.setDefaults(new Configuration.Defaults() {
 
