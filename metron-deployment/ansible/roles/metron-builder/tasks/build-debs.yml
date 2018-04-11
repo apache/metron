@@ -20,7 +20,7 @@
   args:
     chdir: "{{ metron_build_dir }}/metron-deployment"
   with_items:
-    - mvn package -DskipTests -Pbuild-debs
+    - mvn package -DskipTests -Pbuild-debs -T 2C
   become: false
   run_once: true
   delegate_to: localhost
