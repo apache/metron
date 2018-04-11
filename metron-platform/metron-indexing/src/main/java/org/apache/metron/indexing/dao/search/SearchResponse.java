@@ -61,4 +61,20 @@ public class SearchResponse {
   public void setFacetCounts(Map<String, Map<String, Long>> facetCounts) {
     this.facetCounts = facetCounts;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    SearchResponse that = (SearchResponse) o;
+
+    return getTotal() == that.getTotal() &&
+            (getResults() != null ? getResults().equals(that.getResults()) : that.getResults() != null) &&
+            (getFacetCounts() != null ? getFacetCounts().equals(that.getFacetCounts()) : that.getFacetCounts() != null);
+  }
 }

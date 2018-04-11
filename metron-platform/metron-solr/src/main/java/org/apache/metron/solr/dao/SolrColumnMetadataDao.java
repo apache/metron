@@ -65,12 +65,8 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
     Set<String> fieldBlackList = Sets.newHashSet(SolrDao.ROOT_FIELD, SolrDao.VERSION_FIELD);
 
     for (String index : indices) {
-      CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(zkHost).build();
-      client.setDefaultCollection(index);
       try {
-        SchemaRepresentation schemaRepresentation = new SchemaRequest().process(client)
-            .getSchemaRepresentation();
-        schemaRepresentation.getFields().stream().forEach(field -> {
+        getIndexFields(index).forEach(field -> {
           String name = (String) field.get("name");
           if (!fieldBlackList.contains(name)) {
             FieldType type = toFieldType((String) field.get("type"));
@@ -106,6 +102,14 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
       }
     }
     return indexColumnMetadata;
+  }
+
+  protected List<Map<String, Object>> getIndexFields(String index) throws IOException, SolrServerException {
+    CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(zkHost).build();
+    client.setDefaultCollection(index);
+    SchemaRepresentation schemaRepresentation = new SchemaRequest().process(client)
+            .getSchemaRepresentation();
+    return schemaRepresentation.getFields();
   }
 
   /**
