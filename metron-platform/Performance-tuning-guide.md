@@ -138,12 +138,13 @@ __spout-config.json__
 }
 ```
 
-These are the spout recommended defaults from Storm and are currently the defaults provided in the Kafka spout itself. In fact, if you find the recommended defaults work fine for you,
+Above is a snippet for configuring parsers. These are the spout recommended defaults from Storm and are currently the defaults provided in the Kafka spout itself. In fact, if you find the recommended defaults work fine for you,
 then you can omit these settings altogether.
 
-#### Where to Find Settings
+#### Where to Find Tuning Properties
 
-**Important:** The parser topologies are deployed via a builder pattern that takes parameters from the CLI as set via Ambari. The enrichment and indexing topologies are configured using a Storm Flux file, a configuration properties file, and Ambari. Here is a setting materialization summary for each of the topology types:
+**Important:** The parser topologies are deployed via a builder pattern that takes parameters from the CLI as set via Ambari. The enrichment and indexing topologies are configured
+using a Storm Flux file, a configuration properties file, and Ambari. Here is a setting materialization summary for each of the topology types:
 
 - Parsers
 	- Management UI -> parser json config and CLI -> Storm
@@ -154,14 +155,121 @@ then you can omit these settings altogether.
 
 **Parsers**
 
+This is a mapping of the various performance tuning properties for parsers and how they are materialized.
+
+See more detail on starting parsers [here](https://github.com/apache/metron/blob/master/metron-platform/metron-parsers/README.md#starting-the-parser-topology)
+
+| Category                    | Management UI Property Name                | JSON Config File Property Name     | CLI Option                                                                                     | Storm Property Name             |  Notes                                                                        |
+|-----------------------------|--------------------------------------------|------------------------------------|------------------------------------------------------------------------------------------------|---------------------------------|-------------------------------------------------------------------------------|
+| Storm topology config       | Num Workers                                | n/a                                | -nw,--num_workers <NUM_WORKERS>                                                                | topology.workers                |                                                                               |
+|                             | Num Ackers                                 | n/a                                | -na,--num_ackers <NUM_ACKERS>                                                                  | topology.acker.executors        |                                                                               |
+|                             | Storm Config                               | topology.max.spout.pending         | -e,--extra_topology_options <JSON_FILE>, e.g. { "topology.max.spout.pending" : NUM }           | topology.max.spout.pending      | Put property in JSON format in a file named `storm-<MY_PARSER>-config.json`   |
+| Kafka spout                 | Spout Parallelism                          | n/a                                | -sp,--spout_p <SPOUT_PARALLELISM_HINT>                                                         | n/a                             |                                                                               |
+|                             | Spout Num Tasks                            | n/a                                | -snt,--spout_num_tasks <NUM_TASKS>                                                             | n/a                             |                                                                               |
+|                             | Spout Config                               | spout.pollTimeoutMs                | -esc,--extra_kafka_spout_config <JSON_FILE>, e.g. { "spout.pollTimeoutMs" : 200 }              | n/a                             | Put property in JSON format in a file named `spout-<MY_PARSER>-config.json`   |
+|                             | Spout Config                               | spout.maxUncommittedOffsets        | -esc,--extra_kafka_spout_config <JSON_FILE>, e.g. { "spout.maxUncommittedOffsets" : 10000000 } | n/a                             | Put property in JSON format in a file named `spout-<MY_PARSER>-config.json`   |
+|                             | Spout Config                               | spout.offsetCommitPeriodMs         | -esc,--extra_kafka_spout_config <JSON_FILE>, e.g. { "spout.offsetCommitPeriodMs" : 30000 }     | n/a                             | Put property in JSON format in a file named `spout-<MY_PARSER>-config.json`   |
+| Parser bolt                 | Parser Num Tasks                           | n/a                                | -pnt,--parser_num_tasks <NUM_TASKS>                                                            | n/a                             |                                                                               |
+|                             | Parser Parallelism                         | n/a                                | -pp,--parser_p <PARALLELISM_HINT>                                                              | n/a                             |                                                                               |
+|                             | Parser Parallelism                         | n/a                                | -pp,--parser_p <PARALLELISM_HINT>                                                              | n/a                             |                                                                               |
+
 **Enrichment**
 
-| Storm Property Name | Ambari Property Name | Flux Property | Flux Location | 
-|---------------------|----------------------|---------------|---------------|
-| a | b | c | d |
+This is a mapping of the various performance tuning properties for enrichments and how they are materialized.
 
-**Indexing**
+Flux file found here - $METRON_HOME/flux/enrichment/remote.yaml
 
+_Note 1:_ Changes to Flux file properties that are managed by Ambari will render Ambari unable to further manage the property.
+
+_Note 2:_ Many of these settings will be irrelevant in the alternate non-split-join topology
+
+| Category                    | Ambari Property Name                       | enrichment.properties property                         | Flux Property                                          | Flux Section Location               | Storm Property Name             | Notes                                  |
+|-----------------------------|--------------------------------------------|--------------------------------------------------------|--------------------------------------------------------|-------------------------------------|---------------------------------|----------------------------------------|
+| Storm topology config       | enrichment_workers                         | enrichment.workers                                     | topology.workers                                       | line 18, config                     | topology.workers                |                                        |
+|                             | enrichment_acker_executors                 | enrichment.acker.executors                             | topology.acker.executors                               | line 18, config                     | topology.acker.executors        |                                        |
+|                             | enrichment_topology_max_spout_pending      | topology.max.spout.pending                             | topology.max.spout.pending                             | line 18, config                     | topology.max.spout.pending      |                                        |
+| Kafka spout                 | enrichment_kafka_spout_parallelism         | kafka.spout.parallelism                                | parallelism                                            | line 245, id: kafkaSpout            | n/a                             |                                        |
+|                             | n/a                                        | session.timeout.ms                                     | session.timeout.ms                                     | line 201, id: kafkaProps            | n/a                             | Kafka consumer client property         |
+|                             | n/a                                        | enable.auto.commit                                     | enable.auto.commit                                     | line 201, id: kafkaProps            | n/a                             | Kafka consumer client property         |
+|                             | n/a                                        | n/a                                                    | setPollTimeoutMs                                       | line 230, id: kafkaConfig           | n/a                             | Kafka consumer client property         |
+|                             | n/a                                        | n/a                                                    | setMaxUncommittedOffsets                               | line 230, id: kafkaConfig           | n/a                             | Kafka consumer client property         |
+|                             | n/a                                        | n/a                                                    | setOffsetCommitPeriodMs                                | line 230, id: kafkaConfig           | n/a                             | Kafka consumer client property         |
+| Enrichment splitter         | enrichment_split_parallelism               | enrichment.split.parallelism                           | parallelism                                            | line 253, id: enrichmentSplitBolt   | n/a                             |                                        |
+| Enrichment joiner           | enrichment_join_parallelism                | enrichment.join.parallelism                            | parallelism                                            | line 316, id: enrichmentJoinBolt    | n/a                             |                                        |
+| Threat intel splitter       | threat_intel_split_parallelism             | threat.intel.split.parallelism                         | parallelism                                            | line 338, id: threatIntelSplitBolt  | n/a                             |                                        |
+| Threat intel joiner         | threat_intel_join_parallelism              | threat.intel.join.parallelism                          | parallelism                                            | line 376, id: threatIntelJoinBolt   | n/a                             |                                        |
+| Output bolt                 | kafka_writer_parallelism                   | kafka.writer.parallelism                               | parallelism                                            | line 397, id: outputBolt            | n/a                             |                                        |
+
+When adding Kafka spout properties, there are 3 ways you'll do this.
+
+1. Ambari: If they are properties managed by Ambari (noted in the table under 'Ambari Property Name'), look for the setting in Ambari.
+
+1. Flux -> kafkaProps: add a new key/value to the kafkaProps section HashMap on line 201. For example, if you want to set the Kafka Spout consumer's session.timeout.ms to 30 seconds, you would add the following:
+
+    ```
+           -   name: "put"
+               args:
+                   - "session.timeout.ms"
+                   - 30000
+    ```
+
+1. Flux -> kafkaConfig: add a new setter to the kafkaConfig section on line 230. For example, if you want to set the Kafka Spout consumer's poll timeout to 200 milliseconds, you would add the following under `configMethods`:
+
+    ```
+             -   name: "setPollTimeoutMs"
+                 args:
+                     - 200
+    ```
+
+**Indexing (Batch)**
+
+This is a mapping of the various performance tuning properties for indexing and how they are materialized.
+
+Flux file can be found here - $METRON_HOME/flux/indexing/batch/remote.yaml.
+
+Note: Changes to Flux file properties that are managed by Ambari will render Ambari unable to further manage the property.
+
+| Category                    | Ambari Property Name                       | hdfs.properties property                               | Flux Property                                          | Flux Section Location               | Storm Property Name             | Notes                                  |
+|-----------------------------|--------------------------------------------|--------------------------------------------------------|--------------------------------------------------------|-------------------------------------|---------------------------------|----------------------------------------|
+| Storm topology config       | enrichment_workers                         | enrichment.workers                                     | topology.workers                                       | line 19, config                     | topology.workers                |                                        |
+|                             | enrichment_acker_executors                 | enrichment.acker.executors                             | topology.acker.executors                               | line 19, config                     | topology.acker.executors        |                                        |
+|                             | enrichment_topology_max_spout_pending      | topology.max.spout.pending                             | topology.max.spout.pending                             | line 19, config                     | topology.max.spout.pending      |                                        |
+| Kafka spout                 | batch_indexing_kafka_spout_parallelism     | kafka.spout.parallelism                                | parallelism                                            | line 123, id: kafkaSpout            | n/a                             |                                        |
+|                             | n/a                                        | session.timeout.ms                                     | session.timeout.ms                                     | line 80, id: kafkaProps             | n/a                             | Kafka consumer client property         |
+|                             | n/a                                        | enable.auto.commit                                     | enable.auto.commit                                     | line 80, id: kafkaProps             | n/a                             | Kafka consumer client property         |
+|                             | n/a                                        | n/a                                                    | setPollTimeoutMs                                       | line 108, id: kafkaConfig           | n/a                             | Kafka consumer client property         |
+|                             | n/a                                        | n/a                                                    | setMaxUncommittedOffsets                               | line 108, id: kafkaConfig           | n/a                             | Kafka consumer client property         |
+|                             | n/a                                        | n/a                                                    | setOffsetCommitPeriodMs                                | line 108, id: kafkaConfig           | n/a                             | Kafka consumer client property         |
+| Output bolt                 | hdfs_writer_parallelism                    | hdfs.writer.parallelism                                | parallelism                                            | line 133, id: hdfsIndexingBolt      | n/a                             |                                        |
+|                             | n/a                                        | n/a                                                    | hdfsSyncPolicy <see notes below>                       | line 47, id: hdfsWriter             | n/a                             | See notes below about adding this prop |
+|                             | bolt_hdfs_rotation_policy_units            | bolt.hdfs.rotation.policy.units                        | constructorArgs                                        | line 41, id: hdfsRotationPolicy     | n/a                             |                                        |
+|                             | bolt_hdfs_rotation_policy_count            | bolt.hdfs.rotation.policy.count                        | constructorArgs                                        | line 41, id: hdfsRotationPolicy     | n/a                             |                                        |
+
+_Note_: HDFS sync policy is not currently managed via Ambari. You will need to modify the Flux file directly to accommodate this setting. e.g.
+
+Add a new setter to the hdfsWriter around line 56. Lines 53-55 provided for context.
+
+```
+ 53             -   name: "withRotationPolicy"
+ 54                 args:
+ 55                     - ref: "hdfsRotationPolicy
+ 56             -   name: "withSyncPolicy"
+ 57                 args:
+ 58                     - ref: "hdfsSyncPolicy
+```
+
+Add an hdfsSyncPolicy after the hdfsRotationPolicy that appears on line 41. e.g.
+
+```
+ 41     -   id: "hdfsRotationPolicy"
+...
+ 45           - "${bolt.hdfs.rotation.policy.units}"
+ 46
+ 47     -   id: "hdfsSyncPolicy"
+ 48         className: "org.apache.storm.hdfs.bolt.sync.CountSyncPolicy"
+ 49         constructorArgs:
+ 50           -  100000
+```
 
 ## Use Case Specific Tuning Suggestions
 
