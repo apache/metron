@@ -124,8 +124,13 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
    */
   @Override
   public void apply(JSONObject message, long timestamp) {
+    LOG.debug("Applying message to profile; profile={}, entity={}, timestamp={}",
+            profileName, entity, timestamp);
+
     try {
       if (!isInitialized()) {
+        LOG.debug("Initializing profile; profile={}, entity={}, timestamp={}",
+                profileName, entity, timestamp);
 
         // execute each 'init' expression
         assign(definition.getInit(), message, "init");

@@ -40,7 +40,7 @@ public class HBaseEmitter implements ProfileMeasurementEmitter, Serializable {
   /**
    * The stream identifier used for this destination;
    */
-  private  String streamId = "hbase";
+  private String streamId = "hbase";
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
@@ -49,7 +49,17 @@ public class HBaseEmitter implements ProfileMeasurementEmitter, Serializable {
 
   @Override
   public void emit(ProfileMeasurement measurement, OutputCollector collector) {
+
+    // measurements are always emitted to hbase
     collector.emit(getStreamId(), new Values(measurement));
+
+    LOG.debug("Emitted measurement; stream={}, profile={}, entity={}, period={}, start={}, end={}",
+            getStreamId(),
+            measurement.getProfileName(),
+            measurement.getEntity(),
+            measurement.getPeriod().getPeriod(),
+            measurement.getPeriod().getStartTimeMillis(),
+            measurement.getPeriod().getEndTimeMillis());
   }
 
   @Override
