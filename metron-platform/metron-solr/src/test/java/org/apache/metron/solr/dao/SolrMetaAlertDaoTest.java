@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -76,7 +77,7 @@ public class SolrMetaAlertDaoTest {
       }
 
       @Override
-      public void patch(PatchRequest request, Optional<Long> timestamp) {
+      public void patch(RetrieveLatestDao dao, PatchRequest request, Optional<Long> timestamp) {
       }
 
       @Override

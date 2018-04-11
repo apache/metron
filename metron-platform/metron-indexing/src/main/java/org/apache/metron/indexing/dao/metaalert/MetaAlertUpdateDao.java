@@ -18,21 +18,17 @@
 
 package org.apache.metron.indexing.dao.metaalert;
 
-import static org.apache.metron.common.Constants.GUID;
-
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.indexing.dao.update.UpdateDao;
 
-public interface MetaAlertUpdateDao {
+public interface MetaAlertUpdateDao extends UpdateDao {
 
   String STATUS_PATH = "/" + MetaAlertConstants.STATUS_FIELD;
   String ALERT_PATH = "/" + MetaAlertConstants.ALERT_FIELD;
@@ -85,52 +81,6 @@ public interface MetaAlertUpdateDao {
    */
   boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException;
-
-  /**
-   * Adds the provided alerts to a given metaalert.
-   * @param metaAlert The metaalert to be given new children.
-   * @param alerts The alerts to be added as children
-   * @return True if metaalert is modified, false otherwise.
-   */
-  default boolean addAlertsToMetaAlert(Document metaAlert, Iterable<Document> alerts) {
-    boolean alertAdded = false;
-    @SuppressWarnings("unchecked")
-    List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
-        .get(MetaAlertConstants.ALERT_FIELD);
-    Set<String> currentAlertGuids = currentAlerts.stream().map(currentAlert ->
-        (String) currentAlert.get(GUID)).collect(Collectors.toSet());
-    for (Document alert : alerts) {
-      String alertGuid = alert.getGuid();
-      // Only add an alert if it isn't already in the meta alert
-      if (!currentAlertGuids.contains(alertGuid)) {
-        currentAlerts.add(alert.getDocument());
-        alertAdded = true;
-      }
-    }
-    return alertAdded;
-  }
-
-  /**
-   * Removes a given set of alerts from a given alert. AlertGuids that are not found are ignored.
-   * @param metaAlert The metaalert to be mutated.
-   * @param alertGuids The alerts to remove from the metaaelrt.
-   * @return True if the metaAlert changed, false otherwise.
-   */
-  default boolean removeAlertsFromMetaAlert(Document metaAlert, Collection<String> alertGuids) {
-    // If we don't have child alerts or nothing is being removed, immediately return false.
-    if (!metaAlert.getDocument().containsKey(MetaAlertConstants.ALERT_FIELD)
-        || alertGuids.size() == 0) {
-      return false;
-    }
-
-    @SuppressWarnings("unchecked")
-    List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
-        .get(MetaAlertConstants.ALERT_FIELD);
-    int previousSize = currentAlerts.size();
-    // Only remove an alert if it is in the meta alert
-    currentAlerts.removeIf(currentAlert -> alertGuids.contains(currentAlert.get(GUID)));
-    return currentAlerts.size() != previousSize;
-  }
 
   /**
    * Removes alerts from a metaalert

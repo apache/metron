@@ -118,7 +118,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
@@ -137,7 +137,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
     Assert.assertEquals(15, fieldTypes.size());
     Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
     Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ip_src_addr"));
     Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
     Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));

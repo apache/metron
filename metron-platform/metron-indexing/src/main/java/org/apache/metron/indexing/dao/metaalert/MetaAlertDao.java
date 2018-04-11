@@ -74,16 +74,4 @@ public interface MetaAlertDao extends MetaAlertSearchDao, MetaAlertUpdateDao, In
    *     null is "sum"
    */
   void init(IndexDao indexDao, Optional<String> threatSort);
-
-  int getPageSize();
-
-  void setPageSize(int pageSize);
-
-  String getMetAlertSensorName();
-
-  String getMetaAlertIndex();
-
-  String getThreatTriageField();
-
-  String getThreatSort();
 }

@@ -61,32 +61,22 @@ public class MetaAlertDaoTest {
     }
 
     @Override
+    public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) {
+      return false;
+    }
+
+    @Override
+    public boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) {
+      return false;
+    }
+
+    @Override
+    public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status) {
+      return false;
+    }
+
+    @Override
     public void init(IndexDao indexDao, Optional<String> threatSort) {
-    }
-
-    @Override
-    public int getPageSize() {
-      return 0;
-    }
-
-    @Override
-    public void setPageSize(int pageSize) {
-
-    }
-
-    @Override
-    public IndexDao getIndexDao() {
-      return null;
-    }
-
-    @Override
-    public String getMetAlertSensorName() {
-      return METAALERT_TYPE;
-    }
-
-    @Override
-    public String getMetaAlertIndex() {
-      return "metaalert_index";
     }
 
     @Override
@@ -109,6 +99,11 @@ public class MetaAlertDaoTest {
     }
 
     @Override
+    public void batchUpdate(Map<Document, Optional<String>> updates) {
+
+    }
+
+    @Override
     public Map<String, FieldType> getColumnMetadata(List<String> indices) {
       return null;
     }
@@ -118,12 +113,12 @@ public class MetaAlertDaoTest {
     }
 
     @Override
-    public Document getLatest(String guid, String sensorType) throws IOException {
+    public Document getLatest(String guid, String sensorType) {
       return null;
     }
 
     @Override
-    public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
+    public Iterable<Document> getAllLatest(List<GetRequest> getRequests) {
       return null;
     }
   }

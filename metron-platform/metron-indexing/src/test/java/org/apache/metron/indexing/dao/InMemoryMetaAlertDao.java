@@ -36,9 +36,7 @@ import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertSearchDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertUpdateDao;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -46,7 +44,6 @@ import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchDao;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
@@ -54,12 +51,10 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-public class InMemoryMetaAlertDao implements MetaAlertDao, MetaAlertUpdateDao, MetaAlertSearchDao, RetrieveLatestDao,
-    UpdateDao, SearchDao, IndexDao {
+public class InMemoryMetaAlertDao implements MetaAlertDao {
 
   public static Map<String, Collection<String>> METAALERT_STORE = new HashMap<>();
 
@@ -104,35 +99,6 @@ public class InMemoryMetaAlertDao implements MetaAlertDao, MetaAlertUpdateDao, M
     // Ignore threatSort for test.
   }
 
-  @Override
-  public int getPageSize() {
-    return pageSize;
-  }
-
-  @Override
-  public void setPageSize(int pageSize) {
-    this.pageSize = pageSize;
-  }
-
-  @Override
-  public String getMetAlertSensorName() {
-    return MetaAlertConstants.METAALERT_TYPE;
-  }
-
-  @Override
-  public String getMetaAlertIndex() {
-    return "metaalert_index";
-  }
-
-  @Override
-  public String getThreatTriageField() {
-    return MetaAlertConstants.THREAT_FIELD_DEFAULT;
-  }
-
-  @Override
-  public String getThreatSort() {
-    return MetaAlertConstants.THREAT_SORT_DEFAULT;
-  }
 
   @Override
   public Document getLatest(String guid, String sensorType) throws IOException {
@@ -166,9 +132,10 @@ public class InMemoryMetaAlertDao implements MetaAlertDao, MetaAlertUpdateDao, M
   }
 
   @Override
-  public void patch(PatchRequest request, Optional<Long> timestamp)
+  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+      Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
-    indexDao.patch(request, timestamp);
+    indexDao.patch(retrieveLatestDao, request, timestamp);
   }
 
   @Override
@@ -309,6 +276,22 @@ public class InMemoryMetaAlertDao implements MetaAlertDao, MetaAlertUpdateDao, M
       }
     }
     return statusChanged;
+  }
+
+  public int getPageSize() {
+    return pageSize;
+  }
+
+  public void setPageSize(int pageSize) {
+    this.pageSize = pageSize;
+  }
+
+  public String getMetAlertSensorName() {
+    return MetaAlertConstants.METAALERT_TYPE;
+  }
+
+  public String getMetaAlertIndex() {
+    return "metaalert_index";
   }
 
   public static void clear() {

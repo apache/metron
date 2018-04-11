@@ -70,7 +70,7 @@ public class MetaAlertUpdateDaoTest {
 
   TestMetaAlertUpdateDao dao = new TestMetaAlertUpdateDao();
 
-  private class TestMetaAlertUpdateDao implements MetaAlertUpdateDao, UpdateDao {
+  private class TestMetaAlertUpdateDao implements MetaAlertUpdateDao {
 
     Map<String, Document> documents = new HashMap<>();
 
@@ -96,30 +96,30 @@ public class MetaAlertUpdateDaoTest {
       documents.put(INACTIVE.getStatusString(), inactive);
     }
 
-    @Override
-    public Document getLatest(String guid, String sensorType) {
-      return documents.get(guid);
-    }
-
-    @Override
-    public Iterable<Document> getAllLatest(List<GetRequest> getRequests) {
-      return null;
-    }
-
-    @Override
-    public IndexDao getIndexDao() {
-      return indexDao;
-    }
-
-    @Override
-    public String getMetAlertSensorName() {
-      return METAALERT_TYPE;
-    }
-
-    @Override
-    public String getMetaAlertIndex() {
-      return METAALERT_INDEX;
-    }
+//    @Override
+//    public Document getLatest(String guid, String sensorType) {
+//      return documents.get(guid);
+//    }
+//
+//    @Override
+//    public Iterable<Document> getAllLatest(List<GetRequest> getRequests) {
+//      return null;
+//    }
+//
+//    @Override
+//    public IndexDao getIndexDao() {
+//      return indexDao;
+//    }
+//
+//    @Override
+//    public String getMetAlertSensorName() {
+//      return METAALERT_TYPE;
+//    }
+//
+//    @Override
+//    public String getMetaAlertIndex() {
+//      return METAALERT_INDEX;
+//    }
 
     @Override
     public void update(Document update, Optional<String> index) {

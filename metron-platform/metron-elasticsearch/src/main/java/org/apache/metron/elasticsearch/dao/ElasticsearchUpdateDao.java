@@ -21,12 +21,10 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -44,14 +42,14 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
   private transient TransportClient client;
   private AccessConfig accessConfig;
-  private ElasticsearchSearchDao searchDao;
+  private ElasticsearchRetrieveLatestDao retrieveLatestDao;
 
   public ElasticsearchUpdateDao(TransportClient client,
       AccessConfig accessConfig,
-      ElasticsearchSearchDao searchDao) {
+      ElasticsearchRetrieveLatestDao searchDao) {
     this.client = client;
     this.accessConfig = accessConfig;
-    this.searchDao = searchDao;
+    this.retrieveLatestDao = searchDao;
   }
 
   @Override
@@ -112,7 +110,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   }
 
   protected Optional<String> getIndexName(String guid, String sensorType) {
-    return searchDao.searchByGuid(guid,
+    return retrieveLatestDao.searchByGuid(guid,
         sensorType,
         hit -> Optional.ofNullable(hit.getIndex())
     );
@@ -123,20 +121,10 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     Object ts = update.getTimestamp();
     IndexRequest indexRequest = new IndexRequest(indexName, type, update.getGuid())
         .source(update.getDocument());
-    if(ts != null) {
+    if (ts != null) {
       indexRequest = indexRequest.timestamp(ts.toString());
     }
 
     return indexRequest;
-  }
-
-  @Override
-  public Document getLatest(String guid, String sensorType) throws IOException {
-    return searchDao.getLatest(guid, sensorType);
-  }
-
-  @Override
-  public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
-    return searchDao.getAllLatest(getRequests);
   }
 }

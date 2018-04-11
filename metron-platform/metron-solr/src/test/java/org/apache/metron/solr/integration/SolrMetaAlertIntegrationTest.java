@@ -21,6 +21,9 @@ package org.apache.metron.solr.integration;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_SORT_DEFAULT;
+import static org.apache.metron.solr.dao.SolrMetaAlertDao.METAALERTS_COLLECTION;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,8 +34,8 @@ import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertIntegrationTest;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -40,6 +43,9 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.dao.SolrMetaAlertDao;
+import org.apache.metron.solr.dao.SolrMetaAlertRetrieveLatestDao;
+import org.apache.metron.solr.dao.SolrMetaAlertSearchDao;
+import org.apache.metron.solr.dao.SolrMetaAlertUpdateDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.zookeeper.KeeperException;
@@ -54,7 +60,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
   private static final String COLLECTION = "test";
 
-  private static IndexDao solrDao;
+  private static SolrDao solrDao;
   private static SolrComponent solr;
 
   @BeforeClass
@@ -84,13 +90,28 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
     solrDao = new SolrDao();
     solrDao.init(accessConfig);
-    metaDao = new SolrMetaAlertDao(solrDao);
+
+    MetaAlertConfig config = new MetaAlertConfig(
+        METAALERTS_COLLECTION,
+        500,
+        THREAT_FIELD_DEFAULT,
+        THREAT_SORT_DEFAULT,
+        Constants.SENSOR_TYPE
+    );
+
+    SolrMetaAlertSearchDao searchDao = new SolrMetaAlertSearchDao(solrDao.getClient(),
+        solrDao.getSolrSearchDao());
+    SolrMetaAlertRetrieveLatestDao retrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao,
+        config);
+    SolrMetaAlertUpdateDao updateDao = new SolrMetaAlertUpdateDao(solrDao, searchDao,
+        retrieveLatestDao);
+    metaDao = new SolrMetaAlertDao(solrDao, searchDao, updateDao, retrieveLatestDao);
   }
 
   @Before
   public void setup()
       throws IOException, InterruptedException, SolrServerException, KeeperException {
-    solr.addCollection(metaDao.getMetaAlertIndex(),
+    solr.addCollection(METAALERTS_COLLECTION,
         "../metron-solr/src/test/resources/config/metaalert/conf");
     solr.addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf");
   }
@@ -134,7 +155,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
         MetaAlertStatus.INACTIVE,
         Optional.of(Arrays.asList(alerts.get(2), alerts.get(3))));
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), metaDao.getMetaAlertIndex(),
+    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), METAALERTS_COLLECTION,
         METAALERT_TYPE);
 
     // Verify load was successful
@@ -231,7 +252,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
       throws InterruptedException {
     long cnt = 0;
     for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t, Thread.sleep(SLEEP_MS)) {
-      List<Map<String, Object>> docs = solr.getAllIndexedDocs(metaDao.getMetaAlertIndex());
+      List<Map<String, Object>> docs = solr.getAllIndexedDocs(METAALERTS_COLLECTION);
       cnt = docs
           .stream()
           .filter(d -> {
@@ -271,6 +292,16 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   @Override
   protected String getTestIndexName() {
     return COLLECTION;
+  }
+
+  @Override
+  protected String getMetaAlertIndex() {
+    return METAALERTS_COLLECTION;
+  }
+
+  @Override
+  protected String getMetaAlertSensorName() {
+    return Constants.SENSOR_TYPE;
   }
 
   @Override

@@ -16,8 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.metron.solr.dao;
+package org.apache.metron.indexing.dao.metaalert;
 
-public interface MetaAlertRetrieveLatestDao {
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
+
+public interface MetaAlertRetrieveLatestDao extends RetrieveLatestDao {
 
 }

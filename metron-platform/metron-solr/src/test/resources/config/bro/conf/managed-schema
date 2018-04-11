@@ -22,7 +22,7 @@
   <field name="guid" type="string" indexed="true" stored="true" required="true"
     multiValued="false"/>
 
-  <field name="source:type" type="string" indexed="true" stored="true"/>
+  <field name="source.type" type="string" indexed="true" stored="true"/>
   <field name="ip_src_addr" type="string" indexed="true" stored="true"/>
   <field name="ip_src_port" type="pint" indexed="true" stored="true"/>
   <field name="long_field" type="plong" indexed="true" stored="true"/>

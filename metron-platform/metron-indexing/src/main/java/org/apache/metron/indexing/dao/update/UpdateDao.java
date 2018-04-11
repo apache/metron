@@ -20,6 +20,7 @@ package org.apache.metron.indexing.dao.update;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
 
 public interface UpdateDao {
 
@@ -50,8 +51,12 @@ public interface UpdateDao {
    * @throws OriginalNotFoundException If the original is not found, then it cannot be patched.
    * @throws IOException If an error occurs while patching.
    */
-  void patch(PatchRequest request, Optional<Long> timestamp)
-      throws OriginalNotFoundException, IOException;
+  default void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request
+      , Optional<Long> timestamp
+  ) throws OriginalNotFoundException, IOException {
+    Document d = PatchUtil.getPatchedDocument(retrieveLatestDao, request, timestamp);
+    update(d, Optional.ofNullable(request.getIndex()));
+  }
 
 
   /**

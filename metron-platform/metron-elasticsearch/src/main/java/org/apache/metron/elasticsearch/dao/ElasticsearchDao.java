@@ -22,11 +22,10 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.ColumnMetadataDao;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
@@ -35,6 +34,9 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.slf4j.Logger;
@@ -47,6 +49,7 @@ public class ElasticsearchDao implements IndexDao {
   private transient TransportClient client;
   private ElasticsearchSearchDao searchDao;
   private ElasticsearchUpdateDao updateDao;
+  private ElasticsearchRetrieveLatestDao retrieveLatestDao;
 
   /**
    * Retrieves column metadata about search indices.
@@ -64,12 +67,14 @@ public class ElasticsearchDao implements IndexDao {
       AccessConfig config,
       ElasticsearchSearchDao searchDao,
       ElasticsearchUpdateDao updateDao,
+      ElasticsearchRetrieveLatestDao retrieveLatestDao,
       ElasticsearchColumnMetadataDao columnMetadataDao,
       ElasticsearchRequestSubmitter requestSubmitter
-                             ) {
+  ) {
     this.client = client;
     this.searchDao = searchDao;
     this.updateDao = updateDao;
+    this.retrieveLatestDao = retrieveLatestDao;
     this.columnMetadataDao = columnMetadataDao;
     this.requestSubmitter = requestSubmitter;
     this.accessConfig = config;
@@ -79,32 +84,35 @@ public class ElasticsearchDao implements IndexDao {
     //uninitialized.
   }
 
-  public ElasticsearchDao columnMetadataDao(ElasticsearchColumnMetadataDao columnMetadataDao) {
-    this.columnMetadataDao = columnMetadataDao;
-    return this;
-  }
-
-  public ElasticsearchDao accessConfig(AccessConfig accessConfig) {
-    this.accessConfig = accessConfig;
-    return this;
-  }
+//  public ElasticsearchDao columnMetadataDao(ElasticsearchColumnMetadataDao columnMetadataDao) {
+//    this.columnMetadataDao = columnMetadataDao;
+//    return this;
+//  }
+//
+//  public ElasticsearchDao accessConfig(AccessConfig accessConfig) {
+//    this.accessConfig = accessConfig;
+//    return this;
+//  }
 
   @Override
   public synchronized void init(AccessConfig config) {
-    if(this.client == null) {
-      this.client = ElasticsearchUtils.getClient(config.getGlobalConfigSupplier().get(), config.getOptionalSettings());
+    if (this.client == null) {
+      this.client = ElasticsearchUtils
+          .getClient(config.getGlobalConfigSupplier().get(), config.getOptionalSettings());
       this.accessConfig = config;
       this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client.admin());
       this.requestSubmitter = new ElasticsearchRequestSubmitter(this.client);
-      this.searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao, requestSubmitter);
-      this.updateDao = new ElasticsearchUpdateDao(client, accessConfig, searchDao);
+      this.searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao,
+          requestSubmitter);
+      this.retrieveLatestDao = new ElasticsearchRetrieveLatestDao(client);
+      this.updateDao = new ElasticsearchUpdateDao(client, accessConfig, retrieveLatestDao);
     }
 
-    if(columnMetadataDao == null) {
+    if (columnMetadataDao == null) {
       throw new IllegalArgumentException("No ColumnMetadataDao available");
     }
 
-    if(requestSubmitter == null) {
+    if (requestSubmitter == null) {
       throw new IllegalArgumentException("No ElasticsearchRequestSubmitter available");
     }
   }
@@ -120,14 +128,14 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public Document getLatest(final String guid, final String sensorType) throws IOException {
-    return searchDao.getLatest(guid, sensorType);
+  public Document getLatest(final String guid, final String sensorType) {
+    return retrieveLatestDao.getLatest(guid, sensorType);
   }
 
   @Override
   public Iterable<Document> getAllLatest(
-      final List<GetRequest> getRequests) throws IOException {
-    return searchDao.getAllLatest(getRequests);
+      final List<GetRequest> getRequests) {
+    return retrieveLatestDao.getAllLatest(getRequests);
   }
 
   @Override
@@ -141,23 +149,41 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
+  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request, Optional<Long> timestamp)
+      throws OriginalNotFoundException, IOException {
+    updateDao.patch(retrieveLatestDao, request, timestamp);
+  }
+
+  @Override
+  public void replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException {
+    updateDao.replace(request, timestamp);
+  }
+
+  @Override
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     return this.columnMetadataDao.getColumnMetadata(indices);
+  }
+
+  @Override
+  public Optional<Map<String, Object>> getLatestResult(GetRequest request) throws IOException {
+    return retrieveLatestDao.getLatestResult(request);
+  }
+
+  public TransportClient getClient() {
+    return this.client;
   }
 
   protected Optional<String> getIndexName(String guid, String sensorType) {
     return updateDao.getIndexName(guid, sensorType);
   }
 
-  protected SearchResponse search(SearchRequest request, QueryBuilder queryBuilder) throws InvalidSearchException {
+  protected SearchResponse search(SearchRequest request, QueryBuilder queryBuilder)
+      throws InvalidSearchException {
     return searchDao.search(request, queryBuilder);
   }
 
-  protected GroupResponse group(GroupRequest groupRequest, QueryBuilder queryBuilder) throws InvalidSearchException {
+  protected GroupResponse group(GroupRequest groupRequest, QueryBuilder queryBuilder)
+      throws InvalidSearchException {
     return searchDao.group(groupRequest, queryBuilder);
-  }
-
-  public TransportClient getClient() {
-    return this.client;
   }
 }

@@ -18,6 +18,8 @@
 
 package org.apache.metron.elasticsearch.integration;
 
+import static org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao.METAALERTS_INDEX;
+import static org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao.THREAT_TRIAGE_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_DOC;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
@@ -58,6 +60,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
+
   private static IndexDao esDao;
   private static ElasticSearchComponent es;
 
@@ -72,11 +75,11 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
   /**
    {
-     "properties": {
-       "alert": {
-         "type": "nested"
-       }
-     }
+   "properties": {
+   "alert": {
+   "type": "nested"
+   }
+   }
    }
    */
   @Multiline
@@ -84,22 +87,22 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
   /**
    * {
-       "%MAPPING_NAME%_doc" : {
-         "properties" : {
-           "guid" : {
-             "type" : "keyword"
-           },
-           "ip_src_addr" : {
-             "type" : "keyword"
-           },
-           "score" : {
-             "type" : "integer"
-           },
-           "alert" : {
-             "type" : "nested"
-           }
-         }
-       }
+   "%MAPPING_NAME%_doc" : {
+   "properties" : {
+   "guid" : {
+   "type" : "keyword"
+   },
+   "ip_src_addr" : {
+   "type" : "keyword"
+   },
+   "score" : {
+   "type" : "integer"
+   },
+   "alert" : {
+   "type" : "nested"
+   }
+   }
+   }
    }
    */
   @Multiline
@@ -132,12 +135,15 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
     esDao = new ElasticsearchDao();
     esDao.init(accessConfig);
-    metaDao = new ElasticsearchMetaAlertDao(esDao);
+    ElasticsearchMetaAlertDao elasticsearchMetaDao = new ElasticsearchMetaAlertDao(esDao);
+    elasticsearchMetaDao.setPageSize(5);
+    metaDao = elasticsearchMetaDao;
   }
 
   @Before
   public void setup() throws IOException {
-    es.createIndexWithMapping(metaDao.getMetaAlertIndex(), METAALERT_DOC, template.replace("%MAPPING_NAME%", "metaalert"));
+    es.createIndexWithMapping(METAALERTS_INDEX, METAALERT_DOC,
+        template.replace("%MAPPING_NAME%", "metaalert"));
     es.createIndexWithMapping(
         INDEX_WITH_SEPARATOR, "index_doc", template.replace("%MAPPING_NAME%", "index"));
   }
@@ -181,7 +187,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
         MetaAlertStatus.INACTIVE,
         Optional.of(Arrays.asList(alerts.get(2), alerts.get(3))));
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), metaDao.getMetaAlertIndex(),
+    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), METAALERTS_INDEX,
         METAALERT_TYPE);
 
     // Verify load was successful
@@ -262,7 +268,8 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
       throws IOException, InterruptedException {
     long cnt = 0;
     for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t, Thread.sleep(SLEEP_MS)) {
-      List<Map<String, Object>> docs = es.getAllIndexedDocs(INDEX_WITH_SEPARATOR, SENSOR_NAME + "_doc");
+      List<Map<String, Object>> docs = es
+          .getAllIndexedDocs(INDEX_WITH_SEPARATOR, SENSOR_NAME + "_doc");
       cnt = docs
           .stream()
           .filter(d -> {
@@ -279,7 +286,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     long cnt = 0;
     for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t, Thread.sleep(SLEEP_MS)) {
       List<Map<String, Object>> docs = es
-          .getAllIndexedDocs(metaDao.getMetaAlertIndex(), METAALERT_DOC);
+          .getAllIndexedDocs(METAALERTS_INDEX, METAALERT_DOC);
       cnt = docs
           .stream()
           .filter(d -> {
@@ -330,6 +337,16 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   @Override
   protected String getTestIndexFullName() {
     return INDEX_WITH_SEPARATOR;
+  }
+
+  @Override
+  protected String getMetaAlertIndex() {
+    return METAALERTS_INDEX;
+  }
+
+  @Override
+  protected String getMetaAlertSensorName() {
+    return THREAT_TRIAGE_FIELD;
   }
 
   @Override

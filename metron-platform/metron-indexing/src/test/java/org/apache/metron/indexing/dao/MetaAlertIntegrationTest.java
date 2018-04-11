@@ -24,6 +24,7 @@ import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAAL
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.SOURCE_TYPE;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.STATUS_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_SORT_DEFAULT;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -79,7 +80,7 @@ public abstract class MetaAlertIntegrationTest {
   protected ArrayList<String> allIndices = new ArrayList<String>() {
     {
       add(getTestIndexName());
-      add(metaDao.getMetaAlertIndex());
+      add(getMetaAlertIndex());
     }
   };
 
@@ -163,7 +164,7 @@ public abstract class MetaAlertIntegrationTest {
     metaAlerts.add(buildMetaAlert("meta_inactive", MetaAlertStatus.INACTIVE,
         Optional.of(Arrays.asList(alerts.get(0), alerts.get(2)))));
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(metaAlerts, metaDao.getMetaAlertIndex(), METAALERT_TYPE);
+    addRecords(metaAlerts, getMetaAlertIndex(), METAALERT_TYPE);
 
     // Verify load was successful
     List<GetRequest> createdDocs = metaAlerts.stream().map(metaAlert ->
@@ -173,9 +174,6 @@ public abstract class MetaAlertIntegrationTest {
         new GetRequest((String) alert.get(Constants.GUID), SENSOR_NAME))
         .collect(Collectors.toList()));
     findCreatedDocs(createdDocs);
-
-    int previousPageSize = metaDao.getPageSize();
-    metaDao.setPageSize(5);
 
     {
       // Verify searches successfully return more than 10 results
@@ -199,7 +197,6 @@ public abstract class MetaAlertIntegrationTest {
       Assert.assertEquals(1, searchResults2.size());
       Assert.assertEquals(metaAlerts.get(12), searchResults2.get(0).getSource());
     }
-    metaDao.setPageSize(previousPageSize);
   }
 
   @Test
@@ -271,7 +268,7 @@ public abstract class MetaAlertIntegrationTest {
     // Load metaAlert
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
         Optional.of(Collections.singletonList(alerts.get(0))));
-    addRecords(Collections.singletonList(metaAlert), metaDao.getMetaAlertIndex(), METAALERT_TYPE);
+    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -279,7 +276,8 @@ public abstract class MetaAlertIntegrationTest {
         new GetRequest("message_1", SENSOR_NAME),
         new GetRequest("message_2", SENSOR_NAME),
         new GetRequest("message_3", SENSOR_NAME),
-        new GetRequest("meta_alert", metaDao.getMetAlertSensorName())));
+        new GetRequest("meta_alert", getMetaAlertSensorName())
+    ));
 
     // Build expected metaAlert after alerts are added
     Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
@@ -304,14 +302,14 @@ public abstract class MetaAlertIntegrationTest {
     expectedMetaAlert.put("max", 2.0d);
     expectedMetaAlert.put("count", 3);
     expectedMetaAlert.put("sum", 3.0d);
-    expectedMetaAlert.put(metaDao.getThreatTriageField(), 3.0d);
+    expectedMetaAlert.put(getThreatTriageField(), 3.0d);
 
     {
       // Verify alerts were successfully added to the meta alert
       Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
           .asList(new GetRequest("message_1", SENSOR_NAME),
               new GetRequest("message_2", SENSOR_NAME))));
-      findUpdatedDoc(expectedMetaAlert, "meta_alert", metaDao.getMetAlertSensorName());
+      findUpdatedDoc(expectedMetaAlert, "meta_alert", getMetaAlertSensorName());
     }
 
     {
@@ -319,7 +317,7 @@ public abstract class MetaAlertIntegrationTest {
       Assert.assertFalse(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
           .asList(new GetRequest("message_0", SENSOR_NAME),
               new GetRequest("message_1", SENSOR_NAME))));
-      findUpdatedDoc(expectedMetaAlert, "meta_alert", metaDao.getMetAlertSensorName());
+      findUpdatedDoc(expectedMetaAlert, "meta_alert", getMetaAlertSensorName());
     }
 
     {
@@ -336,12 +334,12 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put("max", 3.0d);
       expectedMetaAlert.put("count", 4);
       expectedMetaAlert.put("sum", 6.0d);
-      expectedMetaAlert.put(metaDao.getThreatTriageField(), 6.0d);
+      expectedMetaAlert.put(getThreatTriageField(), 6.0d);
 
       Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
           .asList(new GetRequest("message_2", SENSOR_NAME),
               new GetRequest("message_3", SENSOR_NAME))));
-      findUpdatedDoc(expectedMetaAlert, "meta_alert", metaDao.getMetAlertSensorName());
+      findUpdatedDoc(expectedMetaAlert, "meta_alert", getMetaAlertSensorName());
     }
   }
 
@@ -359,7 +357,7 @@ public abstract class MetaAlertIntegrationTest {
     // Load metaAlert
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
         Optional.of(Arrays.asList(alerts.get(0), alerts.get(1), alerts.get(2), alerts.get(3))));
-    addRecords(Collections.singletonList(metaAlert), metaDao.getMetaAlertIndex(), METAALERT_TYPE);
+    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -386,7 +384,7 @@ public abstract class MetaAlertIntegrationTest {
     expectedMetaAlert.put("max", 3.0d);
     expectedMetaAlert.put("count", 2);
     expectedMetaAlert.put("sum", 5.0d);
-    expectedMetaAlert.put(metaDao.getThreatTriageField(), 5.0d);
+    expectedMetaAlert.put(getThreatTriageField(), 5.0d);
 
     {
       // Verify a list of alerts are removed from a meta alert
@@ -417,7 +415,7 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put("max", 3.0d);
       expectedMetaAlert.put("count", 1);
       expectedMetaAlert.put("sum", 3.0d);
-      expectedMetaAlert.put(metaDao.getThreatTriageField(), 3.0d);
+      expectedMetaAlert.put(getThreatTriageField(), 3.0d);
 
       Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays
           .asList(new GetRequest("message_0", SENSOR_NAME),
@@ -439,7 +437,7 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put("average", 0.0d);
       expectedMetaAlert.put("count", 0);
       expectedMetaAlert.put("sum", 0.0d);
-      expectedMetaAlert.put(metaDao.getThreatTriageField(), 0.0d);
+      expectedMetaAlert.put(getThreatTriageField(), 0.0d);
 
       // Handle the cases with non-finite Double values on a per store basis
       if (isFiniteDoubleOnly()) {
@@ -468,7 +466,7 @@ public abstract class MetaAlertIntegrationTest {
     // Load metaAlert
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.INACTIVE,
         Optional.of(Collections.singletonList(alerts.get(0))));
-    addRecords(Collections.singletonList(metaAlert), metaDao.getMetaAlertIndex(), METAALERT_TYPE);
+    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -520,7 +518,7 @@ public abstract class MetaAlertIntegrationTest {
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
         Optional.of(childAlerts));
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Collections.singletonList(metaAlert), metaDao.getMetaAlertIndex(),
+    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(),
         METAALERT_TYPE);
 
     List<GetRequest> requests = new ArrayList<>();
@@ -615,7 +613,7 @@ public abstract class MetaAlertIntegrationTest {
         Optional.empty());
 
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), metaDao.getMetaAlertIndex(),
+    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), getMetaAlertIndex(),
         METAALERT_TYPE);
 
     // Verify load was successful
@@ -705,7 +703,7 @@ public abstract class MetaAlertIntegrationTest {
         MetaAlertStatus.INACTIVE,
         Optional.of(Collections.singletonList(alerts.get(0))));
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), metaDao.getMetaAlertIndex(),
+    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), getMetaAlertIndex(),
         METAALERT_TYPE);
 
     // Verify load was successful
@@ -805,7 +803,7 @@ public abstract class MetaAlertIntegrationTest {
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
         Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Collections.singletonList(metaAlert), metaDao.getMetaAlertIndex(), METAALERT_TYPE);
+    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -817,9 +815,9 @@ public abstract class MetaAlertIntegrationTest {
     expectedMetaAlert.put(NAME_FIELD, "New Meta Alert");
     {
       // Verify a patch to a field other than "status" or "alert" can be patched
-      String namePatch = namePatchRequest.replace(META_INDEX_FLAG, metaDao.getMetaAlertIndex());
+      String namePatch = namePatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
       PatchRequest patchRequest = JSONUtils.INSTANCE.load(namePatch, PatchRequest.class);
-      metaDao.patch(patchRequest, Optional.of(System.currentTimeMillis()));
+      metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
 
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
@@ -827,9 +825,9 @@ public abstract class MetaAlertIntegrationTest {
     {
       // Verify a patch to an alert field should throw an exception
       try {
-        String alertPatch = alertPatchRequest.replace(META_INDEX_FLAG, metaDao.getMetaAlertIndex());
+        String alertPatch = alertPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
         PatchRequest patchRequest = JSONUtils.INSTANCE.load(alertPatch, PatchRequest.class);
-        metaDao.patch(patchRequest, Optional.of(System.currentTimeMillis()));
+        metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
 
         Assert.fail("A patch on the alert field should throw an exception");
       } catch (IllegalArgumentException iae) {
@@ -846,9 +844,9 @@ public abstract class MetaAlertIntegrationTest {
       // Verify a patch to a status field should throw an exception
       try {
         String statusPatch = statusPatchRequest
-            .replace(META_INDEX_FLAG, metaDao.getMetaAlertIndex());
+            .replace(META_INDEX_FLAG, getMetaAlertIndex());
         PatchRequest patchRequest = JSONUtils.INSTANCE.load(statusPatch, PatchRequest.class);
-        metaDao.patch(patchRequest, Optional.of(System.currentTimeMillis()));
+        metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
 
         Assert.fail("A patch on the status field should throw an exception");
       } catch (IllegalArgumentException iae) {
@@ -986,6 +984,22 @@ public abstract class MetaAlertIntegrationTest {
   // Get the full name of the test index.  E.g. Elasticsearch appends "_index"
   protected String getTestIndexFullName() {
     return getTestIndexName();
+  }
+
+  protected abstract String getMetaAlertIndex();
+
+  protected abstract String getMetaAlertSensorName();
+
+  protected String getThreatTriageField() {
+    return THREAT_FIELD_DEFAULT;
+  }
+
+  protected String getThreatSort() {
+    return THREAT_SORT_DEFAULT;
+  }
+
+  protected int getPageSize() {
+    return 10;
   }
 
   // Allow for impls to do any commit they need to do.

@@ -25,6 +25,8 @@ import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
@@ -47,7 +49,6 @@ public class SolrMetaAlertDao implements MetaAlertDao {
 
   public static final String METAALERTS_COLLECTION = "metaalert";
 
-
   private IndexDao indexDao;
   private SolrDao solrDao;
   private SolrMetaAlertSearchDao metaAlertSearchDao;
@@ -56,8 +57,6 @@ public class SolrMetaAlertDao implements MetaAlertDao {
   protected String metaAlertsCollection = METAALERTS_COLLECTION;
   protected String threatTriageField = MetaAlertConstants.THREAT_FIELD_DEFAULT;
   protected String threatSort = MetaAlertConstants.THREAT_SORT_DEFAULT;
-
-  protected int pageSize = 500;
 
   /**
    * Wraps an {@link org.apache.metron.indexing.dao.IndexDao} to handle meta alerts.
@@ -126,10 +125,18 @@ public class SolrMetaAlertDao implements MetaAlertDao {
       );
     }
 
+    MetaAlertConfig config = new MetaAlertConfig(
+        metaAlertsCollection,
+        threatTriageField,
+        this.threatSort,
+        MetaAlertConstants.METAALERT_TYPE
+    );
+
     SolrClient solrClient = solrDao.getClient();
     this.metaAlertSearchDao = new SolrMetaAlertSearchDao(solrClient, solrDao.getSolrSearchDao());
-    this.metaAlertUpdateDao = new SolrMetaAlertUpdateDao(solrClient, indexDao, metaAlertSearchDao, indexDao);
-    this.metaAlertRetrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrClient, indexDao, getMetAlertSensorName());
+    this.metaAlertRetrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao, config);
+    this.metaAlertUpdateDao = new SolrMetaAlertUpdateDao(solrDao, metaAlertSearchDao,
+        metaAlertRetrieveLatestDao);
 
     if (threatSort.isPresent()) {
       this.threatSort = threatSort.get();
@@ -144,16 +151,6 @@ public class SolrMetaAlertDao implements MetaAlertDao {
   @Override
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     return indexDao.getColumnMetadata(indices);
-  }
-
-  @Override
-  public int getPageSize() {
-    return pageSize;
-  }
-
-  @Override
-  public void setPageSize(int pageSize) {
-    this.pageSize = pageSize;
   }
 
   @Override
@@ -182,14 +179,15 @@ public class SolrMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public void batchUpdate(Map<Document, Optional<String>> updates) {
     metaAlertUpdateDao.batchUpdate(updates);
   }
 
   @Override
-  public void patch(PatchRequest request, Optional<Long> timestamp)
+  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+      Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
-    metaAlertUpdateDao.patch(request, timestamp);
+    metaAlertUpdateDao.patch(retrieveLatestDao, request, timestamp);
   }
 
   @Override
@@ -219,25 +217,5 @@ public class SolrMetaAlertDao implements MetaAlertDao {
   public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
       throws IOException {
     return metaAlertUpdateDao.updateMetaAlertStatus(metaAlertGuid, status);
-  }
-
-  @Override
-  public String getMetAlertSensorName() {
-    return MetaAlertConstants.METAALERT_TYPE;
-  }
-
-  @Override
-  public String getMetaAlertIndex() {
-    return metaAlertsCollection;
-  }
-
-  @Override
-  public String getThreatTriageField() {
-    return threatTriageField;
-  }
-
-  @Override
-  public String getThreatSort() {
-    return threatSort;
   }
 }

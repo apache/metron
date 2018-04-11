@@ -78,7 +78,6 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
       boolean done = false;
       while (!done) {
         solrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
-        // TODO grab this more reasonablly
         QueryResponse rsp = solrClient.query(METAALERTS_COLLECTION, solrQuery);
         String nextCursorMark = rsp.getNextCursorMark();
         rsp.getResults().stream()

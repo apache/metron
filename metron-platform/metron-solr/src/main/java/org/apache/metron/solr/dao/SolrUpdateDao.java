@@ -25,12 +25,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
-import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -42,13 +39,10 @@ public class SolrUpdateDao implements UpdateDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private transient RetrieveLatestDao retrieveLatestDao;
   private transient SolrClient client;
   private AccessConfig config;
 
-  public SolrUpdateDao(SolrClient client, AccessConfig config,
-      SolrRetrieveLatestDao retrieveLatestDao) {
-    this.retrieveLatestDao = retrieveLatestDao;
+  public SolrUpdateDao(SolrClient client, AccessConfig config) {
     this.client = client;
     this.config = config;
   }
@@ -96,32 +90,5 @@ public class SolrUpdateDao implements UpdateDao {
     } catch (SolrServerException e) {
       throw new IOException(e);
     }
-  }
-
-  protected Document getPatchedDocument(PatchRequest request, Optional<Long> timestamp)
-      throws OriginalNotFoundException, IOException {
-    Map<String, Object> latest = request.getSource();
-    if (latest == null) {
-      Document latestDoc = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
-      if (latestDoc != null && latestDoc.getDocument() != null) {
-        latest = latestDoc.getDocument();
-      } else {
-        throw new OriginalNotFoundException(
-            "Unable to patch an document that doesn't exist and isn't specified.");
-      }
-    }
-    Map<String, Object> updated = JSONUtils.INSTANCE.applyPatch(request.getPatch(), latest);
-    return new Document(
-        updated,
-        request.getGuid(),
-        request.getSensorType(),
-        timestamp.orElse(System.currentTimeMillis()));
-  }
-
-  @Override
-  public void patch(PatchRequest request, Optional<Long> timestamp)
-      throws OriginalNotFoundException, IOException {
-    Document d = getPatchedDocument(request, timestamp);
-    update(d, Optional.ofNullable(request.getIndex()));
   }
 }
