@@ -1,0 +1,8 @@
+<div class="proto" *ngFor="let proto of packet.proto" (click)="proto.expanded = !proto.expanded">
+  <div class="proto-header">{{ proto['$'].showname }}</div>
+  <div class="proto-fields" *ngIf="proto.expanded">
+    <div *ngFor="let field of proto.field">
+      <span class="field-name">{{ field['$'].name}}</span> {{ field['$'].showname}} 
+    </div>
+  </div>
+</div>

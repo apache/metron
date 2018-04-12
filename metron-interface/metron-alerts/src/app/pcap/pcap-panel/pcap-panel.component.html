@@ -1,0 +1,8 @@
+<div class="panel my-4">
+  <div class="panel-header">
+    <app-pcap-filters (search)="test()"></app-pcap-filters>
+  </div>
+  <div class="panel-body" *ngIf="pdml">
+    <app-pcap-list [packets]="pdml.pdml.packet"></app-pcap-list>
+  </div>
+</div>

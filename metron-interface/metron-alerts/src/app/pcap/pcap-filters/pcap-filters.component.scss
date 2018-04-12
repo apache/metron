@@ -1,0 +1,52 @@
+@import "../../../vendor.scss";
+@import "../../../styles.scss";
+@import "../../../variables.scss";
+
+.ng-valid[required], .ng-valid.required  {
+  
+}
+
+.ng-invalid:not(form)  {
+  border-left: 5px solid #a94442; /* red */
+}
+
+.form-group {
+  padding-right: 0.75em;
+  label {
+    margin-right: 1em;
+  }
+}
+
+.btn-search {
+
+  min-width: 42px;
+  padding-left: 0;
+  padding-right: 0;
+  border: 1px solid $blue-chill !important;
+
+  &:focus {
+    box-shadow: none;
+  }
+
+  &::before {
+    font-family: "FontAwesome";
+    content: '\f002';
+    color: $piction-blue;
+  }
+}
+
+.pcap-search {
+
+  padding-bottom: 15px;
+
+  label {
+    font-size: 15px;
+  }
+
+  button {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    background: $icon-button-background;
+    cursor: pointer;
+  }
+}

@@ -1,0 +1,24 @@
+<div class="table-wrapper">
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th scope="col">Timestamp</th>
+        <th scope="col">Source Addr</th>
+        <th scope="col">Source Port</th>
+        <th scope="col">Dest Addr</th>
+        <th scope="col">Dest Port</th>
+        <th scope="col">Protocol</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let packet of packets">
+        <tr (click)="toggle(packet)" app-pcap-packet-line [packet]="packet"></tr>
+        <tr *ngIf="packet.expanded">
+          <td colspan="6" class="pcap-packet">
+            <app-pcap-packet [packet]="packet"></app-pcap-packet>
+          </td>
+        </tr>
+      </ng-container>
+    </tbody>
+  </table>
+</div>

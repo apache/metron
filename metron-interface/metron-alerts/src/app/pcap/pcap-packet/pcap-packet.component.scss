@@ -1,0 +1,15 @@
+@import "../../../_variables.scss";
+
+.proto-header {
+  font-weight: bold;
+  border-top: 1px solid $table-border-color;
+}
+
+.proto {
+  margin-left: 1em;
+}
+
+
+.field-name {
+  display: none
+}
