@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
@@ -129,14 +130,17 @@ public class SolrMetaAlertDao implements MetaAlertDao {
         metaAlertsCollection,
         threatTriageField,
         this.threatSort,
-        MetaAlertConstants.METAALERT_TYPE
+        Constants.SENSOR_TYPE
     );
 
     SolrClient solrClient = solrDao.getClient();
     this.metaAlertSearchDao = new SolrMetaAlertSearchDao(solrClient, solrDao.getSolrSearchDao());
-    this.metaAlertRetrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao, config);
-    this.metaAlertUpdateDao = new SolrMetaAlertUpdateDao(solrDao, metaAlertSearchDao,
-        metaAlertRetrieveLatestDao);
+    this.metaAlertRetrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao);
+    this.metaAlertUpdateDao = new SolrMetaAlertUpdateDao(
+        solrDao,
+        metaAlertSearchDao,
+        metaAlertRetrieveLatestDao,
+        config);
 
     if (threatSort.isPresent()) {
       this.threatSort = threatSort.get();

@@ -33,13 +33,6 @@ public interface MetaAlertUpdateDao extends UpdateDao {
   String STATUS_PATH = "/" + MetaAlertConstants.STATUS_FIELD;
   String ALERT_PATH = "/" + MetaAlertConstants.ALERT_FIELD;
 
-  String threatTriageField = MetaAlertConstants.THREAT_FIELD_DEFAULT;
-  String threatSort = MetaAlertConstants.THREAT_SORT_DEFAULT;
-  // TODO fix
-  String metaAlertIndex = "metaalerts";
-  // TODO double fix
-  String metaAlertSensor = MetaAlertConstants.SOURCE_TYPE;
-
   /**
    * Determines if a given patch request is allowed or not. By default patching the 'alert' or
    * 'status' fields are not allowed, because they should be updated via the specific methods.

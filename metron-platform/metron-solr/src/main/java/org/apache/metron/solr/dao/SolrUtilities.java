@@ -54,7 +54,7 @@ public class SolrUtilities {
         .forEach(name -> document.put(name, solrDocument.getFieldValue(name)));
     // Make sure to put child alerts in
     if (solrDocument.hasChildDocuments() && solrDocument
-        .getFieldValue(MetaAlertConstants.SOURCE_TYPE)
+        .getFieldValue(Constants.SENSOR_TYPE)
         .equals(MetaAlertConstants.METAALERT_TYPE)) {
       List<Map<String, Object>> childDocuments = new ArrayList<>();
       for (SolrDocument childDoc : solrDocument.getChildDocuments()) {
@@ -69,7 +69,7 @@ public class SolrUtilities {
     }
     return new Document(document,
         (String) solrDocument.getFieldValue(Constants.GUID),
-        (String) solrDocument.getFieldValue(MetaAlertConstants.SOURCE_TYPE), 0L);
+        (String) solrDocument.getFieldValue(Constants.SENSOR_TYPE), 0L);
   }
 
   public static SolrInputDocument toSolrInputDocument(Document document) {

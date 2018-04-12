@@ -107,7 +107,7 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
     String activeStatusClause =
         MetaAlertConstants.STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString();
 
-    String sensorType = ClientUtils.escapeQueryChars(MetaAlertConstants.SOURCE_TYPE);
+    String sensorType = ClientUtils.escapeQueryChars(Constants.SENSOR_TYPE);
     String metaalertTypeClause = sensorType + ":" + MetaAlertConstants.METAALERT_TYPE;
     // Use the 'v=' form in order to ensure complex clauses are properly handled.
     // Per the docs, the 'which=' clause should be used to identify all metaalert parents, not to
@@ -143,7 +143,7 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
     // Make sure to escape any problematic characters here
-    String sourceType = ClientUtils.escapeQueryChars(MetaAlertConstants.SOURCE_TYPE);
+    String sourceType = ClientUtils.escapeQueryChars(Constants.SENSOR_TYPE);
     String baseQuery = groupRequest.getQuery();
     String adjustedQuery = baseQuery + " -" + MetaAlertConstants.METAALERT_FIELD + ":[* TO *]"
         + " -" + sourceType + ":" + MetaAlertConstants.METAALERT_TYPE;

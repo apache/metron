@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.List;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
@@ -36,16 +37,14 @@ public class SolrMetaAlertRetrieveLatestDao implements
     MetaAlertRetrieveLatestDao {
 
   private SolrDao solrDao;
-  private MetaAlertConfig config;
 
-  public SolrMetaAlertRetrieveLatestDao(SolrDao solrDao, MetaAlertConfig config) {
+  public SolrMetaAlertRetrieveLatestDao(SolrDao solrDao) {
     this.solrDao = solrDao;
-    this.config = config;
   }
 
   @Override
   public Document getLatest(String guid, String sensorType) throws IOException {
-    if (config.getMetaAlertSensorName().equals(sensorType)) {
+    if (MetaAlertConstants.METAALERT_TYPE.equals(sensorType)) {
       // Unfortunately, we can't just defer to the indexDao for this. Child alerts in Solr end up
       // having to be dug out.
       String guidClause = Constants.GUID + ":" + guid;

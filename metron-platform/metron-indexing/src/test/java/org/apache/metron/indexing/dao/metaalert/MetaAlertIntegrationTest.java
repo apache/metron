@@ -16,15 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.metron.indexing.dao;
+package org.apache.metron.indexing.dao.metaalert;
 
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.SOURCE_TYPE;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.STATUS_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_SORT_DEFAULT;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -43,6 +41,7 @@ import java.util.stream.Collectors;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
@@ -276,7 +275,7 @@ public abstract class MetaAlertIntegrationTest {
         new GetRequest("message_1", SENSOR_NAME),
         new GetRequest("message_2", SENSOR_NAME),
         new GetRequest("message_3", SENSOR_NAME),
-        new GetRequest("meta_alert", getMetaAlertSensorName())
+        new GetRequest("meta_alert", METAALERT_TYPE)
     ));
 
     // Build expected metaAlert after alerts are added
@@ -309,7 +308,7 @@ public abstract class MetaAlertIntegrationTest {
       Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
           .asList(new GetRequest("message_1", SENSOR_NAME),
               new GetRequest("message_2", SENSOR_NAME))));
-      findUpdatedDoc(expectedMetaAlert, "meta_alert", getMetaAlertSensorName());
+      findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
     {
@@ -317,7 +316,7 @@ public abstract class MetaAlertIntegrationTest {
       Assert.assertFalse(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
           .asList(new GetRequest("message_0", SENSOR_NAME),
               new GetRequest("message_1", SENSOR_NAME))));
-      findUpdatedDoc(expectedMetaAlert, "meta_alert", getMetaAlertSensorName());
+      findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
     {
@@ -339,7 +338,7 @@ public abstract class MetaAlertIntegrationTest {
       Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
           .asList(new GetRequest("message_2", SENSOR_NAME),
               new GetRequest("message_3", SENSOR_NAME))));
-      findUpdatedDoc(expectedMetaAlert, "meta_alert", getMetaAlertSensorName());
+      findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
   }
 
@@ -936,7 +935,7 @@ public abstract class MetaAlertIntegrationTest {
       final String guid = "message_" + i;
       Map<String, Object> alerts = new HashMap<>();
       alerts.put(Constants.GUID, guid);
-      alerts.put(SOURCE_TYPE, SENSOR_NAME);
+      alerts.put(getSourceTypeField(), SENSOR_NAME);
       alerts.put(THREAT_FIELD_DEFAULT, (double) i);
       alerts.put("timestamp", System.currentTimeMillis());
       inputData.add(alerts);
@@ -958,7 +957,7 @@ public abstract class MetaAlertIntegrationTest {
       Optional<List<Map<String, Object>>> alerts) {
     Map<String, Object> metaAlert = new HashMap<>();
     metaAlert.put(Constants.GUID, guid);
-    metaAlert.put(SOURCE_TYPE, METAALERT_TYPE);
+    metaAlert.put(getSourceTypeField(), METAALERT_TYPE);
     metaAlert.put(STATUS_FIELD, status.getStatusString());
     if (alerts.isPresent()) {
       List<Map<String, Object>> alertsList = alerts.get();
@@ -988,18 +987,10 @@ public abstract class MetaAlertIntegrationTest {
 
   protected abstract String getMetaAlertIndex();
 
-  protected abstract String getMetaAlertSensorName();
+  protected abstract String getSourceTypeField();
 
   protected String getThreatTriageField() {
     return THREAT_FIELD_DEFAULT;
-  }
-
-  protected String getThreatSort() {
-    return THREAT_SORT_DEFAULT;
-  }
-
-  protected int getPageSize() {
-    return 10;
   }
 
   // Allow for impls to do any commit they need to do.

@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.metron.common.Constants;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
@@ -61,8 +62,10 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
    *     mutated.
    */
   public SolrMetaAlertUpdateDao(SolrDao solrDao,
-      SolrMetaAlertSearchDao metaAlertSearchDao, SolrMetaAlertRetrieveLatestDao retrieveLatestDao) {
-    super(solrDao, retrieveLatestDao);
+      SolrMetaAlertSearchDao metaAlertSearchDao,
+      SolrMetaAlertRetrieveLatestDao retrieveLatestDao,
+      MetaAlertConfig config) {
+    super(solrDao, retrieveLatestDao, config);
     this.solrClient = solrDao.getClient();
     this.metaAlertSearchDao = metaAlertSearchDao;
   }
@@ -82,10 +85,11 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
     Iterable<Document> alerts = getRetrieveLatestDao().getAllLatest(alertRequests);
 
     Document metaAlert = buildCreateDocument(alerts, request.getGroups(), CHILD_DOCUMENTS);
-    MetaScores.calculateMetaScores(metaAlert, threatTriageField, threatSort);
+    MetaScores.calculateMetaScores(metaAlert, getConfig().getThreatTriageField(),
+        getConfig().getThreatSort());
 
     // Add source type to be consistent with other sources and allow filtering
-    metaAlert.getDocument().put(MetaAlertConstants.SOURCE_TYPE, MetaAlertConstants.METAALERT_TYPE);
+    metaAlert.getDocument().put(Constants.SENSOR_TYPE, MetaAlertConstants.METAALERT_TYPE);
 
     // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();
@@ -191,7 +195,8 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
   public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException {
     boolean success;
-    Document metaAlert = getRetrieveLatestDao().getLatest(metaAlertGuid, metaAlertSensor);
+    Document metaAlert = getRetrieveLatestDao()
+        .getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
     if (MetaAlertStatus.ACTIVE.getStatusString()
         .equals(metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD))) {
       Iterable<Document> alerts = getRetrieveLatestDao().getAllLatest(alertRequests);
@@ -217,7 +222,7 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
       guidsToDelete.add((String) alert.get(Constants.GUID));
     }
     try {
-      solrClient.deleteById(metaAlertIndex, guidsToDelete);
+      solrClient.deleteById(getConfig().getMetaAlertIndex(), guidsToDelete);
     } catch (SolrServerException | IOException e) {
       throw new IOException("Unable to delete metaalert child alerts", e);
     }

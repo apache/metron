@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.apache.metron.common.Constants;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.solr.dao.SolrUtilities;
@@ -172,8 +173,8 @@ public class SolrComponent implements InMemoryComponent {
     // If it's metaalert, we need to adjust the query. We want child docs with the parent,
     // not separate.
     if (collection.equals("metaalert")) {
-      parameters.setQuery("source\\:type:metaalert")
-          .setFields("*", "[child parentFilter=source\\:type:metaalert limit=999]");
+      parameters.setQuery("source.type:metaalert")
+          .setFields("*", "[child parentFilter=source.type:metaalert limit=999]");
     } else {
       parameters.set("q", "*:*");
     }
@@ -198,7 +199,8 @@ public class SolrComponent implements InMemoryComponent {
       SolrInputDocument solrInputDocument = new SolrInputDocument();
       for (Entry<String, Object> entry : doc.entrySet()) {
         // If the entry itself is a map, add it as a child document. Handle one level of nesting.
-        if (entry.getValue() instanceof List && !entry.getKey().equals("metaalerts")) {
+        if (entry.getValue() instanceof List && !entry.getKey().equals(
+            MetaAlertConstants.METAALERT_FIELD)) {
           for (Object entryItem : (List)entry.getValue()) {
             if (entryItem instanceof Map) {
               @SuppressWarnings("unchecked")

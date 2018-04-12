@@ -33,6 +33,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
@@ -48,11 +49,15 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
 
   private UpdateDao updateDao;
   private MetaAlertRetrieveLatestDao retrieveLatestDao;
+  private MetaAlertConfig config;
 
-  protected AbstractLuceneMetaAlertUpdateDao(UpdateDao updateDao,
-      MetaAlertRetrieveLatestDao retrieveLatestDao) {
+  protected AbstractLuceneMetaAlertUpdateDao(
+      UpdateDao updateDao,
+      MetaAlertRetrieveLatestDao retrieveLatestDao,
+      MetaAlertConfig config) {
     this.updateDao = updateDao;
     this.retrieveLatestDao = retrieveLatestDao;
+    this.config = config;
   }
 
   public UpdateDao getUpdateDao() {
@@ -61,6 +66,10 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
 
   public MetaAlertRetrieveLatestDao getRetrieveLatestDao() {
     return retrieveLatestDao;
+  }
+
+  public MetaAlertConfig getConfig() {
+    return config;
   }
 
   /**
@@ -73,7 +82,8 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
    * @throws IOException If an error occurs performing the patch.
    */
   @Override
-  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request, Optional<Long> timestamp)
+  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+      Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
     if (isPatchAllowed(request)) {
       updateDao.patch(retrieveLatestDao, request, timestamp);
@@ -147,8 +157,9 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
       if (alertsAfter.size() < alertsBefore.size() && alertsAfter.size() == 0) {
         deleteRemainingMetaAlerts(alertsBefore);
       }
-      MetaScores.calculateMetaScores(metaAlert, threatTriageField, threatSort);
-      updates.put(metaAlert, Optional.of(metaAlertIndex));
+      MetaScores
+          .calculateMetaScores(metaAlert, config.getThreatTriageField(), config.getThreatSort());
+      updates.put(metaAlert, Optional.of(config.getMetaAlertIndex()));
       for (Document alert : alerts) {
         if (removeMetaAlertFromAlert(metaAlert.getGuid(), alert)) {
           updates.put(alert, Optional.empty());
@@ -207,12 +218,15 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
     boolean metaAlertUpdated = !status.getStatusString().equals(currentStatus);
     if (metaAlertUpdated) {
       List<GetRequest> getRequests = new ArrayList<>();
+      // TODO Delete prints
+      System.out.println("Metaalert: " + metaAlert);
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
           .get(MetaAlertConstants.ALERT_FIELD);
+      System.out.println("Current ALERTS: " + currentAlerts);
       currentAlerts.stream()
           .forEach(currentAlert -> getRequests.add(new GetRequest((String) currentAlert.get(GUID),
-              (String) currentAlert.get(MetaAlertConstants.SOURCE_TYPE))));
+              (String) currentAlert.get(config.getSourceTypeField()))));
       Iterable<Document> alerts = retrieveLatestDao.getAllLatest(getRequests);
       Map<Document, Optional<String>> updates = buildStatusChangeUpdates(metaAlert, alerts, status);
       update(updates);
@@ -233,7 +247,7 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
     metaAlert.getDocument().put(MetaAlertConstants.STATUS_FIELD, status.getStatusString());
 
     Map<Document, Optional<String>> updates = new HashMap<>();
-    updates.put(metaAlert, Optional.of(metaAlertIndex));
+    updates.put(metaAlert, Optional.of(config.getMetaAlertIndex()));
 
     for (Document alert : alerts) {
       boolean metaAlertAdded = false;
@@ -264,8 +278,9 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
     Map<Document, Optional<String>> updates = new HashMap<>();
     boolean metaAlertUpdated = addAlertsToMetaAlert(metaAlert, alerts);
     if (metaAlertUpdated) {
-      MetaScores.calculateMetaScores(metaAlert, threatTriageField, threatSort);
-      updates.put(metaAlert, Optional.of(metaAlertIndex));
+      MetaScores
+          .calculateMetaScores(metaAlert, config.getThreatTriageField(), config.getThreatSort());
+      updates.put(metaAlert, Optional.of(config.getMetaAlertIndex()));
       for (Document alert : alerts) {
         if (addMetaAlertToAlert(metaAlert.getGuid(), alert)) {
           updates.put(alert, Optional.empty());

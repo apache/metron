@@ -16,17 +16,20 @@
  * limitations under the License.
  */
 
-package org.apache.metron.indexing.dao.metaalert;
+package org.apache.metron.indexing.dao.metaalert.lucene;
 
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.GROUPS_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.STATUS_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_SORT_DEFAULT;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertStatus.ACTIVE;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertStatus.INACTIVE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,126 +42,128 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.UUID;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.math.util.MathUtils;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
+import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MetaAlertUpdateDaoTest {
+public class AbstractLuceneMetaAlertUpdateDaoTest {
+
+  @Mock
+  IndexDao indexDao;
+
+  @Before
+  public void setup() {
+    dao = new TestLuceneMetaAlertUpdateDao();
+  }
 
   private static final double EPS = 0.00001;
   private static final String METAALERT_INDEX = "metaalert_index";
   private static final String METAALERT_GUID = "meta_0";
   private static final String DEFAULT_PREFIX = "child_";
-  @Mock
-  IndexDao indexDao;
+  private static final MetaAlertConfig TEST_CONFIG = new MetaAlertConfig(
+      METAALERT_INDEX,
+      THREAT_FIELD_DEFAULT,
+      THREAT_SORT_DEFAULT,
+      Constants.SENSOR_TYPE
+  );
 
-  TestMetaAlertUpdateDao dao = new TestMetaAlertUpdateDao();
+  private static Map<String, Document> documents = new HashMap<>();
 
-  private class TestMetaAlertUpdateDao implements MetaAlertUpdateDao {
+  static {
+    Document active = new Document(
+        new HashMap<>(),
+        ACTIVE.getStatusString(),
+        METAALERT_TYPE,
+        0L
+    );
+    documents.put(ACTIVE.getStatusString(), active);
 
-    Map<String, Document> documents = new HashMap<>();
+    Document inactive = new Document(
+        new HashMap<>(),
+        INACTIVE.getStatusString(),
+        METAALERT_TYPE,
+        0L
+    );
+    inactive.getDocument().put(
+        STATUS_FIELD,
+        INACTIVE.getStatusString()
+    );
+    documents.put(INACTIVE.getStatusString(), inactive);
+  }
 
-    TestMetaAlertUpdateDao() {
-      Document active = new Document(
-          new HashMap<>(),
-          ACTIVE.getStatusString(),
-          METAALERT_TYPE,
-          0L
-      );
-      documents.put(ACTIVE.getStatusString(), active);
+  TestMetaAlertRetrieveLatestDao retrieveLatestDao = new TestMetaAlertRetrieveLatestDao();
 
-      Document inactive = new Document(
-          new HashMap<>(),
-          INACTIVE.getStatusString(),
-          METAALERT_TYPE,
-          0L
-      );
-      inactive.getDocument().put(
-          STATUS_FIELD,
-          INACTIVE.getStatusString()
-      );
-      documents.put(INACTIVE.getStatusString(), inactive);
+  private class TestMetaAlertRetrieveLatestDao implements MetaAlertRetrieveLatestDao {
+
+    @Override
+    public Document getLatest(String guid, String sensorType) {
+      return documents.get(guid);
     }
 
-//    @Override
-//    public Document getLatest(String guid, String sensorType) {
-//      return documents.get(guid);
-//    }
-//
-//    @Override
-//    public Iterable<Document> getAllLatest(List<GetRequest> getRequests) {
-//      return null;
-//    }
-//
-//    @Override
-//    public IndexDao getIndexDao() {
-//      return indexDao;
-//    }
-//
-//    @Override
-//    public String getMetAlertSensorName() {
-//      return METAALERT_TYPE;
-//    }
-//
-//    @Override
-//    public String getMetaAlertIndex() {
-//      return METAALERT_INDEX;
-//    }
+    @Override
+    public Iterable<Document> getAllLatest(List<GetRequest> getRequests) {
+      return null;
+    }
+  }
+
+  TestLuceneMetaAlertUpdateDao dao = new TestLuceneMetaAlertUpdateDao();
+
+  private class TestLuceneMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao {
+
+    TestLuceneMetaAlertUpdateDao() {
+      super(indexDao, retrieveLatestDao, TEST_CONFIG);
+    }
 
     @Override
     public void update(Document update, Optional<String> index) {
-
     }
 
     @Override
-    public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
-
+    public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+        Optional<Long> timestamp) {
     }
 
     @Override
-    public void patch(PatchRequest request, Optional<Long> timestamp)
-        throws OriginalNotFoundException, IOException {
-
-    }
-
-    @Override
-    public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
-        throws InvalidCreateException, IOException {
+    public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request) {
       return null;
     }
 
     @Override
-    public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
-        throws IOException {
+    public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) {
       return false;
     }
 
     @Override
-    public boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
-        throws IOException {
+    public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status) {
       return false;
     }
 
     @Override
-    public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
-        throws IOException {
-      return false;
+    protected void deleteRemainingMetaAlerts(List<Map<String, Object>> alertsBefore) {
     }
   }
 
@@ -214,7 +219,7 @@ public class MetaAlertUpdateDaoTest {
   public static String namePatchRequest;
 
   @Test(expected = UnsupportedOperationException.class)
-  public void testBatchUpdateThrowsException() throws IOException {
+  public void testBatchUpdateThrowsException() {
     dao.batchUpdate(null);
   }
 
@@ -263,11 +268,6 @@ public class MetaAlertUpdateDaoTest {
     updates.put(documentTwo, Optional.empty());
     dao.update(updates);
     verify(indexDao, times(1)).batchUpdate(updates);
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testAddAlertsToMetaAlertInactive() throws IOException {
-    dao.addAlertsToMetaAlert(INACTIVE.getStatusString(), null);
   }
 
   @Test
@@ -637,6 +637,85 @@ public class MetaAlertUpdateDaoTest {
 
     boolean actual = dao.addMetaAlertToAlert("metaalert1", alert);
     assertFalse(actual);
+  }
+
+  @Test
+  public void testBuildCreateDocumentSingleAlert() {
+    List<String> groups = new ArrayList<>();
+    groups.add("group_one");
+    groups.add("group_two");
+
+    // Build the first response from the multiget
+    Map<String, Object> alertOne = new HashMap<>();
+    alertOne.put(Constants.GUID, "alert_one");
+    alertOne.put(THREAT_FIELD_DEFAULT, 10.0d);
+    List<Document> alerts = new ArrayList<Document>() {{
+      add(new Document(alertOne, "", "", 0L));
+    }};
+
+    // Actually build the doc
+    Document actual = dao.buildCreateDocument(alerts, groups, ALERT_FIELD);
+
+    ArrayList<Map<String, Object>> alertList = new ArrayList<>();
+    alertList.add(alertOne);
+
+    Map<String, Object> actualDocument = actual.getDocument();
+    assertEquals(
+        MetaAlertStatus.ACTIVE.getStatusString(),
+        actualDocument.get(STATUS_FIELD)
+    );
+    assertEquals(
+        alertList,
+        actualDocument.get(ALERT_FIELD)
+    );
+    assertEquals(
+        groups,
+        actualDocument.get(GROUPS_FIELD)
+    );
+
+    // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
+    UUID.fromString((String) actualDocument.get(Constants.GUID));
+  }
+
+  @Test
+  public void testBuildCreateDocumentMultipleAlerts() {
+    List<String> groups = new ArrayList<>();
+    groups.add("group_one");
+    groups.add("group_two");
+
+    // Build the first response from the multiget
+    Map<String, Object> alertOne = new HashMap<>();
+    alertOne.put(Constants.GUID, "alert_one");
+    alertOne.put(THREAT_FIELD_DEFAULT, 10.0d);
+
+    // Build the second response from the multiget
+    Map<String, Object> alertTwo = new HashMap<>();
+    alertTwo.put(Constants.GUID, "alert_one");
+    alertTwo.put(THREAT_FIELD_DEFAULT, 5.0d);
+    List<Document> alerts = new ArrayList<>();
+    alerts.add(new Document(alertOne, "", "", 0L));
+    alerts.add(new Document(alertTwo, "", "", 0L));
+
+    // Actually build the doc
+    Document actual = dao.buildCreateDocument(alerts, groups, ALERT_FIELD);
+
+    ArrayList<Map<String, Object>> alertList = new ArrayList<>();
+    alertList.add(alertOne);
+    alertList.add(alertTwo);
+
+    Map<String, Object> actualDocument = actual.getDocument();
+    assertNotNull(actualDocument.get(Fields.TIMESTAMP.getName()));
+    assertEquals(
+        alertList,
+        actualDocument.get(ALERT_FIELD)
+    );
+    assertEquals(
+        groups,
+        actualDocument.get(GROUPS_FIELD)
+    );
+
+    // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
+    UUID.fromString((String) actualDocument.get(Constants.GUID));
   }
 
   // Utility method to manage comparing update maps

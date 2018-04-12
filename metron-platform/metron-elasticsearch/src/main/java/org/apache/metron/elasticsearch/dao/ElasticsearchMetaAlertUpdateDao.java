@@ -52,7 +52,6 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
 
   private ElasticsearchDao elasticsearchDao;
   private MetaAlertRetrieveLatestDao retrieveLatestDao;
-  private final MetaAlertConfig config;
   private int pageSize;
 
   /**
@@ -68,10 +67,9 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
       MetaAlertConfig config,
       int pageSize
   ) {
-    super(elasticsearchDao, retrieveLatestDao);
+    super(elasticsearchDao, retrieveLatestDao, config);
     this.elasticsearchDao = elasticsearchDao;
     this.retrieveLatestDao = retrieveLatestDao;
-    this.config = config;
     this.pageSize = pageSize;
   }
 
@@ -98,13 +96,15 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
     Document metaAlert = buildCreateDocument(alerts, request.getGroups(),
         MetaAlertConstants.ALERT_FIELD);
     MetaScores
-        .calculateMetaScores(metaAlert, config.getThreatTriageField(), config.getThreatSort());
+        .calculateMetaScores(metaAlert, getConfig().getThreatTriageField(),
+            getConfig().getThreatSort());
     // Add source type to be consistent with other sources and allow filtering
-    metaAlert.getDocument().put(MetaAlertConstants.SOURCE_TYPE, MetaAlertConstants.METAALERT_TYPE);
+    metaAlert.getDocument()
+        .put(ElasticsearchMetaAlertDao.SOURCE_TYPE_FIELD, MetaAlertConstants.METAALERT_TYPE);
 
     // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();
-    updates.put(metaAlert, Optional.of(config.getMetaAlertIndex()));
+    updates.put(metaAlert, Optional.of(getConfig().getMetaAlertIndex()));
 
     try {
       // We need to update the associated alerts with the new meta alerts, making sure existing
@@ -151,7 +151,7 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
       throws IOException {
 
     Document metaAlert = retrieveLatestDao
-        .getLatest(metaAlertGuid, config.getMetaAlertSensorName());
+        .getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
     if (MetaAlertStatus.ACTIVE.getStatusString()
         .equals(metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD))) {
       Iterable<Document> alerts = retrieveLatestDao.getAllLatest(alertRequests);
@@ -181,7 +181,7 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
       // Each meta alert needs to be updated with the new alert
       for (Document metaAlert : metaAlerts) {
         if (replaceAlertInMetaAlert(metaAlert, update)) {
-          updates.put(metaAlert, Optional.of(config.getMetaAlertIndex()));
+          updates.put(metaAlert, Optional.of(getConfig().getMetaAlertIndex()));
         }
       }
 
@@ -208,7 +208,8 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
         )
         .must(termQuery(MetaAlertConstants.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
     return ElasticsearchUtils
-        .queryAllResults(elasticsearchDao.getClient(), qb, config.getMetaAlertIndex(), pageSize);
+        .queryAllResults(elasticsearchDao.getClient(), qb, getConfig().getMetaAlertIndex(),
+            pageSize);
   }
 
 

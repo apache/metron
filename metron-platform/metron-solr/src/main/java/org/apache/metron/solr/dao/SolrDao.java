@@ -88,6 +88,7 @@ public class SolrDao implements IndexDao {
       this.accessConfig = config;
       this.solrSearchDao = new SolrSearchDao(this.client, this.accessConfig);
       this.solrUpdateDao = new SolrUpdateDao(this.client, this.accessConfig);
+      this.solrRetrieveLatestDao = new SolrRetrieveLatestDao(this.client);
       this.solrColumnMetadataDao = new SolrColumnMetadataDao(zkHost);
     }
   }
@@ -123,7 +124,8 @@ public class SolrDao implements IndexDao {
   }
 
   @Override
-  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request, Optional<Long> timestamp)
+  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+      Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
     solrUpdateDao.patch(retrieveLatestDao, request, timestamp);
   }

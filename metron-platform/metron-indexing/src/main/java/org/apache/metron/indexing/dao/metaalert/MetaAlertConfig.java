@@ -22,7 +22,7 @@ public class MetaAlertConfig {
   private String metaAlertIndex;
   private String threatTriageField;
   private String threatSort;
-  private String metaAlertSensorName;
+  private String sourceTypeField;
 
   /**
    * Simple object for storing and retrieving configs, primarily to make passing all the info to
@@ -30,14 +30,14 @@ public class MetaAlertConfig {
    * @param metaAlertIndex The metaalert index or collection we're using
    * @param threatTriageField The threat triage field's name
    * @param threatSort The sorting operation on the threat triage field
-   * @param metaAlertSensorName The source type on metaalerts
+   * @param sourceTypeField The source type field
    */
   public MetaAlertConfig(String metaAlertIndex, String threatTriageField,
-      String threatSort, String metaAlertSensorName) {
+      String threatSort, String sourceTypeField) {
     this.metaAlertIndex = metaAlertIndex;
     this.threatTriageField = threatTriageField;
     this.threatSort = threatSort;
-    this.metaAlertSensorName = metaAlertSensorName;
+    this.sourceTypeField = sourceTypeField;
   }
 
   public String getMetaAlertIndex() {
@@ -64,11 +64,11 @@ public class MetaAlertConfig {
     this.threatSort = threatSort;
   }
 
-  public String getMetaAlertSensorName() {
-    return metaAlertSensorName;
+  public String getSourceTypeField() {
+    return sourceTypeField;
   }
 
-  public void setMetaAlertSensorName(String metaAlertSensorName) {
-    this.metaAlertSensorName = metaAlertSensorName;
+  public void setSourceTypeField(String sourceTypeField) {
+    this.sourceTypeField = sourceTypeField;
   }
 }

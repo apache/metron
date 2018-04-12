@@ -18,8 +18,6 @@
 
 package org.apache.metron.indexing.dao.metaalert;
 
-import org.apache.metron.common.Constants;
-
 public class MetaAlertConstants {
   public static String METAALERT_TYPE = "metaalert";
   public static String METAALERT_FIELD = "metaalerts";
@@ -29,5 +27,4 @@ public class MetaAlertConstants {
   public static String ALERT_FIELD = "alert";
   public static String STATUS_FIELD = "status";
   public static String GROUPS_FIELD = "groups";
-  public static String SOURCE_TYPE = Constants.SENSOR_TYPE.replace('.', ':');
 }

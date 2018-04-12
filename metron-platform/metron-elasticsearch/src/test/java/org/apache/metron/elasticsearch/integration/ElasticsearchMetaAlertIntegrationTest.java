@@ -46,7 +46,7 @@ import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.MetaAlertIntegrationTest;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertIntegrationTest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -345,7 +345,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   }
 
   @Override
-  protected String getMetaAlertSensorName() {
+  protected String getSourceTypeField() {
     return THREAT_TRIAGE_FIELD;
   }
 

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
@@ -50,6 +51,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       .replace('.', ':');
   public static final String METAALERTS_INDEX = "metaalert_index";
 
+  protected static final String SOURCE_TYPE_FIELD = Constants.SENSOR_TYPE.replace('.', ':');
   protected String metaAlertsIndex = METAALERTS_INDEX;
   protected String threatTriageField = THREAT_TRIAGE_FIELD;
   protected String threatSort = MetaAlertConstants.THREAT_SORT_DEFAULT;
@@ -129,7 +131,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         metaAlertsIndex,
         threatTriageField,
         this.threatSort,
-        MetaAlertConstants.METAALERT_TYPE
+        ElasticsearchMetaAlertDao.SOURCE_TYPE_FIELD
     );
 
     this.metaAlertSearchDao = new ElasticsearchMetaAlertSearchDao(

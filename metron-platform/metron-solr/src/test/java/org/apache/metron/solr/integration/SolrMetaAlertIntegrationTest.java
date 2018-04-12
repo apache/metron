@@ -34,8 +34,8 @@ import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.MetaAlertIntegrationTest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertIntegrationTest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -93,7 +93,6 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
     MetaAlertConfig config = new MetaAlertConfig(
         METAALERTS_COLLECTION,
-        500,
         THREAT_FIELD_DEFAULT,
         THREAT_SORT_DEFAULT,
         Constants.SENSOR_TYPE
@@ -101,10 +100,9 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
     SolrMetaAlertSearchDao searchDao = new SolrMetaAlertSearchDao(solrDao.getClient(),
         solrDao.getSolrSearchDao());
-    SolrMetaAlertRetrieveLatestDao retrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao,
-        config);
+    SolrMetaAlertRetrieveLatestDao retrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao);
     SolrMetaAlertUpdateDao updateDao = new SolrMetaAlertUpdateDao(solrDao, searchDao,
-        retrieveLatestDao);
+        retrieveLatestDao, config);
     metaDao = new SolrMetaAlertDao(solrDao, searchDao, updateDao, retrieveLatestDao);
   }
 
@@ -300,7 +298,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   }
 
   @Override
-  protected String getMetaAlertSensorName() {
+  protected String getSourceTypeField() {
     return Constants.SENSOR_TYPE;
   }
 
