@@ -24,7 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -89,11 +91,18 @@ public class SolrMetaAlertDaoTest {
     metaAlertDao.init(dao);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testInitInvalidDao() {
+    HBaseDao dao = new HBaseDao();
+    SolrMetaAlertDao solrDao = new SolrMetaAlertDao();
+    solrDao.init(dao, Optional.empty());
+  }
+
   @Test(expected = InvalidCreateException.class)
   public void testCreateMetaAlertEmptyGuids() throws InvalidCreateException, IOException {
-    SolrDao esDao = new SolrDao();
+    SolrDao solrDao = new SolrDao();
     SolrMetaAlertDao emaDao = new SolrMetaAlertDao();
-    emaDao.init(esDao);
+    emaDao.init(solrDao);
 
     MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
     emaDao.createMetaAlert(createRequest);
@@ -101,9 +110,10 @@ public class SolrMetaAlertDaoTest {
 
   @Test(expected = InvalidCreateException.class)
   public void testCreateMetaAlertEmptyGroups() throws InvalidCreateException, IOException {
-    SolrDao esDao = new SolrDao();
+    SolrDao solrDao = new SolrDao();
+    MultiIndexDao miDao = new MultiIndexDao(solrDao);
     SolrMetaAlertDao emaDao = new SolrMetaAlertDao();
-    emaDao.init(esDao);
+    emaDao.init(miDao);
 
     MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
     createRequest.setAlerts(Collections.singletonList(new GetRequest("don't", "care")));

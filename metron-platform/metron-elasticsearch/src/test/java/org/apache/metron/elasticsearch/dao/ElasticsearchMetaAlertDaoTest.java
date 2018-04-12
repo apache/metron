@@ -24,7 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -84,6 +86,13 @@ public class ElasticsearchMetaAlertDaoTest {
     metaAlertDao.init(dao);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testInitInvalidDao() {
+    HBaseDao dao = new HBaseDao();
+    ElasticsearchMetaAlertDao esDao = new ElasticsearchMetaAlertDao();
+    esDao.init(dao, Optional.empty());
+  }
+
   @Test(expected = InvalidCreateException.class)
   public void testCreateMetaAlertEmptyGuids() throws InvalidCreateException, IOException {
     ElasticsearchDao esDao = new ElasticsearchDao();
@@ -97,8 +106,9 @@ public class ElasticsearchMetaAlertDaoTest {
   @Test(expected = InvalidCreateException.class)
   public void testCreateMetaAlertEmptyGroups() throws InvalidCreateException, IOException {
     ElasticsearchDao esDao = new ElasticsearchDao();
+    MultiIndexDao miDao = new MultiIndexDao(esDao);
     ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
-    emaDao.init(esDao);
+    emaDao.init(miDao);
 
     MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
     createRequest.setAlerts(Collections.singletonList(new GetRequest("don't", "care")));
