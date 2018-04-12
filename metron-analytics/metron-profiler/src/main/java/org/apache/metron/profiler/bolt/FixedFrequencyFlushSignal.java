@@ -94,7 +94,8 @@ public class FixedFrequencyFlushSignal implements FlushSignal {
 
       // set the next time to flush
       flushTime = currentTime + flushFrequency;
-      LOG.debug("Setting flush time; flushTime={}, currentTime={}, flushFreq={}",
+      LOG.debug("Setting flush time; '{}' ms until flush; flushTime={}, currentTime={}, flushFreq={}",
+              timeToNextFlush(),
               flushTime,
               currentTime,
               flushFrequency);
@@ -112,7 +113,7 @@ public class FixedFrequencyFlushSignal implements FlushSignal {
     boolean flush = currentTime > flushTime;
     LOG.debug("Flush={}, '{}' ms until flush; currentTime={}, flushTime={}",
             flush,
-            flush ? 0 : (flushTime-currentTime),
+            timeToNextFlush(),
             currentTime,
             flushTime);
 
@@ -122,5 +123,13 @@ public class FixedFrequencyFlushSignal implements FlushSignal {
   @Override
   public long currentTimeMillis() {
     return currentTime;
+  }
+
+  /**
+   * Returns the number of milliseconds to the next flush.
+   * @return The time left until the next flush.
+   */
+  private long timeToNextFlush() {
+    return Math.max(0, flushTime - currentTime);
   }
 }
