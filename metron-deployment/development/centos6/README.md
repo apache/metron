@@ -29,7 +29,7 @@ Getting Started
 
 The computer used to deploy Apache Metron will need to have the following components installed.
 
- - [Ansible](https://github.com/ansible/ansible) (2.0.0.2 or 2.2.2.0)
+ - [Ansible](https://github.com/ansible/ansible) (2.0.0.2, 2.2.2.0, or 2.5.0)
  - [Docker](https://www.docker.com/community-edition)
  - [Vagrant](https://www.vagrantup.com) 2.0+
  - [Vagrant Hostmanager Plugin](https://github.com/devopsgroup-io/vagrant-hostmanager)
