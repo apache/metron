@@ -37,9 +37,7 @@ import java.util.concurrent.TimeUnit;
 public class CachingStellarProcessor extends StellarProcessor {
   private static ThreadLocal<Map<String, Set<String>> > variableCache = ThreadLocal.withInitial(() -> new HashMap<>());
   public static String MAX_CACHE_SIZE_PARAM = "stellar.cache.maxSize";
-  public static long MAX_CACHE_SIZE_DEFAULT = 10000;
   public static String MAX_TIME_RETAIN_PARAM = "stellar.cache.maxTimeRetain";
-  public static int MAX_TIME_RETAIN_DEFAULT = 10;
 
   public static class Key {
     private String expression;
@@ -117,9 +115,12 @@ public class CachingStellarProcessor extends StellarProcessor {
    * @return A cache.
    */
   public static Cache<Key, Object> createCache(Map<String, Object> config) {
-    Long maxSize = getParam(config, MAX_CACHE_SIZE_PARAM, MAX_CACHE_SIZE_DEFAULT, Long.class);
-    Integer maxTimeRetain = getParam(config, MAX_TIME_RETAIN_PARAM, MAX_TIME_RETAIN_DEFAULT, Integer.class);
-    if(maxSize <= 0) {
+    if(config == null) {
+      return null;
+    }
+    Long maxSize = getParam(config, MAX_CACHE_SIZE_PARAM, null, Long.class);
+    Integer maxTimeRetain = getParam(config, MAX_TIME_RETAIN_PARAM, null, Integer.class);
+    if(maxSize == null || maxTimeRetain == null || maxSize <= 0 || maxTimeRetain <= 0) {
       return null;
     }
     return Caffeine.newBuilder()
