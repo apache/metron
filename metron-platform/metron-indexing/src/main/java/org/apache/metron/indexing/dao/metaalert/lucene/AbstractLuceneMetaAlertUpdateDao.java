@@ -218,12 +218,9 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
     boolean metaAlertUpdated = !status.getStatusString().equals(currentStatus);
     if (metaAlertUpdated) {
       List<GetRequest> getRequests = new ArrayList<>();
-      // TODO Delete prints
-      System.out.println("Metaalert: " + metaAlert);
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
           .get(MetaAlertConstants.ALERT_FIELD);
-      System.out.println("Current ALERTS: " + currentAlerts);
       currentAlerts.stream()
           .forEach(currentAlert -> getRequests.add(new GetRequest((String) currentAlert.get(GUID),
               (String) currentAlert.get(config.getSourceTypeField()))));
