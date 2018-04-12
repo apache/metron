@@ -78,13 +78,12 @@ public class SolrDao implements IndexDao {
   @Override
   public void init(AccessConfig config) {
     if (config.getKerberosEnabled()) {
-      HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
+      enableKerberos();
     }
     if (this.client == null) {
       Map<String, Object> globalConfig = config.getGlobalConfigSupplier().get();
       String zkHost = (String) globalConfig.get("solr.zookeeper");
-      this.client = new CloudSolrClient.Builder()
-          .withZkHost((String) globalConfig.get("solr.zookeeper")).build();
+      this.client = getSolrClient(zkHost);
       this.accessConfig = config;
       this.solrSearchDao = new SolrSearchDao(this.client, this.accessConfig);
       this.solrUpdateDao = new SolrUpdateDao(this.client, this.accessConfig);
@@ -135,8 +134,17 @@ public class SolrDao implements IndexDao {
     return this.solrColumnMetadataDao.getColumnMetadata(indices);
   }
 
-  public SolrClient getClient() {
-    return client;
+  public SolrClient getSolrClient(String zkHost) {
+    return new CloudSolrClient.Builder().withZkHost(zkHost).build();
+  }
+
+  public String getZkHost() {
+    Map<String, Object> globalConfig = accessConfig.getGlobalConfigSupplier().get();
+    return (String) globalConfig.get("solr.zookeeper");
+  }
+
+  void enableKerberos() {
+    HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
   }
 
   public SolrSearchDao getSolrSearchDao() {

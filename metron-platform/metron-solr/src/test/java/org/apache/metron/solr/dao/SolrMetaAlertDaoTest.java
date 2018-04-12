@@ -20,6 +20,7 @@ package org.apache.metron.solr.dao;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,9 +40,21 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class SolrMetaAlertDaoTest {
+  private static AccessConfig accessConfig = new AccessConfig();
+
+  @BeforeClass
+  public static void setupBefore() {
+    accessConfig.setGlobalConfigSupplier(() ->
+        new HashMap<String, Object>() {{
+          put("solr.zookeeper", "zookeeper:2181");
+        }}
+    );
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidInit() {
     IndexDao dao = new IndexDao() {
@@ -101,6 +114,7 @@ public class SolrMetaAlertDaoTest {
   @Test(expected = InvalidCreateException.class)
   public void testCreateMetaAlertEmptyGuids() throws InvalidCreateException, IOException {
     SolrDao solrDao = new SolrDao();
+    solrDao.init(accessConfig);
     SolrMetaAlertDao emaDao = new SolrMetaAlertDao();
     emaDao.init(solrDao);
 
@@ -111,6 +125,7 @@ public class SolrMetaAlertDaoTest {
   @Test(expected = InvalidCreateException.class)
   public void testCreateMetaAlertEmptyGroups() throws InvalidCreateException, IOException {
     SolrDao solrDao = new SolrDao();
+    solrDao.init(accessConfig);
     MultiIndexDao miDao = new MultiIndexDao(solrDao);
     SolrMetaAlertDao emaDao = new SolrMetaAlertDao();
     emaDao.init(miDao);

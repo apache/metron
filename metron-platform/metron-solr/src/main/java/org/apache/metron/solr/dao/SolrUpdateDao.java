@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.apache.solr.client.solrj.SolrClient;

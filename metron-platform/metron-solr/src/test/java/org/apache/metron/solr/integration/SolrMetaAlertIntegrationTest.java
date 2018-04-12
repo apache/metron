@@ -98,7 +98,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
         Constants.SENSOR_TYPE
     );
 
-    SolrMetaAlertSearchDao searchDao = new SolrMetaAlertSearchDao(solrDao.getClient(),
+    SolrMetaAlertSearchDao searchDao = new SolrMetaAlertSearchDao(solrDao.getSolrClient(solrDao.getZkHost()),
         solrDao.getSolrSearchDao());
     SolrMetaAlertRetrieveLatestDao retrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao);
     SolrMetaAlertUpdateDao updateDao = new SolrMetaAlertUpdateDao(solrDao, searchDao,

@@ -70,7 +70,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "indices": ["bro", "snort"],
+   * "indices": ["bro", "snort", "some_collection"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
