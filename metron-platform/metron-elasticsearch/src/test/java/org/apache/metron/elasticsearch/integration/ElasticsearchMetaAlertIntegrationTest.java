@@ -346,7 +346,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
   @Override
   protected String getSourceTypeField() {
-    return THREAT_TRIAGE_FIELD;
+    return ElasticsearchMetaAlertDao.SOURCE_TYPE_FIELD;
   }
 
   @Override

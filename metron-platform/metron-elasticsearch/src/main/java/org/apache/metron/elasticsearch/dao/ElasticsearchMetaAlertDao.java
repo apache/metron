@@ -51,7 +51,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       .replace('.', ':');
   public static final String METAALERTS_INDEX = "metaalert_index";
 
-  protected static final String SOURCE_TYPE_FIELD = Constants.SENSOR_TYPE.replace('.', ':');
+  public static final String SOURCE_TYPE_FIELD = Constants.SENSOR_TYPE.replace('.', ':');
   protected String metaAlertsIndex = METAALERTS_INDEX;
   protected String threatTriageField = THREAT_TRIAGE_FIELD;
   protected String threatSort = MetaAlertConstants.THREAT_SORT_DEFAULT;
