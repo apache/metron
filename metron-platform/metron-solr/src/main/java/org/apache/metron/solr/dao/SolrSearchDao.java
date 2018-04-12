@@ -204,20 +204,6 @@ public class SolrSearchDao implements SearchDao {
     return searchResponse;
   }
 
-//  protected SearchResult getSearchResult(SolrDocument solrDocument, Optional<List<String>> fields) {
-//    SearchResult searchResult = new SearchResult();
-//    searchResult.setId((String) solrDocument.getFieldValue(Constants.GUID));
-//    Map<String, Object> source;
-//    if (fields.isPresent()) {
-//      source = new HashMap<>();
-//      fields.get().forEach(field -> source.put(field, solrDocument.getFieldValue(field)));
-//    } else {
-//      source = solrDocument.getFieldValueMap();
-//    }
-//    searchResult.setSource(source);
-//    return searchResult;
-//  }
-
   protected Map<String, Map<String, Long>> getFacetCounts(List<String> fields,
       QueryResponse solrResponse) {
     Map<String, Map<String, Long>> fieldCounts = new HashMap<>();
