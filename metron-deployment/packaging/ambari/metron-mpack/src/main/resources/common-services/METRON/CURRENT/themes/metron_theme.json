@@ -514,6 +514,10 @@
           "subsection-name": "subsection-indexing-kafka"
         },
         {
+          "config": "metron-indexing-env/indexing_error_topic",
+          "subsection-name": "subsection-indexing-kafka"
+        },
+        {
           "config": "metron-indexing-env/update_hbase_table",
           "subsection-name": "subsection-indexing-update"
         },
@@ -553,7 +557,6 @@
           "config": "metron-indexing-env/batch_indexing_topology_max_spout_pending",
           "subsection-name": "subsection-indexing-hdfs"
         },
-
         {
           "config": "metron-indexing-env/ra_indexing_kafka_spout_parallelism",
           "subsection-name": "subsection-indexing-storm"
@@ -562,7 +565,6 @@
           "config": "metron-indexing-env/batch_indexing_kafka_spout_parallelism",
           "subsection-name": "subsection-indexing-hdfs"
         },
-
         {
           "config": "metron-indexing-env/ra_indexing_writer_parallelism",
           "subsection-name": "subsection-indexing-storm"
