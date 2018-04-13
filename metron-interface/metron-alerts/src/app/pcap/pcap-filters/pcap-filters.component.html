@@ -1,29 +1,39 @@
 <form (ngSubmit)="onSubmit()" #f="ngForm" class="form-inline pcap-search">
   <div class="form-group">
     <label for="ip_src_addr">IP Source Address</label>
-    <input name="ip_src_addr" #ip_src_addr="ngModel" class="form-control" pattern="^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$" [(ngModel)]="model.ip_src_addr">
+    <input name="ip_src_addr" #ip_src_addr="ngModel" class="form-control" pattern="^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$" [(ngModel)]="model.srcIp">
   </div>
   
   <div class="form-group">
     <label for="ip_src_port">IP Source Port</label>
-    <input name="ip_src_port" #ip_src_port="ngModel" class="form-control" type="number" [(ngModel)]="model.ip_src_port">
+    <input name="ip_src_port" #ip_src_port="ngModel" class="form-control" type="number" [(ngModel)]="model.srcPort">
   </div>
 
   <div class="form-group"><label for="ip_dest_addr">IP Dest Address</label>
-    <input name="ip_dest_addr" #ip_dest_addr="ngModel" class="form-control" pattern="^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$" [(ngModel)]="model.ip_dest_addr">
+    <input name="ip_dest_addr" #ip_dest_addr="ngModel" class="form-control" pattern="^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$" [(ngModel)]="model.dstIp">
   </div>
 
   <div class="form-group">
     <label for="ip_dest_port">IP Dest Port</label>
-    <input id="ip_dest_port" name="ip_dest_port" #ip_dest_port="ngModel" class="form-control" type="number" [(ngModel)]="model.ip_dest_port">
+    <input id="ip_dest_port" name="ip_dest_port" #ip_dest_port="ngModel" class="form-control" type="number" [(ngModel)]="model.dstPort">
   </div>
+
+    <div class="form-group">
+        <label for="protocol">Protocol</label>
+        <input id="protocol" name="protocol" #protocol="ngModel" class="form-control" type="number" [(ngModel)]="model.protocol">
+    </div>
+
+    <div class="form-group">
+        <label for="includeReverseTraffic">Include Reverse Traffic</label>
+        <input id="includeReverseTraffic" name="includeReverseTraffic" #includeReverseTraffic="ngModel" class="form-control" type="checkbox" [(ngModel)]="model.includeReverseTraffic">
+    </div>
 
   <div class="form-group">
     <label for="filter">Filter</label>
-    <input name="filter" #filter="ngModel" class="form-control" [(ngModel)]="model.filter">
+    <input id="filter" name="filter" #filter="ngModel" class="form-control" [(ngModel)]="model.packetFilter">
   </div>
 
   <div class="form-group">
-    <button type="submit" class="btn btn-primary btn-search" [disabled]="!f.form.valid"></button>
+    <button type="submit" [ngClass]="{'disabled':!f.form.valid || queryRunning}" class="btn btn-primary btn-search" [disabled]="!f.form.valid || queryRunning"></button>
   </div>
 </form>

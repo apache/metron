@@ -1,0 +1,35 @@
+@import "../../../vendor.scss";
+@import "../../../styles.scss";
+@import "../../../variables.scss";
+
+.pcap-progress-background {
+  background-color: #2E2E2E;
+}
+
+.pcap-progress {
+  background-color: #0F6F9E;
+  transition-duration:2s;
+  animation-duration: 2s;
+}
+
+.progress-bar {
+  width: 0;
+  animation: progress 1.5s ease-in-out forwards;
+}
+
+@keyframes progress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+@keyframes show  {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

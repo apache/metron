@@ -23,6 +23,7 @@
   padding-left: 0;
   padding-right: 0;
   border: 1px solid $blue-chill !important;
+  cursor: pointer;
 
   &:focus {
     box-shadow: none;
@@ -47,6 +48,5 @@
     padding-top: 6px;
     padding-bottom: 6px;
     background: $icon-button-background;
-    cursor: pointer;
   }
 }

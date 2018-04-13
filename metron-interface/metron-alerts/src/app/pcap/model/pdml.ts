@@ -17,26 +17,31 @@
  */
  
  export class PdmlField {
-  public $: any[]
-  public field?: PdmlField[]
+  //public $: any[]
+    public name: string;
+  public fields?: PdmlField[]
 }
 
 export class PdmlProto {
-  public $: any
-  public field: PdmlField[]
+  //public $: any
+    public name: string;
+    public showname: string;
+  public fields: PdmlField[]
   
   public static findField(p: PdmlProto, name: string): PdmlField {
-    return p.field.find(f => f['$']['name'] == name)
+    return p.fields.find(f => f['name'] == name)
   }
 }
 
 
 export class PdmlPacket {
-  public $: any
-  public proto: PdmlProto[]
+  //public $: any
+    public name: string;
+  public protos: PdmlProto[]
   public expanded: boolean = false
 }
 
 export class Pdml {
-  public pdml: { S: any, packet: PdmlPacket[] }
+  public name: string;
+  public packets: PdmlPacket[];
 }

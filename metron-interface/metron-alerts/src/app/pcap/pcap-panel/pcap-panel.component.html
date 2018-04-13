@@ -1,8 +1,26 @@
 <div class="panel my-4">
   <div class="panel-header">
-    <app-pcap-filters (search)="test()"></app-pcap-filters>
+    <app-pcap-filters [queryRunning]="queryRunning" (search)="onSearch($event)"></app-pcap-filters>
   </div>
+    <!--<div *ngIf="queryRunning" style="text-align: center">-->
+        <!--<i class="fa fa-cog fa-spin fa-3x fa-fw" ></i>-->
+    <!--</div>-->
+
+        <!--<div class="progress">-->
+            <!--<div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="max-width: 60%">-->
+                <!--<span class="title">60%</span>-->
+            <!--</div>-->
+        <!--</div>-->
+
+    <!--<div *ngIf="queryRunning" class="progress pcap-progress-background">-->
+        <!--<div class="progress-bar progress-bar-striped progress-bar-animated pcap-progress" role="progressbar" attr.aria-valuenow="{{progressWidth}}" aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'max-width': progressWidth + '%'}"></div>-->
+    <!--</div>-->
+
+    <div *ngIf="queryRunning" class="progress pcap-progress-background">
+        <div class="progress-bar progress-bar-animated pcap-progress" role="progressbar" attr.aria-valuenow="{{progressWidth}}" aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'max-width': progressWidth + '%', 'transition-duration':'1000ms'}">{{progressWidth}}%</div>
+    </div>
   <div class="panel-body" *ngIf="pdml">
-    <app-pcap-list [packets]="pdml.pdml.packet"></app-pcap-list>
+    <app-pcap-list [packets]="pdml.packets"></app-pcap-list>
   </div>
+
 </div>

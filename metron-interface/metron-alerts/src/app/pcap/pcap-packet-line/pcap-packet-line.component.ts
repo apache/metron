@@ -20,9 +20,9 @@ export class PcapPacketLineComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
-    let gen_proto: PdmlProto = this.packet.proto.filter(p => p['$'].name == "geninfo")[0]
-    let ip_proto: PdmlProto = this.packet.proto.filter(p => p['$'].name == "ip")[0]
-    let tcp_proto: PdmlProto = this.packet.proto.filter(p => p['$'].name == "tcp")[0]
+    let gen_proto: PdmlProto = this.packet.protos.filter(p => p.name == "geninfo")[0]
+    let ip_proto: PdmlProto = this.packet.protos.filter(p => p.name == "ip")[0]
+    let tcp_proto: PdmlProto = this.packet.protos.filter(p => p.name == "tcp")[0]
     
     this.ip = {
       timestamp: PdmlProto.findField(gen_proto,'timestamp'), 

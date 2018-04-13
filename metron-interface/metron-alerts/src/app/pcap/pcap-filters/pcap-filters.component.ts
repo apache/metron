@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { PcapRequest } from '../model/pcap.request'
 
 @Component({
@@ -8,9 +8,10 @@ import { PcapRequest } from '../model/pcap.request'
 })
 export class PcapFiltersComponent implements OnInit {
 
-  @Output() search: EventEmitter<PcapRequest> = new EventEmitter<PcapRequest>()
+  @Input() queryRunning: boolean = true;
+  @Output() search: EventEmitter<PcapRequest> = new EventEmitter<PcapRequest>();
   
-  model = new PcapRequest()
+  model = new PcapRequest();
   
   constructor() { }
 
