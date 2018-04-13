@@ -22,3 +22,8 @@ This directory contains environments useful for Metron developers.  These enviro
 * Metron running on CentOS 6
 * Metron running on Ubuntu 14
 * Fastcapa
+
+
+## Vagrant Cachier recommendations
+
+The development boxes are designed to be spun up and destroyed on a regular basis as part of the development cycle. In order to avoid the overhead of re-downloading many of the heavy platform dependencies, Vagrant can use the [vagrant-cachier](http://fgrehm.viewdocs.io/vagrant-cachier/) plugin to store package caches between builds. If the plugin has been installed to your vagrant it will be used, and packages will be cached in ~/.vagrant/cache.
