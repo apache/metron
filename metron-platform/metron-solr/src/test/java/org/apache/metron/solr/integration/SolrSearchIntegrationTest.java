@@ -64,11 +64,6 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     }
   }
 
-  @After
-  public void reset() {
-    solrComponent.reset();
-  }
-
   @Override
   public IndexDao getIndexDao() {
     return dao;

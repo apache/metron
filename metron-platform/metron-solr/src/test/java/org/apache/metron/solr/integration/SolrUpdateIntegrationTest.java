@@ -72,11 +72,6 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     }
   }
 
-  @After
-  public void reset() {
-    solrComponent.reset();
-  }
-
   @Override
   protected String getIndexName() {
     return SENSOR_NAME;
