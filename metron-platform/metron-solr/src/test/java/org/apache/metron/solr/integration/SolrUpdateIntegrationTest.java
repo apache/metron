@@ -32,6 +32,8 @@ import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
@@ -61,6 +63,18 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
     dao = new MultiIndexDao(hbaseDao, createDao());
     dao.init(accessConfig);
+  }
+
+  @AfterClass
+  public static void teardown() {
+    if (solrComponent != null) {
+      solrComponent.stop();
+    }
+  }
+
+  @After
+  public void reset() {
+    solrComponent.reset();
   }
 
   @Override
