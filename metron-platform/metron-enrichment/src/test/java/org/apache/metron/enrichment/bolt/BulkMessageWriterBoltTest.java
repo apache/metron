@@ -118,6 +118,31 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   private MessageGetStrategy messageGetStrategy;
 
   @Test
+  public void testSensorTypeMissing() throws Exception {
+    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
+            .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
+            .withMessageGetterField("message");
+    bulkMessageWriterBolt.setCuratorFramework(client);
+    bulkMessageWriterBolt.setZKCache(cache);
+    bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType,
+            new FileInputStream(sampleSensorIndexingConfigPath));
+
+    bulkMessageWriterBolt.declareOutputFields(declarer);
+    verify(declarer, times(1)).declareStream(eq("error"), argThat(
+            new FieldsMatcher("message")));
+    Map stormConf = new HashMap();
+    bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
+    BulkWriterComponent<JSONObject> component = mock(BulkWriterComponent.class);
+    bulkMessageWriterBolt.setWriterComponent(component);
+    verify(bulkMessageWriter, times(1)).init(eq(stormConf),any(TopologyContext.class), any(WriterConfiguration.class));
+    JSONObject message = (JSONObject) new JSONParser().parse(sampleMessageString);
+    message.remove("source.type");
+    when(tuple.getValueByField("message")).thenReturn(message);
+    bulkMessageWriterBolt.execute(tuple);
+    verify(component, times(1)).error(eq("null"), any(), any(), any());
+  }
+
+  @Test
   public void testFlushOnBatchSize() throws Exception {
     BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
             .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
