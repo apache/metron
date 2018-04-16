@@ -256,20 +256,27 @@ user_settings_hbase_table = status_params.user_settings_hbase_table
 user_settings_hbase_cf = status_params.user_settings_hbase_cf
 
 # Enrichment
+metron_enrichment_topology = status_params.metron_enrichment_topology
 geoip_url = config['configurations']['metron-enrichment-env']['geoip_url']
 enrichment_host_known_hosts = config['configurations']['metron-enrichment-env']['enrichment_host_known_hosts']
+
+# Enrichment - Kafka
 enrichment_kafka_start = config['configurations']['metron-enrichment-env']['enrichment_kafka_start']
 enrichment_input_topic = status_params.enrichment_input_topic
 enrichment_output_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
 enrichment_error_topic = config['configurations']['metron-enrichment-env']['enrichment_error_topic']
 threatintel_error_topic = config['configurations']['metron-enrichment-env']['threatintel_error_topic']
-metron_enrichment_topology = status_params.metron_enrichment_topology
+
+# Enrichment - Storm common parameters
 enrichment_workers = config['configurations']['metron-enrichment-env']['enrichment_workers']
 enrichment_acker_executors = config['configurations']['metron-enrichment-env']['enrichment_acker_executors']
 if not len(enrichment_topology_worker_childopts) == 0:
     enrichment_topology_worker_childopts += ' '
 enrichment_topology_worker_childopts += config['configurations']['metron-enrichment-env']['enrichment_topology_worker_childopts']
 enrichment_topology_max_spout_pending = config['configurations']['metron-enrichment-env']['enrichment_topology_max_spout_pending']
+enrichment_topology = config['configurations']['metron-enrichment-env']['enrichment_topology']
+
+# Enrichment - Split Join topology
 enrichment_join_cache_size = config['configurations']['metron-enrichment-env']['enrichment_join_cache_size']
 threatintel_join_cache_size = config['configurations']['metron-enrichment-env']['threatintel_join_cache_size']
 enrichment_kafka_spout_parallelism = config['configurations']['metron-enrichment-env']['enrichment_kafka_spout_parallelism']
@@ -280,6 +287,16 @@ threat_intel_split_parallelism = config['configurations']['metron-enrichment-env
 threat_intel_stellar_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_stellar_parallelism']
 threat_intel_join_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_join_parallelism']
 kafka_writer_parallelism = config['configurations']['metron-enrichment-env']['kafka_writer_parallelism']
+
+# Enrichment - Unified topology
+unified_kafka_spout_parallelism = config['configurations']['metron-enrichment-env']['unified_kafka_spout_parallelism']
+unified_enrichment_parallelism = config['configurations']['metron-enrichment-env']['unified_enrichment_parallelism']
+unified_threat_intel_parallelism = config['configurations']['metron-enrichment-env']['unified_threat_intel_parallelism']
+unified_kafka_writer_parallelism = config['configurations']['metron-enrichment-env']['unified_kafka_writer_parallelism']
+unified_enrichment_cache_size = config['configurations']['metron-enrichment-env']['unified_enrichment_cache_size']
+unified_threat_intel_cache_size = config['configurations']['metron-enrichment-env']['unified_threat_intel_cache_size']
+unified_enrichment_threadpool_size = config['configurations']['metron-enrichment-env']['unified_enrichment_threadpool_size']
+unified_enrichment_threadpool_type = config['configurations']['metron-enrichment-env']['unified_enrichment_threadpool_type']
 
 # Profiler
 metron_profiler_topology = 'profiler'
