@@ -52,10 +52,10 @@ public class OrdinalFunctions {
         Ordinal stats = convert(firstArg, Ordinal.class);
         return stats.getMax();
       } else if (firstArg instanceof Iterable) {
-        Iterable list = (Iterable<Object>) args.get(0);
+        Iterable<Comparable> list = (Iterable<Comparable>) args.get(0);
         return orderList(list, (ret, val) -> ret.compareTo(val) < 0, "MAX");
       } else {
-        throw new IllegalStateException("MAX function expects either Stellar statistics object or Stellar list of values ");
+        throw new IllegalStateException("MAX function expects either 'a StatisticsProvider object' or 'Stellar list of values'");
       }
 
     }
@@ -86,7 +86,7 @@ public class OrdinalFunctions {
         Iterable<Comparable> list = (Iterable<Comparable>) args.get(0);
         return orderList(list, (ret, val) -> ret.compareTo(val) > 0, "MIN");
       } else {
-        throw new IllegalStateException("MIN function expects either Stellar statistics object or Stellar list of values ");
+        throw new IllegalStateException("MIN function expects either 'a StatisticsProvider object' or 'Stellar list of values' ");
       }
     }
   }
