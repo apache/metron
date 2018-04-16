@@ -43,15 +43,18 @@ parallelism will leave you with idle consumers since Kafka limits the max number
 important because Kafka has certain ordering guarantees for message delivery per partition that would not be possible if more than
 one consumer in a given consumer group were able to read from that partition.
 
-## Parser Tuning Suggestions
+## Sensor Topology Tuning Suggestions
 
-If you are using stellar field transformations in your parsers, by default, stellar expressions
-are not cached.  Turning on caching via setting the `cacheConfig` [property](metron-parsers#parser_configuration)
-in your parser configuration can have performance impact if your stellar expressions are
-complex (e.g. `ENRICHMENT_GET` calls or other high latency calls).  The tradeoff, though, is
-that non-deterministic stellar expressions will yield cached results which may be wrong,
-for the period of time in which the data exists in the cache (the max time in the cache is
-configurable).
+If you are using stellar field transformations in your sensors, by default, stellar expressions
+are not cached.  Sensors that use stellar field transformations by see a performance
+boost by turning on caching via setting the `cacheConfig`
+[property](metron-parsers#parser_configuration).
+This is beneficial if your transformations:
+
+* Are complex (e.g. `ENRICHMENT_GET` calls or other high latency calls)
+* All Yield the same results for the same inputs ( caching is either off or applied to all transformations)
+  * If any of your transformations are non-deterministic, caching should not be used as it will result in the likelihood of incorrect results being returned.
+
 
 ## Component Tuning Levers
 
