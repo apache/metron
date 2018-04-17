@@ -408,7 +408,7 @@ A Python script is provided for gathering information useful in debugging your M
 _Note:_ Be aware that no anonymization/scrubbing is performed on the captured configuration details.
 
 ```
-# ./cluster_info.py -h
+# $METRON_HOME/bin/cluster_info.py -h
 Usage: cluster_info.py [options]
 
 Options:
