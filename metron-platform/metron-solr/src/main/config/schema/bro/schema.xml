@@ -676,6 +676,9 @@
   <dynamicField name="*.reason" type="string" multiValued="false" docValues="true"/>
   <dynamicField name="*.name" type="string" multiValued="false" docValues="true"/>
 
+  <!-- Metaalerts Field -->
+  <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>
+
   <!-- Catch all, if we don't know about it, it gets dropped. -->
   <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
 
