@@ -174,10 +174,10 @@ public class ConfigurationFunctions {
      * @return The Global configuration.
      */
     private String getGlobalConfig() {
-      String result;IndexingConfigurations config = cache.get(IndexingConfigurations.class);
+
+      IndexingConfigurations config = cache.get(IndexingConfigurations.class);
       Map<String, Object> global = config.getGlobalConfig();
-      result = toJSON(global);
-      return result;
+      return toJSON(global);
     }
 
     /**
