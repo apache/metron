@@ -32,6 +32,12 @@ Indices are written in batch and the batch size and batch timeout are specified 
 [Sensor Indexing Configuration](#sensor-indexing-configuration) via the `batchSize` and `batchTimeout` parameters.
 These configs are variable by sensor type.
 
+## Minimal Assumptions for Message Structure
+
+At minimum, a message should have a `source.type` field.
+Without this field, the message tuple will be failed and not written
+with an appropriate error indicated in the Storm UI and logs.
+
 ## Indexing Architecture
 
 ![Architecture](indexing_arch.png)

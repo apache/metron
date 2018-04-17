@@ -152,8 +152,8 @@ Creating and refining profiles is an iterative process.  Iterating against a liv
 	* If a message is needed by two profiles, then two routes have been followed.
 
 	```
-	[Stellar]>>> p := PROFILER_INIT(conf)
-	[Stellar]>>> p
+	[Stellar]>>> profiler := PROFILER_INIT(conf)
+	[Stellar]>>> profiler
 	Profiler{1 profile(s), 0 messages(s), 0 route(s)}
 	```
 
@@ -172,11 +172,11 @@ Creating and refining profiles is an iterative process.  Iterating against a liv
 1. Apply the message to your Profiler, as many times as you like.
 
 	```
-	[Stellar]>>> PROFILER_APPLY(msg, p)
+	[Stellar]>>> PROFILER_APPLY(msg, profiler)
 	Profiler{1 profile(s), 1 messages(s), 1 route(s)}
 	```
 	```
-	[Stellar]>>> PROFILER_APPLY(msg, p)
+	[Stellar]>>> PROFILER_APPLY(msg, profiler)
 	Profiler{1 profile(s), 2 messages(s), 2 route(s)}
 	```
 
@@ -205,7 +205,7 @@ Creating and refining profiles is an iterative process.  Iterating against a liv
 	```
 	Apply those 10 messages to your profile(s).
 	```
-	[Stellar]>>> PROFILER_APPLY(msgs, p)
+	[Stellar]>>> PROFILER_APPLY(msgs, profiler)
 	  Profiler{1 profile(s), 10 messages(s), 10 route(s)}
 	```
 

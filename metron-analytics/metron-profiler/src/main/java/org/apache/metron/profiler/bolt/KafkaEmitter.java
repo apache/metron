@@ -19,8 +19,7 @@
 
 package org.apache.metron.profiler.bolt;
 
-import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.storm.task.OutputCollector;
@@ -30,6 +29,10 @@ import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.Map;
 
 /**
  * Responsible for emitting a {@link ProfileMeasurement} to an output stream that will
@@ -58,19 +61,48 @@ public class KafkaEmitter implements ProfileMeasurementEmitter, Serializable {
   @Override
   public void emit(ProfileMeasurement measurement, OutputCollector collector) {
 
-    JSONObject message = new JSONObject();
-    message.put("profile", measurement.getDefinition().getProfile());
-    message.put("entity", measurement.getEntity());
-    message.put("period", measurement.getPeriod().getPeriod());
-    message.put("period.start", measurement.getPeriod().getStartTimeMillis());
-    message.put("period.end", measurement.getPeriod().getEndTimeMillis());
-    message.put("timestamp", System.currentTimeMillis());
-    message.put("source.type", sourceType);
-    message.put("is_alert", "true");
+    // only need to emit, if there are triage values
+    Map<String, Object> triageValues = measurement.getTriageValues();
+    if(MapUtils.isNotEmpty(triageValues)) {
 
-    // append each of the triage values to the message
-    measurement.getTriageValues().forEach((key, value) -> {
+      JSONObject message = createMessage(measurement);
+      appendTriageValues(measurement, message);
+      collector.emit(getStreamId(), new Values(message));
 
+      LOG.debug("Emitted measurement; stream={}, profile={}, entity={}, period={}, start={}, end={}",
+              getStreamId(),
+              measurement.getProfileName(),
+              measurement.getEntity(),
+              measurement.getPeriod().getPeriod(),
+              measurement.getPeriod().getStartTimeMillis(),
+              measurement.getPeriod().getEndTimeMillis());
+
+    } else {
+
+      LOG.debug("No triage values, nothing to emit; stream={}, profile={}, entity={}, period={}, start={}, end={}",
+              getStreamId(),
+              measurement.getProfileName(),
+              measurement.getEntity(),
+              measurement.getPeriod().getPeriod(),
+              measurement.getPeriod().getStartTimeMillis(),
+              measurement.getPeriod().getEndTimeMillis());
+    }
+  }
+
+  /**
+   * Appends triage values obtained from a {@code ProfileMeasurement} to the
+   * outgoing message.
+   *
+   * @param measurement The measurement that may contain triage values.
+   * @param message The message that the triage values are appended to.
+   */
+  private void appendTriageValues(ProfileMeasurement measurement, JSONObject message) {
+
+    // for each triage value...
+    Map<String, Object> triageValues = MapUtils.emptyIfNull(measurement.getTriageValues());
+    triageValues.forEach((key, value) -> {
+
+      // append the triage value to the message
       if(isValidType(value)) {
         message.put(key, value);
 
@@ -83,8 +115,26 @@ public class KafkaEmitter implements ProfileMeasurementEmitter, Serializable {
                 key));
       }
     });
+  }
 
-    collector.emit(getStreamId(), new Values(message));
+  /**
+   * Creates a message that will be emitted to Kafka.
+   *
+   * @param measurement The profile measurement used as a basis for the message.
+   * @return A message that can be emitted to Kafka.
+   */
+  private JSONObject createMessage(ProfileMeasurement measurement) {
+
+    JSONObject message = new JSONObject();
+    message.put("profile", measurement.getDefinition().getProfile());
+    message.put("entity", measurement.getEntity());
+    message.put("period", measurement.getPeriod().getPeriod());
+    message.put("period.start", measurement.getPeriod().getStartTimeMillis());
+    message.put("period.end", measurement.getPeriod().getEndTimeMillis());
+    message.put("timestamp", System.currentTimeMillis());
+    message.put("source.type", sourceType);
+    message.put("is_alert", "true");
+    return message;
   }
 
   /**
