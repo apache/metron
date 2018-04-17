@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -130,6 +132,21 @@ public class SolrUpdateDaoTest {
     solrUpdateDao.batchUpdate(updates);
 
     verify(client).add(argThat(new SolrInputDocumentListMatcher(Arrays.asList(snortSolrInputDocument1, snortSolrInputDocument2))));
+  }
+
+  @Test
+  public void toSolrInputDocumentShouldProperlyReturnSolrInputDocument() {
+    Map<String, Object> fields = new HashMap<>();
+    fields.put("field", "value");
+    fields.put("location_point", "33.4499,-112.0712");
+    fields.put("location_point_0_coordinate", "33.4499");
+    fields.put("location_point_1_coordinate", "-112.0712");
+    Document document = new Document(fields, "bro", "bro", 0L);
+
+    SolrInputDocument actualSolrInputDocument = solrUpdateDao.toSolrInputDocument(document);
+    assertEquals(2, actualSolrInputDocument.getFieldNames().size());
+    assertEquals("value", actualSolrInputDocument.getFieldValue("field"));
+    assertEquals("33.4499,-112.0712", actualSolrInputDocument.getFieldValue("location_point"));
   }
 
 }

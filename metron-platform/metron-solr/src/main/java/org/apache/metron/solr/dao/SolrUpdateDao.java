@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 public class SolrUpdateDao implements UpdateDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private final static String LOCATION_SUB_FIELD_SUFFIX = "_coordinate";
 
   private transient SolrClient client;
 
@@ -92,9 +93,17 @@ public class SolrUpdateDao implements UpdateDao {
     }
   }
 
-  private SolrInputDocument toSolrInputDocument(Document document) {
+  protected SolrInputDocument toSolrInputDocument(Document document) {
     SolrInputDocument solrInputDocument = new SolrInputDocument();
-    document.getDocument().forEach(solrInputDocument::addField);
+    document.getDocument().forEach((field, value) -> {
+      if (!isLocationSubField(field)) {
+        solrInputDocument.addField(field, value);
+      }
+    });
     return solrInputDocument;
+  }
+
+  private boolean isLocationSubField(String field) {
+    return field.endsWith(LOCATION_SUB_FIELD_SUFFIX);
   }
 }
