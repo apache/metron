@@ -52,7 +52,6 @@ import java.io.ByteArrayInputStream;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -342,15 +341,18 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
    * @param zkClient An optional Zookeeper client.
    */
   private Context createContext(Properties properties, Optional<CuratorFramework> zkClient) throws Exception {
+
     Context.Builder contextBuilder = new Context.Builder();
     Map<String, Object> globals;
     if (zkClient.isPresent()) {
+      LOG.debug("Zookeeper client present; fetching globals from Zookeeper.");
 
       // fetch globals from zookeeper
       globals = fetchGlobalConfig(zkClient.get());
       contextBuilder.with(ZOOKEEPER_CLIENT, () -> zkClient.get());
 
     } else {
+      LOG.debug("No Zookeeper client; initializing empty globals.");
 
       // use empty globals to allow a user to '%define' their own
       globals = new HashMap<>();

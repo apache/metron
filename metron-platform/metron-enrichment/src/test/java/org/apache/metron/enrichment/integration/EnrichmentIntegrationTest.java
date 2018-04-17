@@ -65,16 +65,19 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+/**
+ * Integration test for the 'Split-Join' enrichment topology.
+ */
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
-  private static final String ERROR_TOPIC = "enrichment_error";
-  private static final String SRC_IP = "ip_src_addr";
-  private static final String DST_IP = "ip_dst_addr";
-  private static final String MALICIOUS_IP_TYPE = "malicious_ip";
-  private static final String PLAYFUL_CLASSIFICATION_TYPE = "playful_classification";
-  private static final Map<String, Object> PLAYFUL_ENRICHMENT = new HashMap<String, Object>() {{
+
+  public static final String ERROR_TOPIC = "enrichment_error";
+  public static final String SRC_IP = "ip_src_addr";
+  public static final String DST_IP = "ip_dst_addr";
+  public static final String MALICIOUS_IP_TYPE = "malicious_ip";
+  public static final String PLAYFUL_CLASSIFICATION_TYPE = "playful_classification";
+  public static final Map<String, Object> PLAYFUL_ENRICHMENT = new HashMap<String, Object>() {{
     put("orientation", "north");
   }};
-
   public static final String DEFAULT_COUNTRY = "test country";
   public static final String DEFAULT_CITY = "test city";
   public static final String DEFAULT_POSTAL_CODE = "test postalCode";
@@ -82,15 +85,18 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public static final String DEFAULT_LONGITUDE = "test longitude";
   public static final String DEFAULT_DMACODE= "test dmaCode";
   public static final String DEFAULT_LOCATION_POINT= Joiner.on(',').join(DEFAULT_LATITUDE,DEFAULT_LONGITUDE);
+  public static final String cf = "cf";
+  public static final String trackerHBaseTableName = "tracker";
+  public static final String threatIntelTableName = "threat_intel";
+  public static final String enrichmentsTableName = "enrichments";
 
-  protected String templatePath = "../metron-enrichment/src/main/config/enrichment.properties.j2";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   private final List<byte[]> inputMessages = getInputMessages(sampleParsedPath);
 
   private static File geoHdfsFile;
 
   protected String fluxPath() {
-    return "../metron-enrichment/src/main/flux/enrichment/remote.yaml";
+    return "../metron-enrichment/src/main/flux/enrichment/remote-splitjoin.yaml";
   }
 
   private static List<byte[]> getInputMessages(String path){
@@ -115,13 +121,22 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
   }
 
-  @Test
-  public void test() throws Exception {
-    final String cf = "cf";
-    final String trackerHBaseTableName = "tracker";
-    final String threatIntelTableName = "threat_intel";
-    final String enrichmentsTableName = "enrichments";
-    final Properties topologyProperties = new Properties() {{
+  /**
+   * Returns the path to the topology properties template.
+   *
+   * @return The path to the topology properties template.
+   */
+  public String getTemplatePath() {
+    return "../metron-enrichment/src/main/config/enrichment-splitjoin.properties.j2";
+  }
+
+  /**
+   * Properties for the 'Split-Join' topology.
+   *
+   * @return The topology properties.
+   */
+  public Properties getTopologyProperties() {
+    return new Properties() {{
       setProperty("enrichment_workers", "1");
       setProperty("enrichment_acker_executors", "0");
       setProperty("enrichment_topology_worker_childopts", "");
@@ -142,11 +157,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
               "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"}," +
               "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}," +
               "{\"ip\":\"10.0.2.15\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}]");
-
       setProperty("threatintel_hbase_table", threatIntelTableName);
       setProperty("threatintel_hbase_cf", cf);
-
-
       setProperty("enrichment_kafka_spout_parallelism", "1");
       setProperty("enrichment_split_parallelism", "1");
       setProperty("enrichment_stellar_parallelism", "1");
@@ -155,8 +167,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("threat_intel_stellar_parallelism", "1");
       setProperty("threat_intel_join_parallelism", "1");
       setProperty("kafka_writer_parallelism", "1");
-
     }};
+  }
+
+  @Test
+  public void test() throws Exception {
+
+    final Properties topologyProperties = getTopologyProperties();
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
@@ -196,7 +213,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
             .withTopologyLocation(new File(fluxPath()))
             .withTopologyName("test")
-            .withTemplateLocation(new File(templatePath))
+            .withTemplateLocation(new File(getTemplatePath()))
             .withTopologyProperties(topologyProperties)
             .build();
 
@@ -531,7 +548,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
                     , message -> {
                       try {
                         return new HashMap<>(JSONUtils.INSTANCE.load(new String(message)
-                                , JSONUtils.MAP_SUPPLIER 
+                                , JSONUtils.MAP_SUPPLIER
                         )
                         );
                       } catch (Exception ex) {

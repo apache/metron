@@ -27,13 +27,12 @@ config:
     topology.worker.childopts: ${topology.worker.childopts}
     topology.auto-credentials: ${topology.auto-credentials}
     topology.max.spout.pending: ${topology.max.spout.pending}
-    # Change this if you want to adjust the threadpool size
-    metron.threadpool.size: "2C" # Either a number (e.g. 5) or multiple of cores (e.g. 5C = 5 times the number of cores)
-    # Change this if you want to adjust the threadpool type
-    metron.threadpool.type: "FIXED" # FIXED or WORK_STEALING
+    metron.threadpool.size: ${enrichment.threadpool.size} # Either a number (e.g. 5) or multiple of cores (e.g. 5C = 5 times the number of cores)
+    metron.threadpool.type: ${enrichment.threadpool.type} # FIXED or WORK_STEALING
+
 components:
 
-# Enrichment
+    # enrichment
     -   id: "stellarEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.stellar.StellarAdapter"
         configMethods:
@@ -41,7 +40,7 @@ components:
                 args:
                     - "ENRICHMENT"
 
-    # Any kafka props for the producer go here.
+    # any kafka props for the producer go here.
     -   id: "kafkaWriterProps"
         className: "java.util.HashMap"
         configMethods:
@@ -58,15 +57,18 @@ components:
 
     -   id: "geoEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.geo.GeoAdapter"
+
     -   id: "geoEnrichment"
         className: "org.apache.metron.enrichment.configuration.Enrichment"
         constructorArgs:
             -   "geo"
             -   ref: "geoEnrichmentAdapter"
+
     -   id: "hostEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.host.HostFromJSONListAdapter"
         constructorArgs:
             - '${enrichment.host.known_hosts}'
+
     -   id: "hostEnrichment"
         className: "org.apache.metron.enrichment.configuration.Enrichment"
         constructorArgs:
@@ -85,17 +87,20 @@ components:
             -   name: "withHBaseCF"
                 args:
                     - "${enrichment.simple.hbase.cf}"
+
     -   id: "simpleHBaseEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.simplehbase.SimpleHBaseAdapter"
         configMethods:
            -    name: "withConfig"
                 args:
                     - ref: "simpleHBaseEnrichmentConfig"
+
     -   id: "simpleHBaseEnrichment"
         className: "org.apache.metron.enrichment.configuration.Enrichment"
         constructorArgs:
           -   "hbaseEnrichment"
           -   ref: "simpleHBaseEnrichmentAdapter"
+
     -   id: "enrichments"
         className: "java.util.ArrayList"
         configMethods:
@@ -112,7 +117,7 @@ components:
                 args:
                     - ref: "stellarEnrichment"
 
-    #enrichment error
+    # enrichment error
     -   id: "enrichmentErrorKafkaWriter"
         className: "org.apache.metron.writer.kafka.KafkaWriter"
         configMethods:
@@ -123,21 +128,23 @@ components:
                 args:
                     - "${kafka.zk}"
             -   name: "withProducerConfigs"
-                args: 
+                args:
                     - ref: "kafkaWriterProps"
 
-# Threat Intel
+    # threat Intel
     -   id: "stellarThreatIntelAdapter"
         className: "org.apache.metron.enrichment.adapters.stellar.StellarAdapter"
         configMethods:
             -   name: "ofType"
                 args:
                     - "THREAT_INTEL"
+
     -   id: "stellarThreatIntelEnrichment"
         className: "org.apache.metron.enrichment.configuration.Enrichment"
         constructorArgs:
             -   "stellar"
             -   ref: "stellarThreatIntelAdapter"
+
     -   id: "simpleHBaseThreatIntelConfig"
         className: "org.apache.metron.enrichment.adapters.threatintel.ThreatIntelConfig"
         configMethods:
@@ -156,12 +163,14 @@ components:
             -   name: "withHBaseCF"
                 args:
                     - "${threat.intel.simple.hbase.cf}"
+
     -   id: "simpleHBaseThreatIntelAdapter"
         className: "org.apache.metron.enrichment.adapters.threatintel.ThreatIntelAdapter"
         configMethods:
            -    name: "withConfig"
                 args:
                     - ref: "simpleHBaseThreatIntelConfig"
+
     -   id: "simpleHBaseThreatIntelEnrichment"
         className: "org.apache.metron.enrichment.configuration.Enrichment"
         constructorArgs:
@@ -178,7 +187,7 @@ components:
                 args:
                     - ref: "stellarThreatIntelEnrichment"
 
-    #threatintel error
+    # threatintel error
     -   id: "threatIntelErrorKafkaWriter"
         className: "org.apache.metron.writer.kafka.KafkaWriter"
         configMethods:
@@ -189,9 +198,9 @@ components:
                 args:
                     - "${kafka.zk}"
             -   name: "withProducerConfigs"
-                args: 
+                args:
                     - ref: "kafkaWriterProps"
-#indexing
+    # indexing
     -   id: "kafkaWriter"
         className: "org.apache.metron.writer.kafka.KafkaWriter"
         configMethods:
@@ -202,11 +211,11 @@ components:
                 args:
                     - "${kafka.zk}"
             -   name: "withProducerConfigs"
-                args: 
+                args:
                     - ref: "kafkaWriterProps"
 
-#kafka/zookeeper
-    # Any kafka props for the consumer go here.
+    # kafka/zookeeper
+    # any kafka props for the consumer go here.
     -   id: "kafkaProps"
         className: "java.util.HashMap"
         configMethods:
@@ -228,7 +237,7 @@ components:
                   - "${kafka.security.protocol}"
 
 
-  # The fields to pull out of the kafka messages
+    # the fields to pull out of the kafka messages
     -   id: "fields"
         className: "java.util.ArrayList"
         configMethods:
@@ -251,6 +260,7 @@ components:
 
 
 spouts:
+
     -   id: "kafkaSpout"
         className: "org.apache.metron.storm.kafka.flux.StormKafkaSpout"
         constructorArgs:
@@ -258,7 +268,8 @@ spouts:
         parallelism: ${kafka.spout.parallelism}
 
 bolts:
-# Enrichment Bolts
+
+    # enrichment bolt
     -   id: "enrichmentBolt"
         className: "org.apache.metron.enrichment.bolt.UnifiedEnrichmentBolt"
         constructorArgs:
@@ -268,7 +279,7 @@ bolts:
                 args:
                     - ref: "enrichments"
             -   name: "withMaxCacheSize"
-                args: [${enrichment.join.cache.size}]
+                args: [${enrichment.cache.size}]
             -   name: "withMaxTimeRetain"
                 args: [10]
             -   name: "withCaptureCacheStats"
@@ -278,7 +289,7 @@ bolts:
                     - "ENRICHMENT"
             -   name: "withMessageGetter"
                 args: ["JSON_FROM_POSITION"]
-        parallelism: ${enrichment.join.parallelism}
+        parallelism: ${enrichment.parallelism}
 
     -   id: "enrichmentErrorOutputBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
@@ -290,7 +301,7 @@ bolts:
                     - ref: "enrichmentErrorKafkaWriter"
 
 
-# Threat Intel Bolts
+    # threat intel bolts
     -   id: "threatIntelBolt"
         className: "org.apache.metron.enrichment.bolt.UnifiedEnrichmentBolt"
         constructorArgs:
@@ -300,7 +311,7 @@ bolts:
                 args:
                     - ref: "threatIntels"
             -   name: "withMaxCacheSize"
-                args: [${enrichment.join.cache.size}]
+                args: [${threat.intel.cache.size}]
             -   name: "withMaxTimeRetain"
                 args: [10]
             -   name: "withCaptureCacheStats"
@@ -312,7 +323,7 @@ bolts:
                 args: ["message"]
             -   name: "withMessageGetter"
                 args: ["JSON_FROM_FIELD_BY_REFERENCE"]
-        parallelism: ${threat.intel.join.parallelism}
+        parallelism: ${threat.intel.parallelism}
 
     -   id: "threatIntelErrorOutputBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
@@ -323,7 +334,7 @@ bolts:
                 args:
                     - ref: "threatIntelErrorKafkaWriter"
 
-# Indexing Bolts
+    # output bolt
     -   id: "outputBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
@@ -334,16 +345,16 @@ bolts:
                     - ref: "kafkaWriter"
         parallelism: ${kafka.writer.parallelism}
 
-
 streams:
-#parser
+
+    # parser
     -   name: "spout -> enrichmentBolt"
         from: "kafkaSpout"
         to: "enrichmentBolt"
         grouping:
             type: LOCAL_OR_SHUFFLE
 
-    # Error output
+    # error output
     -   name: "enrichmentBolt -> enrichmentErrorOutputBolt"
         from: "enrichmentBolt"
         to: "enrichmentErrorOutputBolt"
@@ -351,7 +362,7 @@ streams:
             streamId: "error"
             type: LOCAL_OR_SHUFFLE
 
-#threat intel
+    # threat intel
     -   name: "enrichmentBolt -> threatIntelBolt"
         from: "enrichmentBolt"
         to: "threatIntelBolt"
@@ -359,7 +370,7 @@ streams:
             streamId: "message"
             type: LOCAL_OR_SHUFFLE
 
-#output
+    # output
     -   name: "threatIntelBolt -> output"
         from: "threatIntelBolt"
         to: "outputBolt"
@@ -367,12 +378,10 @@ streams:
             streamId: "message"
             type: LOCAL_OR_SHUFFLE
 
-    # Error output
+    # error output
     -   name: "threatIntelBolt -> threatIntelErrorOutputBolt"
         from: "threatIntelBolt"
         to: "threatIntelErrorOutputBolt"
         grouping:
             streamId: "error"
             type: LOCAL_OR_SHUFFLE
-
-
