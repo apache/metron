@@ -20,7 +20,6 @@
 package org.apache.metron.common.configuration.profiler;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.utils.JSONUtils;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -48,14 +47,41 @@ public class ProfilerConfigTest {
    * }
    */
   @Multiline
+  private String profile;
+
+  /**
+   * Tests deserializing the Profiler configuration using the fromJSON(...) method.
+   */
+  @Test
+  public void testFromJSON() throws IOException {
+    ProfilerConfig conf = ProfilerConfig.fromJSON(profile);
+
+    assertFalse(conf.getTimestampField().isPresent());
+    assertEquals(1, conf.getProfiles().size());
+  }
+
+  /**
+   * {
+   *   "profiles": [
+   *      {
+   *        "profile": "profile1",
+   *        "foreach": "ip_src_addr",
+   *        "init":   { "count": "0" },
+   *        "update": { "count": "count + 1" },
+   *        "result":   "count"
+   *      }
+   *   ]
+   * }
+   */
+  @Multiline
   private String noTimestampField;
 
   /**
    * If no 'timestampField' is defined, it should not be present by default.
    */
   @Test
-  public void testNoTimestampField() throws IOException {
-    ProfilerConfig conf = JSONUtils.INSTANCE.load(noTimestampField, ProfilerConfig.class);
+  public void testFromJSONWithNoTimestampField() throws IOException {
+    ProfilerConfig conf = ProfilerConfig.fromJSON(noTimestampField);
     assertFalse(conf.getTimestampField().isPresent());
   }
 
@@ -77,11 +103,12 @@ public class ProfilerConfigTest {
   private String timestampField;
 
   /**
-   * If no 'timestampField' is defined, it should not be present by default.
+   * Tests deserializing the Profiler configuration when the timestamp field is defined.
    */
   @Test
-  public void testTimestampField() throws IOException {
-    ProfilerConfig conf = JSONUtils.INSTANCE.load(timestampField, ProfilerConfig.class);
+  public void testFromJSONWithTimestampField() throws IOException {
+    ProfilerConfig conf = ProfilerConfig.fromJSON(timestampField);
+
     assertTrue(conf.getTimestampField().isPresent());
   }
 
@@ -108,13 +135,75 @@ public class ProfilerConfigTest {
   @Multiline
   private String twoProfiles;
 
-  /**
-   * The 'onlyif' field should default to 'true' when it is not specified.
-   */
   @Test
-  public void testTwoProfiles() throws IOException {
-    ProfilerConfig conf = JSONUtils.INSTANCE.load(twoProfiles, ProfilerConfig.class);
+  public void testFromJSONTwoProfiles() throws IOException {
+    ProfilerConfig conf = ProfilerConfig.fromJSON(twoProfiles);
+
     assertEquals(2, conf.getProfiles().size());
+    assertFalse(conf.getTimestampField().isPresent());
   }
 
+  /**
+   * Tests serializing the Profiler configuration to JSON.
+   */
+  @Test
+  public void testToJSON() throws Exception {
+
+    // setup a profiler config to serialize
+    ProfilerConfig expected = ProfilerConfig.fromJSON(profile);
+
+    // execute the test - serialize the config
+    String asJson = expected.toJSON();
+
+    // validate - deserialize to validate
+    ProfilerConfig actual = ProfilerConfig.fromJSON(asJson);
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * {
+   *   "profiles": [
+   *      {
+   *        "profile": "profile1",
+   *        "foreach": "ip_src_addr",
+   *        "init":   { "count": "0" },
+   *        "update": { "count": "count + 1" },
+   *        "result": {
+   *          "profile": "count",
+   *          "triage" : { "count": "count" }
+   *        }
+   *      }
+   *   ]
+   * }
+   */
+  @Multiline
+  private String profileWithTriageExpression;
+
+  @Test
+  public void testToJSONWithTriageExpression() throws Exception {
+
+    // setup a profiler config to serialize
+    ProfilerConfig expected = ProfilerConfig.fromJSON(profileWithTriageExpression);
+
+    // execute the test - serialize the config
+    String asJson = expected.toJSON();
+
+    // validate - deserialize to validate
+    ProfilerConfig actual = ProfilerConfig.fromJSON(asJson);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testToJSONWithTwoProfiles() throws Exception {
+
+    // setup a profiler config to serialize
+    ProfilerConfig expected = ProfilerConfig.fromJSON(twoProfiles);
+
+    // execute the test - serialize the config
+    String asJson = expected.toJSON();
+
+    // validate - deserialize to validate
+    ProfilerConfig actual = ProfilerConfig.fromJSON(asJson);
+    assertEquals(expected, actual);
+  }
 }
