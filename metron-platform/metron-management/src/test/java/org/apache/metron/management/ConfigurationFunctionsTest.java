@@ -43,13 +43,15 @@ import java.util.Map;
 
 import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
 import static org.apache.metron.TestConstants.SAMPLE_CONFIG_PATH;
+import static org.apache.metron.common.configuration.ConfigurationType.GLOBAL;
+import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
 import static org.apache.metron.common.configuration.ConfigurationsUtils.writeProfilerConfigToZookeeper;
 import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests the ConfigurationFunctions class.
@@ -57,14 +59,15 @@ import static org.junit.Assert.assertNotNull;
 public class ConfigurationFunctionsTest {
 
   private static TestingServer testZkServer;
+  private static String zookeeperUrl;
   private static CuratorFramework client;
-  private Context context;
-  private JSONParser parser;
-
   private static String goodGlobalConfig = slurp( SAMPLE_CONFIG_PATH+ "/global.json");
   private static String goodTestEnrichmentConfig = slurp( SAMPLE_CONFIG_PATH + "/enrichments/test.json");
   private static String goodBroParserConfig = slurp(PARSER_CONFIGS_PATH + "/parsers/bro.json");
   private static String goodTestIndexingConfig = slurp( SAMPLE_CONFIG_PATH + "/indexing/test.json");
+
+  private Context context;
+  private JSONParser parser;
 
   /**
    * {
@@ -88,11 +91,21 @@ public class ConfigurationFunctionsTest {
 
     // zookeeper server
     testZkServer = new TestingServer(true);
-    String zookeeperUrl = testZkServer.getConnectString();
+    zookeeperUrl = testZkServer.getConnectString();
 
     // zookeeper client
     client = ConfigurationsUtils.getClient(zookeeperUrl);
     client.start();
+  }
+
+  @Before
+  public void setup() throws Exception {
+
+    context = new Context.Builder()
+            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+            .build();
+
+    parser = new JSONParser();
 
     // push configs to zookeeper
     pushConfigs(SAMPLE_CONFIG_PATH, zookeeperUrl);
@@ -100,14 +113,14 @@ public class ConfigurationFunctionsTest {
     writeProfilerConfigToZookeeper(goodProfilerConfig.getBytes(), client);
   }
 
-  @Before
-  public void setup() {
-
-    context = new Context.Builder()
-            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
-            .build();
-
-    parser = new JSONParser();
+  /**
+   * Deletes a path within Zookeeper.
+   *
+   * @param path The path within Zookeeper to delete.
+   * @throws Exception
+   */
+  private void deletePath(String path) throws Exception {
+    client.delete().forPath(path);
   }
 
   /**
@@ -294,6 +307,42 @@ public class ConfigurationFunctionsTest {
     assertEquals(expected, actual);
   }
 
+  /**
+   * No default configuration should be provided in this case.
+   */
+  @Test
+  public void testGetProfilerMissWithoutDefault() throws Exception {
+
+    deletePath(PROFILER.getZookeeperRoot());
+
+    // expect null because emptyIfNotPresent = false
+    String out = (String) run("CONFIG_GET('PROFILER', false)", context);
+    assertNull(out);
+  }
+
+  /**
+   * A default empty configuration should be provided, if one does not exist.
+   */
+  @Test
+  public void testGetProfilerMissWithDefault() throws Exception {
+
+    // there is no profiler config in zookeeper
+    deletePath(PROFILER.getZookeeperRoot());
+
+    // expect an empty configuration to be returned
+    ProfilerConfig expected = new ProfilerConfig();
+    {
+      String out = (String) run("CONFIG_GET('PROFILER', true)", context);
+      ProfilerConfig actual = ProfilerConfig.fromJSON(out);
+      assertEquals(expected, actual);
+    }
+    {
+      String out = (String) run("CONFIG_GET('PROFILER')", context);
+      ProfilerConfig actual = ProfilerConfig.fromJSON(out);
+      assertEquals(expected, actual);
+    }
+  }
+
   @Test
   public void testGetGlobal() throws Exception {
 
@@ -302,6 +351,43 @@ public class ConfigurationFunctionsTest {
     Map<String, Object> actual = toJSONObject(out);
     Map<String, Object> expected = toJSONObject(goodGlobalConfig);
     assertEquals(expected, actual);
+  }
+
+  /**
+   * No default configuration should be provided in this case.
+   */
+  @Test
+  public void testGetGlobalMissWithoutDefault() throws Exception {
+
+    // there is no global config in zookeeper
+    deletePath(GLOBAL.getZookeeperRoot());
+
+    // expect null because emptyIfNotPresent = false
+    Object out = run("CONFIG_GET('GLOBAL', false)", context);
+    assertNull(out);
+  }
+
+  /**
+   * A default empty configuration should be provided, if one does not exist.
+   */
+  @Test
+  public void testGetGlobalMissWithDefault() throws Exception {
+
+    // there is no global config in zookeeper
+    deletePath(GLOBAL.getZookeeperRoot());
+
+    // expect an empty configuration to be returned
+    Map<String, Object> expected = Collections.emptyMap();
+    {
+      String out = (String) run("CONFIG_GET('GLOBAL')", context);
+      Map<String, Object> actual = toJSONObject(out);
+      assertEquals(expected, actual);
+    }
+    {
+      String out = (String) run("CONFIG_GET('GLOBAL', true)", context);
+      Map<String, Object> actual = toJSONObject(out);
+      assertEquals(expected, actual);
+    }
   }
 
   @Test

@@ -298,9 +298,13 @@ public class ConfigurationFunctions {
     private boolean emptyIfNotPresent(List<Object> args) {
 
       boolean emptyIfNotPresent = true;
-      if(args.size() >= 3) {
-        emptyIfNotPresent = getArg(2, Boolean.class, args);
+      int lastIndex = args.size() - 1;
+
+      // expect 'emptyIfNotPresent' to always be the last boolean arg
+      if(args.size() >= 2 && args.get(lastIndex) instanceof Boolean) {
+        emptyIfNotPresent = getArg(lastIndex, Boolean.class, args);
       }
+
       return emptyIfNotPresent;
     }
 

@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
@@ -246,9 +247,10 @@ public class ConfigurationsUtils {
   public static Map<String, Object> readGlobalConfigFromZookeeper(CuratorFramework client) throws Exception {
     Map<String, Object> config = null;
 
-    byte[] bytes = readGlobalConfigBytesFromZookeeper(client);
-    if(bytes != null) {
-      config = JSONUtils.INSTANCE.load(new ByteArrayInputStream(bytes), JSONUtils.MAP_SUPPLIER);
+    Optional<byte[]> bytes = readFromZookeeperSafely(GLOBAL.getZookeeperRoot(), client);
+    if(bytes.isPresent()) {
+      InputStream in = new ByteArrayInputStream(bytes.get());
+      config = JSONUtils.INSTANCE.load(in, JSONUtils.MAP_SUPPLIER);
     }
 
     return config;
@@ -267,7 +269,8 @@ public class ConfigurationsUtils {
 
     Optional<byte[]> bytes = readFromZookeeperSafely(INDEXING.getZookeeperRoot() + "/" + sensorType, client);
     if(bytes.isPresent()) {
-      config = JSONUtils.INSTANCE.load(new ByteArrayInputStream(bytes.get()), JSONUtils.MAP_SUPPLIER);
+      InputStream in = new ByteArrayInputStream(bytes.get());
+      config = JSONUtils.INSTANCE.load(in, JSONUtils.MAP_SUPPLIER);
     }
 
     return config;
