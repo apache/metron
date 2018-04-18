@@ -16,9 +16,9 @@ export class PcapPanelComponent implements OnInit {
   
   @Input() pcapRequest: PcapRequest;
 
-  private statusSubscription: Subscription;
-  private queryRunning: boolean = false;
-  private progressWidth: number = 0;
+  statusSubscription: Subscription;
+  queryRunning: boolean = false;
+  progressWidth: number = 0;
   
   constructor(private pcapService: PcapService ) { }
 

@@ -20,6 +20,9 @@
   //public $: any[]
     public name: string;
   public fields?: PdmlField[]
+  public show: string;
+  public value: string;
+  public showname: string;
 }
 
 export class PdmlProto {
