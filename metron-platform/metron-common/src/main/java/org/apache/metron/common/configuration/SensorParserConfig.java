@@ -48,8 +48,6 @@ public class SensorParserConfig implements Serializable {
   private Map<String, Object> spoutConfig = new HashMap<>();
   private String securityProtocol = null;
   private Map<String, Object> stormConfig = new HashMap<>();
-  private Map<String, Object> parserConfig = new HashMap<>();
-  private List<FieldTransformer> fieldTransformations = new ArrayList<>();
 
   /**
    * Return the number of workers for the topology.  This property will be used for the parser unless overridden on the CLI.
@@ -230,6 +228,8 @@ public class SensorParserConfig implements Serializable {
   public void setWriterClassName(String classNames) {
     this.writerClassName = classNames;
   }
+  private Map<String, Object> parserConfig = new HashMap<>();
+  private List<FieldTransformer> fieldTransformations = new ArrayList<>();
 
   public List<FieldTransformer> getFieldTransformations() {
     return fieldTransformations;
