@@ -107,14 +107,14 @@ by Ambari:
 
 ## Adding a new property
 1. Add the property to the appropriate `*-env.xml` file found in `METRON.CURRENT/configuration`.
-  ```
+    ```
     <property>
         <name>new_property</name>
         <description>New Property description</description>
         <value>Default Value</value>
         <display-name>New Property Pretty Name</display-name>
     </property>
-  ```
+    ```
 The appropriate `*-env.xml` file should be selected based on which component depends on the property. This allows Ambari to accurately restart only the affected components when the property is changed. If a property is in `metron-env.xml`, Ambari will prompt you to restart all Metron components.
 
 2. Add the property to the `metron_theme.json` file found in `METRON.CURRENT/themes` if the property was added to a component-specific `*-env.xml` file (`metron-parsers-env.xml` for example) and not `metron-env.xml`.
@@ -122,28 +122,28 @@ This is necessary for the property to be displayed in the correct tab of the Met
 
 3. Reference the property in `METRON.CURRENT/package/scriptes/params/params_linux.py`, unless it will be used in Ambari's status command. It will be stored in a variable. The name doesn't have to match, but it's preferred that it does.
 Make sure to use replace `metron-env` the correct `*-env` file, as noted above.
-  ```
-  new_property = config['configurations']['metron-env']['new_property']
-  ```
-If this property will be used in the status command, instead make this change in `METRON.CURRENT/package/scriptes/params/status_params.py`.
-Afterwards, in `params_linux.py`, reference the new property:
-  ```
-  new_property = status_params.new_property
-  ```
-This behavior is because Ambari doesn't send all parameters to the status, so it needs to be explicitly provided. Also note that status_params.py parameters are not automatically pulled into the params_linux.py namespace, so we explicitly choose the variables to include.
+    ```
+    new_property = config['configurations']['metron-env']['new_property']
+    ```
+  If this property will be used in the status command, instead make this change in `METRON.CURRENT/package/scriptes/params/status_params.py`.
+  Afterwards, in `params_linux.py`, reference the new property:
+    ```
+    new_property = status_params.new_property
+    ```
+  This behavior is because Ambari doesn't send all parameters to the status, so it needs to be explicitly provided. Also note that status_params.py parameters are not automatically pulled into the params_linux.py namespace, so we explicitly choose the variables to include.
  See https://docs.python.org/2/howto/doanddont.html#at-module-level for more info.
 
 4. Ambari master services can then import the params:
 
-  ```
-  from params import params
-  env.set_params(params)
-  ```
+    ```
+    from params import params
+    env.set_params(params)
+    ```
 
 5. The `*_commands.py` files receive the params as an input from the master services. Once this is done, they can be accessed via the variable we set above:
-  ```
-  self.__params.new_property
-  ```
+    ```
+    self.__params.new_property
+    ```
 
 
 ### Env file property walkthrough
@@ -391,9 +391,9 @@ The steps to update, for anything affecting an Ambari agent node, e.g. setup scr
 1. Edit the file(s) with your changes. The ambari-agent file must be edited, but generally better to update both for consistency.
 1. Restart the Ambari Agent to get the cache to pick up the modified file
 
-  ```
-  ambari-agent restart
-  ```
+    ```
+    ambari-agent restart
+    ```
 1. Start Metron through Ambari if it was stopped.
 
 ### Reinstalling the mpack
@@ -402,18 +402,18 @@ After we've modified files in Ambari and the mpack is working, it is a good idea
 1. Stop Metron through Ambari and remove the Metron service
 1. Rebuild the mpack on your local machine and deploy it to Vagrant, ensuring that all changes made directly to files in Ambari were also made in your local environment
 
-  ```
-  cd metron-deployment
-  mvn clean package
-  scp packaging/ambari/metron-mpack/target/metron_mpack-0.4.0.0.tar.gz root@node1:~
-  ```
+    ```
+    cd metron-deployment
+    mvn clean package
+    scp packaging/ambari/metron-mpack/target/metron_mpack-0.4.0.0.tar.gz root@node1:~
+    ```
 1. Log in to Vagrant, deploy the mpack and restart Ambari
 
-  ```
-  ssh root@node1
-  ambari-server install-mpack --mpack=metron_mpack-0.4.0.0.tar.gz --verbose --force
-  ambari-server restart
-  ```
+    ```
+    ssh root@node1
+    ambari-server install-mpack --mpack=metron_mpack-0.4.0.0.tar.gz --verbose --force
+    ambari-server restart
+    ```
 1. Install the mpack through Ambari as you normally would
 
 1. The same steps can be followed for Elasticsearch and Kibana by similary deploying the ES MPack located in elasticsearch-mpack/target.
@@ -454,21 +454,21 @@ The `security_enabled` param is already made available, along with appropriate k
 * Write scripts to be idempotent. The pattern currently used is to write a file out when a task is finished, e.g. setting up ACLs or tables.
 For example, when indexing is configured, a file is written out and checked based on a property.
 
-  ```
-  def set_configured(self):
-      File(self.__params.indexing_configured_flag_file,
-           content="",
-           owner=self.__params.metron_user,
-           mode=0755)
-  ```
-This is checked in the indexing master
+    ```
+    def set_configured(self):
+        File(self.__params.indexing_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0755)
+    ```
+  This is checked in the indexing master
 
-  ```
-  if not commands.is_configured():
-      commands.init_kafka_topics()
-      commands.init_hdfs_dir()
-      commands.set_configured()
-  ```
+    ```
+    if not commands.is_configured():
+        commands.init_kafka_topics()
+        commands.init_hdfs_dir()
+        commands.set_configured()
+    ```
 
 * Ensure ACLs are properly managed. This includes Kafka and HBase. Often this involves a config file written out as above because this isn't idempotent!
   * Make sure to `kinit` as the correct user for setting up ACLs in a secured cluster. This is usually kafka for Kafka and hbase for HBase.
@@ -515,22 +515,22 @@ The main steps for upgrading a service are split into add-on and common services
 
 1. Update metainfo.xml
 
-   Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
+    Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
 
-   ```
-   <version>5.6.2</version>
-   ...
-   <osSpecifics>
-       <osSpecific>
-           <osFamily>any</osFamily>
-           <packages>
-               <package>
-                   <name>elasticsearch-5.6.2</name>
-               </package>
-           </packages>
-       </osSpecific>
-   </osSpecifics>
-   ```
+    ```
+    <version>5.6.2</version>
+    ...
+    <osSpecifics>
+        <osSpecific>
+            <osFamily>any</osFamily>
+            <packages>
+                <package>
+                    <name>elasticsearch-5.6.2</name>
+                </package>
+            </packages>
+        </osSpecific>
+    </osSpecifics>
+    ```
 
 #### Update Add-on Services
 
@@ -560,14 +560,14 @@ The main steps for upgrading a service are split into add-on and common services
 
 1. Update metainfo.xml
 
-   Change the version number in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`.
-   Also make sure to update the "extends" version to point to the updated common-services version, e.g.
+  Change the version number in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`.
+  Also make sure to update the "extends" version to point to the updated common-services version, e.g.
 
-   ```
-   <name>ELASTICSEARCH</name>
-   <version>5.6.2</version>
-   <extends>common-services/ELASTICSEARCH/5.6.2</extends>
-   ```
+    ```
+    <name>ELASTICSEARCH</name>
+    <version>5.6.2</version>
+    <extends>common-services/ELASTICSEARCH/5.6.2</extends>
+    ```
 
 #### Update mpack.json
 
@@ -610,16 +610,16 @@ The main steps for upgrading a service are split into add-on and common services
 
    Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
 
-   ```
-   <version>5.6.2</version>
-   ...
-   <packages>
-       ...
-       <package>
-           <name>kibana-5.6.2</name>
-       </package>
-   </packages>
-   ```
+    ```
+    <version>5.6.2</version>
+    ...
+    <packages>
+        ...
+        <package>
+            <name>kibana-5.6.2</name>
+        </package>
+    </packages>
+    ```
 
 #### Update Add-on Services
 
@@ -659,11 +659,11 @@ The main steps for upgrading a service are split into add-on and common services
 
    Change the version number in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`.
    Also make sure to update the "extends" version to point to the updated common-services version, e.g.
-   ```
-   <name>KIBANA</name>
-   <version>5.6.2</version>
-   <extends>common-services/KIBANA/5.6.2</extends>
-   ```
+    ```
+    <name>KIBANA</name>
+    <version>5.6.2</version>
+    <extends>common-services/KIBANA/5.6.2</extends>
+    ```
 
 #### Update mpack.json
 
