@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
@@ -350,5 +351,10 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     List<SearchResult> results = response.getResults();
     Assert.assertEquals("bro", results.get(0).getSource().get("source:type"));
     Assert.assertEquals("data 1", results.get(0).getSource().get("duplicate_name_field"));
+  }
+
+  @Override
+  protected String getSourceTypeField() {
+    return Constants.SENSOR_TYPE.replace('.', ':');
   }
 }

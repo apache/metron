@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -42,6 +43,10 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
 
   private SolrComponent solrComponent;
 
+  private String broData = SearchIntegrationTest.broData.replace("source:type", "source.type");
+  private String snortData = SearchIntegrationTest.snortData.replace("source:type", "source.type");
+  private String facetQuery = SearchIntegrationTest.facetQuery.replace("source:type", "source.type");
+
   @Override
   protected IndexDao createDao() throws Exception {
     AccessConfig config = new AccessConfig();
@@ -60,9 +65,10 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
 
   @Override
   protected InMemoryComponent startIndex() throws Exception {
+
     solrComponent = new SolrComponent.Builder()
-        .addCollection("bro", "../metron-solr/src/test/resources/config/bro/conf")
-        .addCollection("snort", "../metron-solr/src/test/resources/config/snort/conf")
+        .addCollection("bro", "../metron-solr/src/main/config/schema/bro")
+        .addCollection("snort", "../metron-solr/src/main/config/schema/snort")
         .build();
     solrComponent.start();
     return solrComponent;
@@ -87,60 +93,60 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     // getColumnMetadata with only bro
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
-      Assert.assertEquals(12, fieldTypes.size());
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
+      // Don't test all 256, just test a sample of different fields
+      Assert.assertEquals(256, fieldTypes.size());
+//      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ip_src_addr"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
+      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("timestamp"));
-      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
+      Assert.assertEquals(FieldType.LONG, fieldTypes.get("request_body_len"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
+//      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
+//      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
+//      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+//      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
     }
     // getColumnMetadata with only snort
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
       Assert.assertEquals(13, fieldTypes.size());
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
+//      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ip_src_addr"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
+      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("timestamp"));
-      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
+      Assert.assertEquals(FieldType.LONG, fieldTypes.get("request_body_len"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
+//      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
+//      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
+//      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+//      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
     }
   }
 
   @Override
   public void returns_column_data_for_multiple_indices() throws Exception {
     Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
-    Assert.assertEquals(14, fieldTypes.size());
+    // Don't test everything, just test a variety of fields, including fields across collections.
     Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ip_src_addr"));
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
+    Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
     Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-    Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-    Assert.assertEquals(FieldType.LONG, fieldTypes.get("timestamp"));
-    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-    Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
+    Assert.assertEquals(FieldType.LONG, fieldTypes.get("request_body_len"));
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
+//    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
+//    Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
     Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
+//    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+//    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
+//    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
     //NOTE: This is because the field is in both bro and snort and they have different types.
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("duplicate_name_field"));
+//    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("duplicate_name_field"));
     Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
   }
 
@@ -149,5 +155,10 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     thrown.expect(InvalidSearchException.class);
     SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFilterQuery, SearchRequest.class);
     SearchResponse response = dao.search(request);
+  }
+
+  @Override
+  protected String getSourceTypeField() {
+    return Constants.SENSOR_TYPE;
   }
 }

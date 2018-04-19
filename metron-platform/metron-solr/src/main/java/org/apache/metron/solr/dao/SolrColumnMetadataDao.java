@@ -49,6 +49,7 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
     fieldTypeMap.put("pfloat", FieldType.FLOAT);
     fieldTypeMap.put("pdouble", FieldType.DOUBLE);
     fieldTypeMap.put("boolean", FieldType.BOOLEAN);
+    fieldTypeMap.put("ip", FieldType.IP);
     solrTypeMap = Collections.unmodifiableMap(fieldTypeMap);
   }
 
@@ -121,4 +122,6 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
   private FieldType toFieldType(String type) {
     return solrTypeMap.getOrDefault(type, FieldType.OTHER);
   }
+
+
 }

@@ -494,11 +494,11 @@ public abstract class SearchIntegrationTest {
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(10, results.size());
     for(int i = 0;i < 5;++i) {
-      Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
+      Assert.assertEquals("snort", results.get(i).getSource().get(getSourceTypeField()));
       Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
     for (int i = 5; i < 10; ++i) {
-      Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
+      Assert.assertEquals("bro", results.get(i).getSource().get(getSourceTypeField()));
       Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
   }
@@ -509,7 +509,7 @@ public abstract class SearchIntegrationTest {
     Optional<Map<String, Object>> response = dao.getLatestResult(request);
     Assert.assertTrue(response.isPresent());
     Map<String, Object> doc = response.get();
-    Assert.assertEquals("bro", doc.get("source:type"));
+    Assert.assertEquals("bro", doc.get(getSourceTypeField()));
     Assert.assertEquals("3", doc.get("timestamp").toString());
   }
 
@@ -524,8 +524,8 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(2, docs.size());
     Assert.assertTrue(docs.keySet().contains("bro_1"));
     Assert.assertTrue(docs.keySet().contains("snort_2"));
-    Assert.assertEquals("bro", docs.get("bro_1").getDocument().get("source:type"));
-    Assert.assertEquals("snort", docs.get("snort_2").getDocument().get("source:type"));
+    Assert.assertEquals("bro", docs.get("bro_1").getDocument().get(getSourceTypeField()));
+    Assert.assertEquals("snort", docs.get("snort_2").getDocument().get(getSourceTypeField()));
   }
 
   @Test
@@ -534,11 +534,11 @@ public abstract class SearchIntegrationTest {
     SearchResponse response = dao.search(request);
     Assert.assertEquals(3, response.getTotal());
     List<SearchResult> results = response.getResults();
-    Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
+    Assert.assertEquals("snort", results.get(0).getSource().get(getSourceTypeField()));
     Assert.assertEquals("9", results.get(0).getSource().get("timestamp").toString());
-    Assert.assertEquals("snort", results.get(1).getSource().get("source:type"));
+    Assert.assertEquals("snort", results.get(1).getSource().get(getSourceTypeField()));
     Assert.assertEquals("7", results.get(1).getSource().get("timestamp").toString());
-    Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
+    Assert.assertEquals("bro", results.get(2).getSource().get(getSourceTypeField()));
     Assert.assertEquals("1", results.get(2).getSource().get("timestamp").toString());
   }
 
@@ -596,11 +596,11 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(3, results.size());
-    Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
+    Assert.assertEquals("snort", results.get(0).getSource().get(getSourceTypeField()));
     Assert.assertEquals("6", results.get(0).getSource().get("timestamp").toString());
-    Assert.assertEquals("bro", results.get(1).getSource().get("source:type"));
+    Assert.assertEquals("bro", results.get(1).getSource().get(getSourceTypeField()));
     Assert.assertEquals("5", results.get(1).getSource().get("timestamp").toString());
-    Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
+    Assert.assertEquals("bro", results.get(2).getSource().get(getSourceTypeField()));
     Assert.assertEquals("4", results.get(2).getSource().get("timestamp").toString());
   }
 
@@ -611,7 +611,7 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(5, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 5, j = 0; i > 0; i--, j++) {
-      Assert.assertEquals("bro", results.get(j).getSource().get("source:type"));
+      Assert.assertEquals("bro", results.get(j).getSource().get(getSourceTypeField()));
       Assert.assertEquals(i + "", results.get(j).getSource().get("timestamp").toString());
     }
   }
@@ -623,7 +623,7 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(10, response.getTotal());
     Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
     Assert.assertEquals(8, facetCounts.size());
-    Map<String, Long> sourceTypeCounts = facetCounts.get("source:type");
+    Map<String, Long> sourceTypeCounts = facetCounts.get(getSourceTypeField());
     Assert.assertEquals(2, sourceTypeCounts.size());
     Assert.assertEquals(new Long(5), sourceTypeCounts.get("bro"));
     Assert.assertEquals(new Long(5), sourceTypeCounts.get("snort"));
@@ -951,4 +951,5 @@ public abstract class SearchIntegrationTest {
   protected abstract IndexDao createDao() throws Exception;
   protected abstract InMemoryComponent startIndex() throws Exception;
   protected abstract void loadTestData() throws Exception;
+  protected abstract String getSourceTypeField();
 }
