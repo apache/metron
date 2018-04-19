@@ -47,9 +47,16 @@ PIDFILE="$METRON_PID_DIR/$NAME.pid"
 DAEMON="node $METRON_HOME/web/expressjs/alerts-server.js -c $METRON_HOME/config/alerts_ui.yml"
 
 #
-# start the application
+# start the rest application
 #
 start() {
+
+  # if pidfile exists, do not start another
+  if [ -f $PIDFILE ]; then
+      PID=`cat $PIDFILE`
+      printf "OK [$PID]\n"
+      return
+  fi
 
   if [ ! -d "$METRON_LOG_DIR" ]; then
       mkdir -p "$METRON_LOG_DIR" && chown "$METRON_USER":"$METRON_GROUP" "$METRON_LOG_DIR"
@@ -57,18 +64,6 @@ start() {
 
   if [ ! -d "$METRON_PID_DIR" ]; then
       mkdir -p "$METRON_PID_DIR" && chown "$METRON_USER":"$METRON_GROUP" "$METRON_PID_DIR"
-  fi
-
-  if [ -f $PIDFILE ]; then
-      PID=`cat $PIDFILE`
-      if [ kill -0 $PID >/dev/null 2>&1 ]; then
-          # process already running, do not start another
-          printf "OK [$PID]\n"
-          return
-      else
-          # clean-up old pid file and continue start
-          rm $PIDFILE
-      fi
   fi
 
   # kick-off the daemon
@@ -84,7 +79,7 @@ start() {
 }
 
 #
-# stop the application
+# stop the rest application
 #
 stop() {
   if [ -f $PIDFILE ]; then
@@ -111,7 +106,7 @@ status() {
     if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
       printf "%s\n" "Process dead but pidfile exists"
     else
-      printf "Running [$PID]\n"
+      echo "Running"
     fi
   else
     printf "%s\n" "Service not running"
