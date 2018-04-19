@@ -134,8 +134,7 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
     if (fields.isPresent()) {
       fieldList = StringUtils.join(fields.get(), ",");
     }
-    String childClause = fieldList + ",[child parentFilter=" + MetaAlertConstants.STATUS_FIELD + ":"
-        + MetaAlertStatus.ACTIVE.getStatusString() + "]";
+    String childClause = fieldList + ",[child parentFilter=*:*]";
 
     return solrSearchDao.search(searchRequest, childClause);
   }
