@@ -49,7 +49,7 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
   @Override
   protected InMemoryComponent startIndex() throws Exception {
-    solrComponent = new SolrComponent.Builder().addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf").build();
+    solrComponent = new SolrComponent.Builder().addCollection(SENSOR_NAME, "../metron-solr/src/main/config/schema/bro").build();
     solrComponent.start();
     return solrComponent;
   }

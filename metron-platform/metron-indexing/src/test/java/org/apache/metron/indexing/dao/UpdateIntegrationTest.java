@@ -46,6 +46,7 @@ public abstract class UpdateIntegrationTest {
   private static String index;
   private static MockHTable table;
   private static IndexDao hbaseDao;
+  private static AccessConfig accessConfig;
 
   protected static MultiIndexDao dao;
   protected static InMemoryComponent indexComponent;
@@ -62,7 +63,7 @@ public abstract class UpdateIntegrationTest {
       table = (MockHTable)tableProvider.getTable(config, TABLE_NAME);
 
       hbaseDao = new HBaseDao();
-      AccessConfig accessConfig = new AccessConfig();
+      accessConfig = new AccessConfig();
       accessConfig.setTableProvider(tableProvider);
       Map<String, Object> globalConfig = createGlobalConfig();
       globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
@@ -179,6 +180,28 @@ public abstract class UpdateIntegrationTest {
         Assert.assertNotEquals("Elasticsearch is not updated!", cnt, 0);
       }
     }
+  }
+
+  @Test
+  public void suppress_expanded_fields() throws Exception {
+    dao = new MultiIndexDao(createDao());
+    dao.init(accessConfig);
+
+    Map<String, Object> fields = new HashMap<>();
+    fields.put("guid", "bro_1");
+    fields.put("source.type", SENSOR_NAME);
+    fields.put("ip_src_port", 8010);
+    fields.put("long_field", 10000);
+    fields.put("latitude", 48.5839);
+    fields.put("score", 10.0);
+    fields.put("is_alert", true);
+    fields.put("field.location_point", "48.5839,7.7455");
+
+    Document document = new Document(fields, "bro_1", SENSOR_NAME, 0L);
+    dao.update(document, Optional.of(SENSOR_NAME));
+
+    Document indexedDocument = dao.getLatest("bro_1", SENSOR_NAME);
+    Assert.assertEquals(8, indexedDocument.getDocument().size());
   }
 
   @AfterClass
