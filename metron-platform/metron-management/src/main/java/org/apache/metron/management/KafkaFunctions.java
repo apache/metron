@@ -18,73 +18,114 @@
 
 package org.apache.metron.management;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.metron.common.system.Clock;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 
 /**
- * Kafka functions available in Stellar.
+ * Defines the following Kafka-related functions available in Stellar.
  *
- * KAFKA_GET
- * KAFKA_TAIL
- * KAFKA_PUT
- * KAFKA_PROPS
+ *  KAFKA_GET
+ *  KAFKA_PUT
+ *  KAFKA_TAIL
+ *  KAFKA_PROPS
  */
 public class KafkaFunctions {
 
-  /**
-   * How long to wait on each poll request in milliseconds.  There will be multiple
-   * poll requests, each waiting this period of time.  The maximum amount of time
-   * that the user is willing to wait for a message will be some multiple of this value.
-   */
-  private static final int POLL_TIMEOUT = 1000;
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * The key for the property that defines the maximum amount of time
    * to wait to receive messages.
    */
-  private static final String MAX_WAIT_PROPERTY = "stellar.kafka.max.wait";
+  public static final String POLL_TIMEOUT_PROPERTY = "stellar.kafka.poll.timeout";
 
   /**
-   * Maintaining the default Kafka properties as a static class member is
-   * critical to consumer offset management.
+   * How long to wait on each poll request in milliseconds.
    *
-   * A unique 'group.id' is generated when creating these default properties.  This
-   * value is used when storing Kafka consumer offsets.  Multiple executions of any
-   * KAFKA_* functions, within the same Stellar REPL session, must maintain the same
-   * 'group.id'.  At the same time, different Stellar REPL sessions running
-   * simultaneously should each have their own 'group.id'.
+   * <p>One each function call, there will likely be multiple poll requests, each
+   * waiting this period of time.
+   */
+  private static final int DEFAULT_POLL_TIMEOUT = 500;
+
+  /**
+   * The key for the property that defines the maximum amount of time
+   * to wait to receive messages in milliseconds.
+   */
+  public static final String MAX_WAIT_PROPERTY = "stellar.kafka.max.wait.millis";
+
+  /**
+   * The default max wait time in milliseconds.
+   */
+  public static final int DEFAULT_MAX_WAIT = 5000;
+
+  /**
+   * The default set of Kafka properties.
    */
   private static Properties defaultProperties = defaultKafkaProperties();
 
   /**
+   * A clock to tell time.
+   *
+   * Allows any functions that depend on the system clock to be more readily tested.
+   */
+  protected static Clock clock = new Clock();
+
+  /**
    * KAFKA_GET
    *
-   * Retrieves messages from a Kafka topic.  Subsequent calls will continue retrieving messages
+   * <p>Retrieves messages from a Kafka topic.  Subsequent calls will continue retrieving messages
    * sequentially from the original offset.
    *
-   * Example: Retrieve one message from a topic.
-   *  KAFKA_GET('topic')
+   * <p>Example: Retrieve one message from a topic.
+   * <pre>
+   *   {@code
+   *   KAFKA_GET('topic')
+   *   }
+   * </pre>
    *
-   * Example: Retrieve 10 messages from a topic.
-   *  KAFKA_GET('topic', 10)
+   * <p>Example: Retrieve 10 messages from a topic.
+   * <pre>
+   *   {@code
+   *   KAFKA_GET('topic', 10)
+   *   }
+   * </pre>
    *
-   * Example: Retrieve the first message from a topic.  This must be the first retrieval
+   * <p>Example: Retrieve the first message from a topic.  This must be the first retrieval
    * from the topic, otherwise the messages will be retrieved starting from the
    * previously stored consumer offset.
-   *  KAFKA_GET('topic', 1, { "auto.offset.reset": "earliest" })
+   * <pre>
+   *   {@code
+   *   KAFKA_GET('topic', 1, { "auto.offset.reset": "earliest" })
+   *   }
+   * </pre>
    */
   @Stellar(
           namespace = "KAFKA",
@@ -96,13 +137,12 @@ public class KafkaFunctions {
                   "count - The number of Kafka messages to retrieve",
                   "config - Optional map of key/values that override any global properties."
           },
-          returns = "List of strings"
+          returns = "The messages as a list of strings"
   )
   public static class KafkaGet implements StellarFunction {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      List<String> messages = new ArrayList<>();
 
       // required - name of the topic to retrieve messages from
       String topic = ConversionUtils.convert(args.get(0), String.class);
@@ -123,15 +163,42 @@ public class KafkaFunctions {
       Properties properties = buildKafkaProperties(overrides, context);
       properties.put("max.poll.records", count);
 
+      return getMessages(topic, count, properties);
+    }
+
+    /**
+     * Gets messages from a Kafka topic.
+     *
+     * @param topic The Kafka topic.
+     * @param count The maximum number of messages to get.
+     * @param properties The function properties.
+     * @return
+     */
+    private Object getMessages(String topic, int count, Properties properties) {
+
+      int maxWait = getMaxWait(properties);
+      int pollTimeout = getPollTimeout(properties);
+      List<Object> messages = new ArrayList<>();
+
       // read some messages
       try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
         consumer.subscribe(Arrays.asList(topic));
 
-        int maxAttempts = getMaxAttempts(properties);
-        int i = 0;
-        while(messages.size() < count && i++ < maxAttempts) {
-          consumer.poll(POLL_TIMEOUT).forEach(record -> messages.add(record.value()));
+        // continue until we have enough messages or exceeded the max wait time
+        long wait = 0L;
+        final long start = clock.currentTimeMillis();
+        while(messages.size() < count && wait < maxWait) {
+
+          for(ConsumerRecord<String, String> record: consumer.poll(pollTimeout)) {
+            messages.add(record.value());
+          }
+
+          // how long have we waited?
+          wait = clock.currentTimeMillis() - start;
           consumer.commitSync();
+
+          LOG.debug("KAFKA_GET polled for messages; topic={}, count={}, waitTime={} ms",
+                  topic, messages.size(), wait);
         }
       }
 
@@ -153,31 +220,37 @@ public class KafkaFunctions {
   /**
    * KAFKA_TAIL
    *
-   * Retrieves messages from a Kafka topic always starting with
-   * the most recent message first.
+   * <p>Tails messages from a Kafka topic always starting with the most recently received message.
    *
-   * Example: Retrieve the latest message from a topic.
-   *  KAFKA_TAIL('topic')
+   * <p>Example: Retrieve the latest message from a topic.
+   * <pre>
+   *   {@code
+   *   KAFKA_TAIL('topic')
+   *   }
+   * </pre>
    *
-   * Example: Retrieve 10 messages from a topic starting with the latest.
-   *  KAFKA_TAIL('topic', 10)
+   * <p>Example: Retrieve 10 messages from a topic starting with the latest.
+   * <pre>
+   *   {@code
+   *   KAFKA_TAIL('topic', 10)
+   *   }
+   * </pre>
    */
   @Stellar(
           namespace = "KAFKA",
           name = "TAIL",
-          description = "Retrieves messages from a Kafka topic always starting with the most recent message first.",
+          description = "Tails messages from a Kafka topic always starting with the most recently received message.",
           params = {
                   "topic - The name of the Kafka topic",
                   "count - The number of Kafka messages to retrieve",
                   "config - Optional map of key/values that override any global properties."
           },
-          returns = "Messages retrieved from the Kafka topic"
+          returns = "The messages as a list of strings"
   )
   public static class KafkaTail implements StellarFunction {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      List<String> messages = new ArrayList<>();
 
       // required - name of the topic to retrieve messages from
       String topic = ConversionUtils.convert(args.get(0), String.class);
@@ -194,21 +267,48 @@ public class KafkaFunctions {
         overrides = ConversionUtils.convert(args.get(2), Map.class);
       }
 
-      // build the properties for kafka
       Properties properties = buildKafkaProperties(overrides, context);
+      properties.put("max.poll.records", count);
 
-      // ensures messages pulled from latest offset, versus a previously stored consumer offset
-      properties.put("group.id", generateGroupId());
-      properties.put("auto.offset.reset", "latest");
+      return tailMessages(topic, count, properties);
+    }
 
+    /**
+     * Gets messages from the tail end of a Kafka topic.
+     *
+     * @param topic The name of the kafka topic.
+     * @param count The maximum number of messages to get.
+     * @param properties The function configuration properties.
+     * @return A list of messages from the tail end of a Kafka topic.
+     */
+    private Object tailMessages(String topic, int count, Properties properties) {
+
+      List<Object> messages = new ArrayList<>();
+      int pollTimeout = getPollTimeout(properties);
+      int maxWait = getMaxWait(properties);
+
+      // create the consumer
       try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
-        consumer.subscribe(Arrays.asList(topic));
 
-        int maxAttempts = getMaxAttempts(properties);
-        int i = 0;
-        while(messages.size() < count && i++ < maxAttempts) {
-          consumer.poll(POLL_TIMEOUT).forEach(record -> messages.add(record.value()));
+        // seek to the end of all topic/partitions
+        Set<TopicPartition> partitions = manualPartitionAssignment(topic, consumer);
+        consumer.seekToEnd(partitions);
+
+        // continue until we have enough messages or exceeded the max wait time
+        long wait = 0L;
+        final long start = clock.currentTimeMillis();
+        while(messages.size() < count && wait < maxWait) {
+
+          for(ConsumerRecord<String, String> record: consumer.poll(pollTimeout)) {
+            messages.add(record.value());
+          }
+
+          // how long have we waited?
+          wait = clock.currentTimeMillis() - start;
           consumer.commitSync();
+
+          LOG.debug("KAFKA_TAIL polled for messages; topic={}, count={}, waitTime={} ms",
+                  topic, messages.size(), wait);
         }
       }
 
@@ -353,6 +453,27 @@ public class KafkaFunctions {
   }
 
   /**
+   * Manually assigns all partitions in a topic to a consumer
+   *
+   * @param topic The topic whose partitions will be assigned.
+   * @param consumer The consumer to assign partitions to.
+   * @return A set of topic-partitions that were manually assigned to the consumer.
+   */
+  private static Set<TopicPartition> manualPartitionAssignment(String topic, KafkaConsumer<String, String> consumer) {
+
+    // find all partitions for the topic
+    Set<TopicPartition> partitions = new HashSet<>();
+    for(PartitionInfo partition : consumer.partitionsFor(topic)) {
+      partitions.add(new TopicPartition(topic, partition.partition()));
+    }
+
+    // manually assign this consumer to each partition in the topic
+    consumer.assign(partitions);
+
+    return partitions;
+  }
+
+  /**
    * Assembles the set of Properties required by the Kafka client.
    *
    * A set of default properties has been defined to provide minimum functionality.
@@ -382,13 +503,40 @@ public class KafkaFunctions {
   }
 
   /**
-   * Determine how many poll attempts should be made based on the user's patience.
-   * @param properties
-   * @return The maximum number of poll attempts to make.
+   * Return the max wait time setting.
+   *
+   * @param properties The function configuration properties.
+   * @return The mex wait time in milliseconds.
    */
-  private static int getMaxAttempts(Properties properties) {
-    int maxWait = ConversionUtils.convert(properties.get(MAX_WAIT_PROPERTY), Integer.class);
-    return maxWait / POLL_TIMEOUT;
+  private static int getMaxWait(Properties properties) {
+    int maxWait = DEFAULT_MAX_WAIT;
+
+    Object value = properties.get(MAX_WAIT_PROPERTY);
+    if(value != null) {
+      maxWait = ConversionUtils.convert(value, Integer.class);
+    }
+
+    return maxWait;
+  }
+
+  /**
+   * Returns the poll timeout setting.
+   *
+   * <p>The maximum amount of time waited each time that Kafka is polled
+   * for messages.
+   *
+   * @param properties The function configuration properties.
+   * @return
+   */
+  private static int getPollTimeout(Properties properties) {
+    int pollTimeout = DEFAULT_POLL_TIMEOUT;
+
+    Object value = properties.get(POLL_TIMEOUT_PROPERTY);
+    if(value != null) {
+      pollTimeout = ConversionUtils.convert(value, Integer.class);
+    }
+
+    return pollTimeout;
   }
 
   /**
@@ -399,15 +547,7 @@ public class KafkaFunctions {
 
     Properties properties = new Properties();
     properties.put("bootstrap.servers", "localhost:9092");
-
-    /*
-     * A unique 'group.id' is generated when creating these default properties.  This
-     * value is used when storing Kafka consumer offsets.  Multiple executions of any
-     * KAFKA_* functions, within the same Stellar REPL session, must maintain the same
-     * 'group.id'.  At the same time, different Stellar REPL sessions running
-     * simultaneously should each have their own 'group.id'.
-     */
-    properties.put("group.id", generateGroupId());
+    properties.put("group.id", "kafka-functions-stellar");
 
     /*
      * What to do when there is no initial offset in Kafka or if the current
@@ -431,16 +571,12 @@ public class KafkaFunctions {
     properties.put("key.serializer", StringSerializer.class.getName());
     properties.put("value.serializer", StringSerializer.class.getName());
 
-    // the maximum time to wait for messages
-    properties.put(MAX_WAIT_PROPERTY, 5000);
+    // set the default max time to wait for messages
+    properties.put(MAX_WAIT_PROPERTY, DEFAULT_MAX_WAIT);
+
+    // set the default poll timeout
+    properties.put(POLL_TIMEOUT_PROPERTY, DEFAULT_POLL_TIMEOUT);
 
     return properties;
-  }
-
-  /**
-   * Generates a unique 'group.id' for a session.
-   */
-  private static String generateGroupId() {
-    return String.format("stellar-shell-%s", UUID.randomUUID().toString());
   }
 }
