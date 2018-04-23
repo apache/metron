@@ -17,6 +17,17 @@
  */
 package org.apache.metron.common.configuration.profiler;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.metron.common.utils.JSONUtils;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +36,7 @@ import java.util.Optional;
 /**
  * The configuration object for the Profiler, which may contain many Profile definitions.
  */
+@JsonSerialize(include=Inclusion.NON_NULL)
 public class ProfilerConfig implements Serializable {
 
   /**
@@ -59,10 +71,16 @@ public class ProfilerConfig implements Serializable {
     return this;
   }
 
+  @JsonGetter("timestampField")
+  public String getTimestampFieldForJson() {
+    return timestampField.orElse(null);
+  }
+
   public Optional<String> getTimestampField() {
     return timestampField;
   }
 
+  @JsonSetter("timestampField")
   public void setTimestampField(String timestampField) {
     this.timestampField = Optional.of(timestampField);
   }
@@ -78,25 +96,66 @@ public class ProfilerConfig implements Serializable {
 
   @Override
   public String toString() {
-    return "ProfilerConfig{" +
-            "profiles=" + profiles +
-            ", timestampField='" + timestampField + '\'' +
-            '}';
+    return new ToStringBuilder(this)
+            .append("profiles", profiles)
+            .append("timestampField", timestampField)
+            .toString();
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
     ProfilerConfig that = (ProfilerConfig) o;
-    if (profiles != null ? !profiles.equals(that.profiles) : that.profiles != null) return false;
-    return timestampField != null ? timestampField.equals(that.timestampField) : that.timestampField == null;
+    return new EqualsBuilder()
+            .append(profiles, that.profiles)
+            .append(timestampField, that.timestampField)
+            .isEquals();
   }
 
   @Override
   public int hashCode() {
-    int result = profiles != null ? profiles.hashCode() : 0;
-    result = 31 * result + (timestampField != null ? timestampField.hashCode() : 0);
-    return result;
+    return new HashCodeBuilder(17, 37)
+            .append(profiles)
+            .append(timestampField)
+            .toHashCode();
+  }
+
+  /**
+   * Deserialize a {@link ProfilerConfig}.
+   *
+   * @param bytes Raw bytes containing a UTF-8 JSON String.
+   * @return The Profiler configuration.
+   * @throws IOException
+   */
+  public static ProfilerConfig fromBytes(byte[] bytes) throws IOException {
+    return JSONUtils.INSTANCE.load(new String(bytes), ProfilerConfig.class);
+  }
+
+  /**
+   * Deserialize a {@link ProfilerConfig}.
+   *
+   * @param json A String containing JSON.
+   * @return The Profiler configuration.
+   * @throws IOException
+   */
+  public static ProfilerConfig fromJSON(String json) throws IOException {
+    return JSONUtils.INSTANCE.load(json, ProfilerConfig.class);
+  }
+
+  /**
+   * Serialize a {@link ProfilerConfig} to a JSON string.
+   *
+   * @return The Profiler configuration serialized as a JSON string.
+   * @throws JsonProcessingException
+   */
+  public String toJSON() throws JsonProcessingException {
+    return JSONUtils.INSTANCE.toJSON(this, true);
   }
 }
