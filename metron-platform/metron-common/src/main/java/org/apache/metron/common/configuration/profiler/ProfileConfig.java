@@ -18,9 +18,10 @@
 package org.apache.metron.common.configuration.profiler;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
@@ -266,16 +267,16 @@ public class ProfileConfig implements Serializable {
 
   @Override
   public String toString() {
-    return "ProfileConfig{" +
-            "profile='" + profile + '\'' +
-            ", foreach='" + foreach + '\'' +
-            ", onlyif='" + onlyif + '\'' +
-            ", init=" + init +
-            ", update=" + update +
-            ", groupBy=" + groupBy +
-            ", result=" + result +
-            ", expires=" + expires +
-            '}';
+    return new ToStringBuilder(this)
+            .append("profile", profile)
+            .append("foreach", foreach)
+            .append("onlyif", onlyif)
+            .append("init", init)
+            .append("update", update)
+            .append("groupBy", groupBy)
+            .append("result", result)
+            .append("expires", expires)
+            .toString();
   }
 
   /**
