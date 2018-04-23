@@ -93,11 +93,15 @@ public class CachingStellarProcessor extends StellarProcessor {
     if(cacheOpt.isPresent()) {
       Cache<Key, Object> cache = (Cache<Key, Object>) cacheOpt.get();
       Key k = toKey(expression, variableResolver);
-      return cache.get(k, x -> super.parse(x.expression, variableResolver, functionResolver, context));
+      return cache.get(k, x -> parseUncached(x.expression, variableResolver, functionResolver, context));
     }
     else {
-      return super.parse(expression, variableResolver, functionResolver, context);
+      return parseUncached(expression, variableResolver, functionResolver, context);
     }
+  }
+
+  protected Object parseUncached(String expression, VariableResolver variableResolver, FunctionResolver functionResolver, Context context) {
+    return super.parse(expression, variableResolver, functionResolver, context);
   }
 
   private Key toKey(String expression, VariableResolver resolver) {
