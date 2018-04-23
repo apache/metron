@@ -58,6 +58,7 @@
 
   <!-- Geo Enrichment Fields -->
   <dynamicField name="*.location_point" type="location" multiValued="false" docValues="false"/>
+  <dynamicField name="*_coordinate" type="pdouble" indexed="true" stored="false" docValues="false"/>
   <dynamicField name="*.country" type="string" multiValued="false" docValues="true"/>
   <dynamicField name="*.city" type="string" multiValued="false" docValues="true"/>
   <dynamicField name="*.locID" type="string" multiValued="false" docValues="true"/>

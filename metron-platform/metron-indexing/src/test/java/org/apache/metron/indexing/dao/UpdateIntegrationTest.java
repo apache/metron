@@ -36,6 +36,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public abstract class UpdateIntegrationTest {
 
   private static final int MAX_RETRIES = 10;
@@ -201,6 +203,8 @@ public abstract class UpdateIntegrationTest {
     dao.update(document, Optional.of(SENSOR_NAME));
 
     Document indexedDocument = dao.getLatest("bro_1", SENSOR_NAME);
+
+    // assert no extra expanded fields are included
     Assert.assertEquals(8, indexedDocument.getDocument().size());
   }
 
