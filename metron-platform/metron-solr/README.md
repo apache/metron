@@ -97,8 +97,15 @@ you should refer to the Solr documentation [https://lucene.apache.org/solr/guide
 and [here](https://lucene.apache.org/solr/guide/6_6/documents-fields-and-schema-design.html) if you'd like to know more about schemas in Solr.
 
 Indexing LatLon and PointType field types stores data in internal fields that should not be returned in search results.  For these fields a dynamic field type matching the suffix needs to be added to store the data points.
-For example, a LatLong type should be defined as:
+For example, a LatLongType field should be defined as:
 ```
 <dynamicField name="*.location_point" type="location" multiValued="false" docValues="false"/>
 <dynamicField name="*_coordinate" type="pdouble" indexed="true" stored="false" docValues="false"/>
+<fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
+```
+A PointType field should be defined as:
+```
+<dynamicField name="*._point" type="location" multiValued="false" docValues="false"/>
+<dynamicField name="*_point" type="pdouble" indexed="true" stored="false" docValues="false"/>
+<fieldType name="point" class="solr.PointType" subFieldSuffix="_point"/>
 ```
