@@ -20,15 +20,21 @@ package org.apache.metron.solr.integration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
-  SolrComponent solrComponent;
+  protected static SolrComponent solrComponent;
 
   @Override
   protected String getIndexName() {
@@ -69,5 +75,29 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   protected List<Map<String, Object>> getIndexedTestData(String indexName, String sensorType)
       throws Exception {
     return solrComponent.getAllIndexedDocs(indexName);
+  }
+
+  @Test
+  public void suppress_expanded_fields() throws Exception {
+    dao = new MultiIndexDao(createDao());
+    dao.init(accessConfig);
+
+    Map<String, Object> fields = new HashMap<>();
+    fields.put("guid", "bro_1");
+    fields.put("source.type", SENSOR_NAME);
+    fields.put("ip_src_port", 8010);
+    fields.put("long_field", 10000);
+    fields.put("latitude", 48.5839);
+    fields.put("score", 10.0);
+    fields.put("is_alert", true);
+    fields.put("field.location_point", "48.5839,7.7455");
+
+    Document document = new Document(fields, "bro_1", SENSOR_NAME, 0L);
+    dao.update(document, Optional.of(SENSOR_NAME));
+
+    Document indexedDocument = dao.getLatest("bro_1", SENSOR_NAME);
+
+    // assert no extra expanded fields are included
+    Assert.assertEquals(8, indexedDocument.getDocument().size());
   }
 }

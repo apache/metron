@@ -31,6 +31,7 @@ import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.apache.metron.integration.InMemoryComponent;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,7 +49,7 @@ public abstract class UpdateIntegrationTest {
   private static String index;
   private static MockHTable table;
   private static IndexDao hbaseDao;
-  private static AccessConfig accessConfig;
+  protected static AccessConfig accessConfig;
 
   protected static MultiIndexDao dao;
   protected static InMemoryComponent indexComponent;
@@ -71,14 +72,14 @@ public abstract class UpdateIntegrationTest {
       globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
       globalConfig.put(HBaseDao.HBASE_CF, CF);
       accessConfig.setGlobalConfigSupplier(() -> globalConfig);
-
-      dao = new MultiIndexDao(hbaseDao, createDao());
-      dao.init(accessConfig);
     }
   }
 
   @Test
   public void test() throws Exception {
+    dao = new MultiIndexDao(hbaseDao, createDao());
+    dao.init(accessConfig);
+
     List<Map<String, Object>> inputData = new ArrayList<>();
     for(int i = 0; i < 10;++i) {
       final String name = "message" + i;
@@ -184,28 +185,9 @@ public abstract class UpdateIntegrationTest {
     }
   }
 
-  @Test
-  public void suppress_expanded_fields() throws Exception {
-    dao = new MultiIndexDao(createDao());
-    dao.init(accessConfig);
-
-    Map<String, Object> fields = new HashMap<>();
-    fields.put("guid", "bro_1");
-    fields.put("source.type", SENSOR_NAME);
-    fields.put("ip_src_port", 8010);
-    fields.put("long_field", 10000);
-    fields.put("latitude", 48.5839);
-    fields.put("score", 10.0);
-    fields.put("is_alert", true);
-    fields.put("field.location_point", "48.5839,7.7455");
-
-    Document document = new Document(fields, "bro_1", SENSOR_NAME, 0L);
-    dao.update(document, Optional.of(SENSOR_NAME));
-
-    Document indexedDocument = dao.getLatest("bro_1", SENSOR_NAME);
-
-    // assert no extra expanded fields are included
-    Assert.assertEquals(8, indexedDocument.getDocument().size());
+  @After
+  public void reset() throws Exception {
+    indexComponent.reset();
   }
 
   @AfterClass
