@@ -103,3 +103,8 @@ Tags are listed in the playbooks, some frequently used tags:
 + `hdp-deploy` - Deploy and Start HDP Services (will start all Hadoop Services)
 + `sensors` - Deploy and start the sensors.
 + `sensor-stubs` - Deploy and start the sensor stubs.
+
+
+### Making Metron more stable for developers
+
+Some contributers have experienced services crashing when running Metron on their local machine. We recommend looking at Ambari and shutting down any services you may not be using. For example, we recommend contributers turn off Metron Profiler, as this commonly causes REST services to crash.
