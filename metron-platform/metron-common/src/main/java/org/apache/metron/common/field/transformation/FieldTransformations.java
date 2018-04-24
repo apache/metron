@@ -25,6 +25,7 @@ public enum FieldTransformations {
   ,REMOVE(new RemoveTransformation())
   ,STELLAR(new StellarTransformation())
   ,SELECT(new SelectTransformation())
+  ,RENAME(new RenameTransformation())
   ;
   FieldTransformation mapping;
   FieldTransformations(FieldTransformation mapping) {
