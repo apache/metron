@@ -96,6 +96,7 @@ Ambari will eventually install these, but at the moment it's manual and
 you should refer to the Solr documentation [https://lucene.apache.org/solr/guide/6_6](here) in general
 and [here](https://lucene.apache.org/solr/guide/6_6/documents-fields-and-schema-design.html) if you'd like to know more about schemas in Solr.
 
+In Metron's Solr DAO implementation, document updates involve reading a document, applying the update and reindexing the whole document.  
 Indexing LatLon and PointType field types stores data in internal fields that should not be returned in search results.  For these fields a dynamic field type matching the suffix needs to be added to store the data points.
 For example, a LatLongType field should be defined as:
 ```
@@ -105,7 +106,8 @@ For example, a LatLongType field should be defined as:
 ```
 A PointType field should be defined as:
 ```
-<dynamicField name="*._point" type="location" multiValued="false" docValues="false"/>
+<dynamicField name="*.point" type="point" multiValued="false" docValues="false"/>
 <dynamicField name="*_point" type="pdouble" indexed="true" stored="false" docValues="false"/>
 <fieldType name="point" class="solr.PointType" subFieldSuffix="_point"/>
 ```
+If any copy fields are defined, stored and docValues should be set to false.
