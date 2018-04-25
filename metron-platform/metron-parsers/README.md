@@ -313,10 +313,33 @@ into `{ "protocol" : "TCP", "source.type" : "bro", ...}`
 * `STELLAR` : This transformation executes a set of transformations
   expressed as [Stellar Language](../metron-common) statements.
 
+* `RENAME` : This transformation allows users to rename a set of fields.  Specifically,
+the config is presumed to be the mapping.  The keys to the config are the existing field names
+and the values for the config map are the associated new field name.
+
+The following config will rename the fields `old_field` and `different_old_field` to
+`new_field` and `different_new_field` respectively:
+```
+{
+...
+    "fieldTransformations" : [
+          {
+            "transformation" : "RENAME",
+          , "config" : {
+            "old_field" : "new_field",
+            "different_old_field" : "different_new_field"
+                       }
+          }
+                      ]
+}
+```
+
+
 ### Assignment to `null`
 
 If, in your field transformation, you assign a field to `null`, the field will be removed.
-You can use this capability to rename variables.
+You can use this capability to rename variables.  It is preferred, however, that the `RENAME`
+field transformation is used in this situation as it is less awkward.
 
 Consider this example:
 ```
