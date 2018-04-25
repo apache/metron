@@ -123,6 +123,7 @@ This package installs the Metron common files %{metron_home}
 %dir %{metron_home}/lib
 %{metron_home}/bin/zk_load_configs.sh
 %{metron_home}/bin/stellar
+%{metron_home}/bin/cluster_info.py
 %{metron_home}/config/zookeeper/global.json
 %attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}.jar
 
@@ -273,13 +274,14 @@ This package installs the Metron Enrichment files
 %dir %{metron_home}/flux/enrichment
 %{metron_home}/bin/latency_summarizer.sh
 %{metron_home}/bin/start_enrichment_topology.sh
-%{metron_home}/config/enrichment.properties
+%{metron_home}/config/enrichment-splitjoin.properties
+%{metron_home}/config/enrichment-unified.properties
 %{metron_home}/config/zookeeper/enrichments/bro.json
 %{metron_home}/config/zookeeper/enrichments/snort.json
 %{metron_home}/config/zookeeper/enrichments/websphere.json
 %{metron_home}/config/zookeeper/enrichments/yaf.json
 %{metron_home}/config/zookeeper/enrichments/asa.json
-%{metron_home}/flux/enrichment/remote.yaml
+%{metron_home}/flux/enrichment/remote-splitjoin.yaml
 %{metron_home}/flux/enrichment/remote-unified.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-%{full_version}-uber.jar
 

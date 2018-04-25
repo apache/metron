@@ -40,7 +40,7 @@ Build Single Images
 ----------------------
  Navigate to *your-project-directory*/metron-deployment/packer-build
  * Base Centos (full-dev)
- ```
+```
 bin/bento build base-centos-6.7.json
 ```
 

@@ -364,7 +364,7 @@ Let's adjust the configurations for the Squid topology to annotate the messages 
 
 * Edit the squid enrichment configuration at `$METRON_HOME/config/zookeeper/enrichments/squid.json` (this file will not exist, so create a new one) to add some new fields based on stellar queries: 
 
- ```
+```
 {
   "enrichment" : {
     "fieldMap": {

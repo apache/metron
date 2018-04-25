@@ -46,39 +46,39 @@ Any platform that supports these tools is suitable, but the following instructio
 
 1. Install Homebrew by running the following command in a terminal.  Refer to the  [Homebrew](http://brew.sh/) home page for the latest installation instructions.
 
-  ```
-  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-  ```
+    ```
+    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    ```
 
 2. With Homebrew installed, run the following command in a terminal to install all of the required tools and dependencies.
 
-  ```
-  brew update
-  brew tap caskroom/versions
-  brew cask install java8 vagrant virtualbox
-  brew install maven git node
-  ```
+    ```
+    brew update
+    brew tap caskroom/versions
+    brew cask install java8 vagrant virtualbox
+    brew install maven git node
+    ```
 
 3. Install Ansible by following the instructions [here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-pip).
 
 4. Ensure that a public SSH key is located at `~/.ssh/id_rsa.pub`.
 
-  ```
-  $ cat ~/.ssh/id_rsa.pub
-  ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChv5GJxPjR39UJV7VY17ivbLVlxFrH7UHwh1Jsjem4d1eYiAtde5N2y65/HRNxWbhYli9ED8k0/MRP92ejewucEbrPNq5mytPqdC4IvZ98Ln2GbqTDwvlP3T7xa/wYFOpFsOmXXql8216wSrnrS4f3XK7ze34S6/VmY+lsBYnr3dzyj8sG/mexpJgFS/w83mWJV0e/ryf4Hd7P6DZ5fO+nmTXfKNK22ga4ctcnbZ+toYcPL+ODCh8598XCKVo97XjwF5OxN3vl1p1HHguo3cHB4H1OIaqX5mUt59gFIZcAXUME89PO6NUiZDd3RTstpf125nQVkQAHu2fvW96/f037 nick@localhost
-  ```
+    ```
+    $ cat ~/.ssh/id_rsa.pub
+    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChv5GJxPjR39UJV7VY17ivbLVlxFrH7UHwh1Jsjem4d1eYiAtde5N2y65/HRNxWbhYli9ED8k0/MRP92ejewucEbrPNq5mytPqdC4IvZ98Ln2GbqTDwvlP3T7xa/wYFOpFsOmXXql8216wSrnrS4f3XK7ze34S6/VmY+lsBYnr3dzyj8sG/mexpJgFS/w83mWJV0e/ryf4Hd7P6DZ5fO+nmTXfKNK22ga4ctcnbZ+toYcPL+ODCh8598XCKVo97XjwF5OxN3vl1p1HHguo3cHB4H1OIaqX5mUt59gFIZcAXUME89PO6NUiZDd3RTstpf125nQVkQAHu2fvW96/f037 nick@localhost
+    ```
 
-  If this file does not exist, run the following command at a terminal and accept all defaults.  Only the public key, not the private key, will be uploaded to Amazon and configured on each host to enable SSH connectivity.  While it is possible to create and use an alternative key those details will not be covered.  
+    If this file does not exist, run the following command at a terminal and accept all defaults.  Only the public key, not the private key, will be uploaded to Amazon and configured on each host to enable SSH connectivity.  While it is possible to create and use an alternative key those details will not be covered.  
 
-  ```
-  ssh-keygen -t rsa
-  ```
+    ```
+    ssh-keygen -t rsa
+    ```
 
 5. Ensure the JAVA_HOME environment variable is set
 
-   ```
-   export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_162.jdk/Contents/Home"
-   ```
+    ```
+    export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_162.jdk/Contents/Home"
+    ```
 
    Notice: You must replace the path with the installed JDK version path
 
@@ -103,20 +103,20 @@ Having successfully created your Amazon Web Services account, hopefully you will
 
 1. Use the Amazon access key by exporting its values via the shell's environment.  This allows Ansible to authenticate with Amazon EC2.  For example:
 
-  ```
-  export AWS_ACCESS_KEY_ID="AKIAI6NRFEO27E5FFELQ"
-  export AWS_SECRET_ACCESS_KEY="vTDydWJQnAer7OWauUS150i+9Np7hfCXrrVVP6ed"
-  ```
+    ```
+    export AWS_ACCESS_KEY_ID="AKIAI6NRFEO27E5FFELQ"
+    export AWS_SECRET_ACCESS_KEY="vTDydWJQnAer7OWauUS150i+9Np7hfCXrrVVP6ed"
+    ```
 
   Notice: You must replace the access key values above with values from your own access key.
 
 2. Start the Apache Metron deployment process.  When prompted provide a unique name for your Metron environment or accept the default.  
 
-  ```
-  $ ./run.sh
-  Metron Environment [metron-test]: my-metron-env
-  ...
-  ```
+    ```
+    $ ./run.sh
+    Metron Environment [metron-test]: my-metron-env
+    ...
+    ```
 
   The process is likely to take between 70-90 minutes.  Fortunately, everything is fully automated and you should feel free to grab a coffee.
 
@@ -124,24 +124,24 @@ Having successfully created your Amazon Web Services account, hopefully you will
 
 1. After the deployment has completed successfully, a message like the following will be displayed.  Navigate to the specified resources to explore your newly minted Apache Metron environment.
 
-  ```
-  TASK [debug] *******************************************************************
-  ok: [localhost] => {
-      "Success": [
-          "Apache Metron deployed successfully",
-          "   Metron  @  http://ec2-52-37-255-142.us-west-2.compute.amazonaws.com:5000",
-          "   Ambari  @  http://ec2-52-37-225-202.us-west-2.compute.amazonaws.com:8080",
-          "   Sensors @  ec2-52-37-225-202.us-west-2.compute.amazonaws.com on tap0",
-          "For additional information, see https://metron.apache.org/'"
-      ]
-  }
-  ```
+    ```
+    TASK [debug] *******************************************************************
+    ok: [localhost] => {
+        "Success": [
+            "Apache Metron deployed successfully",
+            "   Metron  @  http://ec2-52-37-255-142.us-west-2.compute.amazonaws.com:5000",
+            "   Ambari  @  http://ec2-52-37-225-202.us-west-2.compute.amazonaws.com:8080",
+            "   Sensors @  ec2-52-37-225-202.us-west-2.compute.amazonaws.com on tap0",
+            "For additional information, see https://metron.apache.org/'"
+        ]
+    }
+    ```
 
 2. Each of the provisioned hosts will be accessible from the internet. Connecting to one over SSH as the user `centos` will not require a password as it will authenticate with the pre-defined SSH key.  
 
-  ```
-  ssh centos@ec2-52-91-215-174.compute-1.amazonaws.com
-  ```
+    ```
+    ssh centos@ec2-52-91-215-174.compute-1.amazonaws.com
+    ```
 
 Advanced Usage
 --------------

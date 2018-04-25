@@ -815,19 +815,19 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
       * sensorType - The sensor type
       * patch - An array of [RFC 6902](https://tools.ietf.org/html/rfc6902) patches.
     * Example adding a field called `project` with value `metron` to the `bro` message with UUID of `000-000-0000` :
-  ```
-  {
-     "guid" : "000-000-0000",
-     "sensorType" : "bro",
-     "patch" : [
-      {
-                "op": "add"
-               , "path": "/project"
-               , "value": "metron"
-      }
-              ]
-   }
-  ```
+        ```
+        {
+           "guid" : "000-000-0000",
+           "sensorType" : "bro",
+           "patch" : [
+            {
+                      "op": "add"
+                     , "path": "/project"
+                     , "value": "metron"
+            }
+                    ]
+         }
+        ```
   * Returns:
     * 200 - nothing
     * 404 - document not found
@@ -839,21 +839,21 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
       * guid - The Patch UUID
       * sensorType - The sensor type
       * replacement - A Map representing the replaced document
-    * Example replacing a `bro` message with guid of `000-000-0000`
-```
-   {
-     "guid" : "000-000-0000",
-     "sensorType" : "bro",
-     "replacement" : {
-       "source:type": "bro",
-       "guid" : "bro_index_2017.01.01.01:1",
-       "ip_src_addr":"192.168.1.2",
-       "ip_src_port": 8009,
-       "timestamp":200,
-       "rejected":false
-      }
-   }
-```
+    * Example replacing a `bro` message with guid of `000-000-0000` :
+        ```
+        {
+          "guid" : "000-000-0000",
+          "sensorType" : "bro",
+          "replacement" : {
+            "source:type": "bro",
+            "guid" : "bro_index_2017.01.01.01:1",
+            "ip_src_addr":"192.168.1.2",
+            "ip_src_port": 8009,
+            "timestamp":200,
+            "rejected":false
+          }
+        }
+        ```
   * Returns:
     * 200 - Current user
 

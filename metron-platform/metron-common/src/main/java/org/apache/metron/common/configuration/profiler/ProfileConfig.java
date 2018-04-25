@@ -18,12 +18,15 @@
 package org.apache.metron.common.configuration.profiler;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.metron.common.utils.JSONUtils;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -264,15 +267,47 @@ public class ProfileConfig implements Serializable {
 
   @Override
   public String toString() {
-    return "ProfileConfig{" +
-            "profile='" + profile + '\'' +
-            ", foreach='" + foreach + '\'' +
-            ", onlyif='" + onlyif + '\'' +
-            ", init=" + init +
-            ", update=" + update +
-            ", groupBy=" + groupBy +
-            ", result=" + result +
-            ", expires=" + expires +
-            '}';
+    return new ToStringBuilder(this)
+            .append("profile", profile)
+            .append("foreach", foreach)
+            .append("onlyif", onlyif)
+            .append("init", init)
+            .append("update", update)
+            .append("groupBy", groupBy)
+            .append("result", result)
+            .append("expires", expires)
+            .toString();
+  }
+
+  /**
+   * Deserialize a {@link ProfileConfig}.
+   *
+   * @param bytes Raw bytes containing a UTF-8 JSON String.
+   * @return The Profile definition.
+   * @throws IOException
+   */
+  public static ProfileConfig fromBytes(byte[] bytes) throws IOException {
+    return JSONUtils.INSTANCE.load(new String(bytes), ProfileConfig.class);
+  }
+
+  /**
+   * Deserialize a {@link ProfileConfig}.
+   *
+   * @param json A String containing JSON.
+   * @return The Profile definition.
+   * @throws IOException
+   */
+  public static ProfileConfig fromJSON(String json) throws IOException {
+    return JSONUtils.INSTANCE.load(json, ProfileConfig.class);
+  }
+
+  /**
+   * Serialize the profile definition to a JSON string.
+   *
+   * @return The Profiler configuration serialized as a JSON string.
+   * @throws JsonProcessingException
+   */
+  public String toJSON() throws JsonProcessingException {
+    return JSONUtils.INSTANCE.toJSON(this, true);
   }
 }
