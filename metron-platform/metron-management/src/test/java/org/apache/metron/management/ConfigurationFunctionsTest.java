@@ -19,194 +19,393 @@ package org.apache.metron.management;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
 import org.apache.log4j.Level;
 import org.apache.metron.common.cli.ConfigurationManager;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
+import org.json.simple.parser.JSONParser;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.Map;
 
 import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
 import static org.apache.metron.TestConstants.SAMPLE_CONFIG_PATH;
+import static org.apache.metron.common.configuration.ConfigurationType.GLOBAL;
+import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeProfilerConfigToZookeeper;
 import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
+/**
+ * Tests the ConfigurationFunctions class.
+ */
 public class ConfigurationFunctionsTest {
+
   private static TestingServer testZkServer;
-  private static CuratorFramework client;
   private static String zookeeperUrl;
-  private Context context = new Context.Builder()
-            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
-            .build();
+  private static CuratorFramework client;
+  private static String goodGlobalConfig = slurp( SAMPLE_CONFIG_PATH+ "/global.json");
+  private static String goodTestEnrichmentConfig = slurp( SAMPLE_CONFIG_PATH + "/enrichments/test.json");
+  private static String goodBroParserConfig = slurp(PARSER_CONFIGS_PATH + "/parsers/bro.json");
+  private static String goodTestIndexingConfig = slurp( SAMPLE_CONFIG_PATH + "/indexing/test.json");
+
+  private Context context;
+  private JSONParser parser;
+
+  /**
+   * {
+   *   "profiles" : [
+   *      {
+   *        "profile" : "counter",
+   *        "foreach" : "ip_src_addr",
+   *        "init"    : { "counter" : 0 },
+   *        "update"  : { "counter" : "counter + 1" },
+   *        "result"  : "counter"
+   *      }
+   *   ],
+   *   "timestampField" : "timestamp"
+   * }
+   */
+  @Multiline
+  private static String goodProfilerConfig;
+
   @BeforeClass
-  public static void setup() throws Exception {
+  public static void setupZookeeper() throws Exception {
+
+    // zookeeper server
     testZkServer = new TestingServer(true);
     zookeeperUrl = testZkServer.getConnectString();
+
+    // zookeeper client
     client = ConfigurationsUtils.getClient(zookeeperUrl);
     client.start();
-
-    pushConfigs(SAMPLE_CONFIG_PATH);
-    pushConfigs(PARSER_CONFIGS_PATH);
-
-
   }
 
-  private static void pushConfigs(String inputPath) throws Exception {
-    String[] args = new String[]{
-            "-z", zookeeperUrl
-            , "--mode", "PUSH"
-            , "--input_dir", inputPath
+  @Before
+  public void setup() throws Exception {
+
+    context = new Context.Builder()
+            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+            .build();
+
+    parser = new JSONParser();
+
+    // push configs to zookeeper
+    pushConfigs(SAMPLE_CONFIG_PATH, zookeeperUrl);
+    pushConfigs(PARSER_CONFIGS_PATH, zookeeperUrl);
+    writeProfilerConfigToZookeeper(goodProfilerConfig.getBytes(), client);
+  }
+
+  /**
+   * Deletes a path within Zookeeper.
+   *
+   * @param path The path within Zookeeper to delete.
+   * @throws Exception
+   */
+  private void deletePath(String path) throws Exception {
+    client.delete().forPath(path);
+  }
+
+  /**
+   * Transforms a String to a {@link JSONObject}.
+   *
+   * @param input The input String to transform
+   * @return A {@link JSONObject}.
+   * @throws org.json.simple.parser.ParseException
+   */
+  private JSONObject toJSONObject(String input) throws org.json.simple.parser.ParseException {
+
+    if(input == null) {
+      return null;
+    }
+    return (JSONObject) parser.parse(input.trim());
+  }
+
+  /**
+   * Push configuration values to Zookeeper.
+   *
+   * @param inputPath The local filesystem path to the configurations.
+   * @param zookeeperUrl The URL of Zookeeper.
+   * @throws Exception
+   */
+  private static void pushConfigs(String inputPath, String zookeeperUrl) throws Exception {
+
+    String[] args = new String[] {
+            "-z", zookeeperUrl,
+            "--mode", "PUSH",
+            "--input_dir", inputPath
     };
+    CommandLine cli = ConfigurationManager.ConfigurationOptions.parse(new PosixParser(), args);
+
     ConfigurationManager manager = new ConfigurationManager();
-    manager.run(ConfigurationManager.ConfigurationOptions.parse(new PosixParser(), args));
+    manager.run(cli);
   }
-
-
-  static String goodBroParserConfig = slurp(PARSER_CONFIGS_PATH + "/parsers/bro.json");
 
   /**
-    {
-      "sensorTopic" : "brop",
-      "parserConfig" : { },
-      "fieldTransformations" : [ ],
-      "readMetadata":false,
-      "mergeMetadata":false,
-      "parserParallelism" : 1,
-      "errorWriterParallelism" : 1,
-      "spoutNumTasks" : 1,
-      "stormConfig" : {},
-      "errorWriterNumTasks":1,
-      "spoutConfig":{},
-      "parserNumTasks":1,
-      "spoutParallelism":1
-    }
+   * The CONFIG_GET function should be able to return the Parser configuration
+   * for a given sensor.
    */
-  @Multiline
-  static String defaultBropParserConfig;
-
-
   @Test
-  public void testParserGetHappyPath() {
+  public void testGetParser() throws Exception {
 
-    Object out = run("CONFIG_GET('PARSER', 'bro')", new HashMap<>(), context);
-    Assert.assertEquals(goodBroParserConfig, out);
+    String out = (String) run("CONFIG_GET('PARSER', 'bro')", context);
+
+    SensorParserConfig actual = SensorParserConfig.fromBytes(out.getBytes());
+    SensorParserConfig expected = SensorParserConfig.fromBytes(goodBroParserConfig.getBytes());
+    assertEquals(expected, actual);
   }
-
-  @Test
-  public void testParserGetMissWithoutDefault() {
-
-    {
-      Object out = run("CONFIG_GET('PARSER', 'brop', false)", new HashMap<>(), context);
-      Assert.assertNull(out);
-    }
-  }
-
-  @Test
-  public void testParserGetMissWithDefault() throws Exception {
-    JSONObject expected = (JSONObject) new JSONParser().parse(defaultBropParserConfig);
-
-    {
-      Object out = run("CONFIG_GET('PARSER', 'brop')", new HashMap<>(), context);
-      JSONObject actual = (JSONObject) new JSONParser().parse(out.toString().trim());
-      Assert.assertEquals(expected, actual);
-    }
-    {
-      Object out = run("CONFIG_GET('PARSER', 'brop', true)", new HashMap<>(), context);
-      JSONObject actual = (JSONObject) new JSONParser().parse(out.toString().trim());
-      Assert.assertEquals(expected, actual);
-    }
-  }
-
-  static String goodTestEnrichmentConfig = slurp( SAMPLE_CONFIG_PATH + "/enrichments/test.json");
 
   /**
-    {
-      "enrichment" : {
-        "fieldMap" : { },
-        "fieldToTypeMap" : { },
-        "config" : { }
-      },
-      "threatIntel" : {
-        "fieldMap" : { },
-        "fieldToTypeMap" : { },
-        "config" : { },
-        "triageConfig" : {
-          "riskLevelRules" : [ ],
-          "aggregator" : "MAX",
-          "aggregationConfig" : { }
-        }
-      },
-      "configuration" : { }
-    }
+   * The CONFIG_GET function should NOT return any configuration when the
+   * Parser configuration for a given sensor is missing AND emptyIfNotPresent = false.
    */
-  @Multiline
-  static String defaultBropEnrichmentConfig;
-
-
   @Test
-  public void testEnrichmentGetHappyPath() {
+  public void testGetParserMissWithoutDefault() {
 
-    Object out = run("CONFIG_GET('ENRICHMENT', 'test')", new HashMap<>(), context);
-    Assert.assertEquals(goodTestEnrichmentConfig, out.toString().trim());
+    // expect null because emptyIfNotPresent = false
+    Object out = run("CONFIG_GET('PARSER', 'sensor', false)", context);
+    assertNull(out);
   }
 
+  /**
+   * The CONFIG_GET function should return a default configuration when none
+   * currently exists.
+   */
   @Test
-  public void testEnrichmentGetMissWithoutDefault() {
+  public void testGetParserMissWithDefault() throws Exception {
 
+    SensorParserConfig expected = new SensorParserConfig();
     {
-      Object out = run("CONFIG_GET('ENRICHMENT', 'brop', false)", new HashMap<>(), context);
-      Assert.assertNull(out);
+      Object out = run("CONFIG_GET('PARSER', 'sensor')", context);
+      SensorParserConfig actual = SensorParserConfig.fromBytes(out.toString().getBytes());
+      assertEquals(expected, actual);
+    }
+    {
+      Object out = run("CONFIG_GET('PARSER', 'sensor', true)", context);
+      SensorParserConfig actual = SensorParserConfig.fromBytes(out.toString().getBytes());
+      assertEquals(expected, actual);
+    }
+  }
+
+  /**
+   * The CONFIG_GET function should be able to return the Enrichment configuration
+   * for a given sensor.
+   */
+  @Test
+  public void testGetEnrichment() throws Exception {
+
+    String out = (String) run("CONFIG_GET('ENRICHMENT', 'test')", context);
+
+    SensorEnrichmentConfig actual = SensorEnrichmentConfig.fromBytes(out.getBytes());
+    SensorEnrichmentConfig expected = SensorEnrichmentConfig.fromBytes(goodTestEnrichmentConfig.getBytes());
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * No default configuration should be provided in this case.
+   */
+  @Test
+  public void testGetEnrichmentMissWithoutDefault() {
+
+    // expect null because emptyIfNotPresent = false
+    Object out = run("CONFIG_GET('ENRICHMENT', 'sense', false)", context);
+    assertNull(out);
+  }
+
+  /**
+   * A default empty configuration should be provided, if one does not exist.
+   */
+  @Test
+  public void testGetEnrichmentMissWithDefault() throws Exception {
+
+    // expect an empty configuration to be returned
+    SensorEnrichmentConfig expected = new SensorEnrichmentConfig();
+    {
+      String out = (String) run("CONFIG_GET('ENRICHMENT', 'missing-sensor')", context);
+      SensorEnrichmentConfig actual = SensorEnrichmentConfig.fromBytes(out.getBytes());
+      assertEquals(expected, actual);
+    }
+    {
+      String out = (String) run("CONFIG_GET('ENRICHMENT', 'missing-sensor', true)", context);
+      SensorEnrichmentConfig actual = SensorEnrichmentConfig.fromBytes(out.getBytes());
+      assertEquals(expected, actual);
+    }
+  }
+
+  /**
+   * The CONFIG_GET function should be able to return the Indexing configuration
+   * for a given sensor.
+   */
+  @Test
+  public void testGetIndexing() throws Exception {
+
+    String out = (String) run("CONFIG_GET('INDEXING', 'test')", context);
+
+    Map<String, Object> actual = toJSONObject(out);
+    Map<String, Object> expected = toJSONObject(goodTestIndexingConfig);
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * No default configuration should be provided in this case.
+   */
+  @Test
+  public void testGetIndexingMissWithoutDefault() {
+
+    // expect null because emptyIfNotPresent = false
+    Object out = run("CONFIG_GET('INDEXING', 'sense', false)", context);
+    assertNull(out);
+  }
+
+  /**
+   * A default empty configuration should be provided, if one does not exist.
+   */
+  @Test
+  public void testGetIndexingtMissWithDefault() throws Exception {
+
+    // expect an empty configuration to be returned
+    Map<String, Object> expected = Collections.emptyMap();
+    {
+      String out = (String) run("CONFIG_GET('INDEXING', 'missing-sensor')", context);
+      Map<String, Object> actual = toJSONObject(out);
+      assertEquals(expected, actual);
+    }
+    {
+      String out = (String) run("CONFIG_GET('INDEXING', 'missing-sensor', true)", context);
+      Map<String, Object> actual = toJSONObject(out);
+      assertEquals(expected, actual);
+    }
+  }
+
+  /**
+   * The CONFIG_GET function should be able to return the Profiler configuration.
+   */
+  @Test
+  public void testGetProfiler() throws Exception {
+
+    String out = (String) run("CONFIG_GET('PROFILER')", context);
+
+    ProfilerConfig actual = ProfilerConfig.fromBytes(out.getBytes());
+    ProfilerConfig expected = ProfilerConfig.fromBytes(goodProfilerConfig.getBytes());
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * No default configuration should be provided in this case.
+   */
+  @Test
+  public void testGetProfilerMissWithoutDefault() throws Exception {
+
+    deletePath(PROFILER.getZookeeperRoot());
+
+    // expect null because emptyIfNotPresent = false
+    String out = (String) run("CONFIG_GET('PROFILER', false)", context);
+    assertNull(out);
+  }
+
+  /**
+   * A default empty configuration should be provided, if one does not exist.
+   */
+  @Test
+  public void testGetProfilerMissWithDefault() throws Exception {
+
+    // there is no profiler config in zookeeper
+    deletePath(PROFILER.getZookeeperRoot());
+
+    // expect an empty configuration to be returned
+    ProfilerConfig expected = new ProfilerConfig();
+    {
+      String out = (String) run("CONFIG_GET('PROFILER', true)", context);
+      ProfilerConfig actual = ProfilerConfig.fromJSON(out);
+      assertEquals(expected, actual);
+    }
+    {
+      String out = (String) run("CONFIG_GET('PROFILER')", context);
+      ProfilerConfig actual = ProfilerConfig.fromJSON(out);
+      assertEquals(expected, actual);
     }
   }
 
   @Test
-  public void testEnrichmentGetMissWithDefault() throws Exception {
-    JSONObject expected = (JSONObject) new JSONParser().parse(defaultBropEnrichmentConfig);
+  public void testGetGlobal() throws Exception {
 
+    String out = (String) run("CONFIG_GET('GLOBAL')", context);
+
+    Map<String, Object> actual = toJSONObject(out);
+    Map<String, Object> expected = toJSONObject(goodGlobalConfig);
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * No default configuration should be provided in this case.
+   */
+  @Test
+  public void testGetGlobalMissWithoutDefault() throws Exception {
+
+    // there is no global config in zookeeper
+    deletePath(GLOBAL.getZookeeperRoot());
+
+    // expect null because emptyIfNotPresent = false
+    Object out = run("CONFIG_GET('GLOBAL', false)", context);
+    assertNull(out);
+  }
+
+  /**
+   * A default empty configuration should be provided, if one does not exist.
+   */
+  @Test
+  public void testGetGlobalMissWithDefault() throws Exception {
+
+    // there is no global config in zookeeper
+    deletePath(GLOBAL.getZookeeperRoot());
+
+    // expect an empty configuration to be returned
+    Map<String, Object> expected = Collections.emptyMap();
     {
-      Object out = run("CONFIG_GET('ENRICHMENT', 'brop')", new HashMap<>(), context);
-      JSONObject actual = (JSONObject) new JSONParser().parse(out.toString().trim());
-      Assert.assertEquals(expected, actual);
+      String out = (String) run("CONFIG_GET('GLOBAL')", context);
+      Map<String, Object> actual = toJSONObject(out);
+      assertEquals(expected, actual);
     }
     {
-      Object out = run("CONFIG_GET('ENRICHMENT', 'brop', true)", new HashMap<>(), context);
-      JSONObject actual = (JSONObject) new JSONParser().parse(out.toString().trim());
-      Assert.assertEquals(expected, actual);
+      String out = (String) run("CONFIG_GET('GLOBAL', true)", context);
+      Map<String, Object> actual = toJSONObject(out);
+      assertEquals(expected, actual);
     }
   }
 
-  static String goodGlobalConfig = slurp( SAMPLE_CONFIG_PATH+ "/global.json");
-
   @Test
-  public void testGlobalGet() {
+  public void testPutGlobal() throws Exception {
 
-    Object out = run("CONFIG_GET('GLOBAL')", new HashMap<>(), context);
-    Assert.assertEquals(goodGlobalConfig, out.toString().trim());
-  }
+    String out = (String) run("CONFIG_GET('GLOBAL')", context);
 
-  @Test
-  public void testGlobalPut() {
-
-    Object out = run("CONFIG_GET('GLOBAL')", new HashMap<>(), context);
-    Assert.assertEquals(goodGlobalConfig, out.toString().trim());
+    Map<String, Object> actual = toJSONObject(out);
+    Map<String, Object> expected = toJSONObject(goodGlobalConfig);
+    assertEquals(expected, actual);
   }
 
   @Test(expected=ParseException.class)
-  public void testGlobalPutBad() {
+  public void testPutGlobalBad() {
     {
       UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
       try {
-        run("CONFIG_PUT('GLOBAL', 'foo bar')", new HashMap<>(), context);
+        run("CONFIG_PUT('GLOBAL', 'foo bar')", context);
       } catch(ParseException e) {
         UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
         throw e;
@@ -215,23 +414,23 @@ public class ConfigurationFunctionsTest {
   }
 
   @Test
-  public void testIndexingPut() throws InterruptedException {
-    String brop= (String) run("CONFIG_GET('INDEXING', 'testIndexingPut')", new HashMap<>(), context);
+  public void testPutIndexing() throws InterruptedException {
+    String brop= (String) run("CONFIG_GET('INDEXING', 'testIndexingPut')", context);
     run("CONFIG_PUT('INDEXING', config, 'testIndexingPut')", ImmutableMap.of("config", brop), context);
     boolean foundMatch = false;
     for(int i = 0;i < 10 && !foundMatch;++i) {
-      String bropNew = (String) run("CONFIG_GET('INDEXING', 'testIndexingPut', false)", new HashMap<>(), context);
+      String bropNew = (String) run("CONFIG_GET('INDEXING', 'testIndexingPut', false)", context);
       foundMatch =  brop.equals(bropNew);
       if(foundMatch) {
         break;
       }
       Thread.sleep(2000);
     }
-    Assert.assertTrue(foundMatch);
+    assertTrue(foundMatch);
   }
 
   @Test(expected= ParseException.class)
-  public void testIndexingPutBad() throws InterruptedException {
+  public void testPutIndexingBad() throws InterruptedException {
     {
       {
         UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
@@ -246,23 +445,26 @@ public class ConfigurationFunctionsTest {
   }
 
   @Test
-  public void testEnrichmentPut() throws InterruptedException {
-    String brop= (String) run("CONFIG_GET('ENRICHMENT', 'testEnrichmentPut')", new HashMap<>(), context);
-    run("CONFIG_PUT('ENRICHMENT', config, 'testEnrichmentPut')", ImmutableMap.of("config", brop), context);
+  public void testPutEnrichment() throws InterruptedException {
+    String config = (String) run("CONFIG_GET('ENRICHMENT', 'sensor')", context);
+    assertNotNull(config);
+
+    run("CONFIG_PUT('ENRICHMENT', config, 'sensor')", ImmutableMap.of("config", config), context);
+
     boolean foundMatch = false;
     for(int i = 0;i < 10 && !foundMatch;++i) {
-      String bropNew = (String) run("CONFIG_GET('ENRICHMENT', 'testEnrichmentPut', false)", new HashMap<>(), context);
-      foundMatch =  brop.equals(bropNew);
+      String newConfig = (String) run("CONFIG_GET('ENRICHMENT', 'sensor', false)", context);
+      foundMatch = config.equals(newConfig);
       if(foundMatch) {
         break;
       }
       Thread.sleep(2000);
     }
-    Assert.assertTrue(foundMatch);
+    assertTrue(foundMatch);
   }
 
   @Test(expected= ParseException.class)
-  public void testEnrichmentPutBad() throws InterruptedException {
+  public void testPutEnrichmentBad() throws InterruptedException {
     {
       {
         UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
@@ -277,23 +479,23 @@ public class ConfigurationFunctionsTest {
   }
 
   @Test
-  public void testParserPut() throws InterruptedException {
-    String brop= (String) run("CONFIG_GET('PARSER', 'testParserPut')", new HashMap<>(), context);
+  public void testPutParser() throws InterruptedException {
+    String brop= (String) run("CONFIG_GET('PARSER', 'testParserPut')", context);
     run("CONFIG_PUT('PARSER', config, 'testParserPut')", ImmutableMap.of("config", brop), context);
     boolean foundMatch = false;
     for(int i = 0;i < 10 && !foundMatch;++i) {
-      String bropNew = (String) run("CONFIG_GET('PARSER', 'testParserPut', false)", new HashMap<>(), context);
+      String bropNew = (String) run("CONFIG_GET('PARSER', 'testParserPut', false)", context);
       foundMatch =  brop.equals(bropNew);
       if(foundMatch) {
         break;
       }
       Thread.sleep(2000);
     }
-    Assert.assertTrue(foundMatch);
+    assertTrue(foundMatch);
   }
 
   @Test(expected= ParseException.class)
-  public void testParserPutBad() throws InterruptedException {
+  public void testPutParserBad() throws InterruptedException {
     {
       UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
       try {

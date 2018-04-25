@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
@@ -45,6 +46,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -235,12 +237,99 @@ public class ConfigurationsUtils {
                               );
   }
 
-  public static SensorEnrichmentConfig readSensorEnrichmentConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
-    return JSONUtils.INSTANCE.load(new ByteArrayInputStream(readFromZookeeper(ENRICHMENT.getZookeeperRoot() + "/" + sensorType, client)), SensorEnrichmentConfig.class);
+  /**
+   * Reads the global configuration stored in Zookeeper.
+   *
+   * @param client The Zookeeper client.
+   * @return The global configuration, if one exists.  Otherwise, null.
+   * @throws Exception
+   */
+  public static Map<String, Object> readGlobalConfigFromZookeeper(CuratorFramework client) throws Exception {
+    Map<String, Object> config = null;
+
+    Optional<byte[]> bytes = readFromZookeeperSafely(GLOBAL.getZookeeperRoot(), client);
+    if(bytes.isPresent()) {
+      InputStream in = new ByteArrayInputStream(bytes.get());
+      config = JSONUtils.INSTANCE.load(in, JSONUtils.MAP_SUPPLIER);
+    }
+
+    return config;
   }
 
+  /**
+   * Reads the Indexing configuration from Zookeeper.
+   *
+   * @param sensorType The type of sensor.
+   * @param client The Zookeeper client.
+   * @return The indexing configuration for the given sensor type, if one exists.  Otherwise, null.
+   * @throws Exception
+   */
+  public static Map<String, Object> readSensorIndexingConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
+    Map<String, Object> config = null;
+
+    Optional<byte[]> bytes = readFromZookeeperSafely(INDEXING.getZookeeperRoot() + "/" + sensorType, client);
+    if(bytes.isPresent()) {
+      InputStream in = new ByteArrayInputStream(bytes.get());
+      config = JSONUtils.INSTANCE.load(in, JSONUtils.MAP_SUPPLIER);
+    }
+
+    return config;
+  }
+
+  /**
+   * Reads the Enrichment configuration from Zookeeper.
+   *
+   * @param sensorType The type of sensor.
+   * @param client The Zookeeper client.
+   * @return The Enrichment configuration for the given sensor type, if one exists. Otherwise, null.
+   * @throws Exception
+   */
+  public static SensorEnrichmentConfig readSensorEnrichmentConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
+    SensorEnrichmentConfig config = null;
+
+    Optional<byte[]> bytes = readFromZookeeperSafely(ENRICHMENT.getZookeeperRoot() + "/" + sensorType, client);
+    if (bytes.isPresent()) {
+      config = SensorEnrichmentConfig.fromBytes(bytes.get());
+    }
+
+    return config;
+  }
+
+  /**
+   * Reads the Parser configuration from Zookeeper.
+   *
+   * @param sensorType The type of sensor.
+   * @param client The Zookeeper client.
+   * @return The Parser configuration for the given sensor type, if one exists. Otherwise, null.
+   * @throws Exception
+   */
   public static SensorParserConfig readSensorParserConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
-    return JSONUtils.INSTANCE.load(new ByteArrayInputStream(readFromZookeeper(PARSER.getZookeeperRoot() + "/" + sensorType, client)), SensorParserConfig.class);
+    SensorParserConfig config = null;
+
+    Optional<byte[]> bytes = readFromZookeeperSafely(PARSER.getZookeeperRoot() + "/" + sensorType, client);
+    if(bytes.isPresent()) {
+      config = SensorParserConfig.fromBytes(bytes.get());
+    }
+
+    return config;
+  }
+
+  /**
+   * Reads the Profiler configuration from Zookeeper.
+   *
+   * @param client The Zookeeper client.
+   * @return THe Profiler configuration.
+   * @throws Exception
+   */
+  public static ProfilerConfig readProfilerConfigFromZookeeper(CuratorFramework client) throws Exception {
+    ProfilerConfig config = null;
+
+    Optional<byte[]> bytes = readFromZookeeperSafely(PROFILER.getZookeeperRoot(), client);
+    if(bytes.isPresent()) {
+      config = ProfilerConfig.fromBytes(bytes.get());
+    }
+
+    return config;
   }
 
   public static byte[] readGlobalConfigBytesFromZookeeper(CuratorFramework client) throws Exception {
@@ -289,6 +378,36 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Read raw bytes from Zookeeper.
+   *
+   * @param path The path to the Zookeeper node to read.
+   * @param client The Zookeeper client.
+   * @return The bytes read from Zookeeper, if node exists.  Otherwise, null.
+   * @throws Exception
+   */
+  public static Optional<byte[]> readFromZookeeperSafely(String path, CuratorFramework client) throws Exception {
+    Optional<byte[]> result = Optional.empty();
+
+    try {
+      byte[] bytes = readFromZookeeper(path, client);
+      result = Optional.of(bytes);
+
+    } catch(KeeperException.NoNodeException e) {
+      LOG.debug("Zookeeper node missing; path={}", e);
+    }
+
+    return result;
+  }
+
+  /**
+   * Read raw bytes from Zookeeper.
+   *
+   * @param path The path to the Zookeeper node to read.
+   * @param client The Zookeeper client.
+   * @return The bytes read from Zookeeper.
+   * @throws Exception If the path does not exist in Zookeeper.
+   */
   public static byte[] readFromZookeeper(String path, CuratorFramework client) throws Exception {
     if (client != null && client.getData() != null && path != null) {
       return client.getData().forPath(path);

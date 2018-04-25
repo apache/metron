@@ -18,26 +18,17 @@
 package org.apache.metron.management;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
-import java.lang.invoke.MethodHandles;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.TreeCache;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
-import org.apache.curator.framework.recipes.cache.TreeCacheListener;
-import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.profiler.ProfilerConfig;
+import org.apache.metron.common.configuration.profiler.ProfilerConfigurations;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
@@ -46,203 +37,280 @@ import org.apache.metron.stellar.dsl.StellarFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.lang.invoke.MethodHandles;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static java.lang.String.format;
+import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMENT;
+import static org.apache.metron.common.configuration.ConfigurationType.GLOBAL;
+import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
+import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
+import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readGlobalConfigBytesFromZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readGlobalConfigFromZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readProfilerConfigBytesFromZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readProfilerConfigFromZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readSensorEnrichmentConfigFromZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readSensorIndexingConfigBytesFromZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readSensorIndexingConfigFromZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readSensorParserConfigFromZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeGlobalConfigToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeProfilerConfigToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeSensorIndexingConfigToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeSensorParserConfigToZookeeper;
+
+/**
+ * Defines functions that enable modification of Metron configuration values.
+ */
 public class ConfigurationFunctions {
+
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static EnumMap<ConfigurationType, Object> configMap = new EnumMap<ConfigurationType, Object>(ConfigurationType.class) {{
-    for(ConfigurationType ct : ConfigurationType.values()) {
-      put(ct, Collections.synchronizedMap(new HashMap<String, String>()));
+
+
+  /**
+   * Retrieves the Zookeeper client from the execution context.
+   *
+   * @param context The execution context.
+   * @return A Zookeeper client, if one exists.  Otherwise, an exception is thrown.
+   */
+  private static CuratorFramework getZookeeperClient(Context context) {
+
+    Optional<Object> clientOpt = context.getCapability(Context.Capabilities.ZOOKEEPER_CLIENT, true);
+    if(clientOpt.isPresent()) {
+      return (CuratorFramework) clientOpt.get();
+
+    } else {
+      throw new IllegalStateException("Missing ZOOKEEPER_CLIENT; zookeeper connection required");
     }
-    put(ConfigurationType.GLOBAL, "");
-    put(ConfigurationType.PROFILER, "");
-  }};
-  private static synchronized void setupTreeCache(Context context) throws Exception {
+  }
+
+  /**
+   * Get an argument from a list of arguments.
+   *
+   * @param index The index within the list of arguments.
+   * @param clazz The type expected.
+   * @param args All of the arguments.
+   * @param <T> The type of the argument expected.
+   */
+  public static <T> T getArg(int index, Class<T> clazz, List<Object> args) {
+
+    if(index >= args.size()) {
+      throw new IllegalArgumentException(format("expected at least %d argument(s), found %d", index+1, args.size()));
+    }
+
+    return ConversionUtils.convert(args.get(index), clazz);
+  }
+
+  /**
+   * Serializes a configuration object to the raw JSON.
+   *
+   * @param object The configuration object to serialize
+   * @return
+   */
+  private static String toJSON(Object object) {
+
+    if(object == null) {
+      return null;
+    }
+
     try {
-      Optional<Object> treeCacheOpt = context.getCapability("treeCache");
-      if (treeCacheOpt.isPresent()) {
-        return;
-      }
-    }
-    catch(IllegalStateException ex) {
+      return JSONUtils.INSTANCE.toJSON(object, true);
 
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
     }
-    Optional<Object> clientOpt = context.getCapability(Context.Capabilities.ZOOKEEPER_CLIENT);
-    if(!clientOpt.isPresent()) {
-      throw new IllegalStateException("I expected a zookeeper client to exist and it did not.  Please connect to zookeeper.");
-    }
-    CuratorFramework client = (CuratorFramework) clientOpt.get();
-    TreeCache cache = new TreeCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
-    TreeCacheListener listener = new TreeCacheListener() {
-      @Override
-      public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-        if (event.getType().equals(TreeCacheEvent.Type.NODE_ADDED) || event.getType().equals(TreeCacheEvent.Type.NODE_UPDATED)) {
-          String path = event.getData().getPath();
-          byte[] data = event.getData().getData();
-          String sensor = Iterables.getLast(Splitter.on("/").split(path), null);
-          if (path.startsWith(ConfigurationType.PARSER.getZookeeperRoot())) {
-            Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.PARSER);
-            sensorMap.put(sensor, new String(data));
-          } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-            configMap.put(ConfigurationType.GLOBAL, new String(data));
-          } else if (ConfigurationType.PROFILER.getZookeeperRoot().equals(path)) {
-            configMap.put(ConfigurationType.PROFILER, new String(data));
-          } else if (path.startsWith(ConfigurationType.ENRICHMENT.getZookeeperRoot())) {
-            Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.ENRICHMENT);
-            sensorMap.put(sensor, new String(data));
-          } else if (path.startsWith(ConfigurationType.INDEXING.getZookeeperRoot())) {
-            Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.INDEXING);
-            sensorMap.put(sensor, new String(data));
-          }
-        }
-        else if(event.getType().equals(TreeCacheEvent.Type.NODE_REMOVED)) {
-          String path = event.getData().getPath();
-          String sensor = Iterables.getLast(Splitter.on("/").split(path), null);
-          if (path.startsWith(ConfigurationType.PARSER.getZookeeperRoot())) {
-            Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.PARSER);
-            sensorMap.remove(sensor);
-          }
-          else if (path.startsWith(ConfigurationType.ENRICHMENT.getZookeeperRoot())) {
-            Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.ENRICHMENT);
-            sensorMap.remove(sensor);
-          }
-          else if (path.startsWith(ConfigurationType.INDEXING.getZookeeperRoot())) {
-            Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.INDEXING);
-            sensorMap.remove(sensor);
-          }
-          else if (ConfigurationType.PROFILER.getZookeeperRoot().equals(path)) {
-            configMap.put(ConfigurationType.PROFILER, null);
-          }
-          else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-            configMap.put(ConfigurationType.GLOBAL, null);
-          }
-        }
-      }
-    };
-    cache.getListenable().addListener(listener);
-    cache.start();
-    for(ConfigurationType ct : ConfigurationType.values()) {
-      switch(ct) {
-        case GLOBAL:
-        case PROFILER:
-          {
-            String data = "";
-            try {
-              byte[] bytes = ConfigurationsUtils.readFromZookeeper(ct.getZookeeperRoot(), client);
-              data = new String(bytes);
-            }
-            catch(Exception ex) {
-
-            }
-            configMap.put(ct, data);
-          }
-          break;
-        case INDEXING:
-        case ENRICHMENT:
-        case PARSER:
-          {
-            List<String> sensorTypes = client.getChildren().forPath(ct.getZookeeperRoot());
-            Map<String, String> sensorMap = (Map<String, String>)configMap.get(ct);
-            for(String sensorType : sensorTypes) {
-              sensorMap.put(sensorType, new String(ConfigurationsUtils.readFromZookeeper(ct.getZookeeperRoot() + "/" + sensorType, client)));
-            }
-          }
-          break;
-      }
-    }
-    context.addCapability("treeCache", () -> cache);
   }
 
   @Stellar(
-           namespace = "CONFIG"
-          ,name = "GET"
-          ,description = "Retrieve a Metron configuration from zookeeper."
-          ,params = {"type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER"
-                    , "sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)"
-                    , "emptyIfNotPresent - If true, then return an empty, minimally viable config"
-                    }
-          ,returns = "The String representation of the config in zookeeper"
-          )
+          namespace = "CONFIG",
+          name = "GET",
+          description = "Retrieve a Metron configuration from zookeeper.",
+          params = {
+                  "type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER",
+                  "sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)",
+                  "emptyIfNotPresent - If true, then return an empty, minimally viable config"
+          },
+          returns = "The String representation of the config in zookeeper")
   public static class ConfigGet implements StellarFunction {
-    boolean initialized = false;
+
+    /**
+     * Whether the function has been initialized.
+     */
+    private boolean initialized = false;
+
+    /**
+     * The Zookeeper client.
+     */
+    private CuratorFramework zkClient;
+
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      ConfigurationType type = ConfigurationType.valueOf((String)args.get(0));
-      boolean emptyIfNotPresent = true;
+      String result;
 
-      switch(type) {
-        case GLOBAL:
-        case PROFILER:
-          return configMap.get(type);
-        case PARSER: {
-          String sensor = (String) args.get(1);
-          if(args.size() > 2) {
-            emptyIfNotPresent = ConversionUtils.convert(args.get(2), Boolean.class);
-          }
-          Map<String, String> sensorMap = (Map<String, String>) configMap.get(type);
-          String ret = sensorMap.get(sensor);
-          if (ret == null && emptyIfNotPresent ) {
-            SensorParserConfig config = new SensorParserConfig();
-            config.setSensorTopic(sensor);
-            try {
-              ret = JSONUtils.INSTANCE.toJSON(config, true);
-            } catch (JsonProcessingException e) {
-              LOG.error("Unable to serialize default object: {}", e.getMessage(), e);
-              throw new ParseException("Unable to serialize default object: " + e.getMessage(), e);
-            }
-          }
-          return ret;
+      // the configuration type to write
+      String arg0 = getArg(0, String.class, args);
+      ConfigurationType type = ConfigurationType.valueOf(arg0);
+
+      try {
+
+        if (GLOBAL == type) {
+          result = getGlobalConfig(args);
+
+        } else if (PROFILER == type) {
+          result = getProfilerConfig(args);
+
+        } else if (ENRICHMENT == type) {
+          result = getEnrichmentConfig(args);
+
+        } else if (INDEXING == type) {
+          result = getIndexingConfig(args);
+
+        } else if (PARSER == type) {
+          result = getParserConfig(args);
+
+        } else {
+          throw new IllegalArgumentException("Unexpected configuration type: " + type);
         }
-        case INDEXING: {
-          String sensor = (String) args.get(1);
-          if(args.size() > 2) {
-            emptyIfNotPresent = ConversionUtils.convert(args.get(2), Boolean.class);
-          }
-          Map<String, String> sensorMap = (Map<String, String>) configMap.get(type);
-          String ret = sensorMap.get(sensor);
-          if (ret == null && emptyIfNotPresent ) {
-            Map<String, Object> config = new HashMap<>();
-            try {
-              ret = JSONUtils.INSTANCE.toJSON(config, true);
-              IndexingConfigurations.setIndex(config, sensor);
-            } catch (JsonProcessingException e) {
-              LOG.error("Unable to serialize default object: {}", e.getMessage(), e);
-              throw new ParseException("Unable to serialize default object: " + e.getMessage(), e);
-            }
-          }
-          return ret;
-        }
-        case ENRICHMENT: {
-          String sensor = (String) args.get(1);
-          if(args.size() > 2) {
-            emptyIfNotPresent = ConversionUtils.convert(args.get(2), Boolean.class);
-          }
-          Map<String, String> sensorMap = (Map<String, String>) configMap.get(type);
-          String ret = sensorMap.get(sensor);
-          if (ret == null && emptyIfNotPresent ) {
-            SensorEnrichmentConfig config = new SensorEnrichmentConfig();
-            try {
-              ret = JSONUtils.INSTANCE.toJSON(config, true);
-            } catch (JsonProcessingException e) {
-              LOG.error("Unable to serialize default object: {}", e.getMessage(), e);
-              throw new ParseException("Unable to serialize default object: " + e.getMessage(), e);
-            }
-          }
-          return ret;
-        }
-        default:
-          throw new UnsupportedOperationException("Unable to support type " + type);
+
+      } catch(Exception e) {
+        throw new RuntimeException(e);
       }
+
+      return result;
+    }
+
+    /**
+     * Retrieves the Global configuration.
+     *
+     * @return The Global configuration.
+     * @throws Exception
+     */
+    private String getGlobalConfig(List<Object> args) throws Exception {
+
+      Map<String, Object> globals = readGlobalConfigFromZookeeper(zkClient);
+
+      // provide empty/default config if one is not present?
+      if(globals == null && emptyIfNotPresent(args)) {
+        globals = new HashMap<>();
+      }
+
+      return toJSON(globals);
+    }
+
+    /**
+     * Retrieves the Parser configuration.
+     *
+     * @param args The function arguments.
+     * @return The Parser configuration.
+     * @throws Exception
+     */
+    private String getParserConfig(List<Object> args) throws Exception {
+
+      // retrieve the enrichment config for the given sensor
+      String sensor = getArg(1, String.class, args);
+      SensorParserConfig sensorConfig = readSensorParserConfigFromZookeeper(sensor, zkClient);
+
+      // provide empty/default config if one is not present?
+      if(sensorConfig == null && emptyIfNotPresent(args)) {
+        sensorConfig = new SensorParserConfig();
+      }
+
+     return toJSON(sensorConfig);
+    }
+
+    /**
+     * Retrieve the Enrichment configuration.
+     *
+     * @param args The function arguments.
+     * @return The Enrichment configuration as a JSON string.
+     * @throws Exception
+     */
+    private String getEnrichmentConfig(List<Object> args) throws Exception {
+
+      // retrieve the enrichment config for the given sensor
+      String sensor = getArg(1, String.class, args);
+      SensorEnrichmentConfig sensorConfig = readSensorEnrichmentConfigFromZookeeper(sensor, zkClient);
+
+      // provide empty/default config if one is not present?
+      if(sensorConfig == null && emptyIfNotPresent(args)) {
+        sensorConfig = new SensorEnrichmentConfig();
+      }
+
+      return toJSON(sensorConfig);
+    }
+
+    /**
+     * Retrieve the Indexing configuration.
+     *
+     * @param args The function arguments.
+     * @return The Indexing configuration as a JSON string.
+     * @throws Exception
+     */
+    private String getIndexingConfig(List<Object> args) throws Exception {
+
+      // retrieve the enrichment config for the given sensor
+      String sensor = getArg(1, String.class, args);
+      Map<String, Object> sensorConfig = readSensorIndexingConfigFromZookeeper(sensor, zkClient);
+
+      // provide empty/default config if one is not present?
+      if(sensorConfig == null && emptyIfNotPresent(args)) {
+        sensorConfig = Collections.emptyMap();
+      }
+
+      return toJSON(sensorConfig);
+    }
+
+    /**
+     * Retrieve the Profiler configuration.
+     *
+     * @param args The function arguments.
+     * @return The Profiler configuration as a JSON string.
+     * @throws Exception
+     */
+    private String getProfilerConfig(List<Object> args) throws Exception {
+
+      ProfilerConfig profilerConfig = readProfilerConfigFromZookeeper(zkClient);
+
+      // provide empty/default config if one is not present?
+      if(profilerConfig == null && emptyIfNotPresent(args)) {
+        profilerConfig = new ProfilerConfig();
+      }
+
+      return toJSON(profilerConfig);
+    }
+
+    /**
+     * Retrieves the 'emptyIfNotPresent' argument.
+     *
+     * <p>This determines whether a default configuration should be returned, if no
+     * configuration is not present.  This defaults to true.
+     *
+     * @param args The function arguments.
+     * @return The 'emptyIfNotPresent' argument.
+     * @throws Exception
+     */
+    private boolean emptyIfNotPresent(List<Object> args) {
+
+      boolean emptyIfNotPresent = true;
+      int lastIndex = args.size() - 1;
+
+      // expect 'emptyIfNotPresent' to always be the last boolean arg
+      if(args.size() >= 2 && args.get(lastIndex) instanceof Boolean) {
+        emptyIfNotPresent = getArg(lastIndex, Boolean.class, args);
+      }
+
+      return emptyIfNotPresent;
     }
 
     @Override
     public void initialize(Context context) {
-      try {
-        setupTreeCache(context);
-      } catch (Exception e) {
-        LOG.error("Unable to initialize: {}", e.getMessage(), e);
-      }
-      finally {
-        initialized = true;
-      }
+      zkClient = getZookeeperClient(context);
     }
 
     @Override
@@ -250,91 +318,69 @@ public class ConfigurationFunctions {
       return initialized;
     }
   }
+
   @Stellar(
-           namespace = "CONFIG"
-          ,name = "PUT"
-          ,description = "Updates a Metron config to Zookeeper."
-          ,params = {"type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER"
-                    ,"config - The config (a string in JSON form) to update"
-                    , "sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)"
-                    }
-          ,returns = "The String representation of the config in zookeeper"
-          )
+          namespace = "CONFIG",
+          name = "PUT",
+          description = "Updates a Metron config to Zookeeper.",
+          params = {
+                  "type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER",
+                  "config - The config (a string in JSON form) to update",
+                  "sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)"
+          },
+          returns = "The String representation of the config in zookeeper")
   public static class ConfigPut implements StellarFunction {
-    private CuratorFramework client;
-    private boolean initialized = false;
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      ConfigurationType type = ConfigurationType.valueOf((String)args.get(0));
-      String config = (String)args.get(1);
-      if(config == null) {
-        return null;
-      }
-      try {
-        switch (type) {
-          case GLOBAL:
-            ConfigurationsUtils.writeGlobalConfigToZookeeper(config.getBytes(), client);
-            break;
-          case PROFILER:
-            ConfigurationsUtils.writeProfilerConfigToZookeeper(config.getBytes(), client);
-            break;
-          case ENRICHMENT:
-          {
-            String sensor = (String) args.get(2);
-            if(sensor == null) {
-              return null;
-            }
-            ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensor, config.getBytes(), client);
+
+      // the configuration type to write
+      String arg0 = getArg(0, String.class, args);
+      ConfigurationType type = ConfigurationType.valueOf(arg0);
+
+      // the configuration value to write
+      String value = getArg(1, String.class, args);
+      if(value != null) {
+
+        CuratorFramework client = getZookeeperClient(context);
+        try {
+
+          if(GLOBAL == type) {
+            writeGlobalConfigToZookeeper(value.getBytes(), client);
+
+          } else if(PROFILER == type) {
+            writeProfilerConfigToZookeeper(value.getBytes(), client);
+
+          } else if(ENRICHMENT == type) {
+            String sensor = getArg(2, String.class, args);
+            writeSensorEnrichmentConfigToZookeeper(sensor, value.getBytes(), client);
+
+          } else if(INDEXING == type) {
+            String sensor = getArg(2, String.class, args);
+            writeSensorIndexingConfigToZookeeper(sensor, value.getBytes(), client);
+
+          } else if (PARSER == type) {
+            String sensor = getArg(2, String.class, args);
+            writeSensorParserConfigToZookeeper(sensor, value.getBytes(), client);
           }
-          break;
-          case INDEXING:
-          {
-            String sensor = (String) args.get(2);
-            if(sensor == null) {
-              return null;
-            }
-            ConfigurationsUtils.writeSensorIndexingConfigToZookeeper(sensor, config.getBytes(), client);
-          }
-          break;
-          case PARSER:
-            {
-            String sensor = (String) args.get(2);
-              if(sensor == null) {
-              return null;
-            }
-            ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensor, config.getBytes(), client);
-          }
-          break;
+
+        } catch(Exception e) {
+          LOG.error("Unexpected exception: {}", e.getMessage(), e);
+          throw new ParseException(e.getMessage());
         }
       }
-      catch(Exception ex) {
-        LOG.error("Unable to put config: {}", ex.getMessage(), ex);
-        throw new ParseException("Unable to put config: " + ex.getMessage(), ex);
-      }
+
       return null;
     }
 
     @Override
     public void initialize(Context context) {
-      Optional<Object> clientOpt = context.getCapability(Context.Capabilities.ZOOKEEPER_CLIENT);
-      if(!clientOpt.isPresent()) {
-        throw new IllegalStateException("I expected a zookeeper client to exist and it did not.  Please connect to zookeeper.");
-      }
-      client = (CuratorFramework) clientOpt.get();
-      try {
-        setupTreeCache(context);
-      } catch (Exception e) {
-        LOG.error("Unable to initialize: {}", e.getMessage(), e);
-      }
-      finally {
-        initialized = true;
-      }
+      // nothing to do
     }
 
     @Override
     public boolean isInitialized() {
-      return initialized;
+      return true;
     }
   }
 }
