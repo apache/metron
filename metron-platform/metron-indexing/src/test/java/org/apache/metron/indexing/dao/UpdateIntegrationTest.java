@@ -49,7 +49,7 @@ public abstract class UpdateIntegrationTest {
   private static String index;
   private static MockHTable table;
   private static IndexDao hbaseDao;
-  protected static AccessConfig accessConfig;
+  private static AccessConfig accessConfig;
 
   protected static MultiIndexDao dao;
   protected static InMemoryComponent indexComponent;
@@ -75,10 +75,14 @@ public abstract class UpdateIntegrationTest {
     }
   }
 
+  protected AccessConfig getAccessConfig() {
+    return accessConfig;
+  }
+
   @Test
   public void test() throws Exception {
     dao = new MultiIndexDao(hbaseDao, createDao());
-    dao.init(accessConfig);
+    dao.init(getAccessConfig());
 
     List<Map<String, Object>> inputData = new ArrayList<>();
     for(int i = 0; i < 10;++i) {

@@ -80,7 +80,7 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   @Test
   public void suppress_expanded_fields() throws Exception {
     dao = new MultiIndexDao(createDao());
-    dao.init(accessConfig);
+    dao.init(getAccessConfig());
 
     Map<String, Object> fields = new HashMap<>();
     fields.put("guid", "bro_1");
