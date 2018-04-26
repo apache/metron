@@ -16,29 +16,35 @@
  * limitations under the License.
  */
 import { LoginPage } from './login.po';
+import {deleteTestData, loadTestData} from '../utils/e2e_util';
 
-describe('login to application', function() {
+describe('Test spec for login page', function() {
     let page: LoginPage;
 
-    beforeEach(() => {
-        page = new LoginPage();
+    beforeAll(async function() : Promise<any> {
+      page = new LoginPage();
+      await loadTestData();
     });
 
-    it('should display error message for invalid credentials', () => {
-        page.navigateToLogin();
-        page.setUserNameAndPassword('admin', 'admin');
-        page.submitLoginForm();
-        expect(page.getErrorMessage()).toEqual('Login failed for admin');
+    afterAll(async function() : Promise<any> {
+        await deleteTestData();
     });
 
-    it('should login for valid credentials', () => {
-        page.navigateToLogin();
-        page.setUserNameAndPassword('admin', 'password');
-        page.submitLoginForm();
+    it('should display error message for invalid credentials', async function() : Promise<any> {
+        await page.navigateToLogin();
+        await page.setUserNameAndPassword('admin', 'admin');
+        await page.submitLoginForm();
+        expect(await page.getErrorMessage()).toEqual('Login failed for admin');
     });
 
-    it('should logout', () => {
-        page.logout();
-        expect(page.getLocation()).toEqual('http://localhost:4200/login');
+    it('should login for valid credentials', async function() : Promise<any> {
+        await page.navigateToLogin();
+        await page.setUserNameAndPassword('admin', 'password');
+        await page.submitLoginForm();
+    });
+
+    it('should logout', async function() : Promise<any> {
+        await page.logout();
+        expect(await page.getLocation()).toEqual('http://localhost:4200/login');
     });
 });

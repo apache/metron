@@ -18,16 +18,23 @@
 
 import {browser, element, by, protractor} from 'protractor';
 import * as moment from 'moment/moment';
-import {waitForElementVisibility, waitForElementPresence, waitForElementInVisibility} from '../utils/e2e_util';
+import {
+  waitForElementVisibility, waitForElementPresence, waitForElementInVisibility,
+  waitForText, waitForCssClass, waitForCssClassNotToBePresent, waitForTextChange,
+  waitForStalenessOf, reduce_for_get_all, waitForElementCountGreaterThan, scrollIntoView,
+  waitForNonEmptyText, catchNoSuchElementError
+} from '../utils/e2e_util';
 
 export class MetronAlertsPage {
+  private EC = protractor.ExpectedConditions;
+
   navigateTo() {
-    browser.waitForAngularEnabled(false);
-    return browser.get('/alerts-list');
+    return browser.waitForAngularEnabled(false)
+    .then(() => browser.get('/alerts-list'));
   }
 
   clearLocalStorage() {
-    browser.executeScript('window.localStorage.clear();');
+    return browser.executeScript('window.localStorage.clear();');
   }
 
   isMetronLogoPresent() {
@@ -72,23 +79,29 @@ export class MetronAlertsPage {
 
   clickActionDropdown() {
     let actionsDropDown = element(by.buttonText('ACTIONS'));
-    browser.actions().mouseMove(actionsDropDown).perform();
-    return actionsDropDown.click();
+    return scrollIntoView(actionsDropDown, true)
+    .then(() => actionsDropDown.click());
   }
 
   clickActionDropdownOption(option: string) {
-    this.clickActionDropdown().then(() => {
-      element(by.cssContainingText('.dropdown-menu span', option)).click();
-      browser.sleep(2000);
-    });
+    return this.clickActionDropdown()
+    .then(() => element(by.cssContainingText('.dropdown-menu span', option)).click())
+    .then(() => waitForCssClassNotToBePresent(element(by.css('#table-actions')), 'show'));
   }
 
   getActionDropdownItems() {
-    return this.clickActionDropdown().then(() => element.all(by.css('.dropdown-menu .dropdown-item.disabled')).getText());
+    return this.clickActionDropdown()
+    .then(() => element.all(by.css('.dropdown-menu .dropdown-item.disabled')).reduce(reduce_for_get_all(), []));
   }
 
   getTableColumnNames() {
-    return element.all(by.css('app-alerts-list .table th')).getText();
+    return element.all(by.css('app-alerts-list .table th')).reduce(reduce_for_get_all(), []);
+  }
+
+  getChangedPaginationText(previousText: string) {
+    let paginationElement = element(by.css('metron-table-pagination span'));
+    return waitForTextChange(paginationElement, previousText)
+    .then(() => paginationElement.getText());
   }
 
   getPaginationText() {
@@ -107,16 +120,18 @@ export class MetronAlertsPage {
     });
   }
 
-  clickChevronRight(times = 1) {
-    for (let i = 0; i < times; i++) {
-      element(by.css('metron-table-pagination .fa.fa-chevron-right')).click();
-    }
+  clickChevronRight() {
+    let paginationEle = element(by.css('metron-table-pagination .fa.fa-chevron-right'));
+    return waitForElementVisibility(paginationEle)
+    .then(() => browser.actions().mouseMove(paginationEle).perform())
+    .then(() => paginationEle.click())
   }
 
   clickChevronLeft(times = 1) {
-    for (let i = 0; i < times; i++) {
-      element(by.css('metron-table-pagination .fa.fa-chevron-left')).click();
-    }
+    let paginationEle = element(by.css('metron-table-pagination .fa.fa-chevron-left'));
+    return waitForElementVisibility(paginationEle)
+    .then(() => browser.actions().mouseMove(paginationEle).perform())
+    .then(() => paginationEle.click());
   }
 
   clickSettings() {
@@ -125,23 +140,23 @@ export class MetronAlertsPage {
   }
 
   getSettingsLabels() {
-    return element.all(by.css('app-configure-rows  form label:not(.switch)')).getText();
+    return element.all(by.css('app-configure-rows  form label:not(.switch)')).reduce(reduce_for_get_all() ,[]);
   }
 
   getRefreshRateOptions() {
-    return element.all(by.css('.preset-row.refresh-interval .preset-cell')).getText();
+    return element.all(by.css('.preset-row.refresh-interval .preset-cell')).reduce(reduce_for_get_all() ,[]);
   }
 
   getRefreshRateSelectedOption() {
-    return element.all(by.css('.preset-row.refresh-interval .preset-cell.is-active')).getText();
+    return element.all(by.css('.preset-row.refresh-interval .preset-cell.is-active')).reduce(reduce_for_get_all() ,[]);
   }
 
   getPageSizeOptions() {
-    return element.all(by.css('.preset-row.page-size .preset-cell')).getText();
+    return element.all(by.css('.preset-row.page-size .preset-cell')).reduce(reduce_for_get_all() ,[]);
   }
 
   getPageSizeSelectedOption() {
-    return element.all(by.css('.preset-row.page-size .preset-cell.is-active')).getText();
+    return element.all(by.css('.preset-row.page-size .preset-cell.is-active')).reduce(reduce_for_get_all() ,[]);
   }
 
   clickRefreshInterval(intervalText: string) {
@@ -154,30 +169,45 @@ export class MetronAlertsPage {
 
   clickConfigureTable() {
     let gearIcon = element(by.css('app-alerts-list .fa.fa-cog.configure-table-icon'));
-    waitForElementVisibility(gearIcon).then(() => gearIcon.click());
-    browser.sleep(1000);
+    return waitForElementVisibility(gearIcon)
+    .then(() => gearIcon.click())
+    .then(() => waitForElementCountGreaterThan('app-configure-table tr', 282));
   }
 
   clickCloseSavedSearch() {
-    element(by.css('app-saved-searches .close-button')).click();
-    browser.sleep(2000);
+    return element(by.css('app-saved-searches .close-button')).click()
+    .then(() => waitForStalenessOf(element(by.css('app-saved-searches'))));
   }
 
   clickSavedSearch() {
-    element(by.buttonText('Searches')).click();
-    browser.sleep(1000);
+    return element(by.buttonText('Searches')).click()
+    .then(() => waitForElementVisibility(element(by.css('app-saved-searches'))))
+    .then(() => browser.sleep(1000));
   }
 
-  clickPlayPause() {
-    element(by.css('.btn.pause-play')).click();
+  clickPlayPause(waitForPreviousClass: string) {
+    let playPauseButton = element(by.css('.btn.pause-play'));
+    return browser.actions().mouseMove(playPauseButton).perform()
+          .then(() => playPauseButton.click())
+          .then(() => waitForCssClass(element(by.css('.btn.pause-play i')), waitForPreviousClass));
   }
 
-  clickTableText(name: string) {
-    waitForElementPresence(element.all(by.linkText(name))).then(() => element.all(by.linkText(name)).get(0).click());
+  clickTableTextAndGetSearchText(name: string, textToWaitFor: string) {
+    browser.sleep(500);
+    return waitForElementVisibility(element.all(by.cssContainingText('table tr td a', name)).get(0))
+          .then(() => element.all(by.cssContainingText('table tr td a', name)).get(0).click())
+          .then(() => waitForText('.ace_line', textToWaitFor))
+          .then(() => element(by.css('.ace_line')).getText())
   }
 
-  clickClearSearch() {
-    element(by.css('.btn-search-clear')).click();
+  private clickTableText(name: string) {
+    waitForElementVisibility(element.all(by.linkText(name))).then(() => element.all(by.linkText(name)).get(0).click());
+  }
+
+  clickClearSearch(alertCount = '169') {
+    return element(by.css('.btn-search-clear')).click()
+    .then(() => waitForText('.ace_line', '*'))
+    .then(() => waitForText('.col-form-label-lg', `Alerts (${alertCount})`));
   }
 
   getSavedSearchTitle() {
@@ -197,36 +227,37 @@ export class MetronAlertsPage {
   }
 
   getRecentSearchOptions() {
-    browser.sleep(1000);
-    return element(by.linkText('Recent Searches')).element(by.xpath('..')).all(by.css('li')).getText();
+    return element.all(by.css('[data-name="recent-searches"] li')).getText();
   }
 
   getDefaultRecentSearchValue() {
-    browser.sleep(1000);
-    return element(by.linkText('Recent Searches')).element(by.xpath('..')).all(by.css('i')).getText();
+    return element.all(by.css('[data-name="recent-searches"] i')).getText();
   }
 
   getSavedSearchOptions() {
-    browser.sleep(1000);
-    return element(by.linkText('Saved Searches')).element(by.xpath('..')).all(by.css('li')).getText();
+    return element.all(by.css('[data-name="saved-searches"] li')).getText();
   }
 
   getDefaultSavedSearchValue() {
-    browser.sleep(1000);
-    return element(by.linkText('Saved Searches')).element(by.xpath('..')).all(by.css('i')).getText();
+    return element.all(by.css('[data-name="saved-searches"] i')).getText();
   }
 
   getSelectedColumnNames() {
-    return element.all(by.css('app-configure-table input[type="checkbox"]:checked')).map(ele => {
-      return ele.getAttribute('id').then(id => id.replace(/select-deselect-/, ''));
-    });
+    return element.all(by.css('app-configure-table input[type="checkbox"]:checked')).reduce((acc, ele) => {
+      return ele.getAttribute('id').then(id => {
+        acc.push(id.replace(/select-deselect-/, ''));
+        return acc;
+      })
+    }, []);
   }
 
-  toggleSelectCol(name: string, scrollTo = '') {
-    scrollTo = scrollTo === '' ? name : scrollTo;
-    let ele = element(by.css('app-configure-table label[for="select-deselect-' + name + '"]'));
-    let scrollToEle = element(by.css('app-configure-table label[for="select-deselect-' + scrollTo + '"]'));
-    browser.actions().mouseMove(scrollToEle).perform().then(() => ele.click());
+  toggleSelectCol(name: string) {
+    const selector = `app-configure-table label[for=\"select-deselect-${name}\"]`;
+    const ele = element(by.css(selector));
+    return waitForElementVisibility(ele)
+          .then(() => scrollIntoView(ele, true))
+          .then(() => (element(by.css(selector)).click()))
+          .catch(err => console.log(err));
   }
 
   saveSearch(name: string) {
@@ -235,28 +266,33 @@ export class MetronAlertsPage {
   }
 
   saveConfigureColumns() {
-    element(by.css('app-configure-table')).element(by.buttonText('SAVE')).click();
+    return element(by.css('app-configure-table')).element(by.buttonText('SAVE')).click();
   }
 
-  clickRemoveSearchChip() {
+  clickRemoveSearchChipAndGetSearchText(expectedSearchText: string) {
+    return this.clickRemoveSearchChip()
+    .then(() => waitForText('.ace_line', expectedSearchText))
+    .then(() => element(by.css('.ace_line')).getText())
+  }
+
+  private clickRemoveSearchChip(): any {
     let aceLine = element.all(by.css('.ace_keyword')).get(0);
     /* - Focus on the search text box by sending a empty string
        - move the mouse to the text in search bos so that delete buttons become visible
        - wait for delete buttons become visible
        - click on delete button
     */
-    element(by.css('app-alerts-list .ace_text-input')).sendKeys('')
+    return element(by.css('app-alerts-list .ace_text-input')).sendKeys('')
     .then(() => browser.actions().mouseMove(aceLine).perform())
     .then(() => this.waitForElementPresence(element(by.css('.ace_value i'))))
     .then(() => element.all(by.css('.ace_value i')).get(0).click());
   }
 
-  setSearchText(search: string) {
-    this.clickClearSearch();
-    element(by.css('app-alerts-list .ace_text-input')).sendKeys(protractor.Key.BACK_SPACE);
-    element(by.css('app-alerts-list .ace_text-input')).sendKeys(search);
-    element(by.css('app-alerts-list .ace_text-input')).sendKeys(protractor.Key.ENTER);
-    browser.sleep(2000);
+  setSearchText(search: string,  alertCount = '169') {
+    return this.clickClearSearch(alertCount)
+    .then(() => element(by.css('app-alerts-list .ace_text-input')).sendKeys(protractor.Key.BACK_SPACE))
+    .then(() => element(by.css('app-alerts-list .ace_text-input')).sendKeys(search))
+    .then(() => element(by.css('app-alerts-list .ace_text-input')).sendKeys(protractor.Key.ENTER))
   }
 
   waitForElementPresence (element ) {
@@ -272,25 +308,31 @@ export class MetronAlertsPage {
   toggleAlertInList(index: number) {
     let selector = by.css('app-alerts-list tbody tr label');
     let checkbox = element.all(selector).get(index);
-    this.waitForElementPresence(checkbox).then(() => {
-      browser.actions().mouseMove(checkbox).perform().then(() => {
-        checkbox.click();
-      });
-    });
+    return this.waitForElementPresence(checkbox)
+    .then(() => scrollIntoView(checkbox, true))
+    .then(() => checkbox.click());
   }
 
   getAlertStatus(rowIndex: number, previousText: string, colIndex = 8) {
     let row = element.all(by.css('app-alerts-list tbody tr')).get(rowIndex);
     let column = row.all(by.css('td a')).get(colIndex);
-    return this.waitForTextChange(column, previousText).then(() => {
-      return column.getText();
-    });
+    return this.waitForTextChange(column, previousText).then(() => column.getText());
   }
 
-  waitForMetaAlert() {
-    browser.sleep(2000);
-    return element(by.css('button[data-name="search"]')).click()
-    .then(() => waitForElementPresence(element(by.css('.icon-cell.dropdown-cell'))));
+  waitForMetaAlert(expectedCount) {
+    let title = element(by.css('.col-form-label-lg'));
+    function waitForMetaAlert$()
+    {
+      return function () {
+        return browser.sleep(2000)
+        .then(() => element(by.css('button[data-name="search"]')).click())
+        .then(() => waitForTextChange(title, `Alerts (169)`))
+        .then(() => title.getText())
+        .then((text) => text === `Alerts (${expectedCount})`)
+        .catch(catchNoSuchElementError())
+      }
+    }
+    return browser.wait(waitForMetaAlert$()).catch(catchNoSuchElementError());
   }
 
   isDateSeettingDisabled() {
@@ -298,37 +340,117 @@ export class MetronAlertsPage {
   }
 
   clickDateSettings() {
-    element(by.css('app-time-range button.btn-search')).click();
-    browser.sleep(2000);
+    return scrollIntoView(element(by.css('app-time-range button.btn-search')), true)
+    .then(() => element(by.css('app-time-range button.btn-search')).click())
+    .then(() => waitForCssClass(element(by.css('app-time-range #time-range')), 'show'));
+  }
+
+  hideDateSettings() {
+    return element(by.css('app-time-range button.btn-search')).click()
+    .then(() => waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show'))
+    .then(() => waitForElementInVisibility(element(by.css('app-time-range #time-range'))));
   }
 
   getTimeRangeTitles() {
-    return element.all(by.css('app-time-range .title')).getText();
+    return element.all(by.css('app-time-range .title')).reduce(reduce_for_get_all(), []);
   }
 
   getQuickTimeRanges() {
-    return element.all(by.css('app-time-range .quick-ranges span')).getText();
+    return element.all(by.css('app-time-range .quick-ranges span')).reduce(reduce_for_get_all(), []);
   }
 
   getValueForManualTimeRange() {
-    return element.all(by.css('app-time-range input.form-control')). getAttribute('value');
+    return element.all(by.css('app-time-range input.form-control')).reduce((acc, ele) => {
+      return ele.getAttribute('value').then(value => {
+        acc.push(value);
+        return acc;
+      });
+    }, []);
   }
 
   isManulaTimeRangeApplyButtonPresent() {
     return element.all(by.css('app-time-range')).all(by.buttonText('APPLY')).count().then(count => count === 1);
   }
 
+  waitForTextAndSubTextInTimeRange(currentTimeRangeVal) {
+    return waitForTextChange(element(by.css('app-time-range .time-range-value')), currentTimeRangeVal[1])
+    .then(() => waitForTextChange(element(by.css('app-time-range .time-range-text')), currentTimeRangeVal[0]))
+  }
+
+  async selectQuickTimeRangeAndGetTimeRangeAndTimeText(quickRange: string) {
+    let currentTimeRangeVal: any = [];
+    // return element.all(by.css('app-time-range button span')).getText()
+    //       .then(text => currentTimeRangeVal = text)
+    //       .then(() => this.selectQuickTimeRange(quickRange))
+    //       .then(() => waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show'))
+    //       .then(() => waitForTextChange(element(by.css('app-time-range .time-range-value')), currentTimeRangeVal[1]))
+    //       .then(() => waitForTextChange(element(by.css('app-time-range .time-range-text')), currentTimeRangeVal[0]))
+    //       .then(() => this.getTimeRangeButtonAndSubText());
+
+    // return Promise.all([
+    //   element(by.id('app-time-range .time-range-value')).getText(),
+    //   element(by.id('app-time-range .time-range-text')).getText()
+    // ]).then(function(prevValues){
+
+
+    // return this.selectQuickTimeRange(quickRange)
+    //   .then(() => waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show'))
+    //   .then(() => element(by.css('app-time-range .time-range-value')).getText())
+    //   .then((text) => waitForTextChange(element(by.css('app-time-range .time-range-value')), text))
+    //   // .then(() => waitForTextChange(element(by.css('app-time-range .time-range-text')), prevValues[0]))
+    //   .then(() => this.getTimeRangeButtonAndSubText());
+    // // });
+
+    let timeRangeVal = '', timeRangeText = '';
+    await element(by.css('app-time-range .time-range-value')).getText().then(text => timeRangeVal = text.trim());
+    await element(by.css('app-time-range .time-range-text')).getText().then(text => timeRangeText = text.trim());
+
+    // console.log('old', timeRangeText, timeRangeVal);
+
+    await this.selectQuickTimeRange(quickRange);
+    await waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show');
+    await waitForTextChange(element(by.css('app-time-range .time-range-value')), timeRangeVal);
+    await waitForTextChange(element(by.css('app-time-range .time-range-text')), timeRangeText);
+
+    return this.getTimeRangeButtonAndSubText();
+
+
+    // return await this.selectQuickTimeRange(quickRange)
+    //         .then(() => browser.waitForAngular())
+    //         .then(() => waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show'))
+    //         .then(() => waitForTextChange(element(by.css('app-time-range .time-range-value')), timeRangeVal))
+    //         .then(() => this.getTimeRangeButtonAndSubText())
+    //         .catch(err => console.log(err));
+
+    // return element(by.css('app-time-range .time-range-value')).getText().then(text => {
+    //   // console.log('text is', text);
+    //   return this.selectQuickTimeRange(quickRange)
+    //   .then(() => browser.waitForAngular())
+    //   .then(() => waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show'))
+    //   .then(() => waitForTextChange(element(by.css('app-time-range .time-range-value')), text))
+    //   .then(() => this.getTimeRangeButtonAndSubText())
+    //   .catch(err => console.log(err));
+    // })
+  }
+
+  selectQuickTimeRangeAndGetTimeRangeText(quickRange: string) {
+    return this.selectQuickTimeRange(quickRange)
+    .then(() => waitForElementInVisibility(element(by.css('#time-range'))))
+    .then(() => browser.wait(this.EC.textToBePresentInElement(element(by.css('app-time-range .time-range-text')), quickRange)))
+    .then(() => element.all(by.css('app-time-range button span')).get(0).getText());
+  }
+
   selectQuickTimeRange(quickRange: string) {
-    element.all(by.cssContainingText('.quick-ranges span', quickRange)).get(0).click();
-    browser.sleep(2000);
+    // return element.all(by.cssContainingText('.quick-ranges span', quickRange)).get(0).click();
+    return element(by.id(quickRange.toLowerCase().replace(/ /g,'-'))).click();
   }
 
   getTimeRangeButtonText() {
-    return element.all(by.css('app-time-range button.btn-search span')).get(0).getText();
+    return element(by.css('app-time-range .time-range-text')).getText();
   }
 
   setDate(index: number, year: string, month: string, day: string, hour: string, min: string, sec: string) {
-    element.all(by.css('app-time-range .calendar')).get(index).click()
+    return element.all(by.css('app-time-range .calendar')).get(index).click()
     .then(() => element.all(by.css('.pika-select.pika-select-hour')).get(index).click())
     .then(() => element.all(by.css('.pika-select.pika-select-hour')).get(index).element(by.cssContainingText('option', hour)).click())
     .then(() => element.all(by.css('.pika-select.pika-select-minute')).get(index).click())
@@ -342,7 +464,7 @@ export class MetronAlertsPage {
     .then(() => element.all(by.css('.pika-table')).get(index).element(by.buttonText(day)).click())
     .then(() => waitForElementInVisibility(element.all(by.css('.pika-single')).get(index)));
 
-    browser.sleep(1000);
+    // browser.sleep(1000);
   }
 
   selectTimeRangeApplyButton() {
@@ -350,11 +472,9 @@ export class MetronAlertsPage {
   }
 
   getChangesAlertTableTitle(previousText: string) {
-    // browser.pause();
     let title = element(by.css('.col-form-label-lg'));
-    return this.waitForTextChange(title, previousText).then(() => {
-      return title.getText();
-    });
+    return waitForTextChange(title, previousText)
+    .then(() => title.getText());
   }
 
   getAlertStatusById(id: string) {
@@ -372,7 +492,7 @@ export class MetronAlertsPage {
   }
 
   expandMetaAlert(rowIndex: number) {
-    element.all(by.css('table tbody tr')).get(rowIndex).element(by.css('.icon-cell.dropdown-cell')).click();
+    return element.all(by.css('table tbody tr')).get(rowIndex).element(by.css('.icon-cell.dropdown-cell')).click();
   }
 
   getHiddenRowCount() {
@@ -388,8 +508,8 @@ export class MetronAlertsPage {
   }
 
   clickOnMetaAlertRow(rowIndex: number) {
-    element.all(by.css('table tbody tr')).get(rowIndex).all(by.css('td')).get(5).click();
-    browser.sleep(2000);
+    return element.all(by.css('table tbody tr')).get(rowIndex).all(by.css('td')).get(5).click()
+    .then(() => browser.sleep(2000));
   }
 
   removeAlert(rowIndex: number) {
@@ -397,42 +517,116 @@ export class MetronAlertsPage {
   }
 
   loadSavedSearch(name: string) {
-    element.all(by.css('app-saved-searches metron-collapse')).get(1).element(by.css('li[title="'+ name +'"]')).click();
-    browser.sleep(1000);
+    return element.all(by.css('app-saved-searches metron-collapse')).get(1).element(by.css('li[title="'+ name +'"]')).click();
   }
 
   loadRecentSearch(name: string) {
-    element.all(by.css('app-saved-searches metron-collapse')).get(0).all(by.css('li')).get(2).click();
-    browser.sleep(1000);
+    return element.all(by.css('app-saved-searches metron-collapse')).get(0).all(by.css('li')).get(2).click();
   }
 
   getTimeRangeButtonTextForNow() {
-    return element.all(by.css('app-time-range button span')).getText();
+    return element.all(by.css('app-time-range button span')).reduce(reduce_for_get_all(), []);
   }
 
-  getTimeRangeButtonAndSubText() {
-    return waitForElementInVisibility(element(by.css('#time-range')))
-    .then(() => element.all(by.css('app-time-range button span')).getText())
-    .then(arr => {
-        let retArr = [arr[0]];
-        for (let i=1; i < arr.length; i++) {
-          let dateStr = arr[i].split(' to ');
-          let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-          let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-          retArr.push((toTime - fromTime) + '');
-        }
-        return retArr;
-    });
+  async getTimeRangeButtonAndSubText() {
+    let timeRangetext = '', timeRangeValue = '';
+
+    // return browser.waitForAngular()
+    // .then(() => waitForNonEmptyText(element(by.css('app-time-range .time-range-value'))))
+    // .then(() => {
+    //   return element(by.css('app-time-range .time-range-text')).getText().then((timeRangetext) => {
+    //     return element(by.css('app-time-range .time-range-value')).getText().then((timeRangeValue) => {
+    //       let retArr = [timeRangetext];
+    //       let dateStr = timeRangeValue.split(' to ');
+    //       let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    //       let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    //       retArr.push((toTime - fromTime) + '');
+    //       return (retArr);
+    //     });
+    //   });
+    // });
+    // return waitForNonEmptyText(element(by.css('app-time-range .time-range-value')))
+    //         .then(() => {
+    //
+    //           return Promise.all([
+    //             element(by.css('app-time-range .time-range-text')).getText(),
+    //             element(by.css('app-time-range .time-range-value')).getText()
+    //           ]).then(values => {
+    //             let retArr = [values[0]];
+    //             let dateStr = values[1].split(' to ');
+    //             let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    //             let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    //             retArr.push((toTime - fromTime) + '');
+    //             return (retArr) as any;
+    //           });
+    //
+    //         });
+
+    // return waitForNonEmptyText(element(by.css('app-time-range .time-range-value')))
+    // .then(() => element(by.css('app-time-range .time-range-text')).getText().then((timeRangetext) => {
+    //   return element(by.css('app-time-range .time-range-value')).getText().then((timeRangeValue) => {
+    //     let retArr = [timeRangetext];
+    //     let dateStr = timeRangeValue.split(' to ');
+    //     let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    //     let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    //     retArr.push((toTime - fromTime) + '');
+    //     return (retArr);
+    //   }).catch(err => console.log(err));
+    // }).catch(err => console.log(err)));
+
+    // return waitForNonEmptyText(element(by.css('app-time-range .time-range-value')))
+    //       .then(() => waitForNonEmptyText(element(by.css('app-time-range .time-range-text'))))
+    //       .then(() => element(by.css('app-time-range .time-range-text')).getText())
+    //       .then(text => timeRangetext = text)
+    //       .then(() => element(by.css('app-time-range .time-range-value')).getText())
+    //       .then(text => timeRangeValue = text)
+    //       .then(() => {
+    //         // console.log('timeRangeValue', timeRangeValue);
+    //         let retArr = [timeRangetext];
+    //         let dateStr = timeRangeValue.split(' to ');
+    //         let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    //         let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    //         retArr.push((toTime - fromTime) + '');
+    //         return retArr;
+    //       }).catch((error) => console.log(error));;
+
+    // return waitForNonEmptyText(element(by.css('app-time-range .time-range-value')))
+    // .then(() => waitForNonEmptyText(element(by.css('app-time-range .time-range-text'))))
+    // .then(() => element(by.css('app-time-range .time-range-text')).getText())
+    // .then(text => timeRangetext = text)
+    // .then(() => element(by.css('app-time-range .time-range-value')).getText())
+    // .then(text => timeRangeValue = text)
+    // .then(() => {
+    //   // console.log('timeRangeValue', timeRangeValue);
+    //   let retArr = [timeRangetext];
+    //   let dateStr = timeRangeValue.split(' to ');
+    //   let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    //   let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    //   retArr.push((toTime - fromTime) + '');
+    //   return retArr;
+    // }).catch((error) => console.log(error));;
+
+    await element(by.css('app-time-range .time-range-text')).getText().then(text => timeRangetext = text);
+    await element(by.css('app-time-range .time-range-value')).getText().then(text => timeRangeValue = text);
+
+    // console.log('new', timeRangetext, timeRangeValue);
+
+    let retArr = [timeRangetext];
+    let dateStr = timeRangeValue.split(' to ');
+    let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    retArr.push((toTime - fromTime) + '');
+    return retArr;
   }
 
   renameColumn(name: string, value: string) {
-    element(by.cssContainingText('app-configure-table span', name))
+    return element(by.cssContainingText('app-configure-table span', name))
     .element(by.xpath('../..'))
     .element(by.css('.input')).sendKeys(value);
   }
 
   getTableCellValues(cellIndex: number, startRowIndex: number, endRowIndex: number): any {
-    return element.all(by.css('table tbody tr td:nth-child(' + cellIndex + ')')).getText()
-    .then(val => val.slice(startRowIndex, endRowIndex));
+    return element.all(by.css('table tbody tr td:nth-child(' + cellIndex + ')')).reduce(reduce_for_get_all(), [])
+    // .then(val => val.slice(startRowIndex, endRowIndex));
   }
 }

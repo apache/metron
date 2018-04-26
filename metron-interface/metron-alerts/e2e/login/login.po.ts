@@ -24,43 +24,50 @@ export class LoginPage {
     }
 
     login() {
-        this.navigateToLogin();
-        this.setUserNameAndPassword('admin', 'password');
-        this.submitLoginForm();
-        browser.waitForAngularEnabled(false);
-        browser.wait(function() {return element(by.css('.logout')).isPresent(); });
+        return this.navigateToLogin()
+        .then(() => this.setUserNameAndPassword('admin', 'password'))
+        .then(() => this.submitLoginForm())
+        .then(() => browser.waitForAngularEnabled(false))
+        .then(() => waitForElementVisibility(element(by.css('.logout-link'))))
+        .then(() => browser.executeScript("document.body.className += ' notransition';"));
+
+        // .then(() => browser.wait(function() {return element(by.css('.logout-link')).isPresent(); }))
     }
 
     logout() {
-        browser.waitForAngularEnabled(false);
-        element.all(by.css('.alert .close')).click();
-        element.all(by.css('.logout-link')).click();
-        waitForURL('http://localhost:4200/login');
+      // .then(() => element.all(by.css('.alert .close')).click())
+        return browser.waitForAngularEnabled(false)
+        .then(() => waitForElementVisibility(element(by.css('.logout-link'))))
+        .then(() => element(by.css('.logout-link')).click())
+        .then(() => waitForURL('http://localhost:4200/login'));
     }
 
     setUserNameAndPassword(userName: string, password: string) {
-        element.all(by.css('input.form-control')).get(0).sendKeys(userName);
-        element.all(by.css('input.form-control')).get(1).sendKeys(password);
+        return waitForElementVisibility(element(by.css('[name=user]')))
+        .then(() => waitForElementVisibility(element(by.css('[name=password]'))))
+        .then(() => element(by.css('[name=user]')).clear())
+        .then(() => element(by.css('[name=user]')).sendKeys(userName))
+        .then(() => element(by.css('[name=password]')).clear())
+        .then(() => element(by.css('[name=password]')).sendKeys(password));
     }
 
     submitLoginForm() {
-        return element.all(by.buttonText('LOG IN')).click();
+        return element(by.buttonText('LOG IN')).click();
     }
 
     getErrorMessage() {
-        browser.waitForAngularEnabled(false);
         let errElement = element(by.css('.login-failed-msg'));
-        return waitForElementVisibility(errElement).then(() => {
-            browser.sleep(1000);
-            return errElement.getText().then((message) => {
-                return message.replace(/\n/, '').replace(/LOG\ IN$/, '');
+        return browser.waitForAngularEnabled(false)
+                .then(() => waitForElementVisibility(errElement))
+                .then(() => {
+                        browser.sleep(1000);
+                    return errElement.getText().then((message) => {
+                        return message.replace(/\n/, '').replace(/LOG\ IN$/, '');
             });
         });
     }
 
     getLocation() {
-        return browser.getCurrentUrl().then(url => {
-            return url;
-        });
+        return browser.getCurrentUrl();
     }
 }

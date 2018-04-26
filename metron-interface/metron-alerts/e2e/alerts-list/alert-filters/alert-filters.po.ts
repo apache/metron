@@ -17,39 +17,44 @@
  */
 
 import {browser, element, by} from 'protractor';
-import {waitForElementPresence} from '../../utils/e2e_util';
+import {
+  reduce_for_get_all, waitForElementPresence,
+  waitForElementVisibility
+} from '../../utils/e2e_util';
 
 export class AlertFacetsPage {
 
   private sleepTime = 500;
 
   navgateToAlertList() {
-    browser.waitForAngularEnabled(false);
-    return browser.get('/alerts-list');
+    return browser.waitForAngularEnabled(false).then(() => browser.get('/alerts-list'));
   }
 
   getFacetsTitle() {
-    return waitForElementPresence(element.all(by.css('app-alert-filters metron-collapse'))).then(() => {
-      return element.all(by.css('app-alert-filters .title')).getText();
+    return waitForElementVisibility(element(by.css('app-alert-filters .title'))).then(() => {
+      return element(by.css('app-alert-filters .title')).getText();
     });
   }
 
   getFacetsValues() {
-    return element.all(by.css('app-alert-filters metron-collapse')).getText();
+    // return element.all(by.css('app-alert-filters metron-collapse')).reduce(reduce_for_get_all(), []);
+    return waitForElementVisibility(element(by.css('app-alert-filters  metron-collapse:first-child'))).then(() => {
+      return element.all(by.css('app-alert-filters metron-collapse')).reduce(reduce_for_get_all(), []);
+    });
   }
 
   getFacetState(id: number) {
-    browser.sleep(this.sleepTime);
     let collpaseElement = element.all(by.css('metron-collapse')).get(id);
-    browser.actions().mouseMove(collpaseElement).perform();
-    return collpaseElement.element(by.css('div.collapse')).getAttribute('class');
+    return browser.actions().mouseMove(collpaseElement).perform()
+    .then(() => collpaseElement.element(by.css('div.collapse')).getAttribute('class'))
   }
 
   toggleFacetState(id: number) {
-    browser.sleep(this.sleepTime);
     let collpaseElement = element.all(by.css('metron-collapse')).get(id);
-    browser.actions().mouseMove(collpaseElement).perform();
-    return collpaseElement.element(by.css('a')).click();
+    return browser.actions().mouseMove(collpaseElement).perform()
+    .then(() => collpaseElement.element(by.css('a')).click())
+    .then(() => waitForElementVisibility(collpaseElement.element(by.css('div.collapse'))))
+
   }
 
   getFacetValues(id: number) {
@@ -64,5 +69,8 @@ export class AlertFacetsPage {
     });
   }
 
+  selectFilter(filterTitle: string) {
+    return element(by.css(`li[title="${filterTitle}"]`)).click();
+  }
 }
 

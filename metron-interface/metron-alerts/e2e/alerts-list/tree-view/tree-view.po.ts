@@ -16,42 +16,44 @@
  * limitations under the License.
  */
 
-import {browser, element, by} from 'protractor';
+import {browser, element, by, protractor} from 'protractor';
 import {
   waitForElementPresence, waitForTextChange, waitForElementVisibility,
-  waitForElementInVisibility
+  waitForElementInVisibility, waitForCssClass, waitForText, waitForStalenessOf,
+  waitForElementCountGreaterThan, reduce_for_get_all, UtilFun, waitForElementPresenceAndvisbility,
+  waitForNonEmptyText, waitForNonEmptyTextAndGetText, scrollIntoView
 } from '../../utils/e2e_util';
 
 export class TreeViewPage {
   navigateToAlertsList() {
-    browser.waitForAngularEnabled(false);
     return browser.get('/alerts-list');
   }
 
   clickOnRow(id: string) {
     let idElement = element(by.css('a[title="' + id +'"]'));
-    waitForElementPresence(idElement)
+    return waitForElementPresence(idElement)
     .then(() => browser.actions().mouseMove(idElement).perform())
-    .then(() => idElement.element(by.xpath('../..')).all(by.css('td')).get(9).click());
-    browser.sleep(2000);
+    .then(() => idElement.element(by.xpath('../..')).all(by.css('td')).get(9).click())
+    .then(() => browser.sleep(2000));
   }
 
   getActiveGroups() {
-    return element.all(by.css('app-group-by .group-by-items.active')).getAttribute('data-name');
+    return waitForElementCountGreaterThan('app-group-by .group-by-items .name', 5)
+    .then(() => element.all(by.css('app-group-by .group-by-items.active .name')).reduce(reduce_for_get_all(), []));
   }
 
   getGroupByCount() {
-    return waitForElementPresence(element.all(by.css('app-group-by .group-by-items'))).then(() => {
+    return waitForElementPresence(element(by.css('app-group-by .group-by-items'))).then(() => {
       return element.all(by.css('app-group-by .group-by-items')).count();
     });
   }
 
   getGroupByItemNames() {
-    return element.all(by.css('app-group-by .group-by-items .name')).getText();
+    return element.all(by.css('app-group-by .group-by-items .name')).reduce(reduce_for_get_all(), []);
   }
 
   getGroupByItemCounts() {
-    return element.all(by.css('app-group-by .group-by-items .count')).getText();
+    return element.all(by.css('app-group-by .group-by-items .count')).reduce(reduce_for_get_all(), []);
   }
 
   getSubGroupValues(name: string, rowName: string) {
@@ -63,31 +65,87 @@ export class TreeViewPage {
   }
 
   selectGroup(name: string) {
-    return element(by.css('app-group-by div[data-name="' + name + '"]')).click();
+    return element(by.css('app-group-by div[data-name="' + name + '"]')).click()
+    .then(() => waitForCssClass(element(by.css('app-group-by div[data-name="' + name + '"]')), 'active'))
+    .then(() => browser.waitForAngular());
   }
 
-  dragGroup(from: string, to: string) {
-    browser.actions().dragAndDrop(
-        element(by.css('app-group-by div[data-name="' + from + '"]')),
-        element(by.css('app-group-by div[data-name="' + to + '"]'))
-    ).perform();
+  async simulateDragAndDrop(target: string, destination: string) {
+    target = `app-group-by div[data-name=\"${target}\"]`;
+    destination = `app-group-by div[data-name=\"${destination}\"]`;
+    return  await browser.executeScript((target, destination) => {
+      let getEventOptions = (el, relatedElement) => {
+        //coordinates from destination element
+        const coords = el.getBoundingClientRect();
+        const x = coords.x || coords.left;
+        const y = coords.y || coords.top;
+        return {
+          x: x,
+          y: y,
+          clientX: x,
+          clientY: y,
+          screenX: x,
+          screenY: y,
+          //target reference
+          relatedTarget: relatedElement
+        };
+      };
+
+      let raise = (el, type, options?) => {
+        const o = options || { which: 1 };
+        const e = document.createEvent('Event');
+        e.initEvent(type, true, true);
+        Object.keys(o).forEach(apply);
+        el.dispatchEvent(e);
+        function apply(key) {
+          e[key] = o[key];
+        }
+      };
+
+
+      let targetEl = document.querySelector(target);
+      let destinationEl = document.querySelector(destination);
+      let options = getEventOptions(destinationEl, targetEl);
+
+      //start drag
+      raise(targetEl, 'mousedown');
+      raise(targetEl, 'mousemove');
+      //set event on location
+      raise(destinationEl, 'mousemove', options);
+      //drop
+      raise(destinationEl, 'mouseup', options);
+
+    }, target, destination);
   }
 
-  getDashGroupValues(name: string) {
-    return waitForElementPresence(element(by.css('[data-name="' + name + '"] .card-header span'))).then(() => {
-      return element.all(by.css('[data-name="' + name + '"] .card-header span')).getText();
-    });
+  async getDashGroupValues(name: string) {
+    // return Promise.all([
+    //   waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .dash-score'))),
+    //   waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.severity-padding .title'))),
+    //   waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.two-line .text-dark'))),
+    //   waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.two-line .title')))
+    // ]).catch(e => console.log(e));
+
+      let  dashScore = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .dash-score')));
+      let  groupName = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.severity-padding .title')));
+      let title = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.two-line .text-dark')));
+      let count = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.two-line .title')));
+
+      return Promise.all([dashScore, groupName, title, count])
+
   }
 
   expandDashGroup(name: string) {
     let cardElement = element(by.css('.card[data-name="' + name +'"]'));
-    let downArrowElement = element(by.css('.card[data-name="' + name + '"] .mrow.top-group'));
+    let cardHeader = element(by.css('.card[data-name="' + name + '"] .card-header'));
+    let cardBody = element(by.css('.card[data-name="' + name + '"] .collapse'));
 
-    return waitForElementVisibility(cardElement)
-    .then(() => browser.actions().mouseMove(cardElement).perform())
-    .then(() => waitForElementVisibility(downArrowElement))
-    .then(() => downArrowElement.click())
-    .then(() => browser.sleep(2000));
+    return waitForElementPresence(cardBody)
+    .then(() => waitForElementVisibility(cardHeader))
+    .then(() => browser.actions().mouseMove(element(by.css('.card[data-name="' + name + '"] .card-header .down-arrow'))).perform())
+    .then(() => cardHeader.click())
+    .then(() => waitForCssClass(cardBody, 'show'))
+    .then(() => waitForElementVisibility(element(by.css('.card[data-name="' + name + '"] .collapse table tbody tr:nth-child(1)'))));
   }
 
   expandSubGroup(groupName: string, rowName: string) {
@@ -97,21 +155,24 @@ export class TreeViewPage {
   expandSubGroupByPosition(groupName: string, rowName: string, position: number) {
     let subGroupElement = element.all(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]')).get(position);
     return waitForElementVisibility(subGroupElement)
-    .then(() => browser.actions().mouseMove(subGroupElement).perform())
-    .then(() => subGroupElement.click());
+    .then(() => scrollIntoView(subGroupElement.element(by.css('.fa-caret-right')), true))
+    .then(() => subGroupElement.click())
+    .then(() => waitForElementVisibility(subGroupElement.element(by.css('.fa-caret-down'))));
   }
 
-  getDashGroupTableValuesForRow(name: string, rowId: number) {
-    this.scrollToDashRow(name);
-    return waitForElementPresence(element(by.css('[data-name="' + name + '"] table tbody tr'))).then(() => {
-      return element.all(by.css('[data-name="' + name + '"] table tbody tr')).get(rowId).all(by.css('td')).getText();
-    });
-  }
+  // getDashGroupTableValuesForRow(name: string, rowId: number) {
+  //   return this.scrollToDashRow(name)
+  //         .then(() => waitForElementPresence(element(by.css('[data-name="' + name + '"] table tbody tr'))))
+  //         .then(() => element.all(by.css('[data-name="' + name + '"] table tbody tr')).get(rowId).all(by.css('td')).reduce(reduce_for_get_all(), []));
+  // }
 
-  getTableValuesByRowId(name: string, rowId: number, waitForAnchor: string) {
-    return waitForElementPresence(element(by. cssContainingText('[data-name="' + name + '"] a', waitForAnchor))).then(() => {
-      return element.all(by.css('[data-name="' + name + '"] table tbody tr')).get(rowId).all(by.css('td')).getText();
-    });
+  async getTableValuesByRowId(name: string, rowId: number, waitForAnchor: string) {
+    // return waitForElementPresence(element(by. cssContainingText('[data-name="' + name + '"] a', waitForAnchor))).then(() => {
+    //   return element.all(by.css('[data-name="' + name + '"] table tbody tr')).get(rowId).all(by.css('td a')).reduce(reduce_for_get_all(), []);
+    // });
+
+    await waitForElementPresence(element(by. cssContainingText('[data-name="' + name + '"] a', waitForAnchor)));
+    return element.all(by.css('[data-name="' + name + '"] table tbody tr')).get(rowId).all(by.css('td a')).reduce(reduce_for_get_all(), []);
   }
 
   getTableValuesForRow(name: string, rowName: string, waitForAnchor: string) {
@@ -122,9 +183,7 @@ export class TreeViewPage {
 
   scrollToDashRow(name: string) {
     let scrollToEle = element(by.css('[data-name="' + name + '"] .card-header'));
-    waitForElementPresence(scrollToEle).then(() => {
-      return browser.actions().mouseMove(scrollToEle).perform();
-    });
+    return scrollIntoView(scrollToEle, true);
   }
 
   clickOnNextPage(name: string) {
@@ -132,7 +191,8 @@ export class TreeViewPage {
   }
 
   unGroup() {
-    return element(by.css('app-group-by .ungroup-button')).click();
+    return element(by.css('app-group-by .ungroup-button')).click()
+    .then(() => waitForStalenessOf(element(by.css('app-tree-view'))));
   }
 
   getIdOfAllExpandedRows() {
@@ -146,26 +206,39 @@ export class TreeViewPage {
   }
 
   getCellValuesFromTable(groupName: string, cellName: string, waitForAnchor: string) {
-    return waitForElementPresence(element(by.cssContainingText('[data-name="' + cellName + '"] a', waitForAnchor))).then(() => {
-      return element.all(by.css('[data-name="' + groupName + '"] table tbody [data-name="' + cellName + '"]')).map(element => {
-        browser.actions().mouseMove(element).perform();
-        return (element.getText());
-      });
-    });
+    // return waitForElementPresence(element(by.cssContainingText('[data-name="' + cellName + '"] a', waitForAnchor)))
+    // .then(() => {
+    //   return browser.sleep(1000).
+    //   then(() => {
+    //     return element.all(by.css('[data-name="' + groupName + '"] table tbody [data-name="' + cellName + '"]')).map(element => {
+    //       return browser.actions().mouseMove(element).perform().then(() => (element.getText()));
+    //     });
+    //   });
+    // });
+
+    let waitForEle = element.all(by.cssContainingText(`[data-name="${cellName}"] a`, waitForAnchor)).get(0);
+    return waitForElementPresence(waitForEle)
+          .then(() => scrollIntoView(waitForEle, true))
+          .then(() => element.all(by.css(`[data-name="${groupName}"] [data-name="${cellName}"]`)).reduce(reduce_for_get_all(), []))
   }
 
   sortSubGroup(groupName: string, colName: string) {
-    return element.all(by.css('[data-name="' + groupName + '"] metron-config-sorter[title="' + colName + '"]')).click();
+    return element(by.css(`[data-name="${groupName}"] metron-config-sorter[title="${colName}"]`)).click();
   }
 
   toggleAlertInTree(index: number) {
     let selector = by.css('app-tree-view tbody tr');
     let checkbox = element.all(selector).get(index).element(by.css('label'));
-    waitForElementPresence(checkbox).then(() => {
-      browser.actions().mouseMove(checkbox).perform().then(() => {
-        checkbox.click();
-      });
-    });
+
+    return waitForElementPresence(checkbox)
+            .then(() => browser.actions().mouseMove(checkbox).perform())
+            .then(() => checkbox.click());
+
+    // return waitForElementPresence(checkbox).then(() => {
+    //   browser.actions().mouseMove(checkbox).perform().then(() => {
+    //     checkbox.click();
+    //   });
+    // });
   }
 
   getAlertStatusForTreeView(rowIndex: number, previousText) {
@@ -195,7 +268,7 @@ export class TreeViewPage {
   clickNoForConfirmation() {
     let maskElement = element(by.className('modal-backdrop'));
     let closeButton = element(by.css('.metron-dialog')).element(by.buttonText('Cancel'));
-    waitForElementVisibility(maskElement)
+    return waitForElementVisibility(maskElement)
     .then(() => closeButton.click())
     .then(() => waitForElementInVisibility(maskElement));
   }
@@ -203,12 +276,17 @@ export class TreeViewPage {
   clickYesForConfirmation() {
     let okButton = element(by.css('.metron-dialog')).element(by.buttonText('OK'));
     let maskElement = element(by.className('modal-backdrop'));
-    waitForElementVisibility(maskElement)
+    return waitForElementVisibility(maskElement)
     .then(() => okButton.click())
     .then(() => waitForElementInVisibility(maskElement));
   }
 
   waitForElementToDisappear(groupName: string) {
     return waitForElementInVisibility(element.all(by.css('[data-name="' + groupName + '"]')));
+  }
+
+  waitForTextChangeAndExpand(groupName: string, subGroupName: string, previousValue: string) {
+    return waitForTextChange(element(by.css(`[data-name="${subGroupName}"] .group-value`)), previousValue)
+    .then(() => this.expandSubGroup(groupName, subGroupName));
   }
 }

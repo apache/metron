@@ -46,15 +46,15 @@
                 <div class="btn cog">
                     <i class="fa fa-cog configure-table-icon" (click)="showConfigureTable()"></i>
                 </div>
-                <div class="btn settings">
-                    <i #settingsIcon class="fa fa-sliders" aria-hidden="true"></i>
+                <div #settingsIcon class="btn settings">
+                    <i class="fa fa-sliders" aria-hidden="true"></i>
                 </div>
                 <app-configure-rows [srcElement]="settingsIcon" [tableMetaData]="tableMetaData" [(interval)]="refreshInterval" [(size)]="tableMetaData.size" (configRowsChange)="onConfigRowsChange()" > </app-configure-rows>
                 <div class="btn  pause-play" (click)="onPausePlay()">
                     <i *ngIf="!pauseRefresh" class="fa fa-pause" aria-hidden="true"></i>
                     <i *ngIf="pauseRefresh" class="fa fa-play" aria-hidden="true"></i>
                 </div>
-                <div class="dropdown d-inline-block">
+                <div id="table-actions" class="dropdown d-inline-block">
                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACTIONS</button>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
                         <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processOpen()">Open</span>
@@ -74,7 +74,7 @@
       <div class="px-0" style="width: 200px;max-width: 200px;">
         <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
       </div>
-      <div class="col px-0 ml-4">
+      <div class="col px-0 pl-4" style="overflow: auto;">
         <div class="col-xs-12 pl-0 pb-3">
           <app-group-by [facets]="groupFacets" (groupsChange)="onGroupsChange($event)"> </app-group-by>
         </div>

@@ -17,14 +17,17 @@
  */
 
 import {browser, element, by, protractor} from 'protractor';
-import {waitForElementInVisibility, waitForElementPresence, waitForElementVisibility} from '../utils/e2e_util';
+import {
+  scrollIntoView, waitForElementInVisibility, waitForElementPresence,
+  waitForElementVisibility
+} from '../utils/e2e_util';
 
 export class MetronAlertDetailsPage {
 
   navigateTo(alertId: string) {
-    browser.waitForAngularEnabled(false);
-    browser.get('/alerts-list(dialog:details/alerts_ui_e2e/'+ alertId +'/alerts_ui_e2e_index)');
-    browser.sleep(2000);
+    return browser.waitForAngularEnabled(false)
+    .then(() => browser.get('/alerts-list(dialog:details/alerts_ui_e2e/'+ alertId +'/alerts_ui_e2e_index)'))
+    .then(() => browser.sleep(1000));
   }
 
   addCommentAndSave(comment: string, index: number) {
@@ -32,34 +35,35 @@ export class MetronAlertDetailsPage {
     let addCommentButtonElement = element(by.buttonText('ADD COMMENT'));
     let latestCommentEle = element.all(by.css('.comment-container .comment')).get(index);
 
-    textAreaElement.clear()
+    return textAreaElement.clear()
     .then(() => textAreaElement.sendKeys(comment))
     .then(() => addCommentButtonElement.click())
     .then(() => waitForElementPresence(latestCommentEle));
   }
 
   clickNew() {
-    element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(0).click();
+    return element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(0).click();
   }
 
   clickOpen() {
-    element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(1).click();
+    return element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(1).click();
   }
 
   clickDismiss() {
-    element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(2).click();
+    return element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(2).click();
   }
 
   clickEscalate() {
-    element.all(by.css('.metron-slider-pane-details table tbody tr')).get(0).all(by.css('td')).get(1).click();
+    return element.all(by.css('.metron-slider-pane-details table tbody tr')).get(0).all(by.css('td')).get(1).click();
   }
 
   clickResolve() {
-    element.all(by.css('.metron-slider-pane-details table tbody tr')).get(2).all(by.css('td')).get(1).click();
+    return element.all(by.css('.metron-slider-pane-details table tbody tr')).get(2).all(by.css('td')).get(1).click();
   }
 
   clickCommentsInSideNav() {
-    return element(by.css('app-alert-details .fa.fa-comment')).click();
+    return element(by.css('app-alert-details .fa.fa-comment')).click()
+    .then(() => waitForElementVisibility(element(by.buttonText('ADD COMMENT'))));
   }
 
   clickNoForConfirmation() {
@@ -79,8 +83,9 @@ export class MetronAlertDetailsPage {
   }
 
   closeDetailPane() {
-    element(by.css('app-alert-details .close-button')).click();
-    browser.sleep(2000);
+    return scrollIntoView(element(by.css('app-alert-details .close-button')), true)
+          .then(() => element(by.css('app-alert-details .close-button')).click())
+          .then(() => waitForElementInVisibility(element(by.css('app-alert-details'))));
   }
 
   deleteComment() {
@@ -126,19 +131,19 @@ export class MetronAlertDetailsPage {
   }
 
   clickRenameMetaAlert() {
-    element(by.css('app-alert-details .editable-text')).click();
+    return element(by.css('app-alert-details .editable-text')).click();
   }
 
   renameMetaAlert(name: string) {
-    element(by.css('app-alert-details input.form-control')).sendKeys(name);
+    return element(by.css('app-alert-details input.form-control')).sendKeys(name);
   }
 
   cancelRename() {
-    element(by.css('app-alert-details .input-group .fa.fa-times')).click();
+    return element(by.css('app-alert-details .input-group .fa.fa-times')).click();
   }
 
   saveRename() {
-    element(by.css('app-alert-details .fa.fa-check')).click();
+    return element(by.css('app-alert-details .fa.fa-check')).click();
   }
 
   getAlertDetailsCount() {

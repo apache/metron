@@ -92,6 +92,7 @@ export class AlertDetailsComponent implements OnInit {
     this.searchService.getAlert(this.alertSourceType, this.alertId).subscribe(alertSource => {
       this.alertSource = alertSource;
       this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
+      alertSource['alert_status'] = (!alertSource['alert_status'] || alertSource['alert_status'].length === 0) ? 'NEW' : alertSource['alert_status'];
       this.alertSources = (alertSource.alert && alertSource.alert.length > 0) ? alertSource.alert : [alertSource];
       this.setComments(alertSource);
 

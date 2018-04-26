@@ -24,11 +24,9 @@ export class AlertFiltersComponent implements OnChanges {
   }
 
   prepareData() {
-    let facetFields = Object.keys(this.facets);
-    this.data = this.data.filter(collapsableData => facetFields.includes(collapsableData.groupName));
     this.data.map(collapsableData => collapsableData.groupItems = []);
 
-    for (let key of facetFields) {
+    for (let key of Object.keys(this.facets)) {
       let facet = this.facets[key];
       let facetItems: CollapseComponentDataItems[] = [];
 

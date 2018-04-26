@@ -9,7 +9,7 @@
     "lint": "tslint \"src/**/*.ts\"",
     "test": "./node_modules/@angular/cli/bin/ng test --watch=false",
     "pree2e": "webdriver-manager update",
-    "e2e": "protractor"
+    "e2e": "./node_modules/.bin/protractor"
   },
   "private": true,
   "dependencies": {
@@ -21,7 +21,6 @@
     "@angular/platform-browser": "^4.0.0",
     "@angular/platform-browser-dynamic": "^4.0.0",
     "@angular/router": "^4.0.0",
-    "@types/moment": "^2.13.0",
     "ace-builds": "^1.2.6",
     "bootstrap": "4.0.0-alpha.6",
     "core-js": "^2.4.1",
@@ -37,6 +36,7 @@
     "@angular/cli": "1.2.4",
     "@angular/compiler-cli": "^4.0.0",
     "@types/ace": "0.0.32",
+    "@types/es6-promise": "0.0.33",
     "@types/jasmine": "2.5.38",
     "@types/moment": "^2.13.0",
     "@types/node": "~6.0.60",
@@ -56,9 +56,10 @@
     "karma-jasmine-html-reporter": "^0.2.2",
     "node-sass": "^4.5.0",
     "optimist": "0.6.1",
-    "protractor": "~5.1.0",
+    "protractor": "5.3.0",
     "serve-favicon": "2.4.2",
     "serve-static": "1.12.1",
+    "ssh2": "^0.5.5",
     "ts-node": "~2.0.0",
     "tslint": "~4.5.0",
     "typescript": "~2.2.0"

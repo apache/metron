@@ -21,20 +21,24 @@ import {customMatchers} from '../../matchers/custom-matchers';
 import {LoginPage} from '../../login/login.po';
 import {AlertFacetsPage} from './alert-filters.po';
 import {loadTestData, deleteTestData} from '../../utils/e2e_util';
+import {MetronAlertsPage} from '../alerts-list.po';
 
-describe('metron-alerts facets', function() {
+describe('Test spec for facet filters', function() {
   let page: AlertFacetsPage;
+  let tablePage: MetronAlertsPage;
   let loginPage: LoginPage;
 
-  beforeAll(() => {
-    loadTestData();
+  beforeAll(async function() : Promise<any> {
     loginPage = new LoginPage();
-    loginPage.login();
+    tablePage = new MetronAlertsPage();
+
+    await loadTestData();
+    await loginPage.login();
   });
 
-  afterAll(() => {
-    loginPage.logout();
-    deleteTestData();
+  afterAll(async function() : Promise<any> {
+    await loginPage.logout();
+    await deleteTestData();
   });
 
   beforeEach(() => {
@@ -42,63 +46,21 @@ describe('metron-alerts facets', function() {
     jasmine.addMatchers(customMatchers);
   });
 
-  it('should display facets data', () => {
-    let facetValues = [ 'enrichm...:country 3', 'ip_dst_addr 8', 'ip_src_addr 2', 'source:type 1' ];
+  it('should display facets data', async function() : Promise<any> {
+    let facetValues = [ 'enrichm...:country 3', 'host 9', 'ip_dst_addr 8', 'ip_src_addr 2', 'source:type 1' ];
 
-    page.navgateToAlertList();
-    expect(page.getFacetsTitle()).toEqualBcoz(['Filters'], 'for Title as Filters');
-    expect(page.getFacetsValues()).toEqual(facetValues, 'for Facet values');
+    await page.navgateToAlertList();
+    expect(await page.getFacetsTitle()).toEqualBcoz('Filters', 'for Title as Filters');
+    expect(await page.getFacetsValues()).toEqual(facetValues, 'for Facet values');
   });
 
-  it('should expand all facets', () => {
-    expect(page.getFacetState(0)).toEqualBcoz('collapse', 'for first facet');
-    expect(page.getFacetState(1)).toEqualBcoz('collapse', 'for second facet');
-    expect(page.getFacetState(2)).toEqualBcoz('collapse', 'for third facet');
-    expect(page.getFacetState(3)).toEqualBcoz('collapse', 'for fourth facet');
+  it('should search when facet is selected', async function() : Promise<any> {
+    await page.toggleFacetState(1);
+    expect(await page.getFacetState(1)).toEqualBcoz('collapse show', 'for second facet');
 
-    page.toggleFacetState(0);
-    page.toggleFacetState(1);
-    page.toggleFacetState(2);
-    page.toggleFacetState(3);
+    await page.selectFilter('ubb67.3c147o.u806a4.w07d919.o5f.f1.b80w.r0faf9.e8mfzdgrf7g0.groupprograms.in');
+    expect(await tablePage.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (1)');
 
-    expect(page.getFacetState(0)).toEqualBcoz('collapse show', 'for first facet');
-    expect(page.getFacetState(1)).toEqualBcoz('collapse show', 'for second facet');
-    expect(page.getFacetState(2)).toEqualBcoz('collapse show', 'for third facet');
-    expect(page.getFacetState(3)).toEqualBcoz('collapse show', 'for fourth facet');
-  });
-
-  it('should have all facet  values', () => {
-    let hostMap = {
-        'comarks...rity.com': '9' ,
-        '7oqnsnz...ysun.com': '44' ,
-        'node1': '36' ,
-        '62.75.195.236': '18' ,
-        'runlove.us': '13' ,
-        'ip-addr.es': '2' ,
-        'ubb67.3...grams.in': '1' ,
-        'r03afd2...grams.in': '3' ,
-        'va872g....grams.in': '1'
-    };
-
-    expect(page.getFacetValues(0)).toEqualBcoz({ US: '22', RU: '44', FR: '25' }, 'for enrichment facet');
-    expect(page.getFacetValues(3)).toEqual({ alerts_ui_e2e: '169' }, 'for source:type facet');
-  });
-
-  it('should collapse all facets', () => {
-    expect(page.getFacetState(0)).toEqualBcoz('collapse show', 'for first facet');
-    expect(page.getFacetState(1)).toEqualBcoz('collapse show', 'for second facet');
-    expect(page.getFacetState(2)).toEqualBcoz('collapse show', 'for third facet');
-    expect(page.getFacetState(3)).toEqualBcoz('collapse show', 'for fourth facet');
-
-    page.toggleFacetState(0);
-    page.toggleFacetState(1);
-    page.toggleFacetState(2);
-    page.toggleFacetState(3);
-
-    expect(page.getFacetState(0)).toEqualBcoz('collapse', 'for first facet');
-    expect(page.getFacetState(1)).toEqualBcoz('collapse', 'for second facet');
-    expect(page.getFacetState(2)).toEqualBcoz('collapse', 'for third facet');
-    expect(page.getFacetState(3)).toEqualBcoz('collapse', 'for fourth facet');
   });
 });
 
