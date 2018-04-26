@@ -20,17 +20,25 @@ package org.apache.metron.solr.dao;
 import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.metron.indexing.dao.ColumnMetadataDao;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.request.LukeRequest;
 import org.apache.solr.client.solrj.request.schema.SchemaRequest;
+import org.apache.solr.client.solrj.request.schema.SchemaRequest.DynamicFields;
+import org.apache.solr.client.solrj.response.LukeResponse;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.schema.SchemaRepresentation;
+import org.apache.solr.client.solrj.response.schema.SchemaResponse.DynamicFieldsResponse;
 import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,12 +113,32 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
     return indexColumnMetadata;
   }
 
-  protected List<Map<String, Object>> getIndexFields(String index) throws IOException, SolrServerException {
+  protected List<Map<String, Object>> getIndexFields(String index)
+      throws IOException, SolrServerException {
     CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(zkHost).build();
     client.setDefaultCollection(index);
+
+    List<Map<String, Object>> indexFields = new ArrayList<>();
+
+    // Get all the fields in use, including dynamic fields
+    LukeRequest lukeRequest = new LukeRequest();
+    LukeResponse lukeResponse = lukeRequest.process(client);
+    for (Entry<String, LukeResponse.FieldInfo> field : lukeResponse.getFieldInfo().entrySet()) {
+      Map<String, Object> fieldData = new HashMap<>();
+      fieldData.put("name", field.getValue().getName());
+      fieldData.put("type", field.getValue().getType());
+      indexFields.add(fieldData);
+
+    }
+
+    // Get all the schema fields
     SchemaRepresentation schemaRepresentation = new SchemaRequest().process(client)
-            .getSchemaRepresentation();
-    return schemaRepresentation.getFields();
+        .getSchemaRepresentation();
+    indexFields.addAll(schemaRepresentation.getFields());
+
+    System.out.println(indexFields);
+
+    return indexFields;
   }
 
   /**

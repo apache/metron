@@ -37,6 +37,7 @@ import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class SolrSearchIntegrationTest extends SearchIntegrationTest {
@@ -45,7 +46,6 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
 
   private String broData = SearchIntegrationTest.broData.replace("source:type", "source.type");
   private String snortData = SearchIntegrationTest.snortData.replace("source:type", "source.type");
-//  private String facetQuery = SearchIntegrationTest.facetQuery.replace("source:type", "source.type");
 
   @Override
   protected IndexDao createDao() throws Exception {
@@ -89,65 +89,122 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
   }
 
   @Override
+  @Test
   public void returns_column_metadata_for_specified_indices() throws Exception {
     // getColumnMetadata with only bro
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
       // Don't test all 256, just test a sample of different fields
-      Assert.assertEquals(256, fieldTypes.size());
-//      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ttl"));
+      Assert.assertEquals(261, fieldTypes.size());
+
+      // Fields present in both with same type
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("request_body_len"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
-//      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-//      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-//      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-//      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
+
+      // Bro only field
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("username"));
+
+      // A dynamic field present in both with same type
+      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("score"));
+
+      // Dyanamic field present in both with nonstandard types.
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+
+      // Field with nonstandard type
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
+
+      // Bro only field in the dynamic catch all
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("bro_field"));
+
+      // A field is in both bro and snort and they have different types.
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ttl"));
+
+      // Field only present in Snort
+      Assert.assertEquals(null, fieldTypes.get("dgmlen"));
+
+      // Field that doesn't exist
+      Assert.assertEquals(null, fieldTypes.get("fake.field"));
     }
     // getColumnMetadata with only snort
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(25, fieldTypes.size());
-//      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
+      Assert.assertEquals(31, fieldTypes.size());
+
+      // Fields present in both with same type
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-//      Assert.assertEquals(FieldType.LONG, fieldTypes.get("request_body_len"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
-//      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-//      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-//      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-//      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
+
+      // Snort only field
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("dgmlen"));
+
+      // A dynamic field present in both with same type
+      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("score"));
+
+      // Dyanamic field present in both with nonstandard types.
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+
+      // Field with nonstandard type
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
+
+      // Snort only field in the dynamic catch all
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("snort_field"));
+
+      // A field is in both bro and snort and they have different types.
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
+
+      // Field only present in Bro
+      Assert.assertEquals(null, fieldTypes.get("username"));
+
+      // Field that doesn't exist
+      Assert.assertEquals(null, fieldTypes.get("fake.field"));
     }
   }
 
   @Override
+  @Test
   public void returns_column_data_for_multiple_indices() throws Exception {
     Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
     // Don't test everything, just test a variety of fields, including fields across collections.
+
+    // Fields present in both with same type
     Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
     Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
     Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
     Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-    Assert.assertEquals(FieldType.LONG, fieldTypes.get("request_body_len"));
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
-//    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-//    Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
     Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-//    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-//    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-//    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-    //NOTE: This is because the field is in both bro and snort and they have different types.
-//    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("duplicate_name_field"));
-    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
+
+    // Bro only field
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("username"));
+
+    // Snort only field
+    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("dgmlen"));
+
+    // A dynamic field present in both with same type
+    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("score"));
+
+    // Dyanamic field present in both with nonstandard types.
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+
+    // Field present in both with nonstandard type
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
+
+    // Bro only field in the dynamic catch all
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("bro_field"));
+
+    // Snort only field in the dynamic catch all
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("snort_field"));
+
+    // A field is in both bro and snort and they have different types.
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("ttl"));
+
+    // Field that doesn't exist
+    Assert.assertEquals(null, fieldTypes.get("fake.field"));
   }
 
   @Test
