@@ -23,8 +23,6 @@ package org.apache.metron.profiler;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.profiler.clock.Clock;
-import org.apache.metron.profiler.clock.FixedClock;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -82,7 +80,9 @@ public class DefaultProfileBuilderTest {
    */
   @Test
   public void testInit() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(testInitProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -92,7 +92,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // execute
-    builder.apply(message);
+    builder.apply(message, timestamp);
     Optional<ProfileMeasurement> m = builder.flush();
     assertTrue(m.isPresent());
 
@@ -106,7 +106,9 @@ public class DefaultProfileBuilderTest {
    */
   @Test
   public void testInitWithNoMessage() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(testInitProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -146,7 +148,9 @@ public class DefaultProfileBuilderTest {
    */
   @Test
   public void testUpdate() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(testUpdateProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -158,7 +162,12 @@ public class DefaultProfileBuilderTest {
     // execute
     int count = 10;
     for(int i=0; i<count; i++) {
-      builder.apply(message);
+
+      // apply the message
+      builder.apply(message, timestamp);
+
+      // advance time
+      timestamp += 5;
     }
     Optional<ProfileMeasurement> m = builder.flush();
     assertTrue(m.isPresent());
@@ -183,7 +192,9 @@ public class DefaultProfileBuilderTest {
    */
   @Test
   public void testResult() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(testResultProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -193,7 +204,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // execute
-    builder.apply(message);
+    builder.apply(message, timestamp);
     Optional<ProfileMeasurement> m = builder.flush();
     assertTrue(m.isPresent());
 
@@ -206,40 +217,38 @@ public class DefaultProfileBuilderTest {
    */
   @Test
   public void testProfilePeriodOnFlush() throws Exception {
-    // setup
-    FixedClock clock = new FixedClock();
-    clock.setTime(100);
 
+    // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(testResultProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
             .withContext(Context.EMPTY_CONTEXT())
-            .withClock(clock)
             .build();
 
     {
       // apply a message and flush
-      builder.apply(message);
+      builder.apply(message, timestamp);
       Optional<ProfileMeasurement> m = builder.flush();
       assertTrue(m.isPresent());
 
       // validate the profile period
-      ProfilePeriod expected = new ProfilePeriod(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
+      ProfilePeriod expected = new ProfilePeriod(timestamp, 10, TimeUnit.MINUTES);
       assertEquals(expected, m.get().getPeriod());
     }
     {
-      // advance time by at least one period - 10 minutes
-      clock.setTime(clock.currentTimeMillis() + TimeUnit.MINUTES.toMillis(10));
+      // advance time by at least one period... about 10 minutes
+      timestamp += TimeUnit.MINUTES.toMillis(10);
 
       // apply a message and flush again
-      builder.apply(message);
+      builder.apply(message, timestamp);
       Optional<ProfileMeasurement> m = builder.flush();
       assertTrue(m.isPresent());
 
       // validate the profile period
-      ProfilePeriod expected = new ProfilePeriod(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
+      ProfilePeriod expected = new ProfilePeriod(timestamp, 10, TimeUnit.MINUTES);
       assertEquals(expected, m.get().getPeriod());
     }
   }
@@ -262,7 +271,9 @@ public class DefaultProfileBuilderTest {
    */
   @Test
   public void testGroupBy() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(testGroupByProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -272,7 +283,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // execute
-    builder.apply(message);
+    builder.apply(message, timestamp);
     Optional<ProfileMeasurement> m = builder.flush();
     assertTrue(m.isPresent());
 
@@ -300,23 +311,20 @@ public class DefaultProfileBuilderTest {
    */
   @Test
   public void testStateAvailableToGroupBy() throws Exception {
-    FixedClock clock = new FixedClock();
-    clock.setTime(1503081070340L);
-    long periodDurationMillis = TimeUnit.MINUTES.toMillis(10);
-    ProfilePeriod period = new ProfilePeriod(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
 
     // setup
+    long timestamp = 1503081070340L;
+    ProfilePeriod period = new ProfilePeriod(timestamp, 10, TimeUnit.MINUTES);
     definition = JSONUtils.INSTANCE.load(testStateAvailableToGroupBy, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
             .withContext(Context.EMPTY_CONTEXT())
-            .withClock(clock)
             .build();
 
     // execute
-    builder.apply(message);
+    builder.apply(message, timestamp);
     Optional<ProfileMeasurement> m = builder.flush();
     assertTrue(m.isPresent());
 
@@ -350,7 +358,9 @@ public class DefaultProfileBuilderTest {
 
   @Test
   public void testFlushDoesNotClearsState() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(testFlushProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -362,16 +372,24 @@ public class DefaultProfileBuilderTest {
     // execute - accumulate some state then flush it
     int count = 10;
     for(int i=0; i<count; i++) {
-      builder.apply(message);
+
+      // apply the message
+      builder.apply(message, timestamp);
+
+      // advance time
+      timestamp += 5;
     }
     builder.flush();
 
+    // advance time beyond the current period
+    timestamp += TimeUnit.MINUTES.toMillis(20);
+
     // apply another message to accumulate new state, then flush again to validate original state was cleared
-    builder.apply(message);
+    builder.apply(message, timestamp);
     Optional<ProfileMeasurement> m = builder.flush();
-    assertTrue(m.isPresent());
 
     // validate
+    assertTrue(m.isPresent());
     assertEquals(33, m.get().getProfileValue());
   }
 
@@ -395,7 +413,9 @@ public class DefaultProfileBuilderTest {
 
   @Test
   public void testFlushDoesNotClearsStateButInitDoes() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(testFlushProfileWithNaiveInit, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -407,18 +427,27 @@ public class DefaultProfileBuilderTest {
     // execute - accumulate some state then flush it
     int count = 10;
     for(int i=0; i<count; i++) {
-      builder.apply(message);
+
+      // apply a message
+      builder.apply(message, timestamp);
+
+      // advance time
+      timestamp += 5;
     }
     builder.flush();
 
+    // advance time beyond the current period
+    timestamp += TimeUnit.MINUTES.toMillis(20);
+
     // apply another message to accumulate new state, then flush again to validate original state was cleared
-    builder.apply(message);
+    builder.apply(message, timestamp);
     Optional<ProfileMeasurement> m = builder.flush();
     assertTrue(m.isPresent());
 
     // validate
     assertEquals(3, m.get().getProfileValue());
   }
+
   /**
    * {
    *   "profile": "test",
@@ -434,7 +463,9 @@ public class DefaultProfileBuilderTest {
    */
   @Test
   public void testEntity() throws Exception {
+
     // setup
+    long timestamp = 100;
     final String entity = "10.0.0.1";
     definition = JSONUtils.INSTANCE.load(testFlushProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
@@ -445,7 +476,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // execute
-    builder.apply(message);
+    builder.apply(message, timestamp);
     Optional<ProfileMeasurement> m = builder.flush();
     assertTrue(m.isPresent());
 
@@ -473,7 +504,9 @@ public class DefaultProfileBuilderTest {
    */
   @Test
   public void testResultWithProfileExpression() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(testResultWithProfileExpression, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -483,7 +516,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // execute
-    builder.apply(message);
+    builder.apply(message, timestamp);
     Optional<ProfileMeasurement> m = builder.flush();
     assertTrue(m.isPresent());
 
@@ -515,7 +548,9 @@ public class DefaultProfileBuilderTest {
    */
   @Test
   public void testResultWithTriageExpression() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(testResultWithTriageExpression, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -525,7 +560,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // execute
-    builder.apply(message);
+    builder.apply(message, timestamp);
     Optional<ProfileMeasurement> m = builder.flush();
     assertTrue(m.isPresent());
 
@@ -550,7 +585,9 @@ public class DefaultProfileBuilderTest {
 
   @Test
   public void testBadInitExpression() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(badInitProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -560,7 +597,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // due to the bad expression, there should be no result
-    builder.apply(message);
+    builder.apply(message, timestamp);
     assertFalse(builder.flush().isPresent());
   }
 
@@ -579,7 +616,9 @@ public class DefaultProfileBuilderTest {
 
   @Test
   public void testBadResultExpression() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(badSimpleResultProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -589,7 +628,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // due to the bad expression, there should be no result
-    builder.apply(message);
+    builder.apply(message, timestamp);
     assertFalse(builder.flush().isPresent());
   }
 
@@ -608,7 +647,9 @@ public class DefaultProfileBuilderTest {
 
   @Test
   public void testBadGroupByExpression() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(badGroupByProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -618,7 +659,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // due to the bad expression, there should be no result
-    builder.apply(message);
+    builder.apply(message, timestamp);
     assertFalse(builder.flush().isPresent());
   }
 
@@ -641,7 +682,9 @@ public class DefaultProfileBuilderTest {
 
   @Test
   public void testBadResultProfileExpression() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(badResultProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -651,7 +694,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // due to the bad expression, there should be no result
-    builder.apply(message);
+    builder.apply(message, timestamp);
     assertFalse(builder.flush().isPresent());
   }
 
@@ -674,7 +717,9 @@ public class DefaultProfileBuilderTest {
 
   @Test
   public void testBadResultTriageExpression() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(badResultTriage, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -684,7 +729,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // due to the bad expression, there should be no result
-    builder.apply(message);
+    builder.apply(message, timestamp);
     assertFalse(builder.flush().isPresent());
   }
 
@@ -707,7 +752,9 @@ public class DefaultProfileBuilderTest {
    */
   @Test
   public void testBadUpdateExpression() throws Exception {
+
     // setup
+    long timestamp = 100;
     definition = JSONUtils.INSTANCE.load(badUpdateProfile, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
@@ -717,7 +764,7 @@ public class DefaultProfileBuilderTest {
             .build();
 
     // execute
-    builder.apply(message);
+    builder.apply(message, timestamp);
 
     // if the update expression fails, the profile should still flush.
     Optional<ProfileMeasurement> m = builder.flush();

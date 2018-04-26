@@ -20,11 +20,11 @@
 
 package org.apache.metron.profiler.bolt;
 
-import org.apache.metron.common.configuration.profiler.ProfileResult;
-import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
+import org.apache.metron.common.configuration.profiler.ProfileResult;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
+import org.apache.storm.tuple.Tuple;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,10 +32,8 @@ import org.junit.Test;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**

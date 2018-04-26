@@ -121,11 +121,15 @@ title: Apache Metron Community
             <h4> General & Public Discussion </h4>
                 [<a href="mailto:user-subscribe@metron.apache.org">Subscribe</a>]
                 [<a href="mailto:user-unsubscribe@metron.apache.org">Unsubscribe</a>]
-                [<a href="http://mail-archives.apache.org/mod_mbox/metron-user/">Archives</a>]
+                [<a href="https://lists.apache.org/list.html?user@metron.apache.org">Archives</a>]
             <h4> Code & Documentation Change </h4>
                 [<a href="mailto:dev-subscribe@metron.apache.org">Subscribe</a>]
                 [<a href="mailto:dev-unsubscribe@metron.apache.org">Unsubscribe</a>]
-                [<a href="http://mail-archives.apache.org/mod_mbox/metron-dev/">Archives</a>]
+                [<a href="https://lists.apache.org/list.html?dev@metron.apache.org">Archives</a>]
+            <h4> Issues & Github updates </h4>
+                [<a href="mailto:issues-subscribe@metron.apache.org">Subscribe</a>]
+                [<a href="mailto:issues-unsubscribe@metron.apache.org">Unsubscribe</a>]
+                [<a href="https://lists.apache.org/list.html?issues@metron.apache.org">Archives</a>]
         </div>
 </section>
 

@@ -22,6 +22,7 @@ import static java.lang.String.format;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -30,25 +31,34 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.utils.HDFSUtils;
+import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.netty.utils.NettyRuntimeWrapper;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ElasticsearchUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String ES_CLIENT_CLASS_DEFAULT = "org.elasticsearch.transport.client.PreBuiltTransportClient";
+  private static final String PWD_FILE_CONFIG_KEY = "es.xpack.password.file";
+  private static final String USERNAME_CONFIG_KEY = "es.xpack.username";
+  private static final String TRANSPORT_CLIENT_USER_KEY = "xpack.security.user";
+
 
   private static ThreadLocal<Map<String, SimpleDateFormat>> DATE_FORMAT_CACHE
           = ThreadLocal.withInitial(() -> new HashMap<>());
@@ -107,32 +117,103 @@ public class ElasticsearchUtils {
     return parts[0];
   }
 
-  public static TransportClient getClient(Map<String, Object> globalConfiguration, Map<String, String> optionalSettings) {
+  /**
+   * Instantiates an Elasticsearch client based on es.client.class, if set. Defaults to
+   * org.elasticsearch.transport.client.PreBuiltTransportClient.
+   *
+   * @param globalConfiguration Metron global config
+   * @return
+   */
+  public static TransportClient getClient(Map<String, Object> globalConfiguration) {
+    Set<String> customESSettings = new HashSet<>();
+    customESSettings.addAll(Arrays.asList("es.client.class", USERNAME_CONFIG_KEY, PWD_FILE_CONFIG_KEY));
     Settings.Builder settingsBuilder = Settings.builder();
-    settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
-    settingsBuilder.put("client.transport.ping_timeout","500s");
-    if (optionalSettings != null) {
-      settingsBuilder.put(optionalSettings);
+    Map<String, String> esSettings = getEsSettings(globalConfiguration);
+    for (Map.Entry<String, String> entry : esSettings.entrySet()) {
+      String key = entry.getKey();
+      String value = entry.getValue();
+      if (!customESSettings.contains(key)) {
+        settingsBuilder.put(key, value);
+      }
     }
-    Settings settings = settingsBuilder.build();
-    TransportClient client;
-    try{
+    settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
+    settingsBuilder.put("client.transport.ping_timeout", esSettings.getOrDefault("client.transport.ping_timeout","500s"));
+    setXPackSecurityOrNone(settingsBuilder, esSettings);
+
+    try {
       LOG.info("Number of available processors in Netty: {}", NettyRuntimeWrapper.availableProcessors());
       // Netty sets available processors statically and if an attempt is made to set it more than
       // once an IllegalStateException is thrown by NettyRuntime.setAvailableProcessors(NettyRuntime.java:87)
       // https://discuss.elastic.co/t/getting-availableprocessors-is-already-set-to-1-rejecting-1-illegalstateexception-exception/103082
       // https://discuss.elastic.co/t/elasticsearch-5-4-1-availableprocessors-is-already-set/88036
       System.setProperty("es.set.netty.runtime.available.processors", "false");
-      client = new PreBuiltTransportClient(settings);
-      for(HostnamePort hp : getIps(globalConfiguration)) {
+      TransportClient client = createTransportClient(settingsBuilder.build(), esSettings);
+      for (HostnamePort hp : getIps(globalConfiguration)) {
         client.addTransportAddress(
                 new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
         );
       }
-    } catch (UnknownHostException exception){
+      return client;
+    } catch (UnknownHostException exception) {
       throw new RuntimeException(exception);
     }
-    return client;
+  }
+
+  private static Map<String, String> getEsSettings(Map<String, Object> config) {
+    return ConversionUtils
+        .convertMap((Map<String, Object>) config.getOrDefault("es.client.settings", new HashMap<String, Object>()),
+            String.class);
+  }
+
+  /*
+   * Append Xpack security settings (if any)
+   */
+  private static void setXPackSecurityOrNone(Settings.Builder settingsBuilder, Map<String, String> esSettings) {
+
+    if (esSettings.containsKey(PWD_FILE_CONFIG_KEY)) {
+
+      if (!esSettings.containsKey(USERNAME_CONFIG_KEY) || StringUtils.isEmpty(esSettings.get(USERNAME_CONFIG_KEY))) {
+        throw new IllegalArgumentException("X-pack username is required and cannot be empty");
+      }
+
+      settingsBuilder.put(
+         TRANSPORT_CLIENT_USER_KEY,
+         esSettings.get(USERNAME_CONFIG_KEY) + ":" + getPasswordFromFile(esSettings.get(PWD_FILE_CONFIG_KEY))
+      );
+    }
+  }
+
+  /*
+   * Single password on first line
+   */
+  private static String getPasswordFromFile(String hdfsPath) {
+    List<String> lines = null;
+    try {
+      lines = HDFSUtils.readFile(hdfsPath);
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+          format("Unable to read XPack password file from HDFS location '%s'", hdfsPath), e);
+    }
+    if (lines.size() == 0) {
+      throw new IllegalArgumentException(format("No password found in file '%s'", hdfsPath));
+    }
+    return lines.get(0);
+  }
+
+  /**
+   * Constructs ES transport client from the provided ES settings additional es config
+   *
+   * @param settings client settings
+   * @param esSettings client type to instantiate
+   * @return client with provided settings
+   */
+  private static TransportClient createTransportClient(Settings settings,
+      Map<String, String> esSettings) {
+    String esClientClassName = (String) esSettings
+        .getOrDefault("es.client.class", ES_CLIENT_CLASS_DEFAULT);
+    return ReflectionUtils
+        .createInstance(esClientClassName, new Class[]{Settings.class, Class[].class},
+            new Object[]{settings, new Class[0]});
   }
 
   public static class HostnamePort {

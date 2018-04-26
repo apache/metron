@@ -85,6 +85,7 @@
         <base_flume_version>1.5.2</base_flume_version>
         <!-- full dependency versions -->
         <global_accumulo_version>1.8.0</global_accumulo_version>
+        <global_caffeine_version>2.6.2</global_caffeine_version>
         <global_antlr_version>4.5</global_antlr_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_curator_version>2.7.1</global_curator_version>

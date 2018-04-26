@@ -129,13 +129,21 @@ class EnrichmentCommands:
         Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))
 
         if not self.is_topology_active(env):
-            start_cmd_template = """{0}/bin/start_enrichment_topology.sh \
-                                        -s {1} \
-                                        -z {2}"""
+
+            # which enrichment topology needs started?
+            if self.__params.enrichment_topology == "Unified":
+                topology_flux = "{0}/flux/enrichment/remote-unified.yaml".format(self.__params.metron_home)
+                topology_props = "{0}/config/enrichment-unified.properties".format(self.__params.metron_home)
+            elif self.__params.enrichment_topology == "Split-Join":
+                topology_flux = "{0}/flux/enrichment/remote-splitjoin.yaml".format(self.__params.metron_home)
+                topology_props = "{0}/config/enrichment-splitjoin.properties".format(self.__params.metron_home)
+            else:
+                raise Fail("Unexpected enrichment topology; name=" + self.__params.enrichment_topology)
+
+            # start the topology
+            start_cmd_template = """{0}/bin/start_enrichment_topology.sh --remote {1} --filter {2}"""
             Logger.info('Starting ' + self.__enrichment_topology)
-            start_cmd = start_cmd_template.format(self.__params.metron_home,
-                                                  self.__enrichment_topology,
-                                                  self.__params.zookeeper_quorum)
+            start_cmd = start_cmd_template.format(self.__params.metron_home, topology_flux, topology_props)
             Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
         else:
             Logger.info('Enrichment topology already running')

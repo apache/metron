@@ -130,11 +130,11 @@ streams:
         from: "kafkaSpout"
         to: "indexingBolt"
         grouping:
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE
 
     -   name: "indexingBolt -> errorIndexingBolt"
         from: "indexingBolt"
         to: "indexingErrorBolt"
         grouping:
             streamId: "error"
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE

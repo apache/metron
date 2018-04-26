@@ -45,9 +45,24 @@ public class SensorParserConfig implements Serializable {
   private Integer parserNumTasks = 1;
   private Integer errorWriterParallelism = 1;
   private Integer errorWriterNumTasks = 1;
+  private Map<String, Object> cacheConfig = new HashMap<>();
   private Map<String, Object> spoutConfig = new HashMap<>();
   private String securityProtocol = null;
   private Map<String, Object> stormConfig = new HashMap<>();
+
+  /**
+   * Cache config for stellar field transformations.
+   * * stellar.cache.maxSize - The maximum number of elements in the cache.
+   * * stellar.cache.maxTimeRetain - The maximum amount of time an element is kept in the cache (in minutes).
+   * @return
+   */
+  public Map<String, Object> getCacheConfig() {
+    return cacheConfig;
+  }
+
+  public void setCacheConfig(Map<String, Object> cacheConfig) {
+    this.cacheConfig = cacheConfig;
+  }
 
   /**
    * Return the number of workers for the topology.  This property will be used for the parser unless overridden on the CLI.

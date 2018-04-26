@@ -17,7 +17,7 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.error.MetronError;
@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -176,10 +177,10 @@ public class JoinBoltTest extends BaseEnrichmentBoltTest {
     when(tuple.getValueByField("key")).thenReturn(key);
     when(tuple.getValueByField("message")).thenReturn(new JSONObject());
     joinBolt.cache = mock(LoadingCache.class);
-    when(joinBolt.cache.get(key)).thenThrow(new ExecutionException(new Exception("join exception")));
+    when(joinBolt.cache.get(any())).thenThrow(new RuntimeException(new Exception("join exception")));
 
     joinBolt.execute(tuple);
-    ExecutionException expectedExecutionException = new ExecutionException(new Exception("join exception"));
+    RuntimeException expectedExecutionException = new RuntimeException(new Exception("join exception"));
     MetronError error = new MetronError()
             .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
             .withMessage("Joining problem: {}")

@@ -30,12 +30,43 @@ public class Context implements Serializable {
   
   public enum Capabilities {
       HBASE_PROVIDER
-    , GLOBAL_CONFIG
-    , ZOOKEEPER_CLIENT
-    , SERVICE_DISCOVERER
-    , STELLAR_CONFIG
-    , CONSOLE
-    , SHELL_VARIABLES
+    ,
+    /**
+     * This capability indicates that the global config is available.
+     */
+    GLOBAL_CONFIG
+    ,
+    /**
+     * This capability indicates that a zookeeper client (i.e. a Curator client, specifically) is available.
+     */
+    ZOOKEEPER_CLIENT
+    ,
+    /**
+     * This capability indicates that a MaaS service discoverer is available.
+     */
+    SERVICE_DISCOVERER
+    ,
+    /**
+     * This capability indicates that a map configuring stellar is available.  Generally this is done within the global config
+     * inside of storm, but may be sourced elsewhere (e.g. the CLI when running the REPL).
+     */
+    STELLAR_CONFIG
+    ,
+    /**
+     * This capability indicates that the Console object is available.  This is available when run via the CLI (e.g. from the REPL).
+     */
+    CONSOLE
+    ,
+    /**
+     * This capability indicates that shell variables are available.  This is available when run via the CLI (e.g. from the REPL).
+     */
+    SHELL_VARIABLES
+    ,
+    /**
+     * This capability indicates that the StellarProcessor should use a Caffeine cache to cache expression -> results.  If an expression
+     * is in the cache, then the cached result will be returned instead of recomputing.
+     */
+    CACHE
   }
 
   public enum ActivityType {

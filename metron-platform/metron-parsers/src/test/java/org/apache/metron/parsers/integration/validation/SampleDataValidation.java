@@ -41,7 +41,7 @@ public class SampleDataValidation implements ParserValidation {
       String expectedMessage = new String(expectedMessages.get(i));
       String actualMessage = new String(actualMessages.get(i));
       try {
-        ValidationUtils.assertJSONEqual(expectedMessage, actualMessage);
+        ValidationUtils.assertJsonEqual(expectedMessage, actualMessage);
       } catch (Throwable t) {
         System.out.println("expected: " + expectedMessage);
         System.out.println("actual: " + actualMessage);

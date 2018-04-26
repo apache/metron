@@ -878,11 +878,11 @@ curl -s -w "%{http_code}" -u admin:admin -H "X-Requested-By: ambari" -X POST -d 
 
 - Load Kibana Dashboard with:
 ```
-curl -s -w "%{http_code}" -u <USERNAME>:<PASSWORD> -H "X-Requested-By: ambari" -X POST -d '{ "RequestInfo": { "context": "Install Kibana Dashboard from REST", "command": "LOAD_TEMPLATE"},"Requests/resource_filters": [{"service_name": "KIBANA","component_name": "KIBANA_MASTER","hosts" : "<HOSTNAME>"}]}' http://<AMBARI HOST>:8080/api/v1/clusters/<CLUSTERNAME>/requests
+curl -s -w "%{http_code}" -u <USERNAME>:<PASSWORD> -H "X-Requested-By: ambari" -X POST -d '{ "RequestInfo": { "context": "Install Kibana Dashboard from REST", "command": "KIBANA_DASHBOARD_INSTALL"},"Requests/resource_filters": [{"service_name": "METRON","component_name": "METRON_INDEXING","hosts" : "<HOSTNAME>"}]}' http://<AMBARI HOST>:8080/api/v1/clusters/<CLUSTERNAME>/requests
 ```
 For example:
 ```
-curl -s -w "%{http_code}" -u admin:admin -H "X-Requested-By: ambari" -X POST -d '{ "RequestInfo": { "context": "Install Kibana Dashboard from REST", "command": "LOAD_TEMPLATE"},"Requests/resource_filters": [{"service_name": "KIBANA","component_name": "KIBANA_MASTER","hosts" : "metron"}]}' http://192.168.10.10:8080/api/v1/clusters/metron/requests
+curl -s -w "%{http_code}" -u admin:admin -H "X-Requested-By: ambari" -X POST -d '{ "RequestInfo": { "context": "Install Kibana Dashboard from REST", "command": "KIBANA_DASHBOARD_INSTALL"},"Requests/resource_filters": [{"service_name": "METRON","component_name": "METRON_INDEXING","hosts" : "metron"}]}' http://192.168.10.10:8080/api/v1/clusters/metron/requests
 ```
 
 - If you installed Metron on a single node, you might have to increase the number of Storm supervisor slots from the default 2 to 5 or more. This can be done by editing the "supervisor.slots.ports" under Storm in the Ambari UI.
