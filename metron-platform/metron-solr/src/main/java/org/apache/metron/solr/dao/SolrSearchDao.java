@@ -168,15 +168,15 @@ public class SolrSearchDao implements SearchDao {
     }
 
     // handle search fields
-    Optional<List<String>> fields = searchRequest.getFields();
-    if (fields.isPresent()) {
-      fields.get().forEach(query::addField);
+    List<String> fields = searchRequest.getFields();
+    if (fields != null) {
+      fields.forEach(query::addField);
     }
 
     //handle facet fields
-    Optional<List<String>> facetFields = searchRequest.getFacetFields();
-    if (facetFields.isPresent()) {
-      facetFields.get().forEach(query::addFacetField);
+    List<String> facetFields = searchRequest.getFacetFields();
+    if (facetFields != null) {
+      facetFields.forEach(query::addFacetField);
     }
 
     query.set("collection", getCollections(searchRequest.getIndices()));
@@ -210,9 +210,9 @@ public class SolrSearchDao implements SearchDao {
     searchResponse.setResults(results);
 
     // handle facet fields
-    Optional<List<String>> facetFields = searchRequest.getFacetFields();
-    if (facetFields.isPresent()) {
-      searchResponse.setFacetCounts(getFacetCounts(facetFields.get(), solrResponse));
+    List<String> facetFields = searchRequest.getFacetFields();
+    if (facetFields != null) {
+      searchResponse.setFacetCounts(getFacetCounts(facetFields, solrResponse));
     }
 
     if (LOG.isDebugEnabled()) {
@@ -227,12 +227,12 @@ public class SolrSearchDao implements SearchDao {
     return searchResponse;
   }
 
-  protected SearchResult getSearchResult(SolrDocument solrDocument, Optional<List<String>> fields) {
+  protected SearchResult getSearchResult(SolrDocument solrDocument, List<String> fields) {
     SearchResult searchResult = new SearchResult();
     searchResult.setId((String) solrDocument.getFieldValue(Constants.GUID));
     final Map<String, Object> source = new HashMap<>();
-    if (fields.isPresent()) {
-      fields.get().forEach(field -> source.put(field, solrDocument.getFieldValue(field)));
+    if (fields != null) {
+      fields.forEach(field -> source.put(field, solrDocument.getFieldValue(field)));
     } else {
       solrDocument.getFieldNames().forEach(field -> source.put(field, solrDocument.getFieldValue(field)));
     }

@@ -85,18 +85,6 @@ public class FieldTransformationTest {
    {
     "fieldTransformations" : [
           {
-           "transformation" : "IP_PROTOCOL"
-          }
-                      ]
-   }
-   */
-  @Multiline
-  public static String badConfigMissingInput;
-
-  /**
-   {
-    "fieldTransformations" : [
-          {
             "input" : "protocol"
           }
                       ]
@@ -113,10 +101,7 @@ public class FieldTransformationTest {
     Assert.assertEquals(ImmutableList.of("protocol"), c.getFieldTransformations().get(0).getInput());
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testInValidSerde_missingInput() throws IOException {
-    SensorParserConfig.fromBytes(Bytes.toBytes(badConfigMissingInput));
-  }
+
 
   @Test(expected = IllegalStateException.class)
   public void testInValidSerde_missingMapping() throws IOException {

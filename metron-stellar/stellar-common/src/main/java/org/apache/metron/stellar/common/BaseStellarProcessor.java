@@ -18,16 +18,14 @@
 
 package org.apache.metron.stellar.common;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.metron.stellar.dsl.Context;
@@ -95,16 +93,11 @@ public class BaseStellarProcessor<T> {
                                                        , int expiryTime
                                                        , TimeUnit expiryUnit
                                                        ) {
-    CacheLoader<String, StellarCompiler.Expression> loader = new CacheLoader<String, StellarCompiler.Expression>() {
-      @Override
-      public StellarCompiler.Expression load(String key) throws Exception {
-        return compile(key);
-      }
-    };
-    return CacheBuilder.newBuilder()
-                       .maximumSize(cacheSize)
-                       .expireAfterAccess(expiryTime, expiryUnit)
-                       .build(loader);
+    CacheLoader<String, StellarCompiler.Expression> loader = key -> compile(key);
+    return Caffeine.newBuilder()
+                   .maximumSize(cacheSize)
+                   .expireAfterAccess(expiryTime, expiryUnit)
+                   .build(loader);
   }
 
   /**
@@ -119,8 +112,8 @@ public class BaseStellarProcessor<T> {
     }
     StellarCompiler.Expression expression = null;
     try {
-      expression = expressionCache.get(rule, () -> compile(rule));
-    } catch (ExecutionException e) {
+      expression = expressionCache.get(rule, r -> compile(r));
+    } catch (Throwable e) {
       throw new ParseException("Unable to parse: " + rule + " due to: " + e.getMessage(), e);
     }
     return expression.variablesUsed;
@@ -143,8 +136,8 @@ public class BaseStellarProcessor<T> {
       context.setActivityType(ActivityType.PARSE_ACTIVITY);
     }
     try {
-      expression = expressionCache.get(rule, () -> compile(rule));
-    } catch (ExecutionException|UncheckedExecutionException e) {
+      expression = expressionCache.get(rule, r -> compile(r));
+    } catch (Throwable e) {
       throw new ParseException("Unable to parse: " + rule + " due to: " + e.getMessage(), e);
     }
     try {

@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import kafka.api.FetchRequest;
 import kafka.api.FetchRequestBuilder;
 import kafka.common.TopicExistsException;
@@ -48,6 +51,7 @@ import kafka.utils.Time;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.metron.integration.InMemoryComponent;
@@ -314,11 +318,44 @@ public class KafkaComponent implements InMemoryComponent {
     }
   }
 
+  /**
+   * Write a collection of messages to a Kafka topic.
+   *
+   * @param topic The name of the Kafka topic.
+   * @param messages The collection of messages to write.
+   */
   public void writeMessages(String topic, Collection<byte[]> messages) {
     try(KafkaProducer<String, byte[]> kafkaProducer = createProducer()) {
       for (byte[] message : messages) {
-        kafkaProducer.send(new ProducerRecord<String, byte[]>(topic, message));
+        kafkaProducer.send(new ProducerRecord<>(topic, message));
       }
     }
+  }
+
+  /**
+   * Write messages to a Kafka topic.
+   *
+   * @param topic The name of the Kafka topic.
+   * @param messages The messages to write.
+   */
+  public void writeMessages(String topic, String ...messages) {
+
+    // convert each message to raw bytes
+    List<byte[]> messagesAsBytes = Stream.of(messages)
+            .map(Bytes::toBytes)
+            .collect(Collectors.toList());
+
+    writeMessages(topic, messagesAsBytes);
+  }
+
+  /**
+   * Write messages to a Kafka topic.
+   *
+   * @param topic The name of the Kafka topic.
+   * @param messages The messages to write.
+   */
+  public void writeMessages(String topic, List<String> messages) {
+
+    writeMessages(topic, messages.toArray(new String[] {}));
   }
 }

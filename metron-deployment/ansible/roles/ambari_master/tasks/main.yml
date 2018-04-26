@@ -16,7 +16,8 @@
 #
 ---
 - include: ambari.yml
-- include: mpack.yml
+- include: metron_mpack.yml
+- include: elasticsearch_mpack.yml
 
 - name: start ambari server
   service:

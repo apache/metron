@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class ProfilerUpdater extends ConfigurationsUpdater<ProfilerConfigurations> {
+
   public ProfilerUpdater(Reloadable reloadable, Supplier<ProfilerConfigurations> configSupplier) {
     super(reloadable, configSupplier);
   }

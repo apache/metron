@@ -19,8 +19,8 @@
 package org.apache.metron.indexing.dao.search;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public class SearchRequest {
 
@@ -38,7 +38,6 @@ public class SearchRequest {
     defaultSortField.setSortOrder(SortOrder.DESC.toString());
     sort = new ArrayList<>();
     sort.add(defaultSortField);
-    facetFields = new ArrayList<>();
   }
 
   /**
@@ -101,16 +100,16 @@ public class SearchRequest {
     this.sort = sort;
   }
 
-  public Optional<List<String>> getFields() {
-    return fields == null || fields.size() == 0 ? Optional.empty() : Optional.of(fields);
+  public List<String> getFields() {
+    return fields;
   }
 
   public void setFields(List<String> fields) {
     this.fields = fields;
   }
 
-  public Optional<List<String>> getFacetFields() {
-    return facetFields == null || facetFields.size() == 0 ? Optional.empty() : Optional.of(facetFields);
+  public List<String> getFacetFields() {
+    return facetFields;
   }
 
   public void setFacetFields(List<String> facetFields) {
@@ -128,10 +127,11 @@ public class SearchRequest {
 
     SearchRequest that = (SearchRequest) o;
 
-    return indices != null ? indices.equals(that.indices) : that.indices == null &&
+    return (indices != null ? indices.equals(that.indices) : that.indices == null) &&
         (query != null ? query.equals(that.query) : that.query == null) && size == that.size &&
         from == that.from &&
         (sort != null ? sort.equals(that.sort) : that.sort == null) &&
+        (fields != null ? fields.equals(that.fields) : that.fields == null) &&
         (facetFields != null ? facetFields.equals(that.facetFields) : that.facetFields == null);
   }
 
@@ -142,6 +142,7 @@ public class SearchRequest {
     result = 31 * result + getSize();
     result = 31 * result + getFrom();
     result = 31 * result + (sort != null ? sort.hashCode() : 0);
+    result = 31 * result + (fields != null ? fields.hashCode() : 0);
     result = 31 * result + (facetFields != null ? facetFields.hashCode() : 0);
     return result;
   }

@@ -4,5 +4,8 @@
   "es.date.format": "yyyy.MM.dd.HH",
   "parser.error.topic": "indexing",
   "update.hbase.table": "metron_update",
-  "update.hbase.cf": "t"
+  "update.hbase.cf": "t",
+  "es.client.settings": {
+    "client.transport.ping_timeout": "500s"
+  }
 }

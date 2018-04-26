@@ -144,4 +144,16 @@
             <editable-only-at-install>true</editable-only-at-install>
         </value-attributes>
     </property>
+    <property>
+        <name>user_settings_hbase_table</name>
+        <value>user_settings</value>
+        <description>The HBase table which will hold user settings</description>
+        <display-name>User Settings HBase Table</display-name>
+    </property>
+    <property>
+        <name>user_settings_hbase_cf</name>
+        <value>cf</value>
+        <description>The HBase column family which will hold user settings in HBase.</description>
+        <display-name>User Settings HBase Column Family</display-name>
+    </property>
 </configuration>

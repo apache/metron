@@ -18,6 +18,10 @@
   limitations under the License.
 -->
 <configuration supports_final="true">
+
+  <!--
+    enrichment adapter parameters
+  -->
   <property>
     <name>geoip_url</name>
     <value>http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz</value>
@@ -33,6 +37,10 @@
       <type>content</type>
     </value-attributes>
   </property>
+
+  <!--
+    kafka parameters
+  -->
   <property>
     <name>enrichment_kafka_start</name>
     <description>Enrichment Topology Spout Offset</description>
@@ -81,6 +89,10 @@
     <value>indexing</value>
     <display-name>Threat Intel Error Topic</display-name>
   </property>
+
+  <!--
+    hbase parameters
+  -->
   <property>
     <name>enrichment_hbase_table</name>
     <value>enrichment</value>
@@ -105,6 +117,10 @@
     <description>The HBase column family which will hold threatintel data in HBase.</description>
     <display-name>HBase Table Column Family</display-name>
   </property>
+
+  <!--
+    storm common parameters
+  -->
   <property>
     <name>enrichment_workers</name>
     <description>Number of Workers for the Enrichment Topology</description>
@@ -129,70 +145,156 @@
   <property>
     <name>enrichment_topology_max_spout_pending</name>
     <description>Spout Max Pending Tuples for the Enrichment Topology</description>
-    <value/>
-    <display-name>Enrichment Max Pending</display-name>
+    <value>500</value>
+    <display-name>Enrichment Max Spout Pending</display-name>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
   </property>
   <property>
+    <name>enrichment_topology</name>
+    <description>Which Enrichment topology to execute</description>
+    <value>Split-Join</value>
+    <display-name>Enrichment Topology</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Split-Join</value>
+        </entry>
+        <entry>
+          <value>Unified</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <!--
+    split-join topology parameters
+  -->
+  <property>
     <name>enrichment_join_cache_size</name>
-    <description>Enrichment Join Bolt Cache Max Size</description>
+    <description>Enrichment join bolt max cache size for the Split Join Enrichment Topology</description>
     <value>100000</value>
-    <display-name>Enrichment Join Size</display-name>
+    <display-name>Enrichment Join Max Cache Size</display-name>
   </property>
   <property>
     <name>threatintel_join_cache_size</name>
-    <description>Threat Intel Join Bolt Cache Max Size</description>
+    <description>Threat Intel join bolt max cache size for the Split Join Enrichment Topology</description>
     <value>100000</value>
-    <display-name>Threat Intel Join Size</display-name>
+    <display-name>Threat Intel Join Max Cache Size</display-name>
   </property>
   <property>
     <name>enrichment_kafka_spout_parallelism</name>
-    <description>Kafka Spout Parallelism for the Enrichment Topology</description>
+    <description>Kafka spout parallelism for the Split Join Enrichment Topology</description>
     <value>1</value>
     <display-name>Enrichment Spout Parallelism</display-name>
   </property>
   <property>
     <name>enrichment_split_parallelism</name>
-    <description>Enrichment Split Bolt Parallelism for the Enrichment Topology</description>
+    <description>Enrichment split bolt parallelism for the Split Join Enrichment Topology</description>
     <value>1</value>
     <display-name>Enrichment Split Parallelism</display-name>
   </property>
   <property>
     <name>enrichment_stellar_parallelism</name>
-    <description>Stellar Enrichment Bolt Parallelism for the Enrichment Topology</description>
+    <description>Stellar enrichment bolt parallelism for the Split Join Enrichment Topology</description>
     <value>1</value>
     <display-name>Stellar Enrichment Parallelism</display-name>
   </property>
   <property>
     <name>enrichment_join_parallelism</name>
-    <description>Enrichment Join Bolt Parallelism for the Enrichment Topology</description>
+    <description>Enrichment join bolt parallelism for the Split Join Enrichment Topology</description>
     <value>1</value>
     <display-name>Enrichment Join Parallelism</display-name>
   </property>
   <property>
     <name>threat_intel_split_parallelism</name>
-    <description>Threat Intel Split Bolt Parallelism for the Enrichment Topology</description>
+    <description>Threat Intel split bolt parallelism for the Split Join Enrichment Topology</description>
     <value>1</value>
     <display-name>Threat Intel Split Parallelism</display-name>
   </property>
   <property>
     <name>threat_intel_stellar_parallelism</name>
-    <description>Threat Intel Stellar Bolt Parallelism for the Enrichment Topology</description>
+    <description>Threat Intel stellar bolt parallelism for the Split Join Enrichment Topology</description>
     <value>1</value>
     <display-name>Threat Intel Stellar Parallelism</display-name>
   </property>
   <property>
     <name>threat_intel_join_parallelism</name>
-    <description>Threat Intel Join Bolt Parallelism for the Enrichment Topology</description>
+    <description>Threat Intel join bolt parallelism for the Split Join Enrichment Topology</description>
     <value>1</value>
     <display-name>Threat Intel Join Parallelism</display-name>
   </property>
   <property>
     <name>kafka_writer_parallelism</name>
-    <description>Kafka Writer Parallelism for the Enrichment Topology</description>
+    <description>Kafka writer parallelism for the Split Join Enrichment Topology</description>
     <value>1</value>
     <display-name>Enrichment Kafka Writer Parallelism</display-name>
+  </property>
+
+  <!--
+    unified topology parameters
+  -->
+  <property>
+    <name>unified_kafka_spout_parallelism</name>
+    <description>Kafka spout parallelism for the Unified Enrichment Topology</description>
+    <value>1</value>
+    <display-name>Unified Enrichment Spout Parallelism</display-name>
+  </property>
+  <property>
+    <name>unified_enrichment_parallelism</name>
+    <description>Enrichment parallelism for the Unified Enrichment Topology</description>
+    <value>1</value>
+    <display-name>Unified Enrichment Parallelism</display-name>
+  </property>
+  <property>
+    <name>unified_threat_intel_parallelism</name>
+    <description>Threat Intel parallelism for the Unified Enrichment Topology</description>
+    <value>1</value>
+    <display-name>Unified Threat Intel Parallelism</display-name>
+  </property>
+  <property>
+    <name>unified_kafka_writer_parallelism</name>
+    <description>Kafka writer parallelism for the Unified Enrichment Topology</description>
+    <value>1</value>
+    <display-name>Unified Kafka Writer Parallelism</display-name>
+  </property>
+  <property>
+    <name>unified_enrichment_cache_size</name>
+    <description>Enrichment max cache size for the Unified Enrichment Topology</description>
+    <value>100000</value>
+    <display-name>Unified Enrichment Cache Size</display-name>
+  </property>
+  <property>
+    <name>unified_threat_intel_cache_size</name>
+    <description>Threat Intel Max Cache Size for the Unified Enrichment Topology</description>
+    <value>100000</value>
+    <display-name>Unified Threat Intel Cache Size</display-name>
+  </property>
+  <property>
+    <name>unified_enrichment_threadpool_size</name>
+    <description>Enrichment thread pool size for the Unified Enrichment Topology</description>
+    <value>1</value>
+    <display-name>Unified Enrichment Thread Pool Size</display-name>
+  </property>
+  <property>
+    <name>unified_enrichment_threadpool_type</name>
+    <description>Enrichment thread pool type for the Unified Enrichment Topology</description>
+    <display-name>Unified Enrichment Thread Pool Type</display-name>
+    <value>FIXED</value>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>FIXED</value>
+        </entry>
+        <entry>
+          <value>WORK_STEALING</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 </configuration>

@@ -43,8 +43,36 @@ There are two general types types of parsers:
       * `UNFOLD` : Unfold inner maps.  So `{ "foo" : { "bar" : 1} }` would turn into `{"foo.bar" : 1}`
       * `ALLOW` : Allow multidimensional maps
       * `ERROR` : Throw an error when a multidimensional map is encountered
+    * `jsonpQuery` : A [JSON Path](#json_path) query string. If present, the result of the JSON Path query should be a list of messages. This is useful if you have a JSON document which contains a list or array of messages embedded in it, and you do not have another means of splitting the message.
     * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.  
-    
+
+## Parser Error Routing
+
+Currently, we have a few mechanisms for either deferring processing of
+messages or marking messages as invalid.
+
+### Invalidation Errors
+
+There are two reasons a message will be marked as invalid:
+* Fail [global validation](../metron-common#validation-framework)
+* Fail the parser's validate function (generally that means to not have a `timestamp` field or a `original_string` field.
+
+Those messages which are marked as invalid are sent to the error queue
+with an indication that they are invalid in the error message.
+
+### Parser Errors
+
+Errors, which are defined as unexpected exceptions happening during the
+parse, are sent along to the error queue with a message indicating that
+there was an error in parse along with a stacktrace.  This is to
+distinguish from the invalid messages.
+ 
+## Filtered
+
+One can also filter a message by specifying a `filterClassName` in the
+parser config.  Filtered messages are just dropped rather than passed
+through.
+   
 ## Parser Architecture
 
 ![Architecture](parser_arch.png)
@@ -146,6 +174,19 @@ then it is assumed to be a regex and will match any topic matching the pattern (
 * `spoutConfig` : A map representing a custom spout config (this is a map). This can be overridden on the command line.
 * `securityProtocol` : The security protocol to use for reading from kafka (this is a string).  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence.
 * `stormConfig` : The storm config to use (this is a map).  This can be overridden on the command line.  If both are specified, they are merged with CLI properties taking precedence.
+* `cacheConfig` : Cache config for stellar field transformations.   This configures a least frequently used cache.  This is a map with the following keys.  If not explicitly configured (the default), then no cache will be used.
+  * `stellar.cache.maxSize` - The maximum number of elements in the cache. Default is to not use a cache.
+  * `stellar.cache.maxTimeRetain` - The maximum amount of time an element is kept in the cache (in minutes). Default is to not use a cache.
+
+  Example of a cache config to contain at max `20000` stellar expressions for at most `20` minutes.:
+```
+{
+  "cacheConfig" : {
+    "stellar.cache.maxSize" : 20000,
+    "stellar.cache.maxTimeRetain" : 20
+  }
+}
+```
 
 The `fieldTransformations` is a complex object which defines a
 transformation which can be done to a message.  This transformation can 
@@ -272,10 +313,33 @@ into `{ "protocol" : "TCP", "source.type" : "bro", ...}`
 * `STELLAR` : This transformation executes a set of transformations
   expressed as [Stellar Language](../metron-common) statements.
 
+* `RENAME` : This transformation allows users to rename a set of fields.  Specifically,
+the config is presumed to be the mapping.  The keys to the config are the existing field names
+and the values for the config map are the associated new field name.
+
+The following config will rename the fields `old_field` and `different_old_field` to
+`new_field` and `different_new_field` respectively:
+```
+{
+...
+    "fieldTransformations" : [
+          {
+            "transformation" : "RENAME",
+          , "config" : {
+            "old_field" : "new_field",
+            "different_old_field" : "different_new_field"
+                       }
+          }
+                      ]
+}
+```
+
+
 ### Assignment to `null`
 
 If, in your field transformation, you assign a field to `null`, the field will be removed.
-You can use this capability to rename variables.
+You can use this capability to rename variables.  It is preferred, however, that the `RENAME`
+field transformation is used in this situation as it is less awkward.
 
 Consider this example:
 ```
@@ -520,3 +584,14 @@ be customized by modifying the arguments sent to this utility.
  
 Finally, if workers and executors are new to you, the following might be of use to you:
 * [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)
+
+## JSON Path
+
+> "JSONPath expressions always refer to a JSON structure in the same way as XPath expression are used in combination with an XML document."
+> ~ Stefan Goessner
+
+
+- [JSON Path concept](http://goessner.net/articles/JsonPath/)
+- [Read about JSON Path library Apache Metron uses](https://github.com/json-path/JsonPath)
+- [Try JSON Path expressions online](http://jsonpath.herokuapp.com)
+

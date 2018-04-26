@@ -18,20 +18,27 @@
 
 package org.apache.metron.stellar.dsl.functions.resolver;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunction;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.reflections.util.FilterBuilder;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ClasspathFunctionResolverTest {
 
@@ -119,6 +126,29 @@ public class ClasspathFunctionResolverTest {
     ClasspathFunctionResolver resolver = create(config);
     HashSet<String> functions = new HashSet<>(Lists.newArrayList(resolver.getFunctions()));
     Assert.assertTrue(functions.contains("NOW"));
+  }
+
+  @Test
+  public void testInvalidStellarClass() throws Exception {
+    StellarFunction goodFunc = mock(StellarFunction.class);
+    StellarFunction badFunc = mock(StellarFunction.class);
+    ClasspathFunctionResolver resolver = new ClasspathFunctionResolver() {
+      @Override
+      protected Iterable<Class<?>> getStellarClasses(ClassLoader cl) {
+        return ImmutableList.of(goodFunc.getClass(), badFunc.getClass());
+      }
+
+      @Override
+      protected boolean includeClass(Class<?> c, FilterBuilder filterBuilder) {
+        if(c != goodFunc.getClass()) {
+          throw new LinkageError("failed!");
+        }
+        return true;
+      }
+    };
+    Set<Class<? extends StellarFunction>> funcs = resolver.resolvables();
+    Assert.assertEquals(1, funcs.size());
+    Assert.assertEquals(goodFunc.getClass(), Iterables.getFirst(funcs, null));
   }
 
 }

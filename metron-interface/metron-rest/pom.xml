@@ -38,6 +38,11 @@
         <eclipse.link.version>2.6.4</eclipse.link.version>
     </properties>
     <dependencies>
+      <dependency>
+          <groupId>com.github.ben-manes.caffeine</groupId>
+          <artifactId>caffeine</artifactId>
+          <version>${global_caffeine_version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
