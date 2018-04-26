@@ -45,7 +45,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
 
   private String broData = SearchIntegrationTest.broData.replace("source:type", "source.type");
   private String snortData = SearchIntegrationTest.snortData.replace("source:type", "source.type");
-  private String facetQuery = SearchIntegrationTest.facetQuery.replace("source:type", "source.type");
+//  private String facetQuery = SearchIntegrationTest.facetQuery.replace("source:type", "source.type");
 
   @Override
   protected IndexDao createDao() throws Exception {
@@ -96,7 +96,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
       // Don't test all 256, just test a sample of different fields
       Assert.assertEquals(256, fieldTypes.size());
 //      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
@@ -112,14 +112,14 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     // getColumnMetadata with only snort
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(13, fieldTypes.size());
+      Assert.assertEquals(25, fieldTypes.size());
 //      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("request_body_len"));
+//      Assert.assertEquals(FieldType.LONG, fieldTypes.get("request_body_len"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
 //      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
 //      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));

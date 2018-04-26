@@ -110,7 +110,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *        "type": "text",
    *        "fielddata" : "true"
    *     },
-   *     "duplicate_name_field": {
+   *     "ttl": {
    *        "type": "text",
    *        "fielddata" : "true"
    *     },
@@ -163,7 +163,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *        "snort_field": {
    *          "type": "integer"
    *        },
-   *        "duplicate_name_field": {
+   *        "ttl": {
    *          "type": "integer"
    *        },
    *        "alert": {
@@ -276,7 +276,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
       Assert.assertEquals(13, fieldTypes.size());
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
@@ -288,7 +288,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
     }
     // getColumnMetadata with only snort
@@ -296,7 +296,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
       Assert.assertEquals(14, fieldTypes.size());
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
@@ -307,7 +307,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
     }
   }
@@ -329,7 +329,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
     Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
     //NOTE: This is because the field is in both bro and snort and they have different types.
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("duplicate_name_field"));
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("ttl"));
     Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
     Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
   }
@@ -350,7 +350,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     Assert.assertEquals(1, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals("bro", results.get(0).getSource().get("source:type"));
-    Assert.assertEquals("data 1", results.get(0).getSource().get("duplicate_name_field"));
+    Assert.assertEquals("data 1", results.get(0).getSource().get("ttl"));
   }
 
   @Override

@@ -122,6 +122,4 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
   private FieldType toFieldType(String type) {
     return solrTypeMap.getOrDefault(type, FieldType.OTHER);
   }
-
-
 }
