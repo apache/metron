@@ -9,7 +9,7 @@
     "lint": "tslint \"src/**/*.ts\"",
     "test": "./node_modules/@angular/cli/bin/ng test --watch=false",
     "pree2e": "webdriver-manager update",
-    "e2e": "./node_modules/.bin/protractor"
+    "e2e": "protractor-flake --protractor-path=./node_modules/.bin/protractor --max-attempts=3 -- ./protractor.conf.js"
   },
   "private": true,
   "dependencies": {
@@ -57,6 +57,7 @@
     "node-sass": "^4.5.0",
     "optimist": "0.6.1",
     "protractor": "5.3.0",
+    "protractor-flake": "^3.3.0",
     "serve-favicon": "2.4.2",
     "serve-static": "1.12.1",
     "ssh2": "^0.5.5",
