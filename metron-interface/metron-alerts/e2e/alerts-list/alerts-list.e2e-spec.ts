@@ -185,7 +185,7 @@ describe('Test spec for all ui elements & list view', function() {
     expect(await page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 1 year').catch(e => console.log(e))).toEqualBcoz(['Last 1 year', String(secInADay * 365)], 'for last 1 year');
 
     await page.clickDateSettings();
-    expect(await page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 2 years').catch(e => console.log(e))).toEqualBcoz(['Last 2 years', String((secInADay * 365 * 2) + secInADay)], 'for last 2 years');
+    expect(await page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 2 years').catch(e => console.log(e))).toEqualBcoz(['Last 2 years', String((secInADay * 365 * 2))], 'for last 2 years');
 
     await page.clickDateSettings();
     expect(await page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 5 years').catch(e => console.log(e))).toEqualBcoz(['Last 5 years', String((secInADay * 365 * 5) + secInADay)], 'for last 5 years');
