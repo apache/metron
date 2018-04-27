@@ -20,35 +20,36 @@
 
 package org.apache.metron.profiler.bolt;
 
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.common.configuration.profiler.ProfilerConfigurations;
+import org.apache.metron.profiler.MessageDistributor;
 import org.apache.metron.profiler.MessageRoute;
-import org.apache.metron.profiler.ProfileBuilder;
 import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.profiler.integration.MessageBuilder;
 import org.apache.metron.test.bolt.BaseBoltTest;
-import org.apache.storm.Constants;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.topology.base.BaseWindowedBolt;
+import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.apache.storm.windowing.TupleWindow;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-import static org.apache.metron.stellar.common.utils.ConversionUtils.convert;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -59,71 +60,215 @@ import static org.mockito.Mockito.when;
  */
 public class ProfileBuilderBoltTest extends BaseBoltTest {
 
-  /**
-   * {
-   *   "ip_src_addr": "10.0.0.1",
-   *   "value": "22"
-   * }
-   */
-  @Multiline
-  private String inputOne;
-  private JSONObject messageOne;
-
-  /**
-   * {
-   *   "ip_src_addr": "10.0.0.2",
-   *   "value": "22"
-   * }
-   */
-  @Multiline
-  private String inputTwo;
-  private JSONObject messageTwo;
-
-  /**
-   * {
-   *   "profile": "profileOne",
-   *   "foreach": "ip_src_addr",
-   *   "init":   { "x": "0" },
-   *   "update": { "x": "x + 1" },
-   *   "result": "x"
-   * }
-   */
-  @Multiline
-  private String profileOne;
-
-
-  /**
-   * {
-   *   "profile": "profileTwo",
-   *   "foreach": "ip_src_addr",
-   *   "init":   { "x": "0" },
-   *   "update": { "x": "x + 1" },
-   *   "result": "x"
-   * }
-   */
-  @Multiline
-  private String profileTwo;
-
-  public static Tuple mockTickTuple() {
-    Tuple tuple = mock(Tuple.class);
-    when(tuple.getSourceComponent()).thenReturn(Constants.SYSTEM_COMPONENT_ID);
-    when(tuple.getSourceStreamId()).thenReturn(Constants.SYSTEM_TICK_STREAM_ID);
-    return tuple;
-  }
+  private JSONObject message1;
+  private JSONObject message2;
+  private ProfileConfig profile1;
+  private ProfileConfig profile2;
+  private ProfileMeasurementEmitter emitter;
+  private ManualFlushSignal flushSignal;
+  private ProfileMeasurement measurement;
 
   @Before
   public void setup() throws Exception {
-    JSONParser parser = new JSONParser();
-    messageOne = (JSONObject) parser.parse(inputOne);
-    messageTwo = (JSONObject) parser.parse(inputTwo);
+
+    message1 = new MessageBuilder()
+            .withField("ip_src_addr", "10.0.0.1")
+            .withField("value", "22")
+            .build();
+
+    message2 = new MessageBuilder()
+            .withField("ip_src_addr", "10.0.0.2")
+            .withField("value", "22")
+            .build();
+
+    profile1 = new ProfileConfig()
+            .withProfile("profile1")
+            .withForeach("ip_src_addr")
+            .withInit("x", "0")
+            .withUpdate("x", "x + 1")
+            .withResult("x");
+
+    profile2 = new ProfileConfig()
+            .withProfile("profile2")
+            .withForeach("ip_src_addr")
+            .withInit(Collections.singletonMap("x", "0"))
+            .withUpdate(Collections.singletonMap("x", "x + 1"))
+            .withResult("x");
+
+    measurement = new ProfileMeasurement()
+            .withEntity("entity1")
+            .withProfileName("profile1")
+            .withPeriod(1000, 500, TimeUnit.MILLISECONDS)
+            .withProfileValue(22);
+
+    flushSignal = new ManualFlushSignal();
+    flushSignal.setFlushNow(false);
   }
 
   /**
-   * Creates a profile definition based on a string of JSON.
-   * @param json The string of JSON.
+   * The bolt should extract a message and timestamp from a tuple and
+   * pass that to a {@code MessageDistributor}.
    */
-  private ProfileConfig createDefinition(String json) throws IOException {
-    return JSONUtils.INSTANCE.load(json, ProfileConfig.class);
+  @Test
+  public void testExtractMessage() throws Exception {
+
+    ProfileBuilderBolt bolt = createBolt();
+
+    // create a mock
+    MessageDistributor distributor = mock(MessageDistributor.class);
+    bolt.withMessageDistributor(distributor);
+
+    // create a tuple
+    final long timestamp1 = 100000000L;
+    Tuple tuple1 = createTuple("entity1", message1, profile1, timestamp1);
+
+    // execute the bolt
+    TupleWindow tupleWindow = createWindow(tuple1);
+    bolt.execute(tupleWindow);
+
+    // the message should have been extracted from the tuple and passed to the MessageDistributor
+    verify(distributor).distribute(eq(message1), eq(timestamp1), any(MessageRoute.class), any());
+  }
+
+
+  /**
+   * If the {@code FlushSignal} tells the bolt to flush, it should flush the {@code MessageDistributor}
+   * and emit the {@code ProfileMeasurement} values from all active profiles.
+   */
+  @Test
+  public void testFlushActiveProfiles() throws Exception {
+
+    ProfileBuilderBolt bolt = createBolt();
+
+    // create a mock that returns the profile measurement above
+    MessageDistributor distributor = mock(MessageDistributor.class);
+    when(distributor.flush()).thenReturn(Collections.singletonList(measurement));
+    bolt.withMessageDistributor(distributor);
+
+    // signal the bolt to flush
+    flushSignal.setFlushNow(true);
+
+    // execute the bolt
+    Tuple tuple1 = createTuple("entity1", message1, profile1, 1000L);
+    TupleWindow tupleWindow = createWindow(tuple1);
+    bolt.execute(tupleWindow);
+
+    // a profile measurement should be emitted by the bolt
+    List<ProfileMeasurement> measurements = getProfileMeasurements(outputCollector, 1);
+    assertEquals(1, measurements.size());
+    assertEquals(measurement, measurements.get(0));
+  }
+
+  /**
+   * If the {@code FlushSignal} tells the bolt NOT to flush, nothing should be emitted.
+   */
+  @Test
+  public void testDoNotFlushActiveProfiles() throws Exception {
+
+    ProfileBuilderBolt bolt = createBolt();
+
+    // create a mock where flush() returns the profile measurement above
+    MessageDistributor distributor = mock(MessageDistributor.class);
+    when(distributor.flush()).thenReturn(Collections.singletonList(measurement));
+    bolt.withMessageDistributor(distributor);
+
+    // there is no flush signal
+    flushSignal.setFlushNow(false);
+
+    // execute the bolt
+    Tuple tuple1 = createTuple("entity1", message1, profile1, 1000L);
+    TupleWindow tupleWindow = createWindow(tuple1);
+    bolt.execute(tupleWindow);
+
+    // nothing should have been emitted
+    getProfileMeasurements(outputCollector, 0);
+  }
+
+  /**
+   * Expired profiles should be flushed regularly, even if no input telemetry
+   * has been received.
+   */
+  @Test
+  public void testFlushExpiredProfiles() throws Exception {
+
+    ProfileBuilderBolt bolt = createBolt();
+
+    // create a mock where flushExpired() returns the profile measurement above
+    MessageDistributor distributor = mock(MessageDistributor.class);
+    when(distributor.flushExpired()).thenReturn(Collections.singletonList(measurement));
+    bolt.withMessageDistributor(distributor);
+
+    // execute test by flushing expired profiles. this is normally triggered by a timer task.
+    bolt.flushExpired();
+
+    // a profile measurement should be emitted by the bolt
+    List<ProfileMeasurement> measurements = getProfileMeasurements(outputCollector, 1);
+    assertEquals(1, measurements.size());
+    assertEquals(measurement, measurements.get(0));
+  }
+
+  /**
+   * A {@link ProfileMeasurement} is built for each profile/entity pair.  The measurement should be emitted to each
+   * destination defined by the profile. By default, a profile uses both Kafka and HBase as destinations.
+   */
+  @Test
+  public void testEmitters() throws Exception {
+
+    // defines the zk configurations accessible from the bolt
+    ProfilerConfigurations configurations = new ProfilerConfigurations();
+    configurations.updateGlobalConfig(Collections.emptyMap());
+
+    // create the bolt with 3 destinations
+    ProfileBuilderBolt bolt = (ProfileBuilderBolt) new ProfileBuilderBolt()
+            .withProfileTimeToLive(30, TimeUnit.MINUTES)
+            .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withMaxNumberOfRoutes(Long.MAX_VALUE)
+            .withZookeeperClient(client)
+            .withZookeeperCache(cache)
+            .withEmitter(new TestEmitter("destination1"))
+            .withEmitter(new TestEmitter("destination2"))
+            .withEmitter(new TestEmitter("destination3"))
+            .withProfilerConfigurations(configurations)
+            .withTumblingWindow(new BaseWindowedBolt.Duration(10, TimeUnit.MINUTES));
+    bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
+
+    // signal the bolt to flush
+    bolt.withFlushSignal(flushSignal);
+    flushSignal.setFlushNow(true);
+
+    // execute the bolt
+    Tuple tuple1 = createTuple("entity", message1, profile1, System.currentTimeMillis());
+    TupleWindow window = createWindow(tuple1);
+    bolt.execute(window);
+
+    // validate measurements emitted to each
+    verify(outputCollector, times(1)).emit(eq("destination1"), any());
+    verify(outputCollector, times(1)).emit(eq("destination2"), any());
+    verify(outputCollector, times(1)).emit(eq("destination3"), any());
+  }
+
+  /**
+   * Retrieves the ProfileMeasurement(s) (if any) that have been emitted.
+   *
+   * @param collector The Storm output collector.
+   * @param expected The number of measurements expected.
+   * @return A list of ProfileMeasurement(s).
+   */
+  private List<ProfileMeasurement> getProfileMeasurements(OutputCollector collector, int expected) {
+
+    // the 'streamId' is defined by the DestinationHandler being used by the bolt
+    final String streamId = emitter.getStreamId();
+
+    // capture the emitted tuple(s)
+    ArgumentCaptor<Values> argCaptor = ArgumentCaptor.forClass(Values.class);
+    verify(collector, times(expected))
+            .emit(eq(streamId), argCaptor.capture());
+
+    // return the profile measurements that were emitted
+    return argCaptor.getAllValues()
+            .stream()
+            .map(val -> (ProfileMeasurement) val.get(0))
+            .collect(Collectors.toList());
   }
 
   /**
@@ -132,211 +277,80 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    * @param message The telemetry message.
    * @param profile The profile definition.
    */
-  private Tuple createTuple(String entity, JSONObject message, ProfileConfig profile) {
+  private Tuple createTuple(String entity, JSONObject message, ProfileConfig profile, long timestamp) {
+
     Tuple tuple = mock(Tuple.class);
-    when(tuple.getValueByField(eq("message"))).thenReturn(message);
-    when(tuple.getValueByField(eq("entity"))).thenReturn(entity);
-    when(tuple.getValueByField(eq("profile"))).thenReturn(profile);
+    when(tuple.getValueByField(eq(ProfileSplitterBolt.MESSAGE_TUPLE_FIELD))).thenReturn(message);
+    when(tuple.getValueByField(eq(ProfileSplitterBolt.TIMESTAMP_TUPLE_FIELD))).thenReturn(timestamp);
+    when(tuple.getValueByField(eq(ProfileSplitterBolt.ENTITY_TUPLE_FIELD))).thenReturn(entity);
+    when(tuple.getValueByField(eq(ProfileSplitterBolt.PROFILE_TUPLE_FIELD))).thenReturn(profile);
+
     return tuple;
   }
 
   /**
-   * Create a ProfileBuilderBolt to test
+   * Create a ProfileBuilderBolt to test.
+   * @return A {@link ProfileBuilderBolt} to test.
    */
   private ProfileBuilderBolt createBolt() throws IOException {
 
-    ProfileBuilderBolt bolt = new ProfileBuilderBolt("zookeeperURL");
-    bolt.setCuratorFramework(client);
-    bolt.setZKCache(cache);
-    bolt.withPeriodDuration(10, TimeUnit.MINUTES);
-    bolt.withProfileTimeToLive(30, TimeUnit.MINUTES);
+    // defines the zk configurations accessible from the bolt
+    ProfilerConfigurations configurations = new ProfilerConfigurations();
+    configurations.updateGlobalConfig(Collections.emptyMap());
 
-    // define the valid destinations for the profiler
-    bolt.withDestinationHandler(new HBaseDestinationHandler());
-    bolt.withDestinationHandler(new KafkaDestinationHandler());
-
+    emitter = new HBaseEmitter();
+    ProfileBuilderBolt bolt = (ProfileBuilderBolt) new ProfileBuilderBolt()
+            .withProfileTimeToLive(30, TimeUnit.MINUTES)
+            .withMaxNumberOfRoutes(Long.MAX_VALUE)
+            .withZookeeperClient(client)
+            .withZookeeperCache(cache)
+            .withEmitter(emitter)
+            .withProfilerConfigurations(configurations)
+            .withPeriodDuration(1, TimeUnit.MINUTES)
+            .withTumblingWindow(new BaseWindowedBolt.Duration(30, TimeUnit.SECONDS));
     bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
+
+    // set the flush signal AFTER calling 'prepare'
+    bolt.withFlushSignal(flushSignal);
+
     return bolt;
   }
 
   /**
-   * The bolt should create a ProfileBuilder to manage a profile.
+   * Creates a mock TupleWindow containing multiple tuples.
+   * @param tuples The tuples to add to the window.
    */
-  @Test
-  public void testCreateProfileBuilder() throws Exception {
+  private TupleWindow createWindow(Tuple... tuples) {
 
-    ProfileBuilderBolt bolt = createBolt();
-    ProfileConfig definition = createDefinition(profileOne);
-    String entity = (String) messageOne.get("ip_src_addr");
-    Tuple tupleOne = createTuple(entity, messageOne, definition);
-
-    // execute - send two tuples with different entities
-    bolt.execute(tupleOne);
-
-    // validate - 1 messages applied
-    MessageRoute route = new MessageRoute(definition, entity);
-    ProfileBuilder builderOne = bolt.getMessageDistributor().getBuilder(route, Context.EMPTY_CONTEXT());
-    assertEquals(1, (int) convert(builderOne.valueOf("x"), Integer.class));
+    TupleWindow window = mock(TupleWindow.class);
+    when(window.get()).thenReturn(Arrays.asList(tuples));
+    return window;
   }
 
   /**
-   * This test creates two different messages, with different entities that are applied to
-   * the same profile.  The bolt should create separate ProfileBuilder objects to handle each
-   * profile/entity pair.
+   * An implementation for testing purposes only.
    */
-  @Test
-  public void testCreateProfileBuilderForEachEntity() throws Exception {
+  private class TestEmitter implements ProfileMeasurementEmitter {
 
-    // setup
-    ProfileBuilderBolt bolt = createBolt();
-    ProfileConfig definition = createDefinition(profileOne);
+    private String streamId;
 
-    // apply a message to the profile
-    String entityOne = (String) messageOne.get("ip_src_addr");
-    Tuple tupleOne = createTuple(entityOne, messageOne, definition);
-    bolt.execute(tupleOne);
-    bolt.execute(tupleOne);
-
-    // apply a different message (with different entity) to the same profile
-    String entityTwo = (String) messageTwo.get("ip_src_addr");
-    Tuple tupleTwo = createTuple(entityTwo, messageTwo, definition);
-    bolt.execute(tupleTwo);
-
-    // validate - 2 messages applied
-    MessageRoute routeOne = new MessageRoute(definition, entityOne);
-    ProfileBuilder builderOne = bolt.getMessageDistributor().getBuilder(routeOne, Context.EMPTY_CONTEXT());
-    assertTrue(builderOne.isInitialized());
-    assertEquals(2, (int) convert(builderOne.valueOf("x"), Integer.class));
-
-    // validate - 1 message applied
-    MessageRoute routeTwo = new MessageRoute(definition, entityTwo);
-    ProfileBuilder builderTwo = bolt.getMessageDistributor().getBuilder(routeTwo, Context.EMPTY_CONTEXT());
-    assertTrue(builderTwo.isInitialized());
-    assertEquals(1, (int) convert(builderTwo.valueOf("x"), Integer.class));
-
-    assertNotSame(builderOne, builderTwo);
-  }
-
-  /**
-   * The bolt should create separate ProfileBuilder objects to handle each
-   * profile/entity pair.
-   */
-  @Test
-  public void testCreateProfileBuilderForEachProfile() throws Exception {
-
-    // setup - apply one message to different profile definitions
-    ProfileBuilderBolt bolt = createBolt();
-    String entity = (String) messageOne.get("ip_src_addr");
-
-    // apply a message to the first profile
-    ProfileConfig definitionOne = createDefinition(profileOne);
-    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
-    bolt.execute(tupleOne);
-
-    // apply the same message to the second profile
-    ProfileConfig definitionTwo = createDefinition(profileTwo);
-    Tuple tupleTwo = createTuple(entity, messageOne, definitionTwo);
-    bolt.execute(tupleTwo);
-
-    // validate - 1 message applied
-    MessageRoute routeOne = new MessageRoute(definitionOne, entity);
-    ProfileBuilder builderOne = bolt.getMessageDistributor().getBuilder(routeOne, Context.EMPTY_CONTEXT());
-    assertTrue(builderOne.isInitialized());
-    assertEquals(1, (int) convert(builderOne.valueOf("x"), Integer.class));
-
-    // validate - 1 message applied
-    MessageRoute routeTwo = new MessageRoute(definitionTwo, entity);
-    ProfileBuilder builderTwo = bolt.getMessageDistributor().getBuilder(routeTwo, Context.EMPTY_CONTEXT());
-    assertTrue(builderTwo.isInitialized());
-    assertEquals(1, (int) convert(builderTwo.valueOf("x"), Integer.class));
-
-    assertNotSame(builderOne, builderTwo);
-  }
-
-  /**
-   * A ProfileMeasurement is build for each profile/entity pair.  A measurement for each profile/entity
-   * pair should be emitted.
-   */
-  @Test
-  public void testEmitMeasurements() throws Exception {
-
-    // setup
-    ProfileBuilderBolt bolt = createBolt();
-    final String entity = (String) messageOne.get("ip_src_addr");
-
-    // apply the message to the first profile
-    ProfileConfig definitionOne = createDefinition(profileOne);
-    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
-    bolt.execute(tupleOne);
-
-    // apply the same message to the second profile
-    ProfileConfig definitionTwo = createDefinition(profileTwo);
-    Tuple tupleTwo = createTuple(entity, messageOne, definitionTwo);
-    bolt.execute(tupleTwo);
-
-    // execute - the tick tuple triggers a flush of the profile
-    bolt.execute(mockTickTuple());
-
-    // capture the ProfileMeasurement that should be emitted
-    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-
-    // validate emitted measurements for hbase
-    verify(outputCollector, atLeastOnce()).emit(eq("hbase"), arg.capture());
-    for (Values value : arg.getAllValues()) {
-
-      ProfileMeasurement measurement = (ProfileMeasurement) value.get(0);
-      ProfileConfig definition = measurement.getDefinition();
-
-      if (StringUtils.equals(definitionTwo.getProfile(), definition.getProfile())) {
-
-        // validate measurement emitted for profile two
-        assertEquals(definitionTwo, definition);
-        assertEquals(entity, measurement.getEntity());
-        assertEquals(definitionTwo.getProfile(), measurement.getProfileName());
-        assertEquals(1, (int) convert(measurement.getProfileValue(), Integer.class));
-
-      } else if (StringUtils.equals(definitionOne.getProfile(), definition.getProfile())) {
-
-        // validate measurement emitted for profile one
-        assertEquals(definitionOne, definition);
-        assertEquals(entity, measurement.getEntity());
-        assertEquals(definitionOne.getProfile(), measurement.getProfileName());
-        assertEquals(1, (int) convert(measurement.getProfileValue(), Integer.class));
-
-      } else {
-        fail();
-      }
+    public TestEmitter(String streamId) {
+      this.streamId = streamId;
     }
-  }
 
-  /**
-   * A ProfileMeasurement is build for each profile/entity pair.  The measurement should be emitted to each
-   * destination defined by the profile. By default, a profile uses both Kafka and HBase as destinations.
-   */
-  @Test
-  public void testDestinationHandlers() throws Exception {
+    @Override
+    public String getStreamId() {
+      return streamId;
+    }
 
-    // setup
-    ProfileBuilderBolt bolt = createBolt();
-    ProfileConfig definitionOne = createDefinition(profileOne);
+    @Override
+    public void declareOutputFields(OutputFieldsDeclarer declarer) {
+      declarer.declareStream(getStreamId(), new Fields("measurement"));
+    }
 
-    // apply the message to the first profile
-    final String entity = (String) messageOne.get("ip_src_addr");
-    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
-    bolt.execute(tupleOne);
-
-    // trigger a flush of the profile
-    bolt.execute(mockTickTuple());
-
-    // capture the values that should be emitted
-    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-
-    // validate measurements emitted to HBase
-    verify(outputCollector, times(1)).emit(eq("hbase"), arg.capture());
-    assertTrue(arg.getValue().get(0) instanceof ProfileMeasurement);
-
-    // validate measurements emitted to Kafka
-    verify(outputCollector, times(1)).emit(eq("kafka"), arg.capture());
-    assertTrue(arg.getValue().get(0) instanceof JSONObject);
+    @Override
+    public void emit(ProfileMeasurement measurement, OutputCollector collector) {
+      collector.emit(getStreamId(), new Values(measurement));
+    }
   }
 }

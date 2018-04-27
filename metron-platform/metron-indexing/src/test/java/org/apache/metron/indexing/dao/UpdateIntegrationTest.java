@@ -31,10 +31,13 @@ import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.apache.metron.integration.InMemoryComponent;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public abstract class UpdateIntegrationTest {
 
@@ -46,6 +49,7 @@ public abstract class UpdateIntegrationTest {
   private static String index;
   private static MockHTable table;
   private static IndexDao hbaseDao;
+  private static AccessConfig accessConfig;
 
   protected static MultiIndexDao dao;
   protected static InMemoryComponent indexComponent;
@@ -62,20 +66,24 @@ public abstract class UpdateIntegrationTest {
       table = (MockHTable)tableProvider.getTable(config, TABLE_NAME);
 
       hbaseDao = new HBaseDao();
-      AccessConfig accessConfig = new AccessConfig();
+      accessConfig = new AccessConfig();
       accessConfig.setTableProvider(tableProvider);
       Map<String, Object> globalConfig = createGlobalConfig();
       globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
       globalConfig.put(HBaseDao.HBASE_CF, CF);
       accessConfig.setGlobalConfigSupplier(() -> globalConfig);
-
-      dao = new MultiIndexDao(hbaseDao, createDao());
-      dao.init(accessConfig);
     }
+  }
+
+  protected AccessConfig getAccessConfig() {
+    return accessConfig;
   }
 
   @Test
   public void test() throws Exception {
+    dao = new MultiIndexDao(hbaseDao, createDao());
+    dao.init(getAccessConfig());
+
     List<Map<String, Object>> inputData = new ArrayList<>();
     for(int i = 0; i < 10;++i) {
       final String name = "message" + i;
@@ -179,6 +187,11 @@ public abstract class UpdateIntegrationTest {
         Assert.assertNotEquals("Elasticsearch is not updated!", cnt, 0);
       }
     }
+  }
+
+  @After
+  public void reset() throws Exception {
+    indexComponent.reset();
   }
 
   @AfterClass

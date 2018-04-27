@@ -20,13 +20,19 @@
 
 package org.apache.metron.profiler;
 
+import com.google.common.base.Ticker;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.profiler.clock.WallClock;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,15 +42,25 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 
 /**
- * Distributes a message along a MessageRoute.  A MessageRoute will lead to one or
- * more ProfileBuilders.
+ * The default implementation of a {@link MessageDistributor}.
  *
- * A ProfileBuilder is responsible for maintaining the state of a single profile,
- * for a single entity.  There will be one ProfileBuilder for each (profile, entity) pair.
- * This class ensures that each ProfileBuilder receives the telemetry messages that
- * it needs.
+ * <p>Two caches are maintained; one for active profiles and another for expired
+ * profiles.  A profile will remain on the active cache as long as it continues
+ * to receive messages.
+ *
+ * <p>If a profile has not received messages for an extended period of time, it
+ * is expired and moved to the expired cache.  A profile that is expired can no
+ * longer receive new messages.
+ *
+ * <p>A profile is stored in the expired cache for a fixed period of time so that
+ * a client can flush the state of expired profiles.  If the client does not flush
+ * the expired profiles using `flushExpired`, the state of these profiles will be
+ * lost.
+ *
  */
 public class DefaultMessageDistributor implements MessageDistributor {
+
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * The duration of each profile period in milliseconds.
@@ -52,16 +68,55 @@ public class DefaultMessageDistributor implements MessageDistributor {
   private long periodDurationMillis;
 
   /**
-   * Maintains the state of a profile which is unique to a profile/entity pair.
+   * A cache of active profiles.
+   *
+   * A profile will remain on the active cache as long as it continues to receive
+   * messages.  Once it has not received messages for a period of time, it is
+   * moved to the expired cache.
    */
-  private transient Cache<String, ProfileBuilder> profileCache;
+  private transient Cache<Integer, ProfileBuilder> activeCache;
+
+  /**
+   * A cache of expired profiles.
+   *
+   * When a profile expires from the active cache, it is moved here for a
+   * period of time.  In the expired cache a profile can no longer receive
+   * new messages.  A profile waits on the expired cache so that the client
+   * can flush the state of the expired profile.  If the client does not flush
+   * the expired profiles, this state will be lost forever.
+   */
+  private transient Cache<Integer, ProfileBuilder> expiredCache;
 
   /**
    * Create a new message distributor.
+   *
    * @param periodDurationMillis The period duration in milliseconds.
-   * @param profileTimeToLiveMillis The TTL of a profile in milliseconds.
+   * @param profileTimeToLiveMillis The time-to-live of a profile in milliseconds.
+   * @param maxNumberOfRoutes The max number of unique routes to maintain.  After this is exceeded, lesser
+   *                          used routes will be evicted from the internal cache.
    */
-  public DefaultMessageDistributor(long periodDurationMillis, long profileTimeToLiveMillis) {
+  public DefaultMessageDistributor(
+          long periodDurationMillis,
+          long profileTimeToLiveMillis,
+          long maxNumberOfRoutes) {
+    this(periodDurationMillis, profileTimeToLiveMillis, maxNumberOfRoutes, Ticker.systemTicker());
+  }
+
+  /**
+   * Create a new message distributor.
+   *
+   * @param periodDurationMillis The period duration in milliseconds.
+   * @param profileTimeToLiveMillis The time-to-live of a profile in milliseconds.
+   * @param maxNumberOfRoutes The max number of unique routes to maintain.  After this is exceeded, lesser
+   *                          used routes will be evicted from the internal cache.
+   * @param ticker The ticker used to drive time for the caches.  Only needs set for testing.
+   */
+  public DefaultMessageDistributor(
+          long periodDurationMillis,
+          long profileTimeToLiveMillis,
+          long maxNumberOfRoutes,
+          Ticker ticker) {
+
     if(profileTimeToLiveMillis < periodDurationMillis) {
       throw new IllegalStateException(format(
               "invalid configuration: expect profile TTL (%d) to be greater than period duration (%d)",
@@ -69,9 +124,23 @@ public class DefaultMessageDistributor implements MessageDistributor {
               periodDurationMillis));
     }
     this.periodDurationMillis = periodDurationMillis;
-    this.profileCache = CacheBuilder
+
+    // build the cache of active profiles
+    this.activeCache = CacheBuilder
             .newBuilder()
+            .maximumSize(maxNumberOfRoutes)
             .expireAfterAccess(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
+            .removalListener(new ActiveCacheRemovalListener())
+            .ticker(ticker)
+            .build();
+
+    // build the cache of expired profiles
+    this.expiredCache = CacheBuilder
+            .newBuilder()
+            .maximumSize(maxNumberOfRoutes)
+            .expireAfterWrite(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
+            .removalListener(new ExpiredCacheRemovalListener())
+            .ticker(ticker)
             .build();
   }
 
@@ -79,62 +148,133 @@ public class DefaultMessageDistributor implements MessageDistributor {
    * Distribute a message along a MessageRoute.
    *
    * @param message The message that needs distributed.
+   * @param timestamp The timestamp of the message.
    * @param route The message route.
    * @param context The Stellar execution context.
    * @throws ExecutionException
    */
   @Override
-  public void distribute(JSONObject message, MessageRoute route, Context context) throws ExecutionException {
-    getBuilder(route, context).apply(message);
+  public void distribute(JSONObject message, long timestamp, MessageRoute route, Context context) {
+    try {
+      ProfileBuilder builder = getBuilder(route, context);
+      builder.apply(message, timestamp);
+
+    } catch(ExecutionException e) {
+      LOG.error("Unexpected error", e);
+      throw new RuntimeException(e);
+    }
   }
 
   /**
-   * Flushes all profiles.  Flushes all ProfileBuilders that this distributor is responsible for.
+   * Flush all active profiles.
    *
-   * @return The profile measurements; one for each (profile, entity) pair.
+   * <p>A profile will remain active as long as it continues to receive messages.  If a profile
+   * does not receive a message for an extended duration, it may be marked as expired.
+   *
+   * <p>Flushes all active {@link ProfileBuilder} objects that this distributor is responsible for.
+   *
+   * @return The {@link ProfileMeasurement} values; one for each (profile, entity) pair.
    */
   @Override
   public List<ProfileMeasurement> flush() {
+
+    // cache maintenance needed here to ensure active profiles will expire
+    activeCache.cleanUp();
+    expiredCache.cleanUp();
+
+    List<ProfileMeasurement> measurements = flushCache(activeCache);
+    return measurements;
+  }
+
+  /**
+   * Flush all expired profiles.
+   *
+   * <p>Flushes all expired {@link ProfileBuilder}s that this distributor is responsible for.
+   *
+   * <p>If a profile has not received messages for an extended period of time, it will be marked as
+   * expired.  When a profile is expired, it can no longer receive new messages.  Expired profiles
+   * remain only to give the client a chance to flush them.
+   *
+   * <p>If the client does not flush the expired profiles periodically, any state maintained in the
+   * profile since the last flush may be lost.
+   *
+   * @return The {@link ProfileMeasurement} values; one for each (profile, entity) pair.
+   */
+  @Override
+  public List<ProfileMeasurement> flushExpired() {
+
+    // cache maintenance needed here to ensure active profiles will expire
+    activeCache.cleanUp();
+    expiredCache.cleanUp();
+
+    // flush all expired profiles
+    List<ProfileMeasurement> measurements = flushCache(expiredCache);
+
+    // once the expired profiles have been flushed, they are no longer needed
+    expiredCache.invalidateAll();
+
+    return measurements;
+  }
+
+  /**
+   * Flush all of the profiles maintained in a cache.
+   *
+   * @param cache The cache to flush.
+   * @return The measurements captured when flushing the profiles.
+   */
+  private List<ProfileMeasurement> flushCache(Cache<Integer, ProfileBuilder> cache) {
+
     List<ProfileMeasurement> measurements = new ArrayList<>();
+    for(ProfileBuilder profileBuilder: cache.asMap().values()) {
 
-    profileCache.asMap().forEach((key, profileBuilder) -> {
+      // only need to flush, if the profile has been initialized
       if(profileBuilder.isInitialized()) {
-        Optional<ProfileMeasurement> measurement = profileBuilder.flush();
-        measurement.ifPresent(measurements::add);
-      }
-    });
 
-    profileCache.cleanUp();
+        // flush the profiler and save the measurement, if one exists
+        Optional<ProfileMeasurement> measurement = profileBuilder.flush();
+        measurement.ifPresent(m -> measurements.add(m));
+      }
+    }
+
     return measurements;
   }
 
   /**
    * Retrieves the cached ProfileBuilder that is used to build and maintain the Profile.  If none exists,
    * one will be created and returned.
+   *
    * @param route The message route.
    * @param context The Stellar execution context.
    */
   public ProfileBuilder getBuilder(MessageRoute route, Context context) throws ExecutionException {
     ProfileConfig profile = route.getProfileDefinition();
     String entity = route.getEntity();
-    return profileCache.get(
+    return activeCache.get(
             cacheKey(profile, entity),
             () -> new DefaultProfileBuilder.Builder()
                     .withDefinition(profile)
                     .withEntity(entity)
                     .withPeriodDurationMillis(periodDurationMillis)
                     .withContext(context)
-                    .withClock(new WallClock())
                     .build());
   }
 
   /**
-   * Builds the key that is used to lookup the ProfileState within the cache.
+   * Builds the key that is used to lookup the {@link ProfileBuilder} within the cache.
+   *
+   * <p>The cache key is built using the hash codes of the profile and entity name.  If the profile
+   * definition is ever changed, the same cache entry will not be reused.  This ensures that no
+   * state can be carried over from the old definition into the new, which might result in an
+   * invalid profile measurement.
+   *
    * @param profile The profile definition.
    * @param entity The entity.
    */
-  private String cacheKey(ProfileConfig profile, String entity) {
-    return format("%s:%s", profile, entity);
+  private int cacheKey(ProfileConfig profile, String entity) {
+    return new HashCodeBuilder(17, 37)
+            .append(profile)
+            .append(entity)
+            .hashCode();
   }
 
   public DefaultMessageDistributor withPeriodDurationMillis(long periodDurationMillis) {
@@ -144,5 +284,50 @@ public class DefaultMessageDistributor implements MessageDistributor {
 
   public DefaultMessageDistributor withPeriodDuration(int duration, TimeUnit units) {
     return withPeriodDurationMillis(units.toMillis(duration));
+  }
+
+  /**
+   * A listener that is notified when profiles expire from the active cache.
+   */
+  private class ActiveCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder> {
+
+    @Override
+    public void onRemoval(RemovalNotification<Integer, ProfileBuilder> notification) {
+
+      ProfileBuilder expired = notification.getValue();
+      LOG.warn("Profile expired from active cache; profile={}, entity={}",
+              expired.getDefinition().getProfile(),
+              expired.getEntity());
+
+      // add the profile to the expired cache
+      expiredCache.put(notification.getKey(), expired);
+    }
+  }
+
+  /**
+   * A listener that is notified when profiles expire from the active cache.
+   */
+  private class ExpiredCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder> {
+
+    @Override
+    public void onRemoval(RemovalNotification<Integer, ProfileBuilder> notification) {
+
+      if(notification.wasEvicted()) {
+
+        // the expired profile was NOT flushed in time
+        ProfileBuilder expired = notification.getValue();
+        LOG.warn("Expired profile NOT flushed before removal, some state lost; profile={}, entity={}",
+                expired.getDefinition().getProfile(),
+                expired.getEntity());
+
+      } else {
+
+        // the expired profile was flushed successfully
+        ProfileBuilder expired = notification.getValue();
+        LOG.debug("Expired profile successfully flushed; profile={}, entity={}",
+                expired.getDefinition().getProfile(),
+                expired.getEntity());
+      }
+    }
   }
 }

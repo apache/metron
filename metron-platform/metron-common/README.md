@@ -23,6 +23,7 @@ limitations under the License.
 * [Management Utility](#management-utility)
 * [Topology Errors](topology-errors)
 * [Performance Logging](#performance-logging)
+* [Metron Debugging](#metron-debugging)
 
 # Stellar Language
 
@@ -400,3 +401,34 @@ __Side Effects__
 Calling the mark() method multiple times simply resets the start time to the current nano time. Calling log() with a non-existent mark name will log 0 ns elapsed time with a warning indicating that log has been invoked for a mark name that does not exist.
 The class is not thread-safe and makes no attempt at keeping multiple threads from modifying the same markers.
 
+# Metron Debugging
+
+A Python script is provided for gathering information useful in debugging your Metron cluster. Run from the node that has Metron installed on it. All options listed below are required.
+
+_Note:_ Be aware that no anonymization/scrubbing is performed on the captured configuration details.
+
+```
+# $METRON_HOME/bin/cluster_info.py -h
+Usage: cluster_info.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -a HOST:PORT, --ambari-host=HOST:PORT
+                        Connect to Ambari via the supplied host:port
+  -c NAME, --cluster-name=NAME
+                        Name of cluster in Ambari to retrieve info for
+  -o DIRECTORY, --out-dir=DIRECTORY
+                        Write debugging data to specified root directory
+  -s HOST:PORT, --storm-host=HOST:PORT
+                        Connect to Storm via the supplied host:port
+  -b HOST1:PORT,HOST2:PORT, --broker_list=HOST1:PORT,HOST2:PORT
+                        Connect to Kafka via the supplied comma-delimited
+                        host:port list
+  -z HOST1:PORT,HOST2:PORT, --zookeeper_quorum=HOST1:PORT,HOST2:PORT
+                        Connect to Zookeeper via the supplied comma-delimited
+                        host:port quorum list
+  -m DIRECTORY, --metron_home=DIRECTORY
+                        Metron home directory
+  -p DIRECTORY, --hdp_home=DIRECTORY
+                        HDP home directory
+```

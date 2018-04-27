@@ -116,7 +116,12 @@ public class SolrComponent implements InMemoryComponent {
   @Override
   public void reset() {
     try {
-      miniSolrCloudCluster.deleteCollection("metron");
+      MetronSolrClient solr = getSolrClient();
+      for (String collection: collections.keySet()) {
+        solr.setDefaultCollection(collection);
+        solr.deleteByQuery("*:*");
+      }
+      solr.commit();
     } catch (SolrServerException | IOException e) {
       // Do nothing
     }

@@ -86,15 +86,11 @@ Storm (and the Metron topologies) must be restarted after Metron is installed on
 
 Kerberizing a cluster with a pre-existing Metron, automatically restarts all services during Kerberization.  No additional manual restart is needed in this case.
 
-#### Zeppelin Import
-
-A custom action is available in Ambari to import Zeppelin dashboards. See the [metron-indexing documentation](../../../../metron-platform/metron-indexing) for more information.
-
 #### Kibana Dashboards
 
 The dashboards installed by the Kibana custom action are managed by two JSON files:
-* metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/5.6.2/package/scripts/dashboard/kibana.template
-* metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/5.6.2/package/scripts/dashboard/dashboard-bulkload.json
+* metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/scripts/dashboard/kibana.template
+* metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/scripts/dashboard/dashboard-bulkload.json
 
 The first file, `kibana.template`, is an Elasticsearch template that specifies the proper mapping types for the Kibana index. This configuration is necessary due to a bug
 in the default dynamic mappings provided by Elasticsearch for long types versus integer that are incompatible with Kibana \[1\]. The second file, `dashboard-bulkload.json`,
@@ -102,7 +98,7 @@ contains all of the dashboard metadata necessary to create the Metron dashboard.
 of documents necessary for setting up the dashboard in Elasticsearch. The main features installed are index patterns, searches, and a variety of visualizations
 that are used in the Metron dashboard.
 
-Deploying the existing dashboard is easy. Once the MPack is installed, run the Kibana service's action "Load Template" to install dashboards.  This will no longer overwrite
+Deploying the existing dashboard is easy. Once the MPack is installed, run the Metron service's action "Load Template" to install dashboards.  This will no longer overwrite
 the .kibana in Elasticsearch. The bulk load is configured to fail inserts for existing documents. If you want to _completely_ reload the dashboard, you would need to delete
 the .kibana index and reload again from Ambari.
 
@@ -115,7 +111,7 @@ You can modify dashboards in Kibana and bring those changes into the core MPack 
 
 1. Export the .kibana index from ES
 2. Convert the data into the ES bulk load format
-3. Replace the dashboard-bulkload.json file in the Kibana MPack.
+3. Replace the dashboard-bulkload.json file in the Metron MPack.
 
 You can export the .kibana index using a tool like [https://github.com/taskrabbit/elasticsearch-dump](https://github.com/taskrabbit/elasticsearch-dump). The important
 feature is to have one document per line. Here's an exmaple export using elasticsearch-dump
@@ -166,20 +162,24 @@ To create a new version of the file, make any necessary changes to Kibana (e.g. 
 
 **Saving a Backup**
 ```
-python packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/5.6.2/package/scripts/dashboard/dashboardindex.py \
+python packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/scripts/dashboard/dashboardindex.py \
 $ES_HOST 9200 \
 ~/dashboard.p -s
 ```
 
 **Restoring From a Backup**
 ```
-python packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/5.6.2/package/scripts/dashboard/dashboardindex.py \
+python packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/scripts/dashboard/dashboardindex.py \
 $ES_HOST 9200 \
 ~/dashboard.p
 ```
 
 **Note**: This method of writing the Kibana dashboard to Elasticsearch will overwrite the entire .kibana index. Be sure to first backup the index first using either the new JSON
 method described above, or writing out the dashboard.p pickle file using the old method (passing -s option to dashboardindex.py) described here.
+
+#### Zeppelin Import
+
+A custom action is available in Ambari to import Zeppelin dashboards. See the [metron-indexing documentation](../../../../metron-platform/metron-indexing) for more information.
 
 #### Offline Installation
 

@@ -23,7 +23,7 @@
     <skin>
         <groupId>org.apache.maven.skins</groupId>
         <artifactId>maven-fluido-skin</artifactId>
-        <version>1.3.0</version>
+        <version>1.7</version>
     </skin>
 
     <custom>
@@ -47,9 +47,11 @@
 
     <body>
         <head>
+          <![CDATA[
             <script type="text/javascript">
-                $( document ).ready( function() { $( '.carousel' ).carousel( { interval: 3500 } ) } );
+              $( document ).ready( function() { $( '.carousel' ).carousel( { interval: 3500 } ) } );
             </script>
+          ]]>
         </head>
 
         <breadcrumbs position="left">

@@ -41,6 +41,7 @@ public enum MessageGetters {
   BYTES_FROM_POSITION((String arg) -> new BytesFromPosition(ConversionUtils.convert(arg, Integer.class))),
   JSON_FROM_POSITION((String arg) -> new JSONFromPosition(ConversionUtils.convert(arg, Integer.class))),
   JSON_FROM_FIELD((String arg) -> new JSONFromField(arg)),
+  JSON_FROM_FIELD_BY_REFERENCE((String arg) -> new JSONFromFieldByReference(arg)),
   OBJECT_FROM_FIELD((String arg) -> new ObjectFromField(arg)),
   DEFAULT_BYTES_FROM_POSITION(new BytesFromPosition()),
   DEFAULT_JSON_FROM_POSITION(new JSONFromPosition()),

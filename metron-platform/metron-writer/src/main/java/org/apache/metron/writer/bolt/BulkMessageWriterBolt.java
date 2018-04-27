@@ -17,6 +17,7 @@
  */
 package org.apache.metron.writer.bolt;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredIndexingBolt;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
@@ -125,6 +126,13 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     return defaultBatchTimeout;
   }
 
+  public BulkWriterComponent<JSONObject> getWriterComponent() {
+    return writerComponent;
+  }
+
+  public void setWriterComponent(BulkWriterComponent<JSONObject> component) {
+    writerComponent = component;
+  }
   /**
    * This method is called by TopologyBuilder.createTopology() to obtain topology and
    * bolt specific configuration parameters.  We use it primarily to configure how often
@@ -160,9 +168,11 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     return conf;
   }
 
+
+
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-    this.writerComponent = new BulkWriterComponent<>(collector);
+    setWriterComponent(new BulkWriterComponent<>(collector));
     this.collector = collector;
     super.prepare(stormConf, context, collector);
     if (messageGetField != null) {
@@ -185,7 +195,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
         BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
         defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
       }
-      writerComponent.setDefaultBatchTimeout(defaultBatchTimeout);
+      getWriterComponent().setDefaultBatchTimeout(defaultBatchTimeout);
       bulkMessageWriter.init(stormConf, context, writerconf);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -197,7 +207,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
    */
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector, Clock clock) {
     prepare(stormConf, context, collector);
-    writerComponent.withClock(clock);
+    getWriterComponent().withClock(clock);
   }
 
   @SuppressWarnings("unchecked")
@@ -208,7 +218,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
         if (!(bulkMessageWriter instanceof WriterToBulkWriter)) {
           //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
           LOG.debug("Flushing message queues older than their batchTimeouts");
-          writerComponent.flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
+          getWriterComponent().flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
                   new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
                   , messageGetStrategy);
         }
@@ -229,17 +239,30 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
       LOG.trace("Writing enrichment message: {}", message);
       WriterConfiguration writerConfiguration = configurationTransformation.apply(
               new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
-      if(writerConfiguration.isDefault(sensorType)) {
-        //want to warn, but not fail the tuple
-        collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
+      if(sensorType == null) {
+        //sensor type somehow ended up being null.  We want to error this message directly.
+        getWriterComponent().error("null"
+                             , new Exception("Sensor type is not specified for message "
+                                            + message.toJSONString()
+                                            )
+                             , ImmutableList.of(tuple)
+                             , messageGetStrategy
+                             );
       }
-      writerComponent.write(sensorType
-                           , tuple
-                           , message
-                           , bulkMessageWriter
-                           , writerConfiguration
-                           , messageGetStrategy
-                           );
+      else {
+        if (writerConfiguration.isDefault(sensorType)) {
+          //want to warn, but not fail the tuple
+          collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
+        }
+
+        getWriterComponent().write(sensorType
+                , tuple
+                , message
+                , bulkMessageWriter
+                , writerConfiguration
+                , messageGetStrategy
+        );
+      }
     }
     catch(Exception e) {
       throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);

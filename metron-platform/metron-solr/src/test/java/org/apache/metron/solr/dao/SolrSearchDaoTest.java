@@ -275,9 +275,9 @@ public class SolrSearchDaoTest {
     SearchResult searchResult2 = new SearchResult();
     searchResult2.setId("id2");
     doReturn(searchResult1).when(solrSearchDao).getSearchResult(solrDocument1,
-            Optional.of(Collections.singletonList("id")));
+            Collections.singletonList("id"));
     doReturn(searchResult2).when(solrSearchDao).getSearchResult(solrDocument2,
-            Optional.of(Collections.singletonList("id")));
+            Collections.singletonList("id"));
     Map<String, Map<String, Long>> facetCounts = new HashMap<String, Map<String, Long>>() {{
       put("id", new HashMap<String, Long>() {{
         put("id1", 1L);
@@ -313,7 +313,7 @@ public class SolrSearchDaoTest {
     }});
 
     assertEquals(expectedSearchResult, solrSearchDao.getSearchResult(solrDocument,
-            Optional.of(Collections.singletonList("field1"))));
+            Collections.singletonList("field1")));
 
     SearchResult expectedSearchResultAllFields = new SearchResult();
     expectedSearchResultAllFields.setId("guid");
@@ -322,7 +322,7 @@ public class SolrSearchDaoTest {
       put("field2", "value2");
     }});
 
-    assertEquals(expectedSearchResultAllFields, solrSearchDao.getSearchResult(solrDocument, Optional.empty()));
+    assertEquals(expectedSearchResultAllFields, solrSearchDao.getSearchResult(solrDocument, null));
   }
 
   @Test
