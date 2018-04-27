@@ -176,6 +176,33 @@ public class SensorParserConfig implements Serializable {
    */
   private Map<String, Object> stormConfig = new HashMap<>();
 
+  /**
+   * Configuration for the parser.
+   */
+  private Map<String, Object> parserConfig = new HashMap<>();
+
+  /**
+   * The field transformations applied to the parsed messages. These allow fields
+   * of the parsed message to be transformed.
+   */
+  private List<FieldTransformer> fieldTransformations = new ArrayList<>();
+
+  /**
+   * Configures the cache that backs stellar field transformations.
+   *
+   * <li>stellar.cache.maxSize - The maximum number of elements in the cache.
+   * <li>stellar.cache.maxTimeRetain - The maximum amount of time an element is kept in the cache (in minutes).
+   */
+  private Map<String, Object> cacheConfig = new HashMap<>();
+
+  public Map<String, Object> getCacheConfig() {
+    return cacheConfig;
+  }
+
+  public void setCacheConfig(Map<String, Object> cacheConfig) {
+    this.cacheConfig = cacheConfig;
+  }
+
   public Integer getNumWorkers() {
     return numWorkers;
   }
@@ -291,11 +318,10 @@ public class SensorParserConfig implements Serializable {
   public String getWriterClassName() {
     return writerClassName;
   }
+
   public void setWriterClassName(String classNames) {
     this.writerClassName = classNames;
   }
-  private Map<String, Object> parserConfig = new HashMap<>();
-  private List<FieldTransformer> fieldTransformations = new ArrayList<>();
 
   public List<FieldTransformer> getFieldTransformations() {
     return fieldTransformations;
@@ -370,34 +396,6 @@ public class SensorParserConfig implements Serializable {
   }
 
   @Override
-  public String toString() {
-    return new ToStringBuilder(this)
-            .append("parserClassName", parserClassName)
-            .append("filterClassName", filterClassName)
-            .append("sensorTopic", sensorTopic)
-            .append("outputTopic", outputTopic)
-            .append("errorTopic", errorTopic)
-            .append("writerClassName", writerClassName)
-            .append("errorWriterClassName", errorWriterClassName)
-            .append("readMetadata", readMetadata)
-            .append("mergeMetadata", mergeMetadata)
-            .append("numWorkers", numWorkers)
-            .append("numAckers", numAckers)
-            .append("spoutParallelism", spoutParallelism)
-            .append("spoutNumTasks", spoutNumTasks)
-            .append("parserParallelism", parserParallelism)
-            .append("parserNumTasks", parserNumTasks)
-            .append("errorWriterParallelism", errorWriterParallelism)
-            .append("errorWriterNumTasks", errorWriterNumTasks)
-            .append("spoutConfig", spoutConfig)
-            .append("securityProtocol", securityProtocol)
-            .append("stormConfig", stormConfig)
-            .append("parserConfig", parserConfig)
-            .append("fieldTransformations", fieldTransformations)
-            .toString();
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -429,6 +427,7 @@ public class SensorParserConfig implements Serializable {
             .append(spoutConfig, that.spoutConfig)
             .append(securityProtocol, that.securityProtocol)
             .append(stormConfig, that.stormConfig)
+            .append(cacheConfig, that.cacheConfig)
             .append(parserConfig, that.parserConfig)
             .append(fieldTransformations, that.fieldTransformations)
             .isEquals();
@@ -457,8 +456,38 @@ public class SensorParserConfig implements Serializable {
             .append(spoutConfig)
             .append(securityProtocol)
             .append(stormConfig)
+            .append(cacheConfig)
             .append(parserConfig)
             .append(fieldTransformations)
             .toHashCode();
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this)
+            .append("parserClassName", parserClassName)
+            .append("filterClassName", filterClassName)
+            .append("sensorTopic", sensorTopic)
+            .append("outputTopic", outputTopic)
+            .append("errorTopic", errorTopic)
+            .append("writerClassName", writerClassName)
+            .append("errorWriterClassName", errorWriterClassName)
+            .append("readMetadata", readMetadata)
+            .append("mergeMetadata", mergeMetadata)
+            .append("numWorkers", numWorkers)
+            .append("numAckers", numAckers)
+            .append("spoutParallelism", spoutParallelism)
+            .append("spoutNumTasks", spoutNumTasks)
+            .append("parserParallelism", parserParallelism)
+            .append("parserNumTasks", parserNumTasks)
+            .append("errorWriterParallelism", errorWriterParallelism)
+            .append("errorWriterNumTasks", errorWriterNumTasks)
+            .append("spoutConfig", spoutConfig)
+            .append("securityProtocol", securityProtocol)
+            .append("stormConfig", stormConfig)
+            .append("cacheConfig", cacheConfig)
+            .append("parserConfig", parserConfig)
+            .append("fieldTransformations", fieldTransformations)
+            .toString();
   }
 }

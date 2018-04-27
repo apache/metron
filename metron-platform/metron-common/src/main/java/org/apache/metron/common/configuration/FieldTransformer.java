@@ -94,7 +94,9 @@ public class FieldTransformer implements Serializable {
 
       if (output == null || output.isEmpty()) {
         if (input == null || input.isEmpty()) {
-          throw new IllegalStateException("You must specify an input field if you want to leave the output fields empty");
+          //both are empty, so let's set them both to null
+          output = null;
+          input = null;
         } else {
           output = input;
         }
