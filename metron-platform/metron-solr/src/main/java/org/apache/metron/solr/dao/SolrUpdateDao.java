@@ -22,9 +22,11 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
@@ -52,8 +54,10 @@ public class SolrUpdateDao implements UpdateDao {
       SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(update);
       if (index.isPresent()) {
         this.client.add(index.get(), solrInputDocument);
+        this.client.commit(index.get());
       } else {
         this.client.add(solrInputDocument);
+        this.client.commit();
       }
     } catch (SolrServerException e) {
       throw new IOException(e);
@@ -64,6 +68,7 @@ public class SolrUpdateDao implements UpdateDao {
   public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     // updates with a collection specified
     Map<String, Collection<SolrInputDocument>> solrCollectionUpdates = new HashMap<>();
+    Set<String> collectionsUpdated = new HashSet<>();
 
     for (Entry<Document, Optional<String>> entry : updates.entrySet()) {
       SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(entry.getKey());
@@ -73,18 +78,23 @@ public class SolrUpdateDao implements UpdateDao {
             .getOrDefault(index.get(), new ArrayList<>());
         solrInputDocuments.add(solrInputDocument);
         solrCollectionUpdates.put(index.get(), solrInputDocuments);
+        collectionsUpdated.add(index.get());
       } else {
         String lookupIndex = config.getIndexSupplier().apply(entry.getKey().getSensorType());
         Collection<SolrInputDocument> solrInputDocuments = solrCollectionUpdates
             .getOrDefault(lookupIndex, new ArrayList<>());
         solrInputDocuments.add(solrInputDocument);
         solrCollectionUpdates.put(lookupIndex, solrInputDocuments);
+        collectionsUpdated.add(lookupIndex);
       }
     }
     try {
       for (Entry<String, Collection<SolrInputDocument>> entry : solrCollectionUpdates
           .entrySet()) {
         this.client.add(entry.getKey(), entry.getValue());
+      }
+      for (String collection : collectionsUpdated) {
+        this.client.commit(collection);
       }
     } catch (SolrServerException e) {
       throw new IOException(e);

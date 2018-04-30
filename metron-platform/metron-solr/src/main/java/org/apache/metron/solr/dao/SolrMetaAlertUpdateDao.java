@@ -52,7 +52,6 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
 
   private SolrClient solrClient;
   private SolrMetaAlertSearchDao metaAlertSearchDao;
-  private static final String CHILD_DOCUMENTS = "_childDocuments_";
 
   /**
    * Constructor a SolrMetaAlertUpdateDao
@@ -84,7 +83,8 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
     // Retrieve the documents going into the meta alert and build it
     Iterable<Document> alerts = getRetrieveLatestDao().getAllLatest(alertRequests);
 
-    Document metaAlert = buildCreateDocument(alerts, request.getGroups(), CHILD_DOCUMENTS);
+    Document metaAlert = buildCreateDocument(alerts, request.getGroups(),
+        MetaAlertConstants.ALERT_FIELD);
     MetaScores.calculateMetaScores(metaAlert, getConfig().getThreatTriageField(),
         getConfig().getThreatSort());
 

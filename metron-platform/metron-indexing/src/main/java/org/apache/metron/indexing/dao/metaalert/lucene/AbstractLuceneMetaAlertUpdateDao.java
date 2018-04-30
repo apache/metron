@@ -298,6 +298,10 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
         .get(MetaAlertConstants.ALERT_FIELD);
+    if (currentAlerts == null) {
+      currentAlerts = new ArrayList<>();
+      metaAlert.getDocument().put(MetaAlertConstants.ALERT_FIELD, currentAlerts);
+    }
     Set<String> currentAlertGuids = currentAlerts.stream().map(currentAlert ->
         (String) currentAlert.get(GUID)).collect(Collectors.toSet());
     for (Document alert : alerts) {

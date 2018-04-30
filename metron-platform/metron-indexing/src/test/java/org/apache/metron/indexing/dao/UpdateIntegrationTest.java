@@ -20,33 +20,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.apache.metron.integration.InMemoryComponent;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public abstract class UpdateIntegrationTest {
 
   private static final int MAX_RETRIES = 10;
   private static final int SLEEP_MS = 500;
-  protected static final String SENSOR_NAME= "test";
+  protected static final String SENSOR_NAME = "test";
   private static final String CF = "p";
 
   protected static MultiIndexDao dao;
-  protected static InMemoryComponent indexComponent;
 
   @Test
   public void test() throws Exception {
@@ -152,13 +143,6 @@ public abstract class UpdateIntegrationTest {
 
         Assert.assertNotEquals("Index is not updated!", cnt, 0);
       }
-    }
-  }
-
-  @AfterClass
-  public static void teardown() {
-    if (indexComponent != null) {
-      indexComponent.stop();
     }
   }
 

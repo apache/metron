@@ -31,11 +31,12 @@ import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -49,8 +50,15 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   private static IndexDao hbaseDao;
 
   @BeforeClass
-  public static void setup() throws Exception {
-    indexComponent = startIndex();
+  public static void setupBeforeClass() throws Exception {
+    solrComponent = new SolrComponent.Builder().build();
+    solrComponent.start();
+  }
+
+  @Before
+  public void setup() throws Exception {
+    solrComponent.addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf");
+
     Configuration config = HBaseConfiguration.create();
     MockHBaseTableProvider tableProvider = new MockHBaseTableProvider();
     MockHBaseTableProvider.addToCache(TABLE_NAME, CF);
@@ -68,11 +76,15 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     dao.init(accessConfig);
   }
 
+  @After
+  public void reset() {
+    solrComponent.reset();
+    table.clear();
+  }
+
   @AfterClass
   public static void teardown() {
-    if (solrComponent != null) {
-      solrComponent.stop();
-    }
+    solrComponent.stop();
   }
 
   @Override
@@ -85,18 +97,10 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     return table;
   }
 
-  //  @Override
-  private static Map<String, Object> createGlobalConfig() throws Exception {
+  private static Map<String, Object> createGlobalConfig() {
     return new HashMap<String, Object>() {{
       put("solr.zookeeper", solrComponent.getZookeeperUrl());
     }};
-  }
-
-  private static InMemoryComponent startIndex() throws Exception {
-    solrComponent = new SolrComponent.Builder().build();
-    solrComponent.start();
-    solrComponent.addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf");
-    return solrComponent;
   }
 
   @Override

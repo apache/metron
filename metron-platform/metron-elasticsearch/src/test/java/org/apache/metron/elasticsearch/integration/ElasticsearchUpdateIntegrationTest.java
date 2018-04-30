@@ -20,6 +20,7 @@ package org.apache.metron.elasticsearch.integration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Iterables;
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
@@ -38,7 +38,10 @@ import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
-import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.UnableToStartException;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 
 public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
@@ -59,8 +62,16 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   }
 
   @BeforeClass
-  public static void setup() throws Exception {
-    indexComponent = startIndex();
+  public static void setupBeforeClass() throws UnableToStartException {
+    es = new ElasticSearchComponent.Builder()
+        .withHttpPort(9211)
+        .withIndexDir(new File(indexDir))
+        .build();
+    es.start();
+  }
+
+  @Before
+  public void setup() throws IOException {
     Configuration config = HBaseConfiguration.create();
     MockHBaseTableProvider tableProvider = new MockHBaseTableProvider();
     MockHBaseTableProvider.addToCache(TABLE_NAME, CF);
@@ -78,8 +89,18 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     dao.init(accessConfig);
   }
 
-//  @Override
-  protected static Map<String, Object> createGlobalConfig() throws Exception {
+  @After
+  public void reset() {
+    es.reset();
+    table.clear();
+  }
+
+  @AfterClass
+  public static void teardown() {
+    es.stop();
+  }
+
+  protected static Map<String, Object> createGlobalConfig() {
     return new HashMap<String, Object>() {{
       put("es.clustername", "metron");
       put("es.port", "9300");
@@ -88,19 +109,8 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     }};
   }
 
-//  @Override
-  protected static IndexDao createDao() throws Exception {
+  protected static IndexDao createDao() {
     return new ElasticsearchDao();
-  }
-
-//  @Override
-  protected static InMemoryComponent startIndex() throws Exception {
-    es = new ElasticSearchComponent.Builder()
-        .withHttpPort(9211)
-        .withIndexDir(new File(indexDir))
-        .build();
-    es.start();
-    return es;
   }
 
   @Override

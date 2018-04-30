@@ -35,6 +35,7 @@
   <field name="max" type="pdouble" indexed="true" stored="true"/>
   <field name="sum" type="pdouble" indexed="true" stored="true"/>
   <field name="count" type="pint" indexed="true" stored="true"/>
+  <field name="groups" type="string" indexed="true" stored="true" multiValued="true"/>
 
   <!-- Ensure that metaalerts child field is multivalued -->
   <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>
