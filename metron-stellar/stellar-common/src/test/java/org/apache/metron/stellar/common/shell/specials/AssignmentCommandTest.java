@@ -149,6 +149,20 @@ public class AssignmentCommandTest {
     assertFalse(executor.getState().containsKey("x"));
   }
 
+  /**
+   * If an assignment expression fails, the error message should explain
+   * why the expression fails.
+   */
+  @Test
+  public void testErrorMessageWhenAssignmentFails() {
+    StellarResult result = command.execute("x := 0/0", executor);
+
+    // validate the result
+    assertTrue(result.isError());
+    assertTrue(result.getException().isPresent());
+    assertEquals(ArithmeticException.class, result.getException().get().getClass());
+  }
+
   @Test
   public void testAssignNull() {
     StellarResult result = command.execute("x := NULL", executor);

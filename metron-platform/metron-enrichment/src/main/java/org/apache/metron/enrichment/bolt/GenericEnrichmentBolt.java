@@ -18,13 +18,13 @@
 
 package org.apache.metron.enrichment.bolt;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang3.StringUtils;
+
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.ConfigurationType;
@@ -34,6 +34,7 @@ import org.apache.metron.common.performance.PerformanceLogger;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.storm.task.OutputCollector;
@@ -145,13 +146,8 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       throw new IllegalStateException("MAX_TIME_RETAIN_MINUTES must be specified");
     if (this.adapter == null)
       throw new IllegalStateException("Adapter must be specified");
-    loader = new CacheLoader<CacheKey, JSONObject>() {
-      @Override
-      public JSONObject load(CacheKey key) throws Exception {
-        return adapter.enrich(key);
-      }
-    };
-    cache = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
+    loader = key -> adapter.enrich(key);
+    cache = Caffeine.newBuilder().maximumSize(maxCacheSize)
             .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
             .build(loader);
     boolean success = adapter.initializeAdapter(getConfigurations().getGlobalConfig());
@@ -211,7 +207,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
           if (value != null) {
             SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
             if(config == null) {
-              LOG.error("Unable to find SensorEnrichmentConfig for sourceType: {}", sourceType);
+              LOG.debug("Unable to find SensorEnrichmentConfig for sourceType: {}", sourceType);
               MetronError metronError = new MetronError()
                       .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
                       .withMessage("Unable to find SensorEnrichmentConfig for sourceType: " + sourceType)
@@ -227,7 +223,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
               subGroup = adapter.getStreamSubGroup(enrichmentType, field);
 
               perfLog.mark("enrich");
-              enrichedField = cache.getUnchecked(cacheKey);
+              enrichedField = cache.get(cacheKey);
               perfLog.log("enrich", "key={}, time to run enrichment type={}", key, enrichmentType);
 
               if (enrichedField == null)
@@ -245,16 +241,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
               continue;
             }
           }
-          if ( !enrichedField.isEmpty()) {
-            for (Object enrichedKey : enrichedField.keySet()) {
-              if(!StringUtils.isEmpty(prefix)) {
-                enrichedMessage.put(field + "." + enrichedKey, enrichedField.get(enrichedKey));
-              }
-              else {
-                enrichedMessage.put(enrichedKey, enrichedField.get(enrichedKey));
-              }
-            }
-          }
+          enrichedMessage = EnrichmentUtils.adjustKeys(enrichedMessage, enrichedField, field, prefix);
         }
       }
 

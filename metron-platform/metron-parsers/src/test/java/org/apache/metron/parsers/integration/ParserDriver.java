@@ -18,6 +18,7 @@
 package org.apache.metron.parsers.integration;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.SerializationUtils;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.ParserConfigurations;
@@ -42,6 +43,7 @@ import org.mockito.Matchers;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +56,7 @@ import static org.mockito.Mockito.when;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ParserDriver {
+public class ParserDriver implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(ParserBolt.class);
   public static class CollectingWriter implements MessageWriter<JSONObject>{
     List<byte[]> output;
@@ -151,6 +153,8 @@ public class ParserDriver {
 
   public ProcessorResult<List<byte[]>> run(List<byte[]> in) {
     ShimParserBolt bolt = new ShimParserBolt(new ArrayList<>());
+    byte[] b = SerializationUtils.serialize(bolt);
+    ShimParserBolt b2 = (ShimParserBolt) SerializationUtils.deserialize(b);
     OutputCollector collector = mock(OutputCollector.class);
     bolt.prepare(null, null, collector);
     for(byte[] record : in) {

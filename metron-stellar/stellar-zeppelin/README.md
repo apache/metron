@@ -48,77 +48,27 @@ To install the Stellar Interpreter in your Apache Zeppelin installation, follow 
     mvn clean install -DskipTests
     ```
 
-1. If you do not already have Zeppelin installed, [download and unpack Apache Zeppelin](https://zeppelin.apache.org/download.html).  The directory in which you unpack Zeppelin will be referred to as `$ZEPPELIN_HOME`.
-
-1. If Zeppelin was already installed, make sure that it is not running.
-
-1. Create a settings directory for the Stellar interpreter.
+1. If you do not already have Zeppelin installed, [download and unpack Apache Zeppelin](https://zeppelin.apache.org/download.html).  Then change directories to the root of your Zeppelin download.
 
     ```
-    mkdir $ZEPPELIN_HOME/interpreter/stellar
-    cat <<EOF > $ZEPPELIN_HOME/interpreter/stellar/interpreter-setting.json
-    [
-      {
-        "group": "stellar",
-        "name": "stellar",
-        "className": "org.apache.metron.stellar.zeppelin.StellarInterpreter",
-        "properties": {
-        }
-      }
-    ]
-    EOF
+    cd $ZEPPELIN_HOME
     ```
 
-1. Create a Zeppelin Site file (`$ZEPPELIN_HOME/conf/zeppelin-site.xml`).
+1. Use Zeppelin's installation utility to install the Stellar Interpreter.
+
+    If Zeppelin was already installed, make sure that it is stopped before running this command.  Update the version, '0.4.3' in the example below, to whatever is appropriate for your environment.
 
     ```
-    cp $ZEPPELIN_HOME/conf/zeppelin-site.xml.template $ZEPPELIN_HOME/conf/zeppelin-site.xml
-    ```
-
-1. In the Zeppelin site file, add `org.apache.metron.stellar.zeppelin.StellarInterpreter` to the comma-separated list of Zeppelin interpreters under the `zeppelin.interpreters` property.
-
-    The property will likely look-like the following.
-    ```
-    <property>
-      <name>zeppelin.interpreters</name>
-      <value>org.apache.zeppelin.spark.SparkInterpreter,org.apache.zeppelin.spark.PySparkInterpreter,org.apache.zeppelin.rinterpreter.RRepl,org.apache.zeppelin.rinterpreter.KnitR,org.apache.zeppelin.spark.SparkRInterpreter,org.apache.zeppelin.spark.SparkSqlInterpreter,org.apache.zeppelin.spark.DepInterpreter,org.apache.zeppelin.markdown.Markdown,org.apache.zeppelin.angular.AngularInterpreter,org.apache.zeppelin.shell.ShellInterpreter,org.apache.zeppelin.file.HDFSFileInterpreter,org.apache.zeppelin.flink.FlinkInterpreter,,org.apache.zeppelin.python.PythonInterpreter,org.apache.zeppelin.python.PythonInterpreterPandasSql,org.apache.zeppelin.python.PythonCondaInterpreter,org.apache.zeppelin.python.PythonDockerInterpreter,org.apache.zeppelin.lens.LensInterpreter,org.apache.zeppelin.ignite.IgniteInterpreter,org.apache.zeppelin.ignite.IgniteSqlInterpreter,org.apache.zeppelin.cassandra.CassandraInterpreter,org.apache.zeppelin.geode.GeodeOqlInterpreter,org.apache.zeppelin.postgresql.PostgreSqlInterpreter,org.apache.zeppelin.jdbc.JDBCInterpreter,org.apache.zeppelin.kylin.KylinInterpreter,org.apache.zeppelin.elasticsearch.ElasticsearchInterpreter,org.apache.zeppelin.scalding.ScaldingInterpreter,org.apache.zeppelin.alluxio.AlluxioInterpreter,org.apache.zeppelin.hbase.HbaseInterpreter,org.apache.zeppelin.livy.LivySparkInterpreter,org.apache.zeppelin.livy.LivyPySparkInterpreter,org.apache.zeppelin.livy.LivyPySpark3Interpreter,org.apache.zeppelin.livy.LivySparkRInterpreter,org.apache.zeppelin.livy.LivySparkSQLInterpreter,org.apache.zeppelin.bigquery.BigQueryInterpreter,org.apache.zeppelin.beam.BeamInterpreter,org.apache.zeppelin.pig.PigInterpreter,org.apache.zeppelin.pig.PigQueryInterpreter,org.apache.zeppelin.scio.ScioInterpreter,org.apache.metron.stellar.zeppelin.StellarInterpreter</value>
-      <description>Comma separated interpreter configurations. First interpreter become a default</description>
-    </property>
+    bin/install-interpreter.sh --name stellar --artifact org.apache.metron:stellar-zeppelin:0.4.3
     ```
 
 1. Start Zeppelin.  
 
     ```
-    $ZEPPELIN_HOME/bin/zeppelin-daemon.sh start
+    bin/zeppelin-daemon.sh start
     ```
 
-1. Navigate to Zeppelin running at [http://localhost:8080/](http://localhost:8080/).
-
-1. Register the Stellar interpreter in Zeppelin.
-
-    1. Click on the top-right menu item labelled "Anonymous" then choose "Interpreter" in the drop-down that opens.    
-
-1. Configure the Stellar interpreter.
-
-    1. Click on '**+ Create**' near the top-right.
-
-    1. Define the following values.
-        * **Interpreter Name** = `stellar`
-        * **Interpreter Group** = `stellar`
-
-    1. Under **Options**, set the following values.
-        * The interpreter will be instantiated **Per Note**  in **isolated** process.
-
-    1. Under **Dependencies**, define the following fields, then click the "+" icon.  Replace the Metron version as required.
-        * **Artifact** = `org.apache.metron:stellar-zeppelin:0.4.3`
-
-    1. Click "Save"
-
-1. Wait for the intrepreter to start.
-
-    1. Near the title '**stellar**', will be a status icon.  This will indicate that it is downloading the dependencies.  
-
-    1. Once the icon is shown as green, the interpreter is ready to work.
+1. Navigate to Zeppelin running at [http://localhost:8080/](http://localhost:8080/).  The Stellar Interpreter should be ready for use with a basic set of functions.
 
 Usage
 -----
@@ -141,19 +91,25 @@ Usage
 
 1. In the next block, check which functions are available to you.
 
+    When executing Stellar's magic functions, you must explicitly define which interpreter should be used in the code block.  If you define 'stellar' as the default interpreter when creating a notebook, then this is only required when using Stellar's magic functions.
+
     ```
+    %stellar
+
     %functions
     ```
 
     You will **only** 'see' the functions defined within `stellar-common` since that is the only library that we added to the interpreter.  
 
-1. To see how additional functions can be added, go back to the Stellar interpreter configuration and add another dependency as follows.
+1. Add additional Stellar functions to your session.
 
-    ```
-    org.apache.metron:metron-statistics:0.4.3
-    ```
+    1. Go back to the Stellar interpreter configuration and add another dependency as follows.
 
-    Reload the Stellar interpreter and run `%functions` again.  You will see the additional functions defined within the `metron-statistics` project.
+        ```
+        org.apache.metron:metron-statistics:0.4.3
+        ```
+
+    1. Go back to your notebook and run `%functions` again.  You will now see the additional functions defined within the `metron-statistics` project.
 
 1. Auto-completion is also available for Stellar expressions.  
 

@@ -72,7 +72,6 @@ metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
 zk_configured_flag_file = status_params.zk_configured_flag_file
 parsers_configured_flag_file = status_params.parsers_configured_flag_file
 parsers_acl_configured_flag_file = status_params.parsers_acl_configured_flag_file
-rest_acl_configured_flag_file = status_params.rest_acl_configured_flag_file
 enrichment_kafka_configured_flag_file = status_params.enrichment_kafka_configured_flag_file
 enrichment_kafka_acl_configured_flag_file = status_params.enrichment_kafka_acl_configured_flag_file
 enrichment_hbase_configured_flag_file = status_params.enrichment_hbase_configured_flag_file
@@ -85,6 +84,10 @@ indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_confi
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
 elasticsearch_template_installed_flag_file = status_params.elasticsearch_template_installed_flag_file
 solr_schema_installed_flag_file = status_params.solr_schema_installed_flag_file
+rest_kafka_configured_flag_file = status_params.rest_kafka_configured_flag_file
+rest_kafka_acl_configured_flag_file = status_params.rest_kafka_acl_configured_flag_file
+rest_hbase_configured_flag_file = status_params.rest_hbase_configured_flag_file
+rest_hbase_acl_configured_flag_file = status_params.rest_hbase_acl_configured_flag_file
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
 # Elasticsearch hosts and port management
@@ -262,22 +265,31 @@ metron_rest_pid = 'metron-rest.pid'
 metron_indexing_classpath = config['configurations']['metron-rest-env']['metron_indexing_classpath']
 metron_rest_classpath = config['configurations']['metron-rest-env']['metron_rest_classpath']
 metron_sysconfig = config['configurations']['metron-rest-env']['metron_sysconfig']
+user_settings_hbase_table = status_params.user_settings_hbase_table
+user_settings_hbase_cf = status_params.user_settings_hbase_cf
 
 # Enrichment
+metron_enrichment_topology = status_params.metron_enrichment_topology
 geoip_url = config['configurations']['metron-enrichment-env']['geoip_url']
 enrichment_host_known_hosts = config['configurations']['metron-enrichment-env']['enrichment_host_known_hosts']
+
+# Enrichment - Kafka
 enrichment_kafka_start = config['configurations']['metron-enrichment-env']['enrichment_kafka_start']
 enrichment_input_topic = status_params.enrichment_input_topic
 enrichment_output_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
 enrichment_error_topic = config['configurations']['metron-enrichment-env']['enrichment_error_topic']
 threatintel_error_topic = config['configurations']['metron-enrichment-env']['threatintel_error_topic']
-metron_enrichment_topology = status_params.metron_enrichment_topology
+
+# Enrichment - Storm common parameters
 enrichment_workers = config['configurations']['metron-enrichment-env']['enrichment_workers']
 enrichment_acker_executors = config['configurations']['metron-enrichment-env']['enrichment_acker_executors']
 if not len(enrichment_topology_worker_childopts) == 0:
     enrichment_topology_worker_childopts += ' '
 enrichment_topology_worker_childopts += config['configurations']['metron-enrichment-env']['enrichment_topology_worker_childopts']
 enrichment_topology_max_spout_pending = config['configurations']['metron-enrichment-env']['enrichment_topology_max_spout_pending']
+enrichment_topology = config['configurations']['metron-enrichment-env']['enrichment_topology']
+
+# Enrichment - Split Join topology
 enrichment_join_cache_size = config['configurations']['metron-enrichment-env']['enrichment_join_cache_size']
 threatintel_join_cache_size = config['configurations']['metron-enrichment-env']['threatintel_join_cache_size']
 enrichment_kafka_spout_parallelism = config['configurations']['metron-enrichment-env']['enrichment_kafka_spout_parallelism']
@@ -289,12 +301,24 @@ threat_intel_stellar_parallelism = config['configurations']['metron-enrichment-e
 threat_intel_join_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_join_parallelism']
 kafka_writer_parallelism = config['configurations']['metron-enrichment-env']['kafka_writer_parallelism']
 
+# Enrichment - Unified topology
+unified_kafka_spout_parallelism = config['configurations']['metron-enrichment-env']['unified_kafka_spout_parallelism']
+unified_enrichment_parallelism = config['configurations']['metron-enrichment-env']['unified_enrichment_parallelism']
+unified_threat_intel_parallelism = config['configurations']['metron-enrichment-env']['unified_threat_intel_parallelism']
+unified_kafka_writer_parallelism = config['configurations']['metron-enrichment-env']['unified_kafka_writer_parallelism']
+unified_enrichment_cache_size = config['configurations']['metron-enrichment-env']['unified_enrichment_cache_size']
+unified_threat_intel_cache_size = config['configurations']['metron-enrichment-env']['unified_threat_intel_cache_size']
+unified_enrichment_threadpool_size = config['configurations']['metron-enrichment-env']['unified_enrichment_threadpool_size']
+unified_enrichment_threadpool_type = config['configurations']['metron-enrichment-env']['unified_enrichment_threadpool_type']
+
 # Profiler
 metron_profiler_topology = 'profiler'
 profiler_input_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
 profiler_kafka_start = config['configurations']['metron-profiler-env']['profiler_kafka_start']
 profiler_period_duration = config['configurations']['metron-profiler-env']['profiler_period_duration']
 profiler_period_units = config['configurations']['metron-profiler-env']['profiler_period_units']
+profiler_window_duration = config['configurations']['metron-profiler-env']['profiler_window_duration']
+profiler_window_units = config['configurations']['metron-profiler-env']['profiler_window_units']
 profiler_ttl = config['configurations']['metron-profiler-env']['profiler_ttl']
 profiler_ttl_units = config['configurations']['metron-profiler-env']['profiler_ttl_units']
 profiler_hbase_batch = config['configurations']['metron-profiler-env']['profiler_hbase_batch']
@@ -310,6 +334,11 @@ profiler_hbase_acl_configured_flag_file = status_params.profiler_hbase_acl_confi
 if not len(profiler_topology_worker_childopts) == 0:
     profiler_topology_worker_childopts += ' '
 profiler_topology_worker_childopts += config['configurations']['metron-profiler-env']['profiler_topology_worker_childopts']
+profiler_max_routes_per_bolt=config['configurations']['metron-profiler-env']['profiler_max_routes_per_bolt']
+profiler_window_lag=config['configurations']['metron-profiler-env']['profiler_window_lag']
+profiler_window_lag_units=config['configurations']['metron-profiler-env']['profiler_window_lag_units']
+profiler_topology_message_timeout_secs=config['configurations']['metron-profiler-env']['profiler_topology_message_timeout_secs']
+profiler_topology_max_spout_pending=config['configurations']['metron-profiler-env']['profiler_topology_max_spout_pending']
 
 # Indexing
 ra_indexing_kafka_start = config['configurations']['metron-indexing-env']['ra_indexing_kafka_start']

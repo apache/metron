@@ -22,7 +22,7 @@ This project contains tools to assist Apache Metron project committers.
 
 ## Prepare Commit
 
-This script automates the process of merging a pull request into `apache/master`.  The script will prompt for the pull request number.  Most of the remaining information is automatically extracted from Github or the Apache JIRA.
+This script automates the process of merging a pull request into `apache/metron` or `apache/metron-bro-plugin-kafka`.  The script will prompt for the pull request number.  Most of the remaining information is automatically extracted from Github or the Apache JIRA.
 
 When prompted the `[value in brackets]` is used by default.  To accept the default, simply press `enter`.  If you would like to change the default, type it in and hit `enter` when done.
 
@@ -33,36 +33,39 @@ In the following example, I enter the pull request number when prompted.   Using
     The first time the script is run, you will be prompted for additional information including your Apache username, Apache email, and Github username.  These values are persisted in `~/.metron-prepare-commit`.  Subsequent executions of the script will retrieve these values, rather than prompting you again for them.
 
     ```
-    $ prepare-commit
-      your github username []: nickwallen
-      your apache userid []: nickallen
-      your apache email [nickallen@apache.org]:
+    $ ./prepare-commit
+      your github username []: jonzeolla
+      your apache userid []: jonzeolla
+      your apache email [jonzeolla@apache.org]:
     ```
 
-1. Enter the Github pull request number.
+1. Select a repository and enter a GitHub pull request number.
 
     ```
-      pull request: 897
-      local working directory [/Users/nallen/tmp/metron-pr897]:
+        [1] metron
+        [2] metron-bro-plugin-kafka
+      which repo? [1]: 1
+      pull request: 946
+      local working directory [/Users/jzeolla/tmp/metron-pr946]:
       origin repo [https://github.com/apache/metron]:
-
-    Cloning into '/Users/nallen/tmp/metron-pr897'...
-    remote: Counting objects: 36277, done.
-    remote: Compressing objects: 100% (108/108), done.
-    remote: Total 36277 (delta 38), reused 54 (delta 20), pack-reused 36138
-    Receiving objects: 100% (36277/36277), 57.85 MiB | 7.36 MiB/s, done.
-    Resolving deltas: 100% (13653/13653), done.
+    Cloning into '/Users/jzeolla/tmp/metron-pr946'...
+    remote: Counting objects: 37861, done.
+    remote: Compressing objects: 100% (71/71), done.
+    remote: Total 37861 (delta 27), reused 47 (delta 4), pack-reused 37757
+    Receiving objects: 100% (37861/37861), 58.18 MiB | 4.38 MiB/s, done.
+    Resolving deltas: 100% (14439/14439), done.
     From https://git-wip-us.apache.org/repos/asf/metron
      * branch              master     -> FETCH_HEAD
      * [new branch]        master     -> upstream/master
     Already on 'master'
     Your branch is up to date with 'origin/master'.
     Already up to date.
-    remote: Counting objects: 5, done.
-    remote: Total 5 (delta 3), reused 3 (delta 3), pack-reused 2
-    Unpacking objects: 100% (5/5), done.
+    remote: Counting objects: 82, done.
+    remote: Compressing objects: 100% (22/22), done.
+    remote: Total 82 (delta 28), reused 48 (delta 28), pack-reused 26
+    Unpacking objects: 100% (82/82), done.
     From https://github.com/apache/metron
-     * [new ref]           refs/pull/897/head -> pr-897
+     * [new ref]           refs/pull/946/head -> pr-946
     ```
 
 1. Enter contribution details.
@@ -70,29 +73,27 @@ In the following example, I enter the pull request number when prompted.   Using
     The contributor's username, email, along with information about the associated Apache JIRA is extracted from the commit history.
 
     ```
-      github contributor's username [MohanDV]:
-      github contributor's email [mohan.dv@gmail.com]:
-      issue identifier in jira [METRON-1395]:
-      issue description [Documentation missing for Produce a message to a Kafka topic Rest API endpoint]:
-      commit message [METRON-1395 Documentation missing for Produce a message to a Kafka topic Rest API endpoint (MohanDV via nickwallen) closes apache/metron#897]:
+    github contributor's username [wardbekker]:
+    github contributor's email [ward@wardbekker.com]:
+    issue identifier in jira [METRON-1465]:
+    issue description [X-pack support for Elasticsearch]:
+    commit message [METRON-1465 X-pack support for Elasticsearch (wardbekker via jonzeolla) closes apache/metron#946]:
     ```
 
 1. The contribution is then merged with master as a single commit.  The changes that have been made along with the commit message are displayed.
 
     ```
+    Updating b48ab93c..4fbc166d
+    Fast-forward
     Squash commit -- not updating HEAD
-    Automatic merge went well; stopped before committing as requested
-    [master 998f7915] METRON-1410 Some more upgrade fallout... Can&apos;t restart Metron Indexing. (ottobackwards via nickwallen) closes apache/metron#901
-     Author: ottobackwards <ottobackwards@gmail.com>
-     3 files changed, 3 insertions(+), 3 deletions(-)
-
-
-     .../metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/scripts/enrichment_commands.py       | 2 +-
-     .../ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/scripts/indexing_commands.py  | 2 +-
-     .../ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/scripts/profiler_commands.py  | 2 +-
-     3 files changed, 3 insertions(+), 3 deletions(-)
-
-    998f7915 (HEAD -> master) METRON-1410 Cannot restart Metron Indexing. (ottobackwards via nickwallen) closes apache/metron#901
+    <snip>
+    [master f0190d57] METRON-1465 X-pack support for Elasticsearch (wardbekker via jonzeolla) closes apache/metron#946
+     Author: wardbekker <ward@wardbekker.com>
+    <snip>
+     11 files changed, 48 insertions(+), 10 deletions(-)
+    
+    
+    f0190d57 (HEAD -> master) METRON-1465 X-pack support for Elasticsearch (wardbekker via jonzeolla) closes apache/metron#946
     ```
 
 1. Run the test suite.
@@ -109,6 +110,6 @@ In the following example, I enter the pull request number when prompted.   Using
 
     ```
     Review commit carefully then run...
-        cd /Users/nallen/tmp/metron-pr897
+        cd /Users/jzeolla/tmp/metron-pr946
         git push upstream master
     ```

@@ -18,16 +18,6 @@
 
 package org.apache.metron.stellar.zeppelin;
 
-import static org.apache.zeppelin.interpreter.InterpreterResult.Code.ERROR;
-import static org.apache.zeppelin.interpreter.InterpreterResult.Code.SUCCESS;
-import static org.apache.zeppelin.interpreter.InterpreterResult.Type.TEXT;
-
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.stellar.common.shell.DefaultStellarAutoCompleter;
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
@@ -40,6 +30,16 @@ import org.apache.zeppelin.interpreter.InterpreterResult;
 import org.apache.zeppelin.interpreter.thrift.InterpreterCompletion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
+
+import static org.apache.zeppelin.interpreter.InterpreterResult.Code.ERROR;
+import static org.apache.zeppelin.interpreter.InterpreterResult.Code.SUCCESS;
+import static org.apache.zeppelin.interpreter.InterpreterResult.Type.TEXT;
 
 /**
  * A Zeppelin Interpreter for Stellar.
@@ -65,16 +65,21 @@ public class StellarInterpreter extends Interpreter {
 
   public StellarInterpreter(Properties properties) {
     super(properties);
-    this.autoCompleter = new DefaultStellarAutoCompleter();
   }
 
   @Override
   public void open() {
     try {
-      executor = createExecutor();
+      // create the auto-completer
+      this.autoCompleter = new DefaultStellarAutoCompleter();
+
+      // create the stellar executor
+      Properties props = getProperty();
+      this.executor = createExecutor(props);
 
     } catch (Exception e) {
       LOG.error("Unable to create a StellarShellExecutor", e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -85,36 +90,55 @@ public class StellarInterpreter extends Interpreter {
 
   @Override
   public InterpreterResult interpret(final String input, InterpreterContext context) {
-    InterpreterResult result;
+    InterpreterResult result = new InterpreterResult(SUCCESS, TEXT, "");
+
     try {
 
-      // execute the input
-      StellarResult stellarResult = executor.execute(input);
-      if(stellarResult.isSuccess()) {
-
-        // on success - if no result, use a blank value
-        Object value = stellarResult.getValue().orElse("");
-        String text = value.toString();
-        result = new InterpreterResult(SUCCESS, TEXT, text);
-
-      } else if(stellarResult.isError()) {
-
-        // an error occurred
-        Optional<Throwable> e = stellarResult.getException();
-        String message = getErrorMessage(e, input);
-        result = new InterpreterResult(ERROR, TEXT, message);
-
-      } else {
-
-        // should never happen
-        throw new IllegalStateException("Unexpected error. result=" + stellarResult);
+      // allow separate expressions on each line
+      String[] expressions = input.split(System.lineSeparator());
+      for (String expression : expressions) {
+        result = execute(expression);
       }
 
-    } catch(Throwable t) {
+    } catch(Throwable t){
 
       // unexpected exception
       String message = getErrorMessage(Optional.of(t), input);
       result = new InterpreterResult(ERROR, TEXT, message);
+    }
+
+    // result is from the last expression that was executed
+    return result;
+  }
+
+  /**
+   * Execute a single Stellar expression.
+   * @param expression The Stellar expression to execute.
+   * @return The result of execution.
+   */
+  private InterpreterResult execute(final String expression) {
+    InterpreterResult result;
+
+    // execute the expression
+    StellarResult stellarResult = executor.execute(expression);
+    if (stellarResult.isSuccess()) {
+
+      // on success - if no result, use a blank value
+      Object value = stellarResult.getValue().orElse("");
+      String text = value.toString();
+      result = new InterpreterResult(SUCCESS, TEXT, text);
+
+    } else if (stellarResult.isError()) {
+
+      // an error occurred
+      Optional<Throwable> e = stellarResult.getException();
+      String message = getErrorMessage(e, expression);
+      result = new InterpreterResult(ERROR, TEXT, message);
+
+    } else {
+
+      // should never happen
+      throw new IllegalStateException("Unexpected error. result=" + stellarResult);
     }
 
     return result;
@@ -176,10 +200,11 @@ public class StellarInterpreter extends Interpreter {
    * Create an executor that will run the Stellar code for the Zeppelin Notebook.
    * @return The stellar executor.
    */
-  private StellarShellExecutor createExecutor() throws Exception {
+  private StellarShellExecutor createExecutor(Properties properties) throws Exception {
 
-    Properties props = getProperty();
-    StellarShellExecutor executor = new DefaultStellarShellExecutor(props, Optional.empty());
+    // a zookeeper URL may be defined
+    String zookeeperURL = StellarInterpreterProperty.ZOOKEEPER_URL.get(properties, String.class);
+    StellarShellExecutor executor = new DefaultStellarShellExecutor(properties, Optional.ofNullable(zookeeperURL));
 
     // register the auto-completer to be notified
     executor.addSpecialListener((magic) -> autoCompleter.addCandidateFunction(magic.getCommand()));

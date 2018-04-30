@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.search.SearchResult;
@@ -32,14 +31,13 @@ import org.apache.solr.common.SolrInputDocument;
 
 public class SolrUtilities {
 
-  public static SearchResult getSearchResult(SolrDocument solrDocument,
-      Optional<List<String>> fields) {
+  public static SearchResult getSearchResult(SolrDocument solrDocument, List<String> fields) {
     SearchResult searchResult = new SearchResult();
     searchResult.setId((String) solrDocument.getFieldValue(Constants.GUID));
     Map<String, Object> docSource = toDocument(solrDocument).getDocument();
     final Map<String, Object> source = new HashMap<>();
-    if (fields.isPresent()) {
-      fields.get().forEach(field -> source.put(field, docSource.get(field)));
+    if (fields != null) {
+      fields.forEach(field -> source.put(field, docSource.get(field)));
     } else {
       source.putAll(docSource);
     }

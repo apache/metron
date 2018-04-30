@@ -323,7 +323,7 @@ public class SolrSearchDaoTest {
     }});
 
     assertEquals(expectedSearchResult, SolrUtilities.getSearchResult(solrDocument,
-        Optional.of(Collections.singletonList("field1"))));
+        Collections.singletonList("field1")));
 
     SearchResult expectedSearchResultAllFields = new SearchResult();
     expectedSearchResultAllFields.setId("guid");
@@ -333,7 +333,7 @@ public class SolrSearchDaoTest {
     }});
 
     assertEquals(expectedSearchResultAllFields,
-        SolrUtilities.getSearchResult(solrDocument, Optional.empty()));
+        SolrUtilities.getSearchResult(solrDocument, null));
   }
 
   @Test

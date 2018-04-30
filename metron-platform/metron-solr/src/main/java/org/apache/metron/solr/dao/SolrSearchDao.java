@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.search.Group;
@@ -52,7 +51,6 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.PivotField;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,19 +139,19 @@ public class SolrSearchDao implements SearchDao {
     }
 
     // handle search fields
-    Optional<List<String>> fields = searchRequest.getFields();
+    List<String> fields = searchRequest.getFields();
     if (fieldList == null) {
       fieldList = "*";
-      if (fields.isPresent()) {
-        fieldList = StringUtils.join(fields.get(), ",");
+      if (fields != null) {
+        fieldList = StringUtils.join(fields, ",");
       }
     }
     query.set("fl", fieldList);
 
     //handle facet fields
-    Optional<List<String>> facetFields = searchRequest.getFacetFields();
-    if (facetFields.isPresent()) {
-      facetFields.get().forEach(query::addFacetField);
+    List<String> facetFields = searchRequest.getFacetFields();
+    if (facetFields != null) {
+      facetFields.forEach(query::addFacetField);
     }
 
     query.set("collection", getCollections(searchRequest.getIndices()));
@@ -168,8 +166,8 @@ public class SolrSearchDao implements SearchDao {
 
   private SolrQuery.ORDER getSolrSortOrder(
       SortOrder sortOrder) {
-    return sortOrder == SortOrder.DESC ?
-        ORDER.desc : ORDER.asc;
+    return sortOrder == SortOrder.DESC
+        ? ORDER.desc : ORDER.asc;
   }
 
   protected SearchResponse buildSearchResponse(
@@ -187,9 +185,9 @@ public class SolrSearchDao implements SearchDao {
     searchResponse.setResults(results);
 
     // handle facet fields
-    Optional<List<String>> facetFields = searchRequest.getFacetFields();
-    if (facetFields.isPresent()) {
-      searchResponse.setFacetCounts(getFacetCounts(facetFields.get(), solrResponse));
+    List<String> facetFields = searchRequest.getFacetFields();
+    if (facetFields != null) {
+      searchResponse.setFacetCounts(getFacetCounts(facetFields, solrResponse));
     }
 
     if (LOG.isDebugEnabled()) {
@@ -242,10 +240,10 @@ public class SolrSearchDao implements SearchDao {
     List<GroupResult> searchResultGroups = new ArrayList<>();
     final GroupOrder groupOrder = groups.get(index).getOrder();
     pivotFields.sort((o1, o2) -> {
-      String s1 = groupOrder.getGroupOrderType() == GroupOrderType.TERM ?
-          o1.getValue().toString() : Integer.toString(o1.getCount());
-      String s2 = groupOrder.getGroupOrderType() == GroupOrderType.TERM ?
-          o2.getValue().toString() : Integer.toString(o2.getCount());
+      String s1 = groupOrder.getGroupOrderType() == GroupOrderType.TERM
+          ? o1.getValue().toString() : Integer.toString(o1.getCount());
+      String s2 = groupOrder.getGroupOrderType() == GroupOrderType.TERM
+          ? o2.getValue().toString() : Integer.toString(o2.getCount());
       if (groupOrder.getSortOrder() == SortOrder.ASC) {
         return s1.compareTo(s2);
       } else {

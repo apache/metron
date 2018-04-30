@@ -84,21 +84,11 @@ public class ElasticsearchDao implements IndexDao {
     //uninitialized.
   }
 
-//  public ElasticsearchDao columnMetadataDao(ElasticsearchColumnMetadataDao columnMetadataDao) {
-//    this.columnMetadataDao = columnMetadataDao;
-//    return this;
-//  }
-//
-//  public ElasticsearchDao accessConfig(AccessConfig accessConfig) {
-//    this.accessConfig = accessConfig;
-//    return this;
-//  }
-
   @Override
   public synchronized void init(AccessConfig config) {
     if (this.client == null) {
       this.client = ElasticsearchUtils
-          .getClient(config.getGlobalConfigSupplier().get(), config.getOptionalSettings());
+          .getClient(config.getGlobalConfigSupplier().get());
       this.accessConfig = config;
       this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client.admin());
       this.requestSubmitter = new ElasticsearchRequestSubmitter(this.client);
@@ -169,10 +159,6 @@ public class ElasticsearchDao implements IndexDao {
     return retrieveLatestDao.getLatestResult(request);
   }
 
-  public TransportClient getClient() {
-    return this.client;
-  }
-
   protected Optional<String> getIndexName(String guid, String sensorType) {
     return updateDao.getIndexName(guid, sensorType);
   }
@@ -185,5 +171,9 @@ public class ElasticsearchDao implements IndexDao {
   protected GroupResponse group(GroupRequest groupRequest, QueryBuilder queryBuilder)
       throws InvalidSearchException {
     return searchDao.group(groupRequest, queryBuilder);
+  }
+
+  public TransportClient getClient() {
+    return this.client;
   }
 }

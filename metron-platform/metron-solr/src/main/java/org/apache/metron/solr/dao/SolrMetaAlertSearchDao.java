@@ -23,7 +23,6 @@ import static org.apache.metron.solr.dao.SolrMetaAlertDao.METAALERTS_COLLECTION;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
@@ -81,7 +80,7 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
         QueryResponse rsp = solrClient.query(METAALERTS_COLLECTION, solrQuery);
         String nextCursorMark = rsp.getNextCursorMark();
         rsp.getResults().stream()
-            .map(solrDocument -> SolrUtilities.getSearchResult(solrDocument, Optional.empty()))
+            .map(solrDocument -> SolrUtilities.getSearchResult(solrDocument, null))
             .forEachOrdered(allResults::add);
         if (cursorMark.equals(nextCursorMark)) {
           done = true;
@@ -129,10 +128,10 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
     searchRequest.setQuery(fullQuery);
 
     // Build the custom field list
-    Optional<List<String>> fields = searchRequest.getFields();
+    List<String> fields = searchRequest.getFields();
     String fieldList = "*";
-    if (fields.isPresent()) {
-      fieldList = StringUtils.join(fields.get(), ",");
+    if (fields != null) {
+      fieldList = StringUtils.join(fields, ",");
     }
     String childClause = fieldList + ",[child parentFilter=*:*]";
 

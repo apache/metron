@@ -38,11 +38,15 @@ class Enrichment(Script):
         env.set_params(params)
 
         Logger.info("Running enrichment configure")
-        File(format("{metron_config_path}/enrichment.properties"),
-             content=Template("enrichment.properties.j2"),
+        File(format("{metron_config_path}/enrichment-splitjoin.properties"),
+             content=Template("enrichment-splitjoin.properties.j2"),
              owner=params.metron_user,
-             group=params.metron_group
-             )
+             group=params.metron_group)
+
+        File(format("{metron_config_path}/enrichment-unified.properties"),
+            content=Template("enrichment-unified.properties.j2"),
+            owner=params.metron_user,
+            group=params.metron_group)
 
         if not metron_service.is_zk_configured(params):
           metron_service.init_zk_config(params)

@@ -79,7 +79,7 @@ public class AssignmentCommand implements SpecialCommand {
       return result;
 
     } else {
-      return error("Assignment expression failed");
+      return result;
     }
   }
 }
