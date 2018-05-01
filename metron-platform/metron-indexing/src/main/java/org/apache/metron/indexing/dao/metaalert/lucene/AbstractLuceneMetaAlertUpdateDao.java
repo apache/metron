@@ -175,11 +175,13 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
       throws IOException {
     Document metaAlert = retrieveLatestDao
         .getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
+    if (metaAlert == null) {
+      return false;
+    }
     if (MetaAlertStatus.ACTIVE.getStatusString()
         .equals(metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD))) {
       Iterable<Document> alerts = retrieveLatestDao.getAllLatest(alertRequests);
       Map<Document, Optional<String>> updates = buildRemoveAlertsFromMetaAlert(metaAlert, alerts);
-
       update(updates);
       return updates.size() != 0;
     } else {
