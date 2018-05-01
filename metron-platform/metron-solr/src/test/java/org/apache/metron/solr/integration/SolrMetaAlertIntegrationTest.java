@@ -35,6 +35,7 @@ import java.util.Optional;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertIntegrationTest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -98,7 +99,8 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
         Constants.SENSOR_TYPE
     );
 
-    SolrMetaAlertSearchDao searchDao = new SolrMetaAlertSearchDao(solrDao.getSolrClient(solrDao.getZkHost()),
+    SolrMetaAlertSearchDao searchDao = new SolrMetaAlertSearchDao(
+        solrDao.getSolrClient(solrDao.getZkHost()),
         solrDao.getSolrSearchDao());
     SolrMetaAlertRetrieveLatestDao retrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao);
     SolrMetaAlertUpdateDao updateDao = new SolrMetaAlertUpdateDao(solrDao, searchDao,
@@ -126,8 +128,25 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     solr.reset();
   }
 
+//  @Test
+//  public void shouldSearchByNestedAlertAlot() throws Exception {
+//    for (int i = 0; i < 500; ++i) {
+//      System.out.println("\nRound : " + i);
+//      if (i != 0) {
+//        setup();
+//      }
+//      try {
+//        shouldSearchByNestedAlert();
+//      } catch (Exception e) {
+//        throw new IllegalStateException(e);
+//      }
+//      reset();
+//    }
+//  }
+
   @Test
   @Override
+  @SuppressWarnings("unchecked")
   public void shouldSearchByNestedAlert() throws Exception {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(4);
@@ -181,6 +200,11 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     });
     // Should have one result because Solr will return the parent.
     Assert.assertEquals(1, searchResponse.getTotal());
+    // Ensure we returned the child alerts
+    List<Map<String, Object>> actualAlerts = (List<Map<String, Object>>) searchResponse.getResults()
+        .get(0).getSource()
+        .get(MetaAlertConstants.ALERT_FIELD);
+    Assert.assertEquals(2, actualAlerts.size());
     Assert.assertEquals("meta_active",
         searchResponse.getResults().get(0).getSource().get("guid"));
 
@@ -203,6 +227,10 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
     // Query should match a parent alert
     Assert.assertEquals(1, searchResponse.getTotal());
+    // Ensure we returned the child alerts
+    actualAlerts = (List<Map<String, Object>>) searchResponse.getResults().get(0).getSource()
+        .get(MetaAlertConstants.ALERT_FIELD);
+    Assert.assertEquals(2, actualAlerts.size());
     Assert.assertEquals("meta_active",
         searchResponse.getResults().get(0).getSource().get("guid"));
 
@@ -225,6 +253,11 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
     // Query should match a plain alert
     Assert.assertEquals(1, searchResponse.getTotal());
+    // Ensure we have no child alerts
+    actualAlerts = (List<Map<String, Object>>) searchResponse.getResults()
+        .get(0).getSource()
+        .get(MetaAlertConstants.ALERT_FIELD);
+    Assert.assertNull(actualAlerts);
     Assert.assertEquals("message_2",
         searchResponse.getResults().get(0).getSource().get("guid"));
   }

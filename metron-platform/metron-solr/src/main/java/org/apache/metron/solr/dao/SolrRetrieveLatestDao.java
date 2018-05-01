@@ -47,6 +47,9 @@ public class SolrRetrieveLatestDao implements RetrieveLatestDao {
   public Document getLatest(String guid, String collection) throws IOException {
     try {
       SolrDocument solrDocument = client.getById(collection, guid);
+      if (solrDocument == null) {
+        return null;
+      }
       return SolrUtilities.toDocument(solrDocument);
     } catch (SolrServerException e) {
       throw new IOException(e);

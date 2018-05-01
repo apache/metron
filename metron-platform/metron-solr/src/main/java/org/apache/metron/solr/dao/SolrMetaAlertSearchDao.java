@@ -22,7 +22,9 @@ import static org.apache.metron.solr.dao.SolrMetaAlertDao.METAALERTS_COLLECTION;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
@@ -34,12 +36,17 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CursorMarkParams;
+import org.apache.solr.common.params.MapSolrParams;
+import org.apache.solr.common.params.SolrParams;
 
 public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
 
@@ -64,9 +71,10 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
         MetaAlertConstants.STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString();
     String guidClause = Constants.GUID + ":" + guid;
     String fullClause = "{!parent which=" + activeClause + "}" + guidClause;
+    String metaalertTypeClause = Constants.SENSOR_TYPE + ":" + MetaAlertConstants.METAALERT_TYPE;
     SolrQuery solrQuery = new SolrQuery()
         .setQuery(fullClause)
-        .setFields("*", "[child parentFilter=" + activeClause + " limit=999]")
+        .setFields("*", "[child parentFilter=" + metaalertTypeClause + " limit=999]")
         .addSort(Constants.GUID,
             SolrQuery.ORDER.asc); // Just do basic sorting to track where we are
 
@@ -106,14 +114,13 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
     String activeStatusClause =
         MetaAlertConstants.STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString();
 
-    String sensorType = ClientUtils.escapeQueryChars(Constants.SENSOR_TYPE);
-    String metaalertTypeClause = sensorType + ":" + MetaAlertConstants.METAALERT_TYPE;
+    String metaalertTypeClause = Constants.SENSOR_TYPE + ":" + MetaAlertConstants.METAALERT_TYPE;
     // Use the 'v=' form in order to ensure complex clauses are properly handled.
     // Per the docs, the 'which=' clause should be used to identify all metaalert parents, not to
     //   filter
     // Status is a filter on parents and must be done outside the '!parent' construct
     String parentChildQuery =
-        "(" + activeStatusClause + " AND " + "{!parent which=" + metaalertTypeClause + " v='"
+        "(+" + activeStatusClause + " +" + "{!parent which=" + metaalertTypeClause + " v='"
             + searchRequest.getQuery() + "'})";
 
     // Put everything together to get our full query
@@ -122,8 +129,7 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
     // Also make sure that it's not a metaalert
     String fullQuery =
         "(" + searchRequest.getQuery() + " AND -" + MetaAlertConstants.METAALERT_FIELD + ":[* TO *]"
-            + " AND " + "-" + sensorType + ":" + MetaAlertConstants.METAALERT_TYPE + ")"
-            + " OR " + parentChildQuery;
+            + " AND " + "-" + metaalertTypeClause + ")" + " OR " + parentChildQuery;
 
     searchRequest.setQuery(fullQuery);
 
@@ -133,9 +139,46 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
     if (fields != null) {
       fieldList = StringUtils.join(fields, ",");
     }
-    String childClause = fieldList + ",[child parentFilter=*:*]";
 
-    return solrSearchDao.search(searchRequest, childClause);
+    SearchResponse results = solrSearchDao.search(searchRequest, fieldList);
+
+    // Unfortunately, we can't get the full metaalert results at the same time
+    // Get them in a second query.
+    List<String> metaalertGuids = new ArrayList<>();
+    for (SearchResult result : results.getResults()) {
+      if (result.getSource().get(Constants.SENSOR_TYPE).equals(MetaAlertConstants.METAALERT_TYPE)) {
+        // Then we need to add it to the list to retrieve child alerts in a second query.
+        metaalertGuids.add(result.getId());
+      }
+    }
+
+    // If we have any metaalerts in our result, attach the full data.
+    if (metaalertGuids.size() > 0) {
+      Map<String, String> params = new HashMap<>();
+      params.put("fl", fieldList + ",[child parentFilter=" + metaalertTypeClause + " limit=999]");
+      SolrParams solrParams = new MapSolrParams(params);
+      try {
+        SolrDocumentList solrDocumentList = solrClient
+            .getById(METAALERTS_COLLECTION, metaalertGuids, solrParams);
+        Map<String, Document> guidToDocuments = new HashMap<>();
+        for (SolrDocument doc : solrDocumentList) {
+          Document document = SolrUtilities.toDocument(doc);
+          guidToDocuments.put(document.getGuid(), document);
+        }
+
+        // Run through our results and update them with the full metaalert
+        for (SearchResult result : results.getResults()) {
+          Document fullDoc = guidToDocuments.get(result.getId());
+          if (fullDoc != null) {
+            result.setSource(fullDoc.getDocument());
+          }
+        }
+      } catch (SolrServerException | IOException e) {
+        throw new InvalidSearchException("Error when retrieving child alerts for metaalerts", e);
+      }
+
+    }
+    return results;
   }
 
   @Override
