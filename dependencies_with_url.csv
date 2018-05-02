@@ -4,6 +4,7 @@ org.objenesis:objenesis:jar:1.2:compile,Apache v2,http://objenesis.org/
 org.objenesis:objenesis:jar:2.1:compile,Apache v2,http://objenesis.org/
 org.ow2.asm:asm:jar:4.1:compile,BSD,http://asm.ow2.org/
 org.ow2.asm:asm:jar:5.0.3:compile,BSD,http://asm.ow2.org/
+org.ow2.asm:asm:jar:5.0.4:compile,BSD,http://asm.ow2.org/
 org.reflections:reflections:jar:0.9.10:compile,BSD,https://github.com/ronmamo/reflections
 org.javassist:javassist:jar:3.19.0-GA:compile,Apache v2,https://github.com/jboss-javassist/javassist
 org.javassist:javassist:jar:3.17.1-GA:compile,Apache v2,https://github.com/jboss-javassist/javassist
@@ -23,6 +24,7 @@ com.google.protobuf:protobuf-java:jar:2.5.0:compile,New BSD license,http://code.
 com.google.protobuf:protobuf-java:jar:2.6.1:compile,New BSD license,http://code.google.com/p/protobuf
 com.jcraft:jsch:jar:0.1.42:compile,BSD,http://www.jcraft.com/jsch/
 com.jayway.jsonpath:json-path:jar:2.3.0:compile,Apache v2,https://github.com/json-path/JsonPath
+com.jayway.jsonpath:json-path:jar:2.4.0:compile,Apache v2,https://github.com/json-path/JsonPath
 net.minidev:accessors-smart:jar:1.2:compile,Apache v2,https://github.com/netplex/json-smart-v2
 net.minidev:json-smart:jar:2.3:compile,Apache v2,https://github.com/netplex/json-smart-v2
 com.maxmind.db:maxmind-db:jar:1.2.1:compile,CC-BY-SA 3.0,https://github.com/maxmind/MaxMind-DB
@@ -34,10 +36,12 @@ it.unimi.dsi:fastutil:jar:7.0.6:compile,ASLv2,https://github.com/vigna/fastutil
 javassist:javassist:jar:3.12.1.GA:compile,Apache v2,http://www.javassist.org/
 javax.activation:activation:jar:1.1:compile,Common Development and Distribution License (CDDL) v1.0,http://java.sun.com/products/javabeans/jaf/index.jsp
 javax.annotation:jsr250-api:jar:1.0:compile,COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0,http://jcp.org/aboutJava/communityprocess/final/jsr250/index.html
+javax.annotation:javax.annotation-api:jar:1.3.2:compile,CDDL 1.1,https://github.com/javaee/javax.annotation/
 javax.mail:mail:jar:1.4:compile,Common Development and Distribution License (CDDL) v1.0,https://glassfish.dev.java.net/javaee5/mail/
 javax.servlet:javax.servlet-api:jar:3.1.0:compile,CDDL,http://servlet-spec.java.net
 javax.xml.bind:jaxb-api:jar:2.2.11:compile,CDDL,http://jaxb.java.net/
 javax.xml.bind:jaxb-api:jar:2.2.2:compile,CDDL,https://jaxb.dev.java.net/
+javax.xml.bind:jaxb-api:jar:2.3.0:compile,CDDL,https://jaxb.dev.java.net/
 javax.xml.stream:stax-api:jar:1.0-2:compile,COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0,https://docs.oracle.com/javase/7/docs/api/javax/xml/stream/package-summary.html
 jline:jline:jar:0.9.94:compile,BSD,http://jline.sourceforge.net
 junit:junit:jar:4.12:compile,Eclipse Public License 1.0,http://junit.org
@@ -87,15 +91,18 @@ org.slf4j:slf4j-api:jar:1.7.5:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-api:jar:1.7.6:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-api:jar:1.7.7:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-api:jar:1.7.21:compile,MIT,http://www.slf4j.org
+org.slf4j:slf4j-api:jar:1.7.25:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-log4j12:jar:1.6.1:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-log4j12:jar:1.7.10:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-log4j12:jar:1.7.10:runtime,MIT,http://www.slf4j.org
 org.slf4j:slf4j-log4j12:jar:1.7.21:compile,MIT,http://www.slf4j.org
+org.slf4j:slf4j-log4j12:jar:1.7.25:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-log4j12:jar:1.7.5:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-log4j12:jar:1.7.7:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-simple:jar:1.7.7:compile,MIT,http://www.slf4j.org
 org.slf4j:jcl-over-slf4j:jar:1.7.21:compile,MIT,http://www.slf4j.org
 org.slf4j:jul-to-slf4j:jar:1.7.21:compile,MIT,http://www.slf4j.org
+org.slf4j:jul-to-slf4j:jar:1.7.25:compile,MIT,http://www.slf4j.org
 aopalliance:aopalliance:jar:1.0:compile,Public Domain,http://aopalliance.sourceforge.net
 com.101tec:zkclient:jar:0.8:compile,The Apache Software License, Version 2.0,https://github.com/sgroschupf/zkclient
 com.github.stephenc.findbugs:findbugs-annotations:jar:1.3.9-1:compile,Apache License, Version 2.0,http://stephenc.github.com/findbugs-annotations
@@ -111,14 +118,17 @@ com.esotericsoftware.reflectasm:reflectasm:jar:shaded:1.07:compile,BSD,https://g
 com.fasterxml.jackson.core:jackson-annotations:jar:2.2.3:compile,ASLv2,http://wiki.fasterxml.com/JacksonHome
 com.fasterxml.jackson.core:jackson-annotations:jar:2.7.4:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-annotations:jar:2.8.3:compile,ASLv2,http://github.com/FasterXML/jackson
+com.fasterxml.jackson.core:jackson-annotations:jar:2.9.0:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-core:jar:2.2.3:compile,ASLv2,http://wiki.fasterxml.com/JacksonHome
 com.fasterxml.jackson.core:jackson-core:jar:2.6.6:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-core:jar:2.7.4:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-core:jar:2.8.3:compile,ASLv2,https://github.com/FasterXML/jackson-core
+com.fasterxml.jackson.core:jackson-core:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-databind:jar:2.2.3:compile,ASLv2,http://wiki.fasterxml.com/JacksonHome
 com.fasterxml.jackson.core:jackson-databind:jar:2.4.3:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.7.4:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.8.3:compile,ASLv2,http://github.com/FasterXML/jackson
+com.fasterxml.jackson.core:jackson-databind:jar:2.9.5:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:jar:2.6.6:compile,ASLv2,http://wiki.fasterxml.com/JacksonForCbor
 com.fasterxml.jackson.dataformat:jackson-dataformat-smile:jar:2.6.6:compile,ASLv2,http://wiki.fasterxml.com/JacksonForSmile
 com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.6.6:compile,ASLv2,https://github.com/FasterXML/jackson
@@ -126,7 +136,12 @@ com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:jar:2.7.4:compile,ASLv2
 com.fasterxml.jackson.dataformat:jackson-dataformat-smile:jar:2.7.4:compile,ASLv2,http://wiki.fasterxml.com/JacksonForSmile
 com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.7.4:compile,ASLv2,https://github.com/FasterXML/jackson
 com.fasterxml.jackson.datatype:jackson-datatype-joda:jar:2.8.1:compile,ASLv2,https://github.com/FasterXML/jackson-datatype-joda
+com.fasterxml.jackson.datatype:jackson-datatype-joda:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-datatype-joda
+com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-modules-java8
+com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-modules-java8
+com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-modules-java8
 com.fasterxml:classmate:jar:1.3.1:compile,ASLv2,http://github.com/cowtowncoder/java-classmate
+com.fasterxml:classmate:jar:1.3.4:compile,ASLv2,http://github.com/cowtowncoder/java-classmate
 com.google.code.gson:gson:jar:2.2.4:compile,The Apache Software License, Version 2.0,http://code.google.com/p/google-gson/
 com.google.code.gson:gson:jar:2.7:compile,The Apache Software License, Version 2.0,http://code.google.com/p/google-gson/
 com.google.guava:guava:jar:11.0.2:compile,ASLv2,
@@ -158,6 +173,7 @@ commons-codec:commons-codec:jar:1.10:compile,ASLv2,http://commons.apache.org/pro
 commons-codec:commons-codec:jar:1.4:compile,ASLv2,http://commons.apache.org/codec/
 commons-codec:commons-codec:jar:1.6:compile,ASLv2,http://commons.apache.org/codec/
 commons-codec:commons-codec:jar:1.9:compile,ASLv2,http://commons.apache.org/proper/commons-codec/
+commons-codec:commons-codec:jar:1.11:compile,ASLv2,http://commons.apache.org/proper/commons-codec/
 commons-collections:commons-collections:jar:3.2.1:compile,ASLv2,http://commons.apache.org/collections/
 commons-collections:commons-collections:jar:3.2.2:compile,ASLv2,http://commons.apache.org/collections/
 commons-configuration:commons-configuration:jar:1.10:compile,ASLv2,http://commons.apache.org/configuration/
@@ -197,6 +213,7 @@ io.thekraken:grok:jar:0.1.0:compile,Apache License, Version 2.0,http://maven.apa
 javax.inject:javax.inject:jar:1:compile,The Apache Software License, Version 2.0,http://code.google.com/p/atinject/
 joda-time:joda-time:jar:2.3:compile,Apache 2,http://www.joda.org/joda-time/
 joda-time:joda-time:jar:2.8.2:compile,Apache 2,http://www.joda.org/joda-time/
+joda-time:joda-time:jar:2.9.9:compile,Apache 2,http://www.joda.org/joda-time/
 log4j:log4j:jar:1.2.15:compile,The Apache Software License, Version 2.0,http://logging.apache.org:80/log4j/1.2/
 log4j:log4j:jar:1.2.16:compile,The Apache Software License, Version 2.0,http://logging.apache.org/log4j/1.2/
 log4j:log4j:jar:1.2.17:compile,The Apache Software License, Version 2.0,http://logging.apache.org/log4j/1.2/
@@ -234,24 +251,36 @@ org.springframework.integration:spring-integration-http:jar:3.0.0.RELEASE:compil
 org.springframework.retry:spring-retry:jar:1.0.3.RELEASE:compile,Apache 2.0,http://www.springsource.org
 org.springframework:spring-aop:jar:3.2.6.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/SpringSource/spring-framework
 org.springframework:spring-aop:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-aop:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-aspects:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-aspects:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-beans:jar:3.2.6.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/SpringSource/spring-framework
 org.springframework:spring-beans:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-beans:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-context:jar:3.2.6.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/SpringSource/spring-framework
 org.springframework:spring-context:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-context:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-core:jar:3.2.6.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/SpringSource/spring-framework
 org.springframework:spring-core:jar:4.1.4.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-core:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-core:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-expression:jar:3.2.6.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/SpringSource/spring-framework
 org.springframework:spring-expression:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-expression:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-jcl:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-jdbc:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-jdbc:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-orm:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-orm:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-tx:jar:3.2.6.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/SpringSource/spring-framework
 org.springframework:spring-tx:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-tx:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-web:jar:3.2.6.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/SpringSource/spring-framework
 org.springframework:spring-web:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-web:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-webmvc:jar:3.2.6.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/SpringSource/spring-framework
 org.springframework:spring-webmvc:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework:spring-webmvc:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.tukaani:xz:jar:1.0:compile,Public Domain,http://tukaani.org/xz/java.html
 org.xerial.snappy:snappy-java:jar:1.0.4.1:compile,The Apache Software License, Version 2.0,http://code.google.com/p/snappy-java/
 org.xerial.snappy:snappy-java:jar:1.1.1.7:compile,The Apache Software License, Version 2.0,https://github.com/xerial/snappy-java
@@ -277,30 +306,50 @@ io.swagger:swagger-annotations:jar:1.5.9:compile,ASLv2,https://github.com/swagge
 io.swagger:swagger-models:jar:1.5.9:compile,ASLv2,https://github.com/swagger-api/swagger-core
 javax.transaction:javax.transaction-api:jar:1.2:compile,CDDL-1.0,https://java.net/projects/jta-spec/
 javax.validation:validation-api:jar:1.1.0.Final:compile,ASLv2,http://beanvalidation.org
+javax.validation:validation-api:jar:2.0.1.Final:compile,ASLv2,http://beanvalidation.org
 joda-time:joda-time:jar:2.9.4:compile,ASLv2,https://github.com/JodaOrg/joda-time
 org.aspectj:aspectjweaver:jar:1.8.9:compile,EPL 1.0,https://eclipse.org/aspectj
+org.aspectj:aspectjweaver:jar:1.8.13:compile,EPL 1.0,https://eclipse.org/aspectj
 org.jboss.logging:jboss-logging:jar:3.3.0.Final:compile,ASLv2,https://github.com/jboss-logging
+org.jboss.logging:jboss-logging:jar:3.3.2.Final:compile,ASLv2,https://github.com/jboss-logging
 org.jboss:jandex:jar:2.0.0.Final:compile,ASLv2,https://github.com/wildfly/jandex
 org.mapstruct:mapstruct:jar:1.0.0.Final:compile,ASLv2,https://github.com/mapstruct/mapstruct
 org.springframework.boot:spring-boot-autoconfigure:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-autoconfigure:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-aop:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-starter-aop:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-data-jpa:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-starter-data-jpa:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-jdbc:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-starter-jdbc:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-starter-json:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-logging:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-starter-logging:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-security:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-starter-security:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-tomcat:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-starter-tomcat:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-web:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-starter-web:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-starter:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.data:spring-data-commons:jar:1.12.3.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-data-commons
+org.springframework.data:spring-data-commons:jar:2.0.6.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-data-commons
 org.springframework.data:spring-data-jpa:jar:1.10.3.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-data-jpa
+org.springframework.data:spring-data-jpa:jar:2.0.6.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-data-jpa
 org.springframework.plugin:spring-plugin-core:jar:1.2.0.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-plugin
 org.springframework.plugin:spring-plugin-metadata:jar:1.2.0.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-plugin
 org.springframework.security:spring-security-config:jar:4.1.3.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-security
+org.springframework.security:spring-security-config:jar:5.0.4.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-security
 org.springframework.security:spring-security-core:jar:4.1.3.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-security
+org.springframework.security:spring-security-core:jar:5.0.4.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-security
 org.springframework.security:spring-security-web:jar:4.1.3.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-security
+org.springframework.security:spring-security-web:jar:5.0.4.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-security
 antlr:antlr:jar:2.7.7:compile,BSD 3-Clause License,http://www.antlr2.org
 com.h2database:h2:jar:1.4.192:compile,EPL 1.0,http://www.h2database.com/html/license.html
+com.h2database:h2:jar:1.4.197:compile,EPL 1.0,http://www.h2database.com/html/license.html
 de.jollyday:jollyday:jar:0.5.2:compile,ASLv2,http://jollyday.sourceforge.net/license.html
 org.threeten:threeten-extra:jar:1.0:compile,BSD,http://www.threeten.org/threeten-extra/license.html
 org.atteo.classindex:classindex:jar:3.3:compile,ASLv2,https://github.com/atteo/classindex
@@ -311,6 +360,7 @@ net.byteseek:byteseek:jar:2.0.3:compile,BSD,https://github.com/nishihatapalmer/b
 org.springframework.security.kerberos:spring-security-kerberos-client:jar:1.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-security-kerberos
 org.springframework.security.kerberos:spring-security-kerberos-core:jar:1.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-security-kerberos
 org.springframework.kafka:spring-kafka:jar:1.1.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-kafka
+org.springframework.kafka:spring-kafka:jar:2.0.4.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-kafka
 ch.hsr:geohash:jar:1.3.0:compile,ASLv2,https://github.com/kungfoo/geohash-java
 org.locationtech.spatial4j:spatial4j:jar:0.6:compile,ASLv2,https://github.com/locationtech/spatial4j
 com.github.spullara.mustache.java:compiler:jar:0.9.3:compile,ASLv2,https://github.com/spullara/mustache.java/blob/master/LICENSE
@@ -345,7 +395,8 @@ org.eclipse.persistence:org.eclipse.persistence.core:jar:2.6.4:compile,EPL 1.0,h
 org.eclipse.persistence:org.eclipse.persistence.jpa.jpql:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
 org.eclipse.persistence:org.eclipse.persistence.jpa:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
 com.github.ben-manes.caffeine:caffeine:jar:2.6.2:compile,ASLv2,https://github.com/ben-manes/caffeine/blob/v2.6.2/LICENSE
-com.google.code.gson:gson:jar:2.2:compile
+com.google.code.gson:gson:jar:2.2:compile,ASLv2,https://github.com/google/gson
+com.google.code.gson:gson:jar:2.8.2:compile,ASLv2,https://github.com/google/gson
   org.codehaus.plexus:plexus-classworlds:jar:2.4:compile
   org.codehaus.plexus:plexus-component-annotations:jar:1.5.5:compile
   org.codehaus.plexus:plexus-interpolation:jar:1.14:compile
@@ -360,3 +411,6 @@ com.google.code.gson:gson:jar:2.2:compile
   org.sonatype.sisu:sisu-guice:jar:no_aop:3.0.2:compile
   org.sonatype.sisu:sisu-inject-bean:jar:2.2.2:compile
   org.sonatype.sisu:sisu-inject-plexus:jar:2.2.2:compile
+com.zaxxer:HikariCP:jar:2.7.8:compile,ASLv2,https://github.com/brettwooldridge/HikariCP
+org.hibernate.validator:hibernate-validator:jar:6.0.9.Final:compile,ASLv2,https://github.com/hibernate/hibernate-validator
+
