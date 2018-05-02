@@ -47,6 +47,7 @@ import org.apache.solr.client.solrj.response.PivotField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +92,7 @@ public class SolrSearchDao implements SearchDao {
       SolrQuery query = buildSearchRequest(searchRequest);
       QueryResponse response = client.query(query);
       return buildSearchResponse(searchRequest, response);
-    } catch (IOException | SolrServerException e) {
+    } catch (SolrException | IOException | SolrServerException e) {
       String msg = e.getMessage();
       LOG.error(msg, e);
       throw new InvalidSearchException(msg, e);

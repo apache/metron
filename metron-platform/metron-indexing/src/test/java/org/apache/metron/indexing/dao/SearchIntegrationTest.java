@@ -40,6 +40,7 @@ import org.apache.metron.integration.InMemoryComponent;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -47,11 +48,11 @@ import org.junit.rules.ExpectedException;
 public abstract class SearchIntegrationTest {
   /**
    * [
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "duplicate_name_field": "data 1", "guid":"bro_1"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "score": 50.0, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "duplicate_name_field": "data 2", "guid":"bro_2"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "score": 20.0, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "duplicate_name_field": "data 3", "guid":"bro_3"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "duplicate_name_field": "data 4", "guid":"bro_4"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "score": 98.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "duplicate_name_field": "data 5", "guid":"bro_5"}
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "ttl": "data 1", "guid":"bro_1"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "score": 50.0, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "ttl": "data 2", "guid":"bro_2"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "score": 20.0, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "ttl": "data 3", "guid":"bro_3"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "ttl": "data 4", "guid":"bro_4"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "score": 98.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "ttl": "data 5", "guid":"bro_5"}
    * ]
    */
   @Multiline
@@ -59,11 +60,11 @@ public abstract class SearchIntegrationTest {
 
   /**
    * [
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "duplicate_name_field": 1, "guid":"snort_1", "threat:triage:score":10.0},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "duplicate_name_field": 2, "guid":"snort_2", "threat:triage:score":20.0},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "duplicate_name_field": 3, "guid":"snort_3"},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "duplicate_name_field": 4, "guid":"snort_4"},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "duplicate_name_field": 5, "guid":"snort_5"}
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "ttl": 1, "guid":"snort_1", "threat:triage:score":10.0},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "ttl": 2, "guid":"snort_2", "threat:triage:score":20.0},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "ttl": 3, "guid":"snort_3"},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "ttl": 4, "guid":"snort_4"},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "ttl": 5, "guid":"snort_5"}
    * ]
    */
   @Multiline
@@ -234,7 +235,7 @@ public abstract class SearchIntegrationTest {
    * }
    */
   @Multiline
-  public static String facetQuery;
+  public static String facetQueryRaw;
 
   /**
    * {
@@ -291,7 +292,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "facetFields": ["duplicate_name_field"],
+   * "facetFields": ["ttl"],
    * "indices": ["bro", "snort"],
    * "query": "*:*",
    * "from": 0,
@@ -457,7 +458,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "indices": ["bro", "snort"],
-   * "query": "duplicate_name_field:\"data 1\"",
+   * "query": "ttl:\"data 1\"",
    * "from": 0,
    * "size": 10,
    * "sort": [
@@ -494,11 +495,11 @@ public abstract class SearchIntegrationTest {
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(10, results.size());
     for(int i = 0;i < 5;++i) {
-      Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
+      Assert.assertEquals("snort", results.get(i).getSource().get(getSourceTypeField()));
       Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
     for (int i = 5; i < 10; ++i) {
-      Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
+      Assert.assertEquals("bro", results.get(i).getSource().get(getSourceTypeField()));
       Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
   }
@@ -509,7 +510,7 @@ public abstract class SearchIntegrationTest {
     Optional<Map<String, Object>> response = dao.getLatestResult(request);
     Assert.assertTrue(response.isPresent());
     Map<String, Object> doc = response.get();
-    Assert.assertEquals("bro", doc.get("source:type"));
+    Assert.assertEquals("bro", doc.get(getSourceTypeField()));
     Assert.assertEquals("3", doc.get("timestamp").toString());
   }
 
@@ -524,8 +525,8 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(2, docs.size());
     Assert.assertTrue(docs.keySet().contains("bro_1"));
     Assert.assertTrue(docs.keySet().contains("snort_2"));
-    Assert.assertEquals("bro", docs.get("bro_1").getDocument().get("source:type"));
-    Assert.assertEquals("snort", docs.get("snort_2").getDocument().get("source:type"));
+    Assert.assertEquals("bro", docs.get("bro_1").getDocument().get(getSourceTypeField()));
+    Assert.assertEquals("snort", docs.get("snort_2").getDocument().get(getSourceTypeField()));
   }
 
   @Test
@@ -534,11 +535,11 @@ public abstract class SearchIntegrationTest {
     SearchResponse response = dao.search(request);
     Assert.assertEquals(3, response.getTotal());
     List<SearchResult> results = response.getResults();
-    Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
+    Assert.assertEquals("snort", results.get(0).getSource().get(getSourceTypeField()));
     Assert.assertEquals("9", results.get(0).getSource().get("timestamp").toString());
-    Assert.assertEquals("snort", results.get(1).getSource().get("source:type"));
+    Assert.assertEquals("snort", results.get(1).getSource().get(getSourceTypeField()));
     Assert.assertEquals("7", results.get(1).getSource().get("timestamp").toString());
-    Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
+    Assert.assertEquals("bro", results.get(2).getSource().get(getSourceTypeField()));
     Assert.assertEquals("1", results.get(2).getSource().get("timestamp").toString());
   }
 
@@ -596,11 +597,11 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(3, results.size());
-    Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
+    Assert.assertEquals("snort", results.get(0).getSource().get(getSourceTypeField()));
     Assert.assertEquals("6", results.get(0).getSource().get("timestamp").toString());
-    Assert.assertEquals("bro", results.get(1).getSource().get("source:type"));
+    Assert.assertEquals("bro", results.get(1).getSource().get(getSourceTypeField()));
     Assert.assertEquals("5", results.get(1).getSource().get("timestamp").toString());
-    Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
+    Assert.assertEquals("bro", results.get(2).getSource().get(getSourceTypeField()));
     Assert.assertEquals("4", results.get(2).getSource().get("timestamp").toString());
   }
 
@@ -611,19 +612,20 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(5, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 5, j = 0; i > 0; i--, j++) {
-      Assert.assertEquals("bro", results.get(j).getSource().get("source:type"));
+      Assert.assertEquals("bro", results.get(j).getSource().get(getSourceTypeField()));
       Assert.assertEquals(i + "", results.get(j).getSource().get("timestamp").toString());
     }
   }
 
   @Test
   public void facet_query_yields_field_types() throws Exception {
+    String facetQuery = facetQueryRaw.replace("source:type", getSourceTypeField());
     SearchRequest request = JSONUtils.INSTANCE.load(facetQuery, SearchRequest.class);
     SearchResponse response = dao.search(request);
     Assert.assertEquals(10, response.getTotal());
     Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
     Assert.assertEquals(8, facetCounts.size());
-    Map<String, Long> sourceTypeCounts = facetCounts.get("source:type");
+    Map<String, Long> sourceTypeCounts = facetCounts.get(getSourceTypeField());
     Assert.assertEquals(2, sourceTypeCounts.size());
     Assert.assertEquals(new Long(5), sourceTypeCounts.get("bro"));
     Assert.assertEquals(new Long(5), sourceTypeCounts.get("snort"));
@@ -951,4 +953,5 @@ public abstract class SearchIntegrationTest {
   protected abstract IndexDao createDao() throws Exception;
   protected abstract InMemoryComponent startIndex() throws Exception;
   protected abstract void loadTestData() throws Exception;
+  protected abstract String getSourceTypeField();
 }
