@@ -30,9 +30,14 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.integration.*;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.integration.BaseIntegrationTest;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.Processor;
+import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.integration.ReadinessState;
+import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
@@ -40,41 +45,52 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationTest {
 
   /**
-   {
-    "parserClassName" : "org.apache.metron.parsers.csv.CSVParser"
-   ,"writerClassName" : "org.apache.metron.enrichment.writer.SimpleHbaseEnrichmentWriter"
-   ,"sensorTopic":"dummy"
-   ,"parserConfig":
-   {
-     "shew.table" : "dummy"
-    ,"shew.cf" : "cf"
-    ,"shew.keyColumns" : "col2"
-    ,"shew.enrichmentType" : "et"
-    ,"shew.hbaseProvider" : "org.apache.metron.hbase.mock.MockHBaseTableProvider"
-    ,"columns" : {
-                "col1" : 0
-               ,"col2" : 1
-               ,"col3" : 2
-                 }
-   }
-   }
+   * {
+   *     "parserClassName": "org.apache.metron.parsers.csv.CSVParser",
+   *     "writerClassName": "org.apache.metron.enrichment.writer.SimpleHbaseEnrichmentWriter",
+   *     "sensorTopic": "dummy",
+   *     "outputTopic": "output",
+   *     "errorTopic": "error",
+   *     "parserConfig": {
+   *        "shew.table": "dummy",
+   *        "shew.cf": "cf",
+   *        "shew.keyColumns": "col2",
+   *        "shew.enrichmentType": "et",
+   *        "shew.hbaseProvider": "org.apache.metron.hbase.mock.MockHBaseTableProvider",
+   *        "columns" : {
+   *             "col1": 0,
+   *             "col2": 1,
+   *             "col3": 2
+   *        }
+   *     }
+   * }
    */
   @Multiline
-  public static String parserConfig;
+  public static String parserConfigJSON;
 
   @Test
   public void test() throws UnableToStartException, IOException {
     final String sensorType = "dummy";
+
+    // the input messages to parse
     final List<byte[]> inputMessages = new ArrayList<byte[]>() {{
       add(Bytes.toBytes("col11,col12,col13"));
       add(Bytes.toBytes("col21,col22,col23"));
       add(Bytes.toBytes("col31,col32,col33"));
     }};
+
+    // setup external components; kafka, zookeeper
     MockHBaseTableProvider.addToCache(sensorType, "cf");
     final Properties topologyProperties = new Properties();
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
@@ -83,17 +99,20 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
     }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
+    SensorParserConfig parserConfig = JSONUtils.INSTANCE.load(parserConfigJSON, SensorParserConfig.class);
+
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
             .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
-            .withParserSensorConfig(sensorType, JSONUtils.INSTANCE.load(parserConfig, SensorParserConfig.class));
+            .withParserSensorConfig(sensorType, parserConfig);
 
     ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
             .withSensorType(sensorType)
             .withTopologyProperties(topologyProperties)
-            .withBrokerUrl(kafkaComponent.getBrokerList()).build();
+            .withBrokerUrl(kafkaComponent.getBrokerList())
+            .withOutputTopic(parserConfig.getOutputTopic())
+            .build();
 
-    //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
             .withComponent("zk", zkServerComponent)
             .withComponent("kafka", kafkaComponent)

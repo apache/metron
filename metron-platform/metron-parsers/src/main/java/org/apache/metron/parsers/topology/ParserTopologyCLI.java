@@ -310,34 +310,40 @@ public class ParserTopologyCLI {
     String sensorType= ParserOptions.SENSOR_TYPE.get(cmd);
 
     /*
-    It bears mentioning why we're creating this ValueSupplier indirection here.
-    As a separation of responsibilities, the CLI class defines the order of precedence
-    for the various topological and structural properties for creating a parser.  This is
-    desirable because there are now (i.e. integration tests)
-    and may be in the future (i.e. a REST service to start parsers without using the CLI)
-    other mechanisms to construct parser topologies.  It's sensible to split those concerns..
-
-    Unfortunately, determining the structural parameters for a parser requires interacting with
-    external services (e.g. zookeeper) that are set up well within the ParserTopology class.
-    Rather than pulling the infrastructure to interact with those services out and moving it into the
-    CLI class and breaking that separation of concerns, we've created a supplier
-    indirection where are providing the logic as to how to create precedence in the CLI class
-    without owning the responsibility of constructing the infrastructure where the values are
-    necessarily supplied.
-
+     * It bears mentioning why we're creating this ValueSupplier indirection here.
+     * As a separation of responsibilities, the CLI class defines the order of precedence
+     * for the various topological and structural properties for creating a parser.  This is
+     * desirable because there are now (i.e. integration tests)
+     * and may be in the future (i.e. a REST service to start parsers without using the CLI)
+     * other mechanisms to construct parser topologies.  It's sensible to split those concerns..
+     *
+     * Unfortunately, determining the structural parameters for a parser requires interacting with
+     * external services (e.g. zookeeper) that are set up well within the ParserTopology class.
+     * Rather than pulling the infrastructure to interact with those services out and moving it into the
+     * CLI class and breaking that separation of concerns, we've created a supplier
+     * indirection where are providing the logic as to how to create precedence in the CLI class
+     * without owning the responsibility of constructing the infrastructure where the values are
+     * necessarily supplied.
+     *
      */
+
+    // kafka spout parallelism
     ValueSupplier<Integer> spoutParallelism = (parserConfig, clazz) -> {
       if(ParserOptions.SPOUT_PARALLELISM.has(cmd)) {
         return Integer.parseInt(ParserOptions.SPOUT_PARALLELISM.get(cmd, "1"));
       }
       return Optional.ofNullable(parserConfig.getSpoutParallelism()).orElse(1);
     };
+
+    // kafka spout number of tasks
     ValueSupplier<Integer> spoutNumTasks = (parserConfig, clazz) -> {
       if(ParserOptions.SPOUT_NUM_TASKS.has(cmd)) {
         return Integer.parseInt(ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1"));
       }
       return Optional.ofNullable(parserConfig.getSpoutNumTasks()).orElse(1);
     };
+
+    // parser bolt parallelism
     ValueSupplier<Integer> parserParallelism = (parserConfig, clazz) -> {
       if(ParserOptions.PARSER_PARALLELISM.has(cmd)) {
         return Integer.parseInt(ParserOptions.PARSER_PARALLELISM.get(cmd, "1"));
@@ -345,6 +351,7 @@ public class ParserTopologyCLI {
       return Optional.ofNullable(parserConfig.getParserParallelism()).orElse(1);
     };
 
+    // parser bolt number of tasks
     ValueSupplier<Integer> parserNumTasks = (parserConfig, clazz) -> {
       if(ParserOptions.PARSER_NUM_TASKS.has(cmd)) {
         return Integer.parseInt(ParserOptions.PARSER_NUM_TASKS.get(cmd, "1"));
@@ -352,6 +359,7 @@ public class ParserTopologyCLI {
       return Optional.ofNullable(parserConfig.getParserNumTasks()).orElse(1);
     };
 
+    // error bolt parallelism
     ValueSupplier<Integer> errorParallelism = (parserConfig, clazz) -> {
       if(ParserOptions.ERROR_WRITER_PARALLELISM.has(cmd)) {
         return Integer.parseInt(ParserOptions.ERROR_WRITER_PARALLELISM.get(cmd, "1"));
@@ -359,6 +367,7 @@ public class ParserTopologyCLI {
       return Optional.ofNullable(parserConfig.getErrorWriterParallelism()).orElse(1);
     };
 
+    // error bolt number of tasks
     ValueSupplier<Integer> errorNumTasks = (parserConfig, clazz) -> {
       if(ParserOptions.ERROR_WRITER_NUM_TASKS.has(cmd)) {
         return Integer.parseInt(ParserOptions.ERROR_WRITER_NUM_TASKS.get(cmd, "1"));
@@ -366,6 +375,7 @@ public class ParserTopologyCLI {
       return Optional.ofNullable(parserConfig.getErrorWriterNumTasks()).orElse(1);
     };
 
+    // kafka spout config
     ValueSupplier<Map> spoutConfig = (parserConfig, clazz) -> {
       if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
         return readJSONMapFromFile(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
@@ -373,6 +383,7 @@ public class ParserTopologyCLI {
       return Optional.ofNullable(parserConfig.getSpoutConfig()).orElse(new HashMap<>());
     };
 
+    // security protocol
     ValueSupplier<String> securityProtocol = (parserConfig, clazz) -> {
       Optional<String> sp = Optional.empty();
       if (ParserOptions.SECURITY_PROTOCOL.has(cmd)) {
@@ -384,6 +395,7 @@ public class ParserTopologyCLI {
       return sp.orElse(Optional.ofNullable(parserConfig.getSecurityProtocol()).orElse(null));
     };
 
+    // storm configuration
     ValueSupplier<Config> stormConf = (parserConfig, clazz) -> {
       Map<String, Object> c = parserConfig.getStormConfig();
       Config finalConfig = new Config();
@@ -399,39 +411,84 @@ public class ParserTopologyCLI {
       return ParserOptions.getConfig(cmd, finalConfig).orElse(finalConfig);
     };
 
-    Optional<String> outputTopic = ParserOptions.OUTPUT_TOPIC.has(cmd)?Optional.of(ParserOptions.OUTPUT_TOPIC.get(cmd)):Optional.empty();
+    // output topic
+    ValueSupplier<String> outputTopic = (parserConfig, clazz) -> {
+      String topic;
 
-    return getParserTopology(zookeeperUrl, brokerUrl, sensorType, spoutParallelism, spoutNumTasks, parserParallelism, parserNumTasks, errorParallelism, errorNumTasks, spoutConfig, securityProtocol, stormConf, outputTopic);
+      if(ParserOptions.OUTPUT_TOPIC.has(cmd)) {
+        topic = ParserOptions.OUTPUT_TOPIC.get(cmd);
+
+      } else if(parserConfig.getOutputTopic() != null) {
+        topic = parserConfig.getOutputTopic();
+
+      } else {
+        topic = Constants.ENRICHMENT_TOPIC;
+      }
+
+      return topic;
+    };
+
+    // error topic
+    ValueSupplier<String> errorTopic = (parserConfig, clazz) -> {
+      String topic;
+
+      if(parserConfig.getErrorTopic() != null) {
+        topic = parserConfig.getErrorTopic();
+
+      } else {
+        // topic will to set to the 'parser.error.topic' setting in globals when the error bolt is created
+        topic = null;
+      }
+
+      return topic;
+    };
+
+    return getParserTopology(
+            zookeeperUrl,
+            brokerUrl,
+            sensorType,
+            spoutParallelism,
+            spoutNumTasks,
+            parserParallelism,
+            parserNumTasks,
+            errorParallelism,
+            errorNumTasks,
+            spoutConfig,
+            securityProtocol,
+            stormConf,
+            outputTopic,
+            errorTopic);
   }
 
-  protected ParserTopologyBuilder.ParserTopology getParserTopology( String zookeeperUrl
-                                                                  , Optional<String> brokerUrl
-                                                                  , String sensorType
-                                                                  , ValueSupplier<Integer> spoutParallelism
-                                                                  , ValueSupplier<Integer> spoutNumTasks
-                                                                  , ValueSupplier<Integer> parserParallelism
-                                                                  , ValueSupplier<Integer> parserNumTasks
-                                                                  , ValueSupplier<Integer> errorParallelism
-                                                                  , ValueSupplier<Integer> errorNumTasks
-                                                                  , ValueSupplier<Map> spoutConfig
-                                                                  , ValueSupplier<String> securityProtocol
-                                                                  , ValueSupplier<Config> stormConf
-                                                                  , Optional<String> outputTopic
-                                                                  ) throws Exception
-  {
-    return ParserTopologyBuilder.build(zookeeperUrl,
-                brokerUrl,
-                sensorType,
-                spoutParallelism,
-                spoutNumTasks,
-                parserParallelism,
-                parserNumTasks,
-                errorParallelism,
-                errorNumTasks,
-                spoutConfig,
-                securityProtocol,
-                outputTopic,
-                stormConf
+  protected ParserTopologyBuilder.ParserTopology getParserTopology( String zookeeperUrl,
+                                                                    Optional<String> brokerUrl,
+                                                                    String sensorType,
+                                                                    ValueSupplier<Integer> spoutParallelism,
+                                                                    ValueSupplier<Integer> spoutNumTasks,
+                                                                    ValueSupplier<Integer> parserParallelism,
+                                                                    ValueSupplier<Integer> parserNumTasks,
+                                                                    ValueSupplier<Integer> errorParallelism,
+                                                                    ValueSupplier<Integer> errorNumTasks,
+                                                                    ValueSupplier<Map> spoutConfig,
+                                                                    ValueSupplier<String> securityProtocol,
+                                                                    ValueSupplier<Config> stormConf,
+                                                                    ValueSupplier<String> outputTopic,
+                                                                    ValueSupplier<String> errorTopic) throws Exception {
+    return ParserTopologyBuilder.build(
+            zookeeperUrl,
+            brokerUrl,
+            sensorType,
+            spoutParallelism,
+            spoutNumTasks,
+            parserParallelism,
+            parserNumTasks,
+            errorParallelism,
+            errorNumTasks,
+            spoutConfig,
+            securityProtocol,
+            outputTopic,
+            errorTopic,
+            stormConf
         );
   }
 

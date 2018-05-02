@@ -18,6 +18,9 @@
 package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
@@ -27,35 +30,171 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The configuration object that defines a parser for a given sensor.  Each
+ * sensor has its own parser configuration.
+ */
 public class SensorParserConfig implements Serializable {
 
+  /**
+   * The class name of the parser.
+   */
   private String parserClassName;
+
+  /**
+   * Allows logic to be defined to filter or ignore messages.  Messages that have been
+   * filtered will not be parsed.
+   *
+   * This should be a fully qualified name of a class that implements the
+   * org.apache.metron.parsers.interfaces.MessageFilter interface.
+   */
   private String filterClassName;
+
+  /**
+   * The input topic containing the sensor telemetry to parse.
+   */
   private String sensorTopic;
+
+  /**
+   * The output topic where the parsed telemetry will be written.
+   */
+  private String outputTopic;
+
+  /**
+   * The error topic where errors are written to.
+   */
+  private String errorTopic;
+
+  /**
+   * The fully qualified name of a class used to write messages
+   * to the output topic.
+   *
+   * <p>A sensible default is provided.
+   */
   private String writerClassName;
+
+  /**
+   * The fully qualified name of a class used to write messages
+   * to the error topic.
+   *
+   * <p>A sensible default is provided.
+   */
   private String errorWriterClassName;
-  private String invalidWriterClassName;
+
+  /**
+   * Determines if parser metadata is made available to the parser's field
+   * transformations. If true, the parser field transformations can access
+   * parser metadata values.
+   *
+   * <p>By default, this is false and parser metadata is not available
+   * to the field transformations.
+   */
   private Boolean readMetadata = false;
+
+  /**
+   * Determines if parser metadata is automatically merged into the message.  If
+   * true, parser metadata values will appear as fields within the message.
+   *
+   * <p>By default, this is false and metadata is not merged.
+   */
   private Boolean mergeMetadata = false;
+
+  /**
+   * The number of workers for the topology.
+   *
+   * <p>This property can be overridden on the CLI.
+   */
   private Integer numWorkers = null;
+
+  /**
+   * The number of ackers for the topology.
+   *
+   * <p>This property can be overridden on the CLI.
+   */
   private Integer numAckers= null;
+
+  /**
+   * The parallelism of the Kafka spout.
+   *
+   * <p>This property can be overridden on the CLI.
+   */
   private Integer spoutParallelism = 1;
+
+  /**
+   * The number of tasks for the Kafka spout.
+   *
+   * <p>This property can be overridden on the CLI.
+   */
   private Integer spoutNumTasks = 1;
+
+  /**
+   * The parallelism of the parser bolt.
+   *
+   * <p>This property can be overridden on the CLI.
+   */
   private Integer parserParallelism = 1;
+
+  /**
+   * The number of tasks for the parser bolt.
+   *
+   * <p>This property can be overridden on the CLI.
+   */
   private Integer parserNumTasks = 1;
+
+  /**
+   * The parallelism of the error writer bolt.
+   *
+   * <p>This property can be overridden on the CLI.
+   */
   private Integer errorWriterParallelism = 1;
+
+  /**
+   * The number of tasks for the error writer bolt.
+   *
+   * <p>This property can be overridden on the CLI.
+   */
   private Integer errorWriterNumTasks = 1;
-  private Map<String, Object> cacheConfig = new HashMap<>();
+
+  /**
+   * Configuration properties passed to the Kafka spout.
+   *
+   * <p>This property can be overridden on the CLI.
+   */
   private Map<String, Object> spoutConfig = new HashMap<>();
+
+  /**
+   * The Kafka security protocol.
+   *
+   * <p>This property can be overridden on the CLI.  This property can also be overridden by the spout config.
+   */
   private String securityProtocol = null;
+
+  /**
+   * Configuration properties passed to the storm topology.
+   *
+   * <p>This property can be overridden on the CLI.
+   */
   private Map<String, Object> stormConfig = new HashMap<>();
 
   /**
-   * Cache config for stellar field transformations.
-   * * stellar.cache.maxSize - The maximum number of elements in the cache.
-   * * stellar.cache.maxTimeRetain - The maximum amount of time an element is kept in the cache (in minutes).
-   * @return
+   * Configuration for the parser.
    */
+  private Map<String, Object> parserConfig = new HashMap<>();
+
+  /**
+   * The field transformations applied to the parsed messages. These allow fields
+   * of the parsed message to be transformed.
+   */
+  private List<FieldTransformer> fieldTransformations = new ArrayList<>();
+
+  /**
+   * Configures the cache that backs stellar field transformations.
+   *
+   * <li>stellar.cache.maxSize - The maximum number of elements in the cache.
+   * <li>stellar.cache.maxTimeRetain - The maximum amount of time an element is kept in the cache (in minutes).
+   */
+  private Map<String, Object> cacheConfig = new HashMap<>();
+
   public Map<String, Object> getCacheConfig() {
     return cacheConfig;
   }
@@ -64,10 +203,6 @@ public class SensorParserConfig implements Serializable {
     this.cacheConfig = cacheConfig;
   }
 
-  /**
-   * Return the number of workers for the topology.  This property will be used for the parser unless overridden on the CLI.
-   * @return
-   */
   public Integer getNumWorkers() {
     return numWorkers;
   }
@@ -76,10 +211,6 @@ public class SensorParserConfig implements Serializable {
     this.numWorkers = numWorkers;
   }
 
-  /**
-   * Return the number of ackers for the topology.  This property will be used for the parser unless overridden on the CLI.
-   * @return
-   */
   public Integer getNumAckers() {
     return numAckers;
   }
@@ -88,10 +219,6 @@ public class SensorParserConfig implements Serializable {
     this.numAckers = numAckers;
   }
 
-  /**
-   * Return the spout parallelism.  This property will be used for the parser unless overridden on the CLI.
-   * @return
-   */
   public Integer getSpoutParallelism() {
     return spoutParallelism;
   }
@@ -100,10 +227,6 @@ public class SensorParserConfig implements Serializable {
     this.spoutParallelism = spoutParallelism;
   }
 
-  /**
-   * Return the spout num tasks.  This property will be used for the parser unless overridden on the CLI.
-   * @return
-   */
   public Integer getSpoutNumTasks() {
     return spoutNumTasks;
   }
@@ -112,10 +235,6 @@ public class SensorParserConfig implements Serializable {
     this.spoutNumTasks = spoutNumTasks;
   }
 
-  /**
-   * Return the parser parallelism.  This property will be used for the parser unless overridden on the CLI.
-   * @return
-   */
   public Integer getParserParallelism() {
     return parserParallelism;
   }
@@ -124,10 +243,6 @@ public class SensorParserConfig implements Serializable {
     this.parserParallelism = parserParallelism;
   }
 
-  /**
-   * Return the parser number of tasks.  This property will be used for the parser unless overridden on the CLI.
-   * @return
-   */
   public Integer getParserNumTasks() {
     return parserNumTasks;
   }
@@ -136,10 +251,6 @@ public class SensorParserConfig implements Serializable {
     this.parserNumTasks = parserNumTasks;
   }
 
-  /**
-   * Return the error writer bolt parallelism.  This property will be used for the parser unless overridden on the CLI.
-   * @return
-   */
   public Integer getErrorWriterParallelism() {
     return errorWriterParallelism;
   }
@@ -148,10 +259,6 @@ public class SensorParserConfig implements Serializable {
     this.errorWriterParallelism = errorWriterParallelism;
   }
 
-  /**
-   * Return the error writer bolt number of tasks.  This property will be used for the parser unless overridden on the CLI.
-   * @return
-   */
   public Integer getErrorWriterNumTasks() {
     return errorWriterNumTasks;
   }
@@ -160,10 +267,6 @@ public class SensorParserConfig implements Serializable {
     this.errorWriterNumTasks = errorWriterNumTasks;
   }
 
-  /**
-   * Return the spout config.  This includes kafka properties.  This property will be used for the parser unless overridden on the CLI.
-   * @return
-   */
   public Map<String, Object> getSpoutConfig() {
     return spoutConfig;
   }
@@ -172,11 +275,6 @@ public class SensorParserConfig implements Serializable {
     this.spoutConfig = spoutConfig;
   }
 
-  /**
-   * Return security protocol to use.  This property will be used for the parser unless overridden on the CLI.
-   * The order of precedence is CLI > spout config > config in the sensor parser config.
-   * @return
-   */
   public String getSecurityProtocol() {
     return securityProtocol;
   }
@@ -185,10 +283,6 @@ public class SensorParserConfig implements Serializable {
     this.securityProtocol = securityProtocol;
   }
 
-  /**
-   * Return Storm topologyconfig.  This property will be used for the parser unless overridden on the CLI.
-   * @return
-   */
   public Map<String, Object> getStormConfig() {
     return stormConfig;
   }
@@ -197,10 +291,6 @@ public class SensorParserConfig implements Serializable {
     this.stormConfig = stormConfig;
   }
 
-  /**
-   * Return whether or not to merge metadata sent into the message.  If true, then metadata become proper fields.
-   * @return
-   */
   public Boolean getMergeMetadata() {
     return mergeMetadata;
   }
@@ -209,10 +299,6 @@ public class SensorParserConfig implements Serializable {
     this.mergeMetadata = mergeMetadata;
   }
 
-  /**
-   * Return whether or not to read metadata at all.
-   * @return
-   */
   public Boolean getReadMetadata() {
     return readMetadata;
   }
@@ -229,22 +315,13 @@ public class SensorParserConfig implements Serializable {
     this.errorWriterClassName = errorWriterClassName;
   }
 
-  public String getInvalidWriterClassName() {
-    return invalidWriterClassName;
-  }
-
-  public void setInvalidWriterClassName(String invalidWriterClassName) {
-    this.invalidWriterClassName = invalidWriterClassName;
-  }
-
   public String getWriterClassName() {
     return writerClassName;
   }
+
   public void setWriterClassName(String classNames) {
     this.writerClassName = classNames;
   }
-  private Map<String, Object> parserConfig = new HashMap<>();
-  private List<FieldTransformer> fieldTransformations = new ArrayList<>();
 
   public List<FieldTransformer> getFieldTransformations() {
     return fieldTransformations;
@@ -278,6 +355,22 @@ public class SensorParserConfig implements Serializable {
     this.sensorTopic = sensorTopic;
   }
 
+  public String getOutputTopic() {
+    return outputTopic;
+  }
+
+  public void setOutputTopic(String outputTopic) {
+    this.outputTopic = outputTopic;
+  }
+
+  public String getErrorTopic() {
+    return errorTopic;
+  }
+
+  public void setErrorTopic(String errorTopic) {
+    this.errorTopic = errorTopic;
+  }
+
   public Map<String, Object> getParserConfig() {
     return parserConfig;
   }
@@ -298,112 +391,103 @@ public class SensorParserConfig implements Serializable {
     }
   }
 
-
   public String toJSON() throws JsonProcessingException {
     return JSONUtils.INSTANCE.toJSON(this, true);
   }
 
   @Override
-  public String toString() {
-    return "SensorParserConfig{" +
-            "parserClassName='" + parserClassName + '\'' +
-            ", filterClassName='" + filterClassName + '\'' +
-            ", sensorTopic='" + sensorTopic + '\'' +
-            ", writerClassName='" + writerClassName + '\'' +
-            ", errorWriterClassName='" + errorWriterClassName + '\'' +
-            ", invalidWriterClassName='" + invalidWriterClassName + '\'' +
-            ", readMetadata=" + readMetadata +
-            ", mergeMetadata=" + mergeMetadata +
-            ", numWorkers=" + numWorkers +
-            ", numAckers=" + numAckers +
-            ", spoutParallelism=" + spoutParallelism +
-            ", spoutNumTasks=" + spoutNumTasks +
-            ", parserParallelism=" + parserParallelism +
-            ", parserNumTasks=" + parserNumTasks +
-            ", errorWriterParallelism=" + errorWriterParallelism +
-            ", errorWriterNumTasks=" + errorWriterNumTasks +
-            ", spoutConfig=" + spoutConfig +
-            ", securityProtocol='" + securityProtocol + '\'' +
-            ", stormConfig=" + stormConfig +
-            ", parserConfig=" + parserConfig +
-            ", fieldTransformations=" + fieldTransformations +
-            '}';
-  }
-
-  @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     SensorParserConfig that = (SensorParserConfig) o;
-
-    if (getParserClassName() != null ? !getParserClassName().equals(that.getParserClassName()) : that.getParserClassName() != null)
-      return false;
-    if (getFilterClassName() != null ? !getFilterClassName().equals(that.getFilterClassName()) : that.getFilterClassName() != null)
-      return false;
-    if (getSensorTopic() != null ? !getSensorTopic().equals(that.getSensorTopic()) : that.getSensorTopic() != null)
-      return false;
-    if (getWriterClassName() != null ? !getWriterClassName().equals(that.getWriterClassName()) : that.getWriterClassName() != null)
-      return false;
-    if (getErrorWriterClassName() != null ? !getErrorWriterClassName().equals(that.getErrorWriterClassName()) : that.getErrorWriterClassName() != null)
-      return false;
-    if (getInvalidWriterClassName() != null ? !getInvalidWriterClassName().equals(that.getInvalidWriterClassName()) : that.getInvalidWriterClassName() != null)
-      return false;
-    if (getReadMetadata() != null ? !getReadMetadata().equals(that.getReadMetadata()) : that.getReadMetadata() != null)
-      return false;
-    if (getMergeMetadata() != null ? !getMergeMetadata().equals(that.getMergeMetadata()) : that.getMergeMetadata() != null)
-      return false;
-    if (getNumWorkers() != null ? !getNumWorkers().equals(that.getNumWorkers()) : that.getNumWorkers() != null)
-      return false;
-    if (getNumAckers() != null ? !getNumAckers().equals(that.getNumAckers()) : that.getNumAckers() != null)
-      return false;
-    if (getSpoutParallelism() != null ? !getSpoutParallelism().equals(that.getSpoutParallelism()) : that.getSpoutParallelism() != null)
-      return false;
-    if (getSpoutNumTasks() != null ? !getSpoutNumTasks().equals(that.getSpoutNumTasks()) : that.getSpoutNumTasks() != null)
-      return false;
-    if (getParserParallelism() != null ? !getParserParallelism().equals(that.getParserParallelism()) : that.getParserParallelism() != null)
-      return false;
-    if (getParserNumTasks() != null ? !getParserNumTasks().equals(that.getParserNumTasks()) : that.getParserNumTasks() != null)
-      return false;
-    if (getErrorWriterParallelism() != null ? !getErrorWriterParallelism().equals(that.getErrorWriterParallelism()) : that.getErrorWriterParallelism() != null)
-      return false;
-    if (getErrorWriterNumTasks() != null ? !getErrorWriterNumTasks().equals(that.getErrorWriterNumTasks()) : that.getErrorWriterNumTasks() != null)
-      return false;
-    if (getSpoutConfig() != null ? !getSpoutConfig().equals(that.getSpoutConfig()) : that.getSpoutConfig() != null)
-      return false;
-    if (getSecurityProtocol() != null ? !getSecurityProtocol().equals(that.getSecurityProtocol()) : that.getSecurityProtocol() != null)
-      return false;
-    if (getStormConfig() != null ? !getStormConfig().equals(that.getStormConfig()) : that.getStormConfig() != null)
-      return false;
-    if (getParserConfig() != null ? !getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() != null)
-      return false;
-    return getFieldTransformations() != null ? getFieldTransformations().equals(that.getFieldTransformations()) : that.getFieldTransformations() == null;
-
+    return new EqualsBuilder()
+            .append(parserClassName, that.parserClassName)
+            .append(filterClassName, that.filterClassName)
+            .append(sensorTopic, that.sensorTopic)
+            .append(outputTopic, that.outputTopic)
+            .append(errorTopic, that.errorTopic)
+            .append(writerClassName, that.writerClassName)
+            .append(errorWriterClassName, that.errorWriterClassName)
+            .append(readMetadata, that.readMetadata)
+            .append(mergeMetadata, that.mergeMetadata)
+            .append(numWorkers, that.numWorkers)
+            .append(numAckers, that.numAckers)
+            .append(spoutParallelism, that.spoutParallelism)
+            .append(spoutNumTasks, that.spoutNumTasks)
+            .append(parserParallelism, that.parserParallelism)
+            .append(parserNumTasks, that.parserNumTasks)
+            .append(errorWriterParallelism, that.errorWriterParallelism)
+            .append(errorWriterNumTasks, that.errorWriterNumTasks)
+            .append(spoutConfig, that.spoutConfig)
+            .append(securityProtocol, that.securityProtocol)
+            .append(stormConfig, that.stormConfig)
+            .append(cacheConfig, that.cacheConfig)
+            .append(parserConfig, that.parserConfig)
+            .append(fieldTransformations, that.fieldTransformations)
+            .isEquals();
   }
 
   @Override
   public int hashCode() {
-    int result = getParserClassName() != null ? getParserClassName().hashCode() : 0;
-    result = 31 * result + (getFilterClassName() != null ? getFilterClassName().hashCode() : 0);
-    result = 31 * result + (getSensorTopic() != null ? getSensorTopic().hashCode() : 0);
-    result = 31 * result + (getWriterClassName() != null ? getWriterClassName().hashCode() : 0);
-    result = 31 * result + (getErrorWriterClassName() != null ? getErrorWriterClassName().hashCode() : 0);
-    result = 31 * result + (getInvalidWriterClassName() != null ? getInvalidWriterClassName().hashCode() : 0);
-    result = 31 * result + (getReadMetadata() != null ? getReadMetadata().hashCode() : 0);
-    result = 31 * result + (getMergeMetadata() != null ? getMergeMetadata().hashCode() : 0);
-    result = 31 * result + (getNumWorkers() != null ? getNumWorkers().hashCode() : 0);
-    result = 31 * result + (getNumAckers() != null ? getNumAckers().hashCode() : 0);
-    result = 31 * result + (getSpoutParallelism() != null ? getSpoutParallelism().hashCode() : 0);
-    result = 31 * result + (getSpoutNumTasks() != null ? getSpoutNumTasks().hashCode() : 0);
-    result = 31 * result + (getParserParallelism() != null ? getParserParallelism().hashCode() : 0);
-    result = 31 * result + (getParserNumTasks() != null ? getParserNumTasks().hashCode() : 0);
-    result = 31 * result + (getErrorWriterParallelism() != null ? getErrorWriterParallelism().hashCode() : 0);
-    result = 31 * result + (getErrorWriterNumTasks() != null ? getErrorWriterNumTasks().hashCode() : 0);
-    result = 31 * result + (getSpoutConfig() != null ? getSpoutConfig().hashCode() : 0);
-    result = 31 * result + (getSecurityProtocol() != null ? getSecurityProtocol().hashCode() : 0);
-    result = 31 * result + (getStormConfig() != null ? getStormConfig().hashCode() : 0);
-    result = 31 * result + (getParserConfig() != null ? getParserConfig().hashCode() : 0);
-    result = 31 * result + (getFieldTransformations() != null ? getFieldTransformations().hashCode() : 0);
-    return result;
+    return new HashCodeBuilder(17, 37)
+            .append(parserClassName)
+            .append(filterClassName)
+            .append(sensorTopic)
+            .append(outputTopic)
+            .append(errorTopic)
+            .append(writerClassName)
+            .append(errorWriterClassName)
+            .append(readMetadata)
+            .append(mergeMetadata)
+            .append(numWorkers)
+            .append(numAckers)
+            .append(spoutParallelism)
+            .append(spoutNumTasks)
+            .append(parserParallelism)
+            .append(parserNumTasks)
+            .append(errorWriterParallelism)
+            .append(errorWriterNumTasks)
+            .append(spoutConfig)
+            .append(securityProtocol)
+            .append(stormConfig)
+            .append(cacheConfig)
+            .append(parserConfig)
+            .append(fieldTransformations)
+            .toHashCode();
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this)
+            .append("parserClassName", parserClassName)
+            .append("filterClassName", filterClassName)
+            .append("sensorTopic", sensorTopic)
+            .append("outputTopic", outputTopic)
+            .append("errorTopic", errorTopic)
+            .append("writerClassName", writerClassName)
+            .append("errorWriterClassName", errorWriterClassName)
+            .append("readMetadata", readMetadata)
+            .append("mergeMetadata", mergeMetadata)
+            .append("numWorkers", numWorkers)
+            .append("numAckers", numAckers)
+            .append("spoutParallelism", spoutParallelism)
+            .append("spoutNumTasks", spoutNumTasks)
+            .append("parserParallelism", parserParallelism)
+            .append("parserNumTasks", parserNumTasks)
+            .append("errorWriterParallelism", errorWriterParallelism)
+            .append("errorWriterNumTasks", errorWriterNumTasks)
+            .append("spoutConfig", spoutConfig)
+            .append("securityProtocol", securityProtocol)
+            .append("stormConfig", stormConfig)
+            .append("cacheConfig", cacheConfig)
+            .append("parserConfig", parserConfig)
+            .append("fieldTransformations", fieldTransformations)
+            .toString();
   }
 }
