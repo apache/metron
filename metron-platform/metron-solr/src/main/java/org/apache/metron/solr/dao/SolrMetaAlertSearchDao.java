@@ -21,6 +21,7 @@ package org.apache.metron.solr.dao;
 import static org.apache.metron.solr.dao.SolrMetaAlertDao.METAALERTS_COLLECTION;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,8 +48,12 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CursorMarkParams;
 import org.apache.solr.common.params.MapSolrParams;
 import org.apache.solr.common.params.SolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   transient SolrSearchDao solrSearchDao;
   transient SolrClient solrClient;
@@ -131,6 +136,8 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
         "(" + searchRequest.getQuery() + " AND -" + MetaAlertConstants.METAALERT_FIELD + ":[* TO *]"
             + " AND " + "-" + metaalertTypeClause + ")" + " OR " + parentChildQuery;
 
+    LOG.debug("MetaAlert search query {}", fullQuery);
+
     searchRequest.setQuery(fullQuery);
 
     // Build the custom field list
@@ -140,43 +147,52 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
       fieldList = StringUtils.join(fields, ",");
     }
 
+    LOG.debug("MetaAlert Search Field list {}", fullQuery);
+
     SearchResponse results = solrSearchDao.search(searchRequest, fieldList);
+    LOG.debug("MetaAlert Search Number of results {}", results.getResults().size());
 
     // Unfortunately, we can't get the full metaalert results at the same time
     // Get them in a second query.
-    List<String> metaalertGuids = new ArrayList<>();
-    for (SearchResult result : results.getResults()) {
-      if (result.getSource().get(Constants.SENSOR_TYPE).equals(MetaAlertConstants.METAALERT_TYPE)) {
-        // Then we need to add it to the list to retrieve child alerts in a second query.
-        metaalertGuids.add(result.getId());
-      }
-    }
-
-    // If we have any metaalerts in our result, attach the full data.
-    if (metaalertGuids.size() > 0) {
-      Map<String, String> params = new HashMap<>();
-      params.put("fl", fieldList + ",[child parentFilter=" + metaalertTypeClause + " limit=999]");
-      SolrParams solrParams = new MapSolrParams(params);
-      try {
-        SolrDocumentList solrDocumentList = solrClient
-            .getById(METAALERTS_COLLECTION, metaalertGuids, solrParams);
-        Map<String, Document> guidToDocuments = new HashMap<>();
-        for (SolrDocument doc : solrDocumentList) {
-          Document document = SolrUtilities.toDocument(doc);
-          guidToDocuments.put(document.getGuid(), document);
+    // However, we can only retrieve them if we have the source type field (either explicit or
+    // wildcard).
+    if (fieldList.contains("*") || fieldList.contains(Constants.SENSOR_TYPE)) {
+      List<String> metaalertGuids = new ArrayList<>();
+      for (SearchResult result : results.getResults()) {
+        if (result.getSource().get(Constants.SENSOR_TYPE)
+            .equals(MetaAlertConstants.METAALERT_TYPE)) {
+          // Then we need to add it to the list to retrieve child alerts in a second query.
+          metaalertGuids.add(result.getId());
         }
+      }
+      LOG.debug("MetaAlert Search guids requiring retrieval: {}", metaalertGuids);
 
-        // Run through our results and update them with the full metaalert
-        for (SearchResult result : results.getResults()) {
-          Document fullDoc = guidToDocuments.get(result.getId());
-          if (fullDoc != null) {
-            result.setSource(fullDoc.getDocument());
+      // If we have any metaalerts in our result, attach the full data.
+      if (metaalertGuids.size() > 0) {
+        Map<String, String> params = new HashMap<>();
+        params.put("fl", fieldList + ",[child parentFilter=" + metaalertTypeClause + " limit=999]");
+        SolrParams solrParams = new MapSolrParams(params);
+        try {
+          SolrDocumentList solrDocumentList = solrClient
+              .getById(METAALERTS_COLLECTION, metaalertGuids, solrParams);
+          Map<String, Document> guidToDocuments = new HashMap<>();
+          for (SolrDocument doc : solrDocumentList) {
+            Document document = SolrUtilities.toDocument(doc);
+            guidToDocuments.put(document.getGuid(), document);
           }
-        }
-      } catch (SolrServerException | IOException e) {
-        throw new InvalidSearchException("Error when retrieving child alerts for metaalerts", e);
-      }
 
+          // Run through our results and update them with the full metaalert
+          for (SearchResult result : results.getResults()) {
+            Document fullDoc = guidToDocuments.get(result.getId());
+            if (fullDoc != null) {
+              result.setSource(fullDoc.getDocument());
+            }
+          }
+        } catch (SolrServerException | IOException e) {
+          throw new InvalidSearchException("Error when retrieving child alerts for metaalerts", e);
+        }
+
+      }
     }
     return results;
   }
@@ -188,6 +204,7 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
     String baseQuery = groupRequest.getQuery();
     String adjustedQuery = baseQuery + " -" + MetaAlertConstants.METAALERT_FIELD + ":[* TO *]"
         + " -" + sourceType + ":" + MetaAlertConstants.METAALERT_TYPE;
+    LOG.debug("MetaAlert group adjusted query: {}", adjustedQuery);
     groupRequest.setQuery(adjustedQuery);
     return solrSearchDao.group(groupRequest);
   }

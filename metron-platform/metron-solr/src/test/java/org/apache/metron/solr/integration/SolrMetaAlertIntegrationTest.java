@@ -128,22 +128,6 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     solr.reset();
   }
 
-//  @Test
-//  public void shouldSearchByNestedAlertAlot() throws Exception {
-//    for (int i = 0; i < 500; ++i) {
-//      System.out.println("\nRound : " + i);
-//      if (i != 0) {
-//        setup();
-//      }
-//      try {
-//        shouldSearchByNestedAlert();
-//      } catch (Exception e) {
-//        throw new IllegalStateException(e);
-//      }
-//      reset();
-//    }
-//  }
-
   @Test
   @Override
   @SuppressWarnings("unchecked")
@@ -259,6 +243,55 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
         .get(MetaAlertConstants.ALERT_FIELD);
     Assert.assertNull(actualAlerts);
     Assert.assertEquals("message_2",
+        searchResponse.getResults().get(0).getSource().get("guid"));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void shouldNotRetrieveFullChildrenWithoutSourceType() throws Exception {
+    // Load alerts
+    List<Map<String, Object>> alerts = buildAlerts(1);
+    alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
+    alerts.get(0).put("ip_src_addr", "192.168.1.1");
+    alerts.get(0).put("ip_src_port", 8010);
+    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+
+    // Put the nested type into the test index, so that it'll match appropriately
+    setupTypings();
+
+    // Load metaAlerts
+    Map<String, Object> activeMetaAlert = buildMetaAlert("meta_active", MetaAlertStatus.ACTIVE,
+        Optional.of(Arrays.asList(alerts.get(0))));
+    // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
+    addRecords(Collections.singletonList(activeMetaAlert), METAALERTS_COLLECTION, METAALERT_TYPE);
+
+    // Verify load was successful
+    findCreatedDocs(Collections.singletonList(new GetRequest("meta_active", METAALERT_TYPE)));
+
+    SearchResponse searchResponse = metaDao.search(new SearchRequest() {
+      {
+        setQuery(
+            "ip_src_addr:192.168.1.1 AND ip_src_port:8010");
+        setIndices(Collections.singletonList(METAALERT_TYPE));
+        setFrom(0);
+        setSize(5);
+        setFields(Collections.singletonList(Constants.GUID));
+        setSort(Collections.singletonList(new SortField() {
+          {
+            setField(Constants.GUID);
+          }
+        }));
+      }
+    });
+
+    // Should have one result because Solr will return the parent.
+    Assert.assertEquals(1, searchResponse.getTotal());
+    // Ensure we returned didn't return the child alerts
+    List<Map<String, Object>> actualAlerts = (List<Map<String, Object>>) searchResponse.getResults()
+        .get(0).getSource()
+        .get(MetaAlertConstants.ALERT_FIELD);
+    Assert.assertNull(actualAlerts);
+    Assert.assertEquals("meta_active",
         searchResponse.getResults().get(0).getSource().get("guid"));
   }
 
