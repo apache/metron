@@ -136,8 +136,6 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
         .getSchemaRepresentation();
     indexFields.addAll(schemaRepresentation.getFields());
 
-    System.out.println(indexFields);
-
     return indexFields;
   }
 
