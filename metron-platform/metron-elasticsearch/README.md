@@ -25,7 +25,6 @@ limitations under the License.
 * [Type Mappings](#type-mappings)
 * [Using Metron with Elasticsearch 5.6.2](#using-metron-with-elasticsearch-562)
 * [Installing Elasticsearch Templates](#installing-elasticsearch-templates)
-* [Integration Testing](#integration-testing)
 
 ## Introduction
 
@@ -333,9 +332,3 @@ Ambari UI -> Services -> Metron -> Service Actions -> Elasticsearch Template Ins
 _Method 2_ - Stop the Metron Indexing service, and start it again from Ambari UI. Note that the Metron Indexing service tracks if it has successfully installed the Elasticsearch templates, and will attempt to do so each time it is Started until successful.
 
 > Note: If you have made any customization to your index templates, then installing Elasticsearch templates afresh will lead to overwriting your existing changes. Please exercise caution.
-
-## Integration Testing
-
-Integration tests depend on Elasticsearch running inside a Docker container.  Due to limitations with Docker on Mac, docker-machine must be used to run Docker in a virtual machine.  
-
-If running integration tests in this scenario, the "es.ip" setting in the global config returned by ElasticsearchTestUtils.getGlobalConfig() must be changed from "localhost" to the ip address of your Docker machine.  The ip address can be found by running `docker-machine env metron-machine`.
