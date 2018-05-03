@@ -49,7 +49,7 @@ describe('Test spec for metron details page', function() {
     jasmine.addMatchers(customMatchers);
   });
 
-  xit('should change alert statuses', async function() : Promise<any> {
+  it('should change alert statuses', async function() : Promise<any> {
     let alertId = '2cc174d7-c049-aaf4-d0d6-138073777309';
 
     await page.navigateTo(alertId);
@@ -104,7 +104,7 @@ describe('Test spec for metron details page', function() {
     page.closeDetailPane();
   });
 
-  xit('should add comments for tree view', () => {
+  it('should add comments for tree view', () => {
     let comment1 = 'This is a sample comment';
     let comment2 = 'This is a sample comment again';
     let userNameAndTimestamp = '- admin - a few seconds ago';

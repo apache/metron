@@ -51,9 +51,9 @@ describe('Test spec for changing alert status in list view & tree view', functio
     await page.toggleAlertInList(1);
     await page.toggleAlertInList(2);
     await page.clickActionDropdownOption('Open');
-    // expect(await page.getAlertStatus(0, 'NEW')).toEqual('OPEN');
-    // expect(await page.getAlertStatus(1, 'NEW')).toEqual('OPEN');
-    // expect(await page.getAlertStatus(2, 'NEW')).toEqual('OPEN');
+    expect(await page.getAlertStatus(0, 'NEW')).toEqual('OPEN');
+    expect(await page.getAlertStatus(1, 'NEW')).toEqual('OPEN');
+    expect(await page.getAlertStatus(2, 'NEW')).toEqual('OPEN');
   });
 
   it('should change alert status for multiple alerts to DISMISS', async function() : Promise<any> {
@@ -61,9 +61,9 @@ describe('Test spec for changing alert status in list view & tree view', functio
     await page.toggleAlertInList(4);
     await page.toggleAlertInList(5);
     await page.clickActionDropdownOption('Dismiss');
-    // expect(await page.getAlertStatus(3, 'NEW')).toEqual('DISMISS');
-    // expect(await page.getAlertStatus(4, 'NEW')).toEqual('DISMISS');
-    // expect(await page.getAlertStatus(5, 'NEW')).toEqual('DISMISS');
+    expect(await page.getAlertStatus(3, 'NEW')).toEqual('DISMISS');
+    expect(await page.getAlertStatus(4, 'NEW')).toEqual('DISMISS');
+    expect(await page.getAlertStatus(5, 'NEW')).toEqual('DISMISS');
   });
 
   it('should change alert status for multiple alerts to ESCALATE', async function() : Promise<any> {
@@ -71,9 +71,9 @@ describe('Test spec for changing alert status in list view & tree view', functio
     await page.toggleAlertInList(7);
     await page.toggleAlertInList(8);
     await page.clickActionDropdownOption('Escalate');
-    // expect(await page.getAlertStatus(6, 'NEW')).toEqual('ESCALATE');
-    // expect(await page.getAlertStatus(7, 'NEW')).toEqual('ESCALATE');
-    // expect(await page.getAlertStatus(8, 'NEW')).toEqual('ESCALATE');
+    expect(await page.getAlertStatus(6, 'NEW')).toEqual('ESCALATE');
+    expect(await page.getAlertStatus(7, 'NEW')).toEqual('ESCALATE');
+    expect(await page.getAlertStatus(8, 'NEW')).toEqual('ESCALATE');
   });
 
   it('should change alert status for multiple alerts to RESOLVE', async function() : Promise<any> {
@@ -81,16 +81,16 @@ describe('Test spec for changing alert status in list view & tree view', functio
     await page.toggleAlertInList(10);
     await page.toggleAlertInList(11);
     await page.clickActionDropdownOption('Resolve');
-    // expect(await page.getAlertStatus(9, 'NEW')).toEqual('RESOLVE');
-    // expect(await page.getAlertStatus(10, 'NEW')).toEqual('RESOLVE');
-    // expect(await page.getAlertStatus(11, 'NEW')).toEqual('RESOLVE');
+    expect(await page.getAlertStatus(9, 'NEW')).toEqual('RESOLVE');
+    expect(await page.getAlertStatus(10, 'NEW')).toEqual('RESOLVE');
+    expect(await page.getAlertStatus(11, 'NEW')).toEqual('RESOLVE');
   });
 
 
   it('should change alert status for multiple alerts to OPEN in tree view', async function() : Promise<any> {
     await treePage.selectGroup('source:type');
     await treePage.selectGroup('enrichments:geo:ip_dst_addr:country');
-    
+
     await treePage.expandDashGroup('alerts_ui_e2e');
     await treePage.expandSubGroup('alerts_ui_e2e', 'US');
     await treePage.expandSubGroup('alerts_ui_e2e', 'RU');
@@ -100,29 +100,29 @@ describe('Test spec for changing alert status in list view & tree view', functio
     await treePage.toggleAlertInTree(2);
     await treePage.toggleAlertInTree(3);
     await page.clickActionDropdownOption('Open');
-    // expect(treePage.getAlertStatusForTreeView(1, 'NEW')).toEqual('OPEN');
-    // expect(treePage.getAlertStatusForTreeView(2, 'NEW')).toEqual('OPEN');
-    // expect(treePage.getAlertStatusForTreeView(3, 'NEW')).toEqual('OPEN');
+    expect(treePage.getAlertStatusForTreeView(1, 'NEW')).toEqual('OPEN');
+    expect(treePage.getAlertStatusForTreeView(2, 'NEW')).toEqual('OPEN');
+    expect(treePage.getAlertStatusForTreeView(3, 'NEW')).toEqual('OPEN');
 
     await treePage.toggleAlertInTree(4);
     await treePage.toggleAlertInTree(5);
     await page.clickActionDropdownOption('Dismiss');
-    // expect(treePage.getAlertStatusForTreeView(4, 'NEW')).toEqual('DISMISS');
-    // expect(treePage.getAlertStatusForTreeView(5, 'NEW')).toEqual('DISMISS');
+    expect(treePage.getAlertStatusForTreeView(4, 'NEW')).toEqual('DISMISS');
+    expect(treePage.getAlertStatusForTreeView(5, 'NEW')).toEqual('DISMISS');
 
     await treePage.toggleAlertInTree(8);
     await treePage.toggleAlertInTree(9);
     await page.clickActionDropdownOption('Escalate');
-    // expect(treePage.getAlertStatusForTreeView(8, 'NEW')).toEqual('ESCALATE');
-    // expect(treePage.getAlertStatusForTreeView(9, 'NEW')).toEqual('ESCALATE');
+    expect(treePage.getAlertStatusForTreeView(8, 'NEW')).toEqual('ESCALATE');
+    expect(treePage.getAlertStatusForTreeView(9, 'NEW')).toEqual('ESCALATE');
 
     await treePage.toggleAlertInTree(10);
     await treePage.toggleAlertInTree(11);
     await treePage.toggleAlertInTree(12);
     await page.clickActionDropdownOption('Resolve');
-    // expect(treePage.getAlertStatusForTreeView(10, 'NEW')).toEqual('RESOLVE');
-    // expect(treePage.getAlertStatusForTreeView(11, 'NEW')).toEqual('RESOLVE');
-    // expect(treePage.getAlertStatusForTreeView(12, 'NEW')).toEqual('RESOLVE');
+    expect(treePage.getAlertStatusForTreeView(10, 'NEW')).toEqual('RESOLVE');
+    expect(treePage.getAlertStatusForTreeView(11, 'NEW')).toEqual('RESOLVE');
+    expect(treePage.getAlertStatusForTreeView(12, 'NEW')).toEqual('RESOLVE');
   });
 
 });
