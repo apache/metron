@@ -379,33 +379,9 @@ export class MetronAlertsPage {
 
   async selectQuickTimeRangeAndGetTimeRangeAndTimeText(quickRange: string) {
     let currentTimeRangeVal: any = [];
-    // return element.all(by.css('app-time-range button span')).getText()
-    //       .then(text => currentTimeRangeVal = text)
-    //       .then(() => this.selectQuickTimeRange(quickRange))
-    //       .then(() => waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show'))
-    //       .then(() => waitForTextChange(element(by.css('app-time-range .time-range-value')), currentTimeRangeVal[1]))
-    //       .then(() => waitForTextChange(element(by.css('app-time-range .time-range-text')), currentTimeRangeVal[0]))
-    //       .then(() => this.getTimeRangeButtonAndSubText());
-
-    // return Promise.all([
-    //   element(by.id('app-time-range .time-range-value')).getText(),
-    //   element(by.id('app-time-range .time-range-text')).getText()
-    // ]).then(function(prevValues){
-
-
-    // return this.selectQuickTimeRange(quickRange)
-    //   .then(() => waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show'))
-    //   .then(() => element(by.css('app-time-range .time-range-value')).getText())
-    //   .then((text) => waitForTextChange(element(by.css('app-time-range .time-range-value')), text))
-    //   // .then(() => waitForTextChange(element(by.css('app-time-range .time-range-text')), prevValues[0]))
-    //   .then(() => this.getTimeRangeButtonAndSubText());
-    // // });
-
     let timeRangeVal = '', timeRangeText = '';
     await element(by.css('app-time-range .time-range-value')).getText().then(text => timeRangeVal = text.trim());
     await element(by.css('app-time-range .time-range-text')).getText().then(text => timeRangeText = text.trim());
-
-    // console.log('old', timeRangeText, timeRangeVal);
 
     await this.selectQuickTimeRange(quickRange);
     await waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show');
@@ -413,24 +389,6 @@ export class MetronAlertsPage {
     await waitForTextChange(element(by.css('app-time-range .time-range-text')), timeRangeText);
 
     return this.getTimeRangeButtonAndSubText();
-
-
-    // return await this.selectQuickTimeRange(quickRange)
-    //         .then(() => browser.waitForAngular())
-    //         .then(() => waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show'))
-    //         .then(() => waitForTextChange(element(by.css('app-time-range .time-range-value')), timeRangeVal))
-    //         .then(() => this.getTimeRangeButtonAndSubText())
-    //         .catch(err => console.log(err));
-
-    // return element(by.css('app-time-range .time-range-value')).getText().then(text => {
-    //   // console.log('text is', text);
-    //   return this.selectQuickTimeRange(quickRange)
-    //   .then(() => browser.waitForAngular())
-    //   .then(() => waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show'))
-    //   .then(() => waitForTextChange(element(by.css('app-time-range .time-range-value')), text))
-    //   .then(() => this.getTimeRangeButtonAndSubText())
-    //   .catch(err => console.log(err));
-    // })
   }
 
   selectQuickTimeRangeAndGetTimeRangeText(quickRange: string) {
@@ -531,85 +489,8 @@ export class MetronAlertsPage {
   async getTimeRangeButtonAndSubText() {
     let timeRangetext = '', timeRangeValue = '';
 
-    // return browser.waitForAngular()
-    // .then(() => waitForNonEmptyText(element(by.css('app-time-range .time-range-value'))))
-    // .then(() => {
-    //   return element(by.css('app-time-range .time-range-text')).getText().then((timeRangetext) => {
-    //     return element(by.css('app-time-range .time-range-value')).getText().then((timeRangeValue) => {
-    //       let retArr = [timeRangetext];
-    //       let dateStr = timeRangeValue.split(' to ');
-    //       let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-    //       let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-    //       retArr.push((toTime - fromTime) + '');
-    //       return (retArr);
-    //     });
-    //   });
-    // });
-    // return waitForNonEmptyText(element(by.css('app-time-range .time-range-value')))
-    //         .then(() => {
-    //
-    //           return Promise.all([
-    //             element(by.css('app-time-range .time-range-text')).getText(),
-    //             element(by.css('app-time-range .time-range-value')).getText()
-    //           ]).then(values => {
-    //             let retArr = [values[0]];
-    //             let dateStr = values[1].split(' to ');
-    //             let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-    //             let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-    //             retArr.push((toTime - fromTime) + '');
-    //             return (retArr) as any;
-    //           });
-    //
-    //         });
-
-    // return waitForNonEmptyText(element(by.css('app-time-range .time-range-value')))
-    // .then(() => element(by.css('app-time-range .time-range-text')).getText().then((timeRangetext) => {
-    //   return element(by.css('app-time-range .time-range-value')).getText().then((timeRangeValue) => {
-    //     let retArr = [timeRangetext];
-    //     let dateStr = timeRangeValue.split(' to ');
-    //     let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-    //     let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-    //     retArr.push((toTime - fromTime) + '');
-    //     return (retArr);
-    //   }).catch(err => console.log(err));
-    // }).catch(err => console.log(err)));
-
-    // return waitForNonEmptyText(element(by.css('app-time-range .time-range-value')))
-    //       .then(() => waitForNonEmptyText(element(by.css('app-time-range .time-range-text'))))
-    //       .then(() => element(by.css('app-time-range .time-range-text')).getText())
-    //       .then(text => timeRangetext = text)
-    //       .then(() => element(by.css('app-time-range .time-range-value')).getText())
-    //       .then(text => timeRangeValue = text)
-    //       .then(() => {
-    //         // console.log('timeRangeValue', timeRangeValue);
-    //         let retArr = [timeRangetext];
-    //         let dateStr = timeRangeValue.split(' to ');
-    //         let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-    //         let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-    //         retArr.push((toTime - fromTime) + '');
-    //         return retArr;
-    //       }).catch((error) => console.log(error));;
-
-    // return waitForNonEmptyText(element(by.css('app-time-range .time-range-value')))
-    // .then(() => waitForNonEmptyText(element(by.css('app-time-range .time-range-text'))))
-    // .then(() => element(by.css('app-time-range .time-range-text')).getText())
-    // .then(text => timeRangetext = text)
-    // .then(() => element(by.css('app-time-range .time-range-value')).getText())
-    // .then(text => timeRangeValue = text)
-    // .then(() => {
-    //   // console.log('timeRangeValue', timeRangeValue);
-    //   let retArr = [timeRangetext];
-    //   let dateStr = timeRangeValue.split(' to ');
-    //   let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-    //   let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-    //   retArr.push((toTime - fromTime) + '');
-    //   return retArr;
-    // }).catch((error) => console.log(error));;
-
     await element(by.css('app-time-range .time-range-text')).getText().then(text => timeRangetext = text);
     await element(by.css('app-time-range .time-range-value')).getText().then(text => timeRangeValue = text);
-
-    // console.log('new', timeRangetext, timeRangeValue);
 
     let retArr = [timeRangetext];
     let dateStr = timeRangeValue.split(' to ');
