@@ -25,6 +25,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
+import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
@@ -34,9 +35,8 @@ import org.springframework.transaction.jta.JtaTransactionManager;
 @EntityScan("org.apache.metron")
 public class JpaConfiguration extends JpaBaseConfiguration {
 
-  protected JpaConfiguration(DataSource dataSource, JpaProperties properties,
-      ObjectProvider<JtaTransactionManager> jtaTransactionManagerProvider) {
-    super(dataSource, properties, jtaTransactionManagerProvider);
+  protected JpaConfiguration(DataSource dataSource, JpaProperties properties, ObjectProvider<JtaTransactionManager> jtaTransactionManager, ObjectProvider<TransactionManagerCustomizers> transactionManagerCustomizers) {
+    super(dataSource, properties, jtaTransactionManager, transactionManagerCustomizers);
   }
 
   @Override

@@ -78,7 +78,7 @@ echo "METRON_SPRING_PROFILES_ACTIVE=${METRON_SPRING_PROFILES_ACTIVE}"
 
 # the vagrant Spring profile provides configuration values, otherwise configuration is provided by rest_application.yml
 if [[ !(${METRON_SPRING_PROFILES_ACTIVE} == *"vagrant"*) ]]; then
-    METRON_CONFIG_LOCATION=" --spring.config.location=$METRON_HOME/config/rest_application.yml"
+    METRON_CONFIG_LOCATION=" --spring.config.location=$METRON_HOME/config/rest_application.yml,classpath:/application.yml"
     echo "METRON_CONFIG_LOCATION=${METRON_CONFIG_LOCATION}"
     METRON_SPRING_OPTIONS+=${METRON_CONFIG_LOCATION}
 fi
