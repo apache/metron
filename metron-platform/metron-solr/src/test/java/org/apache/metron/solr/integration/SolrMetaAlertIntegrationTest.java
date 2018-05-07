@@ -112,7 +112,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   public void setup()
       throws IOException, InterruptedException, SolrServerException, KeeperException {
     solr.addCollection(METAALERTS_COLLECTION,
-        "../metron-solr/src/test/resources/config/metaalert/conf");
+        "../metron-solr/src/main/config/schema//metaalert");
     solr.addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf");
   }
 
