@@ -36,6 +36,7 @@ import {META_ALERTS_INDEX} from '../../../utils/constants';
 import {MetaAlertService} from '../../../service/meta-alert.service';
 import {MetaAlertAddRemoveRequest} from '../../../model/meta-alert-add-remove-request';
 import {GetRequest} from '../../../model/get-request';
+import { environment } from 'environments/environment';
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -249,7 +250,7 @@ export class TableViewComponent implements OnChanges {
     let alertToRemove = alert.source.alert[metaAlertIndex];
     let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
     metaAlertAddRemoveRequest.metaAlertGuid = alert.source.guid;
-    metaAlertAddRemoveRequest.alerts = [new GetRequest(alertToRemove.guid, alertToRemove['source:type'], '')];
+    metaAlertAddRemoveRequest.alerts = [new GetRequest(alertToRemove.guid, alertToRemove[environment.sourceType], '')];
 
     this.metaAlertService.removeAlertsFromMetaAlert(metaAlertAddRemoveRequest).subscribe(() => {
     });

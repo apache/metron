@@ -28,6 +28,7 @@ import { META_ALERTS_SENSOR_TYPE } from '../../utils/constants';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {MetaAlertAddRemoveRequest} from '../../model/meta-alert-add-remove-request';
 import {GetRequest} from '../../model/get-request';
+import { environment } from 'environments/environment';
 
 @Component({
   selector: 'app-meta-alerts',
@@ -65,7 +66,7 @@ export class MetaAlertsComponent implements OnInit {
 
   addAlertToMetaAlert() {
     let getRequest = this.metaAlertService.selectedAlerts.map(alert =>
-          new GetRequest(alert.source.guid, alert.source['source:type'], alert.index));
+          new GetRequest(alert.source.guid, alert.source[environment.sourceType], alert.index));
     let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
     metaAlertAddRemoveRequest.metaAlertGuid = this.selectedMetaAlert;
     metaAlertAddRemoveRequest.alerts = getRequest;

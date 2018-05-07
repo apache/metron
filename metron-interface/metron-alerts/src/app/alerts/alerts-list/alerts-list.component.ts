@@ -42,6 +42,7 @@ import {Pagination} from '../../model/pagination';
 import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
 import {MetaAlertService} from '../../service/meta-alert.service';
 import {Facets} from '../../model/facets';
+import { environment } from 'environments/environment';
 
 @Component({
   selector: 'app-alerts-list',
@@ -367,8 +368,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   private createGroupFacets(results: SearchResponse) {
     this.groupFacets = JSON.parse(JSON.stringify(results.facetCounts));
-    if (this.groupFacets['source:type']) {
-      delete this.groupFacets['source:type']['metaalert'];
+    if (this.groupFacets[environment.sourceType]) {
+      delete this.groupFacets[environment.sourceType]['metaalert'];
     }
   }
 
@@ -381,8 +382,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
     this.saveRefreshState();
-    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source['source:type'])
-        ? META_ALERTS_SENSOR_TYPE : alert.source['source:type'];
+    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source[environment.sourceType])
+        ? META_ALERTS_SENSOR_TYPE : alert.source[environment.sourceType];
     let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
     this.router.navigateByUrl(url);
   }

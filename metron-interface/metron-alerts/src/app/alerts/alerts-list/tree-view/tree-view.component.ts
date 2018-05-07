@@ -37,6 +37,7 @@ import {INDEXES, MAX_ALERTS_IN_META_ALERTS} from '../../../utils/constants';
 import {UpdateService} from '../../../service/update.service';
 import {PatchRequest} from '../../../model/patch-request';
 import {GetRequest} from '../../../model/get-request';
+import { environment } from 'environments/environment';
 
 @Component({
   selector: 'app-tree-view',
@@ -363,13 +364,13 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   createGetRequestArray(searchResponse: SearchResponse): any {
-    return searchResponse.results.map(alert => new GetRequest(alert.source.guid, alert.source['source:type'], alert.index));
+    return searchResponse.results.map(alert => new GetRequest(alert.source.guid, alert.source[environment.sourceType], alert.index));
   }
 
   getAllAlertsForSlectedGroup(group: TreeGroupData): Observable<SearchResponse> {
     let dashRowKey = Object.keys(group.groupQueryMap);
     let searchRequest = new SearchRequest();
-    searchRequest.fields = ['guid', 'source:type'];
+    searchRequest.fields = ['guid', environment.sourceType];
     searchRequest.from = 0;
     searchRequest.indices = INDEXES;
     searchRequest.query = this.createQuery(group);

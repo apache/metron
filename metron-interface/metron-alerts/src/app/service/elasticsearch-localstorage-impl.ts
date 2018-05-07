@@ -33,13 +33,14 @@ import {SaveSearch} from '../model/save-search';
 import {SearchResponse} from '../model/search-response';
 import {SearchRequest} from '../model/search-request';
 import {AlertSource} from '../model/alert-source';
+import { environment } from 'environments/environment';
 
 export class ElasticSearchLocalstorageImpl extends DataSource {
 
   private defaultColumnMetadata = [
     new ColumnMetadata('id', 'string'),
     new ColumnMetadata('timestamp', 'date'),
-    new ColumnMetadata('source:type', 'string'),
+    new ColumnMetadata(environment.sourceType, 'string'),
     new ColumnMetadata('ip_src_addr', 'ip'),
     new ColumnMetadata('enrichments:geo:ip_dst_addr:country', 'string'),
     new ColumnMetadata('ip_dst_addr', 'ip'),
