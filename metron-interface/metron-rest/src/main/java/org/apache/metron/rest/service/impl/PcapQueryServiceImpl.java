@@ -49,7 +49,7 @@ public class PcapQueryServiceImpl implements PcapQueryService {
               TimestampConverters.MILLISECONDS.toNanoseconds(0L),
               TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis()),
               1,
-              "query",
+              "",
               configuration,
               FileSystem.get(configuration),
               new QueryPcapFilter.Configurator()
