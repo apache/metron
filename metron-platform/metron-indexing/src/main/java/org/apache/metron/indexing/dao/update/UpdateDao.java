@@ -18,11 +18,14 @@
 package org.apache.metron.indexing.dao.update;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
 
 public interface UpdateDao {
+  String COMMENTS_FIELD = "comments";
 
   /**
    * Update a given Document and optionally the index where the document exists.  This is a full
@@ -43,6 +46,10 @@ public interface UpdateDao {
    */
   void batchUpdate(Map<Document, Optional<String>> updates) throws IOException;
 
+  void addCommentToAlert(CommentAddRemoveRequest request) throws IOException;
+
+  void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException;
+
   /**
    * Update a document in an index given a JSON Patch (see RFC 6902 at
    * https://tools.ietf.org/html/rfc6902)
@@ -54,10 +61,42 @@ public interface UpdateDao {
   default void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request
       , Optional<Long> timestamp
   ) throws OriginalNotFoundException, IOException {
-    Document d = PatchUtil.getPatchedDocument(retrieveLatestDao, request, timestamp);
+    Document d = getPatchedDocument(retrieveLatestDao, request, timestamp);
     update(d, Optional.ofNullable(request.getIndex()));
   }
 
+  default Document getPatchedDocument(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+      Optional<Long> timestamp
+  ) throws OriginalNotFoundException, IOException {
+    Map<String, Object> latest = request.getSource();
+    if (latest == null) {
+      Document latestDoc = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
+      if (latestDoc != null && latestDoc.getDocument() != null) {
+        latest = latestDoc.getDocument();
+      } else {
+        throw new OriginalNotFoundException(
+            "Unable to patch an document that doesn't exist and isn't specified.");
+      }
+    }
+    Map<String, Object> source = new HashMap<>(latest);
+
+    // Comments are a special case due to varied backend implementation.
+    convertCommentsToRaw(source);
+    latest.putAll(source);
+    Map<String, Object> updated = JSONUtils.INSTANCE.applyPatch(request.getPatch(), latest);
+    return new Document(updated,
+        request.getGuid(),
+        request.getSensorType(),
+        timestamp.orElse(System.currentTimeMillis()));
+  }
+
+  // Patch is a special case in terms of handling Documents. We return comments as a
+  // Map<String, Object> to maintain backwards compability with original ES implementation.
+  // However this forces any other representation (e.g. Solr and JSON) to be in raw form
+  // when a direct patch is made.
+  default void convertCommentsToRaw(Map<String,Object> source) {
+    // Do nothing
+  }
 
   /**
    * Replace a document in an index.

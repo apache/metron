@@ -36,6 +36,7 @@ import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 
 public class MultiIndexDao implements IndexDao {
@@ -96,6 +97,20 @@ public class MultiIndexDao implements IndexDao {
       }
     }
     return null;
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    for (IndexDao dao : indices) {
+      dao.addCommentToAlert(request);
+    }
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    for (IndexDao dao : indices) {
+      dao.removeCommentFromAlert(request);
+    }
   }
 
   private static class DocumentContainer {

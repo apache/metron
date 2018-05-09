@@ -19,12 +19,17 @@ package org.apache.metron.elasticsearch.dao;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.search.AlertComment;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -101,6 +106,53 @@ public class ElasticsearchUpdateDao implements UpdateDao {
       throw new IOException(
           "ElasticsearchDao upsert failed: " + bulkResponse.buildFailureMessage());
     }
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
+    if (latest == null) {
+      return;
+    }
+    List<Map<String, Object>> commentsField = (List<Map<String, Object>>) latest.getDocument()
+        .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+
+    commentsField.add(
+        new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp())
+            .asMap());
+    latest.getDocument().put(COMMENTS_FIELD, commentsField);
+
+    update(latest, request.getIndex());
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
+    if (latest == null) {
+      return;
+    }
+    List<Map<String, Object>> commentsField = (List<Map<String, Object>>) latest.getDocument()
+        .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+
+    List<AlertComment> alertComments = new ArrayList<>();
+
+    for (Map<String, Object> commentRaw : commentsField) {
+      alertComments.add(new AlertComment(commentRaw));
+    }
+
+    alertComments.remove(
+        new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp()));
+    List<Map<String, Object>> commentsFinal = alertComments.stream().map(AlertComment::asMap)
+        .collect(Collectors.toList());
+    if (commentsFinal.size() > 0) {
+      latest.getDocument().put(COMMENTS_FIELD, commentsFinal);
+    } else {
+      latest.getDocument().remove(COMMENTS_FIELD);
+    }
+
+    update(latest, request.getIndex());
   }
 
   protected String getIndexName(Document update, Optional<String> index, String indexPostFix) {

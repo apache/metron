@@ -20,6 +20,8 @@ package org.apache.metron.solr.integration;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import static org.junit.Assert.assertEquals;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,8 +82,9 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     globalConfig.put(HBaseDao.HBASE_CF, CF);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
 
-    dao = new MultiIndexDao(hbaseDao, new SolrDao());
+    MultiIndexDao dao = new MultiIndexDao(hbaseDao, new SolrDao());
     dao.init(accessConfig);
+    setDao(dao);
   }
 
   @After
@@ -135,9 +138,9 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     fields.put("field.location_point", "48.5839,7.7455");
 
     Document document = new Document(fields, "bro_1", SENSOR_NAME, 0L);
-    dao.update(document, Optional.of(SENSOR_NAME));
+    getDao().update(document, Optional.of(SENSOR_NAME));
 
-    Document indexedDocument = dao.getLatest("bro_1", SENSOR_NAME);
+    Document indexedDocument = getDao().getLatest("bro_1", SENSOR_NAME);
 
     // assert no extra expanded fields are included
     assertEquals(8, indexedDocument.getDocument().size());
@@ -154,10 +157,10 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     documentMap.put("raw_message", hugeString);
     documentMap.put("raw_message_1", hugeStringTwo);
     Document errorDoc = new Document(documentMap, "error", "error", 0L);
-    dao.update(errorDoc, Optional.of("error"));
+    getDao().update(errorDoc, Optional.of("error"));
 
     // Ensure that the huge string is returned when not a string field
-    Document latest = dao.getLatest("error_guid", "error");
+    Document latest = getDao().getLatest("error_guid", "error");
     @SuppressWarnings("unchecked")
     String actual = (String) latest.getDocument().get("raw_message");
     assertEquals(actual, hugeString);
@@ -170,6 +173,6 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
     exception.expect(IOException.class);
     exception.expectMessage("Document contains at least one immense term in field=\"error_hash\"");
-    dao.update(errorDoc, Optional.of("error"));
+    getDao().update(errorDoc, Optional.of("error"));
   }
 }

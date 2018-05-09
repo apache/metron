@@ -17,11 +17,31 @@
  */
 package org.apache.metron.solr.dao;
 
-import org.apache.metron.common.configuration.Configurations;
+import static org.apache.metron.indexing.dao.update.UpdateDao.COMMENTS_FIELD;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.spy;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.util.IndexingCacheUtil;
 import org.apache.metron.solr.matcher.SolrInputDocumentListMatcher;
 import org.apache.metron.solr.matcher.SolrInputDocumentMatcher;
@@ -34,20 +54,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CollectionAdminRequest.class})
@@ -57,6 +65,7 @@ public class SolrUpdateDaoTest {
   public final ExpectedException exception = ExpectedException.none();
 
   private SolrClient client;
+  private SolrRetrieveLatestDao solrRetrieveLatestDao;
   private SolrUpdateDao solrUpdateDao;
 
   private static AccessConfig accessConfig = new AccessConfig();
@@ -85,7 +94,8 @@ public class SolrUpdateDaoTest {
   @Before
   public void setUp() throws Exception {
     client = mock(SolrClient.class);
-    solrUpdateDao = new SolrUpdateDao(client, accessConfig);
+    solrRetrieveLatestDao = new SolrRetrieveLatestDao(client);
+    solrUpdateDao = new SolrUpdateDao(client, solrRetrieveLatestDao, accessConfig);
   }
 
   @Test
@@ -173,4 +183,58 @@ public class SolrUpdateDaoTest {
     verify(client).add(eq("snort"), argThat(new SolrInputDocumentListMatcher(Arrays.asList(snortSolrInputDocument1, snortSolrInputDocument2))));
   }
 
+  @Test
+  public void testConvertCommentsToRaw() {
+    List<Map<String, Object>> commentList = new ArrayList<>();
+    Map<String, Object> comments = new HashMap<>();
+    comments.put("comment", "test comment");
+    comments.put("username", "test username");
+    comments.put("timestamp", 1526424323279L);
+    commentList.add(comments);
+
+    Map<String, Object> document = new HashMap<>();
+    document.put("testField", "testValue");
+    document.put(COMMENTS_FIELD, commentList);
+    solrUpdateDao.convertCommentsToRaw(document);
+
+    @SuppressWarnings("unchecked")
+    List<String> actualComments = (List<String>) document.get(COMMENTS_FIELD);
+    String expectedComment = "{\"comment\":\"test comment\",\"username\":\"test username\",\"timestamp\":1526424323279}";
+    assertEquals(expectedComment, actualComments.get(0));
+    assertEquals(1, actualComments.size());
+    assertEquals("testValue", document.get("testField"));
+  }
+
+  @Test
+  public void getPatchedDocument() throws IOException, OriginalNotFoundException {
+    // Create the document to be patched. Including comments
+    Map<String, Object> latestDoc = new HashMap<>();
+    latestDoc.put(Constants.GUID, "guid");
+    List<Map<String, Object>> comments = new ArrayList<>();
+    comments.add(new AlertComment("comment", "user", 0L).asMap());
+    comments.add(new AlertComment("comment_2", "user_2", 0L).asMap());
+    latestDoc.put(COMMENTS_FIELD, comments);
+    Document latest = new Document(latestDoc, "guid", "bro", 0L);
+
+    SolrRetrieveLatestDao retrieveLatestDao = spy(new SolrRetrieveLatestDao(null));
+    doReturn(latest).when(retrieveLatestDao).getLatest("guid", "bro");
+
+    // Create the patch
+    PatchRequest request = new PatchRequest();
+    request.setIndex("bro");
+    request.setSensorType("bro");
+    request.setGuid("guid");
+    List<Map<String, Object>> patchList = new ArrayList<>();
+    Map<String, Object> patch = new HashMap<>();
+    patch.put("op", "add");
+    patch.put("path", "/project");
+    patch.put("value", "metron");
+    patchList.add(patch);
+    request.setPatch(patchList);
+    Document actual = solrUpdateDao.getPatchedDocument(retrieveLatestDao, request, Optional.of(0L));
+
+    // Add the patch to our original document
+    latest.getDocument().put("project", "metron");
+    assertEquals(actual, latest);
+  }
 }

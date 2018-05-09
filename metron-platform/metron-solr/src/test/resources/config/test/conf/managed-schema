@@ -44,6 +44,9 @@
   <field name="score" type="pdouble" indexed="true" stored="true"/>
 
 
+  <!-- Comments field required for the UI -->
+  <field name="comments" type="string" indexed="true" stored="true" multiValued="true"/>
+
   <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
 
 

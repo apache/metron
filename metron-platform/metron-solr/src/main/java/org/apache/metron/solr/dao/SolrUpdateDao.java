@@ -23,13 +23,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-
+import java.util.stream.Collectors;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.search.AlertComment;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.apache.solr.client.solrj.SolrClient;
@@ -39,23 +42,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SolrUpdateDao implements UpdateDao {
-
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private transient SolrClient client;
   private AccessConfig config;
   private Function<String, String> indexSupplier;
-  public SolrUpdateDao(SolrClient client, AccessConfig config) {
+  private transient SolrRetrieveLatestDao retrieveLatestDao;
+
+  public SolrUpdateDao(SolrClient client, SolrRetrieveLatestDao retrieveLatestDao, AccessConfig config) {
     this.client = client;
+    this.retrieveLatestDao = retrieveLatestDao;
     this.config = config;
     this.indexSupplier = config.getIndexSupplier();
   }
 
   private Optional<String> getIndex(String sensorName, Optional<String> index) {
-    if(index.isPresent()) {
-      return Optional.ofNullable(index.get());
-    }
-    else {
+    if (index.isPresent()) {
+      return index;
+    } else {
       String realIndex = indexSupplier.apply(sensorName);
       return Optional.ofNullable(realIndex);
     }
@@ -112,5 +116,73 @@ public class SolrUpdateDao implements UpdateDao {
     } catch (SolrServerException e) {
       throw new IOException(e);
     }
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getIndex().get());
+    if (latest == null) {
+      return;
+    }
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> comments = (List<Map<String, Object>>) latest.getDocument()
+        .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+
+    // Convert all comments back to raw JSON before updating.
+    List<String> commentStrs = new ArrayList<>();
+    for (Map<String, Object> comment : comments) {
+      commentStrs.add(new AlertComment(comment).asJson());
+    }
+    commentStrs.add(new AlertComment(
+        request.getComment(),
+        request.getUsername(),
+        request.getTimestamp()
+    ).asJson());
+
+    latest.getDocument().put(COMMENTS_FIELD, commentStrs);
+    update(latest, request.getIndex());
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request)
+      throws IOException {
+    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getIndex().get());
+    if (latest == null) {
+      return;
+    }
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> commentMap = (List<Map<String, Object>>) latest.getDocument()
+        .get(COMMENTS_FIELD);
+    // Can't remove anything if there's nothing there
+    if (commentMap == null) {
+      LOG.debug("Provided alert had no comments to be able to remove from");
+      return;
+    }
+    List<AlertComment> comments = new ArrayList<>();
+    for (Map<String, Object> commentStr : commentMap) {
+      comments.add(new AlertComment(commentStr));
+    }
+
+    comments.remove(
+        new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp()));
+    List<String> commentsAsJson = comments.stream().map(AlertComment::asJson)
+        .collect(Collectors.toList());
+
+    latest.getDocument().put(COMMENTS_FIELD, commentsAsJson);
+    update(latest, request.getIndex());
+  }
+
+  @Override
+  public void convertCommentsToRaw(Map<String,Object> source) {
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> comments = (List<Map<String, Object>>) source.get(COMMENTS_FIELD);
+    if (comments == null || comments.isEmpty()) {
+      return;
+    }
+    List<String> asJson = new ArrayList<>();
+    for (Map<String, Object> comment : comments) {
+      asJson.add((new AlertComment(comment)).asJson());
+    }
+    source.put(COMMENTS_FIELD, asJson);
   }
 }

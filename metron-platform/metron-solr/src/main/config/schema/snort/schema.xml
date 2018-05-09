@@ -70,6 +70,9 @@
   <dynamicField name="*.reason" type="string" multiValued="false" docValues="true"/>
   <dynamicField name="*.name" type="string" multiValued="false" docValues="true"/>
 
+  <!-- Comments field required for the UI -->
+  <field name="comments" type="string" indexed="true" stored="true" multiValued="true"/>
+
   <!-- Metaalerts Field -->
   <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>
 

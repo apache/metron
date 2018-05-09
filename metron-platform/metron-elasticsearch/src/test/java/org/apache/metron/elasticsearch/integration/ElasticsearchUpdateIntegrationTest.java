@@ -85,8 +85,9 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     globalConfig.put(HBaseDao.HBASE_CF, CF);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
 
-    dao = new MultiIndexDao(hbaseDao, createDao());
+    MultiIndexDao dao = new MultiIndexDao(hbaseDao, createDao());
     dao.init(accessConfig);
+    setDao(dao);
   }
 
   @After
