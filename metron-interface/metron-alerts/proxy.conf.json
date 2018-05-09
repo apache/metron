@@ -6,14 +6,5 @@
   "/logout": {
     "target": "http://node1:8082",
     "secure": false
-  },
-  "/search": {
-    "target": "http://node1:9200",
-    "pathRewrite": {"^/search" : ""},
-    "secure": false
-  },
-  "/_cluster": {
-    "target": "http://node1:9200",
-    "secure": false
   }
 }
