@@ -57,12 +57,16 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class WriterBoltIntegrationTest extends BaseIntegrationTest {
+  private ZKServerComponent zkServerComponent;
+  private KafkaComponent kafkaComponent;
+  private ConfigUploadComponent configUploadComponent;
+  private ParserTopologyComponent parserTopologyComponent;
 
-  public static class MockValidator implements FieldValidation{
+  public static class MockValidator implements FieldValidation {
 
     @Override
     public boolean isValid(Map<String, Object> input, Map<String, Object> validationConfig, Map<String, Object> globalConfig, Context context) {
-      if(input.get("action").equals("invalid")) {
+      if (input.get("action").equals("invalid")) {
         return false;
       }
       return true;
@@ -72,13 +76,6 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     public void initialize(Map<String, Object> validationConfig, Map<String, Object> globalConfig) {
     }
   }
-
-
-  /**
-   * { }
-   */
-  @Multiline
-  public static String globalConfigEmpty;
 
   /**
    * {
@@ -110,48 +107,15 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   @Test
   public void parser_with_global_validations_writes_bad_records_to_error_topic() throws Exception {
     final String sensorType = "dummy";
-
     SensorParserConfig parserConfig = JSONUtils.INSTANCE.load(parserConfigJSON, SensorParserConfig.class);
-
-    // the input messages to parser
     final List<byte[]> inputMessages = new ArrayList<byte[]>() {{
       add(Bytes.toBytes("valid,foo"));
       add(Bytes.toBytes("invalid,foo"));
       add(Bytes.toBytes("error"));
     }};
 
-    // setup external components; zookeeper, kafka
     final Properties topologyProperties = new Properties();
-    final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
-    final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
-      add(new KafkaComponent.Topic(sensorType, 1));
-      add(new KafkaComponent.Topic(parserConfig.getErrorTopic(), 1));
-      add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
-    }});
-    topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
-
-    ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
-            .withTopologyProperties(topologyProperties)
-            .withGlobalConfig(globalConfigWithValidation)
-            .withParserSensorConfig(sensorType, parserConfig);
-
-    ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
-            .withSensorType(sensorType)
-            .withTopologyProperties(topologyProperties)
-            .withBrokerUrl(kafkaComponent.getBrokerList())
-            .withErrorTopic(parserConfig.getErrorTopic())
-            .withOutputTopic(parserConfig.getOutputTopic())
-            .build();
-
-    ComponentRunner runner = new ComponentRunner.Builder()
-            .withComponent("zk", zkServerComponent)
-            .withComponent("kafka", kafkaComponent)
-            .withComponent("config", configUploadComponent)
-            .withComponent("org/apache/storm", parserTopologyComponent)
-            .withMillisecondsBetweenAttempts(5000)
-            .withNumRetries(10)
-            .withCustomShutdownOrder(new String[]{"org/apache/storm","config","kafka","zk"})
-            .build();
+    ComponentRunner runner = setupTopologyComponents(topologyProperties, sensorType, parserConfig, globalConfigWithValidation);
     try {
       runner.start();
       kafkaComponent.writeMessages(sensorType, inputMessages);
@@ -186,6 +150,98 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
+   * Setup external components (as side effects of invoking this method):
+   * zookeeper, kafka, config upload, parser topology, main runner.
+   *
+   * Modifies topology properties with relevant component properties, e.g. kafka.broker.
+   *
+   * @return runner
+   */
+  public ComponentRunner setupTopologyComponents(Properties topologyProperties, String sensorType,
+      SensorParserConfig parserConfig, String globalConfig) {
+    zkServerComponent = getZKServerComponent(topologyProperties);
+    kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
+      add(new KafkaComponent.Topic(sensorType, 1));
+      add(new KafkaComponent.Topic(parserConfig.getErrorTopic(), 1));
+      add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
+    }});
+    topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
+
+    configUploadComponent = new ConfigUploadComponent()
+        .withTopologyProperties(topologyProperties)
+        .withGlobalConfig(globalConfig)
+        .withParserSensorConfig(sensorType, parserConfig);
+
+    parserTopologyComponent = new ParserTopologyComponent.Builder()
+        .withSensorType(sensorType)
+        .withTopologyProperties(topologyProperties)
+        .withBrokerUrl(kafkaComponent.getBrokerList())
+        .withErrorTopic(parserConfig.getErrorTopic())
+        .withOutputTopic(parserConfig.getOutputTopic())
+        .build();
+
+    return new ComponentRunner.Builder()
+        .withComponent("zk", zkServerComponent)
+        .withComponent("kafka", kafkaComponent)
+        .withComponent("config", configUploadComponent)
+        .withComponent("org/apache/storm", parserTopologyComponent)
+        .withMillisecondsBetweenAttempts(5000)
+        .withNumRetries(10)
+        .withCustomShutdownOrder(new String[]{"org/apache/storm","config","kafka","zk"})
+        .build();
+  }
+
+  @SuppressWarnings("unchecked")
+  private KafkaProcessor<Map<String, List<JSONObject>>> getKafkaProcessor(String outputTopic,
+      String errorTopic) {
+
+    return new KafkaProcessor<>()
+        .withKafkaComponentName("kafka")
+        .withReadTopic(outputTopic)
+        .withErrorTopic(errorTopic)
+        .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
+          @Nullable
+          @Override
+          public Boolean apply(@Nullable KafkaMessageSet messageSet) {
+            return (messageSet.getMessages().size() == 1) && (messageSet.getErrors().size() == 2);
+          }
+        })
+        .withProvideResult(new Function<KafkaMessageSet, Map<String, List<JSONObject>>>() {
+          @Nullable
+          @Override
+          public Map<String, List<JSONObject>> apply(@Nullable KafkaMessageSet messageSet) {
+            return new HashMap<String, List<JSONObject>>() {{
+              put(Constants.ENRICHMENT_TOPIC, loadMessages(messageSet.getMessages()));
+              put(errorTopic, loadMessages(messageSet.getErrors()));
+            }};
+          }
+        });
+  }
+
+  private static List<JSONObject> loadMessages(List<byte[]> outputMessages) {
+    List<JSONObject> tmp = new ArrayList<>();
+    Iterables.addAll(tmp,
+        Iterables.transform(outputMessages,
+            message -> {
+              try {
+                return new JSONObject(
+                    JSONUtils.INSTANCE.load(new String(message), JSONUtils.MAP_SUPPLIER));
+              } catch (Exception ex) {
+                throw new IllegalStateException(ex);
+              }
+            }
+        )
+    );
+    return tmp;
+  }
+
+  /**
+   * { }
+   */
+  @Multiline
+  public static String globalConfigEmpty;
+
+  /**
    * {
    *    "parserClassName":"org.apache.metron.writers.integration.WriterBoltIntegrationTest$EmptyObjectParser",
    *    "sensorTopic":"emptyobjectparser",
@@ -199,86 +255,19 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   @Test
   public void commits_kafka_offsets_for_emtpy_objects() throws Exception {
     final String sensorType = "emptyobjectparser";
-
     SensorParserConfig parserConfig = JSONUtils.INSTANCE.load(offsetParserConfigJSON, SensorParserConfig.class);
-
-    // the input messages to parser
     final List<byte[]> inputMessages = new ArrayList<byte[]>() {{
       add(Bytes.toBytes("foo"));
       add(Bytes.toBytes("bar"));
       add(Bytes.toBytes("baz"));
     }};
-
-    // setup external components; zookeeper, kafka
     final Properties topologyProperties = new Properties();
-    final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
-    final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
-      add(new KafkaComponent.Topic(sensorType, 1));
-      add(new KafkaComponent.Topic(parserConfig.getErrorTopic(), 1));
-      add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
-    }});
-    topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
-
-    ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
-        .withTopologyProperties(topologyProperties)
-        .withGlobalConfig(globalConfigEmpty)
-        .withParserSensorConfig(sensorType, parserConfig);
-
-    ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
-        .withSensorType(sensorType)
-        .withTopologyProperties(topologyProperties)
-        .withBrokerUrl(kafkaComponent.getBrokerList())
-        .withErrorTopic(parserConfig.getErrorTopic())
-        .withOutputTopic(parserConfig.getOutputTopic())
-        .build();
-
-    ComponentRunner runner = new ComponentRunner.Builder()
-        .withComponent("zk", zkServerComponent)
-        .withComponent("kafka", kafkaComponent)
-        .withComponent("config", configUploadComponent)
-        .withComponent("org/apache/storm", parserTopologyComponent)
-        .withMillisecondsBetweenAttempts(5000)
-        .withNumRetries(10)
-        .withCustomShutdownOrder(new String[]{"org/apache/storm","config","kafka","zk"})
-        .build();
-
+    ComponentRunner runner = setupTopologyComponents(topologyProperties, sensorType, parserConfig, globalConfigEmpty);
     try {
       runner.start();
       kafkaComponent.writeMessages(sensorType, inputMessages);
-      ProcessorResult<Set<JSONObject>> result = runner.process(new Processor<Set<JSONObject>>() {
-        // used for calculating readiness and returning result set
-        final Set<JSONObject> outputMessages = new HashSet<>();
-
-        @Override
-        public ReadinessState process(ComponentRunner runner) {
-          KafkaComponent kc = runner.getComponent("kafka", KafkaComponent.class);
-          outputMessages.addAll(readMessagesFromKafka(kc, Constants.ENRICHMENT_TOPIC));
-          return calcReadiness(inputMessages.size(), outputMessages.size());
-        }
-
-        private Set<JSONObject> readMessagesFromKafka(KafkaComponent kc, String topic) {
-          Set<JSONObject> out = new HashSet<>();
-          for (byte[] b : kc.readMessages(topic)) {
-            try {
-              JSONObject m = new JSONObject(
-                  JSONUtils.INSTANCE.load(new String(b), JSONUtils.MAP_SUPPLIER));
-              out.add(m);
-            } catch (IOException e) {
-              throw new IllegalStateException(e);
-            }
-          }
-          return out;
-        }
-
-        private ReadinessState calcReadiness(int in, int out) {
-          return in == out ? ReadinessState.READY : ReadinessState.NOT_READY;
-        }
-
-        @Override
-        public ProcessorResult<Set<JSONObject>> getResult() {
-          return new ProcessorResult<>(outputMessages, null);
-        }
-      });
+      Processor allResultsProcessor = new AllResultsProcessor(inputMessages, Constants.ENRICHMENT_TOPIC);
+      ProcessorResult<Set<JSONObject>> result = runner.process(allResultsProcessor);
 
       // validate the output messages
       assertThat("size should match", result.getResult().size(), equalTo(inputMessages.size()));
@@ -318,45 +307,51 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  private static List<JSONObject> loadMessages(List<byte[]> outputMessages) {
-    List<JSONObject> tmp = new ArrayList<>();
-    Iterables.addAll(tmp,
-            Iterables.transform(outputMessages,
-                    message -> {
-                      try {
-                        return new JSONObject(JSONUtils.INSTANCE.load(new String(message), JSONUtils.MAP_SUPPLIER));
-                      } catch (Exception ex) {
-                        throw new IllegalStateException(ex);
-                      }
-                    }
-            )
-    );
-    return tmp;
+  /**
+   * Verifies all messages in the provided List of input messages appears in the specified
+   * Kafka output topic
+   */
+  private class AllResultsProcessor implements  Processor<Set<JSONObject>> {
+
+    private final List<byte[]> inputMessages;
+    private String outputKafkaTopic;
+    // used for calculating readiness and returning result set
+    private final Set<JSONObject> outputMessages = new HashSet<>();
+
+    public AllResultsProcessor(List<byte[]> inputMessages, String outputKafkaTopic) {
+      this.inputMessages = inputMessages;
+      this.outputKafkaTopic = outputKafkaTopic;
+    }
+
+    @Override
+    public ReadinessState process(ComponentRunner runner) {
+      KafkaComponent kc = runner.getComponent("kafka", KafkaComponent.class);
+      outputMessages.addAll(readMessagesFromKafka(kc, outputKafkaTopic));
+      return calcReadiness(inputMessages.size(), outputMessages.size());
+    }
+
+    private Set<JSONObject> readMessagesFromKafka(KafkaComponent kc, String topic) {
+      Set<JSONObject> out = new HashSet<>();
+      for (byte[] b : kc.readMessages(topic)) {
+        try {
+          JSONObject m = new JSONObject(
+              JSONUtils.INSTANCE.load(new String(b), JSONUtils.MAP_SUPPLIER));
+          out.add(m);
+        } catch (IOException e) {
+          throw new IllegalStateException(e);
+        }
+      }
+      return out;
+    }
+
+    private ReadinessState calcReadiness(int in, int out) {
+      return in == out ? ReadinessState.READY : ReadinessState.NOT_READY;
+    }
+
+    @Override
+    public ProcessorResult<Set<JSONObject>> getResult() {
+      return new ProcessorResult<>(outputMessages, null);
+    }
   }
 
-  @SuppressWarnings("unchecked")
-  private KafkaProcessor<Map<String,List<JSONObject>>> getKafkaProcessor(String outputTopic, String errorTopic){
-
-    return new KafkaProcessor<>()
-            .withKafkaComponentName("kafka")
-            .withReadTopic(outputTopic)
-            .withErrorTopic(errorTopic)
-            .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
-              @Nullable
-              @Override
-              public Boolean apply(@Nullable KafkaMessageSet messageSet) {
-                return (messageSet.getMessages().size() == 1) && (messageSet.getErrors().size() == 2);
-              }
-            })
-            .withProvideResult(new Function<KafkaMessageSet,Map<String,List<JSONObject>>>(){
-              @Nullable
-              @Override
-              public Map<String,List<JSONObject>> apply(@Nullable KafkaMessageSet messageSet) {
-                return new HashMap<String, List<JSONObject>>() {{
-                  put(Constants.ENRICHMENT_TOPIC, loadMessages(messageSet.getMessages()));
-                  put(errorTopic, loadMessages(messageSet.getErrors()));
-                }};
-              }
-            });
-    }
 }
