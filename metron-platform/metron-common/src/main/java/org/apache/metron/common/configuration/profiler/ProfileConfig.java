@@ -18,10 +18,15 @@
 package org.apache.metron.common.configuration.profiler;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.metron.common.utils.JSONUtils;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +94,9 @@ public class ProfileConfig implements Serializable {
    */
   private Long expires;
 
+  public ProfileConfig() {
+  }
+
   /**
    * A profile definition requires at the very least the profile name, the foreach, and result
    * expressions.
@@ -114,12 +122,22 @@ public class ProfileConfig implements Serializable {
     this.profile = profile;
   }
 
+  public ProfileConfig withProfile(String profile) {
+    this.profile = profile;
+    return this;
+  }
+
   public String getForeach() {
     return foreach;
   }
 
   public void setForeach(String foreach) {
     this.foreach = foreach;
+  }
+
+  public ProfileConfig withForeach(String foreach) {
+    this.foreach = foreach;
+    return this;
   }
 
   public String getOnlyif() {
@@ -130,12 +148,27 @@ public class ProfileConfig implements Serializable {
     this.onlyif = onlyif;
   }
 
+  public ProfileConfig withOnlyif(String onlyif) {
+    this.onlyif = onlyif;
+    return this;
+  }
+
   public Map<String, String> getInit() {
     return init;
   }
 
   public void setInit(Map<String, String> init) {
     this.init = init;
+  }
+
+  public ProfileConfig withInit(Map<String, String> init) {
+    this.init.putAll(init);
+    return this;
+  }
+
+  public ProfileConfig withInit(String var, String expression) {
+    this.init.put(var, expression);
+    return this;
   }
 
   public Map<String, String> getUpdate() {
@@ -146,12 +179,27 @@ public class ProfileConfig implements Serializable {
     this.update = update;
   }
 
+  public ProfileConfig withUpdate(Map<String, String> update) {
+    this.update.putAll(update);
+    return this;
+  }
+
+  public ProfileConfig withUpdate(String var, String expression) {
+    this.update.put(var, expression);
+    return this;
+  }
+
   public List<String> getGroupBy() {
     return groupBy;
   }
 
   public void setGroupBy(List<String> groupBy) {
     this.groupBy = groupBy;
+  }
+
+  public ProfileConfig withGroupBy(List<String> groupBy) {
+    this.groupBy = groupBy;
+    return this;
   }
 
   public ProfileResult getResult() {
@@ -162,6 +210,11 @@ public class ProfileConfig implements Serializable {
     this.result = result;
   }
 
+  public ProfileConfig withResult(String profileExpression) {
+    this.result = new ProfileResult(profileExpression);
+    return this;
+  }
+
   public Long getExpires() {
     return expires;
   }
@@ -170,47 +223,91 @@ public class ProfileConfig implements Serializable {
     this.expires = expiresDays;
   }
 
+  public ProfileConfig withExpires(Long expiresDays) {
+    this.expires = TimeUnit.DAYS.toMillis(expiresDays);
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ProfileConfig that = (ProfileConfig) o;
-
-    if (profile != null ? !profile.equals(that.profile) : that.profile != null) return false;
-    if (foreach != null ? !foreach.equals(that.foreach) : that.foreach != null) return false;
-    if (onlyif != null ? !onlyif.equals(that.onlyif) : that.onlyif != null) return false;
-    if (init != null ? !init.equals(that.init) : that.init != null) return false;
-    if (update != null ? !update.equals(that.update) : that.update != null) return false;
-    if (groupBy != null ? !groupBy.equals(that.groupBy) : that.groupBy != null) return false;
-    if (result != null ? !result.equals(that.result) : that.result != null) return false;
-    return expires != null ? expires.equals(that.expires) : that.expires == null;
+    return new EqualsBuilder()
+            .append(profile, that.profile)
+            .append(foreach, that.foreach)
+            .append(onlyif, that.onlyif)
+            .append(init, that.init)
+            .append(update, that.update)
+            .append(groupBy, that.groupBy)
+            .append(result, that.result)
+            .append(expires, that.expires)
+            .isEquals();
   }
 
   @Override
   public int hashCode() {
-    int result1 = profile != null ? profile.hashCode() : 0;
-    result1 = 31 * result1 + (foreach != null ? foreach.hashCode() : 0);
-    result1 = 31 * result1 + (onlyif != null ? onlyif.hashCode() : 0);
-    result1 = 31 * result1 + (init != null ? init.hashCode() : 0);
-    result1 = 31 * result1 + (update != null ? update.hashCode() : 0);
-    result1 = 31 * result1 + (groupBy != null ? groupBy.hashCode() : 0);
-    result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
-    result1 = 31 * result1 + (expires != null ? expires.hashCode() : 0);
-    return result1;
+    return new HashCodeBuilder(17, 37)
+            .append(profile)
+            .append(foreach)
+            .append(onlyif)
+            .append(init)
+            .append(update)
+            .append(groupBy)
+            .append(result)
+            .append(expires)
+            .toHashCode();
   }
 
   @Override
   public String toString() {
-    return "ProfileConfig{" +
-            "profile='" + profile + '\'' +
-            ", foreach='" + foreach + '\'' +
-            ", onlyif='" + onlyif + '\'' +
-            ", init=" + init +
-            ", update=" + update +
-            ", groupBy=" + groupBy +
-            ", result=" + result +
-            ", expires=" + expires +
-            '}';
+    return new ToStringBuilder(this)
+            .append("profile", profile)
+            .append("foreach", foreach)
+            .append("onlyif", onlyif)
+            .append("init", init)
+            .append("update", update)
+            .append("groupBy", groupBy)
+            .append("result", result)
+            .append("expires", expires)
+            .toString();
+  }
+
+  /**
+   * Deserialize a {@link ProfileConfig}.
+   *
+   * @param bytes Raw bytes containing a UTF-8 JSON String.
+   * @return The Profile definition.
+   * @throws IOException
+   */
+  public static ProfileConfig fromBytes(byte[] bytes) throws IOException {
+    return JSONUtils.INSTANCE.load(new String(bytes), ProfileConfig.class);
+  }
+
+  /**
+   * Deserialize a {@link ProfileConfig}.
+   *
+   * @param json A String containing JSON.
+   * @return The Profile definition.
+   * @throws IOException
+   */
+  public static ProfileConfig fromJSON(String json) throws IOException {
+    return JSONUtils.INSTANCE.load(json, ProfileConfig.class);
+  }
+
+  /**
+   * Serialize the profile definition to a JSON string.
+   *
+   * @return The Profiler configuration serialized as a JSON string.
+   * @throws JsonProcessingException
+   */
+  public String toJSON() throws JsonProcessingException {
+    return JSONUtils.INSTANCE.toJSON(this, true);
   }
 }

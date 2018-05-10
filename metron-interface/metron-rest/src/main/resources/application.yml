@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 metron:
-  version: 0.4.1
+  version: 0.4.3
 
 logging:
   level:
@@ -26,14 +26,19 @@ spring:
 
 grok:
   path:
-    temp: ./
-    default: /apps/metron/patterns
+    temp: /apps/metron/patterns/tmp
 
 zookeeper:
   client:
     timeout:
       session: 10000
       connection: 10000
+
+kafka:
+  security:
+    protocol: SASL_PLAINTEXT
+  topics:
+    escalation: escalation
 
 curator:
   sleep:
@@ -44,8 +49,26 @@ curator:
 search:
   max:
     results: 1000
+    groups: 1000
+  facet:
+    fields: source:type,ip_src_addr,ip_dst_addr,enrichments:geo:ip_dst_addr:country
 
 index:
   dao:
   # By default, we use the ElasticsearchDao and HBaseDao for backing updates.
      impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao,org.apache.metron.indexing.dao.HBaseDao
+  writer:
+  # Used to retrieve the index names from the sensor index configurations.  Should be either 'elasticsearch' or 'solr'.
+    name: elasticsearch
+
+meta:
+  dao:
+  # By default, we use the ElasticsearchMetaAlertDao
+    impl: org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao
+
+spring.jpa.generate-ddl: true
+
+user:
+  settings:
+    table: user_settings
+    cf: cf

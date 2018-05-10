@@ -25,8 +25,8 @@ public class BytesFromPosition implements MessageGetStrategy {
 
   public BytesFromPosition() {};
 
-  public BytesFromPosition(int position) {
-    this.position = position;
+  public BytesFromPosition(Integer position) {
+    this.position = position == null?0:position;
   }
 
   @Override

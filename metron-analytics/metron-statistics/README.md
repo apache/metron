@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Statistics and Mathematical Functions
 
 A variety of non-trivial and advanced analytics make use of statistics
@@ -53,6 +70,32 @@ functions can be used from everywhere where Stellar is used.
   * bounds - A list of value bounds (excluding min and max) in sorted order.
 * Returns: Which bin N the value falls in such that bound(N-1) < value <= bound(N).  No min and max bounds are provided, so values smaller than the 0'th bound go in the 0'th bin, and values greater than the last bound go in the M'th bin.
 
+### Sampling Functions
+
+#### `SAMPLE_ADD`
+* Description: Add a value or collection of values to a sampler.
+* Input:
+  * sampler - Sampler to use.  If null, then a default Uniform sampler is created.
+  * o - The value to add.  If o is an Iterable, then each item is added.
+* Returns: The sampler.
+
+#### `SAMPLE_GET`
+* Description: Return the sample.
+* Input:
+  * sampler - Sampler to use.
+* Returns: The resulting sample.
+
+#### `SAMPLE_INIT`
+* Description: Create a [reservoir sampler](https://en.wikipedia.org/wiki/Reservoir_sampling) of a specific size or, if unspecified, size 1024.  Elements sampled by the reservoir sampler will be included in the final sample with equal probability.
+* Input:
+  * size? - The size of the reservoir sampler.  If unspecified, the size is 1024.
+* Returns: The sampler object.
+
+#### `SAMPLE_MERGE`
+* Description: Merge and resample a collection of samples.
+* Input:
+  * samplers - A list of samplers to merge.
+* Returns: A sampler which represents the resampled merger of the samplers.
 
 ### Distributional Statistics
 
@@ -60,7 +103,7 @@ functions can be used from everywhere where Stellar is used.
   * Description: Adds one or more input values to those that are used to calculate the summary statistics.
   * Input:
     * stats - The Stellar statistics object.  If null, then a new one is initialized.
-    * value+ - One or more numbers to add
+    * value+ - One or more items to add. Each item may be a number or a list of numbers. If an item is a list, each number in the list will be added.
   * Returns: A Stellar statistics object
 
 #### `STATS_BIN`
@@ -174,6 +217,13 @@ functions can be used from everywhere where Stellar is used.
     * stats - The Stellar statistics object
   * Returns: The variance of the values in the window or NaN if the statistics object is null.
 
+### Information Theory Functions
+
+#### `IT_ENTROPY`
+  * Description: Computes the base-2 entropy of a multiset
+  * Input:
+    * input - a multiset (a map of objects to counts).
+  * Returns: The [base-2 entropy](https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition) of the count .  The unit of this is bits.
 
 ### Statistical Outlier Detection
   

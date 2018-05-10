@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Parsers
 
 ## Introduction
@@ -26,8 +43,36 @@ There are two general types types of parsers:
       * `UNFOLD` : Unfold inner maps.  So `{ "foo" : { "bar" : 1} }` would turn into `{"foo.bar" : 1}`
       * `ALLOW` : Allow multidimensional maps
       * `ERROR` : Throw an error when a multidimensional map is encountered
+    * `jsonpQuery` : A [JSON Path](#json_path) query string. If present, the result of the JSON Path query should be a list of messages. This is useful if you have a JSON document which contains a list or array of messages embedded in it, and you do not have another means of splitting the message.
     * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.  
-    
+
+## Parser Error Routing
+
+Currently, we have a few mechanisms for either deferring processing of
+messages or marking messages as invalid.
+
+### Invalidation Errors
+
+There are two reasons a message will be marked as invalid:
+* Fail [global validation](../metron-common#validation-framework)
+* Fail the parser's validate function (generally that means to not have a `timestamp` field or a `original_string` field.
+
+Those messages which are marked as invalid are sent to the error queue
+with an indication that they are invalid in the error message.
+
+### Parser Errors
+
+Errors, which are defined as unexpected exceptions happening during the
+parse, are sent along to the error queue with a message indicating that
+there was an error in parse along with a stacktrace.  This is to
+distinguish from the invalid messages.
+ 
+## Filtered
+
+One can also filter a message by specifying a `filterClassName` in the
+parser config.  Filtered messages are just dropped rather than passed
+through.
+   
 ## Parser Architecture
 
 ![Architecture](parser_arch.png)
@@ -76,7 +121,22 @@ So putting it all together a typical Metron message with all 5-tuple fields pres
 
 ## Global Configuration 
 
-See the "[Global Configuration](../metron-common)" section.
+There are a few properties which can be managed in the global configuration that have pertinence to
+parsers and parsing in general.
+
+### `parser.error.topic`
+
+The topic where messages which were unable to be parsed due to error are sent.
+Error messages will be indexed under a sensor type of `error` and the messages will have
+the following fields:
+* `sensor.type`: `error`
+* `failed_sensor_type` : The sensor type of the message which wasn't able to be parsed
+* `error_type` : The error type, in this case `parser`.
+* `stack` : The stack trace of the error
+* `hostname` : The hostname of the node where the error happened
+* `raw_message` : The raw message in string form
+* `raw_message_bytes` : The raw message bytes
+* `error_hash` : A hash of the error message
 
 ## Parser Configuration
 
@@ -103,6 +163,30 @@ then it is assumed to be a regex and will match any topic matching the pattern (
 * `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (`false` by default).  See below for a discussion about metadata.
 * `parserConfig` : A JSON Map representing the parser implementation specific configuration.
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
+* `spoutParallelism` : The kafka spout parallelism (default to `1`).  This can be overridden on the command line.
+* `spoutNumTasks` : The number of tasks for the spout (default to `1`). This can be overridden on the command line.
+* `parserParallelism` : The parser bolt parallelism (default to `1`). This can be overridden on the command line.
+* `parserNumTasks` : The number of tasks for the parser bolt (default to `1`). This can be overridden on the command line.
+* `errorWriterParallelism` : The error writer bolt parallelism (default to `1`). This can be overridden on the command line.
+* `errorWriterNumTasks` : The number of tasks for the error writer bolt (default to `1`). This can be overridden on the command line.
+* `numWorkers` : The number of workers to use in the topology (default is the storm default of `1`).
+* `numAckers` : The number of acker executors to use in the topology (default is the storm default of `1`).
+* `spoutConfig` : A map representing a custom spout config (this is a map). This can be overridden on the command line.
+* `securityProtocol` : The security protocol to use for reading from kafka (this is a string).  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence.
+* `stormConfig` : The storm config to use (this is a map).  This can be overridden on the command line.  If both are specified, they are merged with CLI properties taking precedence.
+* `cacheConfig` : Cache config for stellar field transformations.   This configures a least frequently used cache.  This is a map with the following keys.  If not explicitly configured (the default), then no cache will be used.
+  * `stellar.cache.maxSize` - The maximum number of elements in the cache. Default is to not use a cache.
+  * `stellar.cache.maxTimeRetain` - The maximum amount of time an element is kept in the cache (in minutes). Default is to not use a cache.
+
+  Example of a cache config to contain at max `20000` stellar expressions for at most `20` minutes.:
+```
+{
+  "cacheConfig" : {
+    "stellar.cache.maxSize" : 20000,
+    "stellar.cache.maxTimeRetain" : 20
+  }
+}
+```
 
 The `fieldTransformations` is a complex object which defines a
 transformation which can be done to a message.  This transformation can 
@@ -190,6 +274,23 @@ whenever `field2` exists and whose corresponding equal to 'foo':
 }
 ```
 
+* `SELECT`: This transformation filters the fields in the message to include only the configured output fields, and drops any not explicitly included. 
+
+For example: 
+```
+{
+...
+    "fieldTransformations" : [
+          {
+            "output" : ["field1", "field2" ] 
+          , "transformation" : "SELECT"
+          }
+                      ]
+}
+```
+
+when applied to a message containing keys field1, field2 and field3, will only output the first two. It is also worth noting that two standard fields - timestamp and original_source - will always be passed along whether they are listed in output or not, since they are considered core required fields.
+
 * `IP_PROTOCOL` : This transformation maps IANA protocol numbers to consistent string representations.
 
 Consider the following sensor parser config to map the `protocol` field
@@ -212,6 +313,72 @@ into `{ "protocol" : "TCP", "source.type" : "bro", ...}`
 * `STELLAR` : This transformation executes a set of transformations
   expressed as [Stellar Language](../metron-common) statements.
 
+* `RENAME` : This transformation allows users to rename a set of fields.  Specifically,
+the config is presumed to be the mapping.  The keys to the config are the existing field names
+and the values for the config map are the associated new field name.
+
+The following config will rename the fields `old_field` and `different_old_field` to
+`new_field` and `different_new_field` respectively:
+```
+{
+...
+    "fieldTransformations" : [
+          {
+            "transformation" : "RENAME",
+          , "config" : {
+            "old_field" : "new_field",
+            "different_old_field" : "different_new_field"
+                       }
+          }
+                      ]
+}
+```
+
+
+### Assignment to `null`
+
+If, in your field transformation, you assign a field to `null`, the field will be removed.
+You can use this capability to rename variables.  It is preferred, however, that the `RENAME`
+field transformation is used in this situation as it is less awkward.
+
+Consider this example:
+```
+ "fieldTransformations" : [
+         { "transformation" : "STELLAR"
+         ,"output" : [ "new_field", "old_field"]
+         ,"config" : {
+           "new_field" : "old_field"
+          ,"old_field" : "null"
+                     }
+         }
+ ]
+```
+This would set `new_field` to the value of `old_field` and remove `old_field`.
+
+### Warning: Transforming the same field twice
+
+Currently, the stellar expressions are expressed in the form of a map where the keys define
+the fields and the values define the Stellar expressions.  You order the expression evaluation
+in the `output` field.  A consequence of this choice to store the assignments as a map is that
+the same field cannot appear in the map as a key twice.
+
+For instance, the following will not function as expected:
+```
+ "fieldTransformations" : [
+         { "transformation" : "STELLAR"
+         ,"output" : [ "new_field"]
+         ,"config" : {
+           "new_field" : "TO_UPPER(field1)"
+          ,"new_field" : "TO_LOWER(new_field)"
+                     }
+         }
+ ]
+```
+
+In the above example, the last instance of `new_field` will win and `TO_LOWER(new_field)` will be evaluated
+while `TO_UPPER(field1)` will be skipped.
+
+### Example
 Consider the following sensor parser config to add three new fields to a
 message:
 * `utc_timestamp` : The unix epoch timestamp based on the `timestamp` field, a `dc` field which is the data center the message comes from and a `dc2tz` map mapping data centers to timezones
@@ -304,37 +471,41 @@ The usage for `start_parser_topology.sh` is as follows:
 
 ```
 usage: start_parser_topology.sh
- -e,--extra_topology_options <JSON_FILE>        Extra options in the form
-                                                of a JSON file with a map
-                                                for content.
- -esc,--extra_kafka_spout_config <JSON_FILE>    Extra spout config options
-                                                in the form of a JSON file
-                                                with a map for content.
-                                                Possible keys are:
-                                                retryDelayMaxMs,retryDelay
-                                                Multiplier,retryInitialDel
-                                                ayMs,stateUpdateIntervalMs
-                                                ,bufferSizeBytes,fetchMaxW
-                                                ait,fetchSizeBytes,maxOffs
-                                                etBehind,metricsTimeBucket
-                                                SizeInSecs,socketTimeoutMs
- -ewnt,--error_writer_num_tasks <NUM_TASKS>     Error Writer Num Tasks
- -ewp,--error_writer_p <PARALLELISM_HINT>       Error Writer Parallelism
-                                                Hint
- -h,--help                                      This screen
- -k,--kafka <BROKER_URL>                        Kafka Broker URL
- -mt,--message_timeout <TIMEOUT_IN_SECS>        Message Timeout in Seconds
- -mtp,--max_task_parallelism <MAX_TASK>         Max task parallelism
- -na,--num_ackers <NUM_ACKERS>                  Number of Ackers
- -nw,--num_workers <NUM_WORKERS>                Number of Workers
- -pnt,--parser_num_tasks <NUM_TASKS>            Parser Num Tasks
- -pp,--parser_p <PARALLELISM_HINT>              Parser Parallelism Hint
- -s,--sensor <SENSOR_TYPE>                      Sensor Type
- -snt,--spout_num_tasks <NUM_TASKS>             Spout Num Tasks
- -sp,--spout_p <SPOUT_PARALLELISM_HINT>         Spout Parallelism Hint
- -t,--test <TEST>                               Run in Test Mode
- -z,--zk <ZK_QUORUM>                            Zookeeper Quroum URL
-                                                (zk1:2181,zk2:2181,...
+ -e,--extra_topology_options <JSON_FILE>               Extra options in the form
+                                                       of a JSON file with a map
+                                                       for content.
+ -esc,--extra_kafka_spout_config <JSON_FILE>           Extra spout config options
+                                                       in the form of a JSON file
+                                                       with a map for content.
+                                                       Possible keys are:
+                                                       retryDelayMaxMs,retryDelay
+                                                       Multiplier,retryInitialDel
+                                                       ayMs,stateUpdateIntervalMs
+                                                       ,bufferSizeBytes,fetchMaxW
+                                                       ait,fetchSizeBytes,maxOffs
+                                                       etBehind,metricsTimeBucket
+                                                       SizeInSecs,socketTimeoutMs
+ -ewnt,--error_writer_num_tasks <NUM_TASKS>            Error Writer Num Tasks
+ -ewp,--error_writer_p <PARALLELISM_HINT>              Error Writer Parallelism
+                                                       Hint
+ -h,--help                                             This screen
+ -iwnt,--invalid_writer_num_tasks <NUM_TASKS>          Invalid Writer Num Tasks
+ -iwp,--invalid_writer_p <PARALLELISM_HINT>            Invalid Message Writer Parallelism Hint
+ -k,--kafka <BROKER_URL>                               Kafka Broker URL
+ -ksp,--kafka_security_protocol <SECURITY_PROTOCOL>    Kafka Security Protocol
+ -mt,--message_timeout <TIMEOUT_IN_SECS>               Message Timeout in Seconds
+ -mtp,--max_task_parallelism <MAX_TASK>                Max task parallelism
+ -na,--num_ackers <NUM_ACKERS>                         Number of Ackers
+ -nw,--num_workers <NUM_WORKERS>                       Number of Workers
+ -ot,--output_topic <KAFKA_TOPIC>                      Output Kafka Topic
+ -pnt,--parser_num_tasks <NUM_TASKS>                   Parser Num Tasks
+ -pp,--parser_p <PARALLELISM_HINT>                     Parser Parallelism Hint
+ -s,--sensor <SENSOR_TYPE>                             Sensor Type
+ -snt,--spout_num_tasks <NUM_TASKS>                    Spout Num Tasks
+ -sp,--spout_p <SPOUT_PARALLELISM_HINT>                Spout Parallelism Hint
+ -t,--test <TEST>                                      Run in Test Mode
+ -z,--zk <ZK_QUORUM>                                   Zookeeper Quroum URL
+                                                       (zk1:2181,zk2:2181,...
 ```
 
 ## The `--extra_kafka_spout_config` Option
@@ -380,6 +551,12 @@ and pass `--extra_topology_options custom_config.json` to `start_parser_topology
 Default installed Metron is untuned for production deployment.  There
 are a few knobs to tune to get the most out of your system.
 
+# Notes on Adding a New Sensor
+In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
+it is necessary to add an additional field to the templates and mapping for existing sensors.
+
+Please see a description of the steps necessary to make this change in the metron-elasticsearch [Using Metron with Elasticsearch 2.x](../../metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2x)
+
 ## Kafka Queue
 The kafka queue associated with your parser is a collection point for
 all of the data sent to your parser.  As such, make sure that the number of partitions in
@@ -407,3 +584,14 @@ be customized by modifying the arguments sent to this utility.
  
 Finally, if workers and executors are new to you, the following might be of use to you:
 * [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)
+
+## JSON Path
+
+> "JSONPath expressions always refer to a JSON structure in the same way as XPath expression are used in combination with an XML document."
+> ~ Stefan Goessner
+
+
+- [JSON Path concept](http://goessner.net/articles/JsonPath/)
+- [Read about JSON Path library Apache Metron uses](https://github.com/json-path/JsonPath)
+- [Try JSON Path expressions online](http://jsonpath.herokuapp.com)
+

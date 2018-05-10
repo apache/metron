@@ -17,12 +17,36 @@
  */
 import { Component, OnInit } from '@angular/core';
 import {Router, ActivatedRoute} from '@angular/router';
-import {AlertService} from '../../service/alert.service';
+import * as moment from 'moment/moment';
+
+import {SearchService} from '../../service/search.service';
+import {UpdateService} from '../../service/update.service';
 import {Alert} from '../../model/alert';
-import {WorkflowService} from '../../service/workflow.service';
+import {AlertsService} from '../../service/alerts.service';
+import {AlertSource} from '../../model/alert-source';
+import {PatchRequest} from '../../model/patch-request';
+import {Patch} from '../../model/patch';
+import {AlertComment} from './alert-comment';
+import {AuthenticationService} from '../../service/authentication.service';
+import {MetronDialogBox} from '../../shared/metron-dialog-box';
+import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
+}
+
+export enum Tabs {
+  DETAILS, COMMENTS
+}
+
+class AlertCommentWrapper {
+  alertComment: AlertComment;
+  displayTime: string;
+
+  constructor(alertComment: AlertComment, displayTime: string) {
+    this.alertComment = alertComment;
+    this.displayTime = displayTime;
+  }
 }
 
 @Component({
@@ -33,76 +57,186 @@ export enum AlertState {
 export class AlertDetailsComponent implements OnInit {
 
   alertId = '';
+  alertName = '';
+  alertSourceType = '';
+  showEditor = false;
+  isMetaAlert = false;
   alertIndex = '';
-  alertType = '';
   alertState = AlertState;
+  tabs = Tabs;
+  activeTab = Tabs.DETAILS;
   selectedAlertState: AlertState = AlertState.NEW;
-  alert: Alert = new Alert();
+  alertSource: AlertSource = new AlertSource();
+  alertSources = [];
   alertFields: string[] = [];
+  alertCommentStr = '';
+  alertCommentsWrapper: AlertCommentWrapper[] = [];
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
-              private alertsService: AlertService,
-              private workflowService: WorkflowService) { }
+              private searchService: SearchService,
+              private updateService: UpdateService,
+              private alertsService: AlertsService,
+              private authenticationService: AuthenticationService,
+              private metronDialogBox: MetronDialogBox) {
+
+  }
 
   goBack() {
     this.router.navigateByUrl('/alerts-list');
     return false;
   }
 
-  getData() {
-    this.alertsService.getAlert(this.alertIndex, this.alertType, this.alertId).subscribe(alert => {
-      this.alert = alert;
-      this.alertFields = Object.keys(alert._source).filter(field => !field.includes(':ts') && field !== 'original_string').sort();
+  getData(fireToggleEditor = false) {
+    this.alertCommentStr = '';
+    this.searchService.getAlert(this.alertSourceType, this.alertId).subscribe(alertSource => {
+      this.alertSource = alertSource;
+      this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
+      this.alertSources = (alertSource.alert && alertSource.alert.length > 0) ? alertSource.alert : [alertSource];
+      this.setComments(alertSource);
+
+      if (fireToggleEditor) {
+        this.toggleNameEditor();
+      }
     });
+  }
+
+  setComments(alert) {
+    let alertComments = alert['comments'] ? alert['comments'] : [];
+    this.alertCommentsWrapper = alertComments.map(alertComment =>
+        new AlertCommentWrapper(alertComment, moment(new Date(alertComment.timestamp)).fromNow()));
+  }
+
+  getAlertState(alertStatus) {
+    if (alertStatus === 'OPEN') {
+      return AlertState.OPEN;
+    } else if (alertStatus === 'ESCALATE') {
+      return AlertState.ESCALATE;
+    } else if (alertStatus === 'DISMISS') {
+      return AlertState.DISMISS;
+    } else if (alertStatus === 'RESOLVE') {
+      return AlertState.RESOLVE;
+    } else {
+      return AlertState.NEW;
+    }
   }
 
   ngOnInit() {
     this.activatedRoute.params.subscribe(params => {
-      this.alertId = params['id'];
+      this.alertId = params['guid'];
+      this.alertSourceType = params['sourceType'];
       this.alertIndex = params['index'];
-      this.alertType = params['type'];
+      this.isMetaAlert = (this.alertIndex === META_ALERTS_INDEX && this.alertSourceType !== META_ALERTS_SENSOR_TYPE) ? true : false;
       this.getData();
     });
-  }
+  };
 
   processOpen() {
+    let tAlert = new Alert();
+    tAlert.source = this.alertSource;
+
     this.selectedAlertState = AlertState.OPEN;
-    this.alertsService.updateAlertState([this.alert], 'OPEN', '').subscribe(results => {
+    this.updateService.updateAlertState([tAlert], 'OPEN').subscribe(results => {
       this.getData();
     });
   }
 
   processNew() {
+    let tAlert = new Alert();
+    tAlert.source = this.alertSource;
+
     this.selectedAlertState = AlertState.NEW;
-    this.alertsService.updateAlertState([this.alert], 'NEW', '').subscribe(results => {
+    this.updateService.updateAlertState([tAlert], 'NEW').subscribe(results => {
       this.getData();
     });
   }
 
   processEscalate() {
+    let tAlert = new Alert();
+    tAlert.source = this.alertSource;
+
     this.selectedAlertState = AlertState.ESCALATE;
-    this.workflowService.start([this.alert]).subscribe(workflowId => {
-      this.alertsService.updateAlertState([this.alert], 'ESCALATE', workflowId).subscribe(results => {
-        this.getData();
-      });
+    this.updateService.updateAlertState([tAlert], 'ESCALATE').subscribe(results => {
+      this.getData();
     });
+    this.alertsService.escalate([tAlert]).subscribe();
   }
 
   processDismiss() {
+    let tAlert = new Alert();
+    tAlert.source = this.alertSource;
+
     this.selectedAlertState = AlertState.DISMISS;
-    this.alertsService.updateAlertState([this.alert], 'DISMISS', '').subscribe(results => {
+    this.updateService.updateAlertState([tAlert], 'DISMISS').subscribe(results => {
       this.getData();
     });
   }
 
   processResolve() {
+    let tAlert = new Alert();
+    tAlert.source = this.alertSource;
+
     this.selectedAlertState = AlertState.RESOLVE;
-    this.alertsService.updateAlertState([this.alert], 'RESOLVE', '').subscribe(results => {
+    this.updateService.updateAlertState([tAlert], 'RESOLVE').subscribe(results => {
       this.getData();
     });
   }
 
+  toggleNameEditor() {
+    if (this.alertSources.length > 1) {
+      this.alertName = '';
+      this.showEditor = !this.showEditor;
+    }
+  }
+
+  saveName() {
+    if (this.alertName.length > 0) {
+      let patchRequest = new PatchRequest();
+      patchRequest.guid = this.alertId;
+      patchRequest.sensorType = 'metaalert';
+      patchRequest.index = META_ALERTS_INDEX;
+      patchRequest.patch = [new Patch('add', '/name', this.alertName)];
+
+      this.updateService.patch(patchRequest).subscribe(rep => {
+        this.getData(true);
+      });
+    }
+  }
+
+  onAddComment() {
+    let alertComment = new AlertComment(this.alertCommentStr, this.authenticationService.getCurrentUserName(), new Date().getTime());
+    let tAlertComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
+    tAlertComments.unshift(alertComment);
+    this.patchAlert(new Patch('add', '/comments', tAlertComments));
+  }
+
+  patchAlert(patch: Patch) {
+    let patchRequest = new PatchRequest();
+    patchRequest.guid = this.alertSource.guid;
+    patchRequest.index = this.alertIndex;
+    patchRequest.patch = [patch];
+    patchRequest.sensorType = this.alertSourceType;
+
+    this.updateService.patch(patchRequest).subscribe(() => {
+      this.getData();
+    });
+  }
+
+  onDeleteComment(index: number) {
+    let commentText =  'Do you wish to delete the comment ';
+    if (this.alertCommentsWrapper[index].alertComment.comment.length > 25 ) {
+      commentText += ' \'' + this.alertCommentsWrapper[index].alertComment.comment.substr(0, 25) + '...\'';
+    } else {
+      commentText += ' \'' + this.alertCommentsWrapper[index].alertComment.comment + '\'';
+    }
+
+    this.metronDialogBox.showConfirmationMessage(commentText).subscribe(response => {
+      if (response) {
+        this.alertCommentsWrapper.splice(index, 1);
+        this.patchAlert(new Patch('add', '/comments', this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)));
+      }
+    });
+  }
 }
 
 

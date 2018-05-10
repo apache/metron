@@ -17,6 +17,7 @@
  */
 package org.apache.metron.stellar.dsl.functions;
 
+import com.google.common.collect.Iterables;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.common.utils.BloomFilter;
@@ -24,7 +25,9 @@ import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.common.utils.SerDeUtils;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DataStructureFunctions {
 
@@ -32,7 +35,7 @@ public class DataStructureFunctions {
           , namespace="BLOOM"
           , description="Adds an element to the bloom filter passed in"
           , params = { "bloom - The bloom filter"
-                     , "value* - The values to add"
+                     , "value(s) - The value(s) to add"
                      }
           , returns = "Bloom Filter"
           )
@@ -217,4 +220,6 @@ public class DataStructureFunctions {
       }
     }
   }
+
+
 }

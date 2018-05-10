@@ -1,10 +1,10 @@
 {
   "/api/v1": {
-    "target": "http://localhost:8080",
+    "target": "http://node1:8082",
     "secure": false
   },
   "/logout": {
-    "target": "http://localhost:8080",
+    "target": "http://node1:8082",
     "secure": false
   }
 }

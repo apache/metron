@@ -29,4 +29,5 @@ export class CollapseComponentDataItems {
 export class CollapseComponentData {
   groupName: string;
   groupItems: CollapseComponentDataItems[] = [];
+  collapsed = false;
 }

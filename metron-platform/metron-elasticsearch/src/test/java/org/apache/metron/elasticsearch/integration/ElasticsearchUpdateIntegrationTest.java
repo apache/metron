@@ -18,7 +18,6 @@
 package org.apache.metron.elasticsearch.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -33,6 +32,8 @@ import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.*;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -144,18 +145,19 @@ public class ElasticsearchUpdateIntegrationTest {
         setGuid(guid);
         setSensorType(SENSOR_NAME);
       }}, Optional.empty());
+
       Assert.assertEquals(1, table.size());
       Document doc = dao.getLatest(guid, SENSOR_NAME);
       Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
-        Get g = new Get(guid.getBytes());
+        Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(1, columns.size());
         Assert.assertEquals(message0
                 , JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
-                        , new TypeReference<Map<String, Object>>() {})
+                        , JSONUtils.MAP_SUPPLIER)
         );
       }
       {
@@ -187,15 +189,15 @@ public class ElasticsearchUpdateIntegrationTest {
       Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
-        Get g = new Get(guid.getBytes());
+        Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(2, columns.size());
         Assert.assertEquals(message0, JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
-                        , new TypeReference<Map<String, Object>>() {})
+                        , JSONUtils.MAP_SUPPLIER)
         );
         Assert.assertNotEquals(message0, JSONUtils.INSTANCE.load(new String(columns.firstEntry().getValue())
-                        , new TypeReference<Map<String, Object>>() {})
+                        , JSONUtils.MAP_SUPPLIER)
         );
       }
       {

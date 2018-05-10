@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Metron Profiler
 
 The Profiler is a feature extraction mechanism that can generate a profile describing the behavior of an entity.  An entity might be a server, user, subnet or application. Once a profile has been generated defining what normal behavior looks-like, models can be built that identify anomalous behavior.
@@ -7,15 +24,27 @@ This is achieved by summarizing the streaming telemetry data consumed by Metron 
 Any field contained within a message can be used to generate a profile.  A profile can even be produced by combining fields that originate in different data sources.  A user has considerable power to transform the data used in a profile by leveraging the Stellar language. A user only need configure the desired profiles and ensure that the Profiler topology is running.
 
 * [Installation](#installation)
-* [Getting Started](#getting-started)
 * [Creating Profiles](#creating-profiles)
+* [Deploying Profiles](#deploying-profiles)
+* [Anatomy of a Profile](#anatomy-of-a-profile)
 * [Configuring the Profiler](#configuring-the-profiler)
 * [Examples](#examples)
 * [Implementation](#implementation)
 
 ## Installation
 
-Follow these instructions to install the Profiler.  This assumes that core Metron has already been installed and validated.  
+The Profiler can be installed with either of these two methods.
+
+ * [Ambari Installation](#ambari-installation)
+ * [Manual Installation](#manual-installation)
+
+### Ambari Installation
+
+The Metron Profiler is installed automatically when installing Metron using the Ambari MPack.  You can skip the [Installation](#installation) section and move ahead to [Creating Profiles](#creating-profiles) should this be the case.
+
+### Manual Installation
+
+This section will describe the steps necessary to manually install the Profiler on an RPM-based Linux distribution.  This assumes that core Metron has already been installed and validated.  If you installed Metron using the [Ambari MPack](#ambari-mpack), then the Profiler has already been installed and you can skip this section.
 
 1. Build the Metron RPMs (see Building the [RPMs](../../metron-deployment#rpms)).  
 
@@ -32,7 +61,7 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
 
     ```
     [root@node1 ~]# find /localrepo/  -name "metron-profiler*.rpm"
-    /localrepo/metron-profiler-0.4.0-201707112313.noarch.rpm
+    /localrepo/metron-profiler-0.4.1-201707112313.noarch.rpm
     ```
 
 1. Install the RPM.
@@ -46,23 +75,16 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
     ```
     [root@node1 ~]# rpm -ql metron-profiler
     /usr/metron
-    /usr/metron/0.4.1
-    /usr/metron/0.4.1/bin
-    /usr/metron/0.4.1/bin/start_profiler_topology.sh
-    /usr/metron/0.4.1/config
-    /usr/metron/0.4.1/config/profiler.properties
-    /usr/metron/0.4.1/flux
-    /usr/metron/0.4.1/flux/profiler
-    /usr/metron/0.4.1/flux/profiler/remote.yaml
-    /usr/metron/0.4.1/lib
-    /usr/metron/0.4.1/lib/metron-profiler-0.4.0-uber.jar
-    ```
-
-1. Create a table within HBase that will store the profile data. By default, the table is named `profiler` with a column family `P`.  The table name and column family must match the Profiler's configuration (see [Configuring the Profiler](#configuring-the-profiler)).  
-
-    ```
-    $ /usr/hdp/current/hbase-client/bin/hbase shell
-    hbase(main):001:0> create 'profiler', 'P'
+    /usr/metron/0.4.2
+    /usr/metron/0.4.2/bin
+    /usr/metron/0.4.2/bin/start_profiler_topology.sh
+    /usr/metron/0.4.2/config
+    /usr/metron/0.4.2/config/profiler.properties
+    /usr/metron/0.4.2/flux
+    /usr/metron/0.4.2/flux/profiler
+    /usr/metron/0.4.2/flux/profiler/remote.yaml
+    /usr/metron/0.4.2/lib
+    /usr/metron/0.4.2/lib/metron-profiler-0.4.2-uber.jar
     ```
 
 1. Edit the configuration file located at `$METRON_HOME/config/profiler.properties`.  
@@ -70,8 +92,15 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
     kafka.zk=node1:2181
     kafka.broker=node1:6667
     ```
-    Change `kafka.zk` to refer to Zookeeper in your environment.  
-    Change `kafka.broker` to refer to a Kafka Broker in your environment.
+    * Change `kafka.zk` to refer to Zookeeper in your environment.  
+    * Change `kafka.broker` to refer to a Kafka Broker in your environment.
+
+1. Create a table within HBase that will store the profile data. By default, the table is named `profiler` with a column family `P`.  The table name and column family must match the Profiler's configuration (see [Configuring the Profiler](#configuring-the-profiler)).  
+
+    ```
+    $ /usr/hdp/current/hbase-client/bin/hbase shell
+    hbase(main):001:0> create 'profiler', 'P'
+    ```
 
 1. Start the Profiler topology.
     ```
@@ -81,9 +110,157 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
 
 At this point the Profiler is running and consuming telemetry messages.  We have not defined any profiles yet, so it is not doing anything very useful.  The next section walks you through the steps to create your very first "Hello, World!" profile.
 
-## Getting Started
+## Creating Profiles
 
-This section will describe the steps required to get your first "Hello, World!"" profile running.  This assumes that you have a successful Profiler [Installation](#installation) and have it running.
+This section will describe how to create your very first "Hello, World" profile.  It will also outline a useful workflow for creating, testing, and deploying profiles.
+
+Creating and refining profiles is an iterative process.  Iterating against a live stream of data is slow, difficult and error prone.  The Profile Debugger was created to provide a controlled and isolated execution environment to create, refine and troubleshoot profiles.
+
+1. Launch the Stellar Shell.  We will leverage the Profiler Debugger from within the Stellar Shell.  
+	```
+	[root@node1 ~]# $METRON_HOME/bin/stellar
+	Stellar, Go!
+	[Stellar]>>> %functions PROFILER
+	PROFILER_APPLY, PROFILER_FLUSH, PROFILER_INIT
+	```  
+	
+1. Create a simple `hello-world` profile that will count the number of messages for each `ip_src_addr`.  The `SHELL_EDIT` function will open an editor in which you can copy/paste the following Profiler configuration.
+	```
+	[Stellar]>>> conf := SHELL_EDIT()
+	[Stellar]>>> conf
+	{
+	  "profiles": [
+	    {
+	      "profile": "hello-world",
+	      "onlyif":  "exists(ip_src_addr)",
+	      "foreach": "ip_src_addr",
+	      "init":    { "count": "0" },
+	      "update":  { "count": "count + 1" },
+	      "result":  "count"
+	    }
+	  ]
+	}
+	```
+
+1. Create a Profile execution environment; the Profile Debugger. 
+
+	The Profiler will output the number of profiles that have been defined, the number of messages that have been applied and the number of routes that have been followed.  
+
+	A route is defined when a message is applied to a specific profile.
+	* If a message is not needed by any profile, then there are no routes. 
+	* If a message is needed by one profile, then one route has been followed.
+	* If a message is needed by two profiles, then two routes have been followed.
+
+	```
+	[Stellar]>>> profiler := PROFILER_INIT(conf)
+	[Stellar]>>> profiler
+	Profiler{1 profile(s), 0 messages(s), 0 route(s)}
+	```
+
+1. Create a message that mimics the telemetry that your profile will consume. 
+
+	This message can be as simple or complex as you like.  For the `hello-world` profile, all you need is a message containing an `ip_src_addr` field.
+
+	```
+	[Stellar]>>> msg := SHELL_EDIT()
+	[Stellar]>>> msg
+	{
+		"ip_src_addr": "10.0.0.1"
+	}
+	```
+
+1. Apply the message to your Profiler, as many times as you like.
+
+	```
+	[Stellar]>>> PROFILER_APPLY(msg, profiler)
+	Profiler{1 profile(s), 1 messages(s), 1 route(s)}
+	```
+	```
+	[Stellar]>>> PROFILER_APPLY(msg, profiler)
+	Profiler{1 profile(s), 2 messages(s), 2 route(s)}
+	```
+
+1. Flush the Profiler.  
+	
+	A flush is what occurs at the end of each 15 minute period in the Profiler.  The result is a list of Profile Measurements. Each measurement is a map containing detailed information about the profile data that has been generated. The `value` field is what is written to HBase when running this profile in the Profiler topology. 
+	
+	There will always be one measurement for each [profile, entity] pair.  This profile simply counts the number of messages by IP source address. Notice that the value is '3' for the entity '10.0.0.1' as we applied 3 messages with an 'ip_src_addr' of ’10.0.0.1'.
+	
+	```
+	[Stellar]>>> values := PROFILER_FLUSH(profiler)
+	[Stellar]>>> values
+	[{period={duration=900000, period=1669628, start=1502665200000, end=1502666100000},
+	profile=hello-world, groups=[], value=3, entity=10.0.0.1}]
+	```
+
+1. Apply real, live telemetry to your profile.
+
+	Once you are happy with your profile against a controlled data set, it can be useful to introduce more complex, live data.  This example extracts 10 messages of live, enriched telemetry to test your profile(s).
+	```
+	[Stellar]>>> %define bootstrap.servers := "node1:6667" 
+	node1:6667
+	[Stellar]>>> msgs := KAFKA_GET("indexing", 10) 
+	[Stellar]>>> LENGTH(msgs)
+	10
+	```
+	Apply those 10 messages to your profile(s).
+	```
+	[Stellar]>>> PROFILER_APPLY(msgs, profiler)
+	  Profiler{1 profile(s), 10 messages(s), 10 route(s)}
+	```
+
+
+## Deploying Profiles
+
+This section will describe the steps required to get your first "Hello, World!"" profile running.  This assumes that you have a successful Profiler [Installation](#installation) and have it running.  You can deploy profiles in two different ways.
+
+* [Deploying Profiles with the Stellar Shell](#deploying-profiles-with-the-stellar-shell)
+* [Deploying Profiles from the Command Line](#deploying-profiles-from-the-command-line)
+
+### Deploying Profiles with the Stellar Shell
+
+Continuing the previous running example, at this point, you have seen how your profile behaves against real, live telemetry in a controlled execution environment.  The next step is to deploy your profile to the live, actively running Profiler topology.
+
+1.  Start the Stellar Shell with the `-z ZK:2181` command line argument.  This is required when deploying a new profile to the active Profiler topology.  Replace `ZK:2181` with a URL that is appropriate to your environment.
+	```
+	[root@node1 ~]# $METRON_HOME/bin/stellar -z ZK:2181
+	Stellar, Go!
+	[Stellar]>>>
+	[Stellar]>>> %functions CONFIG CONFIG_GET, CONFIG_PUT
+	```
+	
+1. If you haven't already, define your profile.
+	```
+	[Stellar]>>> conf := SHELL_EDIT()
+	[Stellar]>>> conf
+	{
+	  "profiles": [
+	    {
+	      "profile": "hello-world",
+	      "onlyif":  "exists(ip_src_addr)",
+	      "foreach": "ip_src_addr",
+	      "init":    { "count": "0" },
+	      "update":  { "count": "count + 1" },
+	      "result":  "count"
+	    }
+	  ]
+	}
+	```
+
+1. Check what is already deployed.  
+
+	Pushing a new profile configuration is destructive.  It will overwrite any existing configuration.  Check what you have out there.  Manually merge the existing configuration with your new profile definition.
+	
+	```
+	[Stellar]>>> existing := CONFIG_GET("PROFILER")
+	```
+
+1. Deploy your profile.  This will push the configuration to to the live, actively running Profiler topology.  This will overwrite any existing profile definitions.
+	```
+	[Stellar]>>> CONFIG_PUT("PROFILER", conf)
+	```
+
+### Deploying Profiles from the Command Line 
 
 1. Create the profile definition in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  This file will likely not exist, if you have never created Profiles before.
 
@@ -149,12 +326,65 @@ This section will describe the steps required to get your first "Hello, World!""
 
     It is assumed that the `PROFILE_GET` client is correctly configured to match the Profile configuration before using it to read that Profile.  More information on configuring and using the Profiler client can be found [here](../metron-profiler-client).  
 
+## Anatomy of a Profile
 
-## Creating Profiles
+### Profiler
 
-The Profiler specification requires a JSON-formatted set of elements, many of which can contain Stellar code.  The specification contains the following elements.  (For the impatient, skip ahead to the [Examples](#examples).)
-The specification for the Profiler topology is stored in Zookeeper at  `/metron/topology/profiler`.  These properties also exist in the local filesystem at `$METRON_HOME/config/zookeeper/profiler.json`.
-The values can be changed on disk and then uploaded to Zookeeper using `$METRON_HOME/bin/zk_load_configs.sh`.
+The Profiler configuration contains only two fields; only one of which is required.
+
+```
+{
+    "profiles": [
+        { "profile": "one", ... },
+        { "profile": "two", ... }
+    ],
+    "timestampField": "timestamp"
+}
+```
+
+| Name                              |               | Description
+|---                                |---            |---
+| [profiles](#profiles)             | Required      | A list of zero or more Profile definitions.
+| [timestampField](#timestampfield) | Optional      | Indicates whether processing time or event time should be used. By default, processing time is enabled.
+
+
+#### `profiles`
+
+*Required*
+
+A list of zero or more Profile definitions.
+
+#### `timestampField`
+
+*Optional*
+
+Indicates whether processing time or event time is used. By default, processing time is enabled.
+
+##### Processing Time
+
+By default, no `timestampField` is defined.  In this case, the Profiler uses system time when generating profiles.  This means that the profiles are generated based on when the data has been processed by the Profiler.  This is also known as 'processing time'.
+
+This is the simplest mode of operation, but has some draw backs.  If the Profiler is consuming live data and all is well, the processing and event times will likely remain similar and consistent. If processing time diverges from event time, then the Profiler will generate skewed profiles. 
+
+There are a few scenarios that might cause skewed profiles when using processing time.  For example when a system has undergone a scheduled maintenance window and is restarted, a high volume of messages will need to be processed by the Profiler. The output of the Profiler might indicate an increase in activity during this time, although no change in activity actually occurred on the target network. The same situation could occur if an upstream system which provides telemetry undergoes an outage.  
+
+[Event Time](#event-time) can be used to mitigate these problems.
+
+##### Event Time
+
+Alternatively, a `timestampField` can be defined.  This must be the name of a field contained within the telemetry processed by the Profiler.  The Profiler will extract and use the timestamp contained within this field.
+
+* If a message does not contain this field, it will be dropped.
+
+* The field must contain a timestamp in epoch milliseconds expressed as either a numeric or string. Otherwise, the message will be dropped.
+
+* The Profiler will use the same field across all telemetry sources and for all profiles.
+
+* Be aware of clock skew across telemetry sources.  If your profile is processing telemetry from multiple sources where the clock differs significantly, the Profiler may assume that some of those messages are late and will be ignored.  Adjusting the [`profiler.window.duration`](#profilerwindowduration) and [`profiler.window.lag`](#profilerwindowlag) can help accommodate skewed clocks. 
+
+### Profiles
+
+A profile definition requires a JSON-formatted set of elements, many of which can contain Stellar code.  The specification contains the following elements.  (For the impatient, skip ahead to the [Examples](#examples).)
 
 | Name                          |               | Description
 |---                            |---            |---
@@ -191,13 +421,22 @@ An expression that determines if a message should be applied to the profile.  A 
 
 *Optional*
 
-One or more Stellar expressions used to group the profile measurements when persisted. This is intended to sort the Profile data to allow for a contiguous scan when accessing subsets of the data.
+One or more Stellar expressions used to group the profile measurements when persisted. This can be used to sort the Profile data to allow for a contiguous scan when accessing subsets of the data.  This is also one way to deal with calendar effects.  For example, where activity on a weekday can be very different from a weekend.
 
-The 'groupBy' expressions can refer to any field within a `org.apache.metron.profiler.ProfileMeasurement`.  A common use case would be grouping by day of week.  This allows a contiguous scan to access all profile data for Mondays only.  Using the following definition would achieve this.
+A common use case would be grouping by day of week.  This allows a contiguous scan to access all profile data for Mondays only.  Using the following definition would achieve this.
 
 ```
-"groupBy": [ "DAY_OF_WEEK()" ]
+"groupBy": [ "DAY_OF_WEEK(start)" ]
 ```
+
+The expression can reference any of these variables.
+* Any variable defined by the profile in its `init` or `update` expressions.
+* `profile` The name of the profile.
+* `entity` The name of the entity being profiled.
+* `start` The start time of the profile period in epoch milliseconds.
+* `end` The end time of the profile period in epoch milliseconds.
+* `duration` The duration of the profile period in milliseconds.
+* `result` The result of executing the `result` expression.
 
 ### `init`
 
@@ -273,6 +512,8 @@ In the following example, three values, the minimum, the maximum and the mean ar
 
 A numeric value that defines how many days the profile data is retained.  After this time, the data expires and is no longer accessible.  If no value is defined, the data does not expire.
 
+The REPL can be a powerful for developing profiles. Read all about [Developing Profiles](../metron-profiler-client/#developing_profiles).
+
 ## Configuring the Profiler
 
 The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in local filesystem at `$METRON_HOME/config/profiler.properties`.
@@ -281,15 +522,19 @@ The values can be changed on disk and then the Profiler topology must be restart
 
 | Setting                                                                       | Description
 |---                                                                            |---
-| [`profiler.input.topic`](#profilerinputtopic)                                 | The name of the Kafka topic from which to consume data.
-| [`profiler.output.topic`](#profileroutputtopic)                               | The name of the Kafka topic to which profile data is written.  Only used with profiles that define the [`triage` result field](#result).
+| [`profiler.input.topic`](#profilerinputtopic)                                 | The name of the input Kafka topic.
+| [`profiler.output.topic`](#profileroutputtopic)                               | The name of the output Kafka topic. 
 | [`profiler.period.duration`](#profilerperiodduration)                         | The duration of each profile period.  
-| [`profiler.period.duration.units`](#profilerperioddurationunits)              | The units used to specify the [`profiler.period.duration`](#profilerperiodduration).  
+| [`profiler.period.duration.units`](#profilerperioddurationunits)              | The units used to specify the [`profiler.period.duration`](#profilerperiodduration).
+| [`profiler.window.duration`](#profilerwindowduration)                         | The duration of each profile window.
+| [`profiler.window.duration.units`](#profilerpwindowdurationunits)             | The units used to specify the [`profiler.window.duration`](#profilerwindowduration).
+| [`profiler.window.lag`](#profilerwindowlag)                                   | The maximum time lag for timestamps.
+| [`profiler.window.lag.units`](#profilerpwindowlagunits)                       | The units used to specify the [`profiler.window.lag`](#profilerwindowlag).
 | [`profiler.workers`](#profilerworkers)                                        | The number of worker processes for the topology.
 | [`profiler.executors`](#profilerexecutors)                                    | The number of executors to spawn per component.
 | [`profiler.ttl`](#profilerttl)                                                | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up.
 | [`profiler.ttl.units`](#profilerttlunits)                                     | The units used to specify the `profiler.ttl`.
-| [`profiler.hbase.salt.divisor`](#profilerhbasesaltdivisor)                    | A salt is prepended to the row key to help prevent hotspotting.
+| [`profiler.hbase.salt.divisor`](#profilerhbasesaltdivisor)                    | A salt is prepended to the row key to help prevent hot-spotting.
 | [`profiler.hbase.table`](#profilerhbasetable)                                 | The name of the HBase table that profiles are written to.
 | [`profiler.hbase.column.family`](#profilerhbasecolumnfamily)                  | The column family used to store profiles.
 | [`profiler.hbase.batch`](#profilerhbasebatch)                                 | The number of puts that are written to HBase in a single batch.
@@ -322,6 +567,36 @@ The duration of each profile period.  This value should be defined along with [`
 The units used to specify the `profiler.period.duration`.  This value should be defined along with [`profiler.period.duration`](#profilerperiodduration).
 
 *Important*: To read a profile using the Profiler Client, the Profiler Client's `profiler.client.period.duration.units` property must match this value.  Otherwise, the [Profiler Client](metron-analytics/metron-profiler-client) will be unable to read the profile data.
+
+### `profiler.window.duration`
+
+*Default*: 30
+
+The duration of each profile window.  Telemetry that arrives within a slice of time is processed within a single window.  
+
+Many windows of telemetry will be processed during a single profile period.  This does not change the output of the Profiler, it only changes how the Profiler processes data. The window defines how much data the Profiler processes in a single pass.
+
+This value should be defined along with [`profiler.window.duration.units`](#profilerwindowdurationunits).
+
+This value must be less than the period duration as defined by [`profiler.period.duration`](#profilerperiodduration) and [`profiler.period.duration.units`](#profilerperioddurationunits).
+
+### `profiler.window.duration.units`
+
+*Default*: SECONDS
+
+The units used to specify the `profiler.window.duration`.  This value should be defined along with [`profiler.window.duration`](#profilerwindowduration).
+
+### `profiler.window.lag`
+
+*Default*: 1
+
+The maximum time lag for timestamps. Timestamps cannot arrive out-of-order by more than this amount. This value should be defined along with [`profiler.window.lag.units`](#profilerwindowlagunits).
+
+### `profiler.window.lag.units`
+
+*Default*: SECONDS
+
+The units used to specify the `profiler.window.lag`.  This value should be defined along with [`profiler.window.lag`](#profilerwindowlag).
 
 ### `profiler.workers`
 
@@ -381,29 +656,32 @@ The maximum number of seconds between batch writes to HBase.
 
 ## Examples
 
-The following examples are intended to highlight the functionality provided by the Profiler. Each shows the configuration that would be required to generate the profile.  
+The following examples are intended to highlight the functionality provided by the Profiler. Try out these examples easily in the Stellar Shell as described in the [Creating Profiles](#creating-profiles) section.
 
-These examples assume a fictitious input message stream that looks something like the following.
-
+These examples assume a fictitious input message stream that looks like the following.  
 ```
-{
-  "ip_src_addr": "10.0.0.1",
-  "protocol": "HTTPS",
-  "length": "10",
-  "bytes_in": "234"
-},
-{
-  "ip_src_addr": "10.0.0.2",
-  "protocol": "HTTP",
-  "length": "20",
-  "bytes_in": "390"
-},
-{
-  "ip_src_addr": "10.0.0.3",
-  "protocol": "DNS",
-  "length": "30",
-  "bytes_in": "560"
-}
+[Stellar]>>> msgs := SHELL_EDIT()
+[Stellar]>>> msgs
+[
+  {
+    "ip_src_addr": "10.0.0.1",
+    "protocol": "HTTPS",
+    "length": "10",
+    "bytes_in": "234"
+  },
+  {
+    "ip_src_addr": "10.0.0.2",
+    "protocol": "HTTP",
+    "length": "20",
+    "bytes_in": "390"
+  },
+  {
+    "ip_src_addr": "10.0.0.3",
+    "protocol": "DNS",
+    "length": "30",
+    "bytes_in": "560"
+  }
+]
 ```
 
 

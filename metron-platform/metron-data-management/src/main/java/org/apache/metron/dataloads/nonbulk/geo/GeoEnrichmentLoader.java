@@ -18,7 +18,6 @@
 package org.apache.metron.dataloads.nonbulk.geo;
 
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.*;
@@ -200,8 +199,7 @@ public class GeoEnrichmentLoader {
       // Fetch the global configuration
       Map<String, Object> global = JSONUtils.INSTANCE.load(
               new ByteArrayInputStream(ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client)),
-              new TypeReference<Map<String, Object>>() {
-              });
+              JSONUtils.MAP_SUPPLIER);
 
       // Update the global config and push it back
       global.put(GeoLiteDatabase.GEO_HDFS_FILE, dstPath.toString() + "/" + srcPath.getName());

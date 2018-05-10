@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {ColumnMetadata} from '../model/column-metadata';
-import {AlertsSearchResponse} from '../model/alerts-search-response';
+import {SearchResponse} from '../model/search-response';
 
 export class ElasticsearchUtils {
 
@@ -50,16 +50,16 @@ export class ElasticsearchUtils {
       }
     }
 
-    columnMetadata.push(new ColumnMetadata('_id', 'string'));
+    columnMetadata.push(new ColumnMetadata('id', 'string'));
     return columnMetadata;
   }
 
-  public static extractAlertsData(res: Response): AlertsSearchResponse {
+  public static extractAlertsData(res: Response): SearchResponse {
     let response: any = res || {};
-    let alertsSearchResponse: AlertsSearchResponse = new AlertsSearchResponse();
-    alertsSearchResponse.total = response['hits']['total'];
-    alertsSearchResponse.results = response['hits']['hits'];
-    return alertsSearchResponse;
+    let searchResponse: SearchResponse = new SearchResponse();
+    searchResponse.total = response['hits']['total'];
+    searchResponse.results = response['hits']['hits'];
+    return searchResponse;
   }
 
   public static extractESErrorMessage(error: any): any {
@@ -69,6 +69,18 @@ export class ElasticsearchUtils {
     });
 
     return message;
+  }
+
+
+  public static escapeESField(field: string) {
+    return field.replace(/:/g, '\\:');
+  }
+
+  public static escapeESValue(value: string) {
+    return String(value)
+    .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
+    .replace(/\|\|/g, '\\||') // replace ||
+    .replace(/\&\&/g, '\\&&'); // replace &&
   }
 
 }

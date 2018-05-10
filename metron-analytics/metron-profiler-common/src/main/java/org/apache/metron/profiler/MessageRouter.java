@@ -27,15 +27,18 @@ import org.json.simple.JSONObject;
 import java.util.List;
 
 /**
- * Routes incoming telemetry messages.
+ * Routes incoming telemetry messages through the Profiler.
  *
- * A single telemetry message may need to take multiple routes.  This is the case
- * when a message is needed by more than one profile.
+ * <p>If a message is needed by multiple profiles, then multiple {@link MessageRoute} values
+ * will be returned.  If a message is not needed by any profiles, then no {@link MessageRoute} values
+ * will be returned.
+ *
+ * @see MessageRoute
  */
 public interface MessageRouter {
 
   /**
-   * Route a telemetry message.  Finds all routes for a given telemetry message.
+   * Finds all routes for a telemetry message.
    *
    * @param message The telemetry message that needs routed.
    * @param config The configuration for the Profiler.

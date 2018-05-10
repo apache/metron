@@ -43,8 +43,11 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
 
         metronParsersHost = self.getHosts(componentsList, "METRON_PARSERS")[0]
         metronEnrichmentMaster = self.getHosts(componentsList, "METRON_ENRICHMENT_MASTER")[0]
+        metronProfilerHost = self.getHosts(componentsList, "METRON_PROFILER")[0]
         metronIndexingHost = self.getHosts(componentsList, "METRON_INDEXING")[0]
         metronRESTHost = self.getHosts(componentsList, "METRON_REST")[0]
+        metronManagementUIHost = self.getHosts(componentsList, "METRON_MANAGEMENT_UI")[0]
+        metronAlertsUIHost = self.getHosts(componentsList, "METRON_ALERTS_UI")[0]
 
         hbaseClientHosts = self.getHosts(componentsList, "HBASE_CLIENT")
         hdfsClientHosts = self.getHosts(componentsList, "HDFS_CLIENT")
@@ -68,6 +71,10 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             message = "Metron REST must be colocated with an instance of STORM SUPERVISOR"
             items.append({ "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'METRON_REST', "host": metronRESTHost })
 
+        if metronParsersHost !=  metronRESTHost:
+            message = "Metron REST must be co-located with Metron Parsers on {0}".format(metronParsersHost)
+            items.append({ "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'METRON_REST', "host": metronRESTHost })
+
         if metronParsersHost != metronEnrichmentMaster:
             message = "Metron Enrichment Master must be co-located with Metron Parsers on {0}".format(metronParsersHost)
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ENRICHMENT_MASTER', "host": metronEnrichmentMaster })
@@ -75,6 +82,10 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         if metronParsersHost != metronIndexingHost:
             message = "Metron Indexing must be co-located with Metron Parsers on {0}".format(metronParsersHost)
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_INDEXING', "host": metronIndexingHost })
+
+        if metronParsersHost != metronProfilerHost:
+            message = "Metron Profiler must be co-located with Metron Parsers on {0}".format(metronParsersHost)
+            items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_PROFILER', "host": metronProfilerHost })
 
         # Enrichment Master also needs ZK Client, but this is already guaranteed by being colocated with Parsers Master
         if metronParsersHost not in zookeeperClientHosts:
@@ -89,6 +100,10 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         if metronEnrichmentMaster not in hbaseClientHosts:
             message = "Metron Enrichment Master must be co-located with an instance of HBase Client"
             items.append({ "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'METRON_ENRICHMENT_MASTER', "host": metronEnrichmentMaster })
+
+        if metronManagementUIHost != metronAlertsUIHost:
+            message = "Metron Alerts UI must be co-located with Metron Management UI on {0}".format(metronManagementUIHost)
+            items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ALERTS_UI', "host": metronAlertsUIHost })
 
         return items
 

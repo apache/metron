@@ -58,7 +58,7 @@ public class EnrichmentSplitterBoltTest extends BaseEnrichmentBoltTest {
 
     EnrichmentSplitterBolt enrichmentSplitterBolt = new EnrichmentSplitterBolt("zookeeperUrl").withEnrichments(enrichments);
     enrichmentSplitterBolt.setCuratorFramework(client);
-    enrichmentSplitterBolt.setTreeCache(cache);
+    enrichmentSplitterBolt.setZKCache(cache);
     enrichmentSplitterBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
     enrichmentSplitterBolt.prepare(new HashMap<>(), topologyContext, outputCollector);
 

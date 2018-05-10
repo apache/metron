@@ -1,5 +1,22 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 [![Build Status](https://travis-ci.org/apache/metron.svg?branch=master)](https://travis-ci.org/apache/metron)
- 
+
 # Apache Metron
 
 Metron integrates a variety of open source big data technologies in order
@@ -10,36 +27,36 @@ the most current threat intelligence information to security telemetry
 within a single platform.
 
 For the latest information, please visit our website at http://metron.apache.org/
- 
+
 Metron can be divided into 4 areas:
 
 1. **A mechanism to capture, store, and normalize any type of security
 telemetry at extremely high rates.**  Because security telemetry is constantly
-being generated, it requires a method for ingesting the data at high speeds 
+being generated, it requires a method for ingesting the data at high speeds
 and pushing it to various processing units for advanced computation and analytics.  
 
 2. **Real time processing and application of enrichments** such as threat
 intelligence, geolocation, and DNS information to telemetry being collected.
 The immediate application of this information to incoming telemetry provides
-the context and situational awareness, as well as the who and where 
+the context and situational awareness, as well as the who and where
 information critical for investigation
 
 3. **Efficient information storage** based on how the information will be used:
    - Logs and telemetry are stored such that they can be efficiently mined and
 analyzed for concise security visibility
-   - The ability to extract and reconstruct full packets helps an analyst answer 
-questions such as who the true attacker was, what data was leaked, and where 
+   - The ability to extract and reconstruct full packets helps an analyst answer
+questions such as who the true attacker was, what data was leaked, and where
 that data was sent
-   - Long-term storage not only increases visibility over time, but also enables 
-advanced analytics such as machine learning techniques to be used to create 
-models on the information.  Incoming data can then be scored against these 
+   - Long-term storage not only increases visibility over time, but also enables
+advanced analytics such as machine learning techniques to be used to create
+models on the information.  Incoming data can then be scored against these
 stored models for advanced anomaly detection.  
 
-4. **An interface that gives a security investigator a centralized view of data 
-and alerts passed through the system.**  Metron’s interface presents alert 
-summaries with threat intelligence and enrichment data specific to that alert 
-on one single page.  Furthermore, advanced search capabilities and full packet 
-extraction tools are presented to the analyst for investigation without the 
+4. **An interface that gives a security investigator a centralized view of data
+and alerts passed through the system.**  Metron’s interface presents alert
+summaries with threat intelligence and enrichment data specific to that alert
+on one single page.  Furthermore, advanced search capabilities and full packet
+extraction tools are presented to the analyst for investigation without the
 need to pivot into additional tools.   
 
 Big data is a natural fit for powerful security analytics. The Metron
@@ -66,7 +83,7 @@ Option 3 is more likely to have the latest code.
 
 # Getting Started
 
-To start exploring the capabilities of Apache Metron [follow these instructions to launch Metron in a single-node VM](metron-deployment/vagrant/full-dev-platform) on your own hardware.  
+To start exploring the capabilities of Apache Metron [follow these instructions to launch Metron in a single-node VM](metron-deployment/development/centos6) on your own hardware.  
 
 # Building Metron
 
@@ -87,6 +104,7 @@ $ mvn clean install -PHDP-2.5.0.0
 
 You can swap "install" for "package" in the commands above if you don't want to deploy the artifacts to your local .m2 repo.
 
+
 # Build Metron Reporting
 
 To build and run reporting with code coverage:
@@ -101,6 +119,11 @@ $ mvn clean install -DskipTests site site:stage-deploy site:deploy
 ```
 
 The staged site is deployed to /tmp/metron/site/index.html, and can be viewed by opening the file in a browser.
+
+## Building with Docker
+
+A Docker container with all the required software, with the proper versions, is available to be used as well.
+see [ansible-docker](metron-deployment/packaging/docker/ansible-docker)
 
 # Navigating the Architecture
 
@@ -118,3 +141,9 @@ Some useful utilities that cross all of these parts of the architecture:
 * [Model as a Service](metron-analytics/metron-maas-service) : A Yarn application which can deploy machine learning and statistical models onto the cluster along with the associated Stellar functions to be able to call out to them in a scalable manner.
 * [Data management](metron-platform/metron-data-management) : A set of data management utilities aimed at getting data into HBase in a format which will allow data flowing through metron to be enriched with the results.  Contains integrations with threat intelligence feeds exposed via TAXII as well as simple flat file structures.
 * [Profiler](metron-analytics/metron-profiler) : A feature extraction mechanism that can generate a profile describing the behavior of an entity. An entity might be a server, user, subnet or application. Once a profile has been generated defining what normal behavior looks-like, models can be built that identify anomalous behavior.
+
+# Notes on Adding a New Sensor
+In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
+it is necessary to add an additional field to the templates and mapping for existing sensors.
+
+Please see a description of the steps necessary to make this change in the metron-elasticsearch [Using Metron with Elasticsearch 2.x](./metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2x)

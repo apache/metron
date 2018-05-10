@@ -1,9 +1,35 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 Apache Metron on Amazon EC2
 ===========================
 
 This project fully automates the provisioning of Apache Metron on Amazon EC2 infrastructure.  Starting with only your Amazon EC2 credentials, this project will create a fully-functioning, end-to-end, multi-node cluster running Apache Metron.
 
 Warning: Amazon will charge for the use of their resources when running Apache Metron.  The amount will vary based on the number and size of hosts, along with current Amazon pricing structure.  Be sure to stop or terminate all of the hosts instantiated by Apache Metron when not in use to avoid unnecessary charges.
+
+AWS Defaults
+------------
+
+The Ansible playbook uses the following defaults for AWS deployment:
+
+- Instances: 10
+- Region: us-west-2
+- Instance type: m4.xlarge
 
 Getting Started
 ---------------
@@ -12,7 +38,7 @@ Getting Started
 
 The host used to deploy Apache Metron will need the following software tools installed.  The following versions are known to work as of the time of this writing, but by no means are these the only working versions.
 
-  - Ansible 2.0.0.2 or 2.2.2.0
+  - Ansible 2.0.0.2, 2.2.2.0, or 2.5.0
   - Python 2.7.11
   - Maven 3.3.9  
 
@@ -20,31 +46,41 @@ Any platform that supports these tools is suitable, but the following instructio
 
 1. Install Homebrew by running the following command in a terminal.  Refer to the  [Homebrew](http://brew.sh/) home page for the latest installation instructions.
 
-  ```
-  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-  ```
+    ```
+    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    ```
 
-2. With Homebrew installed, run the following command in a terminal to install all of the required tools.
+2. With Homebrew installed, run the following command in a terminal to install all of the required tools and dependencies.
 
-  ```
-  brew cask install java
-  brew install maven git
-  ```
+    ```
+    brew update
+    brew tap caskroom/versions
+    brew cask install java8 vagrant virtualbox
+    brew install maven git node
+    ```
 
 3. Install Ansible by following the instructions [here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-pip).
 
 4. Ensure that a public SSH key is located at `~/.ssh/id_rsa.pub`.
 
-  ```
-  $ cat ~/.ssh/id_rsa.pub
-  ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChv5GJxPjR39UJV7VY17ivbLVlxFrH7UHwh1Jsjem4d1eYiAtde5N2y65/HRNxWbhYli9ED8k0/MRP92ejewucEbrPNq5mytPqdC4IvZ98Ln2GbqTDwvlP3T7xa/wYFOpFsOmXXql8216wSrnrS4f3XK7ze34S6/VmY+lsBYnr3dzyj8sG/mexpJgFS/w83mWJV0e/ryf4Hd7P6DZ5fO+nmTXfKNK22ga4ctcnbZ+toYcPL+ODCh8598XCKVo97XjwF5OxN3vl1p1HHguo3cHB4H1OIaqX5mUt59gFIZcAXUME89PO6NUiZDd3RTstpf125nQVkQAHu2fvW96/f037 nick@localhost
-  ```
+    ```
+    $ cat ~/.ssh/id_rsa.pub
+    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChv5GJxPjR39UJV7VY17ivbLVlxFrH7UHwh1Jsjem4d1eYiAtde5N2y65/HRNxWbhYli9ED8k0/MRP92ejewucEbrPNq5mytPqdC4IvZ98Ln2GbqTDwvlP3T7xa/wYFOpFsOmXXql8216wSrnrS4f3XK7ze34S6/VmY+lsBYnr3dzyj8sG/mexpJgFS/w83mWJV0e/ryf4Hd7P6DZ5fO+nmTXfKNK22ga4ctcnbZ+toYcPL+ODCh8598XCKVo97XjwF5OxN3vl1p1HHguo3cHB4H1OIaqX5mUt59gFIZcAXUME89PO6NUiZDd3RTstpf125nQVkQAHu2fvW96/f037 nick@localhost
+    ```
 
-  If this file does not exist, run the following command at a terminal and accept all defaults.  Only the public key, not the private key, will be uploaded to Amazon and configured on each host to enable SSH connectivity.  While it is possible to create and use an alternative key those details will not be covered.  
+    If this file does not exist, run the following command at a terminal and accept all defaults.  Only the public key, not the private key, will be uploaded to Amazon and configured on each host to enable SSH connectivity.  While it is possible to create and use an alternative key those details will not be covered.  
 
-  ```
-  ssh-keygen -t rsa
-  ```
+    ```
+    ssh-keygen -t rsa
+    ```
+
+5. Ensure the JAVA_HOME environment variable is set
+
+    ```
+    export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_162.jdk/Contents/Home"
+    ```
+
+   Notice: You must replace the path with the installed JDK version path
 
 ### Amazon Web Services
 
@@ -67,20 +103,20 @@ Having successfully created your Amazon Web Services account, hopefully you will
 
 1. Use the Amazon access key by exporting its values via the shell's environment.  This allows Ansible to authenticate with Amazon EC2.  For example:
 
-  ```
-  export AWS_ACCESS_KEY_ID="AKIAI6NRFEO27E5FFELQ"
-  export AWS_SECRET_ACCESS_KEY="vTDydWJQnAer7OWauUS150i+9Np7hfCXrrVVP6ed"
-  ```
+    ```
+    export AWS_ACCESS_KEY_ID="AKIAI6NRFEO27E5FFELQ"
+    export AWS_SECRET_ACCESS_KEY="vTDydWJQnAer7OWauUS150i+9Np7hfCXrrVVP6ed"
+    ```
 
   Notice: You must replace the access key values above with values from your own access key.
 
 2. Start the Apache Metron deployment process.  When prompted provide a unique name for your Metron environment or accept the default.  
 
-  ```
-  $ ./run.sh
-  Metron Environment [metron-test]: my-metron-env
-  ...
-  ```
+    ```
+    $ ./run.sh
+    Metron Environment [metron-test]: my-metron-env
+    ...
+    ```
 
   The process is likely to take between 70-90 minutes.  Fortunately, everything is fully automated and you should feel free to grab a coffee.
 
@@ -88,24 +124,24 @@ Having successfully created your Amazon Web Services account, hopefully you will
 
 1. After the deployment has completed successfully, a message like the following will be displayed.  Navigate to the specified resources to explore your newly minted Apache Metron environment.
 
-  ```
-  TASK [debug] *******************************************************************
-  ok: [localhost] => {
-      "Success": [
-          "Apache Metron deployed successfully",
-          "   Metron  @  http://ec2-52-37-255-142.us-west-2.compute.amazonaws.com:5000",
-          "   Ambari  @  http://ec2-52-37-225-202.us-west-2.compute.amazonaws.com:8080",
-          "   Sensors @  ec2-52-37-225-202.us-west-2.compute.amazonaws.com on tap0",
-          "For additional information, see https://metron.apache.org/'"
-      ]
-  }
-  ```
+    ```
+    TASK [debug] *******************************************************************
+    ok: [localhost] => {
+        "Success": [
+            "Apache Metron deployed successfully",
+            "   Metron  @  http://ec2-52-37-255-142.us-west-2.compute.amazonaws.com:5000",
+            "   Ambari  @  http://ec2-52-37-225-202.us-west-2.compute.amazonaws.com:8080",
+            "   Sensors @  ec2-52-37-225-202.us-west-2.compute.amazonaws.com on tap0",
+            "For additional information, see https://metron.apache.org/'"
+        ]
+    }
+    ```
 
 2. Each of the provisioned hosts will be accessible from the internet. Connecting to one over SSH as the user `centos` will not require a password as it will authenticate with the pre-defined SSH key.  
 
-  ```
-  ssh centos@ec2-52-91-215-174.compute-1.amazonaws.com
-  ```
+    ```
+    ssh centos@ec2-52-91-215-174.compute-1.amazonaws.com
+    ```
 
 Advanced Usage
 --------------
@@ -120,11 +156,17 @@ env: metron-test
 
 ### Selective Provisioning
 
-To provision only subsets of the entire Metron deployment, Ansible tags can be specified.  For example, to only deploy the sensors on an Amazon EC2 environment, run the following command.
+To provision only subsets of the entire Metron deployment, Ansible tags can be specified.  For example, to only deploy the sensors on an Amazon EC2 environment, run the following command:
 
 ```
-ansible-playbook -i ec2.py playbook.yml --tags "ec2,sensors"
+./run.sh --tags="ec2,sensors"
 ```
+
+### Setting REST API Profile
+
+By default, EC2 is deployed with the `dev` Spring profile. This simply instructs the REST API to automatically setup default test users `[user, user1, user2, admin]` with password "`password`" as opposed to requiring the user to manually
+ create users in the REST database. You can change this default functionality by removing the `metron_spring_profiles_active` setting in `metron-deployment/roles/ambari_config/vars/small_cluster.yml`.
+ You can view more detail on the REST Spring profiles [here](../../metron-interface/metron-rest/README.md#spring-profiles).
 
 ### Custom SSH Key
 

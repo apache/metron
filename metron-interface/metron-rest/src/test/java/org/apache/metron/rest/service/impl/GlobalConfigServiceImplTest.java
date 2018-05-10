@@ -17,23 +17,6 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.api.DeleteBuilder;
-import org.apache.curator.framework.api.GetDataBuilder;
-import org.apache.curator.framework.api.SetDataBuilder;
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.service.GlobalConfigService;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.data.Stat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -43,6 +26,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.common.collect.ImmutableMap;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.DeleteBuilder;
+import org.apache.curator.framework.api.GetDataBuilder;
+import org.apache.curator.framework.api.SetDataBuilder;
+import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
+import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.service.GlobalConfigService;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
 @SuppressWarnings("ALL")
 public class GlobalConfigServiceImplTest {
   @Rule
@@ -50,11 +53,13 @@ public class GlobalConfigServiceImplTest {
 
   CuratorFramework curatorFramework;
   GlobalConfigService globalConfigService;
+  ConfigurationsCache cache;
 
   @Before
   public void setUp() throws Exception {
     curatorFramework = mock(CuratorFramework.class);
-    globalConfigService = new GlobalConfigServiceImpl(curatorFramework);
+    cache = mock(ConfigurationsCache.class);
+    globalConfigService = new GlobalConfigServiceImpl(curatorFramework, cache);
   }
 
 
@@ -99,22 +104,16 @@ public class GlobalConfigServiceImplTest {
       put("k", "v");
     }};
 
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot())).thenReturn(config.getBytes());
-
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
+    EnrichmentConfigurations configs = new EnrichmentConfigurations(){
+      @Override
+      public Map<String, Object> getConfigurations() {
+        return ImmutableMap.of(ConfigurationType.GLOBAL.getTypeName(), configMap);
+      }
+    };
+    when(cache.get( eq(EnrichmentConfigurations.class)))
+            .thenReturn(configs);
 
     assertEquals(configMap, globalConfigService.get());
-  }
-
-  @Test
-  public void getShouldReturnNullWhenNoNodeExceptionIsThrown() throws Exception {
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot())).thenThrow(KeeperException.NoNodeException.class);
-
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
-
-    assertNull(globalConfigService.get());
   }
 
   @Test
@@ -134,7 +133,7 @@ public class GlobalConfigServiceImplTest {
     exception.expect(RestException.class);
 
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{}".getBytes())).thenThrow(Exception.class);
+    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{ }".getBytes())).thenThrow(Exception.class);
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
@@ -144,11 +143,11 @@ public class GlobalConfigServiceImplTest {
   @Test
   public void saveShouldReturnSameConfigThatIsPassedOnSuccessfulSave() throws Exception {
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{}".getBytes())).thenReturn(new Stat());
+    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{ }".getBytes())).thenReturn(new Stat());
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
     assertEquals(new HashMap<>(), globalConfigService.save(new HashMap<>()));
-    verify(setDataBuilder).forPath(eq(ConfigurationType.GLOBAL.getZookeeperRoot()), eq("{}".getBytes()));
+    verify(setDataBuilder).forPath(eq(ConfigurationType.GLOBAL.getZookeeperRoot()), eq("{ }".getBytes()));
   }
 }

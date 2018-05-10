@@ -18,14 +18,10 @@
 import {Observable} from 'rxjs/Rx';
 import {Injectable} from '@angular/core';
 import {Http} from '@angular/http';
-
-import {Alert} from '../model/alert';
 import {ColumnMetadata} from '../model/column-metadata';
 import {ColumnNames} from '../model/column-names';
 import {TableMetadata} from '../model/table-metadata';
 import {SaveSearch} from '../model/save-search';
-import {AlertsSearchResponse} from '../model/alerts-search-response';
-import {SearchRequest} from '../model/search-request';
 
 @Injectable()
 export abstract class DataSource {
@@ -33,14 +29,8 @@ export abstract class DataSource {
 
   constructor(protected http: Http) {}
 
-  // Calls to fetch alerts
-  abstract getAlerts(searchRequest: SearchRequest): Observable<AlertsSearchResponse>
-  abstract getAlert(index: string, type: string, alertId: string): Observable<Alert>
-  abstract updateAlertState(request: any): Observable<{}>
-
   // Calls to fetch default alert table column names and all the field names across all indexes
   abstract getDefaultAlertTableColumnNames(): Observable<ColumnMetadata[]>
-  abstract getAllFieldNames(): Observable<ColumnMetadata[]>
 
   // Calls to rename field names and to fetch the renamed field names
   abstract getAlertTableColumnNames(): Observable<ColumnNames[]>

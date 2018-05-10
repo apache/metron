@@ -27,6 +27,7 @@ import metron_service
 import metron_security
 
 class Enrichment(Script):
+
     def install(self, env):
         from params import params
         env.set_params(params)
@@ -37,11 +38,20 @@ class Enrichment(Script):
         env.set_params(params)
 
         Logger.info("Running enrichment configure")
-        File(format("{metron_config_path}/enrichment.properties"),
-             content=Template("enrichment.properties.j2"),
+        File(format("{metron_config_path}/enrichment-splitjoin.properties"),
+             content=Template("enrichment-splitjoin.properties.j2"),
              owner=params.metron_user,
-             group=params.metron_group
-             )
+             group=params.metron_group)
+
+        File(format("{metron_config_path}/enrichment-unified.properties"),
+            content=Template("enrichment-unified.properties.j2"),
+            owner=params.metron_user,
+            group=params.metron_group)
+
+        if not metron_service.is_zk_configured(params):
+          metron_service.init_zk_config(params)
+          metron_service.set_zk_configured(params)
+        metron_service.refresh_configs(params)
 
         Logger.info("Calling security setup")
         storm_security_setup(params)
@@ -57,8 +67,6 @@ class Enrichment(Script):
                                   params.metron_keytab_path,
                                   params.metron_principal_name,
                                   execute_user=params.metron_user)
-
-        metron_service.load_global_config(params)
 
         if not commands.is_kafka_configured():
             commands.init_kafka_topics()
@@ -97,7 +105,6 @@ class Enrichment(Script):
                                   status_params.metron_keytab_path,
                                   status_params.metron_principal_name,
                                   execute_user=status_params.metron_user)
-
 
         if not commands.is_topology_active(env):
             raise ComponentIsNotRunning()

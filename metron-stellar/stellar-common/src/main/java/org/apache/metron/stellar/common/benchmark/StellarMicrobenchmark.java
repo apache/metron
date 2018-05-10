@@ -17,25 +17,34 @@
  */
 package org.apache.metron.stellar.common.benchmark;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
-import org.apache.commons.cli.*;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.MapVariableResolver;
-import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.stellar.common.utils.JSONUtils;
-import org.apache.metron.stellar.common.utils.cli.OptionHandler;
-
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import javax.annotation.Nullable;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.metron.stellar.common.utils.JSONUtils;
+import org.apache.metron.stellar.common.utils.cli.OptionHandler;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 
 public class StellarMicrobenchmark {
 
@@ -221,8 +230,7 @@ public class StellarMicrobenchmark {
     List<String> lines = Files.readLines(expressionsFile, Charset.defaultCharset());
     Map<String, Object> variables = new HashMap<>();
     if(variablesFile.isPresent()) {
-      variables = JSONUtils.INSTANCE.load(new FileInputStream(variablesFile.get()), new TypeReference<Map<String, Object>>() {
-      });
+      variables = JSONUtils.INSTANCE.load(new FileInputStream(variablesFile.get()), JSONUtils.MAP_SUPPLIER);
     }
     int numTimes = DEFAULT_NUM_TIMES;
     if(BenchmarkOptions.NUM_TIMES.has(cli)) {

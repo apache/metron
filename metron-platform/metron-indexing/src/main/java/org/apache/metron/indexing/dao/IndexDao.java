@@ -17,27 +17,28 @@
  */
 package org.apache.metron.indexing.dao;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.flipkart.zjsonpatch.JsonPatch;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
-
-import java.io.IOException;
-import org.apache.metron.indexing.dao.search.FieldType;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.indexing.dao.update.ReplaceRequest;
+
+/**
+ * The IndexDao provides a common interface for retrieving and storing data in a variety of persistent stores.
+ * Document reads and writes require a GUID and sensor type with an index being optional.
+ */
 public interface IndexDao {
 
   /**
@@ -48,6 +49,8 @@ public interface IndexDao {
    * @throws InvalidSearchException
    */
   SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException;
+
+  GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException;
 
   /**
    * Initialize the DAO with the AccessConfig object.
@@ -66,6 +69,15 @@ public interface IndexDao {
   Document getLatest(String guid, String sensorType) throws IOException;
 
   /**
+   * Return a list of the latest versions of documents given a list of GUIDs and sensor types.
+   *
+   * @param getRequests A list of get requests for documents
+   * @return A list of documents matching or an empty list in not available.
+   * @throws IOException
+   */
+  Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException;
+
+  /**
    * Return the latest version of a document given a GetRequest.
    * @param request The GetRequest which indicates the GUID and sensor type.
    * @return Optionally the document (dependent upon existence in the index).
@@ -82,7 +94,9 @@ public interface IndexDao {
   }
 
   /**
-   * Update given a Document and optionally the index where the document exists.
+   * Update a given Document and optionally the index where the document exists.  This is a full update,
+   * meaning the current document will be replaced if it exists or a new document will be created if it does
+   * not exist.  Partial updates are not supported in this method.
    *
    * @param update The document to replace from the index.
    * @param index The index where the document lives.
@@ -90,6 +104,13 @@ public interface IndexDao {
    */
   void update(Document update, Optional<String> index) throws IOException;
 
+  /**
+   * Similar to the update method but accepts multiple documents and performs updates in batch.
+   *
+   * @param updates A map of the documents to update to the index where they live.
+   * @throws IOException
+   */
+  void batchUpdate(Map<Document, Optional<String>> updates) throws IOException;
 
   /**
    * Update a document in an index given a JSON Patch (see RFC 6902 at https://tools.ietf.org/html/rfc6902)
@@ -101,26 +122,28 @@ public interface IndexDao {
   default void patch( PatchRequest request
                     , Optional<Long> timestamp
                     ) throws OriginalNotFoundException, IOException {
+    Document d = getPatchedDocument(request, timestamp);
+    update(d, Optional.ofNullable(request.getIndex()));
+  }
+
+  default Document getPatchedDocument(PatchRequest request
+      , Optional<Long> timestamp
+  ) throws OriginalNotFoundException, IOException {
     Map<String, Object> latest = request.getSource();
     if(latest == null) {
       Document latestDoc = getLatest(request.getGuid(), request.getSensorType());
-      if(latestDoc.getDocument() != null) {
+      if(latestDoc != null && latestDoc.getDocument() != null) {
         latest = latestDoc.getDocument();
       }
       else {
         throw new OriginalNotFoundException("Unable to patch an document that doesn't exist and isn't specified.");
       }
     }
-    JsonNode originalNode = JSONUtils.INSTANCE.convert(latest, JsonNode.class);
-    JsonNode patched = JsonPatch.apply(request.getPatch(), originalNode);
-    Map<String, Object> updated = JSONUtils.INSTANCE.getMapper()
-                                           .convertValue(patched, new TypeReference<Map<String, Object>>() {});
-    Document d = new Document( updated
-                             , request.getGuid()
-                             , request.getSensorType()
-                             , timestamp.orElse(System.currentTimeMillis())
-                             );
-    update(d, Optional.ofNullable(request.getIndex()));
+    Map<String, Object> updated = JSONUtils.INSTANCE.applyPatch(request.getPatch(), latest);
+    return new Document(updated
+            , request.getGuid()
+            , request.getSensorType()
+            , timestamp.orElse(System.currentTimeMillis()));
   }
 
   /**
@@ -140,6 +163,5 @@ public interface IndexDao {
     update(d, Optional.ofNullable(request.getIndex()));
   }
 
-  Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException;
-  Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException;
+  Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException;
 }

@@ -18,7 +18,7 @@
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-platform</artifactId>
-    <version>0.4.1</version>
+    <version>0.4.3</version>
   </parent>
   <artifactId>metron-test-utilities</artifactId>
   <name>metron-test-utilities</name>
@@ -27,6 +27,11 @@
   <properties>
   </properties>
   <dependencies>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>metron-zookeeper</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
@@ -107,6 +112,14 @@
       <scope>provided</scope>
       <exclusions>
         <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-api</artifactId>
+        </exclusion>
+        <exclusion>
           <artifactId>servlet-api</artifactId>
           <groupId>javax.servlet</groupId>
         </exclusion>
@@ -127,11 +140,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-recipes</artifactId>
-      <version>${global_curator_version}</version>
-    </dependency>
+
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-test</artifactId>

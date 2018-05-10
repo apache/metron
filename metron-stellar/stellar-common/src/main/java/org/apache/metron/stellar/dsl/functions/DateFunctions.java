@@ -18,9 +18,9 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
@@ -77,7 +77,7 @@ public class DateFunctions {
   }
 
   private static LoadingCache<TimezonedFormat, ThreadLocal<SimpleDateFormat>> formatCache =
-          CacheBuilder.newBuilder().build(
+          Caffeine.newBuilder().build(
                   new CacheLoader<TimezonedFormat, ThreadLocal<SimpleDateFormat>>() {
                     @Override
                     public ThreadLocal<SimpleDateFormat> load(final TimezonedFormat format) throws Exception {

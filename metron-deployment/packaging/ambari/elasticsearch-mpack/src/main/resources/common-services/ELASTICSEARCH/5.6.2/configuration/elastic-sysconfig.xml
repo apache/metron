@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<configuration>
+    <property>
+        <name>elastic_home</name>
+        <value>/usr/share/elasticsearch/</value>
+        <description>Elasticsearch Home Directory</description>
+    </property>
+    <property>
+        <name>data_dir</name>
+        <value>/var/lib/elasticsearch/</value>
+        <description>Elasticsearch Data Directory</description>
+    </property>
+    <property>
+        <name>work_dir</name>
+        <value>/tmp/elasticsearch/</value>
+        <description>Elasticsearch Work Directory</description>
+    </property>
+    <property>
+        <name>conf_dir</name>
+        <value>/etc/elasticsearch/</value>
+        <description>Elasticsearch Configuration Directory</description>
+    </property>
+    <property>
+        <name>max_open_files</name>
+        <value>65536</value>
+        <description>Maximum number of open files</description>
+    </property>
+    <property>
+        <name>max_map_count</name>
+        <value>262144</value>
+        <description>Maximum number of memory map areas for process</description>
+    </property>
+
+    <!-- Elasticsearch sysconfig -->
+    <property>
+        <name>content</name>
+        <description>This is the jinja template for elastic sysconfig file</description>
+        <value>
+# Directory where the Elasticsearch binary distribution resides
+ES_HOME={{elastic_home}}
+
+# Maximum number of open files
+MAX_OPEN_FILES={{max_open_files}}
+
+# Maximum number of VMA (Virtual Memory Areas) a process can own
+MAX_MAP_COUNT={{max_map_count}}
+
+# Elasticsearch log directory
+LOG_DIR={{log_dir}}
+
+# Elasticsearch data directory
+DATA_DIR={{data_dir}}
+
+# Elasticsearch work directory
+WORK_DIR={{work_dir}}
+
+# Elasticsearch conf directory
+CONF_DIR={{conf_dir}}
+
+# User to run as, change this to a specific elasticsearch user if possible
+# Also make sure, this user can write into the log directories in case you change them
+# This setting only works for the init script, but has to be configured separately for systemd startup
+ES_USER={{elastic_user}}
+
+# Elasticsearch pid directory
+PID_DIR={{pid_dir}}
+
+# JAVA_HOME must be provided here for OS that use systemd service launch
+JAVA_HOME={{java64_home}}
+
+# Additional Java options - now preferential to use 'jvm.options' file instead
+ES_JAVA_OPTS=""
+
+# https://www.elastic.co/guide/en/elasticsearch/reference/5.6/_memory_lock_check.html
+MAX_LOCKED_MEMORY=unlimited
+        </value>
+    </property>
+</configuration>

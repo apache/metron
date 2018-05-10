@@ -18,11 +18,25 @@
  */
 import { MetronAlertsPage } from '../alerts-list.po';
 import {customMatchers} from '../../matchers/custom-matchers';
+import {LoginPage} from '../../login/login.po';
+import {loadTestData, deleteTestData} from '../../utils/e2e_util';
 
 describe('metron-alerts configure table', function() {
   let page: MetronAlertsPage;
-  let colNamesColumnConfig = [ 'score', '_id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
+  let loginPage: LoginPage;
+  let colNamesColumnConfig = [ 'score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
     'ip_dst_addr', 'host', 'alert_status' ];
+
+  beforeAll(() => {
+    loadTestData();
+    loginPage = new LoginPage();
+    loginPage.login();
+  });
+
+  afterAll(() => {
+    loginPage.logout();
+    deleteTestData();
+  });
 
   beforeEach(() => {
     page = new MetronAlertsPage();
@@ -37,11 +51,32 @@ describe('metron-alerts configure table', function() {
     page.navigateTo();
 
     page.clickConfigureTable();
-    expect(page.getSelectedColumnNames()).toEqual(colNamesColumnConfig, 'for default selected column names');
-    page.toggleSelectCol('_id');
+    expect(page.getSelectedColumnNames()).toEqualBcoz(colNamesColumnConfig, 'for default selected column names');
+    page.toggleSelectCol('id');
     page.toggleSelectCol('guid', 'method');
-    expect(page.getSelectedColumnNames()).toEqual(newColNamesColumnConfig, 'for guid added to selected column names');
+    expect(page.getSelectedColumnNames()).toEqualBcoz(newColNamesColumnConfig, 'for guid added to selected column names');
     page.saveConfigureColumns();
+  });
+
+  it('should rename columns from table configuration', () => {
+    page.clearLocalStorage();
+    page.navigateTo();
+
+    page.clickConfigureTable();
+    page.renameColumn('enrichments:geo:ip_dst_addr:country', 'Country');
+    page.saveConfigureColumns();
+
+    page.clickTableText('FR');
+    expect(page.getSearchText()).toEqual('Country:FR');
+    expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (25)');
+    page.clickClearSearch();
+
+    expect(page.getChangesAlertTableTitle('Alerts (25)')).toEqual('Alerts (169)');
+    page.setSearchText('Country:FR');
+    expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (25)');
+    page.clickClearSearch();
+
+    expect(page.getTableColumnNames()).toContain('Country', 'for renamed column names for alert list table');
 
   });
 

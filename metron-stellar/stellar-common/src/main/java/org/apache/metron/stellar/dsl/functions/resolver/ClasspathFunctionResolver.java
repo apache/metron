@@ -18,11 +18,6 @@
 
 package org.apache.metron.stellar.dsl.functions.resolver;
 
-import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -38,8 +33,15 @@ import org.apache.metron.stellar.common.utils.VFSClassloaderUtil;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
+
+import org.atteo.classindex.ClassFilter;
 import org.atteo.classindex.ClassIndex;
 import org.reflections.util.FilterBuilder;
+
+import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
 
 /**
  * Performs function resolution for Stellar by searching the classpath.
@@ -186,7 +188,7 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
 
         include(STELLAR_SEARCH_INCLUDES_KEY.get(stellarConfig, String.class).split(STELLAR_SEARCH_DELIMS));
         exclude(STELLAR_SEARCH_EXCLUDES_KEY.get(stellarConfig, String.class).split(STELLAR_SEARCH_DELIMS));
-        Optional<ClassLoader> vfsLoader = null;
+        Optional<ClassLoader> vfsLoader = Optional.empty();
         try {
           vfsLoader = VFSClassloaderUtil.configureClassloader(STELLAR_VFS_PATHS.get(stellarConfig, String.class));
           if(vfsLoader.isPresent()) {
@@ -218,6 +220,17 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     }
   }
 
+  protected Iterable<Class<?>> getStellarClasses(ClassLoader cl) {
+    return ClassIndex.getAnnotated(Stellar.class, cl);
+  }
+
+  protected boolean includeClass(Class<?> c, FilterBuilder filterBuilder)
+  {
+    boolean isAssignable = StellarFunction.class.isAssignableFrom(c);
+    boolean isFiltered = filterBuilder.apply(c.getCanonicalName());
+    return isAssignable && isFiltered;
+  }
+
   /**
    * Returns a set of classes that should undergo further interrogation for resolution
    * (aka discovery) of Stellar functions.
@@ -233,7 +246,9 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     else {
       cls = new ClassLoader[this.classLoaders.size()];
       for (int i = 0; i < this.classLoaders.size(); ++i) {
-        cls[i] = this.classLoaders.get(i);
+        ClassLoader cl = this.classLoaders.get(i);
+        LOG.debug("Using classloader: "+ cl.getClass().getCanonicalName());
+        cls[i] = cl;
       }
     }
 
@@ -251,12 +266,29 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     Set<String> classes = new HashSet<>();
     Set<Class<? extends StellarFunction>> ret = new HashSet<>();
     for(ClassLoader cl : cls) {
-      for(Class<?> c : ClassIndex.getAnnotated(Stellar.class, cl)) {
-        if(StellarFunction.class.isAssignableFrom(c) && filterBuilder.apply(c.getCanonicalName())) {
-          String className = c.getName();
-          if(!classes.contains(className)) {
-            ret.add((Class<? extends StellarFunction>) c);
-            classes.add(className);
+      for(Class<?> c : getStellarClasses(cl)) {
+        try {
+          LOG.debug("{}: Found class: {}", cl.getClass().getCanonicalName(), c.getCanonicalName());
+          if (includeClass(c, filterBuilder)) {
+            String className = c.getName();
+            if (!classes.contains(className)) {
+              LOG.debug("{}: Added class: {}", cl.getClass().getCanonicalName(), className);
+              ret.add((Class<? extends StellarFunction>) c);
+              classes.add(className);
+            }
+          }
+        }
+        catch(Error le) {
+          //we have had some error loading a stellar function.  This could mean that
+          //the classpath is unstable (e.g. old copies of jars are on the classpath).
+          try {
+            LOG.error("Skipping class " + c.getName() + ": " + le.getMessage()
+                    + ", please check that there are not old versions of stellar functions on the classpath.", le);
+          }
+          catch(Error ie) {
+            //it's possible that getName() will throw an exception if the class is VERY malformed.
+            LOG.error("Skipping class: " + le.getMessage()
+                    + ", please check that there are not old versions of stellar functions on the classpath.", le);
           }
         }
       }

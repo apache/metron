@@ -33,6 +33,7 @@ import org.apache.curator.utils.CloseableUtils;
 import org.apache.curator.x.discovery.*;
 import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
 import org.apache.metron.maas.config.Endpoint;
+import org.apache.metron.maas.service.Constants;
 import org.apache.metron.maas.util.ConfigUtil;
 import org.apache.metron.maas.config.MaaSConfig;
 import org.apache.metron.maas.config.ModelEndpoint;
@@ -202,7 +203,11 @@ public class Runner {
       serviceDiscovery.start();
 
       File cwd = new File(script).getParentFile();
-      final String cmd = new File(cwd, script).getAbsolutePath();
+      File scriptFile = new File(cwd, script);
+      if(scriptFile.exists() && !scriptFile.canExecute()) {
+        scriptFile.setExecutable(true);
+      }
+      final String cmd = scriptFile.getAbsolutePath();
         try {
           p = new ProcessBuilder(cmd).directory(cwd).start();
 
@@ -299,7 +304,7 @@ public class Runner {
 
   private static Endpoint readEndpoint(File cwd) throws Exception {
     String content = "";
-    File f = new File(cwd, "endpoint.dat");
+    File f = new File(cwd, Constants.ENDPOINT_DAT);
     for(int i = 0;i < NUM_ATTEMPTS;i++) {
       if(f.exists()) {
         try {

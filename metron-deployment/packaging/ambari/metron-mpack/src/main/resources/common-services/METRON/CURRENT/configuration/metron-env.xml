@@ -137,6 +137,4 @@
         <value>yyyy.MM.dd.HH</value>
         <display-name>Elasticsearch Date Format</display-name>
     </property>
-
-
 </configuration>

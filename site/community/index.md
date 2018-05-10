@@ -72,11 +72,11 @@ title: Apache Metron Community
     <tr>
       <td style="text-align: left">Nick Allen</td> <td style="text-align: left">nickallen</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
-      <td style="text-align: left">Michael Miklavcic</td> <td style="text-align: left">mmiklavcic</td> <td style="text-align: left">Committer</td> </tr>
+      <td style="text-align: left">Michael Miklavcic</td> <td style="text-align: left">mmiklavcic</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
-      <td style="text-align: left">Justin Leet</td> <td style="text-align: left">leet</td> <td style="text-align: left">Committer</td> </tr>
+      <td style="text-align: left">Justin Leet</td> <td style="text-align: left">leet</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
-      <td style="text-align: left">Otto Fowler</td> <td style="text-align: left">otto</td> <td style="text-align: left">Committer</td> </tr>
+      <td style="text-align: left">Otto Fowler</td> <td style="text-align: left">otto</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
       <td style="text-align: left">Kyle Richardson</td> <td style="text-align: left">kylerichardson</td> <td style="text-align: left">Committer</td> </tr>
     <tr>
@@ -85,6 +85,10 @@ title: Apache Metron Community
       <td style="text-align: left">Jon Zeolla</td> <td style="text-align: left">jonzeolla</td> <td style="text-align: left">Committer</td> </tr>
     <tr>
       <td style="text-align: left">JJ Meyer</td> <td style="text-align: left">jmeyer</td> <td style="text-align: left">Committer</td> </tr>
+    <tr>
+      <td style="text-align: left">Raghu Mitra</td> <td style="text-align: left">iraghumitra</td> <td style="text-align: left">Committer</td> </tr>
+    <tr>
+      <td style="text-align: left">Anand Subramanian</td> <td style="text-align: left">anandsubbu</td> <td style="text-align: left">Committer</td> </tr>
     </tbody>
 </table>
 </section>
@@ -117,11 +121,15 @@ title: Apache Metron Community
             <h4> General & Public Discussion </h4>
                 [<a href="mailto:user-subscribe@metron.apache.org">Subscribe</a>]
                 [<a href="mailto:user-unsubscribe@metron.apache.org">Unsubscribe</a>]
-                [<a href="http://mail-archives.apache.org/mod_mbox/metron-user/">Archives</a>]
+                [<a href="https://lists.apache.org/list.html?user@metron.apache.org">Archives</a>]
             <h4> Code & Documentation Change </h4>
                 [<a href="mailto:dev-subscribe@metron.apache.org">Subscribe</a>]
                 [<a href="mailto:dev-unsubscribe@metron.apache.org">Unsubscribe</a>]
-                [<a href="http://mail-archives.apache.org/mod_mbox/metron-dev/">Archives</a>]
+                [<a href="https://lists.apache.org/list.html?dev@metron.apache.org">Archives</a>]
+            <h4> Issues & Github updates </h4>
+                [<a href="mailto:issues-subscribe@metron.apache.org">Subscribe</a>]
+                [<a href="mailto:issues-unsubscribe@metron.apache.org">Unsubscribe</a>]
+                [<a href="https://lists.apache.org/list.html?issues@metron.apache.org">Archives</a>]
         </div>
 </section>
 

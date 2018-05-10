@@ -17,6 +17,13 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.stream.Collectors;
+import kafka.admin.AclCommand;
 import kafka.admin.AdminOperationException;
 import kafka.admin.AdminUtils$;
 import kafka.admin.RackAwareMode;
@@ -24,20 +31,20 @@ import kafka.utils.ZkUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.KafkaTopic;
 import org.apache.metron.rest.service.KafkaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * The default service layer implementation of {@link KafkaService}.
@@ -53,19 +60,26 @@ public class KafkaServiceImpl implements KafkaService {
 
   private final ZkUtils zkUtils;
   private final ConsumerFactory<String, String> kafkaConsumerFactory;
+  private final KafkaProducer<String, String> kafkaProducer;
   private final AdminUtils$ adminUtils;
+
+  @Autowired
+  private Environment environment;
 
   /**
    * @param zkUtils              A utility class used to interact with ZooKeeper.
    * @param kafkaConsumerFactory A class used to create {@link KafkaConsumer} in order to interact with Kafka.
+   * @param kafkaProducer        A class used to produce messages to Kafka.
    * @param adminUtils           A utility class used to do administration operations on Kafka.
    */
   @Autowired
   public KafkaServiceImpl(final ZkUtils zkUtils,
                           final ConsumerFactory<String, String> kafkaConsumerFactory,
+                          final KafkaProducer<String, String> kafkaProducer,
                           final AdminUtils$ adminUtils) {
     this.zkUtils = zkUtils;
     this.kafkaConsumerFactory = kafkaConsumerFactory;
+    this.kafkaProducer = kafkaProducer;
     this.adminUtils = adminUtils;
   }
 
@@ -74,6 +88,9 @@ public class KafkaServiceImpl implements KafkaService {
     if (!listTopics().contains(topic.getName())) {
       try {
         adminUtils.createTopic(zkUtils, topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor(), topic.getProperties(), RackAwareMode.Disabled$.MODULE$);
+        if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)){
+          addACLToCurrentUser(topic.getName());
+        }
       } catch (AdminOperationException e) {
         throw new RestException(e);
       }
@@ -141,4 +158,29 @@ public class KafkaServiceImpl implements KafkaService {
     return message;
   }
 
+  @Override
+  public void produceMessage(String topic, String message) throws RestException {
+    kafkaProducer.send(new ProducerRecord<>(topic, message));
+  }
+
+  @Override
+  public boolean addACLToCurrentUser(String name){
+    if(listTopics().contains(name)) {
+      String zkServers = environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY);
+      User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      String user = principal.getUsername();
+      List<String> cmd = new ArrayList<>();
+      cmd.add("--add");
+      cmd.add("--allow-principal");
+      cmd.add("User:" + user);
+      cmd.add("--topic");
+      cmd.add(name);
+      cmd.add("--authorizer-properties");
+      cmd.add("zookeeper.connect=" + String.join(",", zkServers));
+      AclCommand.main(cmd.toArray(new String[cmd.size()]));
+    } else {
+      return false;
+    }
+    return true;
+  }
 }

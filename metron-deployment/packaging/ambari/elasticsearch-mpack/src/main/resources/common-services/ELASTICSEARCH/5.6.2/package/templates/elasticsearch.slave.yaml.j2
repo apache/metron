@@ -1,0 +1,78 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+
+cluster:
+  name:   {{cluster_name}} 
+  routing:
+    allocation.node_concurrent_recoveries: {{cluster_routing_allocation_node_concurrent_recoveries}}
+    allocation.disk.watermark.low: {{cluster_routing_allocation_disk_watermark_low}}
+    allocation.disk.threshold_enabled: {{cluster_routing_allocation_disk_threshold_enabled}}
+    allocation.disk.watermark.high: {{cluster_routing_allocation_disk_watermark_high}}
+
+discovery:
+  zen:
+    ping:
+      unicast:
+        hosts: {{zen_discovery_ping_unicast_hosts}}
+
+node:
+  data: true
+  master: false
+  name: {{hostname}}
+path:
+  data: {{path_data}}
+
+http:
+  port: {{http_port}}
+  cors.enabled: {{http_cors_enabled}}
+
+
+transport:
+  tcp:
+    port: {{transport_tcp_port}}
+
+gateway:
+  recover_after_data_nodes: {{gateway_recover_after_data_nodes}}
+  recover_after_time: {{recover_after_time}}
+  expected_data_nodes: {{expected_data_nodes}}
+
+# https://www.elastic.co/guide/en/elasticsearch/guide/current/indexing-performance.html
+indices:
+  store.throttle.type: {{indices_memory_index_store_throttle_type}}
+  memory:
+   index_buffer_size: {{indices_memory_index_buffer_size}}
+  fielddata:
+   cache.size: {{indices_fielddata_cache_size}}
+
+bootstrap:
+  memory_lock: {{bootstrap_memory_lock}}
+  system_call_filter: false
+
+thread_pool:
+  bulk:
+    queue_size: {{threadpool_bulk_queue_size}}
+  index:
+    queue_size: {{threadpool_index_queue_size}}
+
+discovery.zen.ping_timeout: {{discovery_zen_ping_timeout}}
+discovery.zen.fd.ping_interval: {{discovery_zen_fd_ping_interval}}
+discovery.zen.fd.ping_timeout: {{discovery_zen_fd_ping_timeout}}
+discovery.zen.fd.ping_retries: {{discovery_zen_fd_ping_retries}}
+
+network.host: {{network_host}}
+network.publish_host: {{network_publish_host}}

@@ -1,5 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
 
+    http://www.apache.org/licenses/LICENSE-2.0
 
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Contents
 
 * [Stellar Language](#stellar-language)
@@ -8,6 +23,7 @@
 * [Management Utility](#management-utility)
 * [Topology Errors](topology-errors)
 * [Performance Logging](#performance-logging)
+* [Metron Debugging](#metron-debugging)
 
 # Stellar Language
 
@@ -47,7 +63,7 @@ This configuration is stored in zookeeper, but looks something like
   "es.ip": "node1",
   "es.port": "9300",
   "es.date.format": "yyyy.MM.dd.HH",
-  "parser.error.topic": "indexing"
+  "parser.error.topic": "indexing",
   "fieldValidations" : [
               {
                 "input" : [ "ip_src_addr", "ip_dst_addr" ],
@@ -59,6 +75,31 @@ This configuration is stored in zookeeper, but looks something like
                        ]
 }
 ```
+
+Various parts of our stack uses the global config are documented throughout the Metron documentation,
+but a convenient index is provided here:
+
+| Property Name                                                                                                       | Subsystem     | Type       | Ambari Property            |
+|---------------------------------------------------------------------------------------------------------------------|---------------|------------|----------------------------|
+| [`es.clustername`](../metron-elasticsearch#esclustername)                                                           | Indexing      | String     | `es_cluster_name`          |
+| [`es.ip`](../metron-elasticsearch#esip)                                                                             | Indexing      | String     | `es_hosts`                 |
+| [`es.port`](../metron-elasticsearch#esport)                                                                         | Indexing      | String     | `es_port`                  |
+| [`es.date.format`](../metron-elasticsearch#esdateformat)                                                            | Indexing      | String     | `es_date_format`           |
+| [`fieldValidations`](#validation-framework)                                                                         | Parsing       | Object     | N/A                        |
+| [`parser.error.topic`](../metron-parsers#parsererrortopic)                                                          | Parsing       | String     | N/A                        |
+| [`stellar.function.paths`](../../metron-stellar/stellar-common#stellarfunctionpaths)                                | Stellar       | CSV String | N/A                        |
+| [`stellar.function.resolver.includes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes) | Stellar       | CSV String | N/A                        |
+| [`stellar.function.resolver.excludes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes) | Stellar       | CSV String | N/A                        |
+| [`profiler.period.duration`](../../metron-analytics/metron-profiler#profilerperiodduration)                         | Profiler      | Integer    | `profiler_period_duration` |
+| [`profiler.period.duration.units`](../../metron-analytics/metron-profiler#profilerperioddurationunits)              | Profiler      | String     | `profiler_period_units`    |
+| [`update.hbase.table`](../metron-indexing#updatehbasetable)                                                         | REST/Indexing | String     | `update_hbase_table`       |
+| [`update.hbase.cf`](../metron-indexing#updatehbasecf)                                                               | REST/Indexing | String     | `update_hbase_cf`          |
+| [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`            |
+
+## Note Configs in Ambari
+If a field is managed via ambari, you should change the field via
+ambari.  Otherwise, upon service restarts, you may find your update
+overwritten.
 
 # Validation Framework
 
@@ -98,16 +139,28 @@ utility program to assist in this called `$METRON_HOME/bin/zk_load_config.sh`
 This has the following options:
 
 ```
+ -c,--config_type <CONFIG_TYPE>            The configuration type: GLOBAL,
+                                           PARSER, ENRICHMENT, INDEXING,
+                                           PROFILER
  -f,--force                                Force operation
  -h,--help                                 Generate Help screen
  -i,--input_dir <DIR>                      The input directory containing
                                            the configuration files named
                                            like "$source.json"
  -m,--mode <MODE>                          The mode of operation: DUMP,
-                                           PULL, PUSH
+                                           PULL, PUSH, PATCH
+ -n,--config_name <CONFIG_NAME>            The configuration name: bro,
+                                           yaf, snort, squid, etc.
  -o,--output_dir <DIR>                     The output directory which will
                                            store the JSON configuration
                                            from Zookeeper
+ -pk,--patch_key <PATCH_KEY>               The key to modify
+ -pm,--patch_mode <PATCH_MODE>             One of: ADD, REMOVE - relevant
+                                           only for key/value patches,
+                                           i.e. when a patch file is not
+                                           used.
+ -pf,--patch_file <PATCH_FILE>             Path to the patch file.
+ -pv,--patch_value <PATCH_VALUE>           Value to use in the patch.
  -z,--zk_quorum <host:port,[host:port]*>   Zookeeper Quorum URL
                                            (zk1:port,zk2:port,...)
 ```
@@ -115,8 +168,150 @@ This has the following options:
 Usage examples:
 
 * To dump the existing configs from zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m DUMP`
+* To dump the existing GLOBAL configs from zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m DUMP -c GLOBAL`
 * To push the configs into zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PUSH -i $METRON_HOME/config/zookeeper`
-* To pull the configs from zookeeper to the singlenode vagrant machine disk: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PULL -o $METRON_HOME/config/zookeeper -f`
+* To push only the GLOBAL configs into zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PUSH -i $METRON_HOME/config/zookeeper -c GLOBAL`
+* To push only the PARSER configs into zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PUSH -i $METRON_HOME/config/zookeeper -c PARSER`
+* To push only the PARSER 'bro' configs into zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PUSH -i $METRON_HOME/config/zookeeper -c PARSER -n bro`
+* To pull all configs from zookeeper to the singlenode vagrant machine disk: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PULL -o $METRON_HOME/config/zookeeper -f`
+
+## Patching mechanism
+
+The configuration management utility leverages a JSON patching library that conforms to [RFC-6902 spec](https://tools.ietf.org/html/rfc6902). We're using the zjsonpatch library implementation from here - https://github.com/flipkart-incubator/zjsonpatch.
+There are a couple options for leveraging patching. You can choose to patch the Zookeeper config via patch file:
+
+`$METRON_HOME/bin/zk_load_configs.sh -z $ZOOKEEPER -m PATCH -c GLOBAL -pf /tmp/mypatch.txt`
+
+or key/value pair:
+
+`$METRON_HOME/bin/zk_load_configs.sh -z $ZOOKEEPER -m PATCH -c GLOBAL -pm ADD -pk foo -pv \"\"bar\"\"`
+
+The options exposed via patch file are the full range of options from RFC-6902:
+  - ADD
+  - REMOVE
+  - REPLACE
+  - MOVE
+  - COPY
+  - TEST
+
+whereas with key/value patching, we only current expose ADD and REMOVE. Note that ADD will function as a REPLACE when the key already exists.
+
+### Patch File
+
+Let's say we want to add a complex JSON object to our configuration with a patch file. e.g.
+```
+"foo" : {
+    "bar" : {
+      "baz" : [ "bazval1", "bazval2" ]
+    }
+  }
+```
+
+We would write a patch file "/tmp/mypatch.txt" with contents:
+```
+[
+    {
+        "op": "add",
+        "path": "/foo",
+        "value": { "bar" : { "baz" : [ "bazval1", "bazval2" ] } }
+    }
+]
+```
+
+And submit via zk_load_configs as follows:
+```
+ $METRON_HOME/bin/zk_load_configs.sh -z $ZOOKEEPER -m PATCH -c GLOBAL -pf /tmp/mypatch.txt
+```
+
+### Patch Key/Value
+
+Now let's try the same without using a patch file, instead using the patch_key and patch_value options right from the command line utility. This would like like the following.
+
+```
+$METRON_HOME/bin/zk_load_configs.sh -z $ZOOKEEPER -m PATCH -c GLOBAL -pm ADD -pk "/foo" -pv "{ \"bar\" : { \"baz\" : [ \"bazval1\", \"bazval2\" ] } }"
+```
+
+### Applying Multiple Patches
+
+Applying multiple patches is also pretty straightforward. You can achieve this in a single command using patch files, or simply execute multiple commands in sequence using the patch_key/value approach.
+
+Let's say we wanted to add the following to our global config:
+```
+"apache" : "metron",
+"is" : "the best",
+"streaming" : "analytics platform"
+```
+
+and remove the /foo key from the previous example.
+
+Create a patch file /tmp/mypatch.txt with four separate patch operations.
+```
+[
+    {
+        "op": "remove",
+        "path": "/foo"
+    },
+    {
+        "op": "add",
+        "path": "/apache",
+        "value": "metron"
+    },
+    {
+        "op": "add",
+        "path": "/is",
+        "value": "the best"
+    },
+    {
+        "op": "add",
+        "path": "/streaming",
+        "value": "analytics platform"
+    }
+]
+```
+
+Now submit again and you should see a Global config with the "foo" key removed and three new keys added.
+```
+ $METRON_HOME/bin/zk_load_configs.sh -z $ZOOKEEPER -m PATCH -c GLOBAL -pf /tmp/mypatch.txt
+```
+
+### Notes On Patching
+
+For any given patch key, the last/leaf node in the key's parent *must* exist, otherwise an exception will be thrown. For example, if you want to add the following:
+```
+"foo": {
+    "bar": "baz"
+}
+```
+
+It is not sufficient to use /foo/bar as a key if foo does not already exist. You would either need to incrementally build the JSON and make this a two step process
+```
+[
+    {
+        "op": "add",
+        "path": "/foo",
+        "value": { }
+    },
+    {
+        "op": "add",
+        "path": "/foo/bar",
+        "value": "baz"
+    }
+]
+```
+
+Or provide the value as a complete JSON object.
+```
+[
+    {
+        "op": "add",
+        "path": "/foo",
+        "value": { "bar" : "baz" }
+    }
+]
+```
+
+The REMOVE operation is idempotent. Running the remove command on the same key multiple
+times will not fail once the key has been removed.
 
 # Topology Errors
 
@@ -206,3 +401,34 @@ __Side Effects__
 Calling the mark() method multiple times simply resets the start time to the current nano time. Calling log() with a non-existent mark name will log 0 ns elapsed time with a warning indicating that log has been invoked for a mark name that does not exist.
 The class is not thread-safe and makes no attempt at keeping multiple threads from modifying the same markers.
 
+# Metron Debugging
+
+A Python script is provided for gathering information useful in debugging your Metron cluster. Run from the node that has Metron installed on it. All options listed below are required.
+
+_Note:_ Be aware that no anonymization/scrubbing is performed on the captured configuration details.
+
+```
+# $METRON_HOME/bin/cluster_info.py -h
+Usage: cluster_info.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -a HOST:PORT, --ambari-host=HOST:PORT
+                        Connect to Ambari via the supplied host:port
+  -c NAME, --cluster-name=NAME
+                        Name of cluster in Ambari to retrieve info for
+  -o DIRECTORY, --out-dir=DIRECTORY
+                        Write debugging data to specified root directory
+  -s HOST:PORT, --storm-host=HOST:PORT
+                        Connect to Storm via the supplied host:port
+  -b HOST1:PORT,HOST2:PORT, --broker_list=HOST1:PORT,HOST2:PORT
+                        Connect to Kafka via the supplied comma-delimited
+                        host:port list
+  -z HOST1:PORT,HOST2:PORT, --zookeeper_quorum=HOST1:PORT,HOST2:PORT
+                        Connect to Zookeeper via the supplied comma-delimited
+                        host:port quorum list
+  -m DIRECTORY, --metron_home=DIRECTORY
+                        Metron home directory
+  -p DIRECTORY, --hdp_home=DIRECTORY
+                        HDP home directory
+```

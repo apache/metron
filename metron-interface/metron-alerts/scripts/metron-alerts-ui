@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# metron alerts UI service
+# chkconfig: - 20 80
+# description: Alerts UI
+# processname: metron-alerts-ui
+#
+
+# all LSB compliant distributions provide the following
+# http://refspecs.linuxbase.org/LSB_3.0.0/LSB-PDA/LSB-PDA/iniscrptfunc.html
+if [ -f /lib/lsb/init-functions ]; then
+    . /lib/lsb/init-functions
+fi
+
+NAME=metron-alerts-ui
+DESC="Metron Alerts UI"
+METRON_VERSION=${project.version}
+METRON_HOME=/usr/metron/$METRON_VERSION
+METRON_LOG_DIR="/var/log/metron"
+METRON_PID_DIR="/var/run/metron"
+METRON_USER="metron"
+METRON_GROUP="metron"
+METRON_SYSCONFIG="/etc/default/metron"
+if [ -f "$METRON_SYSCONFIG" ]; then
+    set -a
+    . "$METRON_SYSCONFIG"
+fi
+
+PIDFILE="$METRON_PID_DIR/$NAME.pid"
+
+DAEMON="node $METRON_HOME/web/expressjs/alerts-server.js -c $METRON_HOME/config/alerts_ui.yml"
+
+#
+# start the rest application
+#
+start() {
+
+  # if pidfile exists, do not start another
+  if [ -f $PIDFILE ]; then
+      PID=`cat $PIDFILE`
+      printf "OK [$PID]\n"
+      return
+  fi
+
+  if [ ! -d "$METRON_LOG_DIR" ]; then
+      mkdir -p "$METRON_LOG_DIR" && chown "$METRON_USER":"$METRON_GROUP" "$METRON_LOG_DIR"
+  fi
+
+  if [ ! -d "$METRON_PID_DIR" ]; then
+      mkdir -p "$METRON_PID_DIR" && chown "$METRON_USER":"$METRON_GROUP" "$METRON_PID_DIR"
+  fi
+
+  # kick-off the daemon
+  CMD="$DAEMON >> $METRON_LOG_DIR/$NAME.log 2>&1 & echo \$!"
+  PID=`su -c "$CMD" $METRON_USER`
+
+  if [ -z $PID ]; then
+      printf "Fail\n"
+  else
+      echo $PID > $PIDFILE
+      printf "Ok [$PID]\n"
+  fi
+}
+
+#
+# stop the rest application
+#
+stop() {
+  if [ -f $PIDFILE ]; then
+    PID=`cat $PIDFILE`
+    while sleep 1
+      echo -n "."
+      kill -0 $PID >/dev/null 2>&1
+    do
+      kill $PID
+    done
+    rm -f $PIDFILE
+    printf "%s\n" "Ok"
+  else
+      printf "%s\n" "Not running"
+  fi
+}
+
+#
+# status check of the rest application
+#
+status() {
+  if [ -f $PIDFILE ]; then
+    PID=`cat $PIDFILE`
+    if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+      printf "%s\n" "Process dead but pidfile exists"
+    else
+      echo "Running"
+    fi
+  else
+    printf "%s\n" "Service not running"
+  fi
+}
+
+case "$1" in
+
+  ##############################################################################
+  # start
+  #
+  start)
+    printf "%-50s \n" "Starting $NAME..."
+    start
+  ;;
+
+  ##############################################################################
+  # status
+  #
+  status)
+    printf "%-50s \n" "Checking $NAME..."
+    status
+  ;;
+
+  ##############################################################################
+  # stop
+  #
+  stop)
+    printf "%-50s \n" "Stopping $NAME..."
+    stop
+  ;;
+
+  ##############################################################################
+  # restart
+  #
+  restart)
+    $0 stop
+    $0 start
+  ;;
+
+  ##############################################################################
+  # reload
+  #
+  reload)
+  ;;
+
+  *)
+    echo "Usage: $0 {status|start|stop|restart}"
+    exit 1
+esac

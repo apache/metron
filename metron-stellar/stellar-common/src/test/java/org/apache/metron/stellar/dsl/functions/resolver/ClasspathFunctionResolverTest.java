@@ -18,20 +18,27 @@
 
 package org.apache.metron.stellar.dsl.functions.resolver;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunction;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.reflections.util.FilterBuilder;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ClasspathFunctionResolverTest {
 
@@ -109,7 +116,6 @@ public class ClasspathFunctionResolverTest {
     Assert.assertEquals(0, actual.size());
   }
 
-  @Ignore  //until relocate dependencies for src/test/classpath-resources/custom-1.0-SNAPSHOT.jar
   @Test
   public void testExternalLocal() throws FileSystemException, ClassNotFoundException {
     File jar = new File("src/test/classpath-resources");
@@ -122,18 +128,27 @@ public class ClasspathFunctionResolverTest {
     Assert.assertTrue(functions.contains("NOW"));
   }
 
-
-  @Ignore  //until relocate dependencies for src/test/classpath-resources/custom-1.0-SNAPSHOT.jar
   @Test
-  public void testExternalHDFS() throws FileSystemException, ClassNotFoundException {
-    /* TODO: this needs to test HDFS, not local filesystem */
-    File jar = new File("src/test/classpath-resources");
-    Assert.assertTrue(jar.exists());
-    Properties config = new Properties();
-    config.put(STELLAR_VFS_PATHS.param(), jar.toURI() + "/.*.jar");
+  public void testInvalidStellarClass() throws Exception {
+    StellarFunction goodFunc = mock(StellarFunction.class);
+    StellarFunction badFunc = mock(StellarFunction.class);
+    ClasspathFunctionResolver resolver = new ClasspathFunctionResolver() {
+      @Override
+      protected Iterable<Class<?>> getStellarClasses(ClassLoader cl) {
+        return ImmutableList.of(goodFunc.getClass(), badFunc.getClass());
+      }
 
-    ClasspathFunctionResolver resolver = create(config);
-    HashSet<String> functions = new HashSet<>(Lists.newArrayList(resolver.getFunctions()));
-    Assert.assertTrue(functions.contains("NOW"));
+      @Override
+      protected boolean includeClass(Class<?> c, FilterBuilder filterBuilder) {
+        if(c != goodFunc.getClass()) {
+          throw new LinkageError("failed!");
+        }
+        return true;
+      }
+    };
+    Set<Class<? extends StellarFunction>> funcs = resolver.resolvables();
+    Assert.assertEquals(1, funcs.size());
+    Assert.assertEquals(goodFunc.getClass(), Iterables.getFirst(funcs, null));
   }
+
 }

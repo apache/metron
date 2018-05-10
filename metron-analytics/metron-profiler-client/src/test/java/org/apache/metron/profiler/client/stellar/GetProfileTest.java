@@ -39,12 +39,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collections;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.*;
 
@@ -308,6 +309,35 @@ public class GetProfileTest {
 
     // validate - there should be no values from only 4 seconds ago
     Assert.assertEquals(0, result.size());
+  }
+
+  /**
+   * Default value should be able to be specified
+   */
+  @Test
+  public void testWithDefaultValue() {
+    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))";
+    @SuppressWarnings("unchecked")
+    List<Integer> result = run(expr, List.class);
+
+    // validate - expect to fail to read any values because we didn't write any.
+    Assert.assertEquals(0, result.size());
+
+    // execute - read the profile values - with config_override.
+    // first two override values are strings, third is deliberately a number.
+    testOverride("{'profiler.default.value' : 0}", 0);
+    testOverride("{'profiler.default.value' : 'metron'}", "metron");
+    testOverride("{'profiler.default.value' : []}", new ArrayList<>());
+  }
+
+  private void testOverride(String overrides, Object defaultVal) {
+      String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), [], " + overrides + ")";
+      List<Object> result = run(expr, List.class);
+
+      // validate - expect to read all values from the past 4 hours (16 or 17 values depending on start time)
+      // but they should all be the default value.
+      Assert.assertTrue(result.size() == 16 || result.size() == 17);
+      result.forEach(actual -> Assert.assertEquals(defaultVal, actual));
   }
 
   /**

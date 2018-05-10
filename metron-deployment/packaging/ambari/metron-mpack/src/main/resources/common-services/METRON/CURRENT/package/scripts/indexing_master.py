@@ -14,7 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import errno
 import os
+import requests
+
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
@@ -48,10 +53,18 @@ class Indexing(Script):
              owner=params.metron_user,
              group=params.metron_group
              )
+        File(format("{metron_config_path}/hdfs.properties"),
+             content=Template("hdfs.properties.j2"),
+             owner=params.metron_user,
+             group=params.metron_group
+             )
+
+        if not metron_service.is_zk_configured(params):
+            metron_service.init_zk_config(params)
+            metron_service.set_zk_configured(params)
+        metron_service.refresh_configs(params)
 
         commands = IndexingCommands(params)
-        metron_service.load_global_config(params)
-
         if not commands.is_configured():
             commands.init_kafka_topics()
             commands.init_hdfs_dir()
@@ -78,6 +91,18 @@ class Indexing(Script):
         env.set_params(params)
         self.configure(env)
         commands = IndexingCommands(params)
+
+        # Install elasticsearch templates
+        try:
+            if not commands.is_elasticsearch_template_installed():
+                self.elasticsearch_template_install(env)
+                commands.set_elasticsearch_template_installed()
+
+        except Exception as e:
+            msg = "WARNING: Elasticsearch index templates could not be installed.  " \
+                  "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
+            Logger.warning(msg.format(e))
+
         commands.start_indexing_topology(env)
 
     def stop(self, env, upgrade_type=None):
@@ -103,64 +128,77 @@ class Indexing(Script):
     def elasticsearch_template_install(self, env):
         from params import params
         env.set_params(params)
+        Logger.info("Installing Elasticsearch index templates")
 
-        File(params.bro_index_path,
-             mode=0755,
-             content=StaticFile('bro_index.template')
-             )
+        commands = IndexingCommands(params)
+        for template_name, template_path in commands.get_templates().iteritems():
 
-        File(params.snort_index_path,
-             mode=0755,
-             content=StaticFile('snort_index.template')
-             )
-
-        File(params.yaf_index_path,
-             mode=0755,
-             content=StaticFile('yaf_index.template')
-             )
-
-        File(params.error_index_path,
-             mode=0755,
-             content=StaticFile('error_index.template')
-             )
-
-        bro_cmd = ambari_format(
-            'curl -s -XPOST http://{es_http_url}/_template/bro_index -d @{bro_index_path}')
-        Execute(bro_cmd, logoutput=True)
-        snort_cmd = ambari_format(
-            'curl -s -XPOST http://{es_http_url}/_template/snort_index -d @{snort_index_path}')
-        Execute(snort_cmd, logoutput=True)
-        yaf_cmd = ambari_format(
-            'curl -s -XPOST http://{es_http_url}/_template/yaf_index -d @{yaf_index_path}')
-        Execute(yaf_cmd, logoutput=True)
-        error_cmd = ambari_format(
-            'curl -s -XPOST http://{es_http_url}/_template/error_index -d @{error_index_path}')
-        Execute(error_cmd, logoutput=True)
+            # install the index template
+            File(template_path, mode=0755, content=StaticFile("{0}.template".format(template_name)))
+            cmd = "curl -s -XPOST http://{0}/_template/{1} -d @{2}"
+            Execute(
+              cmd.format(params.es_http_url, template_name, template_path),
+              logoutput=True)
 
     def elasticsearch_template_delete(self, env):
         from params import params
         env.set_params(params)
+        Logger.info("Deleting Elasticsearch index templates")
 
-        bro_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/bro_index*"')
-        Execute(bro_cmd, logoutput=True)
-        snort_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/snort_index*"')
-        Execute(snort_cmd, logoutput=True)
-        yaf_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/yaf_index*"')
-        Execute(yaf_cmd, logoutput=True)
-        error_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/error_index*"')
-        Execute(error_cmd, logoutput=True)
+        commands = IndexingCommands(params)
+        for template_name in commands.get_templates():
+            # delete the index template
+            cmd = "curl -s -XDELETE \"http://{0}/_template/{1}\""
+            Execute(
+              cmd.format(params.es_http_url, template_name),
+              logoutput=True)
+
+    @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+    def kibana_dashboard_install(self, env):
+      from params import params
+      env.set_params(params)
+
+      Logger.info("Connecting to Elasticsearch on: %s" % (params.es_http_url))
+
+      kibanaTemplate = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'kibana.template')
+      if not os.path.isfile(kibanaTemplate):
+        raise IOError(
+            errno.ENOENT, os.strerror(errno.ENOENT), kibanaTemplate)
+
+      Logger.info("Loading .kibana index template from %s" % kibanaTemplate)
+      template_cmd = ambari_format(
+          'curl -s -XPOST http://{es_http_url}/_template/.kibana -d @%s' % kibanaTemplate)
+      Execute(template_cmd, logoutput=True)
+
+      kibanaDashboardLoad = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'dashboard-bulkload.json')
+      if not os.path.isfile(kibanaDashboardLoad):
+        raise IOError(
+            errno.ENOENT, os.strerror(errno.ENOENT), kibanaDashboardLoad)
+
+      Logger.info("Loading .kibana dashboard from %s" % kibanaDashboardLoad)
+
+      kibana_cmd = ambari_format(
+          'curl -s -H "Content-Type: application/x-ndjson" -XPOST http://{es_http_url}/.kibana/_bulk --data-binary @%s' % kibanaDashboardLoad)
+      Execute(kibana_cmd, logoutput=True)
 
     def zeppelin_notebook_import(self, env):
         from params import params
         env.set_params(params)
+        commands = IndexingCommands(params)
 
         Logger.info(ambari_format('Searching for Zeppelin Notebooks in {metron_config_zeppelin_path}'))
+
+        # Check if authentication is configured on Zeppelin server, and fetch details if enabled.
+        ses = requests.session()
+        ses = commands.get_zeppelin_auth_details(ses, params.zeppelin_server_url, env)
         for dirName, subdirList, files in os.walk(params.metron_config_zeppelin_path):
             for fileName in files:
                 if fileName.endswith(".json"):
-                    zeppelin_cmd = ambari_format(
-                        'curl -s -XPOST http://{zeppelin_server_url}/api/notebook/import -d "@' + os.path.join(dirName, fileName) + '"')
-                    Execute(zeppelin_cmd, logoutput=True)
+                    Logger.info("Importing notebook: " + fileName)
+                    zeppelin_import_url = ambari_format('http://{zeppelin_server_url}/api/notebook/import')
+                    zeppelin_notebook = {'file' : open(os.path.join(dirName, fileName), 'rb')}
+                    res = ses.post(zeppelin_import_url, files=zeppelin_notebook)
+                    Logger.info("Result: " + res.text)
 
 if __name__ == "__main__":
     Indexing().execute()

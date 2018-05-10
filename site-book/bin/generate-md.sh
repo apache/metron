@@ -19,7 +19,7 @@
 # ------------------------------------------------------------------
 #
 # This script collects the *.md files and other resources needed to generate
-# a book-like collection of end-user documentation.  
+# a book-like collection of end-user documentation.
 #
 # The Metron development community has chosen to do most documentation in README.md
 # files, because they are easy to write and maintain, and located near the code they
@@ -48,7 +48,7 @@ METRON_SOURCE=`cd $(dirname $0); cd ../..; pwd`
 EXCLUSION_LIST=(
     '/site/'
     '/site-book/'
-    '/build_utils/'
+    '/dev-utilities/'
     '/node_modules/'
     '/\.github/'
 )
@@ -72,7 +72,9 @@ RESOURCE_LIST=(
 ## This is a list of duples, flattened into a bash array.  Even fields are relative paths to a .md file
 ## that needs an href re-written to match a resource in the images/ directory.  Odd fields are the corresponding
 ## one-line sed script, in single quotes, that does the rewrite.  See below for examples.
+## The first line is a special, to remove the "Build Status" variable icon widget.
 HREF_REWRITE_LIST=(
+    README.md '/!\[Build Status\](https:\/\/travis-ci.org/d'
     metron-deployment/Kerberos-manual-setup.md 's#(readme-images/ambari-storm-site-properties.png)#(../images/ambari-storm-site-properties.png)#g'
     metron-deployment/Kerberos-manual-setup.md 's#(readme-images/ambari-storm-site.png)#(../images/ambari-storm-site.png)#g'
     metron-deployment/Kerberos-manual-setup.md 's#(readme-images/custom-storm-site-final.png)#(../images/custom-storm-site-final.png)#g'
@@ -328,4 +330,3 @@ else
     echo " "
     exit 0
 fi
-

@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Enrichment
 
 ## Introduction
@@ -16,6 +33,49 @@ data format (e.g. a JSON Map structure with `original_message` and
 
 ![Architecture](enrichment_arch.png)
 
+### Unified Enrichment Topology
+
+There is an experimental unified enrichment topology which is shipped.
+Currently the architecture, as described above, has a split/join in
+order to perform enrichments in parallel.  This poses some issues in
+terms of ease of tuning and reasoning about performance.  
+
+In order to deal with these issues, there is an alternative enrichment topology which
+uses data parallelism as opposed to the split/join task parallelism.
+This architecture uses a worker pool to fully enrich any message within 
+a worker.  This results in 
+* Fewer bolts in the topology 
+* Each bolt fully operates on a message.
+* Fewer network hops
+
+![Unified Architecture](unified_enrichment_arch.svg)
+
+This architecture is fully backwards compatible; the only difference is
+how the enrichment will operate on each message (in one bolt where the
+split/join is done in a threadpool as opposed
+to split across multiple bolts).
+
+#### Using It
+
+In order to use this, you will need to 
+* Edit `$METRON_HOME/bin/start_enrichment_topology.sh` and adjust it to use `remote-unified.yaml` instead of `remote.yaml`
+* Restart the enrichment topology.
+
+#### Configuring It
+
+There are two parameters which you might want to tune in this topology.
+Both of them are topology configuration adjustable in the flux file
+`$METRON_HOME/config/flux/enrichment/remote-unified.yaml`:
+* `metron.threadpool.size` : The size of the threadpool.  This can take a number or a multiple of the number of cores (e.g. `5C` to 5 times the number of cores).  The default is `2C`.
+* `metron.threadpool.type` : The type of threadpool. (note: descriptions taken from [here](https://zeroturnaround.com/rebellabs/fixedthreadpool-cachedthreadpool-or-forkjoinpool-picking-correct-java-executors-for-background-tasks/)).
+   * `FIXED` is a fixed threadpool of size `n`. `n` threads will process tasks at the time, when the pool is saturated, new tasks will get added to a queue without a limit on size. Good for CPU intensive tasks.  This is the default.
+   * `WORK_STEALING` is a work stealing threadpool.  This will create and shut down threads dynamically to accommodate the required parallelism level. It also tries to reduce the contention on the task queue, so can be really good in heavily loaded environments. Also good when your tasks create more tasks for the executor, like recursive tasks.
+
+In order to configure the parallelism for the enrichment bolt and threat
+intel bolt, the configurations will be taken from the respective join bolt
+parallelism.  When proper ambari support for this is added, we will add
+its own property.
+
 ## Enrichment Configuration
 
 The configuration for the `enrichment` topology, the topology primarily
@@ -25,9 +85,27 @@ defined by JSON documents stored in zookeeper.
 There are two types of configurations at the moment, `global` and
 `sensor` specific.  
 
+
 ## Global Configuration 
 
-See the "[Global Configuration](../metron-common)" section.
+There are a few enrichments which have independent configurations, such
+as from the global config.
+
+Also, see the "[Global Configuration](../metron-common)" section for
+more discussion of the global config.
+
+### GeoIP
+Metron supports enrichment of IP information using
+[GeoLite2](https://dev.maxmind.com/geoip/geoip2/geolite2/). The
+location of the file is managed in the global config.
+
+#### `geo.hdfs.file`
+
+The location on HDFS of the GeoLite2 database file to use for GeoIP
+lookups.  This file will be localized on the storm supervisors running
+the topology and used from there. This is lazy, so if this property
+changes in a running topology, the file will be localized from HDFS upon first
+time the file is used via the geo enrichment. 
 
 ## Sensor Enrichment Configuration
 
@@ -269,6 +347,7 @@ An example configuration for the YAF sensor is as follows:
 
 ThreatIntel alert levels are emitted as a new field "threat.triage.level." So for the example above, an incoming message that trips the `ip_src_addr` rule will have a new field threat.triage.level=10.
 
+
 # Example Enrichment via Stellar
 
 Let's walk through doing a simple enrichment using Stellar on your cluster using the Squid topology.
@@ -285,7 +364,7 @@ Let's adjust the configurations for the Squid topology to annotate the messages 
 
 * Edit the squid enrichment configuration at `$METRON_HOME/config/zookeeper/enrichments/squid.json` (this file will not exist, so create a new one) to add some new fields based on stellar queries: 
 
- ```
+```
 {
   "enrichment" : {
     "fieldMap": {
@@ -335,3 +414,5 @@ Now we need to start the topologies and send some data:
 * Ensure that the documents have new fields `foo`, `bar` and `ALL_CAPS` with values as described above.
 
 Note that we could have used any Stellar statements here, including calling out to HBase via `ENRICHMENT_GET` and `ENRICHMENT_EXISTS` or even calling a machine learning model via [Model as a Service](../../metron-analytics/metron-maas-service).
+
+

@@ -17,13 +17,24 @@
  */
 package org.apache.metron.enrichment.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
@@ -36,8 +47,9 @@ import org.apache.metron.enrichment.integration.components.ConfigUploadComponent
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
-import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.enrichment.utils.ThreatIntelUtils;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.ProcessorResult;
@@ -53,31 +65,19 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
-import java.util.stream.Stream;
-
-import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.*;
-
+/**
+ * Integration test for the 'Split-Join' enrichment topology.
+ */
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
-  private static final String ERROR_TOPIC = "enrichment_error";
-  private static final String SRC_IP = "ip_src_addr";
-  private static final String DST_IP = "ip_dst_addr";
-  private static final String MALICIOUS_IP_TYPE = "malicious_ip";
-  private static final String PLAYFUL_CLASSIFICATION_TYPE = "playful_classification";
-  private static final Map<String, Object> PLAYFUL_ENRICHMENT = new HashMap<String, Object>() {{
+
+  public static final String ERROR_TOPIC = "enrichment_error";
+  public static final String SRC_IP = "ip_src_addr";
+  public static final String DST_IP = "ip_dst_addr";
+  public static final String MALICIOUS_IP_TYPE = "malicious_ip";
+  public static final String PLAYFUL_CLASSIFICATION_TYPE = "playful_classification";
+  public static final Map<String, Object> PLAYFUL_ENRICHMENT = new HashMap<String, Object>() {{
     put("orientation", "north");
   }};
-
   public static final String DEFAULT_COUNTRY = "test country";
   public static final String DEFAULT_CITY = "test city";
   public static final String DEFAULT_POSTAL_CODE = "test postalCode";
@@ -85,18 +85,31 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public static final String DEFAULT_LONGITUDE = "test longitude";
   public static final String DEFAULT_DMACODE= "test dmaCode";
   public static final String DEFAULT_LOCATION_POINT= Joiner.on(',').join(DEFAULT_LATITUDE,DEFAULT_LONGITUDE);
+  public static final String cf = "cf";
+  public static final String trackerHBaseTableName = "tracker";
+  public static final String threatIntelTableName = "threat_intel";
+  public static final String enrichmentsTableName = "enrichments";
 
-  protected String fluxPath = "../metron-enrichment/src/main/flux/enrichment/remote.yaml";
-  protected String templatePath = "../metron-enrichment/src/main/config/enrichment.properties.j2";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   private final List<byte[]> inputMessages = getInputMessages(sampleParsedPath);
 
   private static File geoHdfsFile;
 
+  protected String fluxPath() {
+    return "../metron-enrichment/src/main/flux/enrichment/remote-splitjoin.yaml";
+  }
 
   private static List<byte[]> getInputMessages(String path){
     try{
-      return TestUtils.readSampleData(path);
+      List<byte[]> ret = TestUtils.readSampleData(path);
+      {
+        //we want one of the fields without a destination IP to ensure that enrichments can function
+        Map<String, Object> sansDestinationIp = JSONUtils.INSTANCE.load(new String(ret.get(ret.size() -1))
+                                                                       , JSONUtils.MAP_SUPPLIER);
+        sansDestinationIp.remove(Constants.Fields.DST_ADDR.getName());
+        ret.add(JSONUtils.INSTANCE.toJSONPretty(sansDestinationIp));
+      }
+      return ret;
     }catch(IOException ioe){
       return null;
     }
@@ -108,13 +121,22 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
   }
 
-  @Test
-  public void test() throws Exception {
-    final String cf = "cf";
-    final String trackerHBaseTableName = "tracker";
-    final String threatIntelTableName = "threat_intel";
-    final String enrichmentsTableName = "enrichments";
-    final Properties topologyProperties = new Properties() {{
+  /**
+   * Returns the path to the topology properties template.
+   *
+   * @return The path to the topology properties template.
+   */
+  public String getTemplatePath() {
+    return "../metron-enrichment/src/main/config/enrichment-splitjoin.properties.j2";
+  }
+
+  /**
+   * Properties for the 'Split-Join' topology.
+   *
+   * @return The topology properties.
+   */
+  public Properties getTopologyProperties() {
+    return new Properties() {{
       setProperty("enrichment_workers", "1");
       setProperty("enrichment_acker_executors", "0");
       setProperty("enrichment_topology_worker_childopts", "");
@@ -129,17 +151,14 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("enrichment_join_cache_size", "1000");
       setProperty("threatintel_join_cache_size", "1000");
       setProperty("enrichment_hbase_provider_impl", "" + MockHBaseTableProvider.class.getName());
-      setProperty("enrichment_table", enrichmentsTableName);
-      setProperty("enrichment_cf", cf);
+      setProperty("enrichment_hbase_table", enrichmentsTableName);
+      setProperty("enrichment_hbase_cf", cf);
       setProperty("enrichment_host_known_hosts", "[{\"ip\":\"10.1.128.236\", \"local\":\"YES\", \"type\":\"webserver\", \"asset_value\" : \"important\"}," +
               "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"}," +
               "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}," +
               "{\"ip\":\"10.0.2.15\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}]");
-
-      setProperty("threatintel_table", threatIntelTableName);
-      setProperty("threatintel_cf", cf);
-
-
+      setProperty("threatintel_hbase_table", threatIntelTableName);
+      setProperty("threatintel_hbase_cf", cf);
       setProperty("enrichment_kafka_spout_parallelism", "1");
       setProperty("enrichment_split_parallelism", "1");
       setProperty("enrichment_stellar_parallelism", "1");
@@ -148,8 +167,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("threat_intel_stellar_parallelism", "1");
       setProperty("threat_intel_join_parallelism", "1");
       setProperty("kafka_writer_parallelism", "1");
-
     }};
+  }
+
+  @Test
+  public void test() throws Exception {
+
+    final Properties topologyProperties = getTopologyProperties();
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
@@ -159,8 +183,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     String globalConfigStr = null;
     {
       File globalConfig = new File(new File(TestConstants.SAMPLE_CONFIG_PATH), "global.json");
-      Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, new TypeReference<Map<String, Object>>() {
-      });
+      Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER);
       config.put(SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF, MockHBaseTableProvider.class.getName());
       config.put(SimpleHBaseEnrichmentFunctions.ACCESS_TRACKER_TYPE_CONF, "PERSISTENT_BLOOM");
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_TABLE, trackerHBaseTableName);
@@ -188,9 +211,9 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }});
 
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
-            .withTopologyLocation(new File(fluxPath))
+            .withTopologyLocation(new File(fluxPath()))
             .withTopologyName("test")
-            .withTemplateLocation(new File(templatePath))
+            .withTemplateLocation(new File(getTemplatePath()))
             .withTopologyProperties(topologyProperties)
             .build();
 
@@ -245,8 +268,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
   protected void validateErrors(List<Map<String, Object>> errors) {
     for(Map<String, Object> error : errors) {
-      Assert.assertEquals("java.lang.ArithmeticException: / by zero", error.get(Constants.ErrorFields.MESSAGE.getName()));
-      Assert.assertEquals("com.google.common.util.concurrent.UncheckedExecutionException: java.lang.ArithmeticException: / by zero", error.get(Constants.ErrorFields.EXCEPTION.getName()));
+      Assert.assertTrue(error.get(Constants.ErrorFields.MESSAGE.getName()).toString(), error.get(Constants.ErrorFields.MESSAGE.getName()).toString().contains("/ by zero") );
+      Assert.assertTrue(error.get(Constants.ErrorFields.EXCEPTION.getName()).toString().contains("/ by zero"));
       Assert.assertEquals(Constants.ErrorType.ENRICHMENT_ERROR.getType(), error.get(Constants.ErrorFields.ERROR_TYPE.getName()));
       Assert.assertEquals("{\"error_test\":{},\"source.type\":\"test\"}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
     }
@@ -264,8 +287,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
     //ensure we always have a source ip and destination ip
     Assert.assertNotNull(jsonDoc.get(SRC_IP));
-    Assert.assertNotNull(jsonDoc.get(DST_IP));
-
     Assert.assertNotNull(jsonDoc.get("ALL_CAPS"));
     Assert.assertNotNull(jsonDoc.get("map.blah"));
     Assert.assertNull(jsonDoc.get("map"));
@@ -397,17 +418,17 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(indexedDoc.getOrDefault("is_alert",""), "true");
 
       // validate threat triage score
-      Assert.assertTrue(indexedDoc.containsKey(THREAT_TRIAGE_SCORE_KEY));
-      Double score = (Double) indexedDoc.get(THREAT_TRIAGE_SCORE_KEY);
+      Assert.assertTrue(indexedDoc.containsKey(ThreatIntelUtils.THREAT_TRIAGE_SCORE_KEY));
+      Double score = (Double) indexedDoc.get(ThreatIntelUtils.THREAT_TRIAGE_SCORE_KEY);
       Assert.assertEquals(score, 10d, 1e-7);
 
       // validate threat triage rules
       Joiner joiner = Joiner.on(".");
       Stream.of(
-              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_NAME),
-              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_COMMENT),
-              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_REASON),
-              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_SCORE))
+              joiner.join(ThreatIntelUtils.THREAT_TRIAGE_RULES_KEY, 0, ThreatIntelUtils.THREAT_TRIAGE_RULE_NAME),
+              joiner.join(ThreatIntelUtils.THREAT_TRIAGE_RULES_KEY, 0, ThreatIntelUtils.THREAT_TRIAGE_RULE_COMMENT),
+              joiner.join(ThreatIntelUtils.THREAT_TRIAGE_RULES_KEY, 0, ThreatIntelUtils.THREAT_TRIAGE_RULE_REASON),
+              joiner.join(ThreatIntelUtils.THREAT_TRIAGE_RULES_KEY, 0, ThreatIntelUtils.THREAT_TRIAGE_RULE_SCORE))
               .forEach(key ->
                       Assert.assertTrue(String.format("Missing expected key: '%s'", key), indexedDoc.containsKey(key)));
     }
@@ -469,11 +490,11 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
         enriched = true;
       }
       if (ips.contains(indexedDoc.get(DST_IP))) {
-        Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
+        boolean isEnriched = Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.PRINTER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, DST_IP))
-        );
+                ).apply(new EvaluationPayload(indexedDoc, DST_IP));
+        Assert.assertTrue(isEnriched);
         enriched = true;
       }
     }
@@ -490,11 +511,11 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
         enriched = true;
       }
       if (ips.contains(indexedDoc.get(DST_IP))) {
-        Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
+        boolean isEnriched = Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.WEBSERVER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, DST_IP))
-        );
+                ).apply(new EvaluationPayload(indexedDoc, DST_IP));
+        Assert.assertTrue(isEnriched);
         enriched = true;
       }
     }
@@ -527,7 +548,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
                     , message -> {
                       try {
                         return new HashMap<>(JSONUtils.INSTANCE.load(new String(message)
-                                , new TypeReference<Map<String, Object>>() {}
+                                , JSONUtils.MAP_SUPPLIER
                         )
                         );
                       } catch (Exception ex) {

@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Custom Stellar Functions
 
 Metron is fundamentally a programmable, extensible system
@@ -17,7 +34,7 @@ since the epoch.  I notice that there's nothing like that currently in Metron,
 so I embark on the adventure of adding it for my cluster.
 
 I will presume that you have an installed Metron into your local maven repo via `mvn install` .  In the future, when we publish to a maven repo,
-you will not need this.  I will depend on 0.4.1 for the
+you will not need this.  I will depend on 0.4.2 for the
 purpose of this demonstration
 
 ### Hack, Hack, Hack
@@ -49,7 +66,7 @@ First, we should depend on `metron-common` and we can do that by adjusting the `
     <dependency>
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-common</artifactId>
-      <version>0.4.1</version>
+      <version>0.4.2</version>
       <!-- NOTE: We will want to depend on the deployed common on the classpath. -->
       <scope>provided</scope>
     </dependency>

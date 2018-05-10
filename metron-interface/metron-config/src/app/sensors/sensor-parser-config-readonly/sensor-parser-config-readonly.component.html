@@ -39,6 +39,7 @@
 
           <div *ngSwitchDefault class="row">
             <div *ngIf="item.label!=''" class="col-xs-6 form-label" [ngClass]="{'form-value font-weight-bold': item.boldTitle}">{{ item.label }}</div>
+            <div *ngIf="item.model == 'sensorParserConfig'" class="col-xs-6  px-0 pull-left form-value">{{ sensorParserConfig[item.value] ? sensorParserConfig[item.value] : "-" }}</div>
             <div *ngIf="item.model == 'sensorParserConfigHistory'" class="col-xs-6  px-0 pull-left form-value">{{ sensorParserConfigHistory[item.value] ? sensorParserConfigHistory[item.value] : "-" }}</div>
             <div *ngIf="item.model == 'kafkaTopic'" class="col-xs-6  px-0 pull-left form-value">{{ kafkaTopic[item.value] ? kafkaTopic[item.value] : "-" }}</div>
             <div *ngIf="item.model == 'topologyStatus'" class="col-xs-6  px-0  pull-left form-value">{{ getTopologyStatus(item.value) }}</div>

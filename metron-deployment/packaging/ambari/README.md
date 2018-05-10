@@ -1,11 +1,48 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Ambari Management Pack Development
+
+## Table of Contents
+
+* [Overview](#overview)
+* [Ambari Zookeeper Config Lifecycle](#ambari-zookeeper-config-lifecycle)
+* [Adding a new property](#adding-a-new-property)
+* [How to identify errors in MPack changes](#how-to-identify-errors-in-mpack-changes)
+* [Testing changes without cycling Vagrant build](#testing-changes-without-cycling-vagrant-build)
+* [Configuration involving dependency services](#configuration-involving-dependency-services)
+* [Kerberos](#kerberos)
+* [Best practices](#best-practices)
+* [Upgrading MPack Services](#upgrading-mpack-services)
+
+## Overview
+
 Typically, Ambari Management Pack development will be done in the Vagrant environments. These instructions are specific to Vagrant, but can be adapted for other environemnts (e.g. make sure to be on the correct nodes for server vs agent files)
 
-There is an `mpack.json` file which describes what services the mpack will contains, versions, etc.
+There are two MPacks:
 
-Alongside this are two directories, `addon-services` and `common-services`.
+* Metron - contains artifacts for deploying the Metron service
+* Elasticsearch - contains artifacts for installing Elasticsearch and Kibana services
 
-The layout of `/common-services/METRON.CURRENT` is
+There is an `mpack.json` file for each which describes what services the mpack will contain, versions, etc.
+
+Alongside this are two directories, `addon-services` and `common-services`. Below the Metron MPack is described, but this also applies similarly to the Elasticsearch MPack.
+
+The layout of `/common-services/METRON/CURRENT` is
 * `/configuration`
   * This contains a set of `*-env.xml` files, relevent to particular components or the service as a whole. These are where properties are defined.
 * `/package`
@@ -28,24 +65,56 @@ The layout of `/common-services/METRON.CURRENT` is
 * `service_advisor.py`
   * Handles component layout and validation, along with handling some configurations for other services or that needs configs from other services.
 
-The layout of `/addon-services/METRON.CURRENT` is
+The layout of `/addon-services/METRON/CURRENT` is
 * `/repos`
   * Contains `repoinfo.xml` that defines repositories to install packages from
 * `metainfo.xml`
-  * Limited info version of `/common-services/METRON.CURRENT/metainfo.xml`
+  * Limited info version of `/common-services/METRON/CURRENT/metainfo.xml`
 * `role_command_order.json`
   * Defines the order of service startup and other actions relative to each other.
 
+## Ambari Zookeeper Config Lifecycle
+The source of truth for Metron configuration resides in Zookeeper as a series of JSON documents. There are actually multiple locations that you can populate the Zookeeper configs from:
+- $METRON_HOME/config/zookeeper
+- Stellar REPL
+- Management UI
+- Ambari
+
+Any change that works with Metron configuration stored in Zookeeper should always pull the latest config from Zookeeper first before making any changes and publishing them back up to avoid
+potentially overwriting the latest configs with stale data. The lifecycle for configuration management with Ambari is as follows:
+- First start/install for parsers, enrichment, indexing, or the profiler
+  - Perform a PUSH from local disk to Zookeeper
+- All component start/restart operations for parsers, enrichment, indexing, or the profiler
+  - Perform a JSON patch (RFC 6902) on the configs in Zookeeper and push the patched, pretty formatted config up to Zookeeper. Patching is currently applicable to to global.json only.
+  - Pull all configs to the local file system.
+
+The patching mechanism we introduced to Ambari for managing the global config is by default additive in nature, though it will also overwrite any existing values with the latest values from Ambari.
+This means that you can add any properties to the global config outside of Ambari you like, provided you are not modifying values explicitly managed by Ambari. This is important because you will not
+get any errors when modifying the configuration outside of Ambari. Instead, if you modified es.ip and changed global.json outsided Ambari, you would not see this change in Ambari. Meanwhile, the
+indexing topology would be using the new value stored in Zookeeper. Remember, Zookeeper is the source of truth. If you were to restart a Metron topology component via Ambari, that es.ip property
+would now be set back to the value stored in Ambari. So in summary, if it's managed by Ambari, only change that value via Ambari. If it's not, then feel free to use whatever mechanism you like,
+just be sure to pull the latest config from Zookeeper before making any changes. We make no effort to handle race conditions. It's last commit wins. Below are the global config properties managed
+by Ambari:
+- es.clustername
+- es.ip
+- es.date.format
+- parser.error.topic
+- update.hbase.table
+- update.hbase.cf
+- profiler.client.period.duration
+- profiler.client.period.duration.units
+
+
 ## Adding a new property
 1. Add the property to the appropriate `*-env.xml` file found in `METRON.CURRENT/configuration`.
-  ```
+    ```
     <property>
         <name>new_property</name>
         <description>New Property description</description>
         <value>Default Value</value>
         <display-name>New Property Pretty Name</display-name>
     </property>
-  ```
+    ```
 The appropriate `*-env.xml` file should be selected based on which component depends on the property. This allows Ambari to accurately restart only the affected components when the property is changed. If a property is in `metron-env.xml`, Ambari will prompt you to restart all Metron components.
 
 2. Add the property to the `metron_theme.json` file found in `METRON.CURRENT/themes` if the property was added to a component-specific `*-env.xml` file (`metron-parsers-env.xml` for example) and not `metron-env.xml`.
@@ -53,27 +122,28 @@ This is necessary for the property to be displayed in the correct tab of the Met
 
 3. Reference the property in `METRON.CURRENT/package/scriptes/params/params_linux.py`, unless it will be used in Ambari's status command. It will be stored in a variable. The name doesn't have to match, but it's preferred that it does.
 Make sure to use replace `metron-env` the correct `*-env` file, as noted above.
-  ```
-  new_property = config['configurations']['metron-env']['new_property']
-  ```
-If this property will be used in the status command, instead make this change in `METRON.CURRENT/package/scriptes/params/status_params.py`.
-Afterwards, in `params_linux.py`, reference the new property:
-  ```
-  new_property = status_params.new_property
-  ```
-This behavior is because Ambari doesn't send all parameters to the status, so it needs to be explicitly provided.
+    ```
+    new_property = config['configurations']['metron-env']['new_property']
+    ```
+  If this property will be used in the status command, instead make this change in `METRON.CURRENT/package/scriptes/params/status_params.py`.
+  Afterwards, in `params_linux.py`, reference the new property:
+    ```
+    new_property = status_params.new_property
+    ```
+  This behavior is because Ambari doesn't send all parameters to the status, so it needs to be explicitly provided. Also note that status_params.py parameters are not automatically pulled into the params_linux.py namespace, so we explicitly choose the variables to include.
+ See https://docs.python.org/2/howto/doanddont.html#at-module-level for more info.
 
 4. Ambari master services can then import the params:
 
-  ```
-  from params import params
-  env.set_params(params)
-  ```
+    ```
+    from params import params
+    env.set_params(params)
+    ```
 
 5. The `*_commands.py` files receive the params as an input from the master services. Once this is done, they can be accessed via the variable we set above:
-  ```
-  self.__params.new_property
-  ```
+    ```
+    self.__params.new_property
+    ```
 
 
 ### Env file property walkthrough
@@ -117,6 +187,33 @@ hdfs_grok_patterns_dir = format("{metron_apps_hdfs_dir}/patterns")
 ```
 The `format` function is a special Ambari function that will let you create a string with properties in curly braces replaced by their values.
 In this case, `hdfs_grok_patterns_dir` will be `/apps/metron/patterns` and will be what we now follow in this example.
+
+Note: There are instances where we deviate a bit from this pattern and use format(format("{{some_prop}}")). This is not a mistake. Ambari does not natively support nested properties, and this was a workaround that accomplished being
+able to initialize values from env.xml files and have them also available to users as Ambari properties later. Here's an example from params_linux.py:
+```
+metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-indexing-env']['metron_apps_indexed_hdfs_dir']))
+```
+and the relavant properties in metron-env.xml and metron-indexing-env.xml
+
+metron-env.xml
+```
+<property>
+    <name>metron_apps_hdfs_dir</name>
+    <value>/apps/metron</value>
+    <description>Metron apps HDFS dir</description>
+    <display-name>Metron apps HDFS dir</display-name>
+</property>
+```
+
+metron-indexing-env.xml
+```
+<property>
+    <name>metron_apps_indexed_hdfs_dir</name>
+    <value>{{metron_apps_hdfs_dir}}/indexing/indexed</value>
+    <description>Indexing bolts will write to this HDFS directory</description>
+    <display-name>Metron apps indexed HDFS dir</display-name>
+</property>
+```
 
 #### Importing the parameters into scripts
 `hdfs_grok_patterns_dir` is used in `METRON.CURRENT/package/scripts/parser_commands.py`, but before we can reference it, we'll need the params available to `parser_commands.py`
@@ -270,6 +367,7 @@ Ambari stores the Python files from the service in a couple places. We'll want t
 Specifically, the server files live in
 ```
 /var/lib/ambari-server/resources/mpacks/metron-ambari.mpack-0.4.0.0/common-services
+/var/lib/ambari-server/resources/mpacks/elasticsearch-ambari.mpack-0.4.0.0/common-services
 /var/lib/ambari-agent/cache/common-services
 ```
 
@@ -293,9 +391,9 @@ The steps to update, for anything affecting an Ambari agent node, e.g. setup scr
 1. Edit the file(s) with your changes. The ambari-agent file must be edited, but generally better to update both for consistency.
 1. Restart the Ambari Agent to get the cache to pick up the modified file
 
-  ```
-  ambari-agent restart
-  ```
+    ```
+    ambari-agent restart
+    ```
 1. Start Metron through Ambari if it was stopped.
 
 ### Reinstalling the mpack
@@ -304,19 +402,21 @@ After we've modified files in Ambari and the mpack is working, it is a good idea
 1. Stop Metron through Ambari and remove the Metron service
 1. Rebuild the mpack on your local machine and deploy it to Vagrant, ensuring that all changes made directly to files in Ambari were also made in your local environment
 
-  ```
-  cd metron-deployment
-  mvn clean package
-  scp packaging/ambari/metron-mpack/target/metron_mpack-0.4.0.0.tar.gz root@node1:~
-  ```
+    ```
+    cd metron-deployment
+    mvn clean package
+    scp packaging/ambari/metron-mpack/target/metron_mpack-0.4.0.0.tar.gz root@node1:~
+    ```
 1. Log in to Vagrant, deploy the mpack and restart Ambari
 
-  ```
-  ssh root@node1
-  ambari-server install-mpack --mpack=metron_mpack-0.4.0.0.tar.gz --verbose --force
-  ambari-server restart
-  ```
+    ```
+    ssh root@node1
+    ambari-server install-mpack --mpack=metron_mpack-0.4.0.0.tar.gz --verbose --force
+    ambari-server restart
+    ```
 1. Install the mpack through Ambari as you normally would
+
+1. The same steps can be followed for Elasticsearch and Kibana by similary deploying the ES MPack located in elasticsearch-mpack/target.
 
 ## Configuration involving dependency services
 Metron can define expectations on other services, e.g. Storm's `topology.classpath` should be `/etc/hbase/conf:/etc/hadoop/conf`.
@@ -354,23 +454,233 @@ The `security_enabled` param is already made available, along with appropriate k
 * Write scripts to be idempotent. The pattern currently used is to write a file out when a task is finished, e.g. setting up ACLs or tables.
 For example, when indexing is configured, a file is written out and checked based on a property.
 
-  ```
-  def set_configured(self):
-      File(self.__params.indexing_configured_flag_file,
-           content="",
-           owner=self.__params.metron_user,
-           mode=0755)
-  ```
-This is checked in the indexing master
+    ```
+    def set_configured(self):
+        File(self.__params.indexing_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0755)
+    ```
+  This is checked in the indexing master
 
-  ```
-  if not commands.is_configured():
-      commands.init_kafka_topics()
-      commands.init_hdfs_dir()
-      commands.set_configured()
-  ```
+    ```
+    if not commands.is_configured():
+        commands.init_kafka_topics()
+        commands.init_hdfs_dir()
+        commands.set_configured()
+    ```
 
 * Ensure ACLs are properly managed. This includes Kafka and HBase. Often this involves a config file written out as above because this isn't idempotent!
   * Make sure to `kinit` as the correct user for setting up ACLs in a secured cluster. This is usually kafka for Kafka and hbase for HBase.
   * See `set_hbase_acls` in `METRON.CURRENT/package/scripts/enrichment_commands.py` for an HBase example
   * See `init_kafka_acls` in `METRON.CURRENT/package/scripts/enrichment_commands.py` and  `METRON.CURRENT/package/scripts/metron_service.py` for an Kafka example
+
+## Upgrading MPack Services
+
+Apache Metron currently provides one service as part of its Metron MPack
+* Metron
+
+Apache Metron currently provides two services as part of its Elasticsearch MPack
+* Elasticsearch
+* Kibana
+
+There is currently no mechanism provided for multi-version or backwards compatibility. If you upgrade a service, e.g. Elasticsearch 2.x to 5.x, that is the only version that will be
+supported by Ambari via MPack.
+
+The main steps for upgrading a service are split into add-on and common services for each service within the MPack as follows:
+* Update the common services
+    * Change the service directory to use the new product version number
+    * Update metainfo.xml
+* Update the add-on services
+    * Change the service directory to use the new product version number
+    * Update repoinfo.xml
+    * Update metainfo.xml
+* Update mpack.json
+
+### Update Elasticsearch
+
+#### Update Common Services
+
+1. Change service directory names for Elasticsearch to the new desired version
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}
+    ```
+
+    e.g.
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/5.6.2
+    ```
+
+1. Update metainfo.xml
+
+    Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
+
+    ```
+    <version>5.6.2</version>
+    ...
+    <osSpecifics>
+        <osSpecific>
+            <osFamily>any</osFamily>
+            <packages>
+                <package>
+                    <name>elasticsearch-5.6.2</name>
+                </package>
+            </packages>
+        </osSpecific>
+    </osSpecifics>
+    ```
+
+#### Update Add-on Services
+
+1. Change service directory names for Elasticsearch to the new desired version
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}
+    ```
+
+    e.g.
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/5.6.2
+    ```
+
+1. Update repoinfo.xml
+
+    See [https://www.elastic.co/guide/en/elasticsearch/reference/current/rpm.html](https://www.elastic.co/guide/en/elasticsearch/reference/current/rpm.html) for the latest info.
+
+    Modify the baseurl and repoid in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/repos/repoinfo.xml`, e.g.
+
+    ```
+    <baseurl>https://artifacts.elastic.co/packages/5.x/yum</baseurl>
+    <repoid>elasticsearch-5.x</repoid>
+    <reponame>ELASTICSEARCH</reponame>
+     ```
+
+1. Update metainfo.xml
+
+  Change the version number in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`.
+  Also make sure to update the "extends" version to point to the updated common-services version, e.g.
+
+    ```
+    <name>ELASTICSEARCH</name>
+    <version>5.6.2</version>
+    <extends>common-services/ELASTICSEARCH/5.6.2</extends>
+    ```
+
+#### Update mpack.json
+
+1. Update the corresponding service_version in the service_versions_map, e.g.
+
+    ```
+    ...
+    "service_versions_map": [
+      {
+        "service_name" : "ELASTICSEARCH",
+        "service_version" : "5.6.2",
+        "applicable_stacks" : [
+            ...
+        ]
+      },
+      ...
+     ]
+    ...
+    ```
+
+### Kibana
+
+**Note:** Curator is included with the Kibana service
+
+#### Update Common Services
+
+1. Change service directory names for Kibana to the new desired version
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}
+    ```
+
+    e.g.
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/5.6.2
+    ```
+
+1. Update metainfo.xml
+
+   Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
+
+    ```
+    <version>5.6.2</version>
+    ...
+    <packages>
+        ...
+        <package>
+            <name>kibana-5.6.2</name>
+        </package>
+    </packages>
+    ```
+
+#### Update Add-on Services
+
+1. Change service directory names for Kibana to the new desired version
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}
+    ```
+
+    e.g.
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/KIBANA/5.6.2
+    ```
+
+1. Update repoinfo.xml
+
+    **Note:** for Curator, there is a different repo for rhel 6 vs rhel 7
+
+    See the following links for current repo information for Kibana and Curator.
+    * [https://www.elastic.co/guide/en/kibana/current/rpm.html](https://www.elastic.co/guide/en/kibana/current/rpm.html)
+    * [https://www.elastic.co/guide/en/elasticsearch/client/curator/current/yum-repository.html](https://www.elastic.co/guide/en/elasticsearch/client/curator/current/yum-repository.html)
+
+    Modify the baseurl's and repoid's in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}/repos/repoinfo.xml`, e.g.
+
+    ```
+    <baseurl>https://artifacts.elastic.co/packages/5.x/yum</baseurl>
+    <repoid>kibana-5.x</repoid>
+    <reponame>KIBANA</reponame>
+    ...
+    <baseurl>http://packages.elastic.co/curator/5/centos/6</baseurl>
+    <repoid>ES-Curator-5.x</repoid>
+    <reponame>CURATOR</reponame>
+    ```
+
+1. Update metainfo.xml
+
+   Change the version number in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`.
+   Also make sure to update the "extends" version to point to the updated common-services version, e.g.
+    ```
+    <name>KIBANA</name>
+    <version>5.6.2</version>
+    <extends>common-services/KIBANA/5.6.2</extends>
+    ```
+
+#### Update mpack.json
+
+1. Update the corresponding service_version in the service_versions_map, e.g.
+
+    ```
+    ...
+    "service_versions_map": [
+      {
+        "service_name" : "KIBANA",
+        "service_version" : "5.6.2",
+        "applicable_stacks" : [
+            ...
+        ]
+      },
+      ...
+     ]
+    ...
+    ```
+

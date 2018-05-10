@@ -35,9 +35,17 @@ import {MetronDialogBox} from './shared/metron-dialog-box';
 import {ConfigureRowsModule} from './alerts/configure-rows/configure-rows.module';
 import {SwitchModule} from './shared/switch/switch.module';
 import {ColumnNamesService} from './service/column-names.service';
-import {ElasticSearchLocalstorageImpl} from './service/elasticsearch-localstorage-impl';
 import {DataSource} from './service/data-source';
-import {environment} from '../environments/environment.prod';
+import {ElasticSearchLocalstorageImpl} from './service/elasticsearch-localstorage-impl';
+import {LoginModule} from './login/login.module';
+import {AuthGuard} from './shared/auth-guard';
+import {AuthenticationService} from './service/authentication.service';
+import {LoginGuard} from './shared/login-guard';
+import {UpdateService} from './service/update.service';
+import {MetaAlertService} from './service/meta-alert.service';
+import {MetaAlertsModule} from './alerts/meta-alerts/meta-alerts.module';
+import {SearchService} from './service/search.service';
+
 
 
 export function initConfig(config: ColumnNamesService) {
@@ -53,8 +61,10 @@ export function initConfig(config: ColumnNamesService) {
     FormsModule,
     HttpModule,
     MetronAlertsRoutingModule,
+    LoginModule,
     AlertsListModule,
     AlertDetailsModule,
+    MetaAlertsModule,
     ConfigureTableModule,
     ConfigureRowsModule,
     SaveSearchModule,
@@ -62,11 +72,17 @@ export function initConfig(config: ColumnNamesService) {
     SwitchModule
   ],
   providers: [{ provide: APP_INITIALIZER, useFactory: initConfig, deps: [ColumnNamesService], multi: true },
-              { provide: DataSource, useClass: environment.dataSource === 'elastic' ? ElasticSearchLocalstorageImpl : null},
+              { provide: DataSource, useClass: ElasticSearchLocalstorageImpl },
+              AuthenticationService,
+              AuthGuard,
+              LoginGuard,
               ConfigureTableService,
+              SearchService,
               SaveSearchService,
               MetronDialogBox,
-              ColumnNamesService],
+              ColumnNamesService,
+              UpdateService,
+              MetaAlertService],
   bootstrap: [AppComponent]
 })
 

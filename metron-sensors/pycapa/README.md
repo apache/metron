@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 Pycapa
 ------
 
@@ -29,20 +46,20 @@ General notes on the installation of Pycapa.
 
 1. Install system dependencies including the core development tools, Python libraries and header files, and Libpcap libraries and header files.  On CentOS 7+, you can install these requirements with the following command.
 
-   ```
-   yum -y install "@Development tools" python-devel libpcap-devel
-   ```
+    ```
+    yum -y install "@Development tools" python-devel libpcap-devel
+    ```
 
 1. Install Librdkafka at your chosen $PREFIX.
 
-   ```
-   export PREFIX=/usr
-   wget https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz  -O - | tar -xz
-   cd librdkafka-0.9.4/
-   ./configure --prefix=$PREFIX
-   make
-   make install
-   ```
+    ```
+    export PREFIX=/usr
+    wget https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz   -O - | tar -xz
+    cd librdkafka-0.9.4/
+    ./configure --prefix=$PREFIX
+    make
+    make install
+    ```
 
 1. Add Librdkafka to the dynamic library load path.
 
@@ -169,24 +186,24 @@ $ pycapa --producer \
 
 Consume 10 packets and create a libpcap-compliant pcap file.
 
-  ```
-  $ pycapa --consumer \
-      --kafka-broker localhost:9092 \
-      --kafka-topic pcap \
-      --max-packets 10 \
-      > out.pcap
-  $ tshark -r out.pcap
-      1   0.000000 199.193.204.147 → 192.168.0.3  TLSv1.2 151 Application Data
-      2   0.000005 199.193.204.147 → 192.168.0.3  TLSv1.2 1191 Application Data
-      3   0.000088  192.168.0.3 → 199.193.204.147 TCP 66 54788 → 443 [ACK] Seq=1 Ack=86 Win=4093 Len=0 TSval=961284465 TSecr=943744612
-      4   0.000089  192.168.0.3 → 199.193.204.147 TCP 66 54788 → 443 [ACK] Seq=1 Ack=1211 Win=4058 Len=0 TSval=961284465 TSecr=943744612
-      5   0.948788  192.168.0.3 → 192.30.253.125 TCP 54 54671 → 443 [ACK] Seq=1 Ack=1 Win=4096 Len=0
-      6   1.005175 192.30.253.125 → 192.168.0.3  TCP 66 [TCP ACKed unseen segment] 443 → 54671 [ACK] Seq=1 Ack=2 Win=31 Len=0 TSval=2658544467 TSecr=961240339
-      7   1.636312 fe80::1286:8cff:fe0e:65df → ff02::1      ICMPv6 134 Router Advertisement from 10:86:8c:0e:65:df
-      8   2.253052 192.175.27.112 → 192.168.0.3  TLSv1.2 928 Application Data
-      9   2.253140  192.168.0.3 → 192.175.27.112 TCP 66 55078 → 443 [ACK] Seq=1 Ack=863 Win=4069 Len=0 TSval=961286699 TSecr=967172238
-     10   2.494769  192.168.0.3 → 224.0.0.251  MDNS 82 Standard query 0x0000 PTR _googlecast._tcp.local, "QM" question
-  ```
+    ```
+    $ pycapa --consumer \
+        --kafka-broker localhost:9092 \
+        --kafka-topic pcap \
+        --max-packets 10 \
+        > out.pcap
+    $ tshark -r out.pcap
+        1   0.000000 199.193.204.147 → 192.168.0.3  TLSv1.2 151   Application Data
+        2   0.000005 199.193.204.147 → 192.168.0.3  TLSv1.2 1191   Application Data
+        3   0.000088  192.168.0.3 → 199.193.204.147 TCP 66 54788 → 443   [ACK] Seq=1 Ack=86 Win=4093 Len=0 TSval=961284465 TSecr=943744612
+        4   0.000089  192.168.0.3 → 199.193.204.147 TCP 66 54788 → 443   [ACK] Seq=1 Ack=1211 Win=4058 Len=0 TSval=961284465 TSecr=943744612
+        5   0.948788  192.168.0.3 → 192.30.253.125 TCP 54 54671 → 443   [ACK] Seq=1 Ack=1 Win=4096 Len=0
+        6   1.005175 192.30.253.125 → 192.168.0.3  TCP 66 [TCP ACKed unseen segment] 443 → 54671 [ACK] Seq=1 Ack=2 Win=31 Len=0 TSval=2658544467 TSecr=961240339
+        7   1.636312 fe80::1286:8cff:fe0e:65df → ff02::1      ICMPv6 134 Router Advertisement from 10:86:8c:0e:65:df
+        8   2.253052 192.175.27.112 → 192.168.0.3  TLSv1.2 928 Application Data
+        9   2.253140  192.168.0.3 → 192.175.27.112 TCP 66 55078 → 443 [ACK] Seq=1 Ack=863 Win=4069 Len=0 TSval=961286699 TSecr=967172238
+       10   2.494769  192.168.0.3 → 224.0.0.251  MDNS 82 Standard query 0x0000 PTR _googlecast._tcp.local, "QM" question
+    ```
 
 #### Example 5
 
@@ -263,27 +280,37 @@ The probe can be used in a Kerberized environment.  Follow these additional step
   * `sasl.kerberos.keytab`
   * `sasl.kerberos.principal`
 
-  ```
-  $ pycapa --producer \
-      --interface eth0 \
-      --kafka-broker kafka1:6667 \
-      --kafka-topic pcap --max-packets 10 \
-      -X security.protocol=SASL_PLAINTEXT \
-      -X sasl.kerberos.keytab=/etc/security/keytabs/metron.headless.keytab \
-      -X sasl.kerberos.principal=metron-metron@METRONEXAMPLE.COM
-  INFO:root:Connecting to Kafka; {'sasl.kerberos.principal': 'metron-metron@METRONEXAMPLE.COM', 'group.id': 'ORNLVWJZZUAA', 'security.protocol': 'SASL_PLAINTEXT', 'sasl.kerberos.keytab': '/etc/security/keytabs/metron.headless.keytab', 'bootstrap.servers': 'kafka1:6667'}
-  INFO:root:Starting packet capture
-  INFO:root:Waiting for '1' message(s) to flush
-  INFO:root:'10' packet(s) in, '10' packet(s) out
-  ```
+        ```
+        $ pycapa --producer \
+            --interface eth0 \
+            --kafka-broker kafka1:6667 \
+            --kafka-topic pcap --max-packets 10 \
+            -X security.protocol=SASL_PLAINTEXT \
+            -X sasl.kerberos.keytab=/etc/security/keytabs/metron.headless  .keytab \
+            -X sasl.kerberos.principal=metron-metron@METRONEXAMPLE.COM
+        INFO:root:Connecting to Kafka; {'sasl.kerberos.principal':   'metron-metron@METRONEXAMPLE.COM', 'group.id': 'ORNLVWJZZUAA',   'security.protocol': 'SASL_PLAINTEXT', 'sasl.kerberos.keytab':   '/etc/security/keytabs/metron.headless.keytab', 'bootstrap.servers': 'kafka1:6667'}
+        INFO:root:Starting packet capture
+        INFO:root:Waiting for '1' message(s) to flush
+        INFO:root:'10' packet(s) in, '10' packet(s) out
+        ```
 
 FAQs
 ====
 
-**Question**: How do I get more logs?
+### How do I get more logs?
 
 Use the following two command-line arguments to get detailed logging.
 
 ```
 -X debug=all --log-level DEBUG
 ```
+
+### When I run Pycapa against a Kafka broker with Kerberos enabled, why do I get an error like "No such configuration property: 'sasl.kerberos.principal'"?
+
+This can be a confusing error message because `sasl.kerberos.principal` is indeed a valid property for librdkafka as defined [here](https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md).  This is most likely because Pycapa is running against a version of Librdkafka without SASL support enabled.  This might happen if you have accidentally installed multiple versions of Librdkafka and Pycapa is unexpectedly using the version without SASL support enabled.
+
+Bottom Line: Make sure that Pycapa is running against a version of Librdkafka with SASL support enabled.
+
+
+
+

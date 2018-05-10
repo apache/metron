@@ -218,6 +218,25 @@ public class BasicStellarTest {
     }
   }
 
+  @Test
+  public void testConditionalsAsMapKeys() {
+    {
+      String query = "{ ( RET_TRUE() && y < 50 ) : 'info', y >= 50 : 'warn'}";
+      Map<Boolean, String> ret = (Map)run(query, ImmutableMap.of("y", 50));
+      Assert.assertEquals(ret.size(), 2);
+      Assert.assertEquals("warn", ret.get(true));
+      Assert.assertEquals("info", ret.get(false));
+    }
+  }
+
+
+  @Test
+  public void testConditionalsAsFunctionArgs() {
+    {
+      String query = "RET_TRUE(y < 10)";
+      Assert.assertTrue((boolean)run(query, ImmutableMap.of("y", 50)));
+    }
+  }
 
   @Test
   public void testFunctionEmptyArgs() {
@@ -247,6 +266,142 @@ public class BasicStellarTest {
     {
       String query = "null == null ? true : false";
       Assert.assertTrue((Boolean)run(query, new HashMap<>()));
+    }
+  }
+
+  @Test
+  public void testNaN(){
+    // any equity is false
+    // https://docs.oracle.com/javase/specs/jls/se6/html/typesValues.html
+    {
+      String query = "NaN == NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5.0 == NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NULL == NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "'metron' == NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+
+    // any inequity is true
+    {
+      String query = "NaN != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5 != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "'metron' != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+
+    //  any > >= < <= is false
+    {
+      String query = "NaN > 5";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN < 5";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN >= 5";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN <= 5";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN > NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN < NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN >= NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN <= NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+
+    // all operations
+    {
+      String query = "(5 + NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5 + NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(5 - NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5 - NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(5 / NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5 / NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(5 * NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5 * NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(NaN + NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN + NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(NaN - NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN - NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(NaN * NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN * NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(NaN / NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN / NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
     }
   }
 
@@ -548,6 +703,11 @@ public class BasicStellarTest {
   }
 
   @Test
+  public void testToStringNull() {
+    Assert.assertEquals("null", run("TO_STRING(\"null\")", ImmutableMap.of("foo", "null")));
+  }
+
+  @Test
   public void testToInteger() {
     Assert.assertEquals(5, run("TO_INTEGER(foo)", ImmutableMap.of("foo", "5")));
     Assert.assertEquals(5, run("TO_INTEGER(foo)", ImmutableMap.of("foo", 5)));
@@ -622,6 +782,18 @@ public class BasicStellarTest {
     Assert.assertFalse(runPredicate("'foo' in { }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     Assert.assertFalse(runPredicate("null in { 'foo' : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     Assert.assertTrue(runPredicate("null not in { 'foo' : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+  }
+
+  @Test
+
+  public void testShortCircuit_mixedBoolOps() throws Exception {
+    final Map<String, String> variableMap = new HashMap<String, String>();
+    Assert.assertTrue(runPredicate("(false && true) || true"
+            , new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("(false && false) || true"
+            , new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("(true || true) && false"
+            , new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test

@@ -65,6 +65,11 @@ IF : 'IF' | 'if';
 THEN : 'THEN' | 'then';
 ELSE : 'ELSE' | 'else';
 NULL : 'null' | 'NULL';
+NAN : 'NaN';
+
+MATCH : 'match' | 'MATCH';
+DEFAULT : 'default' | 'DEFAULT';
+MATCH_ACTION : '=>';
 
 MINUS : '-';
 PLUS : '+';
@@ -137,6 +142,7 @@ transformation_expr:
   | comparison_expr # ComparisonExpression
   | logical_expr #LogicalExpression
   | in_expr #InExpression
+  | match_expr #MatchExpr
   ;
 
 if_expr:
@@ -193,6 +199,8 @@ op_list :
   | op_list COMMA identifier_operand
   | conditional_expr
   | op_list COMMA conditional_expr
+  | comparison_expr
+  | op_list COMMA comparison_expr
   ;
 
 list_entity :
@@ -202,7 +210,9 @@ list_entity :
 
 kv_list :
   identifier_operand COLON transformation_expr
+  | comparison_expr COLON transformation_expr
   | kv_list COMMA identifier_operand COLON transformation_expr
+  | kv_list COMMA comparison_expr COLON transformation_expr
   ;
 
 map_entity :
@@ -231,6 +241,7 @@ arithmetic_operands :
   | LONG_LITERAL #LongLiteral
   | FLOAT_LITERAL #FloatLiteral
   | IDENTIFIER #Variable
+  | NAN #NaNArith
   | LPAREN arithmetic_expr RPAREN #ParenArith
   | LPAREN conditional_expr RPAREN #condExpr
   ;
@@ -247,8 +258,12 @@ identifier_operand :
   | NULL #NullConst
   | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
   | LPAREN conditional_expr RPAREN #condExpr_paren
+  | functions #func
   ;
 
+default_operand :
+  DEFAULT #default
+  ;
 
 lambda_without_args:
   LPAREN RPAREN LAMBDA_OP transformation_expr
@@ -270,4 +285,23 @@ lambda_variable:
   IDENTIFIER
   ;
 
+match_expr :
+  MATCH LBRACE match_clauses COMMA DEFAULT MATCH_ACTION match_clause_action RBRACE #MatchClauses
+  ;
 
+match_clauses :
+  match_clause (COMMA match_clause)*
+  ;
+
+match_clause :
+  match_clause_check MATCH_ACTION  match_clause_action
+  ;
+
+match_clause_action :
+  transformation_expr #MatchClauseAction
+  ;
+  
+match_clause_check :
+  logical_expr #MatchClauseCheckExpr
+  | conditional_expr #MatchClauseCheckExpr
+  ;

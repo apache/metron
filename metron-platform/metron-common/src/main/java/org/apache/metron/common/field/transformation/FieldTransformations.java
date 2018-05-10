@@ -24,6 +24,8 @@ public enum FieldTransformations {
   IP_PROTOCOL(new IPProtocolTransformation())
   ,REMOVE(new RemoveTransformation())
   ,STELLAR(new StellarTransformation())
+  ,SELECT(new SelectTransformation())
+  ,RENAME(new RenameTransformation())
   ;
   FieldTransformation mapping;
   FieldTransformations(FieldTransformation mapping) {

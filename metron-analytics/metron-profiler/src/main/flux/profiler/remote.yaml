@@ -17,9 +17,12 @@
 name: "profiler"
 
 config:
-    topology.worker.childopts: ${topology.worker.childopts}
     topology.workers: ${profiler.workers}
     topology.acker.executors: ${profiler.executors}
+    topology.worker.childopts: ${topology.worker.childopts}
+    topology.auto-credentials: ${topology.auto-credentials}
+    topology.message.timeout.secs: ${topology.message.timeout.secs}
+    topology.max.spout.pending: ${topology.max.spout.pending}
 
 components:
 
@@ -44,6 +47,7 @@ components:
               ref: "rowKeyBuilder"
             - name: "columnBuilder"
               ref: "columnBuilder"
+
     # Any kafka props for the producer go here.
     -   id: "kafkaProps"
         className: "java.util.HashMap"
@@ -65,7 +69,7 @@ components:
                     - "security.protocol"
                     - "${kafka.security.protocol}"
 
-  # The fields to pull out of the kafka messages
+    # The fields to pull out of the kafka messages
     -   id: "fields"
         className: "java.util.ArrayList"
         configMethods:
@@ -105,11 +109,23 @@ components:
             -   name: "withProducerConfigs"
                 args: [ref: "kafkaWriterProps"]
 
-    -   id: "kafkaDestinationHandler"
-        className: "org.apache.metron.profiler.bolt.KafkaDestinationHandler"
+    -   id: "kafkaEmitter"
+        className: "org.apache.metron.profiler.bolt.KafkaEmitter"
 
-    -   id: "hbaseDestinationHandler"
-        className: "org.apache.metron.profiler.bolt.HBaseDestinationHandler"
+    -   id: "hbaseEmitter"
+        className: "org.apache.metron.profiler.bolt.HBaseEmitter"
+
+    -   id: "windowDuration"
+        className: "org.apache.storm.topology.base.BaseWindowedBolt$Duration"
+        constructorArgs:
+            - ${profiler.window.duration}
+            - "${profiler.window.duration.units}"
+
+    -   id: "windowLag"
+        className: "org.apache.storm.topology.base.BaseWindowedBolt$Duration"
+        constructorArgs:
+            - ${profiler.window.lag}
+            - "${profiler.window.lag.units}"
 
 spouts:
 
@@ -127,17 +143,25 @@ bolts:
 
     -   id: "builderBolt"
         className: "org.apache.metron.profiler.bolt.ProfileBuilderBolt"
-        constructorArgs:
-            - "${kafka.zk}"
         configMethods:
+            - name: "withZookeeperUrl"
+              args: ["${kafka.zk}"]
             - name: "withPeriodDuration"
               args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
             - name: "withProfileTimeToLive"
               args: [${profiler.ttl}, "${profiler.ttl.units}"]
-            - name: "withDestinationHandler"
-              args: [ref: "kafkaDestinationHandler"]
-            - name: "withDestinationHandler"
-              args: [ref: "hbaseDestinationHandler"]
+            - name: "withEmitter"
+              args: [ref: "kafkaEmitter"]
+            - name: "withEmitter"
+              args: [ref: "hbaseEmitter"]
+            - name: "withTumblingWindow"
+              args: [ref: "windowDuration"]
+            - name: "withLag"
+              args: [ref: "windowLag"]
+            - name: "withMaxNumberOfRoutes"
+              args: [${profiler.max.routes.per.bolt}]
+            - name: "withTimestampField"
+              args: ["timestamp"]
 
     -   id: "hbaseBolt"
         className: "org.apache.metron.hbase.bolt.HBaseBolt"
@@ -166,7 +190,7 @@ streams:
         from: "kafkaSpout"
         to: "splitterBolt"
         grouping:
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE
 
     -   name: "splitter -> builder"
         from: "splitterBolt"
@@ -180,11 +204,11 @@ streams:
         to: "hbaseBolt"
         grouping:
             streamId: "hbase"
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE
 
     -   name: "builder -> kafka"
         from: "builderBolt"
         to: "kafkaBolt"
         grouping:
             streamId: "kafka"
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE

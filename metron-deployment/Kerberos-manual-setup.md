@@ -1,7 +1,24 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 Kerberos Setup
 ==============
 
-This document provides instructions for kerberizing Metron's Vagrant-based development environments; "Quick Dev" and "Full Dev".  These instructions do not cover the Ambari MPack or sensors.  General Kerberization notes can be found in the metron-deployment [README.md](../README.md).
+This document provides instructions for kerberizing Metron's Vagrant-based development environments.  These instructions do not cover the Ambari MPack or sensors.  General Kerberization notes can be found in the metron-deployment [README.md](../README.md).
 
 * [Setup](#setup)
 * [Setup a KDC](#setup-a-kdc)
@@ -13,11 +30,12 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 * [Start Metron](#start-metron)
 * [Push Data](#push-data)
 * [More Information](#more-information)
+* [Elasticseach X-Pack](#x-pack)
 
 Setup
 -----
 
-1. Deploy a Vagrant development environment; either [Full Dev](vagrant/full-dev-platform/README.md) or [Quick Dev](vagrant/quick-dev-platform/README.md).
+1. Deploy the [development environment.](development/centos6/README.md).
 
 1. Export the following environment variables.  These need to be set for the remainder of the instructions. Replace `node1` with the appropriate hosts, if you are running Metron anywhere other than Vagrant.
 
@@ -30,7 +48,7 @@ Setup
     export BROKERLIST=node1:6667
     export HDP_HOME="/usr/hdp/current"
     export KAFKA_HOME="${HDP_HOME}/kafka-broker"
-    export METRON_VERSION="0.4.1"
+    export METRON_VERSION="${METRON_VERSION}"
     export METRON_HOME="/usr/metron/${METRON_VERSION}"
     ```
 
@@ -65,33 +83,51 @@ Setup a KDC
     yum -y install krb5-server krb5-libs krb5-workstation
     ```
 
-1. Define the host, `node1`, as the KDC.
+1. Define the current host as the KDC.
 
     ```
-    sed -i 's/kerberos.example.com/node1/g' /etc/krb5.conf
+    KDC=`hostname`
+    sed -i.orig 's/kerberos.example.com/'"$KDC"'/g' /etc/krb5.conf
     cp -f /etc/krb5.conf /var/lib/ambari-server/resources/scripts
     ```
 
-1. Ensure the KDC can issue renewable tickets. This can be necessary on a real cluster, but should not be on full-dev. In /var/kerberos/krb5kdc/kdc.conf ensure the following is in the realm section
+1. Ensure that the KDC can issue renewable tickets. This may be necessary on a real cluster, but should not be on a [single VM](development/centos6/README.md).
+
+    Edit `/var/kerberos/krb5kdc/kdc.conf` and ensure the following is added to the `realm` section
 
     ```
     max_renewable_life = 7d
     ```
 
-1. Do not copy/paste this full set of commands as the `kdb5_util` command will not run as expected. Run the commands individually to ensure they all execute.  This step takes a moment. It creates the kerberos database.
+1. Create the KDC principal database.  You will be prompted for a password.  This step takes a moment.
 
     ```
     kdb5_util create -s
+    ```
+
+1. Start the KDC and ensure that it starts on boot.
+
+    ```
     /etc/rc.d/init.d/krb5kdc start
-    chkconfig krb5kdc on
+    chkconfig krb5kdc on    
+    ```
+
+1. Start the Kerberos Admin service and ensure that it starts on boot.    
+
+    ```
     /etc/rc.d/init.d/kadmin start
     chkconfig kadmin on
     ```
 
-1. Setup the `admin` and `metron` principals. You'll `kinit` as the `metron` principal when running topologies. Make sure to remember the passwords.
+1. Setup the `admin` principal. You will be prompted for a password; do not forget it.
 
     ```
     kadmin.local -q "addprinc admin/admin"
+    ```
+
+1. Setup the `metron` principal. You will `kinit` as the `metron` principal when running topologies. You will be prompted for a password; do not forget it.
+
+    ```
     kadmin.local -q "addprinc metron"
     ```
 
@@ -99,30 +135,30 @@ Verify KDC
 ----------
 
 
-Ticket renewal is by default disallowed in many linux distributions. If the KDC cannot issue renewable tickets, an error will be thrown when starting Metron's Storm topologies:
+1. Ticket renewal is disallowed by default in many Linux distributions. If the KDC cannot issue renewable tickets, an error will be thrown when starting Metron's Storm topologies:
 
-```
-Exception in thread "main" java.lang.RuntimeException: java.lang.RuntimeException: The TGT found is not renewable
-```
+    ```
+    Exception in thread "main" java.lang.RuntimeException:
+    java.lang.RuntimeException: The TGT found is not renewable
+    ```
 
+1. Ensure the Metron keytab is renewable.  Look for the 'R' flag in the output of the following command.
 
-Ensure the Metron keytab is renewable.  Look for the 'R' flag from the following command
+    ```
+    klist -f
+    ```
 
-```
-klist -f
-```
+    * If the 'R' flags are present, you may skip to next section.
+    * If the 'R' flags are absent, you will need to follow the below steps:
 
-If the 'R' flags are present, you may skip to next section.
+1. If the KDC is already setup, then editing `max_life` and `max_renewable_life` in `/var/kerberos/krb5kdc/kdc.conf`, then restarting `kadmin` and `krb5kdc` services will not change the policies for existing users.
 
-If the 'R' flags are absent, you will need to follow the below steps:
-If the KDC is already setup, then editing max_life and max_renewable_life in `/var/kerberos/krb5kdc/kdc.conf`, and restarting kadmin and krb5kdc services will not change the policies for existing users. 
+    You need to set the renew lifetime for existing users and the `krbtgt` realm. Modify the appropriate principals to allow renewable tickets using the following commands. Adjust the parameters to match your desired KDC parameters:
 
-You need to set the renew lifetime for existing users and krbtgt realm. Modify the appropriate principals to allow renewable tickets using the following commands. Adjust the parameters to match your desired KDC parameters:
-
-```
-kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable krbtgt/EXAMPLE.COM@EXAMPLE.COM"
-kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable metron@EXAMPLE.COM"
-```
+    ```
+    kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable krbtgt/EXAMPLE.COM@EXAMPLE.COM"
+    kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable metron@EXAMPLE.COM"
+    ```
 
 
 Enable Kerberos
@@ -209,7 +245,7 @@ Kafka Authorization
 
     ```
     export KERB_USER=metron
-    for group in bro_parser snort_parser yaf_parser enrichments indexing profiler; do
+    for group in bro_parser snort_parser yaf_parser enrichments indexing-ra indexing-batch profiler; do
     	${KAFKA_HOME}/bin/kafka-acls.sh \
           --authorizer kafka.security.auth.SimpleAclAuthorizer \
           --authorizer-properties zookeeper.connect=${ZOOKEEPER} \
@@ -498,3 +534,211 @@ In order to correct this, you should:
 ### References
 
 * [https://github.com/apache/storm/blob/master/SECURITY.md](https://github.com/apache/storm/blob/master/SECURITY.md)
+
+X-Pack
+------
+
+First, stop the random_access_indexing topology through the Storm UI or from the CLI, e.g.
+
+```
+storm kill random_access_indexing
+```
+
+Here are instructions for enabling X-Pack with Elasticsearch and Kibana: https://www.elastic.co/guide/en/x-pack/5.6/installing-xpack.html
+
+You need to be sure to add the appropriate username and password for Elasticsearch and Kibana to enable external connections from Metron components. e.g. the following will create a user "transport_client_user" with password "changeme" and "superuser" credentials.
+
+```
+sudo /usr/share/elasticsearch/bin/x-pack/users useradd transport_client_user -p changeme -r superuser
+```
+
+Once you've picked a password to connect to ES, you need to upload a 1-line file to HDFS with that password in it. Metron will use this file to securely read the password in order to connect to ES securely.
+
+Here is an example using "changeme" as the password
+
+```
+echo changeme > /tmp/xpack-password
+sudo -u hdfs hdfs dfs -mkdir /apps/metron/elasticsearch/
+sudo -u hdfs hdfs dfs -put /tmp/xpack-password /apps/metron/elasticsearch/
+sudo -u hdfs hdfs dfs -chown metron:metron /apps/metron/elasticsearch/xpack-password
+```
+
+New settings have been added to configure the Elasticsearch client. By default the client will run as the normal ES prebuilt transport client. If you enable X-Pack you should set the es.client.class as shown below.
+
+Add the es settings to global.json
+
+```
+/usr/metron/0.4.3/config/zookeeper/global.json ->
+
+  "es.client.settings" : {
+      "es.client.class" : "org.elasticsearch.xpack.client.PreBuiltXPackTransportClient",
+      "es.xpack.username" : "transport_client_user",
+      "es.xpack.password.file" : "/apps/metron/elasticsearch/xpack-password"
+  }
+```
+
+Submit the update to Zookeeper
+
+```
+$METRON_HOME/bin/zk_load_configs.sh -m PUSH -i METRON_HOME/config/zookeeper/ -z $ZOOKEEPER
+```
+
+The last step before restarting the topology is to create a custom X-Pack shaded and relocated jar. This is up to you because of licensing restrictions, but here is a sample Maven pom file that should help.
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+	Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.elasticsearch</groupId>
+    <artifactId>elasticsearch-xpack-shaded</artifactId>
+    <name>elasticsearch-xpack-shaded</name>
+    <packaging>jar</packaging>
+    <version>5.6.2</version>
+    <repositories>
+        <repository>
+            <id>elasticsearch-releases</id>
+            <url>https://artifacts.elastic.co/maven</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    <dependencies>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>x-pack-transport</artifactId>
+            <version>5.6.2</version>
+            <exclusions>
+              <exclusion>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-smile</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-cbor</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>log4j</groupId>
+                <artifactId>log4j</artifactId>
+              </exclusion>
+              <exclusion> <!-- this is causing a weird build error if not excluded - Error creating shaded jar: null: IllegalArgumentException -->
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+          </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <configuration>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                          <filters>
+                            <filter>
+                              <artifact>*:*</artifact>
+                              <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                              </excludes>
+                            </filter>
+                          </filters>
+                          <relocations>
+				<relocation>
+                                    <pattern>io.netty</pattern>
+                                    <shadedPattern>org.apache.metron.io.netty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.logging.log4j</pattern>
+                                    <shadedPattern>org.apache.metron.logging.log4j</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.slf4j.impl*</exclude>
+                                    <exclude>org.slf4j:slf4j-log4j*</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <transformers>
+                                <transformer
+                                  implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                     <resources>
+                                        <resource>.yaml</resource>
+                                        <resource>LICENSE.txt</resource>
+                                        <resource>ASL2.0</resource>
+                                        <resource>NOTICE.txt</resource>
+                                      </resources>
+                                </transformer>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass></mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+Once you've built the elasticsearch-xpack-shaded-5.6.2.jar, it needs to be made available to Storm when you submit the topology. Create a contrib directory for indexing and put the jar file in this directory.
+
+```
+/usr/metron/0.4.3/indexing_contrib/elasticsearch-xpack-shaded-5.6.2.jar
+```
+
+Now you can restart the Elasticsearch topology. Note, you should perform this step manually, as follows.
+
+```
+$METRON_HOME/bin/start_elasticsearch_topology.sh
+```
+
+Once you've performed these steps, you shoud be able to start seeing data in your ES indexes.

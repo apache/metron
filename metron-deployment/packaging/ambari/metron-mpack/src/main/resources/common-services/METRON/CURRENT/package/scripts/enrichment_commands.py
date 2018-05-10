@@ -17,11 +17,14 @@ limitations under the License.
 
 import os
 import time
+
+from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.system import Execute
 
 import metron_service
 from metron_security import kinit
+
 
 # Wrap major operations and functionality in this class
 class EnrichmentCommands:
@@ -46,25 +49,17 @@ class EnrichmentCommands:
         self.__hbase_acl_configured = os.path.isfile(self.__params.enrichment_hbase_acl_configured_flag_file)
         self.__geo_configured = os.path.isfile(self.__params.enrichment_geo_configured_flag_file)
 
+    def __get_topics(self):
+        return [self.__enrichment_topic, self.__params.enrichment_error_topic]
+
+    def __get_kafka_acl_groups(self):
+        return [self.__enrichment_topic]
+
     def is_kafka_configured(self):
         return self.__kafka_configured
 
     def is_kafka_acl_configured(self):
         return self.__kafka_acl_configured
-
-    def set_kafka_configured(self):
-        Logger.info("Setting Kafka Configured to True")
-        File(self.__params.enrichment_kafka_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
-
-    def set_kafka_acl_configured(self):
-        Logger.info("Setting Kafka ACL Configured to True")
-        File(self.__params.enrichment_kafka_acl_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
 
     def is_hbase_configured(self):
         return self.__hbase_configured
@@ -72,29 +67,23 @@ class EnrichmentCommands:
     def is_hbase_acl_configured(self):
         return self.__hbase_acl_configured
 
-    def set_hbase_configured(self):
-        Logger.info("Setting HBase Configured to True")
-        File(self.__params.enrichment_hbase_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
-
-    def set_hbase_acl_configured(self):
-        Logger.info("Setting HBase ACL Configured to True")
-        File(self.__params.enrichment_hbase_acl_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
-
     def is_geo_configured(self):
         return self.__geo_configured
 
+    def set_kafka_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_kafka_configured_flag_file, "Setting Kafka configured to True for enrichment")
+
+    def set_kafka_acl_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_kafka_acl_configured_flag_file, "Setting Kafka ACL configured to True for enrichment")
+
+    def set_hbase_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_configured_flag_file, "Setting HBase configured to True for enrichment")
+
+    def set_hbase_acl_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True for enrichment")
+
     def set_geo_configured(self):
-        Logger.info("Setting GEO Configured to True")
-        File(self.__params.enrichment_geo_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_geo_configured_flag_file, "Setting GEO configured to True for enrichment")
 
     def init_geo(self):
         Logger.info("Creating HDFS location for GeoIP database")
@@ -124,15 +113,15 @@ class EnrichmentCommands:
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for enrichment')
         # All errors go to indexing topics, so create it here if it's not already
-        metron_service.init_kafka_topics(self.__params, [self.__enrichment_topic, self.__params.enrichment_error_topic])
+        metron_service.init_kafka_topics(self.__params, self.__get_topics())
         self.set_kafka_configured()
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACls for enrichment')
+        metron_service.init_kafka_acls(self.__params, self.__get_topics())
+
         # Enrichment topic names matches group
-        metron_service.init_kafka_acls(self.__params,
-                                       [self.__enrichment_topic, self.__params.enrichment_error_topic],
-                                       [self.__enrichment_topic])
+        metron_service.init_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
 
         self.set_kafka_acl_configured()
 
@@ -140,14 +129,22 @@ class EnrichmentCommands:
         Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))
 
         if not self.is_topology_active(env):
-            start_cmd_template = """{0}/bin/start_enrichment_topology.sh \
-                                        -s {1} \
-                                        -z {2}"""
+
+            # which enrichment topology needs started?
+            if self.__params.enrichment_topology == "Unified":
+                topology_flux = "{0}/flux/enrichment/remote-unified.yaml".format(self.__params.metron_home)
+                topology_props = "{0}/config/enrichment-unified.properties".format(self.__params.metron_home)
+            elif self.__params.enrichment_topology == "Split-Join":
+                topology_flux = "{0}/flux/enrichment/remote-splitjoin.yaml".format(self.__params.metron_home)
+                topology_props = "{0}/config/enrichment-splitjoin.properties".format(self.__params.metron_home)
+            else:
+                raise Fail("Unexpected enrichment topology; name=" + self.__params.enrichment_topology)
+
+            # start the topology
+            start_cmd_template = """{0}/bin/start_enrichment_topology.sh --remote {1} --filter {2}"""
             Logger.info('Starting ' + self.__enrichment_topology)
-            Execute(start_cmd_template.format(self.__params.metron_home,
-                                              self.__enrichment_topology,
-                                              self.__params.zookeeper_quorum),
-                    user=self.__params.metron_user)
+            start_cmd = start_cmd_template.format(self.__params.metron_home, topology_flux, topology_props)
+            Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
         else:
             Logger.info('Enrichment topology already running')
 
@@ -158,7 +155,7 @@ class EnrichmentCommands:
 
         if self.is_topology_active(env):
             stop_cmd = 'storm kill ' + self.__enrichment_topology
-            Execute(stop_cmd, user=self.__params.metron_user)
+            Execute(stop_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
         else:
             Logger.info("Enrichment topology already stopped")
 
@@ -196,30 +193,12 @@ class EnrichmentCommands:
 
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables")
-        if self.__params.security_enabled:
-            kinit(self.__params.kinit_path_local,
-                  self.__params.hbase_keytab_path,
-                  self.__params.hbase_principal_name,
-                  execute_user=self.__params.hbase_user)
-        cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
-        add_enrichment_cmd = cmd.format(self.__params.enrichment_table, self.__params.enrichment_cf)
-        Execute(add_enrichment_cmd,
-                tries=3,
-                try_sleep=5,
-                logoutput=False,
-                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-                user=self.__params.hbase_user
-                )
-
-        add_threatintel_cmd = cmd.format(self.__params.threatintel_table, self.__params.threatintel_cf)
-        Execute(add_threatintel_cmd,
-                tries=3,
-                try_sleep=5,
-                logoutput=False,
-                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-                user=self.__params.hbase_user
-                )
-
+        metron_service.create_hbase_table(self.__params,
+                                        self.__params.enrichment_hbase_table,
+                                        self.__params.enrichment_hbase_cf)
+        metron_service.create_hbase_table(self.__params,
+                                        self.__params.threatintel_hbase_table,
+                                        self.__params.threatintel_hbase_cf)
         Logger.info("Done creating HBase Tables")
         self.set_hbase_configured()
 
@@ -230,8 +209,9 @@ class EnrichmentCommands:
                   self.__params.hbase_keytab_path,
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
+
         cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
-        add_enrichment_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_table)
+        add_enrichment_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_hbase_table)
         Execute(add_enrichment_acl_cmd,
                 tries=3,
                 try_sleep=5,
@@ -240,7 +220,7 @@ class EnrichmentCommands:
                 user=self.__params.hbase_user
                 )
 
-        add_threatintel_acl_cmd = cmd.format(self.__params.metron_user, self.__params.threatintel_table)
+        add_threatintel_acl_cmd = cmd.format(self.__params.metron_user, self.__params.threatintel_hbase_table)
         Execute(add_threatintel_acl_cmd,
                 tries=3,
                 try_sleep=5,
@@ -251,3 +231,48 @@ class EnrichmentCommands:
 
         Logger.info("Done setting HBase ACLs")
         self.set_hbase_acl_configured()
+
+    def service_check(self, env):
+        """
+        Performs a service check for Enrichment.
+        :param env: Environment
+        """
+        Logger.info("Checking for Geo database")
+        metron_service.check_hdfs_file_exists(self.__params, self.__params.geoip_hdfs_dir + "/GeoLite2-City.mmdb.gz")
+
+        Logger.info('Checking Kafka topics for Enrichment')
+        metron_service.check_kafka_topics(self.__params, self.__get_topics())
+
+        Logger.info("Checking HBase for Enrichment")
+        metron_service.check_hbase_table(
+          self.__params,
+          self.__params.enrichment_hbase_table)
+        metron_service.check_hbase_column_family(
+          self.__params,
+          self.__params.enrichment_hbase_table,
+          self.__params.enrichment_hbase_cf)
+
+        Logger.info("Checking HBase for Threat Intel")
+        metron_service.check_hbase_table(
+          self.__params,
+          self.__params.threatintel_hbase_table)
+        metron_service.check_hbase_column_family(
+          self.__params,
+          self.__params.threatintel_hbase_table,
+          self.__params.threatintel_hbase_cf)
+
+        if self.__params.security_enabled:
+
+          Logger.info('Checking Kafka ACLs for Enrichment')
+          metron_service.check_kafka_acls(self.__params, self.__get_topics())
+          metron_service.check_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
+
+          Logger.info("Checking HBase ACLs for Enrichment")
+          metron_service.check_hbase_acls(self.__params, self.__params.enrichment_hbase_table)
+          metron_service.check_hbase_acls(self.__params, self.__params.threatintel_hbase_table)
+
+        Logger.info("Checking for Enrichment topology")
+        if not self.is_topology_active(env):
+            raise Fail("Enrichment topology not running")
+
+        Logger.info("Enrichment service check completed successfully")

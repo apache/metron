@@ -76,6 +76,11 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     this.brokerUrl = brokerUrl;
   }
 
+  public KafkaWriter withBrokerUrl(String brokerUrl) {
+    this.brokerUrl = brokerUrl;
+    return this;
+  }
+
   public KafkaWriter withZkQuorum(String zkQuorum) {
     this.zkQuorum = zkQuorum;
     return this;
@@ -158,6 +163,7 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     producerConfig.put("value.serializer", valueSerializer);
     producerConfig.put("request.required.acks", requiredAcks);
     producerConfig.putAll(producerConfigs == null?new HashMap<>():producerConfigs);
+    producerConfig = KafkaUtils.INSTANCE.normalizeProtocol(producerConfig);
     return producerConfig;
   }
 

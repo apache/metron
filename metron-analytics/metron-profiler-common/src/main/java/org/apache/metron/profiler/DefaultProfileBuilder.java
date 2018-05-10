@@ -20,23 +20,10 @@
 
 package org.apache.metron.profiler;
 
-import static java.lang.String.format;
-
-import com.google.common.collect.ImmutableMap;
-import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.profiler.clock.Clock;
-import org.apache.metron.profiler.clock.WallClock;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
@@ -45,6 +32,21 @@ import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 /**
  * Responsible for building and maintaining a Profile.
@@ -91,16 +93,15 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
   private long periodDurationMillis;
 
   /**
-   * A clock is used to tell time; imagine that.
+   * Tracks the latest timestamp for use when flushing the profile.
    */
-  private Clock clock;
+  private long maxTimestamp;
 
   /**
-   * Use the ProfileBuilder.Builder to create a new ProfileBuilder.
+   * Private constructor.  Use the {@link Builder} to create a new {@link ProfileBuilder).
    */
   private DefaultProfileBuilder(ProfileConfig definition,
                                 String entity,
-                                Clock clock,
                                 long periodDurationMillis,
                                 Context stellarContext) {
 
@@ -108,65 +109,119 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
     this.definition = definition;
     this.profileName = definition.getProfile();
     this.entity = entity;
-    this.clock = clock;
     this.periodDurationMillis = periodDurationMillis;
     this.executor = new DefaultStellarStatefulExecutor();
     StellarFunctions.initialize(stellarContext);
     this.executor.setContext(stellarContext);
+    this.maxTimestamp = 0;
   }
 
   /**
    * Apply a message to the profile.
+   *
    * @param message The message to apply.
+   * @param timestamp The timestamp of the message.
    */
   @Override
-  @SuppressWarnings("unchecked")
-  public void apply(JSONObject message) {
+  public void apply(JSONObject message, long timestamp) {
+    LOG.debug("Applying message to profile; profile={}, entity={}, timestamp={}",
+            profileName, entity, timestamp);
 
-    if(!isInitialized()) {
-      assign(definition.getInit(), message, "init");
-      isInitialized = true;
+    try {
+      if (!isInitialized()) {
+        LOG.debug("Initializing profile; profile={}, entity={}, timestamp={}",
+                profileName, entity, timestamp);
+
+        // execute each 'init' expression
+        assign(definition.getInit(), message, "init");
+        isInitialized = true;
+      }
+
+      // execute each 'update' expression
+      assign(definition.getUpdate(), message, "update");
+
+      // keep track of the 'latest' timestamp seen for use when flushing the profile
+      if(timestamp > maxTimestamp) {
+        maxTimestamp = timestamp;
+      }
+
+    } catch(Throwable e) {
+      LOG.error(format("Unable to apply message to profile: %s", e.getMessage()), e);
     }
-
-    assign(definition.getUpdate(), message, "update");
   }
 
   /**
    * Flush the Profile.
    *
-   * Completes and emits the ProfileMeasurement.  Clears all state in preparation for
+   * <p>Completes and emits the {@link ProfileMeasurement}.  Clears all state in preparation for
    * the next window period.
    *
-   * @return Returns the completed profile measurement.
+   * @return Returns the completed {@link ProfileMeasurement}.
    */
   @Override
-  public ProfileMeasurement flush() {
-    LOG.debug("Flushing profile: profile={}, entity={}", profileName, entity);
+  public Optional<ProfileMeasurement> flush() {
 
-    // execute the 'profile' expression(s)
-    @SuppressWarnings("unchecked")
-    Object profileValue = execute(definition.getResult().getProfileExpressions().getExpression(), "result/profile");
+    Optional<ProfileMeasurement> result;
+    ProfilePeriod period = new ProfilePeriod(maxTimestamp, periodDurationMillis, TimeUnit.MILLISECONDS);
 
-    // execute the 'triage' expression(s)
-    Map<String, Object> triageValues = definition.getResult().getTriageExpressions().getExpressions()
-            .entrySet()
-            .stream()
-            .collect(Collectors.toMap(
-                    e -> e.getKey(),
-                    e -> execute(e.getValue(), "result/triage")));
+    try {
+      // execute the 'profile' expression
+      String profileExpression = definition
+              .getResult()
+              .getProfileExpressions()
+              .getExpression();
+      Object profileValue = execute(profileExpression, "result/profile");
 
-    // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
-    List<Object> groups = execute(definition.getGroupBy(), ImmutableMap.of("result", profileValue), "groupBy");
+      // execute the 'triage' expression(s)
+      Map<String, Object> triageValues = definition
+              .getResult()
+              .getTriageExpressions()
+              .getExpressions()
+              .entrySet()
+              .stream()
+              .collect(Collectors.toMap(
+                      e -> e.getKey(),
+                      e -> execute(e.getValue(), "result/triage")));
+
+      // the state that will be made available to the `groupBy` expression
+      Map<String, Object> state = new HashMap<>();
+      state.put("profile", profileName);
+      state.put("entity", entity);
+      state.put("start", period.getStartTimeMillis());
+      state.put("end", period.getEndTimeMillis());
+      state.put("duration", period.getDurationMillis());
+      state.put("result", profileValue);
+
+      // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
+      List<Object> groups = execute(definition.getGroupBy(), state, "groupBy");
+
+      result = Optional.of(new ProfileMeasurement()
+              .withProfileName(profileName)
+              .withEntity(entity)
+              .withGroups(groups)
+              .withPeriod(period)
+              .withProfileValue(profileValue)
+              .withTriageValues(triageValues)
+              .withDefinition(definition));
+
+    } catch(Throwable e) {
+
+      // if any of the Stellar expressions fail, a measurement should NOT be returned
+      LOG.error(format("Unable to flush profile: error=%s", e.getMessage()), e);
+      result = Optional.empty();
+    }
+
+    LOG.debug("Flushed profile: profile={}, entity={}, maxTime={}, period={}, start={}, end={}, duration={}",
+            profileName,
+            entity,
+            maxTimestamp,
+            period.getPeriod(),
+            period.getStartTimeMillis(),
+            period.getEndTimeMillis(),
+            period.getDurationMillis());
 
     isInitialized = false;
-    return new ProfileMeasurement()
-            .withProfileName(profileName)
-            .withEntity(entity)
-            .withGroups(groups)
-            .withPeriod(clock.currentTimeMillis(), periodDurationMillis, TimeUnit.MILLISECONDS)
-            .withProfileValue(profileValue)
-            .withTriageValues(triageValues)
-            .withDefinition(definition);
+    return result;
   }
 
   /**
@@ -190,6 +245,7 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
 
   /**
    * Executes an expression contained within the profile definition.
+   *
    * @param expression The expression to execute.
    * @param transientState Additional transient state provided to the expression.
    * @param expressionType The type of expression; init, update, result.  Provides additional context if expression execution fails.
@@ -208,6 +264,7 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
 
   /**
    * Executes an expression contained within the profile definition.
+   *
    * @param expression The expression to execute.
    * @param expressionType The type of expression; init, update, result.  Provides additional context if expression execution fails.
    * @return The result of executing the expression.
@@ -216,30 +273,43 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
     return execute(expression, Collections.emptyMap(), expressionType);
   }
 
-
   /**
    * Executes a set of expressions whose results need to be assigned to a variable.
+   *
    * @param expressions Maps the name of a variable to the expression whose result should be assigned to it.
    * @param transientState Additional transient state provided to the expression.
    * @param expressionType The type of expression; init, update, result.  Provides additional context if expression execution fails.
    */
   private void assign(Map<String, String> expressions, Map<String, Object> transientState, String expressionType) {
-    try {
 
-      // execute each of the 'update' expressions
-      MapUtils.emptyIfNull(expressions)
-              .forEach((var, expr) -> executor.assign(var, expr, transientState));
+    // for each expression...
+    for(Map.Entry<String, String> entry : MapUtils.emptyIfNull(expressions).entrySet()) {
+      String var = entry.getKey();
+      String expr = entry.getValue();
 
-    } catch(ParseException e) {
+      try {
 
-      // make it brilliantly clear that one of the 'update' expressions is bad
-      String msg = format("Bad '%s' expression: %s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
-      throw new ParseException(msg, e);
+        // assign the result of the expression to the variable
+        executor.assign(var, expr, transientState);
+
+      } catch (Throwable e) {
+
+        // in-scope variables = persistent state maintained by the profiler + the transient state
+        Set<String> variablesInScope = new HashSet<>();
+        variablesInScope.addAll(transientState.keySet());
+        variablesInScope.addAll(executor.getState().keySet());
+
+        String msg = format("Bad '%s' expression: error='%s', expr='%s', profile='%s', entity='%s', variables-available='%s'",
+                expressionType, e.getMessage(), expr, profileName, entity, variablesInScope);
+        LOG.error(msg, e);
+        throw new ParseException(msg, e);
+      }
     }
   }
 
   /**
    * Executes the expressions contained within the profile definition.
+   *
    * @param expressions A list of expressions to execute.
    * @param transientState Additional transient state provided to the expressions.
    * @param expressionType The type of expression; init, update, result.  Provides additional context if expression execution fails.
@@ -248,36 +318,47 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
   private List<Object> execute(List<String> expressions, Map<String, Object> transientState, String expressionType) {
     List<Object> results = new ArrayList<>();
 
-    try {
-      ListUtils.emptyIfNull(expressions)
-              .forEach((expr) -> results.add(executor.execute(expr, transientState, Object.class)));
+    for(String expr: ListUtils.emptyIfNull(expressions)) {
+      try {
 
-    } catch (Throwable e) {
-      String msg = format("Bad '%s' expression: %s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
-      throw new ParseException(msg, e);
+        // execute an expression
+        Object result = executor.execute(expr, transientState, Object.class);
+        results.add(result);
+
+      } catch (Throwable e) {
+
+        // in-scope variables = persistent state maintained by the profiler + the transient state
+        Set<String> variablesInScope = new HashSet<>();
+        variablesInScope.addAll(transientState.keySet());
+        variablesInScope.addAll(executor.getState().keySet());
+
+        String msg = format("Bad '%s' expression: error='%s', expr='%s', profile='%s', entity='%s', variables-available='%s'",
+                expressionType, e.getMessage(), expr, profileName, entity, variablesInScope);
+        LOG.error(msg, e);
+        throw new ParseException(msg, e);
+      }
     }
 
     return results;
   }
 
+  @Override
+  public String getEntity() {
+    return entity;
+  }
+
   /**
-   * A builder used to construct a new ProfileBuilder.
+   * A builder should be used to construct a new {@link ProfileBuilder} object.
    */
   public static class Builder {
 
     private ProfileConfig definition;
     private String entity;
-    private long periodDurationMillis;
-    private Clock clock = new WallClock();
+    private Long periodDurationMillis;
     private Context context;
 
     public Builder withContext(Context context) {
       this.context = context;
-      return this;
-    }
-
-    public Builder withClock(Clock clock) {
-      this.clock = clock;
       return this;
     }
 
@@ -325,8 +406,11 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
       if(StringUtils.isEmpty(entity)) {
         throw new IllegalArgumentException(format("missing entity name; got '%s'", entity));
       }
+      if(periodDurationMillis == null) {
+        throw new IllegalArgumentException("missing period duration");
+      }
 
-      return new DefaultProfileBuilder(definition, entity, clock, periodDurationMillis, context);
+      return new DefaultProfileBuilder(definition, entity, periodDurationMillis, context);
     }
   }
 }

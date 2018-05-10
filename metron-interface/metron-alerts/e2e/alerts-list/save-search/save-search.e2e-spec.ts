@@ -18,9 +18,23 @@
  */
 import { customMatchers } from  '../../matchers/custom-matchers';
 import {MetronAlertsPage} from '../alerts-list.po';
+import {LoginPage} from '../../login/login.po';
+import {loadTestData, deleteTestData} from '../../utils/e2e_util';
 
 describe('metron-alerts Search', function() {
   let page: MetronAlertsPage;
+  let loginPage: LoginPage;
+
+  beforeAll(() => {
+    loadTestData();
+    loginPage = new LoginPage();
+    loginPage.login();
+  });
+
+  afterAll(() => {
+    loginPage.logout();
+    deleteTestData();
+  });
 
   beforeEach(() => {
     page = new MetronAlertsPage();
@@ -33,8 +47,10 @@ describe('metron-alerts Search', function() {
 
     page.clickSavedSearch();
     expect(page.getSavedSearchTitle()).toEqualBcoz('Searches', 'for saved searches title');
-    expect(page.getRecentSearchOptions()).toEqual({ 'Recent Searches': [ 'No Recent Searches yet' ] }, 'for recent search options');
-    expect(page.getSavedSearchOptions()).toEqual({ 'Saved Searches': [ 'No Saved Searches yet' ] }, 'for saved search options');
+    expect(page.getRecentSearchOptions()).toEqualBcoz([], 'for recent search options');
+    expect(page.getSavedSearchOptions()).toEqualBcoz([], 'for saved search options');
+    expect(page.getDefaultRecentSearchValue()).toEqualBcoz([ 'No Recent Searches' ], 'for recent search default value');
+    expect(page.getDefaultSavedSearchValue()).toEqualBcoz([ 'No Saved Searches' ], 'for saved search default value');
     page.clickCloseSavedSearch();
 
   });
@@ -42,32 +58,32 @@ describe('metron-alerts Search', function() {
   it('should have all save search controls and they save search should be working', () => {
     page.saveSearch('e2e-1');
     page.clickSavedSearch();
-    expect(page.getSavedSearchOptions()).toEqual({ 'Saved Searches': [ 'e2e-1' ] }, 'for saved search options e2e-1');
+    expect(page.getSavedSearchOptions()).toEqualBcoz([ 'e2e-1' ], 'for saved search options e2e-1');
     page.clickCloseSavedSearch();
   });
 
   it('should populate search items when selected on table', () => {
     page.clickTableText('US');
-    expect(page.getSearchText()).toEqual('enrichments:geo:ip_dst_addr:country:US', 'for search text ip_dst_addr_country US');
+    expect(page.getSearchText()).toEqualBcoz('enrichments:geo:ip_dst_addr:country:US', 'for search text ip_dst_addr_country US');
     page.clickClearSearch();
-    expect(page.getSearchText()).toEqual('*', 'for clear search');
+    expect(page.getSearchText()).toEqualBcoz('*', 'for clear search');
   });
 
   it('should delete search items from search box', () => {
     page.clickTableText('US');
-    expect(page.getSearchText()).toEqual('enrichments:geo:ip_dst_addr:country:US', 'for search text ip_dst_addr_country US');
+    expect(page.getSearchText()).toEqualBcoz('enrichments:geo:ip_dst_addr:country:US', 'for search text ip_dst_addr_country US');
     page.clickRemoveSearchChip();
-    expect(page.getSearchText()).toEqual('*', 'for search chip remove');
+    expect(page.getSearchText()).toEqualBcoz('*', 'for search chip remove');
   });
 
   it('should delete first search items from search box having multiple search fields', () => {
     page.clickTableText('US');
-    page.clickTableText('bro');
-    expect(page.getSearchText()).toEqual('enrichments:geo:ip_dst_addr:country:US AND source:type:bro', 'for search text US and bro');
+    page.clickTableText('alerts_ui_e2e');
+    expect(page.getSearchText()).toEqual('enrichments:geo:ip_dst_addr:country:US AND source:type:alerts_ui_e2e', 'for search text US and alerts_ui_e2e');
     page.clickRemoveSearchChip();
-    expect(page.getSearchText()).toEqual('source:type:bro', 'for search text bro after US is removed');
+    expect(page.getSearchText()).toEqual('source:type:alerts_ui_e2e', 'for search text alerts_ui_e2e after US is removed');
     page.clickRemoveSearchChip();
-    expect(page.getSearchText()).toEqual('*', 'for search chip remove for two search texts');
+    expect(page.getSearchText()).toEqualBcoz('*', 'for search chip remove for two search texts');
   });
 
   it('manually entering search queries to search box and pressing enter key should search', () => {

@@ -18,45 +18,86 @@
 package org.apache.metron.elasticsearch.integration;
 
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.support.WriteRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import java.io.File;
-import java.util.HashMap;
+import org.junit.Test;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
+
   private static String indexDir = "target/elasticsearch_search";
   private static String dateFormat = "yyyy.MM.dd.HH";
+  private static final int MAX_RETRIES = 10;
+  private static final int SLEEP_MS = 500;
 
   /**
    * {
    * "bro_doc": {
    *   "properties": {
-   *     "source:type": { "type": "string" },
-   *     "ip_src_addr": { "type": "ip" },
-   *     "ip_src_port": { "type": "integer" },
-   *     "long_field": { "type": "long" },
-   *     "timestamp" : { "type": "date" },
-   *     "latitude" : { "type": "float" },
-   *     "double_field": { "type": "double" },
-   *     "is_alert": { "type": "boolean" },
-   *     "location_point": { "type": "geo_point" },
-   *     "bro_field": { "type": "string" },
-   *     "duplicate_name_field": { "type": "string" }
+   *     "source:type": {
+   *        "type": "text",
+   *        "fielddata" : "true"
+   *     },
+   *     "guid" : {
+   *        "type" : "keyword"
+   *     },
+   *     "ip_src_addr": {
+   *        "type": "ip"
+   *     },
+   *     "ip_src_port": {
+   *        "type": "integer"
+   *     },
+   *     "long_field": {
+   *        "type": "long"
+   *     },
+   *     "timestamp": {
+   *        "type": "date",
+   *        "format": "epoch_millis"
+   *      },
+   *     "latitude" : {
+   *        "type": "float"
+   *      },
+   *     "score": {
+   *        "type": "double"
+   *     },
+   *     "is_alert": {
+   *        "type": "boolean"
+   *     },
+   *     "location_point": {
+   *        "type": "geo_point"
+   *     },
+   *     "bro_field": {
+   *        "type": "text",
+   *        "fielddata" : "true"
+   *     },
+   *     "duplicate_name_field": {
+   *        "type": "text",
+   *        "fielddata" : "true"
+   *     },
+   *     "alert": {
+   *         "type": "nested"
+   *     }
    *   }
-   * }
+   *  }
    * }
    */
   @Multiline
@@ -64,44 +105,93 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   /**
    * {
-   * "snort_doc": {
-   *   "properties": {
-   *     "source:type": { "type": "string" },
-   *     "ip_src_addr": { "type": "ip" },
-   *     "ip_src_port": { "type": "integer" },
-   *     "long_field": { "type": "long" },
-   *     "timestamp" : { "type": "date" },
-   *     "latitude" : { "type": "float" },
-   *     "double_field": { "type": "double" },
-   *     "is_alert": { "type": "boolean" },
-   *     "location_point": { "type": "geo_point" },
-   *     "snort_field": { "type": "integer" },
-   *     "duplicate_name_field": { "type": "integer" }
-   *   }
-   * }
+   *  "snort_doc": {
+   *     "properties": {
+   *        "source:type": {
+   *          "type": "text",
+   *          "fielddata" : "true"
+   *        },
+   *        "guid" : {
+   *          "type" : "keyword"
+   *        },
+   *        "ip_src_addr": {
+   *          "type": "ip"
+   *        },
+   *        "ip_src_port": {
+   *          "type": "integer"
+   *        },
+   *        "long_field": {
+   *          "type": "long"
+   *        },
+   *        "timestamp": {
+   *          "type": "date",
+   *          "format": "epoch_millis"
+   *        },
+   *        "latitude" : {
+   *          "type": "float"
+   *        },
+   *        "score": {
+   *          "type": "double"
+   *        },
+   *        "is_alert": {
+   *          "type": "boolean"
+   *        },
+   *        "location_point": {
+   *          "type": "geo_point"
+   *        },
+   *        "snort_field": {
+   *          "type": "integer"
+   *        },
+   *        "duplicate_name_field": {
+   *          "type": "integer"
+   *        },
+   *        "alert": {
+   *           "type": "nested"
+   *        },
+   *        "threat:triage:score": {
+   *           "type": "float"
+   *        }
+   *      }
+   *    }
    * }
    */
   @Multiline
   private static String snortTypeMappings;
 
+  /**
+   * {
+   * "bro_doc_default": {
+   *   "dynamic_templates": [{
+   *     "strings": {
+   *       "match_mapping_type": "string",
+   *       "mapping": {
+   *         "type": "text"
+   *       }
+   *     }
+   *   }]
+   *  }
+   * }
+   */
+  @Multiline
+  private static String broDefaultStringMappings;
 
   @Override
   protected IndexDao createDao() throws Exception {
-    IndexDao ret = new ElasticsearchDao();
-    ret.init(
-            new AccessConfig() {{
-              setMaxSearchResults(100);
-              setGlobalConfigSupplier( () ->
-                new HashMap<String, Object>() {{
-                  put("es.clustername", "metron");
-                  put("es.port", "9300");
-                  put("es.ip", "localhost");
-                  put("es.date.format", dateFormat);
-                  }}
-              );
+    AccessConfig config = new AccessConfig();
+    config.setMaxSearchResults(100);
+    config.setMaxSearchGroups(100);
+    config.setGlobalConfigSupplier( () ->
+            new HashMap<String, Object>() {{
+              put("es.clustername", "metron");
+              put("es.port", "9300");
+              put("es.ip", "localhost");
+              put("es.date.format", dateFormat);
             }}
     );
-    return ret;
+
+    IndexDao dao = new ElasticsearchDao();
+    dao.init(config);
+    return dao;
   }
 
   @Override
@@ -115,18 +205,20 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   }
 
   @Override
-  protected void loadTestData() throws ParseException {
+  protected void loadTestData()
+      throws ParseException, IOException, ExecutionException, InterruptedException {
     ElasticSearchComponent es = (ElasticSearchComponent)indexComponent;
     es.getClient().admin().indices().prepareCreate("bro_index_2017.01.01.01")
-            .addMapping("bro_doc", broTypeMappings).get();
+            .addMapping("bro_doc", broTypeMappings).addMapping("bro_doc_default", broDefaultStringMappings).get();
     es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
             .addMapping("snort_doc", snortTypeMappings).get();
 
-    BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefresh(true);
+    BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
     for(Object o: broArray) {
       JSONObject jsonObject = (JSONObject) o;
       IndexRequestBuilder indexRequestBuilder = es.getClient().prepareIndex("bro_index_2017.01.01.01", "bro_doc");
+      indexRequestBuilder = indexRequestBuilder.setId((String) jsonObject.get("guid"));
       indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
       indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
       bulkRequest.add(indexRequestBuilder);
@@ -135,6 +227,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     for(Object o: snortArray) {
       JSONObject jsonObject = (JSONObject) o;
       IndexRequestBuilder indexRequestBuilder = es.getClient().prepareIndex("snort_index_2017.01.01.02", "snort_doc");
+      indexRequestBuilder = indexRequestBuilder.setId((String) jsonObject.get("guid"));
       indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
       indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
       bulkRequest.add(indexRequestBuilder);
@@ -144,4 +237,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       throw new RuntimeException("Failed to index test data");
     }
   }
+
+
 }

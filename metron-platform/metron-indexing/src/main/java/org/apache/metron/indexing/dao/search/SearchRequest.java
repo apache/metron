@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.metron.indexing.dao.search;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public class SearchRequest {
 
@@ -28,6 +29,7 @@ public class SearchRequest {
   private int size;
   private int from;
   private List<SortField> sort;
+  private List<String> fields;
   private List<String> facetFields;
 
   public SearchRequest() {
@@ -36,7 +38,6 @@ public class SearchRequest {
     defaultSortField.setSortOrder(SortOrder.DESC.toString());
     sort = new ArrayList<>();
     sort.add(defaultSortField);
-    facetFields = new ArrayList<>();
   }
 
   /**
@@ -99,11 +100,50 @@ public class SearchRequest {
     this.sort = sort;
   }
 
-  public Optional<List<String>> getFacetFields() {
-    return facetFields == null || facetFields.size() == 0 ? Optional.empty() : Optional.of(facetFields);
+  public List<String> getFields() {
+    return fields;
+  }
+
+  public void setFields(List<String> fields) {
+    this.fields = fields;
+  }
+
+  public List<String> getFacetFields() {
+    return facetFields;
   }
 
   public void setFacetFields(List<String> facetFields) {
     this.facetFields = facetFields;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    SearchRequest that = (SearchRequest) o;
+
+    return (indices != null ? indices.equals(that.indices) : that.indices == null) &&
+        (query != null ? query.equals(that.query) : that.query == null) && size == that.size &&
+        from == that.from &&
+        (sort != null ? sort.equals(that.sort) : that.sort == null) &&
+        (fields != null ? fields.equals(that.fields) : that.fields == null) &&
+        (facetFields != null ? facetFields.equals(that.facetFields) : that.facetFields == null);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = indices != null ? indices.hashCode() : 0;
+    result = 31 * result + (query != null ? query.hashCode() : 0);
+    result = 31 * result + getSize();
+    result = 31 * result + getFrom();
+    result = 31 * result + (sort != null ? sort.hashCode() : 0);
+    result = 31 * result + (fields != null ? fields.hashCode() : 0);
+    result = 31 * result + (facetFields != null ? facetFields.hashCode() : 0);
+    return result;
   }
 }

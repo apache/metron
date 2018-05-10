@@ -18,7 +18,6 @@
 
 package org.apache.metron.stellar.common.configuration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import org.apache.metron.stellar.common.Constants;
 import org.apache.metron.stellar.common.utils.JSONUtils;
@@ -30,8 +29,7 @@ public enum ConfigurationType implements Function<String, Object> {
 
   GLOBAL("global",".", s -> {
     try {
-      return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() {
-      });
+      return JSONUtils.INSTANCE.load(s, JSONUtils.MAP_SUPPLIER);
     } catch (IOException e) {
       throw new RuntimeException("Unable to load " + s, e);
     }

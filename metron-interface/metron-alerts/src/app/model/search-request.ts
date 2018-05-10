@@ -15,10 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {SortField} from './sort-field';
+import {DEFAULT_FACETS, DEFAULT_GROUPS, INDEXES} from '../utils/constants';
+
 export class SearchRequest {
-  _source: string[];
-  query = '*';
-  from = 0;
-  size = 15;
-  sort: {}[] = [{ timestamp: {order : 'desc', ignore_unmapped: true, unmapped_type: 'date'} }];
+  fields: string[];
+  from: number;
+  indices: string[] = INDEXES;
+  query: string;
+  size: number;
+  sort: SortField[];
+  facetFields: string[] = [];
 }

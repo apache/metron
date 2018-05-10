@@ -17,5 +17,5 @@
  */
 export const environment = {
   production: true,
-  dataSource: 'elastic'
+  indices: null
 };

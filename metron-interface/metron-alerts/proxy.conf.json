@@ -1,19 +1,10 @@
 {
   "/api/v1": {
-    "target": "http://localhost:8080",
+    "target": "http://node1:8082",
     "secure": false
   },
   "/logout": {
-    "target": "http://localhost:8080",
-    "secure": false
-  },
-  "/search": {
-    "target": "http://node1:9200",
-    "pathRewrite": {"^/search" : ""},
-    "secure": false
-  },
-  "/_cluster": {
-    "target": "http://node1:9200",
+    "target": "http://node1:8082",
     "secure": false
   }
 }

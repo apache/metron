@@ -18,14 +18,19 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import oi.thekraken.grok.api.Grok;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
 import org.apache.curator.framework.api.GetChildrenBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.SetDataBuilder;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.apache.metron.rest.service.GrokService;
@@ -43,7 +48,10 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -88,12 +96,22 @@ public class SensorParserConfigServiceImplTest {
   @Multiline
   public static String broJson;
 
+  private String user = "user1";
+
+  ConfigurationsCache cache;
+
   @Before
   public void setUp() throws Exception {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
-    grokService = mock(GrokService.class);
-    sensorParserConfigService = new SensorParserConfigServiceImpl(objectMapper, curatorFramework, grokService);
+    Environment environment = mock(Environment.class);
+    Authentication authentication = mock(Authentication.class);
+    when(authentication.getName()).thenReturn(user);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    when(environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY)).thenReturn("./target");
+    grokService = new GrokServiceImpl(environment, mock(Grok.class), new HdfsServiceImpl(new Configuration()));
+    cache = mock(ConfigurationsCache.class);
+    sensorParserConfigService = new SensorParserConfigServiceImpl(objectMapper, curatorFramework, grokService, cache);
   }
 
 
@@ -132,47 +150,36 @@ public class SensorParserConfigServiceImplTest {
   }
 
   @Test
-  public void findOneShouldProperlyReturnSensorEnrichmentConfig() throws Exception {
+  public void findOneShouldProperlyReturnSensorParserConfig() throws Exception {
     final SensorParserConfig sensorParserConfig = getTestBroSensorParserConfig();
 
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro")).thenReturn(broJson.getBytes());
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
+    ParserConfigurations configs = new ParserConfigurations(){
+      @Override
+      public Map<String, Object> getConfigurations() {
+        return ImmutableMap.of(ParserConfigurations.getKey("bro"), sensorParserConfig);
+      }
+    };
+    when(cache.get(eq(ParserConfigurations.class)))
+            .thenReturn(configs);
 
+    //We only have bro, so we should expect it to be returned
     assertEquals(getTestBroSensorParserConfig(), sensorParserConfigService.findOne("bro"));
-  }
-
-  @Test
-  public void findOneShouldReturnNullWhenNoNodeExceptionIsThrown() throws Exception {
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro")).thenThrow(KeeperException.NoNodeException.class);
-
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
-
-    assertNull(sensorParserConfigService.findOne("bro"));
-  }
-
-  @Test
-  public void findOneShouldWrapNonNoNodeExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro")).thenThrow(Exception.class);
-
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
-
-    sensorParserConfigService.findOne("bro");
+    //and blah should be a miss.
+    assertNull(sensorParserConfigService.findOne("blah"));
   }
 
   @Test
   public void getAllTypesShouldProperlyReturnTypes() throws Exception {
-    GetChildrenBuilder getChildrenBuilder = mock(GetChildrenBuilder.class);
-    when(getChildrenBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot()))
-            .thenReturn(new ArrayList() {{
-              add("bro");
-              add("squid");
-            }});
-    when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
+    ParserConfigurations configs = new ParserConfigurations(){
+      @Override
+      public Map<String, Object> getConfigurations() {
+        return ImmutableMap.of(ParserConfigurations.getKey("bro"), new HashMap<>()
+                              ,ParserConfigurations.getKey("squid"), new HashMap<>()
+                              );
+      }
+    };
+    when(cache.get( eq(ParserConfigurations.class)))
+            .thenReturn(configs);
 
     assertEquals(new ArrayList() {{
       add("bro");
@@ -181,45 +188,23 @@ public class SensorParserConfigServiceImplTest {
   }
 
   @Test
-  public void getAllTypesShouldReturnEmptyListWhenNoNodeExceptionIsThrown() throws Exception {
-    GetChildrenBuilder getChildrenBuilder = mock(GetChildrenBuilder.class);
-    when(getChildrenBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot())).thenThrow(KeeperException.NoNodeException.class);
-    when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
-
-    assertEquals(new ArrayList<>(), sensorParserConfigService.getAllTypes());
-  }
-
-  @Test
-  public void getAllTypesShouldWrapNonNoNodeExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
-    GetChildrenBuilder getChildrenBuilder = mock(GetChildrenBuilder.class);
-    when(getChildrenBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot())).thenThrow(Exception.class);
-    when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
-
-    sensorParserConfigService.getAllTypes();
-  }
-
-  @Test
   public void getAllShouldProperlyReturnSensorParserConfigs() throws Exception {
-    GetChildrenBuilder getChildrenBuilder = mock(GetChildrenBuilder.class);
-    when(getChildrenBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot()))
-            .thenReturn(new ArrayList() {{
-              add("bro");
-              add("squid");
-            }});
-    when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
-
     final SensorParserConfig broSensorParserConfig = getTestBroSensorParserConfig();
     final SensorParserConfig squidSensorParserConfig = getTestSquidSensorParserConfig();
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro")).thenReturn(broJson.getBytes());
-    when(getDataBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/squid")).thenReturn(squidJson.getBytes());
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
+    ParserConfigurations configs = new ParserConfigurations(){
+      @Override
+      public Map<String, Object> getConfigurations() {
+        return ImmutableMap.of(ParserConfigurations.getKey("bro"), broSensorParserConfig
+                              ,ParserConfigurations.getKey("squid"), squidSensorParserConfig
+                              );
+      }
+    };
+    when(cache.get( eq(ParserConfigurations.class)))
+            .thenReturn(configs);
 
-    assertEquals(new ArrayList() {{
-      add(getTestBroSensorParserConfig());
-      add(getTestSquidSensorParserConfig());
+    assertEquals(new HashMap() {{
+      put("bro", getTestBroSensorParserConfig());
+      put("squid", getTestSquidSensorParserConfig());
     }}, sensorParserConfigService.getAll());
   }
 
@@ -234,7 +219,7 @@ public class SensorParserConfigServiceImplTest {
 
     final SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setSensorTopic("bro");
-    sensorParserConfigService.save(sensorParserConfig);
+    sensorParserConfigService.save("bro", sensorParserConfig);
   }
 
   @Test
@@ -247,7 +232,7 @@ public class SensorParserConfigServiceImplTest {
     when(setDataBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro", broJson.getBytes())).thenReturn(new Stat());
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
-    assertEquals(getTestBroSensorParserConfig(), sensorParserConfigService.save(sensorParserConfig));
+    assertEquals(getTestBroSensorParserConfig(), sensorParserConfigService.save("bro", sensorParserConfig));
     verify(setDataBuilder).forPath(eq(ConfigurationType.PARSER.getZookeeperRoot() + "/bro"), eq(broJson.getBytes()));
   }
 
@@ -269,12 +254,12 @@ public class SensorParserConfigServiceImplTest {
     parseMessageRequest.setGrokStatement(grokStatement);
     parseMessageRequest.setSampleData(sampleData);
 
-    File patternFile = new File("./target/squidTest");
+    File grokRoot = new File("./target", user);
+    grokRoot.mkdir();
+    File patternFile = new File(grokRoot, "squid");
     FileWriter writer = new FileWriter(patternFile);
     writer.write(grokStatement);
     writer.close();
-
-    when(grokService.saveTemporary(grokStatement, "squid")).thenReturn(patternFile);
 
     assertEquals(new HashMap() {{
       put("elapsed", 161);

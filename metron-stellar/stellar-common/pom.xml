@@ -18,7 +18,7 @@
     <parent>
         <artifactId>metron-stellar</artifactId>
         <groupId>org.apache.metron</groupId>
-        <version>0.4.1</version>
+        <version>0.4.3</version>
     </parent>
     <artifactId>stellar-common</artifactId>
     <name>stellar-common</name>
@@ -29,6 +29,11 @@
         <commons.config.version>1.10</commons.config.version>
     </properties>
     <dependencies>
+        <dependency>
+          <groupId>com.github.ben-manes.caffeine</groupId>
+          <artifactId>caffeine</artifactId>
+          <version>${global_caffeine_version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-auth</artifactId>
@@ -49,6 +54,11 @@
                     <artifactId>commons-io</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.trendmicro</groupId>
+            <artifactId>tlsh</artifactId>
+            <version>3.7.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -95,6 +105,11 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.10</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.1</version>
         </dependency>
         <dependency>
             <groupId>commons-validator</groupId>
@@ -193,6 +208,11 @@
             <version>${global_kryo_serializers_version}</version>
         </dependency>
         <dependency>
+            <groupId>com.jakewharton.fliptables</groupId>
+            <artifactId>fliptables</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
             <!-- junit dependency added with default scope to allow inclusion of StellarProcessorUtils in main jar.
                  It is excluded from the uber-jar. -->
             <groupId>junit</groupId>
@@ -229,7 +249,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -252,6 +271,16 @@
                         <configuration>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <shadedClassifierName>uber</shadedClassifierName>
+                            <filters>
+                              <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                  <exclude>META-INF/*.SF</exclude>
+                                  <exclude>META-INF/*.DSA</exclude>
+                                  <exclude>META-INF/*.RSA</exclude>
+                                </excludes>
+                              </filter>
+                            </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
@@ -329,6 +358,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptor>src/main/assembly/assembly.xml</descriptor>
+                    <descriptor>src/main/assembly/stand-alone-assembly.xml</descriptor>
                 </configuration>
                 <executions>
                     <execution>

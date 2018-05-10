@@ -1,6 +1,95 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Upgrading
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
+
+## 0.4.2 to 0.4.3
+
+### [METRON-941: native PaloAlto parser corrupts message when having a comma in the payload](https://issues.apache.org/jira/browse/METRON-941)
+While modifying the PaloAlto log parser to support logs from newer
+PAN-OS version and to not break when a message payload contains a
+comma, some field names were changed to extend the coverage, fix some
+duplicate names and change some field names to the Metron standard
+message format.
+
+Installations making use of this parser should check, if the resulting
+messages still meet their expectations and adjust downstream configurations
+(i.e. ElasticSearch template) accordingly.
+
+*Note:* Previously, the samples for the test contained a full syslog line
+(including syslog header). This did - and will continue to - create a
+broken "domain" field in the parsed message. It is recommended to only feed
+the syslog message part to the parser for now.
+
+## 0.4.1 to 0.4.2
+
+### [METRON-1277: STELLAR Add Match functionality to language](https://issues.apache.org/jira/browse/METRON-1277)
+As we continue to evolve the Stellar language, it is possible that new keywords
+will be added to the language.  This may cause compatablity issues where these
+reserved words and symbols are used in existing scripts.
+
+Adding `match` to the Stellar lanaguage has introduced the following new
+reserved keywords and symbols:
+
+`match`, `default`, `{`, `}`, '=>'
+
+Any stellar expressions which use these keywords not in quotes will need to be
+modified.
+
+### [METRON-1158: Build backend for grouping alerts into meta alerts](https://issues.apache.org/jira/browse/METRON-1158)
+In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
+it is necessary to add an additional field to the templates and mapping for existing sensors.
+
+Two steps must be done for each sensor, but not on each index for each sensor.
+
+First is to update the Elasticsearch template for each sensor, so any new indices have the field:
+
+```
+export ELASTICSEARCH="node1"
+export SENSOR="bro"
+curl -XGET "http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index*?pretty=true" -o "${SENSOR}.template"
+sed -i '2d;$d' ./${SENSOR}.template
+sed -i '/"properties" : {/ a\
+"alert": { "type": "nested"},' ${SENSOR}.template
+curl -XPUT "http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index" -d @${SENSOR}.template
+```
+
+To update existing indexes, update Elasticsearch mappings with the new field for each sensor.  Make sure to set the ELASTICSEARCH variable appropriately.
+
+```
+curl -XPUT "http://${ELASTICSEARCH}:9200/${SENSOR}_index*/_mapping/${SENSOR}_doc" -d '
+{
+        "properties" : {
+          "alert" : {
+            "type" : "nested"
+          }
+        }
+}
+'
+rm ${SENSOR}.template
+```
+
+For a more detailed description, please see metron-platform/metron-elasticsearch/README.md
+
+### Description
+
+In the 0.4.2 release, 
 
 ## 0.3.1 to 0.4.0
 

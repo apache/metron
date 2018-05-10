@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.apache.metron</groupId>
 		<artifactId>Metron</artifactId>
-		<version>0.4.1</version>
+		<version>0.4.3</version>
 	</parent>
 	<description>User Documentation for Metron</description>
 	<url>https://metron.apache.org/</url>
@@ -71,12 +71,12 @@
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-site-plugin</artifactId>
-              <version>3.4</version>
+              <version>3.7</version>
               <dependencies>
 		<dependency>
                   <groupId>org.apache.maven.doxia</groupId>
                   <artifactId>doxia-module-markdown</artifactId>
-                  <version>1.6</version>
+                  <version>1.8</version>
 		</dependency>
               </dependencies>
               <executions>

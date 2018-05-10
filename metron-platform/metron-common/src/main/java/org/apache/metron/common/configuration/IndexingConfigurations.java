@@ -17,7 +17,6 @@
  */
 package org.apache.metron.common.configuration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.JSONUtils;
 
@@ -33,8 +32,36 @@ public class IndexingConfigurations extends Configurations {
   public static final String INDEX_CONF = "index";
   public static final String OUTPUT_PATH_FUNCTION_CONF = "outputPathFunction";
 
+  public Map<String, Object> getSensorIndexingConfig(String sensorType, boolean emptyMapOnNonExistent) {
+    Map<String, Object> ret = (Map<String, Object>) getConfigurations().get(getKey(sensorType));
+    if(ret == null) {
+      return emptyMapOnNonExistent?new HashMap<>():null;
+    }
+    else {
+      return ret;
+    }
+  }
+
+  public Map<String, Object> getSensorIndexingConfig(String sensorType) {
+    return getSensorIndexingConfig(sensorType, true);
+  }
+
+  public List<String> getTypes() {
+    List<String> ret = new ArrayList<>();
+    for(String keyedSensor : getConfigurations().keySet()) {
+      if(!keyedSensor.isEmpty() && keyedSensor.startsWith(ConfigurationType.INDEXING.getTypeName())) {
+        ret.add(keyedSensor.substring(ConfigurationType.INDEXING.getTypeName().length() + 1));
+      }
+    }
+    return ret;
+  }
+
+  public void delete(String sensorType) {
+    getConfigurations().remove(getKey(sensorType));
+  }
+
   public Map<String, Object> getSensorIndexingConfig(String sensorType, String writerName) {
-    Map<String, Object> ret = (Map<String, Object>) configurations.get(getKey(sensorType));
+    Map<String, Object> ret = (Map<String, Object>) getConfigurations().get(getKey(sensorType));
     if(ret == null) {
       return new HashMap();
     }
@@ -49,21 +76,20 @@ public class IndexingConfigurations extends Configurations {
   }
 
   public void updateSensorIndexingConfig(String sensorType, InputStream io) throws IOException {
-    Map<String, Object> sensorIndexingConfig = JSONUtils.INSTANCE.load(io, new TypeReference<Map<String, Object>>() {
-    });
+    Map<String, Object> sensorIndexingConfig = JSONUtils.INSTANCE.load(io, JSONUtils.MAP_SUPPLIER);
     updateSensorIndexingConfig(sensorType, sensorIndexingConfig);
   }
 
   public void updateSensorIndexingConfig(String sensorType, Map<String, Object> sensorIndexingConfig) {
-    configurations.put(getKey(sensorType), sensorIndexingConfig);
+    getConfigurations().put(getKey(sensorType), sensorIndexingConfig);
   }
 
-  private String getKey(String sensorType) {
-    return ConfigurationType.INDEXING.getName() + "." + sensorType;
+  public static String getKey(String sensorType) {
+    return ConfigurationType.INDEXING.getTypeName() + "." + sensorType;
   }
 
   public boolean isDefault(String sensorName, String writerName) {
-    Map<String, Object> ret = (Map<String, Object>) configurations.get(getKey(sensorName));
+    Map<String, Object> ret = (Map<String, Object>) getConfigurations().get(getKey(sensorName));
     if(ret == null) {
       return true;
     }
@@ -100,7 +126,7 @@ public class IndexingConfigurations extends Configurations {
     String keyPrefixString = getKey("");
     int prefixStringLength = keyPrefixString.length();
     List<Integer> configuredBatchTimeouts = new ArrayList<>();
-    for (String sensorKeyString : configurations.keySet()) {
+    for (String sensorKeyString : getConfigurations().keySet()) {
       if (sensorKeyString.startsWith(keyPrefixString)) {
         String configuredSensorName = sensorKeyString.substring(prefixStringLength);
         configuredBatchTimeouts.add(getBatchTimeout(configuredSensorName, writerName));

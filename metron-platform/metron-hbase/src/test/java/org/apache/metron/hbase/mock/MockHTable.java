@@ -534,7 +534,12 @@ public class MockHTable implements HTableInterface {
 
   @Override
   public void delete(Delete delete) throws IOException {
-    throw new UnsupportedOperationException();
+    byte[] row = delete.getRow();
+    if (data.containsKey(row)) {
+      data.remove(row);
+    } else {
+      throw new IOException();
+    }
   }
 
   @Override

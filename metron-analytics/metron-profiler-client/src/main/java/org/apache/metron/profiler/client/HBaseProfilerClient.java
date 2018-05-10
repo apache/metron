@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -71,14 +72,15 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @param groups      The groups used to sort the profile data.
    * @param durationAgo How far in the past to fetch values from.
    * @param unit        The time unit of 'durationAgo'.
+   * @param defaultValue The default value to specify.  If empty, the result will be sparse.
    * @param <T>         The type of values stored by the Profile.
    * @return A list of values.
    */
   @Override
-  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long durationAgo, TimeUnit unit) {
+  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long durationAgo, TimeUnit unit, Optional<T> defaultValue) {
     long end = System.currentTimeMillis();
     long start = end - unit.toMillis(durationAgo);
-    return fetch(clazz, profile, entity, groups, start, end);
+    return fetch(clazz, profile, entity, groups, start, end, defaultValue);
   }
 
   /**
@@ -90,11 +92,12 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @param groups  The groups used to sort the profile data.
    * @param start   The start time in epoch milliseconds.
    * @param end     The end time in epoch milliseconds.
+   * @param defaultValue The default value to specify.  If empty, the result will be sparse.
    * @param <T>     The type of values stored by the profile.
    * @return A list of values.
    */
   @Override
-  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long start, long end) {
+  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long start, long end, Optional<T> defaultValue) {
     byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
     byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 
@@ -108,7 +111,7 @@ public class HBaseProfilerClient implements ProfilerClient {
             .collect(Collectors.toList());
 
     // get the 'gets'
-    return get(gets, columnQualifier, columnFamily, clazz);
+    return get(gets, columnQualifier, columnFamily, clazz, defaultValue);
   }
 
   /**
@@ -119,10 +122,11 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @param entity     The name of the entity.
    * @param groups     The groups used to sort the profile data.
    * @param periods    The set of profile measurement periods
+   * @param defaultValue The default value to specify.  If empty, the result will be sparse.
    * @return A list of values.
    */
   @Override
-  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods) {
+  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods, Optional<T> defaultValue) {
     byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
     byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 
@@ -136,7 +140,7 @@ public class HBaseProfilerClient implements ProfilerClient {
             .collect(Collectors.toList());
 
     // get the 'gets'
-    return get(gets, columnQualifier, columnFamily, clazz);
+    return get(gets, columnQualifier, columnFamily, clazz, defaultValue);
   }
 
   /**
@@ -146,19 +150,26 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @param columnQualifier The column qualifier.
    * @param columnFamily    The column family.
    * @param clazz           The type expected in return.
+   * @param defaultValue The default value to specify.  If empty, the result will be sparse.
    * @param <T>             The type expected in return.
    * @return
    */
-  private <T> List<T> get(List<Get> gets, byte[] columnQualifier, byte[] columnFamily, Class<T> clazz) {
+  private <T> List<T> get(List<Get> gets, byte[] columnQualifier, byte[] columnFamily, Class<T> clazz, Optional<T> defaultValue) {
     List<T> values = new ArrayList<>();
 
     try {
       Result[] results = table.get(gets);
-      Arrays.stream(results)
-              .filter(r -> r.containsColumn(columnFamily, columnQualifier))
-              .map(r -> r.getValue(columnFamily, columnQualifier))
-              .forEach(val -> values.add(SerDeUtils.fromBytes(val, clazz)));
-
+      for(int i = 0;i < results.length;++i) {
+        Result result = results[i];
+        boolean exists = result.containsColumn(columnFamily, columnQualifier);
+        if(!exists && defaultValue.isPresent()) {
+          values.add(defaultValue.get());
+        }
+        else if(exists) {
+          byte[] val = result.getValue(columnFamily, columnQualifier);
+          values.add(SerDeUtils.fromBytes(val, clazz));
+        }
+      }
     } catch(IOException e) {
       throw new RuntimeException(e);
     }

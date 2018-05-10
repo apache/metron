@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>Metron</artifactId>
-        <version>0.4.1</version>
+        <version>0.4.3</version>
     </parent>
     <description>Building and deploying Metron</description>
     <url>https://metron.apache.org/</url>
@@ -38,11 +38,18 @@
             </modules>
         </profile>
         <profile>
+            <id>build-debs</id>
+            <modules>
+                <module>packaging/docker/deb-docker</module>
+            </modules>
+        </profile>
+        <profile>
             <id>mpack</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
+                <module>packaging/ambari/elasticsearch-mpack</module>
                 <module>packaging/ambari/metron-mpack</module>
             </modules>
         </profile>

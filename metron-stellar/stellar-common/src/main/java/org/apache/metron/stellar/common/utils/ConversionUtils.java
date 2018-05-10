@@ -19,10 +19,11 @@
 package org.apache.metron.stellar.common.utils;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.beanutils.BeanUtilsBean2;
 import org.apache.commons.beanutils.ConvertUtilsBean;
-
-import java.util.List;
 
 public class ConversionUtils {
   private static ThreadLocal<ConvertUtilsBean> UTILS_BEAN = new ThreadLocal<ConvertUtilsBean>() {
@@ -53,6 +54,20 @@ public class ConversionUtils {
    */
   public static <T, U> List<U> convertList(List<T> from, Class<U> clazz) {
     return Lists.transform(from, s -> convert(s, clazz));
+  }
+
+  /**
+   * Performs naive Map type conversion on values. Key types remain unchanged.
+   *
+   * @param from Source map
+   * @param clazz Class type to cast the Map values to
+   * @param <K> Map key type
+   * @param <V1> Source value type
+   * @param <V2> Desired value type
+   * @return New Map with the values cast to the desired type
+   */
+  public static <K, V1, V2> Map<K, V2> convertMap(Map<K, V1> from, Class<V2> clazz) {
+    return Maps.transformValues(from, s -> convert(s, clazz));
   }
 
 }

@@ -18,6 +18,7 @@
 
 package org.apache.metron.common.field.transformation;
 
+import org.apache.metron.stellar.common.CachingStellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -40,7 +41,7 @@ public class StellarTransformation implements FieldTransformation {
     Set<String> outputs = new HashSet<>(outputField);
     MapVariableResolver resolver = new MapVariableResolver(ret, intermediateVariables, input);
     resolver.add(sensorConfig);
-    StellarProcessor processor = new StellarProcessor();
+    StellarProcessor processor = new CachingStellarProcessor();
     for(Map.Entry<String, Object> kv : fieldMappingConfig.entrySet()) {
       String oField = kv.getKey();
       Object transformObj = kv.getValue();
@@ -53,6 +54,17 @@ public class StellarTransformation implements FieldTransformation {
             }
             else {
               intermediateVariables.put(oField, o);
+            }
+          }
+          else {
+            if(outputs.contains(oField)) {
+              ret.put(oField, o);
+            }
+            if( o != null ) {
+              intermediateVariables.put(oField, o);
+            } else {
+              // remove here, in case there are other statements
+              intermediateVariables.remove(oField);
             }
           }
         }

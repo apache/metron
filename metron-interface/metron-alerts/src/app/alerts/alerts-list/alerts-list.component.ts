@@ -15,28 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild, ElementRef} from '@angular/core';
+import {Component, OnInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
 import {Observable, Subscription} from 'rxjs/Rx';
 
 import {Alert} from '../../model/alert';
-import {AlertService} from '../../service/alert.service';
+import {SearchService} from '../../service/search.service';
+import {UpdateService} from '../../service/update.service';
 import {QueryBuilder} from './query-builder';
 import {ConfigureTableService} from '../../service/configure-table.service';
-import {WorkflowService} from '../../service/workflow.service';
+import {AlertsService} from '../../service/alerts.service';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
 import {ColumnMetadata} from '../../model/column-metadata';
-import {SortEvent} from '../../shared/metron-table/metron-table.directive';
-import {Sort} from '../../utils/enums';
-import {Pagination} from '../../model/pagination';
 import {SaveSearchService} from '../../service/save-search.service';
 import {RefreshInterval} from '../configure-rows/configure-rows-enums';
 import {SaveSearch} from '../../model/save-search';
 import {TableMetadata} from '../../model/table-metadata';
 import {MetronDialogBox, DialogType} from '../../shared/metron-dialog-box';
 import {AlertSearchDirective} from '../../shared/directives/alert-search.directive';
-import {AlertsSearchResponse} from '../../model/alerts-search-response';
+import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
+import {Filter} from '../../model/filter';
+import {THREAT_SCORE_FIELD_NAME, TIMESTAMP_FIELD_NAME, ALL_TIME} from '../../utils/constants';
+import {TableViewComponent} from './table-view/table-view.component';
+import {Pagination} from '../../model/pagination';
+import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
+import {MetaAlertService} from '../../service/meta-alert.service';
+import {Facets} from '../../model/facets';
 
 @Component({
   selector: 'app-alerts-list',
@@ -44,38 +49,57 @@ import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
   styleUrls: ['./alerts-list.component.scss']
 })
 
-export class AlertsListComponent implements OnInit {
+export class AlertsListComponent implements OnInit, OnDestroy {
 
   alertsColumns: ColumnMetadata[] = [];
   alertsColumnsToDisplay: ColumnMetadata[] = [];
   selectedAlerts: Alert[] = [];
-  alerts: any[] = [];
+  alerts: Alert[] = [];
+  searchResponse: SearchResponse = new SearchResponse();
   colNumberTimerId: number;
   refreshInterval = RefreshInterval.ONE_MIN;
   refreshTimer: Subscription;
   pauseRefresh = false;
   lastPauseRefreshValue = false;
-  threatScoreFieldName = 'threat:triage:score';
+  isMetaAlertPresentInSelectedAlerts = false;
+  timeStampfilterPresent = false;
+  selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
+  threatScoreFieldName = THREAT_SCORE_FIELD_NAME;
 
   @ViewChild('table') table: ElementRef;
+  @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
   @ViewChild(AlertSearchDirective) alertSearchDirective: AlertSearchDirective;
 
-  pagingData = new Pagination();
   tableMetaData = new TableMetadata();
   queryBuilder: QueryBuilder = new QueryBuilder();
+  pagination: Pagination = new Pagination();
+  alertChangedSubscription: Subscription;
+  groupFacets: Facets;
 
   constructor(private router: Router,
-              private alertsService: AlertService,
+              private searchService: SearchService,
+              private updateService: UpdateService,
               private configureTableService: ConfigureTableService,
-              private workflowService: WorkflowService,
+              private alertsService: AlertsService,
               private clusterMetaDataService: ClusterMetaDataService,
               private saveSearchService: SaveSearchService,
-              private metronDialogBox: MetronDialogBox) {
+              private metronDialogBox: MetronDialogBox,
+              private metaAlertsService: MetaAlertService) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
         this.restoreRefreshState();
       }
+    });
+  }
+
+  addAlertChangedListner() {
+    this.metaAlertsService.alertChanged$.subscribe(metaAlertAddRemoveRequest => {
+      this.updateAlert(META_ALERTS_SENSOR_TYPE, metaAlertAddRemoveRequest.metaAlertGuid, (metaAlertAddRemoveRequest.alerts === null));
+    });
+
+    this.alertChangedSubscription = this.updateService.alertChanged$.subscribe(patchRequest => {
+      this.updateAlert(patchRequest.sensorType, patchRequest.guid, false);
     });
   }
 
@@ -90,16 +114,28 @@ export class AlertsListComponent implements OnInit {
   addLoadSavedSearchListner() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
       let queryBuilder = new QueryBuilder();
+      queryBuilder.setGroupby(this.queryBuilder.groupRequest.groups.map(group => group.field));
       queryBuilder.searchRequest = savedSearch.searchRequest;
+      queryBuilder.filters = savedSearch.filters;
       this.queryBuilder = queryBuilder;
+      this.setSelectedTimeRange(savedSearch.filters);
       this.prepareColumnData(savedSearch.tableColumns, []);
+      this.timeStampfilterPresent = this.queryBuilder.isTimeStampFieldPresent();
       this.search(true, savedSearch);
     });
   }
 
+  setSelectedTimeRange(filters: Filter[]) {
+    filters.forEach(filter => {
+      if (filter.field === TIMESTAMP_FIELD_NAME && filter.dateFilterValue) {
+        this.selectedTimeRange = JSON.parse(JSON.stringify(filter));
+      }
+    });
+  }
+
   calcColumnsToDisplay() {
-    let availableWidth = document.documentElement.clientWidth - (200 + (15 * 3)); /* screenwidth - (navPaneWidth + (paddings))*/
-    availableWidth = availableWidth - (55 + 25 + 25); /* availableWidth - (score + colunSelectIcon +selectCheckbox )*/
+    let availableWidth = document.documentElement.clientWidth - (200 + (15 + 15 + 25)); /* screenwidth - (navPaneWidth + (paddings))*/
+    availableWidth = availableWidth - ((20 * 3) + 55 + 25); /* availableWidth - (score + colunSelectIcon +selectCheckbox )*/
     let tWidth = 0;
     this.alertsColumnsToDisplay =  this.alertsColumns.filter(colMetaData => {
       if (colMetaData.type.toUpperCase() === 'DATE') {
@@ -116,105 +152,81 @@ export class AlertsListComponent implements OnInit {
     });
   }
 
-  formatValue(column: ColumnMetadata, returnValue: string) {
-    try {
-      if (column.name.endsWith(':ts') || column.name.endsWith('timestamp')) {
-        returnValue = new Date(parseInt(returnValue, 10)).toISOString().replace('T', ' ').slice(0, 19);
-      }
-    } catch (e) {}
-
-    return returnValue;
-  }
-
   getAlertColumnNames(resetPaginationForSearch: boolean) {
     Observable.forkJoin(
-      this.configureTableService.getTableMetadata(),
-      this.clusterMetaDataService.getDefaultColumns()
+        this.configureTableService.getTableMetadata(),
+        this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {
       this.prepareData(response[0], response[1], resetPaginationForSearch);
     });
   }
 
-  getCollapseComponentData(data: any) {
-    return {
-      getName: () => {
-        return Object.keys(data.aggregations)[0];
-      },
-      getData: () => {
-        return data.aggregations[Object.keys(data.aggregations)[0]].buckets;
-      },
-    };
-  }
-
   getColumnNamesForQuery() {
     let fieldNames = this.alertsColumns.map(columnMetadata => columnMetadata.name);
-    fieldNames = fieldNames.filter(name => !(name === '_id' || name === 'alert_status'));
+    fieldNames = fieldNames.filter(name => !(name === 'id' || name === 'alert_status'));
     fieldNames.push(this.threatScoreFieldName);
     return fieldNames;
   }
 
-  getDataType(name: string): string {
-    if (name === this.threatScoreFieldName || name === '_id') {
-      return 'number';
-    }
-
-    return this.alertsColumns.filter(colMetaData => colMetaData.name === name)[0].type;
-  }
-
-  getValue(alert: any, column: ColumnMetadata, formatData: boolean) {
-    let returnValue = '';
-    try {
-      switch (column.name) {
-        case '_id':
-          returnValue = alert[column.name];
-          break;
-        case 'alert_status':
-          returnValue = 'NEW';
-          break;
-        default:
-          returnValue = alert['_source'][column.name];
-          break;
-      }
-    } catch (e) {}
-
-    if (formatData) {
-      returnValue = this.formatValue(column, returnValue);
-    }
-
-    return returnValue;
+  ngOnDestroy() {
+    this.tryStopPolling();
+    this.removeAlertChangedListner();
   }
 
   ngOnInit() {
     this.getAlertColumnNames(true);
     this.addAlertColChangedListner();
     this.addLoadSavedSearchListner();
+    this.addAlertChangedListner();
   }
 
   onClear() {
-    this.queryBuilder.displayQuery = '';
+    this.timeStampfilterPresent = false;
+    this.queryBuilder.clearSearch();
+    this.selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
     this.search();
   }
 
   onSearch($event) {
-    this.queryBuilder.displayQuery = $event;
+    this.queryBuilder.setSearch($event);
+    this.timeStampfilterPresent = this.queryBuilder.isTimeStampFieldPresent();
     this.search();
-
     return false;
   }
 
-  onAddFilter(field: string, value: string) {
-    this.queryBuilder.addOrUpdateFilter(field, value);
+  onAddFacetFilter($event) {
+    this.onAddFilter(new Filter($event.name, $event.key));
+  }
+
+  onRefreshData($event) {
+    this.search($event);
+  }
+
+  onSelectedAlertsChange(selectedAlerts) {
+    this.selectedAlerts = selectedAlerts;
+    this.isMetaAlertPresentInSelectedAlerts = this.selectedAlerts.some(alert => (alert.source.alert && alert.source.alert.length > 0));
+
+    if (selectedAlerts.length > 0) {
+      this.pause();
+    } else {
+      this.resume();
+    }
+  }
+
+  onAddFilter(filter: Filter) {
+    this.timeStampfilterPresent = (filter.field === TIMESTAMP_FIELD_NAME);
+    this.queryBuilder.addOrUpdateFilter(filter);
     this.search();
   }
 
   onConfigRowsChange() {
-    this.alertsService.interval = this.refreshInterval;
+    this.searchService.interval = this.refreshInterval;
     this.search();
   }
 
-  onPageChange() {
-    this.queryBuilder.setFromAndSize(this.pagingData.from, this.pagingData.size);
-    this.search(false);
+  onGroupsChange(groups) {
+    this.queryBuilder.setGroupby(groups);
+    this.search();
   }
 
   onPausePlay() {
@@ -231,10 +243,13 @@ export class AlertsListComponent implements OnInit {
     this.colNumberTimerId = setTimeout(() => { this.calcColumnsToDisplay(); }, 500);
   }
 
-  onSort(sortEvent: SortEvent) {
-    let sortOrder = (sortEvent.sortOrder === Sort.ASC ? 'asc' : 'desc');
-    let sortBy = sortEvent.sortBy === '_id' ? '_uid' : sortEvent.sortBy;
-    this.queryBuilder.setSort(sortBy, sortOrder, this.getDataType(sortEvent.sortBy));
+  onTimeRangeChange(filter: Filter) {
+    if (filter.value === ALL_TIME) {
+      this.queryBuilder.removeFilter(filter.field);
+    } else {
+      this.queryBuilder.addOrUpdateFilter(filter);
+    }
+
     this.search();
   }
 
@@ -246,7 +261,6 @@ export class AlertsListComponent implements OnInit {
 
   prepareData(tableMetaData: TableMetadata, defaultColumns: ColumnMetadata[], resetPagination: boolean) {
     this.tableMetaData = tableMetaData;
-    this.pagingData.size = this.tableMetaData.size;
     this.refreshInterval = this.tableMetaData.refreshInterval;
 
     this.updateConfigRowsSettings();
@@ -256,32 +270,36 @@ export class AlertsListComponent implements OnInit {
   }
 
   processEscalate() {
-    this.workflowService.start(this.selectedAlerts).subscribe(workflowId => {
-      this.alertsService.updateAlertState(this.selectedAlerts, 'ESCALATE', workflowId).subscribe(results => {
-        this.updateSelectedAlertStatus('ESCALATE');
-      });
+    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(results => {
+      this.updateSelectedAlertStatus('ESCALATE');
     });
   }
 
   processDismiss() {
-    this.alertsService.updateAlertState(this.selectedAlerts, 'DISMISS', '').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS', false).subscribe(results => {
       this.updateSelectedAlertStatus('DISMISS');
     });
   }
 
   processOpen() {
-    this.alertsService.updateAlertState(this.selectedAlerts, 'OPEN', '').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'OPEN', false).subscribe(results => {
       this.updateSelectedAlertStatus('OPEN');
     });
   }
 
   processResolve() {
-    this.alertsService.updateAlertState(this.selectedAlerts, 'RESOLVE', '').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE', false).subscribe(results => {
       this.updateSelectedAlertStatus('RESOLVE');
     });
   }
 
+  processAddToAlert() {
+    this.metaAlertsService.selectedAlerts = this.selectedAlerts;
+    this.router.navigateByUrl('/alerts-list(dialog:add-to-meta-alert)');
+  }
+
   removeFilter(field: string) {
+    this.timeStampfilterPresent = (field === TIMESTAMP_FIELD_NAME) ? false : this.timeStampfilterPresent;
     this.queryBuilder.removeFilter(field);
     this.search();
   }
@@ -291,53 +309,67 @@ export class AlertsListComponent implements OnInit {
     this.tryStartPolling();
   }
 
-  selectAllRows($event) {
-    this.selectedAlerts = [];
-    if ($event.target.checked) {
-      this.selectedAlerts = this.alerts;
-    }
-  }
-
   search(resetPaginationParams = true, savedSearch?: SaveSearch) {
-    this.selectedAlerts = [];
-
+    this.saveCurrentSearch(savedSearch);
     if (resetPaginationParams) {
-      this.pagingData.from = 0;
-      this.queryBuilder.setFromAndSize(this.pagingData.from, this.pagingData.size);
+      this.pagination.from = 0;
     }
 
-    if (this.queryBuilder.query !== '*') {
-      if (!savedSearch) {
-        savedSearch = new SaveSearch();
-        savedSearch.searchRequest = this.queryBuilder.searchRequest;
-        savedSearch.tableColumns = this.alertsColumns;
-        savedSearch.name = savedSearch.getDisplayString();
-      }
+    this.setSearchRequestSize();
 
-      this.saveSearchService.saveAsRecentSearches(savedSearch).subscribe(() => {});
-    }
-
-    this.alertsService.search(this.queryBuilder.searchRequest).subscribe(results => {
+    this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
       this.setData(results);
     }, error => {
-      this.setData(new AlertsSearchResponse());
+      this.setData(new SearchResponse());
       this.metronDialogBox.showConfirmationMessage(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
     });
 
     this.tryStartPolling();
   }
 
-  selectRow($event, alert: Alert) {
-    if ($event.target.checked) {
-      this.selectedAlerts.push(alert);
+  setSearchRequestSize() {
+    if (this.queryBuilder.groupRequest.groups.length === 0) {
+      this.queryBuilder.searchRequest.from = this.pagination.from;
+      if (this.tableMetaData.size) {
+        this.pagination.size = this.tableMetaData.size;
+      }
+      this.queryBuilder.searchRequest.size = this.pagination.size;
     } else {
-      this.selectedAlerts.splice(this.selectedAlerts.indexOf(alert), 1);
+      this.queryBuilder.searchRequest.from = 0;
+      this.queryBuilder.searchRequest.size = 0;
     }
   }
 
-  setData(results: AlertsSearchResponse) {
-    this.alerts = results.results;
-    this.pagingData.total = results.total;
+  saveCurrentSearch(savedSearch: SaveSearch) {
+    if (this.queryBuilder.query !== '*') {
+      if (!savedSearch) {
+        savedSearch = new SaveSearch();
+        savedSearch.searchRequest = this.queryBuilder.searchRequest;
+        savedSearch.tableColumns = this.alertsColumns;
+        savedSearch.filters = this.queryBuilder.filters;
+        savedSearch.searchRequest.query = '';
+        savedSearch.name = this.queryBuilder.generateNameForSearchRequest();
+      }
+
+      this.saveSearchService.saveAsRecentSearches(savedSearch).subscribe(() => {
+      });
+    }
+  }
+
+  setData(results: SearchResponse) {
+    this.selectedAlerts = [];
+    this.searchResponse = results;
+    this.pagination.total = results.total;
+    this.alerts = results.results ? results.results : [];
+    this.setSelectedTimeRange(this.queryBuilder.filters);
+    this.createGroupFacets(results);
+  }
+
+  private createGroupFacets(results: SearchResponse) {
+    this.groupFacets = JSON.parse(JSON.stringify(results.facetCounts));
+    if (this.groupFacets['source:type']) {
+      delete this.groupFacets['source:type']['metaalert'];
+    }
   }
 
   showConfigureTable() {
@@ -345,13 +377,14 @@ export class AlertsListComponent implements OnInit {
     this.router.navigateByUrl('/alerts-list(dialog:configure-table)');
   }
 
-  showDetails($event, alert: any) {
-    if ($event.target.type !== 'checkbox' && $event.target.parentElement.firstChild.type !== 'checkbox' && $event.target.nodeName !== 'A') {
-      this.selectedAlerts = [];
-      this.selectedAlerts = [alert];
-      this.saveRefreshState();
-      this.router.navigateByUrl('/alerts-list(dialog:details/' + alert._index + '/' + alert._type + '/' + alert._id + ')');
-    }
+  showDetails(alert: Alert) {
+    this.selectedAlerts = [];
+    this.selectedAlerts = [alert];
+    this.saveRefreshState();
+    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source['source:type'])
+        ? META_ALERTS_SENSOR_TYPE : alert.source['source:type'];
+    let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
+    this.router.navigateByUrl(url);
   }
 
   saveRefreshState() {
@@ -359,6 +392,15 @@ export class AlertsListComponent implements OnInit {
     this.tryStopPolling();
   }
 
+  pause() {
+    this.pauseRefresh = true;
+    this.tryStopPolling();
+  }
+
+  resume() {
+    this.pauseRefresh = false;
+    this.tryStartPolling();
+  }
 
   showSavedSearches() {
     this.saveRefreshState();
@@ -374,7 +416,7 @@ export class AlertsListComponent implements OnInit {
   tryStartPolling() {
     if (!this.pauseRefresh) {
       this.tryStopPolling();
-      this.refreshTimer = this.alertsService.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
+      this.refreshTimer = this.searchService.pollSearch(this.queryBuilder).subscribe(results => {
         this.setData(results);
       });
     }
@@ -387,13 +429,34 @@ export class AlertsListComponent implements OnInit {
   }
 
   updateConfigRowsSettings() {
-    this.alertsService.interval = this.refreshInterval;
-    this.queryBuilder.setFromAndSize(this.pagingData.from, this.pagingData.size);
+    this.searchService.interval = this.refreshInterval;
+  }
+
+  updateAlert(sensorType: string, guid: string, isDelete: boolean) {
+    if (isDelete) {
+      let alertIndex = -1;
+      this.alerts.forEach((alert, index) => {
+        alertIndex = (alert.source.guid === guid) ? index : alertIndex;
+      });
+      this.alerts.splice(alertIndex, 1);
+      return;
+    }
+
+    this.searchService.getAlert(sensorType, guid).subscribe(alertSource => {
+      this.alerts.filter(alert => alert.source.guid === guid)
+      .map(alert => alert.source = alertSource);
+    });
   }
 
   updateSelectedAlertStatus(status: string) {
-    for (let alert of this.selectedAlerts) {
-      alert.status = status;
+    for (let selectedAlert of this.selectedAlerts) {
+      selectedAlert.source['alert_status'] = status;
     }
+    this.selectedAlerts = [];
+    this.resume();
+  }
+
+  removeAlertChangedListner() {
+    this.alertChangedSubscription.unsubscribe();
   }
 }

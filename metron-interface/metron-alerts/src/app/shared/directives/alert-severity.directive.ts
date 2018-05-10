@@ -39,14 +39,14 @@ export class AlertSeverityDirective implements OnInit, OnChanges {
   private setBorder(severity: number) {
 
     if ( severity > 69 ) {
-      this.el.nativeElement.style.borderLeft = '4px solid #D60A15';
-      this.el.nativeElement.style.paddingLeft = '10px';
+      this.el.nativeElement.style.borderLeft = '3px solid #D60A15';
+      this.el.nativeElement.style.paddingLeft = '5px';
     } else if ( severity > 39 ) {
-      this.el.nativeElement.style.borderLeft = '4px solid #D6711D';
-      this.el.nativeElement.style.paddingLeft = '10px';
+      this.el.nativeElement.style.borderLeft = '3px solid #D6711D';
+      this.el.nativeElement.style.paddingLeft = '5px';
     } else  {
-      this.el.nativeElement.style.borderLeft = '4px solid #AC9B5A';
-      this.el.nativeElement.style.paddingLeft = '10px';
+      this.el.nativeElement.style.borderLeft = '3px solid #AC9B5A';
+      this.el.nativeElement.style.paddingLeft = '5px';
     }
   }
 

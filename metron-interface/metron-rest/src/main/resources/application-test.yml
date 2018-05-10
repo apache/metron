@@ -24,12 +24,11 @@ spring:
     hibernate:
       ddl-auto: create-drop
   main:
-    banner-mode: off
+    banner-mode: 'off'
 
 grok:
   path:
     temp: target/patterns/temp
-    default: target/patterns
 
 storm:
   ui:
@@ -39,11 +38,14 @@ storm:
   enrichment:
     script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
   indexing:
-    script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+    randomaccess.script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+    batch.script.path: /usr/metron/${metron.version}/bin/start_hdfs_topology.sh
 
 search:
   max:
     results: 100
+  facet:
+    fields: ip_src_addr
 
 index:
   dao:
@@ -52,3 +54,8 @@ index:
   hbase:
   # HBase is provided via a mock provider, so no actual HBase infrastructure is started.
      provider: org.apache.metron.hbase.mock.MockHBaseTableProvider
+
+meta:
+  dao:
+  # By default, we use the InMemoryMetaAlertDao for our tests
+    impl: org.apache.metron.indexing.dao.InMemoryMetaAlertDao

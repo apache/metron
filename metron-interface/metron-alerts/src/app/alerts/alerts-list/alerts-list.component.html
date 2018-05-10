@@ -24,7 +24,10 @@
                         <button class="btn btn-secondary btn-search-clear" type="button" (click)="onClear()"></button>
                     </span>
                     <span class="input-group-btn">
-                        <button class="btn btn-secondary btn-search" type="button" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
+                        <app-time-range (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampfilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
+                    </span>
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary btn-search" type="button" data-name="search" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
                     </span>
                 </div>
             </div>
@@ -36,15 +39,18 @@
     </div>
     <div class="mrow">
         <div class="col-md-9 px-0">
-            <span class="col-form-label-lg"> Alerts ({{alerts.length}} of {{pagingData.total}}) </span>
+            <span class="col-form-label-lg"> Alerts ({{searchResponse.total}}) </span>
         </div>
         <div class="col-md-3 px-0">
             <div class="pull-right" style="position: relative; display: block;">
+                <div class="btn cog">
+                    <i class="fa fa-cog configure-table-icon" (click)="showConfigureTable()"></i>
+                </div>
                 <div class="btn settings">
                     <i #settingsIcon class="fa fa-sliders" aria-hidden="true"></i>
                 </div>
-                <app-configure-rows [srcElement]="settingsIcon" [tableMetaData]="tableMetaData" [(interval)]="refreshInterval" [(size)]="pagingData.size" (configRowsChange)="onConfigRowsChange()" > </app-configure-rows>
-                <div class="btn pause-play" (click)="onPausePlay()">
+                <app-configure-rows [srcElement]="settingsIcon" [tableMetaData]="tableMetaData" [(interval)]="refreshInterval" [(size)]="tableMetaData.size" (configRowsChange)="onConfigRowsChange()" > </app-configure-rows>
+                <div class="btn  pause-play" (click)="onPausePlay()">
                     <i *ngIf="!pauseRefresh" class="fa fa-pause" aria-hidden="true"></i>
                     <i *ngIf="pauseRefresh" class="fa fa-play" aria-hidden="true"></i>
                 </div>
@@ -55,6 +61,7 @@
                         <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processDismiss()">Dismiss</span>
                         <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processEscalate()">Escalate</span>
                         <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processResolve()">Resolve</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0 || isMetaAlertPresentInSelectedAlerts" (click)="processAddToAlert()">Add to Alert</span>
                     </div>
                 </div>
             </div>
@@ -62,39 +69,39 @@
     </div>
 </div>
 
-<div class="container-fluid nav-content">
+<div class="container-fluid no-gutters">
     <div class="row">
-        <div class="col-sm-12 pl-0">
-            <div class="table-wrapper">
-                <table class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="onResize()" #table>
-                    <thead>
-                    <tr>
-                        <th style="width:55px"> <metron-config-sorter [type]="'number'" [sortBy]="threatScoreFieldName"> Score </metron-config-sorter> </th>
-                        <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name"> <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter> </th>
-                        <th style="width:25px"><i class="fa fa-cog configure-table-icon" (click)="showConfigureTable()"></i></th>
-                        <th style="width:25px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllRows($event)"><label for="select-deselect-all"></label></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr *ngFor="let alert of alerts" (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
-                        <td (click)="onAddFilter(threatScoreFieldName, alert._source[threatScoreFieldName])">
-                            <div appAlertSeverity [severity]="alert._source[threatScoreFieldName]"> <a> {{ alert._source[threatScoreFieldName] ? alert._source[threatScoreFieldName] : '-' }} </a> </div>
-                        </td>
-                        <td *ngFor="let column of alertsColumnsToDisplay" #cell>
-                            <a (click)="onAddFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9">{{ getValue(alert, column, true) | centerEllipses:20:cell }}</a>
-                        </td>
-                        <td></td>
-                        <td><input id="{{ alert._id }}" class="fontawesome-checkbox" type="checkbox" name="{{alert._id}}" (click)="selectRow($event, alert)" [checked]="selectedAlerts.indexOf(alert) != -1"><label attr.for="{{ alert._id }}"></label></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-                <div clas="row">
-                    <div class="col-md-3 push-md-5">
-                        <metron-table-pagination [(pagingData)]="pagingData" (pageChange)="onPageChange()"> </metron-table-pagination>
-                    </div>
-                </div>
+      <div class="px-0" style="width: 200px;max-width: 200px;">
+        <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
+      </div>
+      <div class="col px-0 ml-4">
+        <div class="col-xs-12 pl-0 pb-3">
+          <app-group-by [facets]="groupFacets" (groupsChange)="onGroupsChange($event)"> </app-group-by>
+        </div>
+        <div class="col-xs-12 px-0">
+            <app-table-view #dataViewComponent
+                            [alerts]="alerts" *ngIf="queryBuilder.groupRequest.groups.length === 0"
+                            [queryBuilder]="queryBuilder"
+                            [pagination]="pagination"
+                            [alertsColumnsToDisplay]="alertsColumnsToDisplay"
+                            [selectedAlerts]="selectedAlerts"
+                            (onResize)="onResize()"
+                            (onAddFilter)="onAddFilter($event)"
+                            (onRefreshData)="onRefreshData($event)"
+                            (onShowDetails)="showDetails($event)"
+                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-table-view>
+            <app-tree-view #dataViewComponent *ngIf="queryBuilder.groupRequest.groups.length !== 0"
+                           [alerts]="alerts"
+                           [queryBuilder]="queryBuilder"
+                           [alertsColumnsToDisplay]="alertsColumnsToDisplay"
+                           [selectedAlerts]="selectedAlerts"
+                           (onResize)="onResize()"
+                           (onAddFilter)="onAddFilter($event)"
+                           (onRefreshData)="onRefreshData($event)"
+                           (onShowDetails)="showDetails($event)"
+                           (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-tree-view>
         </div>
     </div>
+  </div>
 </div>
 

@@ -21,7 +21,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -38,7 +39,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 import java.util.Optional;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/search")
@@ -52,6 +52,15 @@ public class SearchController {
   @RequestMapping(value = "/search", method = RequestMethod.POST)
   ResponseEntity<SearchResponse> search(final @ApiParam(name = "searchRequest", value = "Search request", required = true) @RequestBody SearchRequest searchRequest) throws RestException {
     return new ResponseEntity<>(searchService.search(searchRequest), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Searches the indexing store and returns field groups. "
+      + "Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. "
+      + "The default sorting within groups is by count descending.")
+  @ApiResponse(message = "Group response", code = 200)
+  @RequestMapping(value = "/group", method = RequestMethod.POST)
+  ResponseEntity<GroupResponse> group(final @ApiParam(name = "groupRequest", value = "Group request", required = true) @RequestBody GroupRequest groupRequest) throws RestException {
+    return new ResponseEntity<>(searchService.group(groupRequest), HttpStatus.OK);
   }
 
   @ApiOperation(value = "Returns latest document for a guid and sensor")
@@ -72,17 +81,12 @@ public class SearchController {
     }
   }
 
-  @ApiOperation(value = "Get column metadata for each index in the list of indices")
+  @ApiOperation(value = "Get index column metadata for a list of sensor types with duplicates removed.  "
+      + "Column names and types for each sensor are retrieved from the most recent index.  "
+      + "Columns that exist in multiple indices with different types will default to type 'other'.")
   @ApiResponse(message = "Column Metadata", code = 200)
   @RequestMapping(value = "/column/metadata", method = RequestMethod.POST)
-  ResponseEntity<Map<String, Map<String, FieldType>>> getColumnMetadata(final @ApiParam(name = "indices", value = "Indices", required = true) @RequestBody List<String> indices) throws RestException {
-    return new ResponseEntity<>(searchService.getColumnMetadata(indices), HttpStatus.OK);
-  }
-
-  @ApiOperation(value = "Get metadata for columns shared by the list of indices")
-  @ApiResponse(message = "Common Column Metadata", code = 200)
-  @RequestMapping(value = "/column/metadata/common", method = RequestMethod.POST)
-  ResponseEntity<Map<String, FieldType>> getCommonColumnMetadata(final @ApiParam(name = "indices", value = "Indices", required = true) @RequestBody List<String> indices) throws RestException {
-    return new ResponseEntity<>(searchService.getCommonColumnMetadata(indices), HttpStatus.OK);
+  ResponseEntity<Map<String, FieldType>> getColumnMetadata(final @ApiParam(name = "sensorTypes", value = "Sensor Types", required = true) @RequestBody List<String> sensorTypes) throws RestException {
+    return new ResponseEntity<>(searchService.getColumnMetadata(sensorTypes), HttpStatus.OK);
   }
 }

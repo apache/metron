@@ -31,7 +31,7 @@ import java.io.InputStream;
 public class ProfilerConfigurations extends Configurations {
 
   public ProfilerConfig getProfilerConfig() {
-    return (ProfilerConfig) configurations.get(getKey());
+    return (ProfilerConfig) getConfigurations().get(getKey());
   }
 
   public void updateProfilerConfig(byte[] data) throws IOException {
@@ -44,10 +44,15 @@ public class ProfilerConfigurations extends Configurations {
   }
 
   public void updateProfilerConfig(ProfilerConfig config) {
-    configurations.put(getKey(), config);
+    getConfigurations().put(getKey(), config);
   }
 
-  private String getKey() {
-    return ConfigurationType.PROFILER.getName();
+  public static String getKey() {
+    return ConfigurationType.PROFILER.getTypeName();
   }
+
+  public void delete() {
+    configurations.remove(getKey());
+  }
+
 }

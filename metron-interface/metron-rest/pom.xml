@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-interface</artifactId>
-        <version>0.4.1</version>
+        <version>0.4.3</version>
     </parent>
     <artifactId>metron-rest</artifactId>
     <url>https://metron.apache.org/</url>
@@ -29,13 +29,22 @@
         <antlr.version>4.5</antlr.version>
         <curator.version>2.7.1</curator.version>
         <powermock.version>1.6.4</powermock.version>
-        <spring.boot.version>1.4.1.RELEASE</spring.boot.version>
+        <spring.boot.version>2.0.1.RELEASE</spring.boot.version>
         <spring.kerberos.version>1.0.1.RELEASE</spring.kerberos.version>
         <swagger.version>2.5.0</swagger.version>
         <mysql.client.version>5.1.40</mysql.client.version>
-        <spring-kafka.version>1.1.1.RELEASE</spring-kafka.version>
+        <spring-kafka.version>2.0.4.RELEASE</spring-kafka.version>
+        <spring.version>5.0.5.RELEASE</spring.version>
+        <eclipse.link.version>2.6.4</eclipse.link.version>
+        <jackson.version>2.9.5</jackson.version>
+        <jsonpath.version>2.4.0</jsonpath.version>
     </properties>
     <dependencies>
+      <dependency>
+          <groupId>com.github.ben-manes.caffeine</groupId>
+          <artifactId>caffeine</artifactId>
+          <version>${global_caffeine_version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
@@ -103,6 +112,10 @@
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -118,12 +131,12 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.8.3</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-joda</artifactId>
-            <version>2.8.1</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
@@ -143,12 +156,34 @@
                     <groupId>org.reflections</groupId>
                     <artifactId>reflections</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-hbase-client</artifactId>
             <version>${project.parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
@@ -161,6 +196,7 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-parsers</artifactId>
             <version>${project.parent.version}</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.hbase</groupId>
@@ -187,6 +223,11 @@
                     <artifactId>guava</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>${jsonpath.version}</version>
         </dependency>
         <dependency>
             <groupId>io.springfox</groupId>
@@ -241,8 +282,20 @@
             <scope>test</scope>
             <exclusions>
                 <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>org.apache.logging.log4j</groupId>
                     <artifactId>log4j-slf4j-impl</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-core</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -277,6 +330,7 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-indexing</artifactId>
             <version>${project.parent.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
@@ -289,6 +343,34 @@
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>${global_reflections_version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-entitymanager</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+              <exclusion>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-commons-annotations</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.hibernate.javax.persistence</groupId>
+                <artifactId>hibernate-jpa-2.1-api</artifactId>
+              </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.jpa</artifactId>
+            <version>${eclipse.link.version}</version>
         </dependency>
     </dependencies>
 
@@ -349,6 +431,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                                     <resource>META-INF/spring.handlers</resource>
@@ -385,4 +468,95 @@
             </plugin>
         </plugins>
     </build>
+
+  <profiles>
+      <profile>
+
+          <!--
+          Sets up the build to run the EclipseLink Maven plugin at compile time and instrument
+          domain types. This will prevent the need for load-time weaving when running the app.
+          -->
+
+          <id>static-weaving</id>
+
+          <build>
+              <plugins>
+
+                <!-- Static weaver for EclipseLink -->
+                <plugin>
+                    <groupId>com.ethlo.persistence.tools</groupId>
+                    <artifactId>eclipselink-maven-plugin</artifactId>
+                    <version>2.6.4.2</version>
+                    <executions>
+                        <execution>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>weave</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.eclipse.persistence</groupId>
+                            <artifactId>org.eclipse.persistence.jpa</artifactId>
+                            <version>${eclipse.link.version}</version>
+                        </dependency>
+                    </dependencies>
+
+                </plugin>
+              </plugins>
+          </build>
+
+          <repositories>
+              <repository>
+                  <id>com.ethlo.eclipselink.tools</id>
+                  <url>http://ethlo.com/maven</url>
+              </repository>
+          </repositories>
+
+          <pluginRepositories>
+              <pluginRepository>
+                  <id>com.ethlo.eclipselink.tools</id>
+                  <url>http://ethlo.com/maven</url>
+              </pluginRepository>
+          </pluginRepositories>
+
+      </profile>
+
+      <profile>
+
+          <!--
+          Sets up the build to use load-time weaving by configuring the Surefire and Boot
+          plugins to run with Spring's instrumentation agent. They will automatically pick
+          up the EclipseLink weaver and instrument domain types at load time.
+          -->
+
+          <id>load-time-weaving</id>
+
+          <activation>
+              <activeByDefault>true</activeByDefault>
+          </activation>
+
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-surefire-plugin</artifactId>
+                      <dependencies>
+                          <dependency>
+                              <groupId>org.springframework</groupId>
+                              <artifactId>spring-instrument</artifactId>
+                              <version>${spring.version}</version>
+                          </dependency>
+                      </dependencies>
+                      <configuration>
+                          <argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring.version}/spring-instrument-${spring.version}.jar</argLine>
+                      </configuration>
+                  </plugin>
+              </plugins>
+          </build>
+      </profile>
+
+  </profiles>
 </project>
