@@ -22,6 +22,5 @@
 
 export const environment = {
   production: false,
-  indices: null,
-  sourceType: 'source:type'
+  indices: null
 };

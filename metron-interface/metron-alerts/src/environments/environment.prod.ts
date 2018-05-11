@@ -17,6 +17,5 @@
  */
 export const environment = {
   production: true,
-  indices: null,
-  sourceType: 'source:type'
+  indices: null
 };
