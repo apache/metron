@@ -17,7 +17,7 @@
  */
 import {Observable} from 'rxjs/Rx';
 import {Headers, RequestOptions} from '@angular/http';
-
+import { Injectable } from '@angular/core';
 import {HttpUtil} from '../utils/httpUtil';
 import {DataSource} from './data-source';
 import {ColumnMetadata} from '../model/column-metadata';
@@ -33,20 +33,46 @@ import {SaveSearch} from '../model/save-search';
 import {SearchResponse} from '../model/search-response';
 import {SearchRequest} from '../model/search-request';
 import {AlertSource} from '../model/alert-source';
-import { environment } from 'environments/environment';
 
+@Injectable()
 export class ElasticSearchLocalstorageImpl extends DataSource {
+
+  globalConfig: {} = {};
+  sourceType: 'source:type';
 
   private defaultColumnMetadata = [
     new ColumnMetadata('id', 'string'),
     new ColumnMetadata('timestamp', 'date'),
-    new ColumnMetadata(environment.sourceType, 'string'),
+    new ColumnMetadata('source:type', 'string'),
     new ColumnMetadata('ip_src_addr', 'ip'),
     new ColumnMetadata('enrichments:geo:ip_dst_addr:country', 'string'),
     new ColumnMetadata('ip_dst_addr', 'ip'),
     new ColumnMetadata('host', 'string'),
     new ColumnMetadata('alert_status', 'string')
   ];
+
+  getSourceTypeFromLocalstorage() {
+    let sourceType: string;
+    if (localStorage['metron-alerts-saved-search']) {
+      let columnHeaders = JSON.parse(localStorage['metron-alerts-saved-search']);
+      sourceType = columnHeaders[0]['tableColumns'].filter(colName => colName.name === 'source.type');
+      if (sourceType) {
+        this.defaultColumnMetadata = this.defaultColumnMetadata.filter(colName => colName.name !== 'source:type');
+        this.defaultColumnMetadata.splice(2, 0, new ColumnMetadata(sourceType[0]['name'], sourceType[0]['type']));
+      }
+    }
+  }
+
+  getSourceType() {
+    this.globalConfigService.get().subscribe((config: {}) => {
+      let sourceType = config['sourceType'];
+      if (sourceType === 'source.type') {
+        this.defaultColumnMetadata = this.defaultColumnMetadata.filter(colName => colName.name !== 'source:type');
+        this.defaultColumnMetadata.splice(2, 0, new ColumnMetadata(sourceType, 'string'));
+        this.getDefaultAlertTableColumnNames();
+      }
+    });
+  }
 
   getAlerts(searchRequest: SearchRequest): Observable<SearchResponse> {
     let url = '/search/*' + ElasticsearchUtils.excludeIndexName + '/_search';
@@ -114,6 +140,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
   }
 
   getAlertTableSettings(): Observable<TableMetadata> {
+    this.getSourceType();
     return Observable.create(observer => {
       let tableMetadata: TableMetadata;
       try {

@@ -28,7 +28,7 @@ import { META_ALERTS_SENSOR_TYPE } from '../../utils/constants';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {MetaAlertAddRemoveRequest} from '../../model/meta-alert-add-remove-request';
 import {GetRequest} from '../../model/get-request';
-import { environment } from 'environments/environment';
+import { GlobalConfigService } from '../../service/global-config.service';
 
 @Component({
   selector: 'app-meta-alerts',
@@ -39,12 +39,14 @@ export class MetaAlertsComponent implements OnInit {
 
   selectedMetaAlert = '';
   searchResponse: SearchResponse = new SearchResponse();
+  globalConfig: {} = {};
 
   constructor(private router: Router,
               private metaAlertService: MetaAlertService,
               private updateService: UpdateService,
               private searchService: SearchService,
-              private metronDialogBox: MetronDialogBox) {
+              private metronDialogBox: MetronDialogBox,
+              private globalConfigService: GlobalConfigService) {
   }
 
   goBack() {
@@ -62,11 +64,14 @@ export class MetaAlertsComponent implements OnInit {
     searchRequest.sort = [new SortField('threat:triage:score', 'desc')];
 
     this.searchService.search(searchRequest).subscribe(resp => this.searchResponse = resp);
+    this.globalConfigService.get().subscribe((config: {}) => {
+      this.globalConfig = config;
+    });
   }
 
   addAlertToMetaAlert() {
     let getRequest = this.metaAlertService.selectedAlerts.map(alert =>
-          new GetRequest(alert.source.guid, alert.source[environment.sourceType], alert.index));
+          new GetRequest(alert.source.guid, alert.source[this.globalConfig['sourceType']], alert.index));
     let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
     metaAlertAddRemoveRequest.metaAlertGuid = this.selectedMetaAlert;
     metaAlertAddRemoveRequest.alerts = getRequest;

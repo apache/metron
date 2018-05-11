@@ -42,7 +42,7 @@ import {Pagination} from '../../model/pagination';
 import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
 import {MetaAlertService} from '../../service/meta-alert.service';
 import {Facets} from '../../model/facets';
-import { environment } from 'environments/environment';
+import { GlobalConfigService } from '../../service/global-config.service';
 
 @Component({
   selector: 'app-alerts-list',
@@ -76,6 +76,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   pagination: Pagination = new Pagination();
   alertChangedSubscription: Subscription;
   groupFacets: Facets;
+  globalConfig: {} = {};
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -85,7 +86,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private clusterMetaDataService: ClusterMetaDataService,
               private saveSearchService: SaveSearchService,
               private metronDialogBox: MetronDialogBox,
-              private metaAlertsService: MetaAlertService) {
+              private metaAlertsService: MetaAlertService,
+              private globalConfigService: GlobalConfigService) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
@@ -179,6 +181,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.addAlertColChangedListner();
     this.addLoadSavedSearchListner();
     this.addAlertChangedListner();
+    this.globalConfigService.get().subscribe((config: {}) => {
+      this.globalConfig = config;
+    });
   }
 
   onClear() {
@@ -368,8 +373,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   private createGroupFacets(results: SearchResponse) {
     this.groupFacets = JSON.parse(JSON.stringify(results.facetCounts));
-    if (this.groupFacets[environment.sourceType]) {
-      delete this.groupFacets[environment.sourceType]['metaalert'];
+    if (this.groupFacets[this.globalConfig['sourceType']]) {
+      delete this.groupFacets[this.globalConfig['sourceType']]['metaalert'];
     }
   }
 
@@ -382,8 +387,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
     this.saveRefreshState();
-    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source[environment.sourceType])
-        ? META_ALERTS_SENSOR_TYPE : alert.source[environment.sourceType];
+    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source[this.globalConfig['sourceType']])
+        ? META_ALERTS_SENSOR_TYPE : alert.source[this.globalConfig['sourceType']];
     let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
     this.router.navigateByUrl(url);
   }
