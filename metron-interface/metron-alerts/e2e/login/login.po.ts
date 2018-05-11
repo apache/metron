@@ -30,12 +30,9 @@ export class LoginPage {
         .then(() => browser.waitForAngularEnabled(false))
         .then(() => waitForElementVisibility(element(by.css('.logout-link'))))
         .then(() => browser.executeScript("document.body.className += ' notransition';"));
-
-        // .then(() => browser.wait(function() {return element(by.css('.logout-link')).isPresent(); }))
     }
 
     logout() {
-      // .then(() => element.all(by.css('.alert .close')).click())
         return browser.waitForAngularEnabled(false)
         .then(() => waitForElementVisibility(element(by.css('.logout-link'))))
         .then(() => element(by.css('.logout-link')).click())

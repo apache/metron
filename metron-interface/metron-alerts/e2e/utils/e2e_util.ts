@@ -145,9 +145,8 @@ export function scrollIntoView(element, eleToTopBottom){
 
 function promiseHandlerWithResponse(resolve, reject) {
   return (response) => {
-    // console.log(response.statusCode);
     if (response && (response.statusCode === 200 || response.statusCode === 404)) {
-      resolve()
+      resolve();
     } else {
       console.log(response.statusCode);
       reject();
@@ -157,9 +156,8 @@ function promiseHandlerWithResponse(resolve, reject) {
 
 function promiseHandlerWithResponseAndBody(resolve, reject) {
   return (error, response, body) => {
-    // console.log(response.statusCode);
     if (response && (response.statusCode === 200 || response.statusCode === 404)) {
-      resolve()
+      resolve();
     } else {
       reject();
     }

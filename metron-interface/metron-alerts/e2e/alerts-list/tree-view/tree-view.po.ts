@@ -119,15 +119,8 @@ export class TreeViewPage {
   }
 
   async getDashGroupValues(name: string) {
-    // return Promise.all([
-    //   waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .dash-score'))),
-    //   waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.severity-padding .title'))),
-    //   waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.two-line .text-dark'))),
-    //   waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.two-line .title')))
-    // ]).catch(e => console.log(e));
-
-      let  dashScore = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .dash-score')));
-      let  groupName = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.severity-padding .title')));
+      let dashScore = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .dash-score')));
+      let groupName = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.severity-padding .title')));
       let title = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.two-line .text-dark')));
       let count = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.two-line .title')));
 
@@ -160,17 +153,7 @@ export class TreeViewPage {
     .then(() => waitForElementVisibility(subGroupElement.element(by.css('.fa-caret-down'))));
   }
 
-  // getDashGroupTableValuesForRow(name: string, rowId: number) {
-  //   return this.scrollToDashRow(name)
-  //         .then(() => waitForElementPresence(element(by.css('[data-name="' + name + '"] table tbody tr'))))
-  //         .then(() => element.all(by.css('[data-name="' + name + '"] table tbody tr')).get(rowId).all(by.css('td')).reduce(reduce_for_get_all(), []));
-  // }
-
   async getTableValuesByRowId(name: string, rowId: number, waitForAnchor: string) {
-    // return waitForElementPresence(element(by. cssContainingText('[data-name="' + name + '"] a', waitForAnchor))).then(() => {
-    //   return element.all(by.css('[data-name="' + name + '"] table tbody tr')).get(rowId).all(by.css('td a')).reduce(reduce_for_get_all(), []);
-    // });
-
     await waitForElementPresence(element(by. cssContainingText('[data-name="' + name + '"] a', waitForAnchor)));
     return element.all(by.css('[data-name="' + name + '"] table tbody tr')).get(rowId).all(by.css('td a')).reduce(reduce_for_get_all(), []);
   }
@@ -206,16 +189,6 @@ export class TreeViewPage {
   }
 
   getCellValuesFromTable(groupName: string, cellName: string, waitForAnchor: string) {
-    // return waitForElementPresence(element(by.cssContainingText('[data-name="' + cellName + '"] a', waitForAnchor)))
-    // .then(() => {
-    //   return browser.sleep(1000).
-    //   then(() => {
-    //     return element.all(by.css('[data-name="' + groupName + '"] table tbody [data-name="' + cellName + '"]')).map(element => {
-    //       return browser.actions().mouseMove(element).perform().then(() => (element.getText()));
-    //     });
-    //   });
-    // });
-
     let waitForEle = element.all(by.cssContainingText(`[data-name="${cellName}"] a`, waitForAnchor)).get(0);
     return waitForElementPresence(waitForEle)
           .then(() => scrollIntoView(waitForEle, true))
@@ -233,12 +206,6 @@ export class TreeViewPage {
     return waitForElementPresence(checkbox)
             .then(() => browser.actions().mouseMove(checkbox).perform())
             .then(() => checkbox.click());
-
-    // return waitForElementPresence(checkbox).then(() => {
-    //   browser.actions().mouseMove(checkbox).perform().then(() => {
-    //     checkbox.click();
-    //   });
-    // });
   }
 
   getAlertStatusForTreeView(rowIndex: number, previousText) {

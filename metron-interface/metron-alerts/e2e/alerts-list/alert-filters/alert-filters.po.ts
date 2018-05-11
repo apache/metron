@@ -37,7 +37,6 @@ export class AlertFacetsPage {
   }
 
   getFacetsValues() {
-    // return element.all(by.css('app-alert-filters metron-collapse')).reduce(reduce_for_get_all(), []);
     return waitForElementVisibility(element(by.css('app-alert-filters  metron-collapse:first-child'))).then(() => {
       return element.all(by.css('app-alert-filters metron-collapse')).reduce(reduce_for_get_all(), []);
     });
