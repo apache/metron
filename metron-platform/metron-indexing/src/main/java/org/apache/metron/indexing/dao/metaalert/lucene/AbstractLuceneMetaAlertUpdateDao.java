@@ -153,9 +153,8 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
     if (metaAlertUpdated) {
       List<Map<String, Object>> alertsAfter = (List<Map<String, Object>>) metaAlert.getDocument()
           .get(MetaAlertConstants.ALERT_FIELD);
-      // If we have no alerts left, we might need to handle the deletes manually. Thanks Solr.
       if (alertsAfter.size() < alertsBefore.size() && alertsAfter.size() == 0) {
-        deleteRemainingMetaAlerts(alertsBefore);
+        throw new IllegalStateException("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.");
       }
       MetaScores
           .calculateMetaScores(metaAlert, config.getThreatTriageField(), config.getThreatSort());
@@ -332,8 +331,4 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
       updateDao.batchUpdate(updates);
     } // else we have no updates, so don't do anything
   }
-
-  // Lucene implementation can vary in terms of their results when all child alerts are deleted.
-  protected abstract void deleteRemainingMetaAlerts(List<Map<String, Object>> alertsBefore)
-      throws IOException;
 }

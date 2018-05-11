@@ -74,11 +74,6 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
   }
 
   @Override
-  protected void deleteRemainingMetaAlerts(List<Map<String, Object>> alertsBefore) {
-    // Do nothing for Elasticsearch
-  }
-
-  @Override
   @SuppressWarnings("unchecked")
   public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException {

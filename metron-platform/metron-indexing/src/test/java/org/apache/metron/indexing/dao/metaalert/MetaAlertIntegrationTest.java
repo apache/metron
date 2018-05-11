@@ -444,9 +444,15 @@ public abstract class MetaAlertIntegrationTest {
         expectedMetaAlert.put("max", Double.NEGATIVE_INFINITY);
       }
 
-      Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert",
-          Collections.singletonList(new GetRequest("message_3", SENSOR_NAME))));
-      findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
+      // Verify removing alerts cannot result in an empty meta alert
+      try {
+        metaDao.removeAlertsFromMetaAlert("meta_alert",
+                Collections.singletonList(new GetRequest("message_3", SENSOR_NAME)));
+        Assert.fail("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.");
+      } catch (IllegalStateException ise) {
+        Assert.assertEquals("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.",
+                ise.getMessage());
+      }
     }
   }
 

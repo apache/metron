@@ -57,6 +57,7 @@ import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.json.simple.JSONArray;
@@ -64,7 +65,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -161,10 +164,6 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
     public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status) {
       return false;
     }
-
-    @Override
-    protected void deleteRemainingMetaAlerts(List<Map<String, Object>> alertsBefore) {
-    }
   }
 
   /**
@@ -217,6 +216,9 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
    */
   @Multiline
   public static String namePatchRequest;
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
   @Test(expected = UnsupportedOperationException.class)
   public void testBatchUpdateThrowsException() {
@@ -376,6 +378,17 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
     expected.put(expectedMetaAlertDoc, Optional.of(METAALERT_INDEX));
 
     assertTrue(updatesMapEquals(expected, actual));
+  }
+
+  @Test
+  public void testBuildRemoveAlertsFromMetaAlertThrowsException() throws Exception {
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.");
+
+    List<Document> alerts = buildChildAlerts(1, METAALERT_GUID, null);
+    Document metaDoc = buildMetaAlert(alerts);
+
+    dao.buildRemoveAlertsFromMetaAlert(metaDoc, alerts);
   }
 
   @Test

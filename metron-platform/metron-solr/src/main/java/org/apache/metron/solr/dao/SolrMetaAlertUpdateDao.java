@@ -213,18 +213,4 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
     }
     return success;
   }
-
-  @Override
-  protected void deleteRemainingMetaAlerts(List<Map<String, Object>> alertsBefore)
-      throws IOException {
-    List<String> guidsToDelete = new ArrayList<>();
-    for (Map<String, Object> alert : alertsBefore) {
-      guidsToDelete.add((String) alert.get(Constants.GUID));
-    }
-    try {
-      solrClient.deleteById(getConfig().getMetaAlertIndex(), guidsToDelete);
-    } catch (SolrServerException | IOException e) {
-      throw new IOException("Unable to delete metaalert child alerts", e);
-    }
-  }
 }
