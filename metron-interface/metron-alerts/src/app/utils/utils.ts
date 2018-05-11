@@ -34,9 +34,9 @@ export class Utils {
     .replace(/\&\&/g, '\\&&'); // replace &&
   }
 
-  public static getAlertSensorType(alert: Alert): string {
-    if (alert.source[environment.sourceType] && alert.source[environment.sourceType].length > 0) {
-      return alert.source[environment.sourceType];
+  public static getAlertSensorType(alert: Alert, sourceType: string): string {
+    if (alert.source[sourceType] && alert.source[sourceType].length > 0) {
+      return alert.source[sourceType];
     } else {
       return META_ALERTS_SENSOR_TYPE;
     }
