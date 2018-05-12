@@ -137,7 +137,6 @@ for i in "$@"; do
   esac
 done
 
-WORKDIR="~/tmp"
 
 # ensure all required values are set
 if [ -z "$VERSION" ]; then
@@ -162,10 +161,15 @@ if [ -z "$BRANCH" ]; then
 fi
 
 # clone the metron repo and fetch all tags
+TMPDIR="$HOME/tmp"
+cd $TMPDIR
 git clone $REPO "metron-$VERSION"
+
+WORKDIR="$TMPDIR/metron-$VERSION"
+echo "Working directory: $WORKDIR..."
+cd "$WORKDIR"
 git checkout $BRANCH
-cd "$WORKDIR/metron-$VERSION"
-git fetch --all --tags
+git fetch --tags
 
 # find all JIRAs that have been committed since the last release
 GET_JIRAS="git log $START..$END --oneline | grep -E -o 'METRON[- ]*[0-9]+'"
