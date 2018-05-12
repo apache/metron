@@ -672,7 +672,7 @@ The maximum number of seconds between batch writes to HBase.
 
 Storm will use Kryo serialization for these classes. Kryo serialization is more performant than Java serialization, in most cases.  
 
-For these classes, Storm will uses Kryo's `FieldSerializer` as defined in the [Storm Serialization docs]((http://storm.apache.org/releases/1.1.2/Serialization.html).  For all other classes not in this list, Storm defaults to using Java serialization which is slower and not recommended for a production topology.
+For these classes, Storm will uses Kryo's `FieldSerializer` as defined in the [Storm Serialization docs](http://storm.apache.org/releases/1.1.2/Serialization.html).  For all other classes not in this list, Storm defaults to using Java serialization which is slower and not recommended for a production topology.
 
 This value should only need altered if you have defined a profile that results in a non-primitive, user-defined type that is not in this list.  If the class is not defined in this list, Java serialization will be used and the class must adhere to Java's serialization requirements.  
 
