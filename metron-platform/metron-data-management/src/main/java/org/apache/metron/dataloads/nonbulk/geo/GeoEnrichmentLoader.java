@@ -43,6 +43,9 @@ import java.time.ZoneOffset;
 import java.util.Map;
 
 public class GeoEnrichmentLoader {
+
+  private static final String DEFAULT_RETRIES = "2";
+
   private static abstract class OptionHandler implements Function<String, Option> {
   }
 
@@ -156,7 +159,7 @@ public class GeoEnrichmentLoader {
     System.out.println("Retrieving GeoLite2 archive");
     String url = GeoEnrichmentOptions.GEO_URL.get(cli, "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz");
     String tmpDir = GeoEnrichmentOptions.TMP_DIR.get(cli, "/tmp") + "/"; // Make sure there's a file separator at the end
-    int numRetries = Integer.parseInt(GeoEnrichmentOptions.RETRIES.get(cli, "2"));
+    int numRetries = Integer.parseInt(GeoEnrichmentOptions.RETRIES.get(cli, DEFAULT_RETRIES));
     File localGeoFile = null;
     try {
       localGeoFile = downloadGeoFile(url, tmpDir, numRetries);
@@ -202,6 +205,8 @@ public class GeoEnrichmentLoader {
         FileUtils.copyURLToFile(url, localFile, 5000, 10000);
         if (!CompressionStrategies.GZIP.test(localFile)) {
           throw new IOException("Invalid Gzip file");
+        } else {
+          valid = true;
         }
       } catch (MalformedURLException e) {
         System.err.println("Malformed URL - aborting: " + e);

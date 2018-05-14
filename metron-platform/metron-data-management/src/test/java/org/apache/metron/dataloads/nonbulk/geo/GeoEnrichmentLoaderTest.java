@@ -48,7 +48,7 @@ public class GeoEnrichmentLoaderTest {
   private File remoteDir;
   private File tmpDir;
 
-    @Before
+  @Before
   public void setup() throws Exception {
       testFolder.create();
       remoteDir = testFolder.newFolder("remoteDir");

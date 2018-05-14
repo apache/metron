@@ -27,6 +27,9 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
 
+/*
+ * Factory to provide various compression strategies.
+ */
 public enum CompressionStrategies implements CompressionStrategy {
 
   GZIP(new CompressionStrategy() {

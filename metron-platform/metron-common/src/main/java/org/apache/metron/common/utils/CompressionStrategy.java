@@ -23,10 +23,30 @@ import java.io.IOException;
 
 public interface CompressionStrategy {
 
+  /**
+   * Compress infile.
+   *
+   * @param inFile file to compress
+   * @param outFile destination path for compressed output
+   * @throws IOException Any IO error
+   */
   void compress(File inFile, File outFile) throws IOException;
 
+  /**
+   * Decompress infile.
+   *
+   * @param inFile file to decompress
+   * @param outFile destination path for decompressed output
+   * @throws IOException Any IO error
+   */
   void decompress(File inFile, File outFile) throws IOException;
 
+  /**
+   * Test if file is proper gzip format. True if valid, false otherwise.
+   *
+   * @param gzipFile file to check for gzip compression
+   * @return true if file is a gzip format, false otherwise.
+   */
   boolean test(File gzipFile);
 
 }
