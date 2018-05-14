@@ -20,12 +20,18 @@
 
 package org.apache.metron.profiler;
 
+import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the ProfilePeriod class.
@@ -123,5 +129,48 @@ public class ProfilePeriodTest {
     long duration = 0;
     TimeUnit units = TimeUnit.HOURS;
     new ProfilePeriod(0, duration, units);
+  }
+
+  /**
+   * Ensure that the ProfilePeriod can undergo Kryo serialization which
+   * occurs when the Profiler is running in Storm.
+   */
+  @Test
+  public void testKryoSerialization() throws Exception {
+
+    ProfilePeriod expected = new ProfilePeriod(AUG2016, 1, TimeUnit.HOURS);
+
+    // round-trip java serialization
+    byte[] raw = SerDeUtils.toBytes(expected);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
+
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * Ensure that the ProfilePeriod can undergo Java serialization, should a user
+   * prefer that over Kryo serialization, which can occur when the Profiler is running
+   * in Storm.
+   */
+  @Test
+  public void testJavaSerialization() throws Exception {
+
+    ProfilePeriod expected = new ProfilePeriod(AUG2016, 1, TimeUnit.HOURS);
+
+    // serialize using java
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    ObjectOutputStream out = new ObjectOutputStream(bytes);
+    out.writeObject(expected);
+
+    // the serialized bits
+    byte[] raw = bytes.toByteArray();
+    assertTrue(raw.length > 0);
+
+    // deserialize using java
+    ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
+    Object actual = in.readObject();
+
+    // ensure that the round-trip was successful
+    assertEquals(expected, actual);
   }
 }

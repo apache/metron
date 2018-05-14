@@ -26,6 +26,19 @@ profiler.workers={{profiler_topology_workers}}
 profiler.executors={{profiler_acker_executors}}
 topology.message.timeout.secs={{profiler_topology_message_timeout_secs}}
 topology.max.spout.pending={{profiler_topology_max_spout_pending}}
+topology.fall.back.on.java.serialization=true
+topology.testing.always.try.serialize=false
+topology.kryo.register=[ org.apache.metron.profiler.ProfileMeasurement, \
+    org.apache.metron.profiler.ProfilePeriod, \
+    org.apache.metron.common.configuration.profiler.ProfileResult, \
+    org.apache.metron.common.configuration.profiler.ProfileResultExpressions, \
+    org.apache.metron.common.configuration.profiler.ProfileTriageExpressions, \
+    org.apache.metron.common.configuration.profiler.ProfilerConfig, \
+    org.apache.metron.common.configuration.profiler.ProfileConfig, \
+    org.json.simple.JSONObject, \
+    org.json.simple.JSONArray, \
+    java.util.LinkedHashMap, \
+    org.apache.metron.statistics.OnlineStatisticsProvider ]
 
 ##### Profiler #####
 

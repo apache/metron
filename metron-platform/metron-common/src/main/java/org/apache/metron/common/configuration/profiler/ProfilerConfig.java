@@ -56,7 +56,7 @@ public class ProfilerConfig implements Serializable {
    * <p>If a message does NOT contain this field, it will be dropped
    * and not included in any profiles.
    */
-  private Optional<String> timestampField = Optional.empty();
+  private String timestampField = null;
 
   public List<ProfileConfig> getProfiles() {
     return profiles;
@@ -73,24 +73,24 @@ public class ProfilerConfig implements Serializable {
 
   @JsonGetter("timestampField")
   public String getTimestampFieldForJson() {
-    return timestampField.orElse(null);
+    return timestampField;
   }
 
   public Optional<String> getTimestampField() {
-    return timestampField;
+    return Optional.ofNullable(timestampField);
   }
 
   @JsonSetter("timestampField")
   public void setTimestampField(String timestampField) {
-    this.timestampField = Optional.of(timestampField);
+    this.timestampField = timestampField;
   }
 
   public void setTimestampField(Optional<String> timestampField) {
-    this.timestampField = timestampField;
+    this.timestampField = timestampField.orElse(null);
   }
 
   public ProfilerConfig withTimestampField(Optional<String> timestampField) {
-    this.timestampField = timestampField;
+    this.timestampField = timestampField.orElse(null);
     return this;
   }
 

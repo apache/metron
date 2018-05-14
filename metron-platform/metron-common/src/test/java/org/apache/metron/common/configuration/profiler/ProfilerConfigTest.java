@@ -20,9 +20,14 @@
 package org.apache.metron.common.configuration.profiler;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -108,7 +113,6 @@ public class ProfilerConfigTest {
   @Test
   public void testFromJSONWithTimestampField() throws IOException {
     ProfilerConfig conf = ProfilerConfig.fromJSON(timestampField);
-
     assertTrue(conf.getTimestampField().isPresent());
   }
 
@@ -206,4 +210,83 @@ public class ProfilerConfigTest {
     ProfilerConfig actual = ProfilerConfig.fromJSON(asJson);
     assertEquals(expected, actual);
   }
+
+  /**
+   * {
+   *   "profiles": [
+   *      {
+   *        "profile": "profile1",
+   *        "foreach": "ip_src_addr",
+   *        "init":   { "count": "0" },
+   *        "update": { "count": "count + 1" },
+   *        "result":   "count"
+   *      },
+   *      {
+   *        "profile": "profile2",
+   *        "foreach": "ip_dst_addr",
+   *        "init":   { "count": "0" },
+   *        "update": { "count": "count + 1" },
+   *        "result":   "count"
+   *      },
+   *      {
+   *        "profile": "profile3",
+   *        "foreach": "ip_src_addr",
+   *        "init":   { "count": "0" },
+   *        "update": { "count": "count + 1" },
+   *        "result": {
+   *          "profile": "count",
+   *          "triage" : { "count": "count" }
+   *        }
+   *      }
+   *   ]
+   * }
+   */
+  @Multiline
+  private String profilesToSerialize;
+
+  /**
+   * Ensure that the Profiler configuration can undergo Kryo serialization which
+   * occurs when the Profiler is running in Storm.
+   */
+  @Test
+  public void testKryoSerialization() throws Exception {
+
+    // setup a profiler config to serialize
+    ProfilerConfig expected = ProfilerConfig.fromJSON(profilesToSerialize);
+
+    // round-trip java serialization
+    byte[] raw = SerDeUtils.toBytes(expected);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
+
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * Ensure that the Profiler configuration can undergo Java serialization, should a user
+   * prefer that over Kryo serialization, which can occur when the Profiler is running
+   * in Storm.
+   */
+  @Test
+  public void testJavaSerialization() throws Exception {
+
+    // setup a profiler config to serialize
+    ProfilerConfig expected = ProfilerConfig.fromJSON(profilesToSerialize);
+
+    // serialize using java
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    ObjectOutputStream out = new ObjectOutputStream(bytes);
+    out.writeObject(expected);
+
+    // the serialized bits
+    byte[] raw = bytes.toByteArray();
+    assertTrue(raw.length > 0);
+
+    // deserialize using java
+    ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
+    Object actual = in.readObject();
+
+    // ensure that the round-trip was successful
+    assertEquals(expected, actual);
+  }
+
 }
