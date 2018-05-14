@@ -296,7 +296,7 @@ describe('Test spec for all ui elements & list view', function() {
     /* Save custom date in saved searches */
     await page.saveSearch('e2e-2');
     await page.clickSavedSearch();
-    // expect(await page.getRecentSearchOptions()).toContain('timestamp:last-5-years', 'for recent search options');
+    expect(await page.getRecentSearchOptions()).toContain('timestamp:last-5-years', 'for recent search options');
     expect(await page.getSavedSearchOptions()).toEqual(['e2e-2'],
                                                     'for saved search options');
     await page.clickCloseSavedSearch();
