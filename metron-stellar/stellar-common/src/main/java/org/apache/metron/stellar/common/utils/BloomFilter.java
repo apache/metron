@@ -26,10 +26,13 @@ import java.util.function.Function;
 public class BloomFilter<T> implements Serializable {
 
   private static class BloomFunnel<T> implements Funnel<T>, Serializable {
+
     Function<T, byte[]> serializer;
+
     public BloomFunnel(Function<T, byte[]> serializer) {
       this.serializer = serializer;
     }
+
     @Override
     public void funnel(T obj, PrimitiveSink primitiveSink) {
       primitiveSink.putBytes(serializer.apply(obj));
@@ -46,12 +49,13 @@ public class BloomFilter<T> implements Serializable {
     }
   }
 
-  public static class DefaultSerializer<T> implements Function<T, byte[]> {
+  public static class DefaultSerializer<T> implements Function<T, byte[]>, Serializable {
     @Override
     public byte[] apply(T t) {
       return SerDeUtils.toBytes(t);
     }
   }
+
   private com.google.common.hash.BloomFilter<T> filter;
 
   public BloomFilter(Function<T, byte[]> serializer, int expectedInsertions, double falsePositiveRate) {
@@ -61,9 +65,11 @@ public class BloomFilter<T> implements Serializable {
   public boolean mightContain(T key) {
     return filter.mightContain(key);
   }
+
   public void add(T key) {
     filter.put(key);
   }
+
   public void merge(BloomFilter<T> filter2) {
     filter.putAll(filter2.filter);
   }

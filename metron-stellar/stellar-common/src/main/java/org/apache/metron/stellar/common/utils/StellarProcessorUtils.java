@@ -19,6 +19,8 @@
 package org.apache.metron.stellar.common.utils;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.stellar.common.StellarPredicateProcessor;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
@@ -28,6 +30,11 @@ import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.dsl.VariableResolver;
 import org.junit.Assert;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.List;
@@ -39,6 +46,10 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Utilities for executing and validating Stellar expressions.
@@ -58,24 +69,74 @@ public class StellarProcessorUtils {
    */
   public static Object run(String expression, Map<String, Object> variables, Context context) {
 
-    // validate the expression
-    StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue("Invalid expression; expr=" + expression,
-            processor.validate(expression, context));
+    validate(expression, context);
+    Object result = execute(expression, variables, context);
+    ensureKryoSerializable(result);
+    ensureJavaSerializable(result);
 
-    // execute the expression
-    Object ret = processor.parse(
+    return result;
+  }
+
+  /**
+   * Execute a Stellar expression.
+   *
+   * @param expression The expression to execute.
+   * @param variables The variables available to the expression.
+   * @param context The execution context.
+   * @return The result of executing the expression.
+   */
+  private static Object execute(String expression, Map<String, Object> variables, Context context) {
+
+    StellarProcessor processor = new StellarProcessor();
+    Object result = processor.parse(
             expression,
             new DefaultVariableResolver(x -> variables.get(x), x -> variables.containsKey(x)),
             StellarFunctions.FUNCTION_RESOLVER(),
             context);
 
-    // ensure the result can be serialized/deserialized
-    byte[] raw = SerDeUtils.toBytes(ret);
-    Object actual = SerDeUtils.fromBytes(raw, Object.class);
-    Assert.assertEquals(ret, actual);
+    return result;
+  }
 
-    return ret;
+  /**
+   * Ensure that a value can be serialized and deserialized using Kryo.
+   *
+   * @param value The value to validate.
+   */
+  private static void ensureKryoSerializable(Object value) {
+
+    byte[] raw = SerDeUtils.toBytes(value);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
+    Assert.assertEquals(value, actual);
+  }
+
+  /**
+   * Ensure a value can be serialized and deserialized using Java serialization.
+   *
+   * @param value The value to serialize
+   */
+  private static void ensureJavaSerializable(Object value) {
+
+    try {
+      // serialize using java
+      ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+      ObjectOutputStream out = new ObjectOutputStream(bytes);
+      out.writeObject(value);
+
+      // the serialized bits
+      byte[] raw = bytes.toByteArray();
+      assertTrue(raw.length > 0);
+
+      // deserialize using java
+      ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
+      Object actual = in.readObject();
+
+      // ensure that the round-trip was successful
+      assertEquals(value, actual);
+
+    } catch(IOException | ClassNotFoundException e) {
+
+      fail("Unable to serialize value using Java serialization; error=" + ExceptionUtils.getRootCauseMessage(e));
+    }
   }
 
   /**
