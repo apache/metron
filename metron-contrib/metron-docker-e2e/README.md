@@ -90,5 +90,3 @@ metron-machine   *        virtualbox   Running   tcp://192.168.99.100:2376      
 ```
 
 The various integration tests can now be run against this environment.
-
-TODO: document how to set docker machine ip address for e2e tests
