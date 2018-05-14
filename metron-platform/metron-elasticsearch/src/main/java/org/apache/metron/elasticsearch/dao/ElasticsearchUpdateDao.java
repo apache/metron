@@ -123,11 +123,12 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     }
     List<Map<String, Object>> commentsField = (List<Map<String, Object>>) latest.getDocument()
         .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+    List<Map<String, Object>> originalComments = new ArrayList<>(commentsField);
 
-    commentsField.add(
+    originalComments.add(
         new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp())
             .asMap());
-    latest.getDocument().put(COMMENTS_FIELD, commentsField);
+    latest.getDocument().put(COMMENTS_FIELD, originalComments);
 
     update(latest, request.getIndex());
   }
@@ -147,10 +148,10 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     }
     List<Map<String, Object>> commentsField = (List<Map<String, Object>>) latest.getDocument()
         .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+    List<Map<String, Object>> originalComments = new ArrayList<>(commentsField);
 
     List<AlertComment> alertComments = new ArrayList<>();
-
-    for (Map<String, Object> commentRaw : commentsField) {
+    for (Map<String, Object> commentRaw : originalComments) {
       alertComments.add(new AlertComment(commentRaw));
     }
 

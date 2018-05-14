@@ -294,10 +294,11 @@ public class HBaseDao implements IndexDao {
 
     List<Map<String, Object>> comments = (List<Map<String, Object>>) latest.getDocument()
         .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+    List<Map<String, Object>> originalComments = new ArrayList<>(comments);
 
     // Convert all comments back to raw JSON before updating.
     List<Map<String, Object>> commentsMap = new ArrayList<>();
-    for (Map<String, Object> comment : comments) {
+    for (Map<String, Object> comment : originalComments) {
       commentsMap.add(new AlertComment(comment).asMap());
     }
     commentsMap.add(new AlertComment(
@@ -330,8 +331,9 @@ public class HBaseDao implements IndexDao {
     if (commentMap == null) {
       return;
     }
+    List<Map<String, Object>> originalComments = new ArrayList<>(commentMap);
     List<AlertComment> comments = new ArrayList<>();
-    for (Map<String, Object> commentStr : commentMap) {
+    for (Map<String, Object> commentStr : originalComments) {
       comments.add(new AlertComment(commentStr));
     }
 

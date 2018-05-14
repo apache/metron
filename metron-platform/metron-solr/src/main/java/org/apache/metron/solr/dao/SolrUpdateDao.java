@@ -133,10 +133,11 @@ public class SolrUpdateDao implements UpdateDao {
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> comments = (List<Map<String, Object>>) latest.getDocument()
         .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+    List<Map<String, Object>> originalComments = new ArrayList<>(comments);
 
     // Convert all comments back to raw JSON before updating.
     List<String> commentStrs = new ArrayList<>();
-    for (Map<String, Object> comment : comments) {
+    for (Map<String, Object> comment : originalComments) {
       commentStrs.add(new AlertComment(comment).asJson());
     }
     commentStrs.add(new AlertComment(
@@ -171,8 +172,9 @@ public class SolrUpdateDao implements UpdateDao {
       LOG.debug("Provided alert had no comments to be able to remove from");
       return;
     }
+    List<Map<String, Object>> originalComments = new ArrayList<>(commentMap);
     List<AlertComment> comments = new ArrayList<>();
-    for (Map<String, Object> commentStr : commentMap) {
+    for (Map<String, Object> commentStr : originalComments) {
       comments.add(new AlertComment(commentStr));
     }
 
