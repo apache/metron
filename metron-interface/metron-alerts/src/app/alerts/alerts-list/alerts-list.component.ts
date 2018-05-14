@@ -115,6 +115,16 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     });
   }
 
+  // addAlertCommentsChangedListener() {
+  //   this.metaAlertsService.alertChanged$.subscribe(metaAlertAddRemoveRequest => {
+  //     this.updateAlert(META_ALERTS_SENSOR_TYPE, metaAlertAddRemoveRequest.metaAlertGuid, (metaAlertAddRemoveRequest.alerts === null));
+  //   });
+  //
+  //   this.alertChangedSubscription = this.updateService.alertChanged$.subscribe(patchRequest => {
+  //     this.updateAlert(patchRequest.sensorType, patchRequest.guid, false);
+  //   });
+  // }
+
   addLoadSavedSearchListner() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
       let queryBuilder = new QueryBuilder();

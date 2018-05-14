@@ -30,6 +30,7 @@ import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
+import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -204,10 +205,16 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   onAddComment() {
-    let alertComment = new AlertComment(this.alertCommentStr, this.authenticationService.getCurrentUserName(), new Date().getTime());
-    let tAlertComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
-    tAlertComments.unshift(alertComment);
-    this.patchAlert(new Patch('add', '/comments', tAlertComments));
+    let commentRequest = new CommentAddRemoveRequest();
+    commentRequest.guid = this.alertSource.guid;
+    commentRequest.comment = this.alertCommentStr;
+    commentRequest.username = this.authenticationService.getCurrentUserName();
+    commentRequest.timestamp = new Date().getTime();
+    commentRequest.sensorType = this.alertSourceType;
+    commentRequest.index = this.alertIndex;
+    this.updateService.addComment(commentRequest).subscribe( () => {
+      this.getData(true);
+    });
   }
 
   patchAlert(patch: Patch) {
@@ -233,7 +240,16 @@ export class AlertDetailsComponent implements OnInit {
     this.metronDialogBox.showConfirmationMessage(commentText).subscribe(response => {
       if (response) {
         this.alertCommentsWrapper.splice(index, 1);
-        this.patchAlert(new Patch('add', '/comments', this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)));
+        let commentRequest = new CommentAddRemoveRequest();
+        commentRequest.guid = this.alertSource.guid;
+        commentRequest.comment = this.alertCommentsWrapper[index].alertComment.comment;
+        commentRequest.username = this.alertCommentsWrapper[index].alertComment.username;
+        commentRequest.timestamp = this.alertCommentsWrapper[index].alertComment.timestamp;
+        commentRequest.sensorType = this.alertSourceType;
+        commentRequest.index = this.alertIndex;
+        this.updateService.removeComment(commentRequest).subscribe( () => {
+          this.getData(true);
+        });
       }
     });
   }
