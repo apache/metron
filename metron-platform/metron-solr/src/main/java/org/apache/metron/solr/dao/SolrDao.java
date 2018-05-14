@@ -155,7 +155,19 @@ public class SolrDao implements IndexDao {
     return this.solrColumnMetadataDao.getColumnMetadata(indices);
   }
 
-  public SolrClient getSolrClient(String zkHost) {
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    this.solrUpdateDao.addCommentToAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    this.solrUpdateDao.removeCommentFromAlert(request, latest);
+  }
+
+  protected SolrClient getSolrClient(String zkHost) {
     return new CloudSolrClient.Builder().withZkHost(zkHost).build();
   }
 

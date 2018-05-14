@@ -112,6 +112,12 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   @SuppressWarnings("unchecked")
   public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
+    addCommentToAlert(request, latest);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
     if (latest == null) {
       return;
     }
@@ -130,6 +136,12 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   @SuppressWarnings("unchecked")
   public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
+    removeCommentFromAlert(request, latest);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
     if (latest == null) {
       return;
     }

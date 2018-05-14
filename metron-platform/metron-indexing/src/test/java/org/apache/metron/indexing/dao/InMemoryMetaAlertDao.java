@@ -128,14 +128,19 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
-    // TODO
+  public void addCommentToAlert(CommentAddRemoveRequest request) {
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
-    // TODO
+  public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+  }
 
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
   }
 
   @Override

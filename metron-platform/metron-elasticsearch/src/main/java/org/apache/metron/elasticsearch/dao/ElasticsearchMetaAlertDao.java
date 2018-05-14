@@ -228,6 +228,16 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    indexDao.addCommentToAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    indexDao.removeCommentFromAlert(request, latest);
+  }
+
+  @Override
   public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
       Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {

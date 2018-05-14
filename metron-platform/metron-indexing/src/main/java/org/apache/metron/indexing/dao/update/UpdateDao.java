@@ -50,6 +50,11 @@ public interface UpdateDao {
 
   void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException;
 
+  void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException;
+
+  void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException;
+
+
   /**
    * Update a document in an index given a JSON Patch (see RFC 6902 at
    * https://tools.ietf.org/html/rfc6902)

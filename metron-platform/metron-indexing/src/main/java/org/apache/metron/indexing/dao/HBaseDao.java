@@ -18,8 +18,6 @@
 
 package org.apache.metron.indexing.dao;
 
-import static org.apache.metron.indexing.dao.update.UpdateDao.COMMENTS_FIELD;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -284,6 +282,12 @@ public class HBaseDao implements IndexDao {
   @SuppressWarnings("unchecked")
   public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = getLatest(request.getGuid(), request.getSensorType());
+    addCommentToAlert(request, latest);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
     if (latest == null || latest.getDocument() == null) {
       throw new IOException("Unable to add comment to document that doesn't exist");
     }
@@ -311,8 +315,15 @@ public class HBaseDao implements IndexDao {
   public void removeCommentFromAlert(CommentAddRemoveRequest request)
       throws IOException {
     Document latest = getLatest(request.getGuid(), request.getSensorType());
+    removeCommentFromAlert(request, latest);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
     if (latest == null || latest.getDocument() == null) {
-      throw new IOException("Unable to remove comment from document that doesn't exist");
+      throw new IOException("Unable to remove comment document that doesn't exist");
     }
     List<Map<String, Object>> commentMap = (List<Map<String, Object>>) latest.getDocument().get(COMMENTS_FIELD);
     // Can't remove anything if there's nothing there

@@ -121,9 +121,15 @@ public class SolrUpdateDao implements UpdateDao {
   @Override
   public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getIndex().get());
+    addCommentToAlert(request, latest);
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
     if (latest == null) {
       return;
     }
+
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> comments = (List<Map<String, Object>>) latest.getDocument()
         .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
@@ -147,9 +153,16 @@ public class SolrUpdateDao implements UpdateDao {
   public void removeCommentFromAlert(CommentAddRemoveRequest request)
       throws IOException {
     Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getIndex().get());
+    removeCommentFromAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
     if (latest == null) {
       return;
     }
+
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> commentMap = (List<Map<String, Object>>) latest.getDocument()
         .get(COMMENTS_FIELD);

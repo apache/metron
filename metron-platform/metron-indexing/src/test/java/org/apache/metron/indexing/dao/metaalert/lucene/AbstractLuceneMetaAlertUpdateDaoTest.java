@@ -147,11 +147,19 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
     }
 
     @Override
-    public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    public void addCommentToAlert(CommentAddRemoveRequest request) {
     }
 
     @Override
-    public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+    }
+
+    @Override
+    public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+    }
+
+    @Override
+    public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
     }
 
     @Override

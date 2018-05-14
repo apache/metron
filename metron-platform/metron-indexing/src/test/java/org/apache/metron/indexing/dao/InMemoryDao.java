@@ -293,13 +293,19 @@ public class InMemoryDao implements IndexDao {
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
-    // TODO add
+  public void addCommentToAlert(CommentAddRemoveRequest request) {
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
-    // TODO add
+  public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
   }
 
   public static void setColumnMetadata(Map<String, Map<String, FieldType>> columnMetadata) {

@@ -196,6 +196,18 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
     getUpdateDao().removeCommentFromAlert(request);
   }
 
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    getUpdateDao().addCommentToAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    getUpdateDao().removeCommentFromAlert(request, latest);
+  }
+
   /**
    * Given an alert GUID, retrieve all associated meta alerts.
    * @param alertGuid The GUID of the child alert

@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -101,15 +102,47 @@ public class MultiIndexDao implements IndexDao {
 
   @Override
   public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
-    for (IndexDao dao : indices) {
-      dao.addCommentToAlert(request);
+    Document latest = getLatest(request.getGuid(), request.getSensorType());
+    addCommentToAlert(request, latest);
+  }
+
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    System.out.println("INDICES: " + indices);
+    List<String> exceptions =
+        indices.parallelStream().map(dao -> {
+          try {
+            dao.addCommentToAlert(request, latest);
+            return null;
+          } catch (Throwable e) {
+            return dao.getClass() + ": " + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e);
+          }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+    if (exceptions.size() > 0) {
+      throw new IOException(Joiner.on("\n").join(exceptions));
     }
   }
 
   @Override
   public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
-    for (IndexDao dao : indices) {
-      dao.removeCommentFromAlert(request);
+    Document latest = getLatest(request.getGuid(), request.getSensorType());
+    removeCommentFromAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    List<String> exceptions =
+        indices.parallelStream().map(dao -> {
+          try {
+            dao.removeCommentFromAlert(request, latest);
+            return null;
+          } catch (Throwable e) {
+            return dao.getClass() + ": " + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e);
+          }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+    if (exceptions.size() > 0) {
+      throw new IOException(Joiner.on("\n").join(exceptions));
     }
   }
 

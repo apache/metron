@@ -170,6 +170,16 @@ public class ElasticsearchDao implements IndexDao {
     return retrieveLatestDao.getLatestResult(request);
   }
 
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    this.updateDao.addCommentToAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    this.updateDao.removeCommentFromAlert(request, latest);
+  }
+
   protected Optional<String> getIndexName(String guid, String sensorType) {
     return updateDao.getIndexName(guid, sensorType);
   }
