@@ -19,7 +19,6 @@
 package org.apache.metron.stellar.common.utils;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.stellar.common.StellarPredicateProcessor;
 import org.apache.metron.stellar.common.StellarProcessor;
@@ -71,8 +70,8 @@ public class StellarProcessorUtils {
 
     validate(expression, context);
     Object result = execute(expression, variables, context);
-    ensureKryoSerializable(result);
-    ensureJavaSerializable(result);
+    ensureKryoSerializable(result, expression);
+    ensureJavaSerializable(result, expression);
 
     return result;
   }
@@ -100,21 +99,39 @@ public class StellarProcessorUtils {
   /**
    * Ensure that a value can be serialized and deserialized using Kryo.
    *
+   * <p>When a Stellar function is used in a Storm topology there are cases when the result
+   * needs to be serializable, like when using the Profiler.  Storm can use either Kryo or
+   * basic Java serialization.  It is highly recommended that all Stellar functions return a
+   * result that is Kryo serializable to allow for the broadest possible use of the function.
+   *
    * @param value The value to validate.
    */
-  private static void ensureKryoSerializable(Object value) {
+  private static void ensureKryoSerializable(Object value, String expression) {
+
+    String msg = String.format("Expression result is not Kryo serializable. It is highly recommended for all " +
+            "functions to return a result that is Kryo serializable to allow for their broadest possible use. " +
+            "expr=%s, value=%s", expression, value);
 
     byte[] raw = SerDeUtils.toBytes(value);
     Object actual = SerDeUtils.fromBytes(raw, Object.class);
-    Assert.assertEquals(value, actual);
+    Assert.assertEquals(msg, value, actual);
   }
 
   /**
    * Ensure a value can be serialized and deserialized using Java serialization.
    *
+   * <p>When a Stellar function is used in a Storm topology there are cases when the result
+   * needs to be serializable, like when using the Profiler.  Storm can use either Kryo or
+   * basic Java serialization.  It is highly recommended that all Stellar functions return a
+   * result that is Java serializable to allow for the broadest possible use of the function.
+   *
    * @param value The value to serialize
    */
-  private static void ensureJavaSerializable(Object value) {
+  private static void ensureJavaSerializable(Object value, String expression) {
+
+    String msg = String.format("Expression result is not Java serializable. It is highly recommended for all " +
+            "functions to return a result that is Java serializable to allow for their broadest possible use. " +
+            "expr=%s, value=%s", expression, value);
 
     try {
       // serialize using java
@@ -131,11 +148,14 @@ public class StellarProcessorUtils {
       Object actual = in.readObject();
 
       // ensure that the round-trip was successful
-      assertEquals(value, actual);
+      assertEquals(msg, value, actual);
 
     } catch(IOException | ClassNotFoundException e) {
 
-      fail("Unable to serialize value using Java serialization; error=" + ExceptionUtils.getRootCauseMessage(e));
+      String error = String.format("Expression result is not Java serializable. It is highly recommended for all " +
+              "functions to return a result that is Java serializable to allow for their broadest possible use. " +
+              "expr=%s, value=%s, error=%s", expression, value, ExceptionUtils.getRootCauseMessage(e));
+      fail(error);
     }
   }
 
