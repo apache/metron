@@ -58,4 +58,9 @@ public class MapVariableResolver implements VariableResolver {
   public boolean exists(String variable) {
     return true;
   }
+
+  @Override
+  public void update(String variable, Object value) {
+    // not supported, but could be useful for counters?
+  }
 }

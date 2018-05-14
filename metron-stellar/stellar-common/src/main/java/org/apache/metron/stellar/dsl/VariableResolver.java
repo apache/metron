@@ -19,7 +19,34 @@
 package org.apache.metron.stellar.dsl;
 
 
+/**
+ * VariableResolver implementors provide support variable operations.
+ * <ul>
+ *   <li>Verifying the exists of a variable by name</li>
+ *   <li>Returning the value of a variable by name</li>
+ *   <li>Updating the value of a variable by name</li>
+ * </ul>
+ */
 public interface VariableResolver {
+
+  /**
+   * Returns the value of a variable.
+   * @param variable the variable name
+   * @return the value Object
+   */
   Object resolve(String variable);
+
+  /**
+   * Returns the existance of the variable.
+   * @param variable the variable name
+   * @return true if the variable exists, false otherwise
+   */
   boolean exists(String variable);
+
+  /**
+   * Updates the value of a variable.
+   * @param variable the variable name
+   * @param value the value to update with
+   */
+  void update(String variable, Object value);
 }

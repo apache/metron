@@ -40,4 +40,6 @@ public class PcapFieldResolver implements VariableResolver {
     return fieldsMap.containsKey(variable);
   }
 
+  @Override
+  public void update(String variable, Object value) {}
 }

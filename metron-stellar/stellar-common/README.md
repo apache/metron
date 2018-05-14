@@ -42,6 +42,8 @@ The Stellar language supports the following:
   * The literal `'\'foo\''` would represent `'foo'`
   * The literal `"\"foo\""` would represent `"foo"`
   * The literal `'foo \\ bar'` would represent `foo \ bar`
+* Assignment operations for variables: `=`, `+=`, `-=`, `*=`, `/=`
+* Pre and Post increment and decrement operations for variables: `++`, `--`
 * Simple boolean operations: `and`, `not`, `or`
 * Simple arithmetic operations: `*`, `/`, `+`, `-` on real numbers or integers
 * Simple comparison operations `<`, `>`, `<=`, `>=`
@@ -59,6 +61,12 @@ The following keywords need to be single quote escaped in order to be used in St
 |               |               |             |             |             |
 | :-----------: | :-----------: | :---------: | :---------: | :---------: |
 | not           | else          | exists      | if          | then        |
+| and           | or            | in          | =           |  +=         |
+| \-=           | \*=           | /=          | ==          | !=          |
+| \<=           | \>            | \>=         | \+          | \-          |
+| \+\+          | \-\-          | \<          | ?           | \*          |
+| /             | ,             |
+| \<            | ?             | \*          | /           | ,           |
 | and           | or            | in          | NaN         | match       |
 | default       | ==            | !=          | \<=         | \>          | 
 | \>=           | \+            | \-          | \<          | ?           | 

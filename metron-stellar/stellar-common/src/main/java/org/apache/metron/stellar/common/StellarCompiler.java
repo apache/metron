@@ -30,6 +30,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.metron.stellar.common.evaluators.ArithmeticEvaluator;
@@ -291,6 +293,167 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   @Override
+  public void exitAssignExpression(StellarParser.AssignExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+
+      // do not check for the existence of the variable, if the
+      // resolver supports updates and creation, it will create it
+
+      String varName = ctx.getStart().getText();
+      Token<?> token = popDeque(tokenDeque);
+      Object value = token.getValue();
+      state.variableResolver.update(varName, value);
+
+      // return the value after assignment, like most scripting languages
+      // do
+      tokenDeque.push(new Token<>(value, Object.class, context));
+    }, DeferredFunction.class, context));
+    expression.variablesUsed.add(ctx.getStart().getText());
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public void exitPlusAssignExpression(StellarParser.PlusAssignExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    handleAssignExpression(ctx.getStart().getText(),context,ArithmeticEvaluator.ArithmeticEvaluatorFunctions.addition(context));
+    expression.variablesUsed.add(ctx.getStart().getText());
+  }
+
+  @Override
+  public void exitMinusAssignExpression(StellarParser.MinusAssignExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    handleAssignExpression(ctx.getStart().getText(),context,ArithmeticEvaluator.ArithmeticEvaluatorFunctions.subtraction(context));
+    expression.variablesUsed.add(ctx.getStart().getText());
+  }
+
+  @Override
+  public void exitDivideAssignExpression(StellarParser.DivideAssignExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    handleAssignExpression(ctx.getStart().getText(),context,ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(context),1);
+    expression.variablesUsed.add(ctx.getStart().getText());
+  }
+
+  @Override
+  public void exitMultiAssignExpression(StellarParser.MultiAssignExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    handleAssignExpression(ctx.getStart().getText(),context,ArithmeticEvaluator.ArithmeticEvaluatorFunctions.multiplication(context));
+    expression.variablesUsed.add(ctx.getStart().getText());
+  }
+
+  @Override
+  public void exitPreIncrementExpression(StellarParser.PreIncrementExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+      String varName = ctx.getStop().getText();
+      Token<? extends Number> valueToken = new Token<Number>(0, Number.class, context);
+      Token<? extends Number> oneToken = new Token<Number>(1, Number.class, context);
+      if (state.variableResolver.exists(varName)) {
+        Object objectValue = state.variableResolver.resolve(varName);
+        if (objectValue != null) {
+          if (objectValue instanceof Number) {
+            valueToken = new Token<Number>((Number) objectValue, Number.class, context);
+          } else {
+            throw new ParseException("Invalid operation, Number type required for numeric pre-increment");
+          }
+        }
+      }
+      Pair<Token<? extends Number>, Token<? extends Number>> p = Pair
+          .of(valueToken, oneToken);
+      Token<? extends Number> resultToken = arithmeticEvaluator
+          .evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.addition(context), p);
+      state.variableResolver.update(varName, resultToken.getValue());
+      tokenDeque.push(resultToken);
+    }, DeferredFunction.class, context));
+    expression.variablesUsed.add(ctx.getStop().getText());
+  }
+
+  @Override
+  public void exitPreDecrementExpression(StellarParser.PreDecrementExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+      String varName = ctx.getStop().getText();
+      Token<? extends Number> valueToken = new Token<Number>(0, Number.class, context);
+      Token<? extends Number> oneToken = new Token<Number>(1, Number.class, context);
+      if (state.variableResolver.exists(varName)) {
+        Object objectValue = state.variableResolver.resolve(varName);
+        if (objectValue != null) {
+          if (objectValue instanceof Number) {
+            valueToken = new Token<Number>((Number) objectValue, Number.class, context);
+          } else {
+            throw new ParseException("Invalid operation, Number type required for numeric pre-decrement");
+          }
+        }
+      }
+      Pair<Token<? extends Number>, Token<? extends Number>> p = Pair
+          .of(valueToken, oneToken);
+      Token<? extends Number> resultToken = arithmeticEvaluator
+          .evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.subtraction(context), p);
+      state.variableResolver.update(varName, resultToken.getValue());
+      tokenDeque.push(resultToken);
+    }, DeferredFunction.class, context));
+    expression.variablesUsed.add(ctx.getStop().getText());
+  }
+
+
+  @Override
+  public void exitPostIncrementExpression(StellarParser.PostIncrementExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+      String varName = ctx.getStart().getText();
+      Token<? extends Number> valueToken = new Token<Number>(0, Number.class, context);
+      Token<? extends Number> oneToken = new Token<Number>(1, Number.class, context);
+      if (state.variableResolver.exists(varName)) {
+        Object objectValue = state.variableResolver.resolve(varName);
+        if (objectValue != null) {
+          if (objectValue instanceof Number) {
+            valueToken = new Token<Number>((Number) objectValue, Number.class, context);
+          } else {
+            throw new ParseException("Invalid operation, Number type required for numeric post-increment");
+          }
+        }
+      }
+      Pair<Token<? extends Number>, Token<? extends Number>> p = Pair
+          .of(valueToken, oneToken);
+      Token<? extends Number> resultToken = arithmeticEvaluator
+          .evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.addition(context), p);
+      state.variableResolver.update(varName, resultToken.getValue());
+      // push the value not the result
+      tokenDeque.push(valueToken);
+    }, DeferredFunction.class, context));
+    expression.variablesUsed.add(ctx.getStart().getText());
+  }
+
+
+  @Override
+  public void exitPostDecrementExpression(StellarParser.PostDecrementExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+      String varName = ctx.getStart().getText();
+      Token<? extends Number> valueToken = new Token<Number>(0, Number.class, context);
+      Token<? extends Number> oneToken = new Token<Number>(1, Number.class, context);
+      if (state.variableResolver.exists(varName)) {
+        Object objectValue = state.variableResolver.resolve(varName);
+        if (objectValue != null) {
+          if (objectValue instanceof Number) {
+            valueToken = new Token<Number>((Number) objectValue, Number.class, context);
+          } else {
+            throw new ParseException("Invalid operation, Number type required for numeric post-decrement");
+          }
+        }
+      }
+      Pair<Token<? extends Number>, Token<? extends Number>> p = Pair
+          .of(valueToken, oneToken);
+      Token<? extends Number> resultToken = arithmeticEvaluator
+          .evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.subtraction(context), p);
+      state.variableResolver.update(varName, resultToken.getValue());
+      // push the value not the result
+      tokenDeque.push(valueToken);
+    }, DeferredFunction.class, context));
+    expression.variablesUsed.add(ctx.getStart().getText());
+  }
+
+  @Override
   public void exitArithExpr_plus(StellarParser.ArithExpr_plusContext ctx) {
     final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
@@ -500,6 +663,46 @@ public class StellarCompiler extends StellarBaseListener {
     return op.op(l, r);
   }
 
+  private void handleAssignExpression(String varName, FrameContext.Context context,
+      BiFunction<Number, Number, Token<? extends Number>> function) {
+    handleAssignExpression(varName, context, function, 0);
+  }
+
+  private void handleAssignExpression(String varName, FrameContext.Context context,
+      BiFunction<Number, Number, Token<? extends Number>> function, Integer defaultValue) {
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+      Token<?> potentialRightToken = (Token<?>) popDeque(tokenDeque);
+      Token<? extends Number> leftToken = null;
+      Token<? extends Number> rightToken = null;
+
+      Object potentialLeftValue = state.variableResolver.resolve(varName);
+      if (potentialLeftValue == null) {
+        leftToken = new Token<>(defaultValue, Integer.class, context);
+      } else if (!(potentialLeftValue instanceof Number)) {
+        throw new ParseException(
+            "Invalid operation, Number type required for numeric assignment target");
+      } else {
+        leftToken = new Token<Number>((Number) potentialLeftValue, Number.class, context);
+      }
+
+      Object potentialRightValue = potentialRightToken.getValue();
+      if (potentialRightValue == null) {
+        rightToken = new Token<>(defaultValue, Integer.class, context);
+      } else if (!(potentialRightValue instanceof Number)) {
+        throw new ParseException(
+            "Invalid operation, Number type required for numeric assignment value");
+      } else {
+        rightToken = (Token<? extends Number>) potentialRightToken;
+      }
+
+      Pair<Token<? extends Number>, Token<? extends Number>> p = Pair
+          .of(leftToken, rightToken);
+      Token<? extends Number> resultToken = arithmeticEvaluator
+          .evaluate(function, p);
+      state.variableResolver.update(varName, resultToken.getValue());
+      tokenDeque.push(resultToken);
+    }, DeferredFunction.class, context));
+  }
 
   @Override
   public void enterSingle_lambda_variable(StellarParser.Single_lambda_variableContext ctx) {
