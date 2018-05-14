@@ -399,7 +399,6 @@ export class MetronAlertsPage {
   }
 
   selectQuickTimeRange(quickRange: string) {
-    // return element.all(by.cssContainingText('.quick-ranges span', quickRange)).get(0).click();
     return element(by.id(quickRange.toLowerCase().replace(/ /g,'-'))).click();
   }
 
@@ -421,8 +420,6 @@ export class MetronAlertsPage {
     .then(() => element.all(by.css('.pika-select.pika-select-month')).get(index).element(by.cssContainingText('option', month)).click())
     .then(() => element.all(by.css('.pika-table')).get(index).element(by.buttonText(day)).click())
     .then(() => waitForElementInVisibility(element.all(by.css('.pika-single')).get(index)));
-
-    // browser.sleep(1000);
   }
 
   selectTimeRangeApplyButton() {
@@ -508,6 +505,5 @@ export class MetronAlertsPage {
 
   getTableCellValues(cellIndex: number, startRowIndex: number, endRowIndex: number): any {
     return element.all(by.css('table tbody tr td:nth-child(' + cellIndex + ')')).reduce(reduce_for_get_all(), [])
-    // .then(val => val.slice(startRowIndex, endRowIndex));
   }
 }
