@@ -126,25 +126,25 @@ The application will be available at http://host:4201 assuming the port is set t
 
 ## E2E Tests
 
-#Caveats
+### Caveats
 1. E2E tests uses data from full-dev wherever applicable. The tests assume rest-api's are available @http://node1:8082
 
-1. E2E tests are run on headless chrome to see the chrome browser  in action remove the '--headless' parameter of chromeOptions in metron/metron-interface/metron-alerts/protractor.conf.js file
+1. E2E tests are run on headless chrome. To see the chrome browser in action, remove the '--headless' parameter of chromeOptions in metron/metron-interface/metron-alerts/protractor.conf.js file
 
-1. E2E tests deletes all the data in HBase table 'metron_update' and Elastic search index 'meta_alerts_index' for testing against its test data
+1. E2E tests delete all the data in HBase table 'metron_update' and Elastic search index 'meta_alerts_index' for testing against its test data
 
-An expressjs server is available for accessing the rest api.
+An Express.js server is available for accessing the rest api.
 
-1. Run e2e webserver :
+1. Run the e2e webserver:
     ```
     cd metron/metron-interface/metron-alerts
     sh ./scripts/start-server-for-e2e.sh
     ```
 
-1. run e2e test using the following command
+1. Run e2e tests using the following command:
     ```
     cd metron/metron-interface/metron-alerts
     npm run e2e
     ```
 
-**NOTE**: *e2e tests covers all the general workflows and we will extend them as we need*
+**NOTE**: *e2e tests cover all the general workflows and we will extend them as we need*
