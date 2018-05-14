@@ -312,7 +312,7 @@ public class HBaseDao implements IndexDao {
       throws IOException {
     Document latest = getLatest(request.getGuid(), request.getSensorType());
     if (latest == null || latest.getDocument() == null) {
-      throw new IOException("Unable to add comment to document that doesn't exist");
+      throw new IOException("Unable to remove comment from document that doesn't exist");
     }
     List<Map<String, Object>> commentMap = (List<Map<String, Object>>) latest.getDocument().get(COMMENTS_FIELD);
     // Can't remove anything if there's nothing there
