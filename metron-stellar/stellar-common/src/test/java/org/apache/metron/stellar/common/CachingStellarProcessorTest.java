@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.Assert.assertEquals;
 
@@ -106,56 +107,93 @@ public class CachingStellarProcessorTest {
    */
   @Test
   public void testWithFullCache() throws Exception {
+    final String template = "Unexpected cache stats; cache = %s, stats = %s";
+
+    // tracks the expected number of hits
+    int hits = 0;
 
     // miss
-    Object result = execute("TO_UPPER(name)", contextWithCache);
+    String expr = "TO_UPPER(name)";
+    hits += expectHit(expr);
+    Object result = execute(expr, contextWithCache);
+    String msg = String.format(template, cache.asMap(), cache.stats());
     assertEquals("BLAH", result);
-    assertEquals(1, cache.stats().requestCount());
-    assertEquals(1, cache.stats().missCount());
-    assertEquals(0, cache.stats().hitCount());
-    cache.cleanUp();
+    assertEquals(msg, 1,      cache.stats().requestCount());
+    assertEquals(msg, 1-hits, cache.stats().missCount());
+    assertEquals(msg, hits,   cache.stats().hitCount());
 
     // miss
-    execute("TO_LOWER(name)", contextWithCache);
-    assertEquals(2, cache.stats().requestCount());
-    assertEquals(2, cache.stats().missCount());
-    assertEquals(0, cache.stats().hitCount());
-    cache.cleanUp();
+    expr = "TO_LOWER(name)";
+    hits += expectHit(expr);
+    execute(expr, contextWithCache);
+    msg = String.format(template, cache.asMap(), cache.stats());
+    assertEquals(msg, 2,      cache.stats().requestCount());
+    assertEquals(msg, 2-hits, cache.stats().missCount());
+    assertEquals(msg, hits,   cache.stats().hitCount());
 
     // hit and cache is full
-    execute("TO_UPPER(name)", contextWithCache);
-    assertEquals(3, cache.stats().requestCount());
-    assertEquals(2, cache.stats().missCount());
-    assertEquals(1, cache.stats().hitCount());
-    cache.cleanUp();
+    expr = "TO_UPPER(name)";
+    hits += expectHit(expr);
+    execute(expr, contextWithCache);
+    msg = String.format(template, cache.asMap(), cache.stats());
+    assertEquals(msg, 3,      cache.stats().requestCount());
+    assertEquals(msg, 3-hits, cache.stats().missCount());
+    assertEquals(msg, hits,   cache.stats().hitCount());
 
     //  miss and `TO_LOWER` is evicted as the least frequently used
-    execute("TO_UPPER('foo')", contextWithCache);
-    assertEquals(4, cache.stats().requestCount());
-    assertEquals(3, cache.stats().missCount());
-    assertEquals(1, cache.stats().hitCount());
-    cache.cleanUp();
+    expr = "TO_UPPER('foo')";
+    hits += expectHit(expr);
+    execute(expr, contextWithCache);
+    assertEquals(msg, 4, cache.stats().requestCount());
+    assertEquals(msg, 4-hits, cache.stats().missCount());
+    assertEquals(msg, hits, cache.stats().hitCount());
 
     // miss and `TO_UPPER('foo')` is evicted as the least frequently used
-    execute("JOIN([name, 'blah'], ',')", contextWithCache);
-    assertEquals(5, cache.stats().requestCount());
-    assertEquals(4, cache.stats().missCount());
-    assertEquals(1, cache.stats().hitCount());
-    cache.cleanUp();
+    expr = "JOIN([name, 'blah'], ',')";
+    hits += expectHit(expr);
+    execute(expr, contextWithCache);
+    msg = String.format(template, cache.asMap(), cache.stats());
+    assertEquals(msg, 5, cache.stats().requestCount());
+    assertEquals(msg, 5-hits, cache.stats().missCount());
+    assertEquals(msg, hits, cache.stats().hitCount());
 
     // miss as `TO_LOWER` was previously evicted
-    execute("TO_LOWER(name)", contextWithCache);
-    assertEquals(6, cache.stats().requestCount());
-    assertEquals(5, cache.stats().missCount());
-    assertEquals(1, cache.stats().hitCount());
-    cache.cleanUp();
+    expr = "TO_LOWER(name)";
+    hits += expectHit(expr);
+    execute(expr, contextWithCache);
+    msg = String.format(template, cache.asMap(), cache.stats());
+    assertEquals(msg, 6, cache.stats().requestCount());
+    assertEquals(msg, 6-hits, cache.stats().missCount());
+    assertEquals(msg, hits, cache.stats().hitCount());
 
     // hit
-    execute("TO_LOWER(name)", contextWithCache);
-    assertEquals(7, cache.stats().requestCount());
-    assertEquals(5, cache.stats().missCount());
-    assertEquals(2, cache.stats().hitCount());
+    expr = "TO_LOWER(name)";
+    hits += expectHit(expr);
+    execute(expr, contextWithCache);
+    msg = String.format(template, cache.asMap(), cache.stats());
+    assertEquals(msg, 7, cache.stats().requestCount());
+    assertEquals(msg, 7-hits, cache.stats().missCount());
+    assertEquals(msg, hits, cache.stats().hitCount());
+  }
+
+  /**
+   * Returns 1, if a cache hit is expected.
+   * 
+   * @param expr The expression that will be executed.
+   * @return 1 if a cache hit is expected.  Otherwise, 0.
+   */
+  private int expectHit(String expr) {
+    int hits = 0;
+
+    // perform any necessary cache maintenance
     cache.cleanUp();
+
+    CachingStellarProcessor.Key cacheKey = processor.toKey(expr, new MapVariableResolver(fields));
+    if(cache.asMap().containsKey(cacheKey)) {
+      hits = 1;
+    }
+
+    return hits;
   }
 
   /**

@@ -50,7 +50,7 @@ public class CachingStellarProcessor extends StellarProcessor {
   public static String MAX_CACHE_SIZE_PARAM = "stellar.cache.maxSize";
 
   /**
-   * A property that defines the max time that elements are retained in the cache.
+   * A property that defines the max time in minutes that elements are retained in the cache.
    */
   public static String MAX_TIME_RETAIN_PARAM = "stellar.cache.maxTimeRetain";
 
@@ -150,7 +150,7 @@ public class CachingStellarProcessor extends StellarProcessor {
 
     } else {
 
-      // no cache present
+      LOG.debug("No cache present.");
       return parseUncached(expression, variableResolver, functionResolver, context);
     }
   }
@@ -167,7 +167,7 @@ public class CachingStellarProcessor extends StellarProcessor {
    * @param resolver The variable resolver.
    * @return A key with which to do a cache lookup.
    */
-  private Key toKey(String expression, VariableResolver resolver) {
+  protected Key toKey(String expression, VariableResolver resolver) {
 
     // fetch only the variables used in the expression
     Set<String> variablesUsed = variableCache.get().computeIfAbsent(expression, this::variablesUsed);
@@ -178,8 +178,9 @@ public class CachingStellarProcessor extends StellarProcessor {
       input.computeIfAbsent(v, resolver::resolve);
     }
 
-    LOG.debug("Created cache key; expression={}, vars={}", expression, input);
-    return new Key(expression, input);
+    Key cacheKey = new Key(expression, input);
+    LOG.debug("Created cache key; {}", cacheKey);
+    return cacheKey;
   }
 
   /**
