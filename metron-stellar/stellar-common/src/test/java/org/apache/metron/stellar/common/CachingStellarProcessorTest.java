@@ -24,13 +24,17 @@ import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
 public class CachingStellarProcessorTest {
+
+  private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static Map<String, Object> fields = new HashMap<String, Object>() {{
       put("name", "blah");
@@ -109,42 +113,49 @@ public class CachingStellarProcessorTest {
     assertEquals(1, cache.stats().requestCount());
     assertEquals(1, cache.stats().missCount());
     assertEquals(0, cache.stats().hitCount());
+    cache.cleanUp();
 
     // miss
     execute("TO_LOWER(name)", contextWithCache);
     assertEquals(2, cache.stats().requestCount());
     assertEquals(2, cache.stats().missCount());
     assertEquals(0, cache.stats().hitCount());
+    cache.cleanUp();
 
     // hit and cache is full
     execute("TO_UPPER(name)", contextWithCache);
     assertEquals(3, cache.stats().requestCount());
     assertEquals(2, cache.stats().missCount());
     assertEquals(1, cache.stats().hitCount());
+    cache.cleanUp();
 
     //  miss and `TO_LOWER` is evicted as the least frequently used
     execute("TO_UPPER('foo')", contextWithCache);
     assertEquals(4, cache.stats().requestCount());
     assertEquals(3, cache.stats().missCount());
     assertEquals(1, cache.stats().hitCount());
+    cache.cleanUp();
 
     // miss and `TO_UPPER('foo')` is evicted as the least frequently used
     execute("JOIN([name, 'blah'], ',')", contextWithCache);
     assertEquals(5, cache.stats().requestCount());
     assertEquals(4, cache.stats().missCount());
     assertEquals(1, cache.stats().hitCount());
+    cache.cleanUp();
 
     // miss as `TO_LOWER` was previously evicted
     execute("TO_LOWER(name)", contextWithCache);
     assertEquals(6, cache.stats().requestCount());
     assertEquals(5, cache.stats().missCount());
     assertEquals(1, cache.stats().hitCount());
+    cache.cleanUp();
 
     // hit
     execute("TO_LOWER(name)", contextWithCache);
     assertEquals(7, cache.stats().requestCount());
     assertEquals(5, cache.stats().missCount());
     assertEquals(2, cache.stats().hitCount());
+    cache.cleanUp();
   }
 
   /**
