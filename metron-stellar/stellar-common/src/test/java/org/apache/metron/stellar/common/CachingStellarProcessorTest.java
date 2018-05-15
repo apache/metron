@@ -148,6 +148,32 @@ public class CachingStellarProcessorTest {
   }
 
   /**
+   * The cache should continue to hit, even if variables not used in the cached expression change.
+   */
+  @Test
+  public void testUnrelatedVariableChange() {
+
+    // expect miss
+    Object result = execute("TO_UPPER(name)", contextWithCache);
+    assertEquals("BLAH", result);
+    assertEquals(1, cache.stats().requestCount());
+    assertEquals(1, cache.stats().missCount());
+    assertEquals(0, cache.stats().hitCount());
+
+    // add an irrelevant variable that is not used in the expression
+    fields.put("unrelated_var_1", "true");
+    fields.put("unrelated_var_2", 22);
+
+    // still expect a hit
+    result = execute("TO_UPPER(name)", contextWithCache);
+    assertEquals("BLAH", result);
+    assertEquals(2, cache.stats().requestCount());
+    assertEquals(1, cache.stats().missCount());
+    assertEquals(1, cache.stats().hitCount());
+
+  }
+
+  /**
    * Execute each expression.
    * @param expression The expression to execute.
    */

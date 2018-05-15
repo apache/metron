@@ -161,14 +161,18 @@ public class CachingStellarProcessor extends StellarProcessor {
   }
 
   /**
-   * Create a cache key.
+   * Create a cache key using the expression and all variables used by that expression.
    *
    * @param expression The Stellar expression.
    * @param resolver The variable resolver.
    * @return A key with which to do a cache lookup.
    */
   private Key toKey(String expression, VariableResolver resolver) {
+
+    // fetch only the variables used in the expression
     Set<String> variablesUsed = variableCache.get().computeIfAbsent(expression, this::variablesUsed);
+
+    // resolve each of the variables used by the expression
     Map<String, Object> input = new HashMap<>();
     for(String v : variablesUsed) {
       input.computeIfAbsent(v, resolver::resolve);
