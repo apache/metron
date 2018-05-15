@@ -124,7 +124,7 @@ export class AlertDetailsComponent implements OnInit {
   ngOnInit() {
     this.activatedRoute.params.subscribe(params => {
       this.alertId = params['guid'];
-      this.alertSourceType = params['sourceType'];
+      this.alertSourceType = params['source.type.field'];
       this.alertIndex = params['index'];
       this.isMetaAlert = (this.alertIndex === META_ALERTS_INDEX && this.alertSourceType !== META_ALERTS_SENSOR_TYPE) ? true : false;
       this.getData();

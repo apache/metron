@@ -370,13 +370,13 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
   createGetRequestArray(searchResponse: SearchResponse): any {
     return searchResponse.results.map(alert =>
-      new GetRequest(alert.source.guid, alert.source[this.globalConfig['sourceType']], alert.index));
+      new GetRequest(alert.source.guid, alert.source[this.globalConfig['source.type.field']], alert.index));
   }
 
   getAllAlertsForSlectedGroup(group: TreeGroupData): Observable<SearchResponse> {
     let dashRowKey = Object.keys(group.groupQueryMap);
     let searchRequest = new SearchRequest();
-    searchRequest.fields = ['guid', this.globalConfig['sourceType']];
+    searchRequest.fields = ['guid', this.globalConfig['source.type.field']];
     searchRequest.from = 0;
     searchRequest.indices = INDEXES;
     searchRequest.query = this.createQuery(group);

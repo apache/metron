@@ -65,7 +65,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
 
   getSourceType() {
     this.globalConfigService.get().subscribe((config: {}) => {
-      let sourceType = config['sourceType'];
+      let sourceType = config['source.type.field'];
       if (sourceType === 'source.type') {
         this.defaultColumnMetadata = this.defaultColumnMetadata.filter(colName => colName.name !== 'source:type');
         this.defaultColumnMetadata.splice(2, 0, new ColumnMetadata(sourceType, 'string'));

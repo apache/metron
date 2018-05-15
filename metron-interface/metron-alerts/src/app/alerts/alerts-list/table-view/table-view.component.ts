@@ -93,9 +93,9 @@ export class TableViewComponent implements OnInit, OnChanges {
   ngOnInit() {
     this.globalConfigService.get().subscribe((config: {}) => {
       this.globalConfig = config;
-      if (this.globalConfig['sourceType'] === 'source.type') {
+      if (this.globalConfig['source.type.field'] === 'source.type') {
         this.alertsColumnsToDisplay = this.alertsColumnsToDisplay.filter(colName => colName.name !== 'source:type');
-        this.alertsColumnsToDisplay.splice(2, 0, new ColumnMetadata(config['sourceType'], 'string'));
+        this.alertsColumnsToDisplay.splice(2, 0, new ColumnMetadata(config['source.type.field'], 'string'));
       }
     });
   }
@@ -264,7 +264,7 @@ export class TableViewComponent implements OnInit, OnChanges {
     let alertToRemove = alert.source.alert[metaAlertIndex];
     let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
     metaAlertAddRemoveRequest.metaAlertGuid = alert.source.guid;
-    metaAlertAddRemoveRequest.alerts = [new GetRequest(alertToRemove.guid, alertToRemove[this.globalConfig['sourceType']], '')];
+    metaAlertAddRemoveRequest.alerts = [new GetRequest(alertToRemove.guid, alertToRemove[this.globalConfig['source.type.field']], '')];
 
     this.metaAlertService.removeAlertsFromMetaAlert(metaAlertAddRemoveRequest).subscribe(() => {
     });

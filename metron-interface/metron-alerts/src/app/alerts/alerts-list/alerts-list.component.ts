@@ -373,8 +373,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   private createGroupFacets(results: SearchResponse) {
     this.groupFacets = JSON.parse(JSON.stringify(results.facetCounts));
-    if (this.groupFacets[this.globalConfig['sourceType']]) {
-      delete this.groupFacets[this.globalConfig['sourceType']]['metaalert'];
+    if (this.groupFacets[this.globalConfig['source.type.field']]) {
+      delete this.groupFacets[this.globalConfig['source.type.field']]['metaalert'];
     }
   }
 
@@ -387,8 +387,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
     this.saveRefreshState();
-    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source[this.globalConfig['sourceType']])
-        ? META_ALERTS_SENSOR_TYPE : alert.source[this.globalConfig['sourceType']];
+    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source[this.globalConfig['source.type.field']])
+        ? META_ALERTS_SENSOR_TYPE : alert.source[this.globalConfig['source.type.field']];
     let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
     this.router.navigateByUrl(url);
   }

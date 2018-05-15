@@ -43,7 +43,7 @@ export class UpdateService {
 
   constructor(private http: Http, private globalConfigService: GlobalConfigService) {
     this.globalConfigService.get().subscribe((config: {}) => {
-      this.sourceType = config['sourceType'];
+      this.sourceType = config['source.type.field'];
     });
   }
 

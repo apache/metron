@@ -42,7 +42,7 @@ export class GlobalConfigService {
   private setDefaultSourceType(globalConfig) {
     let sourceType: {} = {};
     if(!globalConfig['source.type.field']) {
-      sourceType = Object.assign({}, globalConfig, {'sourceType': 'source:type'});
+      sourceType = Object.assign({}, globalConfig, {'source.type.field': 'source:type'});
       return sourceType;
     }
   }

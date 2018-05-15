@@ -71,7 +71,7 @@ export class MetaAlertsComponent implements OnInit {
 
   addAlertToMetaAlert() {
     let getRequest = this.metaAlertService.selectedAlerts.map(alert =>
-          new GetRequest(alert.source.guid, alert.source[this.globalConfig['sourceType']], alert.index));
+          new GetRequest(alert.source.guid, alert.source[this.globalConfig['source.type.field']], alert.index));
     let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
     metaAlertAddRemoveRequest.metaAlertGuid = this.selectedMetaAlert;
     metaAlertAddRemoveRequest.alerts = getRequest;
