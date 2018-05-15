@@ -191,7 +191,7 @@ public class GeoEnrichmentLoader {
     File localFile = null;
     int attempts = 0;
     boolean valid = false;
-    while (attempts <= numRetries) {
+    while (!valid && attempts <= numRetries) {
       try {
         URL url = new URL(urlStr);
         localFile = new File(tmpDir + new File(url.getPath()).getName());
