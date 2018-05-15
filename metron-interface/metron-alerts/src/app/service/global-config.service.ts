@@ -27,60 +27,22 @@ export class GlobalConfigService {
 
   private globalConfig = {};
 
-  constructor(private http: Http) {
-    this.globalConfig['solr.collection'] = 'metron';
-    this.globalConfig['storm.indexingWorkers'] = 1;
-    this.globalConfig['storm.indexingExecutors'] = 2;
-    this.globalConfig['hdfs.boltBatchSize'] = 5000;
-    this.globalConfig['hdfs.boltFieldDelimiter'] = '|';
-    this.globalConfig['hdfs.boltFileRotationSize'] = 5;
-    this.globalConfig['hdfs.boltCompressionCodecClass'] = 'org.apache.hadoop.io.compress.SnappyCodec';
-    this.globalConfig['hdfs.indexOutput'] = '/tmp/metron/enriched';
-    this.globalConfig['kafkaWriter.topic'] = 'outputTopic';
-    this.globalConfig['kafkaWriter.keySerializer'] = 'org.apache.kafka.common.serialization.StringSerializer';
-    this.globalConfig['kafkaWriter.valueSerializer'] = 'org.apache.kafka.common.serialization.StringSerializer';
-    this.globalConfig['kafkaWriter.requestRequiredAcks'] = 1;
-    this.globalConfig['solrWriter.indexName'] = 'alfaalfa';
-    this.globalConfig['solrWriter.shards'] = 1;
-    this.globalConfig['solrWriter.replicationFactor'] = 1;
-    this.globalConfig['solrWriter.batchSize'] = 50;
-    this.globalConfig['sourceType'] = 'source:type';
-  }
-
-  public post(globalConfig: {}): Observable<{}> {
-    return this.http.post(this.url, globalConfig, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
-  }
+  constructor(private http: Http) {}
 
   public get(): Observable<{}> {
     return this.http.get(this.url , new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map((res: Response): any => {
         let body = res.json();
-        if (!body['sourceType'] ) {
-          let newBody = {};
-          newBody = Object.assign({}, body, {sourceType: 'source:type'});
-          return newBody;
-        }
+        this.setDefaultSourceType(body);
         return body || {};
       })
       .catch(HttpUtil.handleError);
   }
 
-  public delete(): Observable<Response> {
-    let responseOptions = new ResponseOptions();
-    responseOptions.status = 200;
-    let response = new Response(responseOptions);
-    return Observable.create(observer => {
-      observer.next(response);
-      observer.complete();
-    });
-  }
-
   private setDefaultSourceType(globalConfig) {
     let sourceType: {} = {};
-    if(!globalConfig['source.type']) {
-      sourceType = Object.assign({}, globalConfig, {sourceType: 'source:type'});
+    if(!globalConfig['source.type.field']) {
+      sourceType = Object.assign({}, globalConfig, {'sourceType': 'source:type'});
       return sourceType;
     }
   }
