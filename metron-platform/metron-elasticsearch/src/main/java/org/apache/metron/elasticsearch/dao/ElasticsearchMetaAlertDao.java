@@ -349,7 +349,6 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     boolean metaAlertUpdated = !status.getStatusString().equals(currentStatus);
     if (metaAlertUpdated) {
       metaAlert.getDocument().put(MetaAlertDao.STATUS_FIELD, status.getStatusString());
-      updates.put(metaAlert, Optional.of(index));
       List<GetRequest> getRequests = new ArrayList<>();
       List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
           .get(MetaAlertDao.ALERT_FIELD);
@@ -357,6 +356,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         getRequests.add(new GetRequest((String) currentAlert.get(GUID), (String) currentAlert.get(SOURCE_TYPE)));
       });
       Iterable<Document> alerts = indexDao.getAllLatest(getRequests);
+      List<Map<String, Object>> updatedAlerts = new ArrayList<>();
       for (Document alert : alerts) {
         boolean metaAlertAdded = false;
         boolean metaAlertRemoved = false;
@@ -371,7 +371,12 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         if (metaAlertAdded || metaAlertRemoved) {
           updates.put(alert, Optional.empty());
         }
+        updatedAlerts.add(alert.getDocument());
       }
+      if (MetaAlertStatus.ACTIVE.equals(status)) {
+        metaAlert.getDocument().put(MetaAlertDao.ALERT_FIELD, updatedAlerts);
+      }
+      updates.put(metaAlert, Optional.of(index));
     }
     if (metaAlertUpdated) {
       indexDaoUpdate(updates);

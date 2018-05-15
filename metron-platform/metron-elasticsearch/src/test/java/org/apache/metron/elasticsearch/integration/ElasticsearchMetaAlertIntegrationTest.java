@@ -608,7 +608,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
     }
 
     {
-      // Verify status changed to active and child alerts are updated
+      // Verify status changed to active and metaalerts fields on child alerts are updated
       Assert.assertTrue(metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.ACTIVE));
 
       Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
@@ -648,6 +648,37 @@ public class ElasticsearchMetaAlertIntegrationTest {
           findUpdatedDoc(expectedAlert, "message_" + (i + numChildAlerts), SENSOR_NAME);
         }
       }
+    }
+
+    {
+      // Verify status changed to active and meta alert child alerts are refreshed
+      Assert.assertTrue(metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.INACTIVE));
+
+      Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
+      expectedMetaAlert.put(STATUS_FIELD, MetaAlertStatus.INACTIVE.getStatusString());
+
+      findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
+
+      {
+        // Update a child alert by adding a field
+        Document alert0 = esDao.getLatest("message_0", SENSOR_NAME);
+        alert0.getDocument().put("field", "value");
+        esDao.update(alert0, Optional.empty());
+
+        findUpdatedDoc(alert0.getDocument(), "message_0", SENSOR_NAME);
+
+        // Change the status to active
+        Assert.assertTrue(metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.ACTIVE));
+
+        // Expect the first child alert to also contain the update
+        expectedMetaAlert.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
+        List<Map<String, Object>> expectedAlerts = (List<Map<String, Object>>) expectedMetaAlert.get(ALERT_FIELD);
+        expectedAlerts.get(0).put("field", "value");
+
+        // Verify the metaalert child alerts were refreshed and the new field is present
+        findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
+      }
+
     }
   }
 
@@ -1043,11 +1074,29 @@ public class ElasticsearchMetaAlertIntegrationTest {
       throws InterruptedException, IOException, OriginalNotFoundException {
     for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
       Document doc = metaDao.getLatest(guid, sensorType);
-      if (doc != null && message0.equals(doc.getDocument())) {
+      if (doc != null && compareDocs(message0, doc.getDocument())) {
         return;
       }
     }
     throw new OriginalNotFoundException("Count not find " + guid + " after " + MAX_RETRIES + " tries");
+  }
+
+  private boolean compareDocs(Map<String, Object> expected, Map<String, Object> actual) {
+    if (expected.size() != actual.size()) {
+      return false;
+    }
+    for(String key: expected.keySet()) {
+      if (ALERT_FIELD.equals(key)) {
+        List<Map<String, Object>> expectedAlerts = (List<Map<String, Object>>) expected.get(MetaAlertDao.ALERT_FIELD);
+        ArrayList<Map<String, Object>> actualAlerts = (ArrayList<Map<String, Object>>) actual.get(MetaAlertDao.ALERT_FIELD);
+        if (!expectedAlerts.containsAll(actualAlerts) || !actualAlerts.containsAll(expectedAlerts)) {
+          return false;
+        }
+      } else if (!expected.get(key).equals(actual.get(key))){
+        return false;
+      }
+    }
+    return true;
   }
 
   protected boolean findCreatedDoc(String guid, String sensorType)
