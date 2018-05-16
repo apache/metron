@@ -126,6 +126,23 @@ public class HBaseDaoIntegrationTest {
   }
 
   @Test
+  public void shouldGetLatestWithInvalidTimestamp() throws Exception {
+    // Load alert
+    Document alert = buildAlerts(1).get(0);
+    hbaseDao.update(alert, Optional.empty());
+
+    Document actualDocument = hbaseDao.getLatest("message_0", SENSOR_TYPE);
+    Assert.assertEquals(alert, actualDocument);
+
+    alert.getDocument().put("field", "value");
+    alert.setTimestamp(0L);
+    hbaseDao.update(alert, Optional.empty());
+
+    actualDocument = hbaseDao.getLatest("message_0", SENSOR_TYPE);
+    Assert.assertEquals(alert.getDocument(), actualDocument.getDocument());
+  }
+
+  @Test
   public void shouldGetAllLatest() throws Exception {
     // Load alerts
     List<Document> alerts = buildAlerts(15);
