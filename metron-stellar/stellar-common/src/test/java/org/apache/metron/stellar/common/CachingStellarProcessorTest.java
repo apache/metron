@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class CachingStellarProcessorTest {
 
@@ -101,99 +101,42 @@ public class CachingStellarProcessorTest {
     assertEquals("BLAH", execute("TO_UPPER(name)", contextNoCache));
   }
 
-  /**
-   * The processor should continue to work correctly, even when the max cache size is exceeded.
-   * @throws Exception
-   */
   @Test
-  public void testWithFullCache() throws Exception {
-    final String template = "Unexpected cache stats; cache = %s, stats = %s";
-
-    // tracks the expected number of hits
-    int hits = 0;
-
-    // miss
-    String expr = "TO_UPPER(name)";
-    hits += expectHit(expr);
-    Object result = execute(expr, contextWithCache);
-    String msg = String.format(template, cache.asMap(), cache.stats());
-    assertEquals("BLAH", result);
-    assertEquals(msg, 1,      cache.stats().requestCount());
-    assertEquals(msg, 1-hits, cache.stats().missCount());
-    assertEquals(msg, hits,   cache.stats().hitCount());
-
-    // miss
-    expr = "TO_LOWER(name)";
-    hits += expectHit(expr);
-    execute(expr, contextWithCache);
-    msg = String.format(template, cache.asMap(), cache.stats());
-    assertEquals(msg, 2,      cache.stats().requestCount());
-    assertEquals(msg, 2-hits, cache.stats().missCount());
-    assertEquals(msg, hits,   cache.stats().hitCount());
-
-    // hit and cache is full
-    expr = "TO_UPPER(name)";
-    hits += expectHit(expr);
-    execute(expr, contextWithCache);
-    msg = String.format(template, cache.asMap(), cache.stats());
-    assertEquals(msg, 3,      cache.stats().requestCount());
-    assertEquals(msg, 3-hits, cache.stats().missCount());
-    assertEquals(msg, hits,   cache.stats().hitCount());
-
-    //  miss and `TO_LOWER` is evicted as the least frequently used
-    expr = "TO_UPPER('foo')";
-    hits += expectHit(expr);
-    execute(expr, contextWithCache);
-    assertEquals(msg, 4, cache.stats().requestCount());
-    assertEquals(msg, 4-hits, cache.stats().missCount());
-    assertEquals(msg, hits, cache.stats().hitCount());
-
-    // miss and `TO_UPPER('foo')` is evicted as the least frequently used
-    expr = "JOIN([name, 'blah'], ',')";
-    hits += expectHit(expr);
-    execute(expr, contextWithCache);
-    msg = String.format(template, cache.asMap(), cache.stats());
-    assertEquals(msg, 5, cache.stats().requestCount());
-    assertEquals(msg, 5-hits, cache.stats().missCount());
-    assertEquals(msg, hits, cache.stats().hitCount());
-
-    // miss as `TO_LOWER` was previously evicted
-    expr = "TO_LOWER(name)";
-    hits += expectHit(expr);
-    execute(expr, contextWithCache);
-    msg = String.format(template, cache.asMap(), cache.stats());
-    assertEquals(msg, 6, cache.stats().requestCount());
-    assertEquals(msg, 6-hits, cache.stats().missCount());
-    assertEquals(msg, hits, cache.stats().hitCount());
-
-    // hit
-    expr = "TO_LOWER(name)";
-    hits += expectHit(expr);
-    execute(expr, contextWithCache);
-    msg = String.format(template, cache.asMap(), cache.stats());
-    assertEquals(msg, 7, cache.stats().requestCount());
-    assertEquals(msg, 7-hits, cache.stats().missCount());
-    assertEquals(msg, hits, cache.stats().hitCount());
+  public void testInvalidMaxCacheSize() {
+    Map<String, Object> cacheConfig = ImmutableMap.of(
+            CachingStellarProcessor.MAX_CACHE_SIZE_PARAM, -1,
+            CachingStellarProcessor.MAX_TIME_RETAIN_PARAM, 10
+    );
+    cache = CachingStellarProcessor.createCache(cacheConfig);
+    assertNull(cache);
   }
 
-  /**
-   * Returns 1, if a cache hit is expected.
-   * 
-   * @param expr The expression that will be executed.
-   * @return 1 if a cache hit is expected.  Otherwise, 0.
-   */
-  private int expectHit(String expr) {
-    int hits = 0;
+  @Test
+  public void testMissingMaxCacheSize() {
+    Map<String, Object> cacheConfig = ImmutableMap.of(
+            CachingStellarProcessor.MAX_TIME_RETAIN_PARAM, 10
+    );
+    cache = CachingStellarProcessor.createCache(cacheConfig);
+    assertNull(cache);
+  }
 
-    // perform any necessary cache maintenance
-    cache.cleanUp();
+  @Test
+  public void testInvalidMaxTimeRetain() {
+    Map<String, Object> cacheConfig = ImmutableMap.of(
+            CachingStellarProcessor.MAX_CACHE_SIZE_PARAM, 10,
+            CachingStellarProcessor.MAX_TIME_RETAIN_PARAM, -2
+    );
+    cache = CachingStellarProcessor.createCache(cacheConfig);
+    assertNull(cache);
+  }
 
-    CachingStellarProcessor.Key cacheKey = processor.toKey(expr, new MapVariableResolver(fields));
-    if(cache.asMap().containsKey(cacheKey)) {
-      hits = 1;
-    }
-
-    return hits;
+  @Test
+  public void testMissingMaxTimeRetain() {
+    Map<String, Object> cacheConfig = ImmutableMap.of(
+            CachingStellarProcessor.MAX_CACHE_SIZE_PARAM, 10
+    );
+    cache = CachingStellarProcessor.createCache(cacheConfig);
+    assertNull(cache);
   }
 
   /**
