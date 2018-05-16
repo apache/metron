@@ -93,7 +93,7 @@ export class TableViewComponent implements OnInit, OnChanges {
   ngOnInit() {
     this.globalConfigService.get().subscribe((config: {}) => {
       this.globalConfig = config;
-      if (this.globalConfig['source.type.field'] === 'source.type') {
+      if (this.globalConfig['source.type.field'] === 'source.type' && !this.alertsColumnsToDisplay['source.type']) {
         this.alertsColumnsToDisplay = this.alertsColumnsToDisplay.filter(colName => colName.name !== 'source:type');
         this.alertsColumnsToDisplay.splice(2, 0, new ColumnMetadata(config['source.type.field'], 'string'));
       }

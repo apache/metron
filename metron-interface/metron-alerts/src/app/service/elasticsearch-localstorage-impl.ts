@@ -56,22 +56,11 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
     if (localStorage['metron-alerts-saved-search']) {
       let columnHeaders = JSON.parse(localStorage['metron-alerts-saved-search']);
       sourceType = columnHeaders[0]['tableColumns'].filter(colName => colName.name === 'source.type');
-      if (sourceType) {
+      if (sourceType && !this.defaultColumnMetadata['source.type']) {
         this.defaultColumnMetadata = this.defaultColumnMetadata.filter(colName => colName.name !== 'source:type');
         this.defaultColumnMetadata.splice(2, 0, new ColumnMetadata(sourceType[0]['name'], sourceType[0]['type']));
       }
     }
-  }
-
-  getSourceType() {
-    this.globalConfigService.get().subscribe((config: {}) => {
-      let sourceType = config['source.type.field'];
-      if (sourceType === 'source.type') {
-        this.defaultColumnMetadata = this.defaultColumnMetadata.filter(colName => colName.name !== 'source:type');
-        this.defaultColumnMetadata.splice(2, 0, new ColumnMetadata(sourceType, 'string'));
-        this.getDefaultAlertTableColumnNames();
-      }
-    });
   }
 
   getAlerts(searchRequest: SearchRequest): Observable<SearchResponse> {
@@ -140,7 +129,6 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
   }
 
   getAlertTableSettings(): Observable<TableMetadata> {
-    this.getSourceType();
     return Observable.create(observer => {
       let tableMetadata: TableMetadata;
       try {

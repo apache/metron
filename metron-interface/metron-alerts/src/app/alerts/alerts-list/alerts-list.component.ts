@@ -177,13 +177,17 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.globalConfigService.get().subscribe((config: {}) => {
+      this.globalConfig = config;
+      if (this.globalConfig['source.type.field'] === 'source.type' && !this.alertsColumns['source.type']) {
+        this.alertsColumns = this.alertsColumns.filter(colName => colName.name !== 'source:type');
+        this.alertsColumns.splice(2, 0, new ColumnMetadata(config['source.type.field'], 'string'));
+      }
+    });
     this.getAlertColumnNames(true);
     this.addAlertColChangedListner();
     this.addLoadSavedSearchListner();
     this.addAlertChangedListner();
-    this.globalConfigService.get().subscribe((config: {}) => {
-      this.globalConfig = config;
-    });
   }
 
   onClear() {

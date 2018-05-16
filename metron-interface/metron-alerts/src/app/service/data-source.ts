@@ -37,7 +37,6 @@ export abstract class DataSource {
   abstract getAlertTableColumnNames(): Observable<ColumnNames[]>
   abstract saveAlertTableColumnNames(columns: ColumnNames[]): Observable<{}>
   abstract getSourceTypeFromLocalstorage();
-  abstract getSourceType();
 
   // Calls to fetch and save alerts table settings like refresh interval, page size, default selected table column names
   abstract getAlertTableSettings(): Observable<TableMetadata>

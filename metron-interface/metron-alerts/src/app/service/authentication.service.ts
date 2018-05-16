@@ -44,7 +44,6 @@ export class AuthenticationService {
         this.currentUser = response.text();
         if (this.currentUser) {
           this.onLoginEvent.emit(true);
-          this.dataSource.getSourceType();
           this.dataSource.getDefaultAlertTableColumnNames();
         }
       }, error => {
@@ -61,7 +60,6 @@ export class AuthenticationService {
         this.router.navigateByUrl('/alerts-list');
         this.onLoginEvent.emit(true);
         this.globalConfigService.get();
-        this.dataSource.getSourceType();
         this.dataSource.getDefaultAlertTableColumnNames();
       },
       error => {
