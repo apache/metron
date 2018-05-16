@@ -61,41 +61,6 @@ exports.config = {
   },
   onPrepare: function() {
 
-    // let currentCommand = Promise.resolve();
-    // // Serialise all webdriver commands to prevent EPIPE errors
-    // const webdriverSchedule = browser.driver.schedule;
-    // browser.driver.schedule = (command, description) => {
-    //   currentCommand = currentCommand.then(() =>
-    //       webdriverSchedule.call(browser.driver, command, description)
-    //   );
-    //   return currentCommand;
-    // };
-
-    // let currentCommand = Promise.resolve();
-    // let concurrencyCounter = 0;
-    // const webdriverSchedule = browser.driver.schedule;
-    // browser.driver.schedule = (command, description) => {
-    //   console.log(`${++concurrencyCounter} concurrent webdriver command(s). Latest command: ${description}`);
-    //   currentCommand = currentCommand.then(() =>
-    //       webdriverSchedule.call(browser.driver, command, description)
-    //       .then(result => {
-    //         concurrencyCounter--;
-    //         return result;
-    //       })
-    //       .catch(error => {
-    //         concurrencyCounter--;
-    //         //console.lgErrLabel('Webdriver error')(command, description, error);
-    //         console.error('Webdriver error:', command, description, error);
-    //         throw error;
-    //       })
-    //   );
-    //   return currentCommand;
-    // };
-
-    // require("protractor").ElementArrayFinder.prototype.map = function(mapFn) {
-    //   return this.reduce(function(arr, el) { arr.concat(mapFn(el, arr.length)); return arr; }, []);
-    // };
-
     jasmine.getEnv().addReporter(new SpecReporter({spec: {displayStacktrace: true}}));
 
     return new Promise(function(resolve, reject) {
