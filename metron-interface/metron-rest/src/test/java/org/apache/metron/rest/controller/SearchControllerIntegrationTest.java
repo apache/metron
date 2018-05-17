@@ -88,9 +88,6 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   private SensorIndexingConfigService sensorIndexingConfigService;
 
   @Autowired
-  private GlobalConfigService globalConfigService;
-
-  @Autowired
   private AlertsUIService alertsUIService;
 
   @Autowired

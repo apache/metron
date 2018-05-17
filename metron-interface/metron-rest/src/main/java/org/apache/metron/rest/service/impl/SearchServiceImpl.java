@@ -140,16 +140,19 @@ public class SearchServiceImpl implements SearchService {
     return indices;
   }
 
+  @SuppressWarnings("unchecked")
   public List<String> getDefaultFacetFields() throws RestException {
     Optional<AlertsUIUserSettings> alertUserSettings = alertsUIService.getAlertsUIUserSettings();
     if (!alertUserSettings.isPresent() || alertUserSettings.get().getFacetFields() == null) {
       String facetFieldsProperty = environment
           .getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, "");
 
-      @SuppressWarnings("unchecked")
-      String sourceTypeField = (String) globalConfigService.get()
-          .getOrDefault("source.type.field", Constants.SENSOR_TYPE.replace('.', ':'));
+      Map<String, Object> globalConfig = globalConfigService.get();
+      String sourceTypeField = Constants.SENSOR_TYPE.replace('.', ':');
       List<String> facetFields = new ArrayList<>();
+      if (globalConfig != null) {
+        sourceTypeField = (String) globalConfig.getOrDefault("source.type.field", sourceTypeField);
+      }
       facetFields.add(sourceTypeField);
       if (facetFieldsProperty != null) {
         facetFields.addAll(Arrays.asList(facetFieldsProperty.split(",")));
