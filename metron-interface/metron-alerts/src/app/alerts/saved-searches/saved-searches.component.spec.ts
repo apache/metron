@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { SavedSearchesComponent } from './saved-searches.component';
 
 describe('SavedSearchesComponent', () => {
@@ -25,9 +24,9 @@ describe('SavedSearchesComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ SavedSearchesComponent ]
+      declarations: [SavedSearchesComponent]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

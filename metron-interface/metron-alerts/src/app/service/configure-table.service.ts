@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
-import {Http} from '@angular/http';
-import {Subject} from 'rxjs/Subject';
-import {ColumnMetadata} from '../model/column-metadata';
-import {TableMetadata} from '../model/table-metadata';
-import {DataSource} from './data-source';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Rx';
+import { Http } from '@angular/http';
+import { Subject } from 'rxjs/Subject';
+import { ColumnMetadata } from '../model/column-metadata';
+import { TableMetadata } from '../model/table-metadata';
+import { DataSource } from './data-source';
 
 @Injectable()
 export class ConfigureTableService {
@@ -30,7 +30,7 @@ export class ConfigureTableService {
   tableChanged$ = this.tableChangedSource.asObservable();
 
   constructor(private http: Http,
-              private dataSource: DataSource) {}
+    private dataSource: DataSource) { }
 
   fireTableChanged() {
     this.tableChangedSource.next('table changed');

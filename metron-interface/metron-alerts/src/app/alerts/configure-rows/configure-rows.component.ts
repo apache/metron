@@ -16,15 +16,15 @@
  * limitations under the License.
  */
 import { Component, Input, HostListener, ElementRef, Output, EventEmitter } from '@angular/core';
-import {TableMetadata} from '../../model/table-metadata';
-import {ConfigureTableService} from '../../service/configure-table.service';
+import { TableMetadata } from '../../model/table-metadata';
+import { ConfigureTableService } from '../../service/configure-table.service';
 
 @Component({
   selector: 'app-configure-rows',
   templateUrl: './configure-rows.component.html',
   styleUrls: ['./configure-rows.component.scss']
 })
-export class ConfigureRowsComponent  {
+export class ConfigureRowsComponent {
 
   showView = false;
   tableMetadata = new TableMetadata();
@@ -35,7 +35,7 @@ export class ConfigureRowsComponent  {
   @Output() configRowsChange = new EventEmitter();
 
   constructor(private elementRef: ElementRef,
-              private configureTableService: ConfigureTableService) {}
+    private configureTableService: ConfigureTableService) { }
 
   @Input()
   get size() {
@@ -102,7 +102,7 @@ export class ConfigureRowsComponent  {
   }
 
   saveSettings() {
-    if ( this.showView ) {
+    if (this.showView) {
       this.configureTableService.saveTableMetaData(this.tableMetadata).subscribe(() => {
       }, error => {
         console.log('Unable to save settings ....');

@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, ChangeDetectionStrategy} from '@angular/core';
-import {Router} from '@angular/router';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'metron-config-vertical-navbar',
@@ -27,7 +27,7 @@ import {Router} from '@angular/router';
 
 export class VerticalNavbarComponent {
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   isActive(validRoutes: string[]) {
     return validRoutes.indexOf(this.router.url) !== -1;

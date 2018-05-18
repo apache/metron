@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
+import { Component, Input, EventEmitter, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
 
 declare var ace: any;
 
@@ -75,7 +75,7 @@ export class SensorStormSettingsComponent implements OnChanges {
     try {
       // serialize/deserialize to ignore formatting differences
       return JSON.stringify(JSON.parse(this.newSpoutConfig), null, '\t') !==
-          JSON.stringify(this.sensorParserConfig.spoutConfig, null, '\t');
+        JSON.stringify(this.sensorParserConfig.spoutConfig, null, '\t');
     } catch (err) {
       // malformed json means it is being edited
       return true;
@@ -86,7 +86,7 @@ export class SensorStormSettingsComponent implements OnChanges {
     try {
       // serialize/deserialize to ignore formatting differences
       return JSON.stringify(JSON.parse(this.newStormConfig), null, '\t') !==
-          JSON.stringify(this.sensorParserConfig.stormConfig, null, '\t');
+        JSON.stringify(this.sensorParserConfig.stormConfig, null, '\t');
     } catch (err) {
       // malformed json means it is being edited
       return true;

@@ -15,17 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {AuthenticationService} from '../service/authentication.service';
-import {Router} from '@angular/router';
-import {LoginGuard} from './login-guard';
+import { async, inject, TestBed } from '@angular/core/testing';
+import { AuthenticationService } from '../service/authentication.service';
+import { Router } from '@angular/router';
+import { LoginGuard } from './login-guard';
 
 class MockAuthenticationService {
-  public logout(): void {}
+  public logout(): void { }
 }
 
 class MockRouter {
-  navigateByUrl(): any {}
+  navigateByUrl(): any { }
 }
 
 describe('LoginGuard', () => {
@@ -34,8 +34,8 @@ describe('LoginGuard', () => {
     TestBed.configureTestingModule({
       providers: [
         LoginGuard,
-        {provide: AuthenticationService, useClass: MockAuthenticationService},
-        {provide: Router, useClass: MockRouter}
+        { provide: AuthenticationService, useClass: MockAuthenticationService },
+        { provide: Router, useClass: MockRouter }
       ]
     })
       .compileComponents();
@@ -45,7 +45,7 @@ describe('LoginGuard', () => {
   it('can instantiate auth guard',
     inject([LoginGuard], (loginGaurd: LoginGuard) => {
       expect(loginGaurd instanceof LoginGuard).toBe(true);
-  }));
+    }));
 
   it('test when login is checked',
     inject([LoginGuard, AuthenticationService], (loginGuard: LoginGuard, authenticationService: MockAuthenticationService) => {
@@ -56,6 +56,6 @@ describe('LoginGuard', () => {
 
       expect(authenticationService.logout).toHaveBeenCalled();
 
-  }));
+    }));
 
 });

@@ -15,10 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ModuleWithProviders }  from '@angular/core';
+import { ModuleWithProviders } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MetaAlertsComponent } from './meta-alerts.component';
 
-export const routing: ModuleWithProviders = RouterModule.forChild([
-    { path: 'add-to-meta-alert', component: MetaAlertsComponent, outlet: 'dialog'}
+export const MetaAlertsRoutingModule: ModuleWithProviders = RouterModule.forChild([
+  {
+    path: 'add-to-meta-alert',
+    component: MetaAlertsComponent,
+    outlet: 'dialog'
+  }
 ]);

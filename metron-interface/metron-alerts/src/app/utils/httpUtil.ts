@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Response} from '@angular/http';
-import {Observable}     from 'rxjs/Observable';
-import {RestError} from '../model/rest-error';
+import { Response } from '@angular/http';
+import { Observable } from 'rxjs/Observable';
+import { RestError } from '../model/rest-error';
 
 export class HttpUtil {
 

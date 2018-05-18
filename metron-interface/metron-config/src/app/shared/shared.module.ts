@@ -15,15 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule }            from '@angular/core';
-import { CommonModule }        from '@angular/common';
-import { FormsModule }         from '@angular/forms';
-import {MetronModalComponent} from './metron-modal/metron-modal.component';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MetronModalComponent } from './metron-modal/metron-modal.component';
 
 @NgModule({
-  imports:      [ CommonModule ],
-  declarations: [ MetronModalComponent ],
-  exports:      [ MetronModalComponent,
-    CommonModule, FormsModule ]
+  imports: [CommonModule],
+  declarations: [MetronModalComponent],
+  exports: [MetronModalComponent,
+    CommonModule, FormsModule]
 })
 export class SharedModule { }

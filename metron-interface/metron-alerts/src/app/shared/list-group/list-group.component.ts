@@ -31,7 +31,9 @@ export class ListGroupComponent implements OnInit {
 
   @Input() data: ListGroupComponentData[] = [];
 
-  constructor(private element: ElementRef) { }
+  constructor(
+    private element: ElementRef
+  ) { }
 
   ngOnInit() {
   }

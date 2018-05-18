@@ -15,17 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions, Response, ResponseOptions} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
-import {HttpUtil} from '../util/httpUtil';
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
+import { Injectable, Inject } from '@angular/core';
+import { Http, Headers, RequestOptions, Response, ResponseOptions } from '@angular/http';
+import { Observable } from 'rxjs/Observable';
+import { HttpUtil } from '../util/httpUtil';
+import { IAppConfig } from '../app.config.interface';
+import { APP_CONFIG } from '../app.config';
 
 @Injectable()
 export class GlobalConfigService {
   url = this.config.apiEndpoint + '/global/config';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  defaultHeaders = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
 
   private globalConfig = {
 
@@ -51,13 +51,13 @@ export class GlobalConfigService {
   }
 
   public post(globalConfig: {}): Observable<{}> {
-    return this.http.post(this.url, globalConfig, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.post(this.url, globalConfig, new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }
 
   public get(): Observable<{}> {
-    return this.http.get(this.url , new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.get(this.url, new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }

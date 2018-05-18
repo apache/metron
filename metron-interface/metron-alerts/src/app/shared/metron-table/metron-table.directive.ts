@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 /* tslint:disable:directive-selector-name */
-import {Directive, Output, Input, EventEmitter, ElementRef, AfterViewInit} from '@angular/core';
-import {Sort} from '../../utils/enums';
+import { Directive, Output, Input, EventEmitter, ElementRef, AfterViewInit } from '@angular/core';
+import { Sort } from '../../utils/enums';
 
 export interface SortEvent {
   sortBy: string;
@@ -60,14 +60,14 @@ export class MetronTableDirective implements AfterViewInit {
     }
 
     if (this.cellSelectable && $event.target.nodeName === 'A') {
-        $event.target.style.backgroundColor = this.highlightColor;
-        $event.target.style.border = this.border;
+      $event.target.style.backgroundColor = this.highlightColor;
+      $event.target.style.border = this.border;
 
     } else {
-        let parent = this.getParentTR($event.target);
-        if (!parent.classList.contains('no-hover')) {
-          parent.style.backgroundColor = this.rowhighlightColor;
-        }
+      let parent = this.getParentTR($event.target);
+      if (!parent.classList.contains('no-hover')) {
+        parent.style.backgroundColor = this.rowhighlightColor;
+      }
     }
   }
 
@@ -93,7 +93,7 @@ export class MetronTableDirective implements AfterViewInit {
 
   public setSort(sortEvent: SortEvent): void {
     this.onSortColumnChange.emit(sortEvent);
-    if (this.onSort.observers.length === 0 ) {
+    if (this.onSort.observers.length === 0) {
       this.sort(sortEvent);
     } else {
       this.onSort.emit(sortEvent);

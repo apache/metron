@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
+import { async, inject, TestBed } from '@angular/core/testing';
+import { MockBackend, MockConnection } from '@angular/http/testing';
+import { HttpModule, XHRBackend, Response, ResponseOptions, Http } from '@angular/http';
 import '../rxjs-operators';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
-import {GlobalConfigService} from './global-config.service';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
+import { IAppConfig } from '../app.config.interface';
+import { GlobalConfigService } from './global-config.service';
 
 describe('GlobalConfigService', () => {
 
@@ -30,8 +30,8 @@ describe('GlobalConfigService', () => {
       imports: [HttpModule],
       providers: [
         GlobalConfigService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: XHRBackend, useClass: MockBackend },
+        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
       ]
     })
       .compileComponents();
@@ -57,23 +57,23 @@ describe('GlobalConfigService', () => {
   describe('when service functions', () => {
     let globalConfigService: GlobalConfigService;
     let mockBackend: MockBackend;
-    let globalConfig = {'field': 'value'};
+    let globalConfig = { 'field': 'value' };
     let globalConfigResponse: Response;
     let deleteResponse: Response;
 
     beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
       mockBackend = be;
       globalConfigService = new GlobalConfigService(http, config);
-      globalConfigResponse = new Response(new ResponseOptions({status: 200, body: globalConfig}));
+      globalConfigResponse = new Response(new ResponseOptions({ status: 200, body: globalConfig }));
     }));
 
     it('post', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(globalConfigResponse));
 
       globalConfigService.post(globalConfig).subscribe(
-      result => {
-        expect(result).toEqual(globalConfig);
-      }, error => console.log(error));
+        result => {
+          expect(result).toEqual(globalConfig);
+        }, error => console.log(error));
     })));
 
     it('get', async(inject([], () => {

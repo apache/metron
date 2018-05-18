@@ -15,20 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject}     from '@angular/core';
-import {Http, Headers, RequestOptions, Response} from '@angular/http';
-import {Observable}     from 'rxjs/Observable';
-import {SensorParserConfig} from '../model/sensor-parser-config';
-import {HttpUtil} from '../util/httpUtil';
-import {Subject}    from 'rxjs/Subject';
-import {ParseMessageRequest} from '../model/parse-message-request';
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
+import { Injectable, Inject } from '@angular/core';
+import { Http, Headers, RequestOptions, Response } from '@angular/http';
+import { Observable } from 'rxjs/Observable';
+import { SensorParserConfig } from '../model/sensor-parser-config';
+import { HttpUtil } from '../util/httpUtil';
+import { Subject } from 'rxjs/Subject';
+import { ParseMessageRequest } from '../model/parse-message-request';
+import { IAppConfig } from '../app.config.interface';
+import { APP_CONFIG } from '../app.config';
 
 @Injectable()
 export class SensorParserConfigService {
   url = this.config.apiEndpoint + '/sensor/parser/config';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  defaultHeaders = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
   selectedSensorParserConfig: SensorParserConfig;
 
   dataChangedSource = new Subject<string[]>();
@@ -40,42 +40,42 @@ export class SensorParserConfigService {
 
   public post(name: string, sensorParserConfig: SensorParserConfig): Observable<SensorParserConfig> {
     return this.http.post(this.url + '/' + name, JSON.stringify(sensorParserConfig),
-        new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+      new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }
 
   public get(name: string): Observable<SensorParserConfig> {
-    return this.http.get(this.url + '/' + name, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.get(this.url + '/' + name, new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }
 
   public getAll(): Observable<{}> {
-    return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.get(this.url, new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }
 
   public deleteSensorParserConfig(name: string): Observable<Response> {
-    return this.http.delete(this.url + '/' + name, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.delete(this.url + '/' + name, new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
       .catch(HttpUtil.handleError);
   }
 
   public getAvailableParsers(): Observable<{}> {
-    return this.http.get(this.url + '/list/available', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.get(this.url + '/list/available', new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }
 
   public parseMessage(parseMessageRequest: ParseMessageRequest): Observable<{}> {
-    return this.http.post(this.url + '/parseMessage', parseMessageRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.post(this.url + '/parseMessage', parseMessageRequest, new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }
 
-  public deleteSensorParserConfigs(sensorNames: string[]): Observable<{success: Array<string>, failure: Array<string>}> {
-    let result: {success: Array<string>, failure: Array<string>} = {success: [], failure: []};
+  public deleteSensorParserConfigs(sensorNames: string[]): Observable<{ success: Array<string>, failure: Array<string> }> {
+    let result: { success: Array<string>, failure: Array<string> } = { success: [], failure: [] };
     let observable = Observable.create((observer => {
 
       let completed = () => {

@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Filter} from '../../model/filter';
-import {ColumnNamesService} from '../../service/column-names.service';
-import {SearchRequest} from '../../model/search-request';
-import {SortField} from '../../model/sort-field';
-import {TIMESTAMP_FIELD_NAME} from '../../utils/constants';
-import {GroupRequest} from '../../model/group-request';
-import {Group} from '../../model/group';
+import { Filter } from '../../model/filter';
+import { ColumnNamesService } from '../../service/column-names.service';
+import { SearchRequest } from '../../model/search-request';
+import { SortField } from '../../model/sort-field';
+import { TIMESTAMP_FIELD_NAME } from '../../utils/constants';
+import { GroupRequest } from '../../model/group-request';
+import { Group } from '../../model/group';
 
 export class QueryBuilder {
   private _searchRequest = new SearchRequest();
@@ -39,7 +39,7 @@ export class QueryBuilder {
   }
 
   set filters(filters: Filter[]) {
-    filters.forEach(filter =>  {
+    filters.forEach(filter => {
       this.addOrUpdateFilter(filter)
     });
   }
@@ -118,7 +118,7 @@ export class QueryBuilder {
   }
 
   isTimeStampFieldPresent(): boolean {
-    return this._filters.some(filter => (filter.field === TIMESTAMP_FIELD_NAME &&  !isNaN(Number(filter.value))));
+    return this._filters.some(filter => (filter.field === TIMESTAMP_FIELD_NAME && !isNaN(Number(filter.value))));
   }
 
   onSearchChange() {
@@ -134,7 +134,7 @@ export class QueryBuilder {
   }
 
   setFields(fieldNames: string[]) {
-      // this.searchRequest._source = fieldNames;
+    // this.searchRequest._source = fieldNames;
   }
 
   setFromAndSize(from: number, size: number) {
@@ -168,7 +168,7 @@ export class QueryBuilder {
   }
 
   private removeDisplayedFilters() {
-    for (let i = this._filters.length-1; i >= 0; i--) {
+    for (let i = this._filters.length - 1; i >= 0; i--) {
       if (this._filters[i].display) {
         this._filters.splice(i, 1);
       }

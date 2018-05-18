@@ -30,7 +30,10 @@ export class LoginComponent {
   password: string;
   loginFailure: string = '';
 
-  constructor(private authenticationService: AuthenticationService, private activatedRoute: ActivatedRoute) {
+  constructor(
+    private authenticationService: AuthenticationService,
+    private activatedRoute: ActivatedRoute
+  ) {
     this.activatedRoute.queryParams.subscribe(params => {
       if (params['sessionExpired'] === 'true') {
         this.loginFailure = 'Session has expired';
@@ -45,5 +48,4 @@ export class LoginComponent {
       }
     });
   }
-
 }

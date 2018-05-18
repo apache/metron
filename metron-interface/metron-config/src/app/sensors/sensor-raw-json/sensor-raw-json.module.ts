@@ -16,13 +16,20 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import {SharedModule} from '../../shared/shared.module';
-import {SensorRawJsonComponent} from './sensor-raw-json.component';
-import {AceEditorModule} from '../../shared/ace-editor/ace-editor.module';
+import { SharedModule } from '../../shared/shared.module';
+import { SensorRawJsonComponent } from './sensor-raw-json.component';
+import { AceEditorModule } from '../../shared/ace-editor/ace-editor.module';
 
-@NgModule ({
-  imports: [ SharedModule, AceEditorModule ],
-  declarations: [ SensorRawJsonComponent ],
-  exports: [ SensorRawJsonComponent ]
+@NgModule({
+  imports: [
+    SharedModule,
+    AceEditorModule
+  ],
+  declarations: [
+    SensorRawJsonComponent
+  ],
+  exports: [
+    SensorRawJsonComponent
+  ]
 })
-export class SensorRawJsonModule {}
+export class SensorRawJsonModule { }

@@ -16,15 +16,15 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import {Router, ActivatedRoute} from '@angular/router';
-import {Observable} from 'rxjs/Rx';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs/Rx';
 
-import {ConfigureTableService} from '../../service/configure-table.service';
-import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
-import {ColumnMetadata} from '../../model/column-metadata';
-import {ColumnNamesService} from '../../service/column-names.service';
-import {ColumnNames} from '../../model/column-names';
-import {SearchService} from '../../service/search.service';
+import { ConfigureTableService } from '../../service/configure-table.service';
+import { ClusterMetaDataService } from '../../service/cluster-metadata.service';
+import { ColumnMetadata } from '../../model/column-metadata';
+import { ColumnNamesService } from '../../service/column-names.service';
+import { ColumnNames } from '../../model/column-names';
+import { SearchService } from '../../service/search.service';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -53,10 +53,10 @@ export class ConfigureTableComponent implements OnInit {
   allColumns: ColumnMetadataWrapper[] = [];
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute,
-              private configureTableService: ConfigureTableService,
-              private clusterMetaDataService: ClusterMetaDataService,
-              private columnNamesService: ColumnNamesService,
-              private searchService: SearchService) { }
+    private configureTableService: ConfigureTableService,
+    private clusterMetaDataService: ClusterMetaDataService,
+    private columnNamesService: ColumnNamesService,
+    private searchService: SearchService) { }
 
   goBack() {
     this.router.navigateByUrl('/alerts-list');
@@ -73,8 +73,8 @@ export class ConfigureTableComponent implements OnInit {
 
   indexToInsert(columnMetadata: ColumnMetadata, allColumns: ColumnMetadata[], configuredColumnNames: string[]): number {
     let i = 0;
-    for ( ; i < allColumns.length; i++) {
-      if (configuredColumnNames.indexOf(allColumns[i].name) === -1 && columnMetadata.name.localeCompare(allColumns[i].name) === -1 ) {
+    for (; i < allColumns.length; i++) {
+      if (configuredColumnNames.indexOf(allColumns[i].name) === -1 && columnMetadata.name.localeCompare(allColumns[i].name) === -1) {
         break;
       }
     }
@@ -98,7 +98,7 @@ export class ConfigureTableComponent implements OnInit {
 
   /* Slight variation of insertion sort with bucketing the items in the display order*/
   prepareData(defaultColumns: ColumnMetadata[], allColumns: ColumnMetadata[], savedColumns: ColumnMetadata[]) {
-    let configuredColumns: ColumnMetadata[] = (savedColumns && savedColumns.length > 0) ?  savedColumns : defaultColumns;
+    let configuredColumns: ColumnMetadata[] = (savedColumns && savedColumns.length > 0) ? savedColumns : defaultColumns;
     let configuredColumnNames: string[] = configuredColumns.map((mData: ColumnMetadata) => mData.name);
 
     allColumns = allColumns.filter((mData: ColumnMetadata) => configuredColumnNames.indexOf(mData.name) === -1);
@@ -106,10 +106,10 @@ export class ConfigureTableComponent implements OnInit {
 
     let sortedConfiguredColumns = JSON.parse(JSON.stringify(configuredColumns));
     sortedConfiguredColumns = sortedConfiguredColumns.sort((mData1: ColumnMetadata, mData2: ColumnMetadata) => {
-                                                                return mData1.name.localeCompare(mData2.name);
-                                                          });
+      return mData1.name.localeCompare(mData2.name);
+    });
 
-    while (configuredColumns.length > 0 ) {
+    while (configuredColumns.length > 0) {
       let columnMetadata = sortedConfiguredColumns.shift();
 
       let index = this.indexOf(columnMetadata, configuredColumns);
@@ -122,8 +122,8 @@ export class ConfigureTableComponent implements OnInit {
 
     this.allColumns = allColumns.map(mData => {
       return new ColumnMetadataWrapper(mData, configuredColumnNames.indexOf(mData.name) > -1,
-                                        ColumnNamesService.columnNameToDisplayValueMap[mData.name]);
-      });
+        ColumnNamesService.columnNameToDisplayValueMap[mData.name]);
+    });
   }
 
   postSave() {
@@ -133,7 +133,7 @@ export class ConfigureTableComponent implements OnInit {
 
   save() {
     let selectedColumns = this.allColumns.filter((mDataWrapper: ColumnMetadataWrapper) => mDataWrapper.selected)
-                          .map((mDataWrapper: ColumnMetadataWrapper) => mDataWrapper.columnMetadata);
+      .map((mDataWrapper: ColumnMetadataWrapper) => mDataWrapper.columnMetadata);
 
     this.configureTableService.saveColumnMetaData(selectedColumns).subscribe(() => {
       this.saveColumnNames();

@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
-import {SharedModule} from '../shared.module';
+import { async, TestBed, ComponentFixture } from '@angular/core/testing';
+import { SharedModule } from '../shared.module';
 import { MetronModalComponent } from './metron-modal.component';
 
 describe('MetronModalComponent', () => {

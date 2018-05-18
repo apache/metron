@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {PageSize, RefreshInterval} from '../alerts/configure-rows/configure-rows-enums';
-import {ColumnMetadata} from './column-metadata';
+import { PageSize, RefreshInterval } from '../alerts/configure-rows/configure-rows-enums';
+import { ColumnMetadata } from './column-metadata';
 
 export class TableMetadata {
   size = PageSize.TWENTY_FIVE;

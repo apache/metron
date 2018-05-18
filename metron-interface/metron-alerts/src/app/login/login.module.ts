@@ -16,13 +16,20 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import {routing} from './login.routing';
-import {LoginComponent} from './login.component';
-import {SharedModule} from '../shared/shared.module';
+import { LoginRoutingModule } from './login.routing';
+import { LoginComponent } from './login.component';
+import { SharedModule } from '../shared/shared.module';
 
-@NgModule ({
-  imports: [ SharedModule, routing ],
-  declarations: [LoginComponent],
-  exports: [LoginComponent]
+@NgModule({
+  imports: [
+    SharedModule,
+    LoginRoutingModule
+  ],
+  declarations: [
+    LoginComponent
+  ],
+  exports: [
+    LoginComponent
+  ]
 })
 export class LoginModule { }

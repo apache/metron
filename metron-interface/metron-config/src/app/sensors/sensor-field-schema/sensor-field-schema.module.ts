@@ -15,16 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
-import {SharedModule} from '../../shared/shared.module';
-import {MultipleInputModule} from '../../shared/multiple-input/multiple-input.module';
-import {SampleDataModule} from '../../shared/sample-data/sample-data.module';
-import {SensorFieldSchemaComponent} from './sensor-field-schema.component';
+import { NgModule } from '@angular/core';
+import { SharedModule } from '../../shared/shared.module';
+import { MultipleInputModule } from '../../shared/multiple-input/multiple-input.module';
+import { SampleDataModule } from '../../shared/sample-data/sample-data.module';
+import { SensorFieldSchemaComponent } from './sensor-field-schema.component';
 
-@NgModule ({
-    imports: [ SharedModule, MultipleInputModule, SampleDataModule ],
-    declarations: [ SensorFieldSchemaComponent ],
-    exports: [ SensorFieldSchemaComponent ]
+@NgModule({
+  imports: [SharedModule, MultipleInputModule, SampleDataModule],
+  declarations: [SensorFieldSchemaComponent],
+  exports: [SensorFieldSchemaComponent]
 })
 
 export class SensorFieldSchemaModule { }

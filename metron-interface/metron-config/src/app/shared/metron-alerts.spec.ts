@@ -17,15 +17,15 @@
  */
 /* tslint:disable:no-unused-variable */
 
-import {MetronAlerts} from './metron-alerts';
+import { MetronAlerts } from './metron-alerts';
 
 describe('MetronAlerts', () => {
 
-  beforeEach(function() {
+  beforeEach(function () {
     MetronAlerts.SUCESS_MESSAGE_DISPALY_TIME = 500;
   });
 
-  afterEach(function() {
+  afterEach(function () {
     MetronAlerts.SUCESS_MESSAGE_DISPALY_TIME = 5000;
   });
 

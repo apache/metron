@@ -25,9 +25,9 @@ describe('MetronTablePaginationComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ MetronTablePaginationComponent ]
+      declarations: [MetronTablePaginationComponent]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

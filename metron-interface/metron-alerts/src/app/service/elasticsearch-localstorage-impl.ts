@@ -15,24 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Observable} from 'rxjs/Rx';
-import {Headers, RequestOptions} from '@angular/http';
+import { Observable } from 'rxjs/Rx';
+import { Headers, RequestOptions } from '@angular/http';
 
-import {HttpUtil} from '../utils/httpUtil';
-import {DataSource} from './data-source';
-import {ColumnMetadata} from '../model/column-metadata';
-import {ElasticsearchUtils} from '../utils/elasticsearch-utils';
+import { HttpUtil } from '../utils/httpUtil';
+import { DataSource } from './data-source';
+import { ColumnMetadata } from '../model/column-metadata';
+import { ElasticsearchUtils } from '../utils/elasticsearch-utils';
 import {
   ALERTS_COLUMN_NAMES, ALERTS_TABLE_METADATA, ALERTS_RECENT_SEARCH,
   ALERTS_SAVED_SEARCH, NUM_SAVED_SEARCH
 } from '../utils/constants';
-import {ColumnNames} from '../model/column-names';
-import {ColumnNamesService} from './column-names.service';
-import {TableMetadata} from '../model/table-metadata';
-import {SaveSearch} from '../model/save-search';
-import {SearchResponse} from '../model/search-response';
-import {SearchRequest} from '../model/search-request';
-import {AlertSource} from '../model/alert-source';
+import { ColumnNames } from '../model/column-names';
+import { ColumnNamesService } from './column-names.service';
+import { TableMetadata } from '../model/table-metadata';
+import { SaveSearch } from '../model/save-search';
+import { SearchResponse } from '../model/search-response';
+import { SearchRequest } from '../model/search-request';
+import { AlertSource } from '../model/alert-source';
 
 export class ElasticSearchLocalstorageImpl extends DataSource {
 
@@ -49,10 +49,10 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
 
   getAlerts(searchRequest: SearchRequest): Observable<SearchResponse> {
     let url = '/search/*' + ElasticsearchUtils.excludeIndexName + '/_search';
-    let request: any  = JSON.parse(JSON.stringify(searchRequest));
+    let request: any = JSON.parse(JSON.stringify(searchRequest));
     request.query = { query_string: { query: searchRequest.query } };
 
-    return this.http.post(url, request, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.post(url, request, new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
       .map(HttpUtil.extractData)
       .map(ElasticsearchUtils.extractAlertsData)
       .catch(HttpUtil.handleError)
@@ -64,7 +64,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
   }
 
   updateAlertState(request: any): Observable<{}> {
-    return this.http.post('/search/_bulk', request, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.post('/search/_bulk', request, new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }
@@ -78,7 +78,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
 
   getAllFieldNames(): Observable<ColumnMetadata[]> {
     let url = '_cluster/state';
-    return this.http.get(url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.get(url, new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
       .map(HttpUtil.extractData)
       .map(ElasticsearchUtils.extractColumnNameData)
       .catch(HttpUtil.handleError);
@@ -90,7 +90,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
       try {
         columnNames = JSON.parse(localStorage.getItem(ALERTS_COLUMN_NAMES));
         ColumnNamesService.toMap(columnNames);
-      } catch (e) {}
+      } catch (e) { }
 
       columnNames = columnNames || [];
 
@@ -104,7 +104,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
     return Observable.create(observer => {
       try {
         localStorage.setItem(ALERTS_COLUMN_NAMES, JSON.stringify(columns));
-      } catch (e) {}
+      } catch (e) { }
       ColumnNamesService.toMap(columns);
       observer.next({});
       observer.complete();
@@ -117,7 +117,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
       let tableMetadata: TableMetadata;
       try {
         tableMetadata = TableMetadata.fromJSON(JSON.parse(localStorage.getItem(ALERTS_TABLE_METADATA)));
-      } catch (e) {}
+      } catch (e) { }
 
       observer.next(tableMetadata);
       observer.complete();
@@ -128,10 +128,10 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
   saveColumnMetaDataInAlertTableSettings(columns: ColumnMetadata[]): Observable<{}> {
     return Observable.create(observer => {
       try {
-        let  tableMetadata = TableMetadata.fromJSON(JSON.parse(localStorage.getItem(ALERTS_TABLE_METADATA)));
+        let tableMetadata = TableMetadata.fromJSON(JSON.parse(localStorage.getItem(ALERTS_TABLE_METADATA)));
         tableMetadata.tableColumns = columns;
         localStorage.setItem(ALERTS_TABLE_METADATA, JSON.stringify(tableMetadata));
-      } catch (e) {}
+      } catch (e) { }
 
       observer.next({});
       observer.complete();
@@ -143,7 +143,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
     return Observable.create(observer => {
       try {
         localStorage.setItem(ALERTS_TABLE_METADATA, JSON.stringify(tableMetadata));
-      } catch (e) {}
+      } catch (e) { }
 
       observer.next({});
       observer.complete();
@@ -157,7 +157,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
       try {
         recentSearches = JSON.parse(localStorage.getItem(ALERTS_RECENT_SEARCH));
         recentSearches = recentSearches.filter(search => search.name !== saveSearch.name);
-      } catch (e) {}
+      } catch (e) { }
 
       localStorage.setItem(ALERTS_RECENT_SEARCH, JSON.stringify(recentSearches));
 
@@ -173,7 +173,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
       try {
         savedSearches = JSON.parse(localStorage.getItem(ALERTS_SAVED_SEARCH));
         savedSearches = savedSearches.filter(search => search.name !== saveSearch.name);
-      } catch (e) {}
+      } catch (e) { }
 
       localStorage.setItem(ALERTS_SAVED_SEARCH, JSON.stringify(savedSearches));
 
@@ -188,7 +188,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
       let savedSearches: SaveSearch[] = [];
       try {
         savedSearches = JSON.parse(localStorage.getItem(ALERTS_RECENT_SEARCH));
-      } catch (e) {}
+      } catch (e) { }
 
       savedSearches = savedSearches || [];
       savedSearches = savedSearches.map(tSaveSeacrh => SaveSearch.fromJSON(tSaveSeacrh));
@@ -204,7 +204,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
       let savedSearches: SaveSearch[] = [];
       try {
         savedSearches = JSON.parse(localStorage.getItem(ALERTS_SAVED_SEARCH));
-      } catch (e) {}
+      } catch (e) { }
 
       savedSearches = savedSearches || [];
       savedSearches = savedSearches.map(tSaveSeacrh => SaveSearch.fromJSON(tSaveSeacrh));
@@ -222,23 +222,23 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
 
       try {
         savedSearches = JSON.parse(localStorage.getItem(ALERTS_RECENT_SEARCH));
-      } catch (e) {}
+      } catch (e) { }
 
       savedSearches = savedSearches || [];
       savedSearches = savedSearches.map(tSaveSeacrh => SaveSearch.fromJSON(tSaveSeacrh));
 
-      if (savedSearches.length  === 0) {
+      if (savedSearches.length === 0) {
         savedSearches.push(saveSearch);
       } else {
         let found = false;
-        for ( let tSaveSearch of savedSearches) {
+        for (let tSaveSearch of savedSearches) {
           if (saveSearch.name === tSaveSearch.name) {
             tSaveSearch.lastAccessed = new Date().getTime();
             found = true;
             break;
           }
         }
-        if (!found ) {
+        if (!found) {
           if (savedSearches.length < NUM_SAVED_SEARCH) {
             savedSearches.push(saveSearch);
           } else {
@@ -261,7 +261,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
       let savedSearches: SaveSearch[] = [];
       try {
         savedSearches = JSON.parse(localStorage.getItem(ALERTS_SAVED_SEARCH));
-      } catch (e) {}
+      } catch (e) { }
 
       savedSearches = savedSearches || [];
       savedSearches.push(saveSearch);
@@ -281,7 +281,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
         let savedItem = savedSearches.find(search => search.name === saveSearch.name);
         savedItem.lastAccessed = saveSearch.lastAccessed;
         savedItem.searchRequest = saveSearch.searchRequest;
-      } catch (e) {}
+      } catch (e) { }
 
       localStorage.setItem(ALERTS_SAVED_SEARCH, JSON.stringify(savedSearches));
 

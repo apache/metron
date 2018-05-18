@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 /* tslint:disable:triple-equals */
-import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
-import {SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
-import {RiskLevelRule} from '../../model/risk-level-rule';
-import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
+import { Component, Input, EventEmitter, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
+import { RiskLevelRule } from '../../model/risk-level-rule';
+import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
 
 export enum SortOrderOption {
   Lowest_Score, Highest_Score, Lowest_Name, Highest_Name

@@ -15,16 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
-import {SharedModule} from '../../shared/shared.module';
-import {SensorGrokComponent} from './sensor-grok.component';
-import {AceEditorModule} from '../../shared/ace-editor/ace-editor.module';
-import {SampleDataModule} from '../../shared/sample-data/sample-data.module';
+import { NgModule } from '@angular/core';
+import { SharedModule } from '../../shared/shared.module';
+import { SensorGrokComponent } from './sensor-grok.component';
+import { AceEditorModule } from '../../shared/ace-editor/ace-editor.module';
+import { SampleDataModule } from '../../shared/sample-data/sample-data.module';
 
-@NgModule ({
-    imports: [ SharedModule, AceEditorModule, SampleDataModule ],
-    declarations: [ SensorGrokComponent ],
-    exports: [ SensorGrokComponent ]
+@NgModule({
+  imports: [
+    SharedModule,
+    AceEditorModule,
+    SampleDataModule
+  ],
+  declarations: [
+    SensorGrokComponent
+  ],
+  exports: [
+    SensorGrokComponent
+  ]
 })
 
 export class SensorGrokModule { }

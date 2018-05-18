@@ -16,17 +16,27 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import {routing} from './alerts-details.routing';
-import {SharedModule} from '../../shared/shared.module';
-import {AlertDetailsComponent} from './alert-details.component';
-import {AlertsService} from '../../service/alerts.service';
-import {UpdateService} from '../../service/update.service';
+import { AlertDetailsRoutingModule } from './alerts-details.routing';
+import { SharedModule } from '../../shared/shared.module';
+import { AlertDetailsComponent } from './alert-details.component';
+import { AlertsService } from '../../service/alerts.service';
+import { UpdateService } from '../../service/update.service';
 import { AlertDetailsKeysPipe } from './alert-details-keys.pipe';
-import {AuthenticationService} from '../../service/authentication.service';
+import { AuthenticationService } from '../../service/authentication.service';
 
-@NgModule ({
-    imports: [ routing,  SharedModule],
-    declarations: [ AlertDetailsComponent, AlertDetailsKeysPipe ],
-    providers: [ AuthenticationService, AlertsService, UpdateService ],
+@NgModule({
+  imports: [
+    AlertDetailsRoutingModule,
+    SharedModule
+  ],
+  declarations: [
+    AlertDetailsComponent,
+    AlertDetailsKeysPipe
+  ],
+  providers: [
+    AuthenticationService,
+    AlertsService,
+    UpdateService
+  ]
 })
 export class AlertDetailsModule { }

@@ -25,9 +25,9 @@ describe('ConfigureRowsComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ConfigureRowsComponent ]
+      declarations: [ConfigureRowsComponent]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

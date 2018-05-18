@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule }            from '@angular/core';
-import { CommonModule }        from '@angular/common';
-import { FormsModule }         from '@angular/forms';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AlertSeverityDirective } from './directives/alert-severity.directive';
 import { MetronTableDirective } from './metron-table/metron-table.directive';
 import { NavContentDirective } from './directives/nav-content.directive';
@@ -29,7 +29,7 @@ import { AlertSeverityHexagonDirective } from './directives/alert-severity-hexag
 import { TimeLapsePipe } from './pipes/time-lapse.pipe';
 
 @NgModule({
-  imports:  [
+  imports: [
     CommonModule
   ],
   declarations: [
@@ -43,7 +43,7 @@ import { TimeLapsePipe } from './pipes/time-lapse.pipe';
     TimeLapsePipe,
     MapKeysPipe,
   ],
-  exports:  [
+  exports: [
     CommonModule,
     FormsModule,
     AlertSeverityDirective,

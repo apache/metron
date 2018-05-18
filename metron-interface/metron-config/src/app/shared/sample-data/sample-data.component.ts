@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, Output, EventEmitter, ViewChild, ElementRef} from '@angular/core';
-import {KafkaService} from '../../service/kafka.service';
+import { Component, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
+import { KafkaService } from '../../service/kafka.service';
 
 @Component({
   selector: 'metron-config-sample-data',
@@ -35,7 +35,7 @@ export class SampleDataComponent {
   sampleData: string[] = [];
   sampleDataIndex: number = -1;
   placeHolderText = 'Paste Sample Message' + '\n' +
-                    'A data sample cannot automatically be loaded. Connect to a Kafka Topic or paste a message here.';
+    'A data sample cannot automatically be loaded. Connect to a Kafka Topic or paste a message here.';
 
 
   constructor(private kafkaService: KafkaService) {
@@ -52,10 +52,10 @@ export class SampleDataComponent {
   getNextSample() {
     if (this.sampleData.length - 1 === this.sampleDataIndex) {
       this.kafkaService.sample(this.topic).subscribe((sampleData: string) => {
-          this.sampleDataIndex = this.sampleDataIndex + 1;
-          this.sampleData[this.sampleDataIndex] = sampleData;
-          this.onSampleDataChanged.emit(this.sampleData[this.sampleDataIndex]);
-        },
+        this.sampleDataIndex = this.sampleDataIndex + 1;
+        this.sampleData[this.sampleDataIndex] = sampleData;
+        this.onSampleDataChanged.emit(this.sampleData[this.sampleDataIndex]);
+      },
         error => {
           this.onSampleDataNotAvailable.emit();
         });

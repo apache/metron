@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
-import {KafkaService} from '../../service/kafka.service';
-import {Observable} from  'rxjs/Observable';
-import {SampleDataComponent} from './sample-data.component';
-import {SharedModule} from '../shared.module';
+import { async, TestBed, ComponentFixture } from '@angular/core/testing';
+import { KafkaService } from '../../service/kafka.service';
+import { Observable } from 'rxjs/Observable';
+import { SampleDataComponent } from './sample-data.component';
+import { SharedModule } from '../shared.module';
 import '../../rxjs-operators';
 
 class MockKafkaService {
@@ -58,10 +58,10 @@ describe('SampleDataComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [SharedModule],
-      declarations: [ SampleDataComponent],
+      declarations: [SampleDataComponent],
       providers: [
         SampleDataComponent,
-        {provide: KafkaService, useClass: MockKafkaService}
+        { provide: KafkaService, useClass: MockKafkaService }
       ]
     });
 

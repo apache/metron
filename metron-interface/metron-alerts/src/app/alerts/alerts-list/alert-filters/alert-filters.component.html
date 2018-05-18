@@ -14,9 +14,8 @@
 <div class="w-100 h-100 filter-container">
   <div class="title"> Filters</div>
   <div class="facets">
-    <metron-collapse *ngFor="let facet of data" [data]="facet" [countOption]="true"
-                     [titleSeperator]="false" [strLength]="15" [fontSize]="12"
-                     (onSelect)="onFacetFilterSelect($event)">
+    <metron-collapse *ngFor="let facet of data" [data]="facet" [countOption]="true" [titleSeperator]="false" [strLength]="15"
+      [fontSize]="12" (onSelect)="onFacetFilterSelect($event)">
     </metron-collapse>
   </div>
 

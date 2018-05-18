@@ -17,21 +17,43 @@
  */
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import {AuthGuard} from './shared/auth-guard';
-import {LoginGuard} from './shared/login-guard';
+import { AuthGuard } from './shared/auth-guard';
+import { LoginGuard } from './shared/login-guard';
 
 const routes: Routes = [
-  { path: '',  redirectTo: 'login', pathMatch: 'full'},
-  { path: 'login', loadChildren: 'app/login/login.module#LoginModule', canActivate: [LoginGuard]},
-  { path: 'alerts-list', loadChildren: 'app/alerts/alerts-list/alerts-list.module#AlertsListModule', canActivate: [AuthGuard]},
-  { path: 'save-search', loadChildren: 'app/alerts/save-search/save-search.module#SaveSearchModule', canActivate: [AuthGuard]},
-  { path: 'saved-searches', loadChildren: 'app/alerts/saved-searches/saved-searches.module.ts#SavedSearchesModule',
-      canActivate: [AuthGuard]}
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  },
+  {
+    path: 'login',
+    loadChildren: 'app/login/login.module#LoginModule',
+    canActivate: [LoginGuard]
+  },
+  {
+    path: 'alerts-list',
+    loadChildren: 'app/alerts/alerts-list/alerts-list.module#AlertsListModule',
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'save-search',
+    loadChildren: 'app/alerts/save-search/save-search.module#SaveSearchModule',
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'saved-searches',
+    loadChildren: 'app/alerts/saved-searches/saved-searches.module.ts#SavedSearchesModule',
+    canActivate: [AuthGuard]
+  }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule],
+  imports: [
+    RouterModule.forRoot(routes)],
+  exports: [
+    RouterModule
+  ],
   providers: []
 })
-export class MetronAlertsRoutingModule { }
+export class AppRoutingModule { }

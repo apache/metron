@@ -17,7 +17,7 @@
  */
 
 export class ReplaceRequest {
-  replacement: {[key: string]: any};
+  replacement: { [key: string]: any };
   guid: string;
   sensorType: string;
   index: string;

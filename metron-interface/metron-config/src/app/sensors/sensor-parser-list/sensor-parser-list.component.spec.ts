@@ -15,29 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {SpyLocation} from '@angular/common/testing';
-import {Http, ResponseOptions, RequestOptions, Response} from '@angular/http';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { SpyLocation } from '@angular/common/testing';
+import { Http, ResponseOptions, RequestOptions, Response } from '@angular/http';
 
-import {DebugElement, Inject} from '@angular/core';
-import {By} from '@angular/platform-browser';
-import {Router, NavigationStart} from '@angular/router';
-import {Observable} from 'rxjs/Observable';
-import {SensorParserListComponent} from './sensor-parser-list.component';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {MetronAlerts} from '../../shared/metron-alerts';
-import {TopologyStatus} from '../../model/topology-status';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {AuthenticationService} from '../../service/authentication.service';
-import {SensorParserListModule} from './sensor-parser-list.module';
-import {MetronDialogBox} from '../../shared/metron-dialog-box';
-import {Sort} from '../../util/enums';
+import { DebugElement, Inject } from '@angular/core';
+import { By } from '@angular/platform-browser';
+import { Router, NavigationStart } from '@angular/router';
+import { Observable } from 'rxjs/Observable';
+import { SensorParserListComponent } from './sensor-parser-list.component';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { TopologyStatus } from '../../model/topology-status';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { AuthenticationService } from '../../service/authentication.service';
+import { SensorParserListModule } from './sensor-parser-list.module';
+import { MetronDialogBox } from '../../shared/metron-dialog-box';
+import { Sort } from '../../util/enums';
 import 'jquery';
-import {SensorParserConfigHistoryService} from '../../service/sensor-parser-config-history.service';
-import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
-import {StormService} from '../../service/storm.service';
-import {IAppConfig} from '../../app.config.interface';
+import { SensorParserConfigHistoryService } from '../../service/sensor-parser-config-history.service';
+import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../../app.config';
+import { StormService } from '../../service/storm.service';
+import { IAppConfig } from '../../app.config.interface';
 
 class MockAuthenticationService extends AuthenticationService {
 
@@ -50,7 +50,7 @@ class MockAuthenticationService extends AuthenticationService {
 
   public getCurrentUser(options: RequestOptions): Observable<Response> {
     return Observable.create(observer => {
-      observer.next(new Response(new ResponseOptions({body: 'test'})));
+      observer.next(new Response(new ResponseOptions({ body: 'test' })));
       observer.complete();
     });
   }
@@ -87,15 +87,15 @@ class MockSensorParserConfigService extends SensorParserConfigService {
     this.sensorParserConfigs = sensorParserConfigs;
   }
 
-  public getAll(): Observable<{string: SensorParserConfig}> {
+  public getAll(): Observable<{ string: SensorParserConfig }> {
     return Observable.create(observer => {
       observer.next(this.sensorParserConfigs);
       observer.complete();
     });
   }
 
-  public deleteSensorParserConfigs(sensorNames: string[]): Observable<{success: Array<string>, failure: Array<string>}> {
-    let result: {success: Array<string>, failure: Array<string>} = {success: [], failure: []};
+  public deleteSensorParserConfigs(sensorNames: string[]): Observable<{ success: Array<string>, failure: Array<string> }> {
+    let result: { success: Array<string>, failure: Array<string> } = { success: [], failure: [] };
     let observable = Observable.create((observer => {
       for (let i = 0; i < sensorNames.length; i++) {
         result.success.push(sensorNames[i]);
@@ -171,15 +171,15 @@ describe('Component: SensorParserList', () => {
     TestBed.configureTestingModule({
       imports: [SensorParserListModule],
       providers: [
-        {provide: Http},
-        {provide: Location, useClass: SpyLocation},
-        {provide: AuthenticationService, useClass: MockAuthenticationService},
-        {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
-        {provide: StormService, useClass: MockStormService},
-        {provide: SensorParserConfigHistoryService, useClass: MockSensorParserConfigHistoryService},
-        {provide: Router, useClass: MockRouter},
-        {provide: MetronDialogBox, useClass: MockMetronDialogBox},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG},
+        { provide: Http },
+        { provide: Location, useClass: SpyLocation },
+        { provide: AuthenticationService, useClass: MockAuthenticationService },
+        { provide: SensorParserConfigService, useClass: MockSensorParserConfigService },
+        { provide: StormService, useClass: MockStormService },
+        { provide: SensorParserConfigHistoryService, useClass: MockSensorParserConfigHistoryService },
+        { provide: Router, useClass: MockRouter },
+        { provide: MetronDialogBox, useClass: MockMetronDialogBox },
+        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
         MetronAlerts
       ]
     }).compileComponents()
@@ -224,7 +224,7 @@ describe('Component: SensorParserList', () => {
     sensorParserStatus2.name = 'bro';
     sensorParserStatus2.status = 'KILLED';
 
-    sensorParserConfigService.setSensorParserConfigForTest({'squid': sensorParserConfig1, 'bro': sensorParserConfig2});
+    sensorParserConfigService.setSensorParserConfigForTest({ 'squid': sensorParserConfig1, 'bro': sensorParserConfig2 });
     stormService.setTopologyStatusForTest([sensorParserStatus1, sensorParserStatus2]);
 
     let component: SensorParserListComponent = fixture.componentInstance;
@@ -299,7 +299,7 @@ describe('Component: SensorParserList', () => {
   it('onRowSelected should add add/remove items from the selected stack', async(() => {
 
     let component: SensorParserListComponent = fixture.componentInstance;
-    let event = {target: {checked: true}};
+    let event = { target: { checked: true } };
 
     let sensorParserConfigHistory = new SensorParserConfigHistory();
     let sensorParserConfig = new SensorParserConfig();
@@ -311,7 +311,7 @@ describe('Component: SensorParserList', () => {
 
     expect(component.selectedSensors[0]).toEqual(sensorParserConfigHistory);
 
-    event = {target: {checked: false}};
+    event = { target: { checked: false } };
 
     component.onRowSelected(sensorParserConfigHistory, event);
     expect(component.selectedSensors).toEqual([]);
@@ -336,13 +336,13 @@ describe('Component: SensorParserList', () => {
     component.sensors.push(sensorParserConfigHistory1);
     component.sensors.push(sensorParserConfigHistory2);
 
-    let event = {target: {checked: true}};
+    let event = { target: { checked: true } };
 
     component.onSelectDeselectAll(event);
 
     expect(component.selectedSensors).toEqual([sensorParserConfigHistory1, sensorParserConfigHistory2]);
 
-    event = {target: {checked: false}};
+    event = { target: { checked: false } };
 
     component.onSelectDeselectAll(event);
 
@@ -357,7 +357,7 @@ describe('Component: SensorParserList', () => {
     sensorParserConfigHistory1.sensorName = 'squid';
 
     let component: SensorParserListComponent = fixture.componentInstance;
-    let event = {target: {type: 'div', parentElement: {firstChild: {type: 'div'}}}};
+    let event = { target: { type: 'div', parentElement: { firstChild: { type: 'div' } } } };
 
     component.selectedSensor = sensorParserConfigHistory1;
     component.onSensorRowSelect(sensorParserConfigHistory1, event);
@@ -369,7 +369,7 @@ describe('Component: SensorParserList', () => {
     expect(component.selectedSensor).toEqual(sensorParserConfigHistory1);
 
     component.selectedSensor = sensorParserConfigHistory1;
-    event = {target: {type: 'checkbox', parentElement: {firstChild: {type: 'div'}}}};
+    event = { target: { type: 'checkbox', parentElement: { firstChild: { type: 'div' } } } };
 
     component.onSensorRowSelect(sensorParserConfigHistory1, event);
 
@@ -380,7 +380,7 @@ describe('Component: SensorParserList', () => {
 
   it('onSensorRowSelect should change the url and updated the selected items stack', async(() => {
 
-    let component: SensorParserListComponent =  fixture.componentInstance;
+    let component: SensorParserListComponent = fixture.componentInstance;
 
     let sensorParserConfigHistory = new SensorParserConfigHistory();
     let sensorParserConfig = new SensorParserConfig();
@@ -395,7 +395,7 @@ describe('Component: SensorParserList', () => {
     expect(sensorParserConfig['startStopInProgress']).toEqual(false);
   }));
 
-  it('onDeleteSensor should call the appropriate url',  async(() => {
+  it('onDeleteSensor should call the appropriate url', async(() => {
 
     spyOn(metronAlerts, 'showSuccessMessage');
     spyOn(metronDialog, 'showConfirmationMessage').and.callThrough();
@@ -403,7 +403,7 @@ describe('Component: SensorParserList', () => {
     let event = new Event('mouse');
     event.stopPropagation = jasmine.createSpy('stopPropagation');
 
-    let component: SensorParserListComponent =  fixture.componentInstance;
+    let component: SensorParserListComponent = fixture.componentInstance;
     let sensorParserConfigHistory1 = new SensorParserConfigHistory();
     let sensorParserConfigHistory2 = new SensorParserConfigHistory();
     let sensorParserConfig1 = new SensorParserConfig();
@@ -446,7 +446,7 @@ describe('Component: SensorParserList', () => {
     sensorParserConfigHistory1.config = sensorParserConfig1;
 
     let observableToReturn = Observable.create(observer => {
-      observer.next({status: 'success', message: 'Some Message'});
+      observer.next({ status: 'success', message: 'Some Message' });
       observer.complete();
     });
 
@@ -475,7 +475,7 @@ describe('Component: SensorParserList', () => {
     sensorParserConfigHistory1.config = sensorParserConfig1;
 
     let observableToReturn = Observable.create(observer => {
-      observer.next({status: 'success', message: 'Some Message'});
+      observer.next({ status: 'success', message: 'Some Message' });
       observer.complete();
     });
 
@@ -504,7 +504,7 @@ describe('Component: SensorParserList', () => {
     sensorParserConfigHistory1.config = sensorParserConfig1;
 
     let observableToReturn = Observable.create(observer => {
-      observer.next({status: 'success', message: 'Some Message'});
+      observer.next({ status: 'success', message: 'Some Message' });
       observer.complete();
     });
 
@@ -533,7 +533,7 @@ describe('Component: SensorParserList', () => {
     sensorParserConfigHistory1.config = sensorParserConfig1;
 
     let observableToReturn = Observable.create(observer => {
-      observer.next({status: 'success', message: 'Some Message'});
+      observer.next({ status: 'success', message: 'Some Message' });
       observer.complete();
     });
 
@@ -553,74 +553,74 @@ describe('Component: SensorParserList', () => {
 
   it('onStartSensors/onStopSensors should call start on all sensors that have status != ' +
     'Running and status != Running respectively', async(() => {
-    let component: SensorParserListComponent = fixture.componentInstance;
+      let component: SensorParserListComponent = fixture.componentInstance;
 
-    spyOn(component, 'onStartSensor');
-    spyOn(component, 'onStopSensor');
-    spyOn(component, 'onDisableSensor');
-    spyOn(component, 'onEnableSensor');
+      spyOn(component, 'onStartSensor');
+      spyOn(component, 'onStopSensor');
+      spyOn(component, 'onDisableSensor');
+      spyOn(component, 'onEnableSensor');
 
-    let sensorParserConfigHistory1 = new SensorParserConfigHistory();
-    let sensorParserConfigHistory2 = new SensorParserConfigHistory();
-    let sensorParserConfigHistory3 = new SensorParserConfigHistory();
-    let sensorParserConfigHistory4 = new SensorParserConfigHistory();
-    let sensorParserConfigHistory5 = new SensorParserConfigHistory();
-    let sensorParserConfigHistory6 = new SensorParserConfigHistory();
-    let sensorParserConfigHistory7 = new SensorParserConfigHistory();
+      let sensorParserConfigHistory1 = new SensorParserConfigHistory();
+      let sensorParserConfigHistory2 = new SensorParserConfigHistory();
+      let sensorParserConfigHistory3 = new SensorParserConfigHistory();
+      let sensorParserConfigHistory4 = new SensorParserConfigHistory();
+      let sensorParserConfigHistory5 = new SensorParserConfigHistory();
+      let sensorParserConfigHistory6 = new SensorParserConfigHistory();
+      let sensorParserConfigHistory7 = new SensorParserConfigHistory();
 
-    let sensorParserConfig1 = new SensorParserConfig();
-    let sensorParserConfig2 = new SensorParserConfig();
-    let sensorParserConfig3 = new SensorParserConfig();
-    let sensorParserConfig4 = new SensorParserConfig();
-    let sensorParserConfig5 = new SensorParserConfig();
-    let sensorParserConfig6 = new SensorParserConfig();
-    let sensorParserConfig7 = new SensorParserConfig();
+      let sensorParserConfig1 = new SensorParserConfig();
+      let sensorParserConfig2 = new SensorParserConfig();
+      let sensorParserConfig3 = new SensorParserConfig();
+      let sensorParserConfig4 = new SensorParserConfig();
+      let sensorParserConfig5 = new SensorParserConfig();
+      let sensorParserConfig6 = new SensorParserConfig();
+      let sensorParserConfig7 = new SensorParserConfig();
 
-    sensorParserConfig1.sensorTopic = 'squid';
-    sensorParserConfigHistory1['status'] = 'Running';
-    sensorParserConfigHistory1.config = sensorParserConfig1;
+      sensorParserConfig1.sensorTopic = 'squid';
+      sensorParserConfigHistory1['status'] = 'Running';
+      sensorParserConfigHistory1.config = sensorParserConfig1;
 
-    sensorParserConfig2.sensorTopic = 'bro';
-    sensorParserConfigHistory2['status'] = 'Stopped';
-    sensorParserConfigHistory2.config = sensorParserConfig2;
+      sensorParserConfig2.sensorTopic = 'bro';
+      sensorParserConfigHistory2['status'] = 'Stopped';
+      sensorParserConfigHistory2.config = sensorParserConfig2;
 
-    sensorParserConfig3.sensorTopic = 'test';
-    sensorParserConfigHistory3['status'] = 'Stopped';
-    sensorParserConfigHistory3.config = sensorParserConfig3;
+      sensorParserConfig3.sensorTopic = 'test';
+      sensorParserConfigHistory3['status'] = 'Stopped';
+      sensorParserConfigHistory3.config = sensorParserConfig3;
 
-    sensorParserConfig4.sensorTopic = 'test1';
-    sensorParserConfigHistory4['status'] = 'Stopped';
-    sensorParserConfigHistory4.config = sensorParserConfig4;
+      sensorParserConfig4.sensorTopic = 'test1';
+      sensorParserConfigHistory4['status'] = 'Stopped';
+      sensorParserConfigHistory4.config = sensorParserConfig4;
 
-    sensorParserConfig5.sensorTopic = 'test2';
-    sensorParserConfigHistory5['status'] = 'Running';
-    sensorParserConfigHistory5.config = sensorParserConfig5;
+      sensorParserConfig5.sensorTopic = 'test2';
+      sensorParserConfigHistory5['status'] = 'Running';
+      sensorParserConfigHistory5.config = sensorParserConfig5;
 
-    sensorParserConfig6.sensorTopic = 'test2';
-    sensorParserConfigHistory6['status'] = 'Disabled';
-    sensorParserConfigHistory6.config = sensorParserConfig6;
+      sensorParserConfig6.sensorTopic = 'test2';
+      sensorParserConfigHistory6['status'] = 'Disabled';
+      sensorParserConfigHistory6.config = sensorParserConfig6;
 
-    sensorParserConfig7.sensorTopic = 'test3';
-    sensorParserConfigHistory7['status'] = 'Disabled';
-    sensorParserConfigHistory7.config = sensorParserConfig7;
+      sensorParserConfig7.sensorTopic = 'test3';
+      sensorParserConfigHistory7['status'] = 'Disabled';
+      sensorParserConfigHistory7.config = sensorParserConfig7;
 
-    component.selectedSensors = [sensorParserConfigHistory1, sensorParserConfigHistory2, sensorParserConfigHistory3,
-      sensorParserConfigHistory4, sensorParserConfigHistory5, sensorParserConfigHistory6, sensorParserConfigHistory7];
+      component.selectedSensors = [sensorParserConfigHistory1, sensorParserConfigHistory2, sensorParserConfigHistory3,
+        sensorParserConfigHistory4, sensorParserConfigHistory5, sensorParserConfigHistory6, sensorParserConfigHistory7];
 
-    component.onStartSensors();
-    expect(component.onStartSensor['calls'].count()).toEqual(3);
+      component.onStartSensors();
+      expect(component.onStartSensor['calls'].count()).toEqual(3);
 
-    component.onStopSensors();
-    expect(component.onStopSensor['calls'].count()).toEqual(4);
+      component.onStopSensors();
+      expect(component.onStopSensor['calls'].count()).toEqual(4);
 
-    component.onDisableSensors();
-    expect(component.onDisableSensor['calls'].count()).toEqual(2);
+      component.onDisableSensors();
+      expect(component.onDisableSensor['calls'].count()).toEqual(2);
 
-    component.onEnableSensors();
-    expect(component.onEnableSensor['calls'].count()).toEqual(2);
+      component.onEnableSensors();
+      expect(component.onEnableSensor['calls'].count()).toEqual(2);
 
-    fixture.destroy();
-  }));
+      fixture.destroy();
+    }));
 
   it('sort', async(() => {
     let component: SensorParserListComponent = fixture.componentInstance;
@@ -661,32 +661,32 @@ describe('Component: SensorParserList', () => {
       })
     ];
 
-    component.onSort({sortBy: 'sensorName', sortOrder: Sort.ASC});
+    component.onSort({ sortBy: 'sensorName', sortOrder: Sort.ASC });
     expect(component.sensors[0].sensorName).toEqual('abc');
     expect(component.sensors[1].sensorName).toEqual('plm');
     expect(component.sensors[2].sensorName).toEqual('xyz');
 
-    component.onSort({sortBy: 'sensorName', sortOrder: Sort.DSC});
+    component.onSort({ sortBy: 'sensorName', sortOrder: Sort.DSC });
     expect(component.sensors[0].sensorName).toEqual('xyz');
     expect(component.sensors[1].sensorName).toEqual('plm');
     expect(component.sensors[2].sensorName).toEqual('abc');
 
-    component.onSort({sortBy: 'parserClassName', sortOrder: Sort.ASC});
+    component.onSort({ sortBy: 'parserClassName', sortOrder: Sort.ASC });
     expect(component.sensors[0].config.parserClassName).toEqual('org.apache.metron.parsers.Bro');
     expect(component.sensors[1].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
     expect(component.sensors[2].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
 
-    component.onSort({sortBy: 'parserClassName', sortOrder: Sort.DSC});
+    component.onSort({ sortBy: 'parserClassName', sortOrder: Sort.DSC });
     expect(component.sensors[0].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
     expect(component.sensors[1].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
     expect(component.sensors[2].config.parserClassName).toEqual('org.apache.metron.parsers.Bro');
 
-    component.onSort({sortBy: 'modifiedBy', sortOrder: Sort.ASC});
+    component.onSort({ sortBy: 'modifiedBy', sortOrder: Sort.ASC });
     expect(component.sensors[0].modifiedBy).toEqual('abc');
     expect(component.sensors[1].modifiedBy).toEqual('plm');
     expect(component.sensors[2].modifiedBy).toEqual('xyz');
 
-    component.onSort({sortBy: 'modifiedBy', sortOrder: Sort.DSC});
+    component.onSort({ sortBy: 'modifiedBy', sortOrder: Sort.DSC });
     expect(component.sensors[0].modifiedBy).toEqual('xyz');
     expect(component.sensors[1].modifiedBy).toEqual('plm');
     expect(component.sensors[2].modifiedBy).toEqual('abc');
@@ -707,15 +707,15 @@ describe('Component: SensorParserList', () => {
         'modifiedBy': 'abc',
         'createdDate': '2016-11-25 09:09:12',
         'modifiedByDate': '2016-11-25 09:09:12'
-    })];
+      })];
 
     component.sensorsStatus = [
-        Object.assign(new TopologyStatus(), {
-          'name': 'abc',
-          'status': 'ACTIVE',
-          'latency': '10',
-          'throughput': '23'
-        })
+      Object.assign(new TopologyStatus(), {
+        'name': 'abc',
+        'status': 'ACTIVE',
+        'latency': '10',
+        'throughput': '23'
+      })
     ];
 
     component.updateSensorStatus();

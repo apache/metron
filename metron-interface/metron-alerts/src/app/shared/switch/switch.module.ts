@@ -15,15 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
+import { NgModule } from '@angular/core';
 
-import {SharedModule} from '../shared.module';
-import {SwitchComponent} from './switch.component';
+import { SharedModule } from '../shared.module';
+import { SwitchComponent } from './switch.component';
 
 @NgModule({
-  imports: [SharedModule],
-  exports: [SwitchComponent],
-  declarations: [SwitchComponent],
+  imports: [
+    SharedModule
+  ],
+  exports: [
+    SwitchComponent
+  ],
+  declarations: [
+    SwitchComponent
+  ],
   providers: [],
 })
 export class SwitchModule {

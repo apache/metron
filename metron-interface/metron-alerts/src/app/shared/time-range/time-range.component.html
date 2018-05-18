@@ -11,9 +11,11 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<button class="btn btn-secondary btn-search" [disabled]="disabled" type="button" data-animation="false"  data-toggle="collapse" data-target="#time-range" aria-expanded="false" aria-controls="time-range">
+<button class="btn btn-secondary btn-search" [disabled]="disabled" type="button" data-animation="false" data-toggle="collapse"
+  data-target="#time-range" aria-expanded="false" aria-controls="time-range">
   <span> {{selectedTimeRangeValue}} </span>
-  <br/> <span style="font-size: 8px;" *ngIf="selectedTimeRangeValue !== 'All time'"> {{fromDateStr}} to {{toDateStr}}</span>
+  <br/>
+  <span style="font-size: 8px;" *ngIf="selectedTimeRangeValue !== 'All time'"> {{fromDateStr}} to {{toDateStr}}</span>
 </button>
 
 <div #datePicker class="collapse" id="time-range">
@@ -21,7 +23,8 @@
     <div class="container-fluid no-gutters h-100">
       <div class="row h-100">
         <div class="col-4 time-range">
-          <div class="title">Time Range</div> <br>
+          <div class="title">Time Range</div>
+          <br>
           <form>
             <div class="form-group">
               <label>FROM</label>
@@ -35,19 +38,24 @@
           </form>
         </div>
         <div class="col-8 quick-ranges pr-0">
-          <div class="title"> Quick Ranges </div> <br>
+          <div class="title"> Quick Ranges </div>
+          <br>
           <div class="row no-gutters">
             <div class="col-3">
-              <span *ngFor="let key of timeRangeMappingCol1 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol1[key])">  {{ key }} </span> <br>
+              <span *ngFor="let key of timeRangeMappingCol1 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol1[key])"> {{ key }} </span>
+              <br>
             </div>
             <div class="col-3">
-              <span *ngFor="let key of timeRangeMappingCol2 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol2[key])">  {{ key }} </span> <br>
+              <span *ngFor="let key of timeRangeMappingCol2 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol2[key])"> {{ key }} </span>
+              <br>
             </div>
             <div class="col-3">
-              <span *ngFor="let key of timeRangeMappingCol3 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol3[key])">  {{ key }} </span> <br>
+              <span *ngFor="let key of timeRangeMappingCol3 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol3[key])"> {{ key }} </span>
+              <br>
             </div>
             <div class="col-3">
-              <span *ngFor="let key of timeRangeMappingCol4 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol4[key])">  {{ key }} </span> <br>
+              <span *ngFor="let key of timeRangeMappingCol4 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol4[key])"> {{ key }} </span>
+              <br>
             </div>
           </div>
         </div>

@@ -16,6 +16,6 @@
  * limitations under the License.
  */
 export enum Sort {
-    ASC,
-    DSC
+  ASC,
+  DSC
 }

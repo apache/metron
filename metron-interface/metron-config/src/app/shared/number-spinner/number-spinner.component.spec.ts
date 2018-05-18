@@ -17,7 +17,7 @@
  */
 /* tslint:disable:no-unused-variable */
 
-import {NumberSpinnerComponent} from './number-spinner.component';
+import { NumberSpinnerComponent } from './number-spinner.component';
 
 describe('NumberSpinnerComponent', () => {
 
@@ -32,7 +32,7 @@ describe('NumberSpinnerComponent', () => {
     expect(numberSpinnerComponent.innerValue).toEqual(10);
     expect(numberSpinnerComponent.value).toEqual(10);
 
-    numberSpinnerComponent.registerOnChange((_: any) => {});
+    numberSpinnerComponent.registerOnChange((_: any) => { });
     numberSpinnerComponent.value = 11;
     expect(numberSpinnerComponent.innerValue).toEqual(11);
     expect(numberSpinnerComponent.value).toEqual(11);

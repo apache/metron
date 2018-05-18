@@ -15,17 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Inject} from '@angular/core';
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
-import {Http} from '@angular/http';
-import {GeneralSettingsComponent} from './general-settings.component';
-import {MetronAlerts} from '../shared/metron-alerts';
-import {MetronDialogBox} from '../shared/metron-dialog-box';
-import {GlobalConfigService} from '../service/global-config.service';
-import {GeneralSettingsModule} from './general-settings.module';
-import {Observable} from 'rxjs/Observable';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
+import { Inject } from '@angular/core';
+import { async, TestBed, ComponentFixture } from '@angular/core/testing';
+import { Http } from '@angular/http';
+import { GeneralSettingsComponent } from './general-settings.component';
+import { MetronAlerts } from '../shared/metron-alerts';
+import { MetronDialogBox } from '../shared/metron-dialog-box';
+import { GlobalConfigService } from '../service/global-config.service';
+import { GeneralSettingsModule } from './general-settings.module';
+import { Observable } from 'rxjs/Observable';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
+import { IAppConfig } from '../app.config.interface';
 
 class MockGlobalConfigService extends GlobalConfigService {
   _config: any = {};
@@ -78,7 +78,7 @@ describe('GeneralSettingsComponent', () => {
     'solrWriter.shards': 1,
     'solrWriter.replicationFactor': 1,
     'solrWriter.batchSize': 50,
-    'fieldValidations': {'field': 'validation'}
+    'fieldValidations': { 'field': 'validation' }
   };
 
   beforeEach(async(() => {
@@ -86,11 +86,11 @@ describe('GeneralSettingsComponent', () => {
     TestBed.configureTestingModule({
       imports: [GeneralSettingsModule],
       providers: [
-        {provide: Http},
+        { provide: Http },
         MetronAlerts,
         MetronDialogBox,
-        {provide: GlobalConfigService, useClass: MockGlobalConfigService},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: GlobalConfigService, useClass: MockGlobalConfigService },
+        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
       ]
     }).compileComponents()
       .then(() => {
@@ -136,7 +136,7 @@ describe('GeneralSettingsComponent', () => {
     let confirmationMsg = 'Cancelling will revert all the changes made to the form. Do you wish to continue ?';
 
     spyOn(component, 'ngOnInit');
-    spyOn(metronDialogBox, 'showConfirmationMessage').and.callFake(function() {
+    spyOn(metronDialogBox, 'showConfirmationMessage').and.callFake(function () {
       return Observable.create(observer => {
         observer.next(dialogReturnTrue);
         observer.complete();

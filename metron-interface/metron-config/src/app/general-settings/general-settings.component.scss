@@ -17,14 +17,12 @@
  */
 @import "../_variables.scss";
 
-.section
-{
+.section{
   border: solid 1px $gray-border;
   background-color: $gray-light;
 }
 
-.metron-button-bar-settings
-{
+.metron-button-bar-settings {
   bottom: 0;
   z-index: 10;
   width: 100%;
@@ -35,7 +33,6 @@
   background: $gray-dark;
 }
 
-textarea
-{
+textarea {
   height: auto;
 }

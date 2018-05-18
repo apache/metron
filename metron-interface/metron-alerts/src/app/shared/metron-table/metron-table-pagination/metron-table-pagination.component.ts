@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import {Pagination} from '../../../model/pagination';
+import { Pagination } from '../../../model/pagination';
 
 @Component({
   selector: 'metron-table-pagination',
   templateUrl: './metron-table-pagination.component.html',
   styleUrls: ['./metron-table-pagination.component.scss']
 })
-export class MetronTablePaginationComponent  {
+export class MetronTablePaginationComponent {
 
   @Input() pagination = new Pagination();
   @Output() pageChange = new EventEmitter();
@@ -34,7 +34,7 @@ export class MetronTablePaginationComponent  {
   }
 
   onNext() {
-    this.pagination.from  += this.pagination.size;
+    this.pagination.from += this.pagination.size;
     this.pageChange.emit();
   }
 }

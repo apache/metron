@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, EventEmitter, Output, OnInit} from '@angular/core';
-import {RiskLevelRule} from '../../../model/risk-level-rule';
+import { Component, Input, EventEmitter, Output, OnInit } from '@angular/core';
+import { RiskLevelRule } from '../../../model/risk-level-rule';
 
 @Component({
   selector: 'metron-config-sensor-rule-editor',

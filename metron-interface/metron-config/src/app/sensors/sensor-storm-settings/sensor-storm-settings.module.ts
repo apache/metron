@@ -16,14 +16,22 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import {SharedModule} from '../../shared/shared.module';
-import {SensorStormSettingsComponent} from './sensor-storm-settings.component';
-import {AceEditorModule} from '../../shared/ace-editor/ace-editor.module';
-import {NumberSpinnerModule} from '../../shared/number-spinner/number-spinner.module';
+import { SharedModule } from '../../shared/shared.module';
+import { SensorStormSettingsComponent } from './sensor-storm-settings.component';
+import { AceEditorModule } from '../../shared/ace-editor/ace-editor.module';
+import { NumberSpinnerModule } from '../../shared/number-spinner/number-spinner.module';
 
-@NgModule ({
-  imports: [ SharedModule, AceEditorModule, NumberSpinnerModule ],
-  declarations: [ SensorStormSettingsComponent ],
-  exports: [ SensorStormSettingsComponent ]
+@NgModule({
+  imports: [
+    SharedModule,
+    AceEditorModule,
+    NumberSpinnerModule
+  ],
+  declarations: [
+    SensorStormSettingsComponent
+  ],
+  exports: [
+    SensorStormSettingsComponent
+  ]
 })
-export class SensorStormSettingsModule {}
+export class SensorStormSettingsModule { }

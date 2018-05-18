@@ -17,10 +17,10 @@
  */
 /* tslint:disable:no-unused-variable */
 
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
+import { async, TestBed, ComponentFixture } from '@angular/core/testing';
 import { MultipleInputComponent } from './multiple-input.component';
-import {SharedModule} from '../shared.module';
-import {AutocompleteOption} from '../../model/autocomplete-option';
+import { SharedModule } from '../shared.module';
+import { AutocompleteOption } from '../../model/autocomplete-option';
 
 describe('Component: MultipleInput', () => {
 
@@ -30,7 +30,7 @@ describe('Component: MultipleInput', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [SharedModule],
-      declarations: [ MultipleInputComponent ],
+      declarations: [MultipleInputComponent],
       providers: [
         MultipleInputComponent
       ]
@@ -91,7 +91,7 @@ describe('Component: MultipleInput', () => {
     availableItems.push(new AutocompleteOption('option2'));
     availableItems.push(new AutocompleteOption('option3'));
 
-    let select = {'value': 'option1'};
+    let select = { 'value': 'option1' };
     component.availableItems = availableItems;
     component.onAdd(select);
     expect(component.configuredItems.length).toEqual(1);

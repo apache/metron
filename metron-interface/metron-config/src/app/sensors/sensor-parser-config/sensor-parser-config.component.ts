@@ -15,23 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {FormGroup, Validators, FormControl} from '@angular/forms';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {Router, ActivatedRoute} from '@angular/router';
-import {MetronAlerts} from '../../shared/metron-alerts';
-import {SensorParserContext} from '../../model/sensor-parser-context';
-import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
-import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
-import {SensorFieldSchemaComponent} from '../sensor-field-schema/sensor-field-schema.component';
-import {SensorRawJsonComponent} from '../sensor-raw-json/sensor-raw-json.component';
-import {KafkaService} from '../../service/kafka.service';
-import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.service';
-import {IndexingConfigurations} from '../../model/sensor-indexing-config';
-import {RestError} from '../../model/rest-error';
-import {HdfsService} from '../../service/hdfs.service';
-import {GrokValidationService} from '../../service/grok-validation.service';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { Router, ActivatedRoute } from '@angular/router';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { SensorParserContext } from '../../model/sensor-parser-context';
+import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
+import { SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
+import { SensorFieldSchemaComponent } from '../sensor-field-schema/sensor-field-schema.component';
+import { SensorRawJsonComponent } from '../sensor-raw-json/sensor-raw-json.component';
+import { KafkaService } from '../../service/kafka.service';
+import { SensorIndexingConfigService } from '../../service/sensor-indexing-config.service';
+import { IndexingConfigurations } from '../../model/sensor-indexing-config';
+import { RestError } from '../../model/rest-error';
+import { HdfsService } from '../../service/hdfs.service';
+import { GrokValidationService } from '../../service/grok-validation.service';
 
 export enum Pane {
   GROK, RAWJSON, FIELDSCHEMA, THREATTRIAGE, STORMSETTINGS
@@ -81,7 +81,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   topicExists: boolean = false;
 
-  transformsValidationResult: {map: any, keys: string[]} = {map: {}, keys: []};
+  transformsValidationResult: { map: any, keys: string[] } = { map: {}, keys: [] };
   transformsValidation: SensorParserContext = new SensorParserContext();
 
   pane = Pane;
@@ -94,9 +94,9 @@ export class SensorParserConfigComponent implements OnInit {
   @ViewChild(SensorRawJsonComponent) sensorRawJson: SensorRawJsonComponent;
 
   constructor(private sensorParserConfigService: SensorParserConfigService, private metronAlerts: MetronAlerts,
-              private sensorEnrichmentConfigService: SensorEnrichmentConfigService, private route: ActivatedRoute,
-              private sensorIndexingConfigService: SensorIndexingConfigService, private grokValidationService: GrokValidationService,
-              private router: Router, private kafkaService: KafkaService, private hdfsService: HdfsService) {
+    private sensorEnrichmentConfigService: SensorEnrichmentConfigService, private route: ActivatedRoute,
+    private sensorIndexingConfigService: SensorIndexingConfigService, private grokValidationService: GrokValidationService,
+    private router: Router, private kafkaService: KafkaService, private hdfsService: HdfsService) {
     this.sensorParserConfig.parserConfig = {};
   }
 
@@ -129,7 +129,8 @@ export class SensorParserConfigComponent implements OnInit {
           if (patternLabel) {
             this.patternLabel = patternLabel;
           }
-      }});
+        }
+      });
 
       this.sensorEnrichmentConfigService.get(id).subscribe((result: SensorEnrichmentConfig) => {
         this.sensorEnrichmentConfig = result;
@@ -140,7 +141,7 @@ export class SensorParserConfigComponent implements OnInit {
       });
 
       this.sensorIndexingConfigService.get(id).subscribe((result: IndexingConfigurations) => {
-            this.indexingConfigurations = result;
+        this.indexingConfigurations = result;
       }, (error: RestError) => {
         if (error.responseCode !== 404) {
           this.metronAlerts.showErrorMessage(error.message);
@@ -220,13 +221,13 @@ export class SensorParserConfigComponent implements OnInit {
   onSetSensorName(): void {
     this.sensorNameUnique = this.currentSensors.indexOf(this.sensorName) === -1;
     this.sensorNameValid = this.sensorName !== undefined &&
-        this.sensorName.length > 0 && this.sensorNameUnique;
+      this.sensorName.length > 0 && this.sensorNameUnique;
     this.isConfigValid();
   }
 
   onSetKafkaTopic(): void {
     this.kafkaTopicValid = this.sensorParserConfig.sensorTopic !== undefined &&
-        /[a-zA-Z0-9._-]+$/.test(this.sensorParserConfig.sensorTopic);
+      /[a-zA-Z0-9._-]+$/.test(this.sensorParserConfig.sensorTopic);
     if (this.kafkaTopicValid) {
       this.getKafkaStatus();
     }
@@ -235,7 +236,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   onParserTypeChange(): void {
     this.parserClassValid = this.sensorParserConfig.parserClassName !== undefined &&
-        this.sensorParserConfig.parserClassName.length > 0;
+      this.sensorParserConfig.parserClassName.length > 0;
     if (this.parserClassValid) {
       if (this.isGrokParser(this.sensorParserConfig)) {
       } else {
@@ -247,7 +248,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   onGrokStatementChange(): void {
     this.grokStatementValid = this.grokStatement !== undefined &&
-        this.grokStatement.length > 0;
+      this.grokStatement.length > 0;
     this.isConfigValid();
   }
 
@@ -266,13 +267,13 @@ export class SensorParserConfigComponent implements OnInit {
       this.kafkaService.sample(this.sensorParserConfig.sensorTopic).subscribe((sampleData: string) => {
         this.currentKafkaStatus = (sampleData && sampleData.length > 0) ? KafkaStatus.EMITTING : KafkaStatus.NOT_EMITTING;
       },
-      error => {
-        this.currentKafkaStatus = KafkaStatus.NOT_EMITTING;
-      });
+        error => {
+          this.currentKafkaStatus = KafkaStatus.NOT_EMITTING;
+        });
     },
-    error => {
-      this.currentKafkaStatus = KafkaStatus.NO_TOPIC;
-    });
+      error => {
+        this.currentKafkaStatus = KafkaStatus.NO_TOPIC;
+      });
 
   }
 
@@ -320,21 +321,21 @@ export class SensorParserConfigComponent implements OnInit {
     this.sensorParserConfigService.post(this.sensorName, this.sensorParserConfig).subscribe(
       sensorParserConfig => {
         if (this.isGrokParser(sensorParserConfig)) {
-            this.hdfsService.post(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
-                response => {}, (error: RestError) => this.metronAlerts.showErrorMessage(error.message));
+          this.hdfsService.post(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
+            response => { }, (error: RestError) => this.metronAlerts.showErrorMessage(error.message));
         }
         this.sensorEnrichmentConfigService.post(this.sensorName, this.sensorEnrichmentConfig).subscribe(
-            (sensorEnrichmentConfig: SensorEnrichmentConfig) => {
-        }, (error: RestError) => {
-              let msg = ' Sensor parser config but unable to save enrichment configuration: ';
-              this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
-        });
+          (sensorEnrichmentConfig: SensorEnrichmentConfig) => {
+          }, (error: RestError) => {
+            let msg = ' Sensor parser config but unable to save enrichment configuration: ';
+            this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
+          });
         this.sensorIndexingConfigService.post(this.sensorName, this.indexingConfigurations).subscribe(
-            (indexingConfigurations: IndexingConfigurations) => {
-        }, (error: RestError) => {
-              let msg = ' Sensor parser config but unable to save indexing configuration: ';
-              this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
-        });
+          (indexingConfigurations: IndexingConfigurations) => {
+          }, (error: RestError) => {
+            let msg = ' Sensor parser config but unable to save indexing configuration: ';
+            this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
+          });
         this.metronAlerts.showSuccessMessage(this.getMessagePrefix() + ' Sensor ' + this.sensorName);
         this.sensorParserConfigService.dataChangedSource.next([this.sensorName]);
         this.goBack();
@@ -417,8 +418,8 @@ export class SensorParserConfigComponent implements OnInit {
   setPaneVisibility(pane: Pane, visibilty: boolean) {
     this.showGrokValidator = (pane === Pane.GROK) ? visibilty : false;
     this.showFieldSchema = (pane === Pane.FIELDSCHEMA) ? visibilty : false;
-    this.showRawJson = (pane ===  Pane.RAWJSON) ? visibilty : false;
-    this.showThreatTriage = (pane ===  Pane.THREATTRIAGE) ? visibilty : false;
+    this.showRawJson = (pane === Pane.RAWJSON) ? visibilty : false;
+    this.showThreatTriage = (pane === Pane.THREATTRIAGE) ? visibilty : false;
     this.showStormSettings = (pane === Pane.STORMSETTINGS) ? visibilty : false;
   }
 

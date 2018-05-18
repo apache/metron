@@ -37,8 +37,8 @@ export class NumberSpinnerComponent implements ControlValueAccessor {
 
   innerValue: number = 0;
 
-  private onTouchedCallback ;
-  private onChangeCallback ;
+  private onTouchedCallback;
+  private onChangeCallback;
 
   writeValue(val: any) {
     this.innerValue = val;

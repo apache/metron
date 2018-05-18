@@ -15,20 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
-import {Http} from '@angular/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Rx';
+import { Http } from '@angular/http';
 
 
-import {ColumnMetadata} from '../model/column-metadata';
-import {DataSource} from './data-source';
+import { ColumnMetadata } from '../model/column-metadata';
+import { DataSource } from './data-source';
 
 @Injectable()
 export class ClusterMetaDataService {
-  defaultHeaders: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  defaultHeaders: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
 
   constructor(private http: Http,
-              private dataSource: DataSource) {
+    private dataSource: DataSource) {
   }
 
   getDefaultColumns(): Observable<ColumnMetadata[]> {

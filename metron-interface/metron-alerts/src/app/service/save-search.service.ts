@@ -15,14 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, } from '@angular/core';
-import {Observable} from 'rxjs/Rx';
-import {Http} from '@angular/http';
-import {Subject} from 'rxjs/Subject';
-import {QueryBuilder} from '../alerts/alerts-list/query-builder';
-import {SaveSearch} from '../model/save-search';
-import {ColumnMetadata} from '../model/column-metadata';
-import {DataSource} from './data-source';
+import { Injectable, } from '@angular/core';
+import { Observable } from 'rxjs/Rx';
+import { Http } from '@angular/http';
+import { Subject } from 'rxjs/Subject';
+import { QueryBuilder } from '../alerts/alerts-list/query-builder';
+import { SaveSearch } from '../model/save-search';
+import { ColumnMetadata } from '../model/column-metadata';
+import { DataSource } from './data-source';
 
 @Injectable()
 export class SaveSearchService {
@@ -34,7 +34,7 @@ export class SaveSearchService {
   loadSavedSearch$ = this.loadSavedSearch.asObservable();
 
   constructor(private http: Http,
-              private dataSource: DataSource) {}
+    private dataSource: DataSource) { }
 
   deleteRecentSearch(saveSearch: SaveSearch): Observable<{}> {
     return this.dataSource.deleteRecentSearch(saveSearch);

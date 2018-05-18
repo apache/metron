@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
+import { async, inject, TestBed } from '@angular/core/testing';
+import { MockBackend, MockConnection } from '@angular/http/testing';
+import { HttpModule, XHRBackend, Response, ResponseOptions, Http } from '@angular/http';
 import '../rxjs-operators';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
-import {HdfsService} from './hdfs.service';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
+import { IAppConfig } from '../app.config.interface';
+import { HdfsService } from './hdfs.service';
 
 describe('HdfsService', () => {
 
@@ -30,8 +30,8 @@ describe('HdfsService', () => {
       imports: [HttpModule],
       providers: [
         HdfsService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: XHRBackend, useClass: MockBackend },
+        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
       ]
     })
       .compileComponents();
@@ -67,10 +67,10 @@ describe('HdfsService', () => {
     beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
       mockBackend = be;
       hdfsService = new HdfsService(http, config);
-      listResponse = new Response(new ResponseOptions({status: 200, body: fileList}));
-      readResponse = new Response(new ResponseOptions({status: 200, body: contents}));
-      postResponse = new Response(new ResponseOptions({status: 200}));
-      deleteResponse = new Response(new ResponseOptions({status: 200}));
+      listResponse = new Response(new ResponseOptions({ status: 200, body: fileList }));
+      readResponse = new Response(new ResponseOptions({ status: 200, body: contents }));
+      postResponse = new Response(new ResponseOptions({ status: 200 }));
+      deleteResponse = new Response(new ResponseOptions({ status: 200 }));
     }));
 
     it('list', async(inject([], () => {
@@ -92,17 +92,17 @@ describe('HdfsService', () => {
     it('post', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(postResponse));
       hdfsService.post('/path', contents).subscribe(
-          result => {
-            expect(result.status).toEqual(200);
-          }, error => console.log(error));
+        result => {
+          expect(result.status).toEqual(200);
+        }, error => console.log(error));
     })));
 
     it('deleteFile', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(deleteResponse));
       hdfsService.deleteFile('/path').subscribe(
-          result => {
-            expect(result.status).toEqual(200);
-          }, error => console.log(error));
+        result => {
+          expect(result.status).toEqual(200);
+        }, error => console.log(error));
     })));
   });
 

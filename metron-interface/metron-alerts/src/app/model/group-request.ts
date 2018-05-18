@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Group} from './group';
-import {INDEXES} from '../utils/constants';
+import { Group } from './group';
+import { INDEXES } from '../utils/constants';
 
 export class GroupRequest {
   indices: string[] = INDEXES;

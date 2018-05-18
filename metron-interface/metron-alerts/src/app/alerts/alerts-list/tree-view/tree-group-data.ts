@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Subscription} from 'rxjs/Rx';
-import {SearchResponse} from '../../../model/search-response';
-import {Pagination} from '../../../model/pagination';
-import {TREE_SUB_GROUP_SIZE} from '../../../utils/constants';
-import {SortField} from '../../../model/sort-field';
-import {SortEvent} from '../../../shared/metron-table/metron-table.directive';
-import {Sort} from '../../../utils/enums';
+import { Subscription } from 'rxjs/Rx';
+import { SearchResponse } from '../../../model/search-response';
+import { Pagination } from '../../../model/pagination';
+import { TREE_SUB_GROUP_SIZE } from '../../../utils/constants';
+import { SortField } from '../../../model/sort-field';
+import { SortEvent } from '../../../shared/metron-table/metron-table.directive';
+import { Sort } from '../../../utils/enums';
 
 export class TreeGroupData {
   key: string;
@@ -34,7 +34,7 @@ export class TreeGroupData {
 
   // Used by only Dashrow
   sortField: SortField;
-  sortEvent: SortEvent = { sortBy: '', type: '', sortOrder: Sort.ASC};
+  sortEvent: SortEvent = { sortBy: '', type: '', sortOrder: Sort.ASC };
   treeSubGroups: TreeGroupData[] = [];
 
   // Used by only Leafnodes

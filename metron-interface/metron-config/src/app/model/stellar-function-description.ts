@@ -21,7 +21,7 @@ export class StellarFunctionDescription {
   params: string[];
   returns: string;
 
-  constructor(name: string,  description: string,  params: string[], returns?: string) {
+  constructor(name: string, description: string, params: string[], returns?: string) {
     this.name = name;
     this.description = description;
     this.params = params;

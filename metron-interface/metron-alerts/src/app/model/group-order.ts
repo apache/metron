@@ -17,6 +17,6 @@
  */
 
 export class GroupOrder {
-  sortOrder: 'desc'|'asc' = 'desc';
-  groupOrderType: 'count'|'term' = 'term';
+  sortOrder: 'desc' | 'asc' = 'desc';
+  groupOrderType: 'count' | 'term' = 'term';
 }

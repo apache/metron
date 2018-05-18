@@ -17,17 +17,17 @@
  */
 /* tslint:disable:max-line-length */
 import { Component, OnInit, Input, OnChanges, ViewChild, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {ParseMessageRequest} from '../../model/parse-message-request';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {StellarService} from '../../service/stellar.service';
-import {AutocompleteOption} from '../../model/autocomplete-option';
-import {StellarFunctionDescription} from '../../model/stellar-function-description';
-import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
-import {FieldTransformer} from '../../model/field-transformer';
-import {SampleDataComponent} from '../../shared/sample-data/sample-data.component';
-import {MetronAlerts} from '../../shared/metron-alerts';
-import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParseMessageRequest } from '../../model/parse-message-request';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { StellarService } from '../../service/stellar.service';
+import { AutocompleteOption } from '../../model/autocomplete-option';
+import { StellarFunctionDescription } from '../../model/stellar-function-description';
+import { SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig } from '../../model/sensor-enrichment-config';
+import { FieldTransformer } from '../../model/field-transformer';
+import { SampleDataComponent } from '../../shared/sample-data/sample-data.component';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
 
 export class FieldSchemaRow {
   inputFieldName: string;
@@ -84,9 +84,9 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
   sampleThreatIntels: string[] = ['malicious_ip'];
 
   constructor(private sensorParserConfigService: SensorParserConfigService,
-              private transformationValidationService: StellarService,
-              private sensorEnrichmentConfigService: SensorEnrichmentConfigService,
-              private metronAlerts: MetronAlerts) { }
+    private transformationValidationService: StellarService,
+    private sensorEnrichmentConfigService: SensorEnrichmentConfigService,
+    private metronAlerts: MetronAlerts) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['showFieldSchema'] && changes['showFieldSchema'].currentValue) {
@@ -140,7 +140,7 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
   isConditionalRemoveTransform(fieldTransformer: FieldTransformer): boolean {
     if (fieldTransformer && fieldTransformer.transformation === 'REMOVE' &&
-        fieldTransformer.config && fieldTransformer.config['condition']) {
+      fieldTransformer.config && fieldTransformer.config['condition']) {
       return true;
     }
 
@@ -221,7 +221,7 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
     // Update rows with threatIntels
     if (this.sensorEnrichmentConfig.threatIntel.fieldToTypeMap) {
-      for (let fieldName of  Object.keys(this.sensorEnrichmentConfig.threatIntel.fieldToTypeMap)) {
+      for (let fieldName of Object.keys(this.sensorEnrichmentConfig.threatIntel.fieldToTypeMap)) {
         let threatIntels = this.sensorEnrichmentConfig.threatIntel.fieldToTypeMap[fieldName];
 
         if (!fieldSchemaRowsCreated[fieldName]) {
@@ -239,9 +239,9 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
     // Adds rows from parseResult with no transformations/enrichments/threatIntels
     let fieldSchemaRowsCreatedKeys = Object.keys(fieldSchemaRowsCreated);
     for (let fieldName of Object.keys(this.parserResult).filter(fieldName => fieldSchemaRowsCreatedKeys.indexOf(fieldName) === -1)) {
-        let field = new FieldSchemaRow(fieldName);
-        field.isParserGenerated = true;
-        this.fieldSchemaRows.push(field);
+      let field = new FieldSchemaRow(fieldName);
+      field.isParserGenerated = true;
+      this.fieldSchemaRows.push(field);
     }
 
     // save the initial fieldSchemaRows
@@ -282,13 +282,13 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
     parseMessageRequest.sensorParserConfig.parserConfig['grokPath'] = './' + parseMessageRequest.sensorParserConfig.sensorTopic;
 
     this.sensorParserConfigService.parseMessage(parseMessageRequest).subscribe(
-        parserResult => {
-          this.parserResult = parserResult;
-          this.createFieldSchemaRows();
-        },
-        error => {
-          this.onSampleDataNotAvailable();
-        });
+      parserResult => {
+        this.parserResult = parserResult;
+        this.createFieldSchemaRows();
+      },
+      error => {
+        this.onSampleDataNotAvailable();
+      });
   }
 
   onSampleDataNotAvailable() {

@@ -1,7 +1,7 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, forwardRef, Input} from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, forwardRef, Input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import Editor = AceAjax.Editor;
-import {AutocompleteOption} from '../../model/autocomplete-option';
+import { AutocompleteOption } from '../../model/autocomplete-option';
 
 declare var ace: any;
 
@@ -34,7 +34,7 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   }
 
   ngAfterViewInit() {
-    ace.config.loadModule('ace/ext/language_tools',  () => { this.initializeEditor(); });
+    ace.config.loadModule('ace/ext/language_tools', () => { this.initializeEditor(); });
   }
 
   writeValue(obj: any) {
@@ -111,7 +111,7 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   private getGrokCompletion() {
     let _this = this;
     return {
-      getCompletions: function(editor, session, pos, prefix, callback) {
+      getCompletions: function (editor, session, pos, prefix, callback) {
         let autoCompletePrefix = '';
         let autoCompleteSuffix = '';
         let options = _this.options;
@@ -151,7 +151,7 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
           }
         }
 
-        callback(null, options.map(function(autocompleteOption) {
+        callback(null, options.map(function (autocompleteOption) {
           return {
             caption: autocompleteOption.name,
             snippet: autoCompletePrefix + autocompleteOption.name + autoCompleteSuffix,
@@ -165,18 +165,18 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   }
 
   private getEditorType() {
-      if (this.type === 'GROK') {
-        return 'ace/mode/grok';
-      }
+    if (this.type === 'GROK') {
+      return 'ace/mode/grok';
+    }
 
-      return 'ace/mode/json';
+    return 'ace/mode/json';
   }
 
   private setInput() {
-      if (this.aceConfigEditor && this.inputJson) {
-        this.aceConfigEditor.getSession().setValue(this.inputJson);
-        this.aceConfigEditor.resize(true);
-      }
+    if (this.aceConfigEditor && this.inputJson) {
+      this.aceConfigEditor.getSession().setValue(this.inputJson);
+      this.aceConfigEditor.resize(true);
+    }
   }
 
 }

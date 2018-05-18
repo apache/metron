@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, OnChanges, Input} from '@angular/core';
-import {FormGroup, Validators, FormControl} from '@angular/forms';
+import { Component, OnInit, OnChanges, Input } from '@angular/core';
+import { FormGroup, Validators, FormControl } from '@angular/forms';
 
 @Component({
   selector: 'metron-config-advanced-form',
@@ -40,7 +40,7 @@ export class AdvancedConfigFormComponent implements OnInit, OnChanges {
     this.configForm = this.createForm();
   }
 
-  ngOnChanges(changes: {[propertyName: string]: any}) {
+  ngOnChanges(changes: { [propertyName: string]: any }) {
     for (let propName of Object.keys(changes)) {
       let chng = changes[propName];
       let cur = JSON.stringify(chng.currentValue);
@@ -118,9 +118,9 @@ export class AdvancedConfigFormComponent implements OnInit, OnChanges {
 
   saveValue(key: string, value: string) {
     try {
-        this.config[key] = JSON.parse(value);
+      this.config[key] = JSON.parse(value);
     } catch (err) {
-        this.config[key] = value;
+      this.config[key] = value;
     }
 
   }

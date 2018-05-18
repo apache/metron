@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 /* tslint:disable:directive-selector-name */
-import {Directive, Output, EventEmitter} from '@angular/core';
-import {Sort} from '../../util/enums';
+import { Directive, Output, EventEmitter } from '@angular/core';
+import { Sort } from '../../util/enums';
 
 export interface SortEvent {
   sortBy: string;

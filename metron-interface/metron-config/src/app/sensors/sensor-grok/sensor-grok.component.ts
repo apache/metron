@@ -1,11 +1,11 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges, ViewChild, EventEmitter, Output} from '@angular/core';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {ParseMessageRequest} from '../../model/parse-message-request';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {AutocompleteOption} from '../../model/autocomplete-option';
-import {GrokValidationService} from '../../service/grok-validation.service';
-import {SampleDataComponent} from '../../shared/sample-data/sample-data.component';
-import {MetronAlerts} from '../../shared/metron-alerts';
+import { Component, OnInit, Input, OnChanges, SimpleChanges, ViewChild, EventEmitter, Output } from '@angular/core';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParseMessageRequest } from '../../model/parse-message-request';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { AutocompleteOption } from '../../model/autocomplete-option';
+import { GrokValidationService } from '../../service/grok-validation.service';
+import { SampleDataComponent } from '../../shared/sample-data/sample-data.component';
+import { MetronAlerts } from '../../shared/metron-alerts';
 
 @Component({
   selector: 'metron-config-sensor-grok',
@@ -33,8 +33,11 @@ export class SensorGrokComponent implements OnInit, OnChanges {
   grokFunctionList: AutocompleteOption[] = [];
   parseMessageRequest: ParseMessageRequest = new ParseMessageRequest();
 
-  constructor(private sensorParserConfigService: SensorParserConfigService, private grokValidationService: GrokValidationService,
-              private metronAlerts: MetronAlerts) {
+  constructor(
+    private sensorParserConfigService: SensorParserConfigService,
+    private grokValidationService: GrokValidationService,
+    private metronAlerts: MetronAlerts
+  ) {
     this.parseMessageRequest.sampleData = '';
   }
 
@@ -75,13 +78,13 @@ export class SensorGrokComponent implements OnInit, OnChanges {
     this.parseMessageRequest.sensorParserConfig.parserConfig['grokPath'] = './' + this.parseMessageRequest.sensorParserConfig.sensorTopic;
 
     this.sensorParserConfigService.parseMessage(this.parseMessageRequest).subscribe(
-        result => {
-          this.parsedMessage = result;
-          this.setParsedMessageKeys();
-        }, error => {
-          this.metronAlerts.showErrorMessage(error.message);
-          this.setParsedMessageKeys();
-        });
+      result => {
+        this.parsedMessage = result;
+        this.setParsedMessageKeys();
+      }, error => {
+        this.metronAlerts.showErrorMessage(error.message);
+        this.setParsedMessageKeys();
+      });
   }
 
   private getGrokFunctions() {

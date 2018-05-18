@@ -18,8 +18,8 @@
 /* tslint:disable:no-unused-variable */
 // directiveSelectorNameRule
 
-import {MetronSorterComponent} from './metron-sorter.component';
-import {MetronTableDirective} from '../metron-table.directive';
+import { MetronSorterComponent } from './metron-sorter.component';
+import { MetronTableDirective } from '../metron-table.directive';
 
 describe('Component: MetronSorter', () => {
 

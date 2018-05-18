@@ -12,28 +12,38 @@
   the specific language governing permissions and limitations under the License.
   -->
 <form role="form" [formGroup]="configForm">
-    <div *ngFor="let key of configKeys">
-        <div class="row mx-0 configkey-row">
-            <div class="col-md-10 advanced-input"><input type="text" class="form-control" name="advanced1" value="{{key}}" readonly></div>
-            <div class="col-md-2">
-            </div>
-        </div>
-        <div class="row  mx-0">
-            <div class="col-md-10 advanced-input"><input type="text" class="form-control" formControlName="{{key}}" [ngModel]="displayValue(key)" (ngModelChange)="saveValue(key, $event)"></div>
-            <div class="col-md-2" (click)="removeConfig(key)">
-                <i class="fa fa-minus fa-4 icon-button" aria-hidden="true" ></i>
-            </div>
-        </div>
-    </div>
-    <div class="row  mx-0 new-configkey-row">
-        <div class="col-md-10 advanced-input"><input type="text" class="form-control"  (focus)="clearKeyPlaceholder()" (blur)="saveNewConfig()" [ngClass]="{'input-placeholder': newConfigKey == 'enter field'}" formControlName="newConfigKey" [(ngModel)]="newConfigKey"></div>
-        <div class="col-md-2">
-        </div>
+  <div *ngFor="let key of configKeys">
+    <div class="row mx-0 configkey-row">
+      <div class="col-md-10 advanced-input">
+        <input type="text" class="form-control" name="advanced1" value="{{key}}" readonly>
+      </div>
+      <div class="col-md-2">
+      </div>
     </div>
     <div class="row  mx-0">
-        <div class="col-md-10 advanced-input"><input type="text" class="form-control" (focus)="clearValuePlaceholder()" (blur)="saveNewConfig()" [ngClass]="{'input-placeholder': newConfigValue == 'enter value'}" formControlName="newConfigValue" [(ngModel)]="newConfigValue"></div>
-        <div class="col-md-2" (click)="addConfig()">
-            <i class="fa fa-plus fa-4 icon-button" aria-hidden="true" ></i>
-        </div>
+      <div class="col-md-10 advanced-input">
+        <input type="text" class="form-control" formControlName="{{key}}" [ngModel]="displayValue(key)" (ngModelChange)="saveValue(key, $event)">
+      </div>
+      <div class="col-md-2" (click)="removeConfig(key)">
+        <i class="fa fa-minus fa-4 icon-button" aria-hidden="true"></i>
+      </div>
     </div>
+  </div>
+  <div class="row  mx-0 new-configkey-row">
+    <div class="col-md-10 advanced-input">
+      <input type="text" class="form-control" (focus)="clearKeyPlaceholder()" (blur)="saveNewConfig()" [ngClass]="{'input-placeholder': newConfigKey == 'enter field'}"
+        formControlName="newConfigKey" [(ngModel)]="newConfigKey">
+    </div>
+    <div class="col-md-2">
+    </div>
+  </div>
+  <div class="row  mx-0">
+    <div class="col-md-10 advanced-input">
+      <input type="text" class="form-control" (focus)="clearValuePlaceholder()" (blur)="saveNewConfig()" [ngClass]="{'input-placeholder': newConfigValue == 'enter value'}"
+        formControlName="newConfigValue" [(ngModel)]="newConfigValue">
+    </div>
+    <div class="col-md-2" (click)="addConfig()">
+      <i class="fa fa-plus fa-4 icon-button" aria-hidden="true"></i>
+    </div>
+  </div>
 </form>
