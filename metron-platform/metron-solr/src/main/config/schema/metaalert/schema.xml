@@ -44,14 +44,15 @@
 
   <uniqueKey>guid</uniqueKey>
 
-  <fieldType name="string" class="solr.StrField" sortMissingLast="true"/>
-  <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
-  <fieldType name="pint" class="solr.IntPointField" docValues="true"/>
-  <fieldType name="pfloat" class="solr.FloatPointField" docValues="true"/>
-  <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
-  <fieldType name="pdouble" class="solr.DoublePointField" docValues="true"/>
+  <!-- Type Definitions -->
+  <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.TrieIntField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.TrieFloatField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.TrieDoubleField" sortMissingLast="false" docValues="true"/>
   <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
-  <fieldType name="ignored" stored="false" indexed="false" multiValued="true"
-    class="solr.StrField"/>
-
+  <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
 </schema>
