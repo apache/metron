@@ -53,6 +53,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   treeGroupSubscriptionMap: {[key: string]: TreeAlertsSubscription } = {};
   alertsChangedSubscription: Subscription;
   globalConfig: {} = {};
+  configSubscription: Subscription;
 
   constructor(router: Router,
               searchService: SearchService,
@@ -185,13 +186,14 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
   ngOnInit() {
     this.addAlertChangedListner();
-    this.globalConfigService.get().subscribe((config: {}) => {
+    this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
       this.globalConfig = config;
     });
   }
 
   ngOnDestroy(): void {
     this.removeAlertChangedLister();
+    this.configSubscription.unsubscribe();
   }
 
   searchGroup(selectedGroup: TreeGroupData, searchRequest: SearchRequest): Subscription {

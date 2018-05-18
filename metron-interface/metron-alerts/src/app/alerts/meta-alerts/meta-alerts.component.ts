@@ -15,8 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import {Router} from '@angular/router';
+import { Subscription } from 'rxjs/Rx';
 
 import {MetaAlertService} from '../../service/meta-alert.service';
 import {UpdateService} from '../../service/update.service';
@@ -35,11 +36,12 @@ import { GlobalConfigService } from '../../service/global-config.service';
   templateUrl: './meta-alerts.component.html',
   styleUrls: ['./meta-alerts.component.scss']
 })
-export class MetaAlertsComponent implements OnInit {
+export class MetaAlertsComponent implements OnInit, OnDestroy {
 
   selectedMetaAlert = '';
   searchResponse: SearchResponse = new SearchResponse();
   globalConfig: {} = {};
+  configSubscription: Subscription;
 
   constructor(private router: Router,
               private metaAlertService: MetaAlertService,
@@ -64,9 +66,13 @@ export class MetaAlertsComponent implements OnInit {
     searchRequest.sort = [new SortField('threat:triage:score', 'desc')];
 
     this.searchService.search(searchRequest).subscribe(resp => this.searchResponse = resp);
-    this.globalConfigService.get().subscribe((config: {}) => {
+    this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
       this.globalConfig = config;
     });
+  }
+
+  ngOnDestroy() {
+    this.configSubscription.unsubscribe();
   }
 
   addAlertToMetaAlert() {

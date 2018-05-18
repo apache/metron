@@ -16,8 +16,9 @@
  * limitations under the License.
  */
 
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnInit, OnDestroy } from '@angular/core';
 import {Router} from '@angular/router';
+import { Subscription } from 'rxjs/Rx';
 
 import {Pagination} from '../../../model/pagination';
 import {SortEvent} from '../../../shared/metron-table/metron-table.directive';
@@ -48,7 +49,7 @@ export enum MetronAlertDisplayState {
   styleUrls: ['./table-view.component.scss']
 })
 
-export class TableViewComponent implements OnInit, OnChanges {
+export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
   threatScoreFieldName = 'threat:triage:score';
 
@@ -62,6 +63,7 @@ export class TableViewComponent implements OnInit, OnChanges {
   metronAlertDisplayState = MetronAlertDisplayState;
   globalConfig: {} = {};
   globalConfigService: GlobalConfigService;
+  configSubscription: Subscription;
 
   @Input() alerts: Alert[] = [];
   @Input() queryBuilder: QueryBuilder;
@@ -91,7 +93,7 @@ export class TableViewComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
-    this.globalConfigService.get().subscribe((config: {}) => {
+    this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
       this.globalConfig = config;
       if (this.globalConfig['source.type.field']) {
         let filteredAlertsColumnsToDisplay = this.alertsColumnsToDisplay.filter(colName => colName.name !== 'source:type');
@@ -112,6 +114,10 @@ export class TableViewComponent implements OnInit, OnChanges {
     if (changes && changes['alertsColumnsToDisplay'] && changes['alertsColumnsToDisplay'].currentValue) {
       this.isStatusFieldPresent = this.alertsColumnsToDisplay.some(col => col.name === 'alert_status');
     }
+  }
+
+  ngOnDestroy() {
+    this.configSubscription.unsubscribe();
   }
 
   updateExpandedStateForChangedData(expandedMetaAlerts: string[]) {

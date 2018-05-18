@@ -77,6 +77,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   alertChangedSubscription: Subscription;
   groupFacets: Facets;
   globalConfig: {} = {};
+  configSubscription: Subscription;
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -174,10 +175,11 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.tryStopPolling();
     this.removeAlertChangedListner();
+    this.configSubscription.unsubscribe();
   }
 
   ngOnInit() {
-    this.globalConfigService.get().subscribe((config: {}) => {
+    this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
       this.globalConfig = config;
       if (this.globalConfig['source.type.field']) {
         let filteredAlertsColumns = this.alertsColumns.filter(colName => colName.name !== 'source:type');
