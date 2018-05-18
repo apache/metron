@@ -72,4 +72,6 @@ public class MetronRestConstants {
 
   public static final String USER_SETTINGS_HBASE_TABLE_SPRING_PROPERTY = "user.settings.table";
   public static final String USER_SETTINGS_HBASE_CF_SPRING_PROPERTY = "user.settings.cf";
+
+  public static final String LOGGING_SYSTEM_PROPERTY = "org.springframework.boot.logging.LoggingSystem";
 }

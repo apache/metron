@@ -20,7 +20,6 @@ package org.apache.metron.stellar.dsl.functions;
 
 
 import com.google.common.collect.ImmutableMap;
-import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
@@ -28,7 +27,6 @@ import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 import java.util.*;
@@ -218,6 +216,45 @@ public class OrdinalFunctionsTest {
       Assert.assertThat(e.getMessage(), is("Noncomparable object type org.apache.metron.stellar.dsl.functions.OrdinalFunctionsTest$1TestObject submitted to MIN"));
       Assert.assertNull(res);
     }
+  }
+
+
+  @Test
+  public void testMaxOfStats() throws Exception {
+    Ordinal provider = new Ordinal() {
+      @Override
+      public double getMin() {
+        return 10;
+      }
+
+      @Override
+      public double getMax() {
+        return 100;
+      }
+    };
+
+    Object res = run("MAX(input_list)", ImmutableMap.of("input_list", provider));
+    Assert.assertNotNull(res);
+    Assert.assertTrue(res.equals(100.0d));
+  }
+
+  @Test
+  public void testMinOfStats() throws Exception {
+    Ordinal provider = new Ordinal() {
+      @Override
+      public double getMin() {
+        return 10;
+      }
+
+      @Override
+      public double getMax() {
+        return 100;
+      }
+    };
+
+    Object res = run("MIN(input_list)", ImmutableMap.of("input_list", provider));
+    Assert.assertNotNull(res);
+    Assert.assertTrue(res.equals(10.0d));
   }
 
   public Object run(String rule, Map<String, Object> variables) throws Exception {

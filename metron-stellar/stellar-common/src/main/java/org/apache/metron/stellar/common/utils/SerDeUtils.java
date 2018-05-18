@@ -45,6 +45,7 @@ import de.javakaffee.kryoserializers.guava.ImmutableSetSerializer;
 import de.javakaffee.kryoserializers.jodatime.JodaLocalDateSerializer;
 import de.javakaffee.kryoserializers.jodatime.JodaLocalDateTimeSerializer;
 import java.io.ByteArrayInputStream;
+import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Modifier;
@@ -88,14 +89,16 @@ public class SerDeUtils {
       UnmodifiableCollectionsSerializer.registerSerializers(ret);
       SynchronizedCollectionsSerializer.registerSerializers(ret);
 
-// custom serializers for non-jdk libs
+      // custom serializers for non-jdk libs
 
-// register CGLibProxySerializer, works in combination with the appropriate action in handleUnregisteredClass (see below)
+      // register CGLibProxySerializer, works in combination with the appropriate action in handleUnregisteredClass (see below)
       ret.register(CGLibProxySerializer.CGLibProxyMarker.class, new CGLibProxySerializer());
-// joda DateTime, LocalDate and LocalDateTime
+
+      // joda DateTime, LocalDate and LocalDateTime
       ret.register(LocalDate.class, new JodaLocalDateSerializer());
       ret.register(LocalDateTime.class, new JodaLocalDateTimeSerializer());
-// guava ImmutableList, ImmutableSet, ImmutableMap, ImmutableMultimap, UnmodifiableNavigableSet
+
+      // guava ImmutableList, ImmutableSet, ImmutableMap, ImmutableMultimap, UnmodifiableNavigableSet
       ImmutableListSerializer.registerSerializers(ret);
       ImmutableSetSerializer.registerSerializers(ret);
       ImmutableMapSerializer.registerSerializers(ret);
@@ -187,7 +190,7 @@ public class SerDeUtils {
 
   public static Serializer SERIALIZER = new Serializer();
 
-  private static class Serializer implements Function<Object, byte[]> {
+  private static class Serializer implements Function<Object, byte[]>, Serializable {
     /**
      * Serializes the given Object into bytes.
      *
@@ -198,9 +201,10 @@ public class SerDeUtils {
     }
   }
 
-  public static class Deserializer<T> implements Function<byte[], T> {
+  public static class Deserializer<T> implements Function<byte[], T>, Serializable {
 
     private Class<T> clazz;
+
     public Deserializer(Class<T> clazz) {
       this.clazz = clazz;
     }

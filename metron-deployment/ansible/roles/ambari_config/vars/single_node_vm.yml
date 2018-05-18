@@ -99,6 +99,7 @@ configurations:
   - kafka-broker:
       log.dirs: '{{ kafka_log_dirs }}'
       delete.topic.enable: "true"
+      offsets.topic.replication.factor: 1
   - metron-rest-env:
       metron_spring_profiles_active: "dev"
   - metron-parsers-env:

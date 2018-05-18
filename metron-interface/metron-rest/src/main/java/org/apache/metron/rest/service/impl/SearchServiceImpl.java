@@ -23,19 +23,26 @@ import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
 import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
 
 import com.google.common.collect.Lists;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.AlertsUIUserSettings;
 import org.apache.metron.rest.service.AlertsUIService;
+import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SearchService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.slf4j.Logger;
@@ -43,11 +50,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.List;
 
 @Service
 public class SearchServiceImpl implements SearchService {
@@ -57,14 +59,19 @@ public class SearchServiceImpl implements SearchService {
   private IndexDao dao;
   private Environment environment;
   private SensorIndexingConfigService sensorIndexingConfigService;
+  private GlobalConfigService globalConfigService;
   private AlertsUIService alertsUIService;
 
   @Autowired
-  public SearchServiceImpl(IndexDao dao, Environment environment,
-      SensorIndexingConfigService sensorIndexingConfigService, AlertsUIService alertsUIService) {
+  public SearchServiceImpl(IndexDao dao,
+      Environment environment,
+      SensorIndexingConfigService sensorIndexingConfigService,
+      GlobalConfigService globalConfigService,
+      AlertsUIService alertsUIService) {
     this.dao = dao;
     this.environment = environment;
     this.sensorIndexingConfigService = sensorIndexingConfigService;
+    this.globalConfigService = globalConfigService;
     this.alertsUIService = alertsUIService;
   }
 
@@ -133,11 +140,24 @@ public class SearchServiceImpl implements SearchService {
     return indices;
   }
 
-  private List<String> getDefaultFacetFields() throws RestException {
+  @SuppressWarnings("unchecked")
+  public List<String> getDefaultFacetFields() throws RestException {
     Optional<AlertsUIUserSettings> alertUserSettings = alertsUIService.getAlertsUIUserSettings();
     if (!alertUserSettings.isPresent() || alertUserSettings.get().getFacetFields() == null) {
-      String facetFieldsProperty = environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, "");
-      return Arrays.asList(facetFieldsProperty.split(","));
+      String facetFieldsProperty = environment
+          .getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, "");
+
+      Map<String, Object> globalConfig = globalConfigService.get();
+      String sourceTypeField = Constants.SENSOR_TYPE.replace('.', ':');
+      List<String> facetFields = new ArrayList<>();
+      if (globalConfig != null) {
+        sourceTypeField = (String) globalConfig.getOrDefault("source.type.field", sourceTypeField);
+      }
+      facetFields.add(sourceTypeField);
+      if (facetFieldsProperty != null) {
+        facetFields.addAll(Arrays.asList(facetFieldsProperty.split(",")));
+      }
+      return facetFields;
     } else {
       return alertUserSettings.get().getFacetFields();
     }

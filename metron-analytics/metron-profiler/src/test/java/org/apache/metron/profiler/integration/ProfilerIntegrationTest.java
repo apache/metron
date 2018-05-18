@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.integration;
 
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -45,6 +46,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -92,6 +94,23 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static String message1;
   private static String message2;
   private static String message3;
+
+  /**
+   * [
+   *    org.apache.metron.profiler.ProfileMeasurement,
+   *    org.apache.metron.profiler.ProfilePeriod,
+   *    org.apache.metron.common.configuration.profiler.ProfileResult,
+   *    org.apache.metron.common.configuration.profiler.ProfileResultExpressions,
+   *    org.apache.metron.common.configuration.profiler.ProfileTriageExpressions,
+   *    org.apache.metron.common.configuration.profiler.ProfilerConfig,
+   *    org.apache.metron.common.configuration.profiler.ProfileConfig,
+   *    org.json.simple.JSONObject,
+   *    java.util.LinkedHashMap,
+   *    org.apache.metron.statistics.OnlineStatisticsProvider
+   *  ]
+   */
+  @Multiline
+  private static String kryoSerializers;
 
   /**
    * The Profiler can generate profiles based on processing time.  With processing time,
@@ -164,10 +183,60 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     // embedded in the row key should match those in the source telemetry
     byte[] expectedRowKey = generateExpectedRowKey("event-time-test", entity, startAt);
     byte[] actualRowKey = puts.get(0).getRow();
-    String msg = String.format("expected '%s', got '%s'",
-            new String(expectedRowKey, "UTF-8"),
-            new String(actualRowKey, "UTF-8"));
-    assertArrayEquals(msg, expectedRowKey, actualRowKey);
+    assertArrayEquals(failMessage(expectedRowKey, actualRowKey), expectedRowKey, actualRowKey);
+  }
+
+  /**
+   * The result produced by a Profile has to be serializable within Storm. If the result is not
+   * serializable the topology will crash and burn.
+   *
+   * This test ensures that if a profile returns a STATS object created using the STATS_INIT and
+   * STATS_ADD functions, that it can be correctly serialized and persisted.
+   */
+  @Test
+  public void testProfileWithStatsObject() throws Exception {
+
+    // upload the profiler config to zookeeper
+    uploadConfig(TEST_RESOURCES + "/config/zookeeper/profile-with-stats");
+
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    kafkaComponent.writeMessages(inputTopic, message1);
+    kafkaComponent.writeMessages(inputTopic, message2);
+    kafkaComponent.writeMessages(inputTopic, message3);
+
+    // wait until the profile is flushed
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0, timeout(seconds(90)));
+
+    // ensure that a value was persisted in HBase
+    List<Put> puts = profilerTable.getPutLog();
+    assertEquals(1, puts.size());
+
+    // generate the expected row key. only the profile name, entity, and period are used to generate the row key
+    ProfileMeasurement measurement = new ProfileMeasurement()
+            .withProfileName("profile-with-stats")
+            .withEntity("global")
+            .withPeriod(startAt, periodDurationMillis, TimeUnit.MILLISECONDS);
+    RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDurationMillis, TimeUnit.MILLISECONDS);
+    byte[] expectedRowKey = rowKeyBuilder.rowKey(measurement);
+
+    // ensure the correct row key was generated
+    byte[] actualRowKey = puts.get(0).getRow();
+    assertArrayEquals(failMessage(expectedRowKey, actualRowKey), expectedRowKey, actualRowKey);
+  }
+
+  /**
+   * Generates an error message for if the byte comparison fails.
+   *
+   * @param expected The expected value.
+   * @param actual The actual value.
+   * @return
+   * @throws UnsupportedEncodingException
+   */
+  private String failMessage(byte[] expected, byte[] actual) throws UnsupportedEncodingException {
+    return String.format("expected '%s', got '%s'",
+              new String(expected, "UTF-8"),
+              new String(actual, "UTF-8"));
   }
 
   /**
@@ -248,6 +317,12 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("topology.auto-credentials", "[]");
       setProperty("topology.message.timeout.secs", "60");
       setProperty("topology.max.spout.pending", "100000");
+
+      // ensure tuples are serialized during the test, otherwise serialization problems
+      // will not be found until the topology is run on a cluster with multiple workers
+      setProperty("topology.testing.always.try.serialize", "true");
+      setProperty("topology.fall.back.on.java.serialization", "false");
+      setProperty("topology.kryo.register", kryoSerializers);
 
       // kafka settings
       setProperty("profiler.input.topic", inputTopic);

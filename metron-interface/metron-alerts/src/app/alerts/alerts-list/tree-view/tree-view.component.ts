@@ -37,6 +37,7 @@ import {INDEXES, MAX_ALERTS_IN_META_ALERTS} from '../../../utils/constants';
 import {UpdateService} from '../../../service/update.service';
 import {PatchRequest} from '../../../model/patch-request';
 import {GetRequest} from '../../../model/get-request';
+import { GlobalConfigService } from '../../../service/global-config.service';
 
 @Component({
   selector: 'app-tree-view',
@@ -51,13 +52,16 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   groupResponse: GroupResponse = new GroupResponse();
   treeGroupSubscriptionMap: {[key: string]: TreeAlertsSubscription } = {};
   alertsChangedSubscription: Subscription;
+  globalConfig: {} = {};
+  configSubscription: Subscription;
 
   constructor(router: Router,
               searchService: SearchService,
               metronDialogBox: MetronDialogBox,
               updateService: UpdateService,
-              metaAlertService: MetaAlertService) {
-    super(router, searchService, metronDialogBox, updateService, metaAlertService);
+              metaAlertService: MetaAlertService,
+              globalConfigService: GlobalConfigService) {
+    super(router, searchService, metronDialogBox, updateService, metaAlertService, globalConfigService);
   }
 
   addAlertChangedListner() {
@@ -182,10 +186,14 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
   ngOnInit() {
     this.addAlertChangedListner();
+    this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
+      this.globalConfig = config;
+    });
   }
 
   ngOnDestroy(): void {
     this.removeAlertChangedLister();
+    this.configSubscription.unsubscribe();
   }
 
   searchGroup(selectedGroup: TreeGroupData, searchRequest: SearchRequest): Subscription {
@@ -363,13 +371,14 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   createGetRequestArray(searchResponse: SearchResponse): any {
-    return searchResponse.results.map(alert => new GetRequest(alert.source.guid, alert.source['source:type'], alert.index));
+    return searchResponse.results.map(alert =>
+      new GetRequest(alert.source.guid, alert.source[this.globalConfig['source.type.field']], alert.index));
   }
 
   getAllAlertsForSlectedGroup(group: TreeGroupData): Observable<SearchResponse> {
     let dashRowKey = Object.keys(group.groupQueryMap);
     let searchRequest = new SearchRequest();
-    searchRequest.fields = ['guid', 'source:type'];
+    searchRequest.fields = ['guid', this.globalConfig['source.type.field']];
     searchRequest.from = 0;
     searchRequest.indices = INDEXES;
     searchRequest.query = this.createQuery(group);

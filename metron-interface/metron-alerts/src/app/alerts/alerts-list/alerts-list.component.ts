@@ -42,6 +42,7 @@ import {Pagination} from '../../model/pagination';
 import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
 import {MetaAlertService} from '../../service/meta-alert.service';
 import {Facets} from '../../model/facets';
+import { GlobalConfigService } from '../../service/global-config.service';
 
 @Component({
   selector: 'app-alerts-list',
@@ -75,6 +76,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   pagination: Pagination = new Pagination();
   alertChangedSubscription: Subscription;
   groupFacets: Facets;
+  globalConfig: {} = {};
+  configSubscription: Subscription;
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -84,7 +87,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private clusterMetaDataService: ClusterMetaDataService,
               private saveSearchService: SaveSearchService,
               private metronDialogBox: MetronDialogBox,
-              private metaAlertsService: MetaAlertService) {
+              private metaAlertsService: MetaAlertService,
+              private globalConfigService: GlobalConfigService) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
@@ -171,9 +175,20 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.tryStopPolling();
     this.removeAlertChangedListner();
+    this.configSubscription.unsubscribe();
   }
 
   ngOnInit() {
+    this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
+      this.globalConfig = config;
+      if (this.globalConfig['source.type.field']) {
+        let filteredAlertsColumns = this.alertsColumns.filter(colName => colName.name !== 'source:type');
+        if (filteredAlertsColumns.length < this.alertsColumns.length) {
+          this.alertsColumns = filteredAlertsColumns;
+          this.alertsColumns.splice(2, 0, new ColumnMetadata(this.globalConfig['source.type.field'], 'string'));
+        }
+      }
+    });
     this.getAlertColumnNames(true);
     this.addAlertColChangedListner();
     this.addLoadSavedSearchListner();
@@ -367,8 +382,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   private createGroupFacets(results: SearchResponse) {
     this.groupFacets = JSON.parse(JSON.stringify(results.facetCounts));
-    if (this.groupFacets['source:type']) {
-      delete this.groupFacets['source:type']['metaalert'];
+    if (this.groupFacets[this.globalConfig['source.type.field']]) {
+      delete this.groupFacets[this.globalConfig['source.type.field']]['metaalert'];
     }
   }
 
@@ -381,8 +396,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
     this.saveRefreshState();
-    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source['source:type'])
-        ? META_ALERTS_SENSOR_TYPE : alert.source['source:type'];
+    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source[this.globalConfig['source.type.field']])
+        ? META_ALERTS_SENSOR_TYPE : alert.source[this.globalConfig['source.type.field']];
     let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
     this.router.navigateByUrl(url);
   }

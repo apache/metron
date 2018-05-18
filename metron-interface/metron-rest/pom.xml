@@ -29,13 +29,15 @@
         <antlr.version>4.5</antlr.version>
         <curator.version>2.7.1</curator.version>
         <powermock.version>1.6.4</powermock.version>
-        <spring.boot.version>1.4.1.RELEASE</spring.boot.version>
+        <spring.boot.version>2.0.1.RELEASE</spring.boot.version>
         <spring.kerberos.version>1.0.1.RELEASE</spring.kerberos.version>
         <swagger.version>2.5.0</swagger.version>
         <mysql.client.version>5.1.40</mysql.client.version>
-        <spring-kafka.version>1.1.1.RELEASE</spring-kafka.version>
-        <spring.version>4.2.2.RELEASE</spring.version>
+        <spring-kafka.version>2.0.4.RELEASE</spring-kafka.version>
+        <spring.version>5.0.5.RELEASE</spring.version>
         <eclipse.link.version>2.6.4</eclipse.link.version>
+        <jackson.version>2.9.5</jackson.version>
+        <jsonpath.version>2.4.0</jsonpath.version>
     </properties>
     <dependencies>
       <dependency>
@@ -129,12 +131,12 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.8.3</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-joda</artifactId>
-            <version>2.8.1</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
@@ -221,6 +223,11 @@
                     <artifactId>guava</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>${jsonpath.version}</version>
         </dependency>
         <dependency>
             <groupId>io.springfox</groupId>
