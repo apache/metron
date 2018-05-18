@@ -20,14 +20,14 @@
 package org.apache.metron.statistics;
 
 
+import org.apache.metron.stellar.dsl.functions.Ordinal;
+
 /**
  * Provides statistical functions.
  */
-public interface StatisticsProvider {
+public interface StatisticsProvider extends Ordinal{
   void addValue(double value);
   long getCount();
-  double getMin();
-  double getMax();
   double getMean();
   double getSum();
   double getVariance();

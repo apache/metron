@@ -4,3 +4,5 @@ elasticsearch.properties.j2
 solr.properties.j2
 hdfs.properties.j2
 enrichment.properties.j2
+enrichment-splitjoin.properties.j2
+enrichment-unified.properties.j2

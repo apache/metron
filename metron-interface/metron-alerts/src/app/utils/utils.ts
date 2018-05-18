@@ -20,6 +20,7 @@ import * as moment from 'moment/moment';
 import {DEFAULT_TIMESTAMP_FORMAT, META_ALERTS_SENSOR_TYPE} from './constants';
 import {Alert} from '../model/alert';
 import {DateFilterValue} from '../model/date-filter-value';
+import { environment } from 'environments/environment';
 
 export class Utils {
   public static escapeESField(field: string): string {
@@ -33,9 +34,9 @@ export class Utils {
     .replace(/\&\&/g, '\\&&'); // replace &&
   }
 
-  public static getAlertSensorType(alert: Alert): string {
-    if (alert.source['source:type'] && alert.source['source:type'].length > 0) {
-      return alert.source['source:type'];
+  public static getAlertSensorType(alert: Alert, sourceType: string): string {
+    if (alert.source[sourceType] && alert.source[sourceType].length > 0) {
+      return alert.source[sourceType];
     } else {
       return META_ALERTS_SENSOR_TYPE;
     }

@@ -99,6 +99,12 @@ rest:
   port: REST applciation port
 ```
 
+## Global Configuration Properties
+
+### `source.type.field`
+
+The source type format used. Defaults to `source:type`.
+
 ## Usage
 
 After configuration is complete, the Management UI can be managed as a service:

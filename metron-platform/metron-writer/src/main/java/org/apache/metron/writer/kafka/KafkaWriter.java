@@ -76,6 +76,11 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     this.brokerUrl = brokerUrl;
   }
 
+  public KafkaWriter withBrokerUrl(String brokerUrl) {
+    this.brokerUrl = brokerUrl;
+    return this;
+  }
+
   public KafkaWriter withZkQuorum(String zkQuorum) {
     this.zkQuorum = zkQuorum;
     return this;

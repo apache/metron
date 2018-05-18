@@ -15,15 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {SortField} from './sort-field';
-import { INDEXES } from '../utils/constants';
+package org.apache.metron.stellar.dsl.functions;
 
-export class SearchRequest {
-  fields: string[];
-  from: number;
-  indices: string[] = INDEXES;
-  query: string;
-  size: number;
-  sort: SortField[];
-  facetFields: string[] = [];
+/**
+ * Interface that provides the statistical function get max and min from the implementing object.
+ */
+public interface Ordinal {
+
+    /**
+     * get the min value
+     * @return min value
+     */
+    double getMin();
+
+    /**
+     * get the max value
+     * @return max value
+     */
+    double getMax();
 }

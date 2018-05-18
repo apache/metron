@@ -135,6 +135,8 @@ The following configures the application for MySQL:
     GRANT ALL PRIVILEGES ON metronrest.* TO 'metron'@'node1';
     ```
 
+1. Create the security tables as described in the [Spring Security Guide](https://docs.spring.io/spring-security/site/docs/5.0.4.RELEASE/reference/htmlsingle/#user-schema).
+
 1. Install the MySQL JDBC client onto the REST application host and configurate the METRON_JDBC_CLIENT_PATH variable:
     ```
     cd $METRON_HOME/lib

@@ -24,7 +24,7 @@ spring:
     hibernate:
       ddl-auto: create-drop
   main:
-    banner-mode: off
+    banner-mode: 'off'
 
 grok:
   path:

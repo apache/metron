@@ -20,10 +20,12 @@ package org.apache.metron.common.configuration.profiler;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.io.Serializable;
+
 /**
  * Defines the 'result' field of a Profile definition.
  */
-public class ProfileResult {
+public class ProfileResult implements Serializable {
 
   /**
    * A Stellar expression that is executed to produce

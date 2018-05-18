@@ -217,17 +217,21 @@ public class ParserTopologyCLITest {
     private Map<String, Object> spoutConfig;
     private String securityProtocol;
     private Config stormConf;
+    private String outputTopic;
+    private String errorTopic;
 
-    public ParserInput( ValueSupplier<Integer> spoutParallelism
-                      , ValueSupplier<Integer> spoutNumTasks
-                      , ValueSupplier<Integer> parserParallelism
-                      , ValueSupplier<Integer> parserNumTasks
-                      , ValueSupplier<Integer> errorParallelism
-                      , ValueSupplier<Integer> errorNumTasks
-                      , ValueSupplier<Map> spoutConfig
-                      , ValueSupplier<String> securityProtocol
-                      , ValueSupplier<Config> stormConf
-                      , SensorParserConfig config
+    public ParserInput(ValueSupplier<Integer> spoutParallelism,
+                       ValueSupplier<Integer> spoutNumTasks,
+                       ValueSupplier<Integer> parserParallelism,
+                       ValueSupplier<Integer> parserNumTasks,
+                       ValueSupplier<Integer> errorParallelism,
+                       ValueSupplier<Integer> errorNumTasks,
+                       ValueSupplier<Map> spoutConfig,
+                       ValueSupplier<String> securityProtocol,
+                       ValueSupplier<Config> stormConf,
+                       ValueSupplier<String> outputTopic,
+                       ValueSupplier<String> errorTopic,
+                       SensorParserConfig config
                       )
     {
       this.spoutParallelism = spoutParallelism.get(config, Integer.class);
@@ -239,6 +243,8 @@ public class ParserTopologyCLITest {
       this.spoutConfig = spoutConfig.get(config, Map.class);
       this.securityProtocol = securityProtocol.get(config, String.class);
       this.stormConf = stormConf.get(config, Config.class);
+      this.outputTopic = outputTopic.get(config, String.class);
+      this.errorTopic = outputTopic.get(config, String.class);
     }
 
     public Integer getSpoutParallelism() {
@@ -276,30 +282,43 @@ public class ParserTopologyCLITest {
     public Config getStormConf() {
       return stormConf;
     }
-  }
-  /**
-{
-  "parserClassName": "org.apache.metron.parsers.GrokParser",
-  "sensorTopic": "squid",
-  "parserConfig": {
-    "grokPath": "/patterns/squid",
-    "patternLabel": "SQUID_DELIMITED",
-    "timestampField": "timestamp"
-  },
-  "fieldTransformations" : [
-    {
-      "transformation" : "STELLAR"
-    ,"output" : [ "full_hostname", "domain_without_subdomains" ]
-    ,"config" : {
-      "full_hostname" : "URL_TO_HOST(url)"
-      ,"domain_without_subdomains" : "DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"
-                }
+
+    public String getOutputTopic() {
+      return outputTopic;
     }
-                           ]
-}
+
+    public String getErrorTopic() {
+      return errorTopic;
+    }
+  }
+
+  /**
+   * {
+   *   "parserClassName": "org.apache.metron.parsers.GrokParser",
+   *   "sensorTopic": "squid",
+   *   "parserConfig": {
+   *      "grokPath": "/patterns/squid",
+   *      "patternLabel": "SQUID_DELIMITED",
+   *      "timestampField": "timestamp"
+   *   },
+   *   "fieldTransformations" : [
+   *      {
+   *        "transformation" : "STELLAR",
+   *        "output" : [
+   *            "full_hostname",
+   *            "domain_without_subdomains"
+   *        ],
+   *        "config" : {
+   *            "full_hostname" : "URL_TO_HOST(url)",
+   *            "domain_without_subdomains" : "DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"
+   *        }
+   *      }
+   *   ]
+   * }
    */
   @Multiline
   public static String baseConfig;
+
   private static SensorParserConfig getBaseConfig() {
     try {
       return JSONUtils.INSTANCE.load(baseConfig, SensorParserConfig.class);
@@ -600,18 +619,37 @@ public class ParserTopologyCLITest {
     final ParserInput[] parserInput = new ParserInput[]{null};
     new ParserTopologyCLI() {
       @Override
-      protected ParserTopologyBuilder.ParserTopology getParserTopology(String zookeeperUrl, Optional<String> brokerUrl, String sensorType, ValueSupplier<Integer> spoutParallelism, ValueSupplier<Integer> spoutNumTasks, ValueSupplier<Integer> parserParallelism, ValueSupplier<Integer> parserNumTasks, ValueSupplier<Integer> errorParallelism, ValueSupplier<Integer> errorNumTasks, ValueSupplier<Map> spoutConfig, ValueSupplier<String> securityProtocol, ValueSupplier<Config> stormConf, Optional<String> outputTopic) throws Exception {
-       parserInput[0] = new ParserInput( spoutParallelism
-                                        , spoutNumTasks
-                                        , parserParallelism
-                                        , parserNumTasks
-                                        , errorParallelism
-                                        , errorNumTasks
-                                        , spoutConfig
-                                        , securityProtocol
-                                        , stormConf
-                                        , config
-                                        );
+      protected ParserTopologyBuilder.ParserTopology getParserTopology(
+              String zookeeperUrl,
+              Optional<String> brokerUrl,
+              String sensorType,
+              ValueSupplier<Integer> spoutParallelism,
+              ValueSupplier<Integer> spoutNumTasks,
+              ValueSupplier<Integer> parserParallelism,
+              ValueSupplier<Integer> parserNumTasks,
+              ValueSupplier<Integer> errorParallelism,
+              ValueSupplier<Integer> errorNumTasks,
+              ValueSupplier<Map> spoutConfig,
+              ValueSupplier<String> securityProtocol,
+              ValueSupplier<Config> stormConf,
+              ValueSupplier<String> outputTopic,
+              ValueSupplier<String> errorTopic) throws Exception {
+
+       parserInput[0] = new ParserInput(
+               spoutParallelism,
+               spoutNumTasks,
+               parserParallelism,
+               parserNumTasks,
+               errorParallelism,
+               errorNumTasks,
+               spoutConfig,
+               securityProtocol,
+               stormConf,
+               outputTopic,
+               errorTopic,
+               config
+       );
+
         return null;
       }
     }.createParserTopology(cmd);
