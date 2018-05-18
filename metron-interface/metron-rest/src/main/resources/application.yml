@@ -51,7 +51,7 @@ search:
     results: 1000
     groups: 1000
   facet:
-    fields: source:type,ip_src_addr,ip_dst_addr,enrichments:geo:ip_dst_addr:country
+    fields: ip_src_addr,ip_dst_addr,enrichments:geo:ip_dst_addr:country
 
 index:
   dao:

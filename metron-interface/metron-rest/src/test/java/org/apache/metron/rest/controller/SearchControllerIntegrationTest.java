@@ -37,6 +37,7 @@ import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.service.AlertsUIService;
+import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.json.simple.parser.ParseException;
 import org.junit.After;
@@ -141,7 +142,9 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
             .andExpect(jsonPath("$.results[3].source.timestamp").value(2))
             .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
             .andExpect(jsonPath("$.results[4].source.timestamp").value(1))
-            .andExpect(jsonPath("$.facetCounts.*", hasSize(1)))
+            .andExpect(jsonPath("$.facetCounts.*", hasSize(2)))
+            .andExpect(jsonPath("$.facetCounts.source:type.*", hasSize(1)))
+            .andExpect(jsonPath("$.facetCounts.source:type['bro']").value(5))
             .andExpect(jsonPath("$.facetCounts.ip_src_addr.*", hasSize(2)))
             .andExpect(jsonPath("$.facetCounts.ip_src_addr['192.168.1.1']").value(3))
             .andExpect(jsonPath("$.facetCounts.ip_src_addr['192.168.1.2']").value(1))
@@ -366,8 +369,12 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
     Map<String, Long> ipSrcPortCounts = new HashMap<>();
     ipSrcPortCounts.put("8010", 1L);
     ipSrcPortCounts.put("8009", 2L);
+    Map<String, Long> sourceTypeCounts = new HashMap<>();
+    sourceTypeCounts.put("bro", 5L);
     facetCounts.put("ip_src_addr", ipSrcAddrCounts);
     facetCounts.put("ip_src_port", ipSrcPortCounts);
+    facetCounts.put("source:type", sourceTypeCounts);
+
     InMemoryDao.setFacetCounts(facetCounts);
   }
 
