@@ -22,13 +22,12 @@ import {ColumnMetadata} from '../model/column-metadata';
 import {ColumnNames} from '../model/column-names';
 import {TableMetadata} from '../model/table-metadata';
 import {SaveSearch} from '../model/save-search';
-import { GlobalConfigService } from '../service/global-config.service';
 
 @Injectable()
 export abstract class DataSource {
   defaultHeaders: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
-  constructor(protected http: Http, public globalConfigService: GlobalConfigService) {}
+  constructor(protected http: Http) {}
 
   // Calls to fetch default alert table column names and all the field names across all indexes
   abstract getDefaultAlertTableColumnNames(): Observable<ColumnMetadata[]>
@@ -36,7 +35,6 @@ export abstract class DataSource {
   // Calls to rename field names and to fetch the renamed field names
   abstract getAlertTableColumnNames(): Observable<ColumnNames[]>
   abstract saveAlertTableColumnNames(columns: ColumnNames[]): Observable<{}>
-  abstract getSourceTypeFromLocalstorage();
 
   // Calls to fetch and save alerts table settings like refresh interval, page size, default selected table column names
   abstract getAlertTableSettings(): Observable<TableMetadata>

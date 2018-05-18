@@ -51,18 +51,6 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
     new ColumnMetadata('alert_status', 'string')
   ];
 
-  getSourceTypeFromLocalstorage() {
-    let sourceType: string;
-    if (localStorage['metron-alerts-saved-search']) {
-      let columnHeaders = JSON.parse(localStorage['metron-alerts-saved-search']);
-      sourceType = columnHeaders[0]['tableColumns'].filter(colName => colName.name === 'source.type');
-      if (sourceType && !this.defaultColumnMetadata['source.type']) {
-        this.defaultColumnMetadata = this.defaultColumnMetadata.filter(colName => colName.name !== 'source:type');
-        this.defaultColumnMetadata.splice(2, 0, new ColumnMetadata(sourceType[0]['name'], sourceType[0]['type']));
-      }
-    }
-  }
-
   getAlerts(searchRequest: SearchRequest): Observable<SearchResponse> {
     let url = '/search/*' + ElasticsearchUtils.excludeIndexName + '/_search';
     let request: any  = JSON.parse(JSON.stringify(searchRequest));
