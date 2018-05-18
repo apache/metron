@@ -17,11 +17,14 @@
  */
 package org.apache.metron.solr.integration;
 
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
@@ -29,10 +32,13 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
-import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
 
   protected static SolrComponent solrComponent;
 
@@ -55,7 +61,9 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
   @Override
   protected InMemoryComponent startIndex() throws Exception {
-    solrComponent = new SolrComponent.Builder().addCollection(SENSOR_NAME, "../metron-solr/src/main/config/schema/bro").build();
+    solrComponent = new SolrComponent.Builder().addCollection(SENSOR_NAME, "../metron-solr/src/main/config/schema/bro")
+        .addCollection("error", "../metron-solr/src/main/config/schema/error")
+        .build();
     solrComponent.start();
     return solrComponent;
   }
@@ -98,6 +106,39 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     Document indexedDocument = dao.getLatest("bro_1", SENSOR_NAME);
 
     // assert no extra expanded fields are included
-    Assert.assertEquals(8, indexedDocument.getDocument().size());
+    assertEquals(8, indexedDocument.getDocument().size());
+  }
+
+  @Test
+  public void testHugeErrorFields() throws Exception {
+    dao = new MultiIndexDao(createDao());
+    dao.init(getAccessConfig());
+
+    String hugeString = StringUtils.repeat("test ", 1_000_000);
+    String hugeStringTwo = hugeString + "-2";
+
+    Map<String, Object> documentMap = new HashMap<>();
+    documentMap.put("guid", "error_guid");
+    // Needs to be over 32kb
+    documentMap.put("raw_message", hugeString);
+    documentMap.put("raw_message_1", hugeStringTwo);
+    Document errorDoc = new Document(documentMap, "error", "error", 0L);
+    dao.update(errorDoc, Optional.of("error"));
+
+    // Ensure that the huge string is returned when not a string field
+    Document latest = dao.getLatest("error_guid", "error");
+    @SuppressWarnings("unchecked")
+    String actual = (String) latest.getDocument().get("raw_message");
+    assertEquals(actual, hugeString);
+    String actualTwo = (String) latest.getDocument().get("raw_message_1");
+    assertEquals(actualTwo, hugeStringTwo);
+
+    // Validate that error occurs for string fields.
+    documentMap.put("error_hash", hugeString);
+    errorDoc = new Document(documentMap, "error", "error", 0L);
+
+    exception.expect(IOException.class);
+    exception.expectMessage("Document contains at least one immense term in field=\"error_hash\"");
+    dao.update(errorDoc, Optional.of("error"));
   }
 }

@@ -29,7 +29,6 @@
 
   <!-- The message in string form (this may be garbage if the message is a bytes rather than text -->
   <field name="message" type="string" indexed="true" stored="true" />
-  <field name="raw_message" type="string" indexed="false" stored="true" />
   <field name="raw_message_bytes" type="bytes" indexed="false" stored="true" />
   <field name="error_fields" type="string" indexed="true" stored="true" />
   <field name="error_hash" type="string" indexed="true" stored="true" />
@@ -40,6 +39,8 @@
   <field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />
   <uniqueKey>guid</uniqueKey>
 
+  <!-- Raw messages can be split into multiple fields -->
+  <dynamicField name="raw_message*" type="text_raw" indexed="false" stored="true"/>
   <!-- Catch all, if we don't know about it, it gets dropped. -->
   <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
 
@@ -55,4 +56,5 @@
   <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
   <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
   <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
+  <fieldType name="text_raw" class="solr.TextField"/>
 </schema>
