@@ -301,7 +301,6 @@ public class SimpleHBaseEnrichmentWriterTest {
       @Override
       public Map<String, Object> getSensorConfig(String sensorName) {
         return sensorConfig;
-
       }
 
       @Override
@@ -312,6 +311,11 @@ public class SimpleHBaseEnrichmentWriterTest {
       @Override
       public boolean isDefault(String sensorName) {
         return false;
+      }
+
+      @Override
+      public String getFieldNameConverter(String sensorName) {
+        return null;
       }
     };
   }

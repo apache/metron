@@ -17,16 +17,20 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
-import org.apache.metron.common.interfaces.FieldNameConverter;
-import java.io.Serializable;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.field.FieldNameConverter;
 
-public class ElasticsearchFieldNameConverter implements FieldNameConverter, Serializable {
+/**
+ * A factory that creates {@link FieldNameConverter} objects.
+ */
+public interface FieldNameConverterFactory {
 
-    private static final long serialVersionUID = -3126840090749760299L;
-
-    @Override
-    public String convert(String originalField) {
-        return originalField.replace(".",":");
-    }
-
+  /**
+   * Create a {@link FieldNameConverter} object.
+   *
+   * @param sensorType The type of sensor.
+   * @param config The writer configuration.
+   * @return A {@link FieldNameConverter} object.
+   */
+  FieldNameConverter create(String sensorType, WriterConfiguration config);
 }

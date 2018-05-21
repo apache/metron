@@ -15,10 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.interfaces;
 
-public interface FieldNameConverter {
+package org.apache.metron.common.field;
 
-    String convert(String originalField);
+/**
+ * Allows the field name converter to be specified using a short-hand
+ * name, rather than the entire fully-qualified class name.
+ */
+public enum FieldNameConverters {
 
+  /**
+   * A {@link FieldNameConverter} that does not rename any fields.  All field
+   * names remain unchanged.
+   */
+  NOOP(new NoopFieldNameConverter()),
+
+  /**
+   * A {@link FieldNameConverter} that replaces all field names containing dots
+   * with colons.
+   */
+  DEDOT(new DeDotFieldNameConverter());
+
+  private FieldNameConverter converter;
+
+  FieldNameConverters(FieldNameConverter converter) {
+    this.converter = converter;
+  }
+
+  public FieldNameConverter get() {
+    return converter;
+  }
 }

@@ -18,16 +18,14 @@
 
 package org.apache.metron.indexing.integration;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.apache.metron.common.field.FieldNameConverter;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
