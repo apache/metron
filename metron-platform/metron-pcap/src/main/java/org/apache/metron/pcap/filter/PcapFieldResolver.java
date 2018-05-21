@@ -18,6 +18,8 @@
 
 package org.apache.metron.pcap.filter;
 
+import com.google.common.collect.ImmutableList;
+import org.apache.metron.stellar.common.utils.ConcatMap;
 import org.apache.metron.stellar.dsl.VariableResolver;
 
 import java.util.HashMap;
@@ -32,6 +34,9 @@ public class PcapFieldResolver implements VariableResolver {
 
   @Override
   public Object resolve(String variable) {
+    if(variable.equals(VariableResolver.ALL_FIELDS)) {
+      return new ConcatMap(ImmutableList.of(fieldsMap));
+    }
     return fieldsMap.get(variable);
   }
 
