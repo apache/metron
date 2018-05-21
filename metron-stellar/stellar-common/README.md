@@ -37,6 +37,7 @@ For a variety of components (threat intelligence triage and field transformation
 
 The Stellar language supports the following:
 * Referencing fields in the enriched JSON
+* Referencing all fields in the enriched JSON via the `_` reserved variable name.
 * String literals are quoted with either `'` or `"`
 * String literals support escaping for `'`, `"`, `\t`, `\r`, `\n`, and backslash 
   * The literal `'\'foo\''` would represent `'foo'`
