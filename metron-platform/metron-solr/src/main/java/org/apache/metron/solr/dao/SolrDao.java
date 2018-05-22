@@ -121,10 +121,10 @@ public class SolrDao implements IndexDao {
   }
 
   protected SolrClient getSolrClient(String zkHost) {
-    return new CloudSolrClient.Builder().withZkHost(zkHost).build();
+    return new CloudSolrClient(zkHost);
   }
 
   protected void enableKerberos() {
-    HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
+    HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
   }
 }

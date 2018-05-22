@@ -36,6 +36,7 @@ import org.apache.metron.solr.matcher.SolrQueryMatcher;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FieldStatsInfo;
 import org.apache.solr.client.solrj.response.PivotField;
@@ -72,10 +73,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({CollectionAdminRequest.class})
 public class SolrSearchDaoTest {
 
   @Rule
@@ -91,8 +89,6 @@ public class SolrSearchDaoTest {
     client = mock(SolrClient.class);
     accessConfig = mock(AccessConfig.class);
     solrSearchDao = new SolrSearchDao(client, accessConfig);
-    mockStatic(CollectionAdminRequest.class);
-    when(CollectionAdminRequest.listCollections(client)).thenReturn(Arrays.asList("bro", "snort"));
   }
 
   @Test
@@ -161,6 +157,7 @@ public class SolrSearchDaoTest {
     when(groupRequest.getScoreField()).thenReturn(Optional.of("scoreField"));
     when(groupRequest.getIndices()).thenReturn(Arrays.asList("bro", "snort"));
     when(client.query(any())).thenReturn(queryResponse);
+    doReturn("bro,snort").when(solrSearchDao).getCollections(Arrays.asList("bro", "snort"));
     doReturn(groupResponse).when(solrSearchDao).buildGroupResponse(groupRequest, queryResponse);
     SolrQuery expectedSolrQuery = new SolrQuery()
             .setStart(0)
@@ -230,6 +227,9 @@ public class SolrSearchDaoTest {
 
   @Test
   public void buildSearchRequestShouldReturnSolrQuery() throws Exception {
+    solrSearchDao = spy(new SolrSearchDao(client, accessConfig));
+    doReturn("bro,snort").when(solrSearchDao).getCollections(Arrays.asList("bro", "snort"));
+
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setIndices(Arrays.asList("bro", "snort"));
     searchRequest.setSize(5);

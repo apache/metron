@@ -115,7 +115,7 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
 
   protected List<Map<String, Object>> getIndexFields(String index)
       throws IOException, SolrServerException {
-    CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(zkHost).build();
+    CloudSolrClient client = new CloudSolrClient(zkHost);
     client.setDefaultCollection(index);
 
     List<Map<String, Object>> indexFields = new ArrayList<>();

@@ -96,8 +96,8 @@ public class SolrComponent implements InMemoryComponent {
       miniSolrCloudCluster = new MiniSolrCloudCluster(1, baseDir.toPath(), JettyConfig.builder().setPort(port).build());
       for(String name: collections.keySet()) {
         String configPath = collections.get(name);
-        miniSolrCloudCluster.uploadConfigSet(new File(configPath).toPath(), name);
-        CollectionAdminRequest.createCollection(name, 1, 1).process(miniSolrCloudCluster.getSolrClient());
+        miniSolrCloudCluster.uploadConfigDir(new File(configPath), name);
+        miniSolrCloudCluster.createCollection(name, 1, 1, name, new HashMap<>());
       }
       if (postStartCallback != null) postStartCallback.apply(this);
     } catch(Exception e) {
