@@ -34,6 +34,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * ConcatMap is a lazy concatenation of a list of Maps.  It is lazy in that it does not construct
+ * a union of all of the maps, but rather keeps the maps separate.  Key/Value resolution is
+ * done via a first-wins strategy (i.e. the first map which has a key will be used).
+ *
+ * Also, note, that this is an immutable map, so operations which require mutation will have
+ * UnsupportedOperationException thrown.
+ */
 public class ConcatMap implements Map<String, Object>, Serializable, KryoSerializable {
   List<Map> variableMappings = new ArrayList<>();
   public ConcatMap(List<Map> variableMappings) {
@@ -58,6 +66,11 @@ public class ConcatMap implements Map<String, Object>, Serializable, KryoSeriali
     return isEmpty;
   }
 
+  /**
+   * If any maps contains the key, then this will return true.
+   * @param key
+   * @return
+   */
   @Override
   public boolean containsKey(Object key) {
     for(Map m : variableMappings) {
@@ -68,6 +81,12 @@ public class ConcatMap implements Map<String, Object>, Serializable, KryoSeriali
     return false;
   }
 
+  /**
+   *
+   * If any maps contains the value, then this will return true.
+   * @param value
+   * @return
+   */
   @Override
   public boolean containsValue(Object value) {
     for(Map m : variableMappings) {
@@ -78,6 +97,11 @@ public class ConcatMap implements Map<String, Object>, Serializable, KryoSeriali
     return false;
   }
 
+  /**
+   * The first map which contains the key will have the associated value returned.
+   * @param key
+   * @return
+   */
   @Override
   public Object get(Object key) {
     Object ret = null;
@@ -90,21 +114,42 @@ public class ConcatMap implements Map<String, Object>, Serializable, KryoSeriali
     return ret;
   }
 
+  /**
+   * This is an immutable map and this operation is not supported.
+   * @param key
+   * @param value
+   * @return
+   */
   @Override
   public Object put(String key, Object value) {
     throw new UnsupportedOperationException("Merged map is immutable.");
   }
 
+  /**
+   *
+   * This is an immutable map and this operation is not supported.
+   * @param key
+   * @return
+   */
   @Override
   public Object remove(Object key) {
     throw new UnsupportedOperationException("Merged map is immutable.");
   }
 
+  /**
+   *
+   * This is an immutable map and this operation is not supported.
+   * @param m
+   */
   @Override
   public void putAll(Map<? extends String, ?> m) {
     throw new UnsupportedOperationException("Merged map is immutable.");
   }
 
+  /**
+   *
+   * This is an immutable map and this operation is not supported.
+   */
   @Override
   public void clear() {
     throw new UnsupportedOperationException("Merged map is immutable.");
@@ -124,6 +169,10 @@ public class ConcatMap implements Map<String, Object>, Serializable, KryoSeriali
     return ret;
   }
 
+  /**
+   * Note: this makes a copy of the values, so it is not fundamentally lazy.
+   * @return
+   */
   @Override
   public Collection<Object> values() {
     Collection<Object> ret = new ArrayList<>(size());
@@ -133,6 +182,11 @@ public class ConcatMap implements Map<String, Object>, Serializable, KryoSeriali
     return ret;
   }
 
+  /**
+   * This is a lazy entry collection of the associated maps.  If there are duplicate keys, they will appear
+   * twice here, so be careful.
+   * @return
+   */
   @Override
   public Set<Entry<String, Object>> entrySet() {
     Set<Entry<String, Object>> ret = null;
