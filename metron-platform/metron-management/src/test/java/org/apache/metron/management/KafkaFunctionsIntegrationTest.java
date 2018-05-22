@@ -48,6 +48,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the KafkaFunctions class.
@@ -152,6 +155,26 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
 
     // put a message onto the topic
     run("KAFKA_PUT(topic, [message1])");
+
+    // get a message from the topic
+    Object actual = run("KAFKA_GET(topic)");
+
+    // validate
+    assertEquals(Collections.singletonList(message1), actual);
+  }
+
+  /**
+   * KAFKA_PUT should be able to write a message passed as a String, rather than a List.
+   */
+  @Test
+  public void testKafkaPutOneMessagePassedAsString() {
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // put a message onto the topic - the message is just a string, not a list
+    run("KAFKA_PUT(topic, message1)");
 
     // get a message from the topic
     Object actual = run("KAFKA_GET(topic)");
@@ -303,7 +326,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     Map<String, String> properties = (Map<String, String>) run(expression);
     assertEquals(expected, properties.get(overriddenKey));
   }
-  
+
   /**
    * Runs a Stellar expression.
    * @param expression The expression to run.
@@ -359,3 +382,4 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     }
   }
 }
+
