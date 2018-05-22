@@ -21,8 +21,8 @@ package org.apache.metron.common.bolt;
 import java.lang.invoke.MethodHandles;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfigurations;
+import org.apache.metron.common.configuration.writer.ConfigurationsStrategies;
 import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
-import org.apache.metron.common.zookeeper.configurations.ProfilerUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +43,7 @@ public abstract class ConfiguredProfilerBolt extends ConfiguredBolt<ProfilerConf
 
   @Override
   protected ConfigurationsUpdater<ProfilerConfigurations> createUpdater() {
-    return new ProfilerUpdater(this, this::getConfigurations);
+    return ConfigurationsStrategies.PROFILER.createUpdater(this, this::getConfigurations);
   }
 
 }

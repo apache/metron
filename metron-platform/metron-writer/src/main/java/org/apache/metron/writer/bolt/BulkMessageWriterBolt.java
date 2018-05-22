@@ -17,10 +17,17 @@
  */
 package org.apache.metron.writer.bolt;
 
+import static org.apache.storm.utils.TupleUtils.isTick;
+
 import com.google.common.collect.ImmutableList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredIndexingBolt;
-import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
+import org.apache.metron.common.bolt.ConfiguredBolt;
+import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.writer.ConfigurationStrategy;
+import org.apache.metron.common.configuration.writer.ConfigurationsStrategies;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
@@ -28,6 +35,7 @@ import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.MessageWriter;
+import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
 import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.metron.writer.WriterToBulkWriter;
 import org.apache.storm.Config;
@@ -40,13 +48,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
-import static org.apache.storm.utils.TupleUtils.isTick;
-
-public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
+public class BulkMessageWriterBolt<CONFIGT extends Configurations> extends ConfiguredBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(BulkMessageWriterBolt.class);
@@ -60,12 +62,18 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   private int requestedTickFreqSecs;
   private int defaultBatchTimeout;
   private int batchTimeoutDivisor = 1;
+  private ConfigurationStrategy configurationStrategy;
 
   public BulkMessageWriterBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
 
-  public BulkMessageWriterBolt withBulkMessageWriter(BulkMessageWriter<JSONObject > bulkMessageWriter) {
+  public BulkMessageWriterBolt withConfigurationStrategy(String configurationStrategy) {
+    this.configurationStrategy = ConfigurationsStrategies.valueOf(configurationStrategy);
+    return this;
+  }
+
+  public BulkMessageWriterBolt withBulkMessageWriter(BulkMessageWriter<JSONObject> bulkMessageWriter) {
     this.bulkMessageWriter = bulkMessageWriter;
     return this;
   }
@@ -111,6 +119,11 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     return this;
   }
 
+  @Override
+  protected ConfigurationsUpdater<CONFIGT> createUpdater() {
+    return configurationStrategy.createUpdater(this, this::getConfigurations);
+  }
+
   /**
    * Used only for unit testing
    * @param defaultBatchTimeout
@@ -151,8 +164,8 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     else {
       configurationXform = x -> x;
     }
-    WriterConfiguration writerconf = configurationXform.apply(
-            new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
+    WriterConfiguration writerconf = configurationXform
+        .apply(configurationStrategy.createWriterConfig(bulkMessageWriter, getConfigurations()));
 
     BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
     this.requestedTickFreqSecs = timeoutHelper.getRecommendedTickInterval();
@@ -187,8 +200,8 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
       configurationTransformation = x -> x;
     }
     try {
-      WriterConfiguration writerconf = configurationTransformation.apply(
-              new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
+      WriterConfiguration writerconf = configurationTransformation
+          .apply(configurationStrategy.createWriterConfig(bulkMessageWriter, getConfigurations()));
       if (defaultBatchTimeout == 0) {
         //This means getComponentConfiguration was never called to initialize defaultBatchTimeout,
         //probably because we are in a unit test scenario.  So calculate it here.
@@ -219,8 +232,8 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
           //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
           LOG.debug("Flushing message queues older than their batchTimeouts");
           getWriterComponent().flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
-                  new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
-                  , messageGetStrategy);
+              configurationStrategy.createWriterConfig(bulkMessageWriter, getConfigurations())),
+              messageGetStrategy);
         }
       }
       catch(Exception e) {
@@ -237,8 +250,8 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
       JSONObject message = (JSONObject) messageGetStrategy.get(tuple);
       String sensorType = MessageUtils.getSensorType(message);
       LOG.trace("Writing enrichment message: {}", message);
-      WriterConfiguration writerConfiguration = configurationTransformation.apply(
-              new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
+      WriterConfiguration writerConfiguration = configurationTransformation
+          .apply(configurationStrategy.createWriterConfig(bulkMessageWriter, getConfigurations()));
       if(sensorType == null) {
         //sensor type somehow ended up being null.  We want to error this message directly.
         getWriterComponent().error("null"

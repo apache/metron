@@ -295,4 +295,5 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     assertEquals(3, tupleList.size());
     verify(outputCollector, times(5)).ack(tuple);  // 3 messages + 2nd tick
   }
+
 }

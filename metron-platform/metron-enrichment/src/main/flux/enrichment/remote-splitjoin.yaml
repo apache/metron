@@ -329,7 +329,7 @@ bolts:
         constructorArgs:
             - "${kafka.zk}"
         configMethods:
-            -   name: "withMessageWriter"
+            -   name: "withBulkMessageWriter"
                 args:
                     - ref: "enrichmentErrorKafkaWriter"
 
@@ -389,7 +389,7 @@ bolts:
         constructorArgs:
             - "${kafka.zk}"
         configMethods:
-            -   name: "withMessageWriter"
+            -   name: "withBulkMessageWriter"
                 args:
                     - ref: "threatIntelErrorKafkaWriter"
 
@@ -399,7 +399,7 @@ bolts:
         constructorArgs:
             - "${kafka.zk}"
         configMethods:
-            -   name: "withMessageWriter"
+            -   name: "withBulkMessageWriter"
                 args:
                     - ref: "kafkaWriter"
         parallelism: ${kafka.writer.parallelism}

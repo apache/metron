@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EnrichmentConfigurations extends Configurations {
+  public static final String BATCH_SIZE_CONF = "enrichment.writer.batchSize";
+  public static final String BATCH_TIMEOUT_CONF = "enrichment.writer.batchTimeout";
 
   public SensorEnrichmentConfig getSensorEnrichmentConfig(String sensorType) {
     return (SensorEnrichmentConfig) getConfigurations().get(getKey(sensorType));
@@ -49,6 +51,30 @@ public class EnrichmentConfigurations extends Configurations {
     getConfigurations().remove(getKey(sensorType));
   }
 
+  /**
+   * Pulled from global config.
+   * Note: enrichment writes out to 1 kafka topic, so it is not pulling this config by sensor.
+   *
+   * @param sensorName not used
+   * @return batch size for writing to kafka
+   * @see org.apache.metron.common.configuration.EnrichmentConfigurations#BATCH_SIZE_CONF
+   */
+  public int getBatchSize() {
+    return getAs(BATCH_SIZE_CONF, getGlobalConfig(true), 1, Integer.class);
+  }
+
+  /**
+   * Pull from global config
+   * Note: enrichment writes out to 1 kafka topic, so it is not pulling this config by sensor.
+   *
+   * @param sensorName not used
+   * @return batch timeout for writing to kafka
+   * @see org.apache.metron.common.configuration.EnrichmentConfigurations#BATCH_TIMEOUT_CONF
+   */
+  public int getBatchTimeout() {
+    return getAs(BATCH_TIMEOUT_CONF, getGlobalConfig(true), 1, Integer.class);
+  }
+
   public List<String> getTypes() {
     List<String> ret = new ArrayList<>();
     for(String keyedSensor : getConfigurations().keySet()) {
@@ -62,4 +88,5 @@ public class EnrichmentConfigurations extends Configurations {
   public static String getKey(String sensorType) {
     return ConfigurationType.ENRICHMENT.getTypeName() + "." + sensorType;
   }
+
 }

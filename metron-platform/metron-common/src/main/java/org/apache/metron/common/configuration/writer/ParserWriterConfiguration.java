@@ -26,6 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/*
+ * Note that parsers can also be used for streaming enrichments, which means broader scope than
+ * Kafka alone.
+ */
 public class ParserWriterConfiguration implements WriterConfiguration {
   private ParserConfigurations config;
   public ParserWriterConfiguration(ParserConfigurations config) {

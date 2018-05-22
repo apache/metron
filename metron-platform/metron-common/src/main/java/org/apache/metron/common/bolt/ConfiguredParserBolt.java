@@ -17,14 +17,11 @@
  */
 package org.apache.metron.common.bolt;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.configuration.writer.ConfigurationsStrategies;
 import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
-import org.apache.metron.common.zookeeper.configurations.ParserUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +47,7 @@ public abstract class ConfiguredParserBolt extends ConfiguredBolt<ParserConfigur
 
   @Override
   protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
-    return new ParserUpdater(this, this::getConfigurations);
+    return ConfigurationsStrategies.PARSERS.createUpdater(this, this::getConfigurations);
   }
 
 }

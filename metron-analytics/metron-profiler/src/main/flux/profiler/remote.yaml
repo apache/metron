@@ -184,7 +184,7 @@ bolts:
         constructorArgs:
             - "${kafka.zk}"
         configMethods:
-            -   name: "withMessageWriter"
+            -   name: "withBulkMessageWriter"
                 args: [ref: "kafkaWriter"]
 
 streams:
