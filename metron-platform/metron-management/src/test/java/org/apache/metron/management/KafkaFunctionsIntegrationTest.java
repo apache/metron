@@ -20,6 +20,7 @@ package org.apache.metron.management;
 
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.functions.MapFunctions;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.metron.stellar.common.StellarProcessor;
@@ -108,7 +109,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * Write one message, read one message.
    */
   @Test
-  public void testOneMessage() {
+  public void testPutThenGetOneMessage() {
     run("KAFKA_PUT('topic1', [message1])");
     Object actual = run("KAFKA_GET('topic1')");
     assertEquals(Collections.singletonList(message1), actual);
@@ -118,7 +119,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * Multiple messages can be read with a single call.
    */
   @Test
-  public void testMultipleMessages() {
+  public void testPutThenGetMultipleMessages() {
     run("KAFKA_PUT('topic2', [message1, message2, message3])");
     Object actual = run("KAFKA_GET('topic2', 3)");
 
@@ -182,6 +183,80 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
+   * KAFKA_FIND should only return messages that satisfy a filter expression.
+   */
+  @Test
+  public void testKafkaFind() {
+
+    // write all 3 messages to the topic
+    run("KAFKA_PUT('topic4', [message1, message2, message3])");
+
+    // find all messages satisifying the filter expression
+    Object actual = run("KAFKA_FIND('topic4', m -> MAP_GET('value', m) == 23)");
+
+    // only expect `message2` where value == 23 to be returned
+    List<String> expected = Collections.singletonList(message2);
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * KAFKA_FIND should return all messages if the filter expression says so.
+   */
+  @Test
+  public void testKafkaFindMultiple() {
+
+    // write all 3 messages to the topic
+    run("KAFKA_PUT('topic4', [message1, message2, message3])");
+
+    // find all messages
+    Object actual = run("KAFKA_FIND('topic4', m -> true, 3)");
+
+    // all messages should satisfy the filter
+    List<String> expected = new ArrayList<String>() {{
+      add(message1);
+      add(message2);
+      add(message3);
+    }};
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * KAFKA_FIND should return no more messages than its limit.
+   */
+  @Test
+  public void testKafkaFindWithHardLimit() {
+
+    // write all 3 messages to the topic
+    run("KAFKA_PUT('topic4', [message1, message2, message3])");
+
+    // all messages satisfy the filter, but only 1 should be returned due to the hard limit
+    Object actual = run("KAFKA_FIND('topic4', m -> true, 1)");
+
+    // all messages should satisfy the filter
+    List<String> expected = new ArrayList<String>() {{
+      add(message1);
+    }};
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * The filter expression could reject all messages.
+   */
+  @Test
+  public void testKafkaFindNone() {
+
+    // write all 3 messages to the topic
+    run("KAFKA_PUT('topic4', [message1, message2, message3])");
+
+    // all messages satisfy the filter, but only 1 should be returned due to the hard limit
+    Object actual = run("KAFKA_FIND('topic4', m -> false)");
+
+    // all messages should satisfy the filter
+    List<String> expected = Collections.emptyList();
+    assertEquals(expected, actual);
+  }
+
+  /**
    * Runs a Stellar expression.
    * @param expr The expression to run.
    */
@@ -196,7 +271,9 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
             .withClass(KafkaFunctions.KafkaGet.class)
             .withClass(KafkaFunctions.KafkaPut.class)
             .withClass(KafkaFunctions.KafkaProps.class)
-            .withClass(KafkaFunctions.KafkaTail.class);
+            .withClass(KafkaFunctions.KafkaTail.class)
+            .withClass(KafkaFunctions.KafkaFind.class)
+            .withClass(MapFunctions.MapGet.class);
 
     StellarProcessor processor = new StellarProcessor();
     return processor.parse(expr, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), functionResolver, context);

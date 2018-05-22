@@ -18,31 +18,51 @@
 
 package org.apache.metron.management;
 
+import org.apache.commons.lang.ClassUtils;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.metron.profiler.client.stellar.Util;
+import org.apache.metron.stellar.common.LambdaExpression;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 
 /**
- * Kafka functions available in Stellar.
+ * Defines the following Kafka-related functions available in Stellar.
  *
- * KAFKA_GET
- * KAFKA_TAIL
- * KAFKA_PUT
- * KAFKA_PROPS
+ *  KAFKA_GET
+ *  KAFKA_TAIL
+ *  KAFKA_FILTER
+ *  KAFKA_PUT
+ *  KAFKA_PROPS
  */
 public class KafkaFunctions {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * How long to wait on each poll request in milliseconds.  There will be multiple
@@ -96,7 +116,7 @@ public class KafkaFunctions {
                   "count - The number of Kafka messages to retrieve",
                   "config - Optional map of key/values that override any global properties."
           },
-          returns = "List of strings"
+          returns = "The messages as a list of strings"
   )
   public static class KafkaGet implements StellarFunction {
 
@@ -130,7 +150,8 @@ public class KafkaFunctions {
         int maxAttempts = getMaxAttempts(properties);
         int i = 0;
         while(messages.size() < count && i++ < maxAttempts) {
-          consumer.poll(POLL_TIMEOUT).forEach(record -> messages.add(record.value()));
+          consumer.poll(POLL_TIMEOUT)
+                  .forEach(record -> messages.add(record.value()));
           consumer.commitSync();
         }
       }
@@ -171,7 +192,7 @@ public class KafkaFunctions {
                   "count - The number of Kafka messages to retrieve",
                   "config - Optional map of key/values that override any global properties."
           },
-          returns = "Messages retrieved from the Kafka topic"
+          returns = "The messages as a list of strings"
   )
   public static class KafkaTail implements StellarFunction {
 
@@ -435,6 +456,135 @@ public class KafkaFunctions {
     properties.put(MAX_WAIT_PROPERTY, 5000);
 
     return properties;
+  }
+
+  /**
+   * KAFKA_FIND
+   *
+   * Finds messages that satisfy a given filter expression. Subsequent calls will continue retrieving messages
+   * sequentially from the original offset.
+   *
+   * Example: Retrieve a 'bro' message.
+   *  KAFKA_FIND('topic', m -> MAP_GET('source.type', m) == 'bro')
+   *
+   * Example: Find 10 messages that contain geolocation data.
+   *  KAFKA_FIND('topic', m -> MAP_EXISTS('geo', m), 10)
+   */
+  @Stellar(
+          namespace = "KAFKA",
+          name = "FIND",
+          description = "Finds messages that satisfy a given filter expression. Subsequent calls will " +
+                  "continue retrieving messages sequentially from the original offset." +
+                  "" +
+                  "Example: Find a 'bro' message." +
+                  "    KAFKA_FIND('topic', m -> MAP_GET('source.type', m) == 'bro')" +
+                  "" +
+                  "Example: Find 10 messages that contain geolocation data." +
+                  "    KAFKA_FIND('topic', m -> MAP_EXISTS('geo', m), 10)" +
+                  "",
+          params = {
+                  "topic - The name of the Kafka topic",
+                  "filter - A lambda expression that filters messages. Messages are presented as a map of fields to the expression.",
+                  "count - The number of Kafka messages to retrieve",
+                  "config - Optional map of key/values that override any global properties."
+          },
+          returns = "The messages as a list of strings"
+  )
+  public static class KafkaFind implements StellarFunction {
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      List<String> messages = new ArrayList<>();
+
+      // required - name of the topic to retrieve messages from
+      String topic = Util.getArg(0, String.class, args);
+
+      // required - a lambda which filters the messages
+      LambdaExpression filter = Util.getArg(1, LambdaExpression.class, args);
+
+      // optional - how many messages should be retrieved?
+      int count = 1;
+      if(args.size() > 2) {
+        count = Util.getArg(2, Integer.class, args);
+      }
+
+      // optional - property overrides provided by the user
+      Map<String, String> overrides = new HashMap<>();
+      if(args.size() > 3) {
+        overrides = ConversionUtils.convert(args.get(3), Map.class);
+      }
+
+      // build the properties for kafka
+      Properties properties = buildKafkaProperties(overrides, context);
+      properties.put("max.poll.records", count);
+
+      // read some messages
+      try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
+        consumer.subscribe(Arrays.asList(topic));
+
+        // continue until we have enough messages or exceeded the max number of attempts
+        int maxAttempts = getMaxAttempts(properties);
+        int attempt = 0;
+        while(messages.size() < count && attempt++ < maxAttempts) {
+
+          for(ConsumerRecord<String, String> record : consumer.poll(POLL_TIMEOUT)) {
+
+            // only keep the message if the filter expression is satisfied
+            if(isSatisfied(filter, record.value())) {
+              messages.add(record.value());
+            }
+          }
+
+          consumer.commitSync();
+        }
+      }
+
+      return messages;
+    }
+
+    /**
+     * Executes a given expression on a message.
+     *
+     * @param expr The filter expression to execute.
+     * @param message The message that the expression is executed on.
+     * @return Returns true, only if the expression returns true.  If the expression
+     * returns false or fails to execute, false is returned.
+     */
+    public boolean isSatisfied(LambdaExpression expr, String message) {
+      boolean result = false;
+      Map<String, Object> messageAsMap;
+      try {
+
+        // transform the message to a map of fields
+        messageAsMap = JSONUtils.INSTANCE.load(message, JSONUtils.MAP_SUPPLIER);
+
+        // apply the filter expression
+        Object out = expr.apply(Collections.singletonList(messageAsMap));
+        if(out instanceof Boolean) {
+          result = (Boolean) out;
+
+        } else {
+          LOG.debug("Expected boolean from filter expression, got {}", ClassUtils.getShortClassName(out, "null"));
+        }
+
+      } catch(IOException e) {
+        LOG.debug("Unable to parse message", e);
+      }
+
+      return result;
+    }
+
+
+    @Override
+    public void initialize(Context context) {
+      // no initialization required
+    }
+
+    @Override
+    public boolean isInitialized() {
+      // no initialization required
+      return true;
+    }
   }
 
   /**
