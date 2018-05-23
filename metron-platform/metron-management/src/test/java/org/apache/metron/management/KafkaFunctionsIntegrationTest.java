@@ -242,6 +242,20 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
+   * KAFKA_GET should return nothing if a topic does not exist
+   */
+  @Test
+  public void testKafkaGetWithNonExistentTopic() {
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // no more messages left to read
+    assertEquals(Collections.emptyList(), run("KAFKA_GET(topic, 1)"));
+  }
+
+  /**
    * KAFKA_TAIL should return new messages from the end of a topic.
    */
   @Test

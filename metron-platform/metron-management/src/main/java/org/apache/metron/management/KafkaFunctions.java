@@ -194,7 +194,8 @@ public class KafkaFunctions {
 
       // read some messages
       try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
-        consumer.subscribe(Arrays.asList(topic));
+
+        manualPartitionAssignment(topic, consumer);
 
         // continue until we have enough messages or exceeded the max wait time
         long wait = 0L;
@@ -690,6 +691,10 @@ public class KafkaFunctions {
     Set<TopicPartition> partitions = new HashSet<>();
     for(PartitionInfo partition : consumer.partitionsFor(topic)) {
       partitions.add(new TopicPartition(topic, partition.partition()));
+    }
+
+    if(partitions.size() == 0) {
+      throw new IllegalStateException(format("No partitions available for consumer assignment; topic=%s", topic));
     }
 
     // manually assign this consumer to each partition in the topic
