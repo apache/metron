@@ -185,6 +185,68 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
+   * KAFKA_PUT should be able to write a message passed as a String, rather than a List.
+   */
+  @Test
+  public void testKafkaPutWithRichView() {
+
+    // configure a detailed view of each message
+    global.put(KafkaFunctions.MESSAGE_VIEW_PROPERTY, KafkaFunctions.MESSAGE_VIEW_RICH);
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // put a message onto the topic - the message is just a string, not a list
+    Object actual = run("KAFKA_PUT(topic, message1)");
+
+    // validate
+    assertTrue(actual instanceof List);
+    List<Object> results = (List) actual;
+    assertEquals(1, results.size());
+
+    // expect a 'rich' view of the record
+    Map<String, Object> view = (Map) results.get(0);
+    assertEquals(topicName, view.get("topic"));
+    assertEquals(0, view.get("partition"));
+    assertEquals(0L, view.get("offset"));
+    assertNotNull(view.get("timestamp"));
+  }
+
+  /**
+   * KAFKA_GET should allow a user to see a detailed view of each Kafka record.
+   */
+  @Test
+  public void testKafkaGetWithRichView() {
+
+    // configure a detailed view of each message
+    global.put(KafkaFunctions.MESSAGE_VIEW_PROPERTY, KafkaFunctions.MESSAGE_VIEW_RICH);
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // put a message onto the topic - the message is just a string, not a list
+    run("KAFKA_PUT(topic, message1)");
+
+    // get a message from the topic
+    Object actual = run("KAFKA_GET(topic)");
+
+    // validate
+    assertTrue(actual instanceof List);
+    List<Object> results = (List) actual;
+    assertEquals(1, results.size());
+
+    // expect a 'rich' view of the record
+    Map<String, Object> view = (Map) results.get(0);
+    assertNull(view.get("key"));
+    assertEquals(0L, view.get("offset"));
+    assertEquals(0, view.get("partition"));
+    assertEquals(topicName, view.get("topic"));
+    assertEquals(message1, view.get("value"));
+  }
+
+  /**
    * KAFKA_PUT should be able to write multiple messages passed as a List.
    * KAFKA_GET should be able to read multiple messages at once.
    */
@@ -288,6 +350,45 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
+   * KAFKA_TAIL should allow a user to see a rich view of each Kafka record.
+   */
+  @Test
+  public void testKafkaTailWithRichView() throws Exception {
+
+    // configure a detailed view of each message
+    global.put(KafkaFunctions.MESSAGE_VIEW_PROPERTY, KafkaFunctions.MESSAGE_VIEW_RICH);
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // put multiple messages onto the topic; KAFKA tail should NOT retrieve these
+    run("KAFKA_PUT(topic, [message2, message2, message2])");
+
+    // get a message from the topic; will block until messages arrive
+    Future<Object> tailFuture = runAsync("KAFKA_TAIL(topic, 1)");
+
+    // put 10 messages onto the topic for KAFKA_TAIL to grab
+    runAsyncAndWait(Collections.nCopies(10, "KAFKA_PUT(topic, [message1])"));
+
+    // wait for KAFKA_TAIL to complete
+    Object actual = tailFuture.get(10, TimeUnit.SECONDS);
+
+    // validate
+    assertTrue(actual instanceof List);
+    List<Object> results = (List) actual;
+    assertEquals(1, results.size());
+
+    // expect a 'rich' view of the record
+    Map<String, Object> view = (Map) results.get(0);
+    assertNull(view.get("key"));
+    assertEquals(0, view.get("partition"));
+    assertEquals(topicName, view.get("topic"));
+    assertEquals(message1, view.get("value"));
+    assertNotNull(view.get("offset"));
+  }
+
+  /**
    * KAFKA_PROPS should return the set of properties used to configure the Kafka consumer
    *
    * The properties used for the KAFKA_* functions are calculated by compiling the default, global and user
@@ -370,6 +471,40 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     Object actual = future.get(10, TimeUnit.SECONDS);
     List<String> expected = Collections.emptyList();
     assertEquals(expected, actual);
+  }
+
+  /**
+   * KAFKA_FIND should allow a user to see a detailed view of each Kafka record.
+   */
+  @Test
+  public void testKafkaFindWithRichView() throws Exception {
+
+    // configure a detailed view of each message
+    global.put(KafkaFunctions.MESSAGE_VIEW_PROPERTY, KafkaFunctions.MESSAGE_VIEW_RICH);
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // find all messages satisfying the filter expression
+    Future<Object> future = runAsync("KAFKA_FIND(topic, m -> MAP_GET('value', m) == 23)");
+
+    // put 10 messages onto the topic for KAFKA_TAIL to grab
+    runAsyncAndWait(Collections.nCopies(10, "KAFKA_PUT(topic, [message2])"));
+
+    // validate
+    Object actual = future.get(10, TimeUnit.SECONDS);
+    assertTrue(actual instanceof List);
+    List<Object> results = (List) actual;
+    assertEquals(1, results.size());
+
+    // expect a 'rich' view of the record
+    Map<String, Object> view = (Map) results.get(0);
+    assertNull(view.get("key"));
+    assertNotNull(view.get("offset"));
+    assertEquals(0, view.get("partition"));
+    assertEquals(topicName, view.get("topic"));
+    assertEquals(message2, view.get("value"));
   }
 
   /**
