@@ -18,7 +18,6 @@
 package org.apache.metron.indexing.dao.search;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -83,5 +82,14 @@ public class SearchResponse {
     int result = 31 * (int) getTotal() + (getResults() != null ? getResults().hashCode() : 0);
     result = 31 * result + (getFacetCounts() != null ? getFacetCounts().hashCode() : 0);
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "SearchResponse{" +
+        "total=" + total +
+        ", results=" + results +
+        ", facetCounts=" + facetCounts +
+        '}';
   }
 }

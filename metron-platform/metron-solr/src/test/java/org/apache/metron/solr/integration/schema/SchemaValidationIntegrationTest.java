@@ -25,9 +25,12 @@ import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.metron.solr.writer.SolrWriter;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.storm.tuple.Tuple;
+import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import java.io.File;
@@ -38,7 +41,6 @@ import java.util.*;
 import static org.mockito.Mockito.mock;
 
 public class SchemaValidationIntegrationTest {
-
   public static Iterable<String> getData(String sensor) throws IOException {
     return Iterables.filter(
             Files.readLines(new File("src/test/resources/example_data/" + sensor), Charset.defaultCharset()),
@@ -53,9 +55,7 @@ public class SchemaValidationIntegrationTest {
   }
 
   public static SolrComponent createSolrComponent(String sensor) throws Exception {
-    return new SolrComponent.Builder()
-            .addCollection(String.format("%s", sensor), String.format("src/main/config/schema/%s", sensor))
-            .build();
+    return new SolrComponent.Builder().build();
   }
 
   @Test
@@ -92,6 +92,7 @@ public class SchemaValidationIntegrationTest {
     try {
       component = createSolrComponent(sensorType);
       component.start();
+      component.addCollection(String.format("%s", sensorType), String.format("src/main/config/schema/%s", sensorType));
       Map<String, Object> globalConfig = getGlobalConfig(sensorType, component);
 
       List<JSONObject> inputs = new ArrayList<>();

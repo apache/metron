@@ -25,7 +25,6 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.HBaseDao;
-import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.rest.service.UpdateService;
 import org.junit.Assert;
@@ -72,6 +71,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
   private String searchUrl = "/api/v1/search";
   private String user = "user";
   private String password = "password";
+  private String metaAlertIndex = "metaalert_index";
 
   /**
    {
@@ -121,7 +121,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
     ImmutableMap<String, String> testData = ImmutableMap.of(
         "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
         "snort_index_2017.01.01.01", SearchIntegrationTest.snortData,
-        MetaAlertDao.METAALERTS_INDEX, MetaAlertControllerIntegrationTest.metaAlertData
+        metaAlertIndex, MetaAlertControllerIntegrationTest.metaAlertData
     );
     loadTestData(testData);
   }

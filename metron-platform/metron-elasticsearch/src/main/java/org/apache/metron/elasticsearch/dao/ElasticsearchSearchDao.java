@@ -116,49 +116,6 @@ public class ElasticsearchSearchDao implements SearchDao {
     return group(groupRequest, new QueryStringQueryBuilder(groupRequest.getQuery()));
   }
 
-  @Override
-  public Document getLatest(String guid, String sensorType) throws IOException {
-    Optional<Document> doc = searchByGuid(guid, sensorType, hit -> toDocument(guid, hit));
-    return doc.orElse(null);
-  }
-
-  <T> Optional<T> searchByGuid(String guid, String sensorType,
-      Function<SearchHit, Optional<T>> callback) {
-    Collection<String> sensorTypes = sensorType != null ? Collections.singleton(sensorType) : null;
-    List<T> results = searchByGuids(Collections.singleton(guid), sensorTypes, callback);
-    if (results.size() > 0) {
-      return Optional.of(results.get(0));
-    } else {
-      return Optional.empty();
-    }
-  }
-
-  @Override
-  public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
-    Collection<String> guids = new HashSet<>();
-    Collection<String> sensorTypes = new HashSet<>();
-    for (GetRequest getRequest: getRequests) {
-      guids.add(getRequest.getGuid());
-      sensorTypes.add(getRequest.getSensorType());
-    }
-    List<Document> documents = searchByGuids(
-        guids
-        , sensorTypes
-        , hit -> {
-          Long ts = 0L;
-          String doc = hit.getSourceAsString();
-          String sourceType = Iterables.getFirst(Splitter.on("_doc").split(hit.getType()), null);
-          try {
-            return Optional.of(new Document(doc, hit.getId(), sourceType, ts));
-          } catch (IOException e) {
-            throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
-          }
-        }
-
-    );
-    return documents;
-  }
-
   /**
    * Defers to a provided {@link org.elasticsearch.index.query.QueryBuilder} for the query.
    * @param request The request defining the parameters of the search
@@ -504,64 +461,5 @@ public class ElasticsearchSearchDao implements SearchDao {
       searchResultGroups.add(groupResult);
     }
     return searchResultGroups;
-  }
-
-  /**
-   * Return the search hit based on the UUID and sensor type.
-   * A callback can be specified to transform the hit into a type T.
-   * If more than one hit happens, the first one will be returned.
-   */
-  <T> List<T> searchByGuids(Collection<String> guids, Collection<String> sensorTypes,
-      Function<SearchHit, Optional<T>> callback) {
-    if(guids == null || guids.isEmpty()) {
-      return Collections.EMPTY_LIST;
-    }
-    QueryBuilder query = null;
-    IdsQueryBuilder idsQuery = null;
-    if (sensorTypes != null) {
-      String[] types = sensorTypes.stream().map(sensorType -> sensorType + "_doc").toArray(String[]::new);
-      idsQuery = QueryBuilders.idsQuery(types);
-    } else {
-      idsQuery = QueryBuilders.idsQuery();
-    }
-
-    for(String guid : guids) {
-      query = idsQuery.addIds(guid);
-    }
-
-    SearchRequestBuilder request = client.prepareSearch()
-        .setQuery(query)
-        .setSize(guids.size())
-        ;
-    org.elasticsearch.action.search.SearchResponse response = request.get();
-    SearchHits hits = response.getHits();
-    List<T> results = new ArrayList<>();
-    for (SearchHit hit : hits) {
-      Optional<T> result = callback.apply(hit);
-      if (result.isPresent()) {
-        results.add(result.get());
-      }
-    }
-    return results;
-  }
-
-  private Optional<Document> toDocument(final String guid, SearchHit hit) {
-    Long ts = 0L;
-    String doc = hit.getSourceAsString();
-    String sourceType = toSourceType(hit.getType());
-    try {
-      return Optional.of(new Document(doc, guid, sourceType, ts));
-    } catch (IOException e) {
-      throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
-    }
-  }
-
-  /**
-   * Returns the source type based on a given doc type.
-   * @param docType The document type.
-   * @return The source type.
-   */
-  private String toSourceType(String docType) {
-    return Iterables.getFirst(Splitter.on("_doc").split(docType), null);
   }
 }

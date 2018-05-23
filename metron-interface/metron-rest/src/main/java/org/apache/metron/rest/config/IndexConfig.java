@@ -20,12 +20,14 @@ package org.apache.metron.rest.config;
 import static org.apache.metron.rest.MetronRestConstants.INDEX_DAO_IMPL;
 
 import java.util.Optional;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.IndexDaoFactory;
-import org.apache.metron.indexing.dao.MetaAlertDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
+import org.apache.metron.indexing.util.IndexingCacheUtil;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
@@ -34,15 +36,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 @Configuration
 public class IndexConfig {
 
   @Autowired
   private GlobalConfigService globalConfigService;
+
+  @Autowired
+  private ConfigurationsCache cache;
 
   @Autowired
   private Environment environment;
@@ -72,6 +73,7 @@ public class IndexConfig {
           throw new IllegalStateException("Unable to retrieve the global config.", e);
         }
       });
+      config.setIndexSupplier(IndexingCacheUtil.getIndexLookupFunction(cache));
       config.setTableProvider(TableProvider.create(hbaseProviderImpl, () -> new HTableProvider()));
       config.setKerberosEnabled(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false));
       if (indexDaoImpl == null) {

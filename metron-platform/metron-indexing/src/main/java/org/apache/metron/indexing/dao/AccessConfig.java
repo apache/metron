@@ -17,6 +17,7 @@
  */
 package org.apache.metron.indexing.dao;
 
+import java.util.function.Function;
 import org.apache.metron.hbase.TableProvider;
 
 import java.util.HashMap;
@@ -27,6 +28,7 @@ public class AccessConfig {
   private Integer maxSearchResults;
   private Integer maxSearchGroups;
   private Supplier<Map<String, Object>> globalConfigSupplier;
+  private Function<String, String> indexSupplier;
   private Map<String, String> optionalSettings = new HashMap<>();
   private TableProvider tableProvider = null;
   private Boolean isKerberosEnabled = false;
@@ -40,6 +42,14 @@ public class AccessConfig {
 
   public void setGlobalConfigSupplier(Supplier<Map<String, Object>> globalConfigSupplier) {
     this.globalConfigSupplier = globalConfigSupplier;
+  }
+
+  public Function<String, String> getIndexSupplier() {
+    return indexSupplier;
+  }
+
+  public void setIndexSupplier(Function<String, String> indexSupplier) {
+    this.indexSupplier = indexSupplier;
   }
 
   /**

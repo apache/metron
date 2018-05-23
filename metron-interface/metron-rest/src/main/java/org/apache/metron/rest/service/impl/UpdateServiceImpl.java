@@ -44,7 +44,7 @@ public class UpdateServiceImpl implements UpdateService {
   @Override
   public void patch(PatchRequest request) throws RestException, OriginalNotFoundException {
     try {
-      dao.patch(request, Optional.of(System.currentTimeMillis()));
+      dao.patch(dao, request, Optional.of(System.currentTimeMillis()));
     } catch (Exception e) {
 
       throw new RestException(e.getMessage(), e);

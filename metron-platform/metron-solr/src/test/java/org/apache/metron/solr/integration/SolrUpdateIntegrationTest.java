@@ -25,13 +25,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -40,7 +49,51 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   @Rule
   public final ExpectedException exception = ExpectedException.none();
 
-  protected static SolrComponent solrComponent;
+  private static SolrComponent solrComponent;
+
+  private static final String TABLE_NAME = "modifications";
+  private static final String CF = "p";
+  private static MockHTable table;
+  private static IndexDao hbaseDao;
+
+  @BeforeClass
+  public static void setupBeforeClass() throws Exception {
+    solrComponent = new SolrComponent.Builder().build();
+    solrComponent.start();
+  }
+
+  @Before
+  public void setup() throws Exception {
+    solrComponent.addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf");
+    solrComponent.addCollection("error", "../metron-solr/src/main/config/schema/error");
+
+    Configuration config = HBaseConfiguration.create();
+    MockHBaseTableProvider tableProvider = new MockHBaseTableProvider();
+    MockHBaseTableProvider.addToCache(TABLE_NAME, CF);
+    table = (MockHTable) tableProvider.getTable(config, TABLE_NAME);
+
+    hbaseDao = new HBaseDao();
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setTableProvider(tableProvider);
+    Map<String, Object> globalConfig = createGlobalConfig();
+    globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
+    globalConfig.put(HBaseDao.HBASE_CF, CF);
+    accessConfig.setGlobalConfigSupplier(() -> globalConfig);
+
+    dao = new MultiIndexDao(hbaseDao, new SolrDao());
+    dao.init(accessConfig);
+  }
+
+  @After
+  public void reset() {
+    solrComponent.reset();
+    table.clear();
+  }
+
+  @AfterClass
+  public static void teardown() {
+    solrComponent.stop();
+  }
 
   @Override
   protected String getIndexName() {
@@ -48,29 +101,14 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   }
 
   @Override
-  protected Map<String, Object> createGlobalConfig() throws Exception {
+  protected MockHTable getMockHTable() {
+    return table;
+  }
+
+  private static Map<String, Object> createGlobalConfig() {
     return new HashMap<String, Object>() {{
       put("solr.zookeeper", solrComponent.getZookeeperUrl());
     }};
-  }
-
-  @Override
-  protected IndexDao createDao() throws Exception {
-    return new SolrDao();
-  }
-
-  @Override
-  protected InMemoryComponent startIndex() throws Exception {
-    solrComponent = new SolrComponent.Builder().addCollection(SENSOR_NAME, "../metron-solr/src/main/config/schema/bro")
-        .addCollection("error", "../metron-solr/src/main/config/schema/error")
-        .build();
-    solrComponent.start();
-    return solrComponent;
-  }
-
-  @Override
-  protected void loadTestData() throws Exception {
-
   }
 
   @Override
@@ -80,16 +118,12 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   }
 
   @Override
-  protected List<Map<String, Object>> getIndexedTestData(String indexName, String sensorType)
-      throws Exception {
+  protected List<Map<String, Object>> getIndexedTestData(String indexName, String sensorType) {
     return solrComponent.getAllIndexedDocs(indexName);
   }
 
   @Test
   public void suppress_expanded_fields() throws Exception {
-    dao = new MultiIndexDao(createDao());
-    dao.init(getAccessConfig());
-
     Map<String, Object> fields = new HashMap<>();
     fields.put("guid", "bro_1");
     fields.put("source.type", SENSOR_NAME);
@@ -111,9 +145,6 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
   @Test
   public void testHugeErrorFields() throws Exception {
-    dao = new MultiIndexDao(createDao());
-    dao.init(getAccessConfig());
-
     String hugeString = StringUtils.repeat("test ", 1_000_000);
     String hugeStringTwo = hugeString + "-2";
 

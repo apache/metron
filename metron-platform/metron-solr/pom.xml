@@ -31,7 +31,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${global_hbase_guava_version}</version>
+            <version>${global_guava_version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.solr</groupId>
@@ -300,7 +300,7 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.apache.metron.guava</shadedPattern>
+                                    <shadedPattern>org.apache.metron.guava.metron-solr</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>

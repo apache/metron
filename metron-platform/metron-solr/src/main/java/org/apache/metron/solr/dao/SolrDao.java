@@ -25,6 +25,7 @@ import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.ColumnMetadataDao;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
@@ -33,6 +34,8 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
@@ -49,6 +52,7 @@ public class SolrDao implements IndexDao {
   private transient SolrClient client;
   private SolrSearchDao solrSearchDao;
   private SolrUpdateDao solrUpdateDao;
+  private SolrRetrieveLatestDao solrRetrieveLatestDao;
   private ColumnMetadataDao solrColumnMetadataDao;
 
   private AccessConfig accessConfig;
@@ -57,11 +61,13 @@ public class SolrDao implements IndexDao {
       AccessConfig config,
       SolrSearchDao solrSearchDao,
       SolrUpdateDao solrUpdateDao,
+      SolrRetrieveLatestDao retrieveLatestDao,
       SolrColumnMetadataDao solrColumnMetadataDao) {
     this.client = client;
     this.accessConfig = config;
     this.solrSearchDao = solrSearchDao;
     this.solrUpdateDao = solrUpdateDao;
+    this.solrRetrieveLatestDao = retrieveLatestDao;
     this.solrColumnMetadataDao = solrColumnMetadataDao;
   }
 
@@ -80,7 +86,8 @@ public class SolrDao implements IndexDao {
       this.client = getSolrClient(zkHost);
       this.accessConfig = config;
       this.solrSearchDao = new SolrSearchDao(this.client, this.accessConfig);
-      this.solrUpdateDao = new SolrUpdateDao(this.client);
+      this.solrUpdateDao = new SolrUpdateDao(this.client, this.accessConfig);
+      this.solrRetrieveLatestDao = new SolrRetrieveLatestDao(this.client);
       this.solrColumnMetadataDao = new SolrColumnMetadataDao(zkHost);
     }
   }
@@ -97,12 +104,12 @@ public class SolrDao implements IndexDao {
 
   @Override
   public Document getLatest(String guid, String collection) throws IOException {
-    return this.solrSearchDao.getLatest(guid, collection);
+    return this.solrRetrieveLatestDao.getLatest(guid, collection);
   }
 
   @Override
   public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
-    return this.solrSearchDao.getAllLatest(getRequests);
+    return this.solrRetrieveLatestDao.getAllLatest(getRequests);
   }
 
   @Override
@@ -116,15 +123,35 @@ public class SolrDao implements IndexDao {
   }
 
   @Override
+  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+      Optional<Long> timestamp)
+      throws OriginalNotFoundException, IOException {
+    solrUpdateDao.patch(retrieveLatestDao, request, timestamp);
+  }
+
+  @Override
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     return this.solrColumnMetadataDao.getColumnMetadata(indices);
   }
 
-  protected SolrClient getSolrClient(String zkHost) {
+  public SolrClient getSolrClient(String zkHost) {
     return new CloudSolrClient.Builder().withZkHost(zkHost).build();
   }
 
-  protected void enableKerberos() {
+  public String getZkHost() {
+    Map<String, Object> globalConfig = accessConfig.getGlobalConfigSupplier().get();
+    return (String) globalConfig.get("solr.zookeeper");
+  }
+
+  void enableKerberos() {
     HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
+  }
+
+  public SolrSearchDao getSolrSearchDao() {
+    return solrSearchDao;
+  }
+
+  public SolrSearchDao getSolrUpdateDao() {
+    return solrSearchDao;
   }
 }

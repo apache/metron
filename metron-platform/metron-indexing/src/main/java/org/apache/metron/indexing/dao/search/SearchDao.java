@@ -17,18 +17,22 @@
  */
 package org.apache.metron.indexing.dao.search;
 
-import java.io.IOException;
-import java.util.List;
-import org.apache.metron.indexing.dao.update.Document;
-
 public interface SearchDao {
 
+  /**
+   * Return search response based on the search request
+   *
+   * @param searchRequest The request defining the search parameters.
+   * @return A response containing the results of the search.
+   * @throws InvalidSearchException If the search request is malformed.
+   */
   SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException;
 
+  /**
+   * Return group response based on the group request
+   * @param groupRequest The request defining the grouping parameters.
+   * @return A response containing the results of the grouping operation.
+   * @throws InvalidSearchException If the grouping request is malformed.
+   */
   GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException;
-
-  Document getLatest(String guid, String sensorType) throws IOException;
-
-  Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException;
-
 }

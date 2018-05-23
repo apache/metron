@@ -19,16 +19,14 @@
 package org.apache.metron.rest.service.impl;
 
 import java.io.IOException;
-import java.util.Collection;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.MetaAlertDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertAddRemoveRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.MetaAlertService;
@@ -47,7 +45,6 @@ public class MetaAlertServiceImpl implements MetaAlertService {
     this.dao = (MetaAlertDao) indexDao;
     this.environment = environment;
   }
-
 
   @Override
   public MetaAlertCreateResponse create(MetaAlertCreateRequest createRequest) throws RestException {

@@ -17,6 +17,18 @@
  */
 package org.apache.metron.solr.dao;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.spy;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
@@ -31,19 +43,6 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.mockito.Mockito.verify;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SolrDao.class})
 public class SolrDaoTest {
@@ -54,23 +53,31 @@ public class SolrDaoTest {
   private SolrClient client;
   private SolrSearchDao solrSearchDao;
   private SolrUpdateDao solrUpdateDao;
+  private SolrRetrieveLatestDao solrRetrieveLatestDao;
   private SolrColumnMetadataDao solrColumnMetadataDao;
   private SolrDao solrDao;
 
   @SuppressWarnings("unchecked")
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     client = mock(SolrClient.class);
     solrSearchDao = mock(SolrSearchDao.class);
     solrUpdateDao = mock(SolrUpdateDao.class);
+    solrRetrieveLatestDao = mock(SolrRetrieveLatestDao.class);
     solrColumnMetadataDao = mock(SolrColumnMetadataDao.class);
   }
 
   @Test
-  public void initShouldEnableKerberos() throws Exception {
+  public void initShouldEnableKerberos() {
     AccessConfig accessConfig = new AccessConfig();
 
-    solrDao = spy(new SolrDao(client, accessConfig, solrSearchDao, solrUpdateDao, solrColumnMetadataDao));
+    solrDao = spy(new SolrDao(
+        client,
+        accessConfig,
+        solrSearchDao,
+        solrUpdateDao,
+        solrRetrieveLatestDao,
+        solrColumnMetadataDao));
     doNothing().when(solrDao).enableKerberos();
 
     solrDao.init(accessConfig);
@@ -86,17 +93,20 @@ public class SolrDaoTest {
   @Test
   public void initShouldCreateDaos() throws Exception {
     AccessConfig accessConfig = new AccessConfig();
-    accessConfig.setGlobalConfigSupplier( () ->
-            new HashMap<String, Object>() {{
-              put("solr.zookeeper", "zookeeper:2181");
-            }}
+    accessConfig.setGlobalConfigSupplier(() ->
+        new HashMap<String, Object>() {{
+          put("solr.zookeeper", "zookeeper:2181");
+        }}
     );
 
     solrDao = spy(new SolrDao());
     doReturn(client).when(solrDao).getSolrClient("zookeeper:2181");
     whenNew(SolrSearchDao.class).withArguments(client, accessConfig).thenReturn(solrSearchDao);
-    whenNew(SolrUpdateDao.class).withArguments(client).thenReturn(solrUpdateDao);
-    whenNew(SolrColumnMetadataDao.class).withArguments("zookeeper:2181").thenReturn(solrColumnMetadataDao);
+    whenNew(SolrUpdateDao.class).withArguments(client, accessConfig).thenReturn(solrUpdateDao);
+    whenNew(SolrRetrieveLatestDao.class).withArguments(client)
+        .thenReturn(solrRetrieveLatestDao);
+    whenNew(SolrColumnMetadataDao.class).withArguments("zookeeper:2181")
+        .thenReturn(solrColumnMetadataDao);
 
     solrDao.init(accessConfig);
 
@@ -109,18 +119,18 @@ public class SolrDaoTest {
     verify(solrSearchDao).group(groupRequest);
 
     solrDao.getLatest("guid", "collection");
-    verify(solrSearchDao).getLatest("guid", "collection");
+    verify(solrRetrieveLatestDao).getLatest("guid", "collection");
 
     GetRequest getRequest1 = mock(GetRequest.class);
     GetRequest getRequest2 = mock(GetRequest.class);
     solrDao.getAllLatest(Arrays.asList(getRequest1, getRequest2));
-    verify(solrSearchDao).getAllLatest(Arrays.asList(getRequest1, getRequest2));
+    verify(solrRetrieveLatestDao).getAllLatest(Arrays.asList(getRequest1, getRequest2));
 
     Document document = mock(Document.class);
     solrDao.update(document, Optional.of("bro"));
     verify(solrUpdateDao).update(document, Optional.of("bro"));
 
-    Map<Document, Optional<String>> updates = new HashMap<Document, Optional<String>>(){{
+    Map<Document, Optional<String>> updates = new HashMap<Document, Optional<String>>() {{
       put(document, Optional.of("bro"));
     }};
     solrDao.batchUpdate(updates);
@@ -129,5 +139,4 @@ public class SolrDaoTest {
     solrDao.getColumnMetadata(Arrays.asList("bro", "snort"));
     verify(solrColumnMetadataDao).getColumnMetadata(Arrays.asList("bro", "snort"));
   }
-
 }

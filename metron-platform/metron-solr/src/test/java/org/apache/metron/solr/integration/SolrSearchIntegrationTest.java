@@ -17,6 +17,7 @@
  */
 package org.apache.metron.solr.integration;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,22 +34,45 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class SolrSearchIntegrationTest extends SearchIntegrationTest {
+  private static SolrComponent solrComponent;
+  private static IndexDao dao;
 
-  private SolrComponent solrComponent;
+  @BeforeClass
+  public static void setupClass() throws Exception {
+    indexComponent = startIndex();
+    dao = createDao();
+    // The data is all static for searches, so we can set it up here, and not do anything between tests.
+    broData = SearchIntegrationTest.broData.replace("source:type", "source.type");
+    snortData = SearchIntegrationTest.snortData.replace("source:type", "source.type");
+    solrComponent.addCollection("bro", "../metron-solr/src/main/config/schema/bro");
+    solrComponent.addCollection("snort", "../metron-solr/src/main/config/schema/snort");
+    loadTestData();
+  }
 
-  private String broData = SearchIntegrationTest.broData.replace("source:type", "source.type");
-  private String snortData = SearchIntegrationTest.snortData.replace("source:type", "source.type");
+  @AfterClass
+  public static void teardown() {
+    if (solrComponent != null) {
+      solrComponent.stop();
+    }
+  }
 
   @Override
-  protected IndexDao createDao() throws Exception {
+  public IndexDao getIndexDao() {
+    return dao;
+  }
+
+  protected static IndexDao createDao() {
     AccessConfig config = new AccessConfig();
     config.setMaxSearchResults(100);
     config.setMaxSearchGroups(100);
@@ -63,29 +87,18 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     return dao;
   }
 
-  @Override
-  protected InMemoryComponent startIndex() throws Exception {
-
-    solrComponent = new SolrComponent.Builder()
-        .addCollection("bro", "../metron-solr/src/main/config/schema/bro")
-        .addCollection("snort", "../metron-solr/src/main/config/schema/snort")
-        .build();
+  protected static InMemoryComponent startIndex() throws Exception {
+    solrComponent = new SolrComponent.Builder().build();
     solrComponent.start();
     return solrComponent;
   }
 
   @SuppressWarnings("unchecked")
-  @Override
-  protected void loadTestData() throws Exception {
-    CloudSolrClient solrClient = solrComponent.getSolrClient();
+  protected static void loadTestData() throws ParseException, IOException, SolrServerException {
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
     solrComponent.addDocs("bro", broArray);
-    solrClient.setDefaultCollection("bro");
-    solrClient.commit();
     JSONArray snortArray = (JSONArray) new JSONParser().parse(snortData);
     solrComponent.addDocs("snort", snortArray);
-    solrClient.setDefaultCollection("snort");
-    solrClient.commit();
   }
 
   @Override
@@ -95,7 +108,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
       // Don't test all 256, just test a sample of different fields
-      Assert.assertEquals(261, fieldTypes.size());
+      Assert.assertEquals(262, fieldTypes.size());
 
       // Fields present in both with same type
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
@@ -131,7 +144,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     // getColumnMetadata with only snort
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(31, fieldTypes.size());
+      Assert.assertEquals(32, fieldTypes.size());
 
       // Fields present in both with same type
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));

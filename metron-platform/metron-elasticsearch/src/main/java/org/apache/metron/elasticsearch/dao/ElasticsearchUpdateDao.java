@@ -42,14 +42,14 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
   private transient TransportClient client;
   private AccessConfig accessConfig;
-  private ElasticsearchSearchDao searchDao;
+  private ElasticsearchRetrieveLatestDao retrieveLatestDao;
 
   public ElasticsearchUpdateDao(TransportClient client,
       AccessConfig accessConfig,
-      ElasticsearchSearchDao searchDao) {
+      ElasticsearchRetrieveLatestDao searchDao) {
     this.client = client;
     this.accessConfig = accessConfig;
-    this.searchDao = searchDao;
+    this.retrieveLatestDao = searchDao;
   }
 
   @Override
@@ -110,7 +110,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   }
 
   protected Optional<String> getIndexName(String guid, String sensorType) {
-    return searchDao.searchByGuid(guid,
+    return retrieveLatestDao.searchByGuid(guid,
         sensorType,
         hit -> Optional.ofNullable(hit.getIndex())
     );
@@ -121,7 +121,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     Object ts = update.getTimestamp();
     IndexRequest indexRequest = new IndexRequest(indexName, type, update.getGuid())
         .source(update.getDocument());
-    if(ts != null) {
+    if (ts != null) {
       indexRequest = indexRequest.timestamp(ts.toString());
     }
 

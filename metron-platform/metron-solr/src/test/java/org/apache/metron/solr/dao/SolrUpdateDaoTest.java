@@ -17,6 +17,7 @@
  */
 package org.apache.metron.solr.dao;
 
+import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.solr.matcher.SolrInputDocumentListMatcher;
 import org.apache.metron.solr.matcher.SolrInputDocumentMatcher;
@@ -24,10 +25,12 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -51,11 +54,23 @@ public class SolrUpdateDaoTest {
   private SolrClient client;
   private SolrUpdateDao solrUpdateDao;
 
+  private static AccessConfig accessConfig = new AccessConfig();
+
+  @BeforeClass
+  public static void setupBefore() {
+    accessConfig.setGlobalConfigSupplier(() ->
+        new HashMap<String, Object>() {{
+          put("solr.zookeeper", "zookeeper:2181");
+        }}
+    );
+    accessConfig.setIndexSupplier(s -> null);
+  }
+
   @SuppressWarnings("unchecked")
   @Before
   public void setUp() throws Exception {
     client = mock(SolrClient.class);
-    solrUpdateDao = new SolrUpdateDao(client);
+    solrUpdateDao = new SolrUpdateDao(client, accessConfig);
   }
 
   @Test
@@ -129,7 +144,7 @@ public class SolrUpdateDaoTest {
 
     solrUpdateDao.batchUpdate(updates);
 
-    verify(client).add(argThat(new SolrInputDocumentListMatcher(Arrays.asList(snortSolrInputDocument1, snortSolrInputDocument2))));
+    verify(client).add((String) Matchers.isNull(), argThat(new SolrInputDocumentListMatcher(Arrays.asList(snortSolrInputDocument1, snortSolrInputDocument2))));
   }
 
 }
