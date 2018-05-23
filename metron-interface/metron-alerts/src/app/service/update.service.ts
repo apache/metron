@@ -32,6 +32,7 @@ import {Patch} from '../model/patch';
 import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../utils/constants';
 import { GlobalConfigService } from './global-config.service';
 import {CommentAddRemoveRequest} from "../model/comment-add-remove-request";
+import { GlobalConfigService } from './global-config.service';
 
 @Injectable()
 export class UpdateService {
@@ -43,6 +44,7 @@ export class UpdateService {
   sourceType = 'source:type';
   alertCommentChangedSource = new Subject<CommentAddRemoveRequest>();
   alertCommentChanged$ = this.alertCommentChangedSource.asObservable();
+  sourceType = 'source:type';
 
   constructor(private http: Http, private globalConfigService: GlobalConfigService) {
     this.globalConfigService.get().subscribe((config: {}) => {

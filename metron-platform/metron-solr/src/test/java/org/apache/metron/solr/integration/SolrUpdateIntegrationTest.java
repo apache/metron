@@ -20,8 +20,6 @@ package org.apache.metron.solr.integration;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import static org.junit.Assert.assertEquals;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
