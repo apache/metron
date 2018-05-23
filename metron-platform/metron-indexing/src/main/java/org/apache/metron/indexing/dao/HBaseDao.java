@@ -250,7 +250,7 @@ public class HBaseDao implements IndexDao {
   protected Put buildPut(Document update) throws IOException {
     Key k = new Key(update.getGuid(), update.getSensorType());
     Put put = new Put(Key.toBytes(k));
-    long ts = update.getTimestamp() == null ? System.currentTimeMillis() : update.getTimestamp();
+    long ts = update.getTimestamp() == null || update.getTimestamp() == 0 ? System.currentTimeMillis() : update.getTimestamp();
     byte[] columnQualifier = Bytes.toBytes(ts);
     byte[] doc = JSONUtils.INSTANCE.toJSONPretty(update.getDocument());
     put.addColumn(cf, columnQualifier, doc);
