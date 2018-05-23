@@ -2445,7 +2445,7 @@ public class StellarParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_default_operand; }
-	 
+
 		public Default_operandContext() { }
 		public void copyFrom(Default_operandContext ctx) {
 			super.copyFrom(ctx);
@@ -2752,7 +2752,7 @@ public class StellarParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_match_expr; }
-	 
+
 		public Match_exprContext() { }
 		public void copyFrom(Match_exprContext ctx) {
 			super.copyFrom(ctx);
@@ -2864,7 +2864,7 @@ public class StellarParser extends Parser {
 					setState(335);
 					match_clause();
 					}
-					} 
+					}
 				}
 				setState(340);
 				_errHandler.sync(this);
@@ -2935,7 +2935,7 @@ public class StellarParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_match_clause_action; }
-	 
+
 		public Match_clause_actionContext() { }
 		public void copyFrom(Match_clause_actionContext ctx) {
 			super.copyFrom(ctx);
@@ -2983,7 +2983,7 @@ public class StellarParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_match_clause_check; }
-	 
+
 		public Match_clause_checkContext() { }
 		public void copyFrom(Match_clause_checkContext ctx) {
 			super.copyFrom(ctx);
