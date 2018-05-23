@@ -17,6 +17,8 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
+import static org.apache.metron.indexing.dao.IndexDao.IndexDao.COMMENTS_FIELD;
+
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;

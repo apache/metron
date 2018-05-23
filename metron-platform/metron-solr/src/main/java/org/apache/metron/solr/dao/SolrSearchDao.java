@@ -18,7 +18,7 @@
 package org.apache.metron.solr.dao;
 
 import static org.apache.metron.common.Constants.SENSOR_TYPE;
-import static org.apache.metron.indexing.dao.update.UpdateDao.COMMENTS_FIELD;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;

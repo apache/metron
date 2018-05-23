@@ -14,10 +14,11 @@
  */
 package org.apache.metron.indexing.dao;
 
-import static org.apache.metron.indexing.dao.update.UpdateDao.COMMENTS_FIELD;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -199,6 +201,52 @@ public abstract class UpdateIntegrationTest {
     document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
         Collectors.toList()));
     findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+  }
+
+  @Test
+  public void testAddCommentAndPatch() throws Exception {
+    dao = new MultiIndexDao(createDao());
+    dao.init(getAccessConfig());
+
+    Map<String, Object> fields = new HashMap<>();
+    fields.put("guid", "add_comment");
+    fields.put("source.type", SENSOR_NAME);
+
+    Document document = new Document(fields, "add_comment", SENSOR_NAME, 1526306463050L);
+    dao.update(document, Optional.of(SENSOR_NAME));
+    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+
+    addAlertComment("add_comment", "New Comment", "test_user", 1526306463050L);
+    // Ensure we have the first comment
+    ArrayList<AlertComment> comments = new ArrayList<>();
+    comments.add(new AlertComment("New Comment", "test_user", 1526306463050L));
+    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
+        Collectors.toList()));
+    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+
+    List<Map<String, Object>> patchList = new ArrayList<>();
+    Map<String, Object> patch = new HashMap<>();
+    patch.put("op", "add");
+    patch.put("path", "/project");
+    patch.put("value", "metron");
+    patchList.add(patch);
+
+    PatchRequest pr = new PatchRequest();
+    pr.setGuid("add_comment");
+    pr.setIndex(SENSOR_NAME);
+    pr.setSensorType(SENSOR_NAME);
+    pr.setPatch(patchList);
+    dao.patch(pr, Optional.of(new Date().getTime()));
+
+    document.getDocument().put("project", "metron");
+    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+
+//    addAlertComment("add_comment", "New Comment 2", "test_user_2", 1526306463051L);
+//     Ensure we have the second comment
+//    comments.add(new AlertComment("New Comment 2", "test_user_2", 1526306463051L));
+//    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
+//        Collectors.toList()));
+//    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
   }
 
   @Test

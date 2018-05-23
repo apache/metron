@@ -25,7 +25,6 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
 
 public interface UpdateDao {
-  String COMMENTS_FIELD = "comments";
 
   /**
    * Update a given Document and optionally the index where the document exists.  This is a full
