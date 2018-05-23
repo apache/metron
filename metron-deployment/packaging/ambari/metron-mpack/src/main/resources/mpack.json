@@ -1,7 +1,7 @@
 {
   "type": "full-release",
   "name": "metron-ambari.mpack",
-  "version": "0.4.3.0",
+  "version": "0.5.0.0",
   "description": "Ambari Management Pack for Apache Metron",
   "prerequisites": {
     "min-ambari-version": "2.4.0.0",
