@@ -41,6 +41,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.PivotField;
@@ -185,8 +186,10 @@ public class SolrSearchDao implements SearchDao {
     return query;
   }
 
-  private String getCollections(List<String> indices) throws IOException, SolrServerException {
-    List<String> existingCollections = CollectionAdminRequest.listCollections(client);
+  @SuppressWarnings("unchecked")
+  protected String getCollections(List<String> indices) throws IOException, SolrServerException {
+    List<String> existingCollections = (List<String>) new CollectionAdminRequest.List()
+            .process(client).getResponse().get("collections");
     return indices.stream().filter(existingCollections::contains).collect(Collectors.joining(","));
   }
 

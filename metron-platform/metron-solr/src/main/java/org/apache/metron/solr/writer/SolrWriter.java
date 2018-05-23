@@ -159,7 +159,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     LOG.info("Default Collection: {}", "" + defaultCollection );
     if(solr == null) {
       if (isKerberosEnabled(stormConf)) {
-        HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
+        HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
       }
       solr = new MetronSolrClient(zookeeperUrl, solrHttpConfig);
     }
