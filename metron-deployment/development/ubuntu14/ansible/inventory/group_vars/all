@@ -35,7 +35,7 @@ threatintel_hbase_table: threatintel
 enrichment_hbase_table: enrichment
 
 # metron
-metron_version: 0.4.3
+metron_version: 0.5.0
 metron_directory: /usr/metron/{{ metron_version }}
 bro_version: "2.5.2"
 fixbuf_version: "1.7.1"
