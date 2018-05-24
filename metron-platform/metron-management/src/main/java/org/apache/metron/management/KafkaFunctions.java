@@ -162,6 +162,12 @@ public class KafkaFunctions {
    *   KAFKA_GET('topic', 1, { "auto.offset.reset": "earliest" })
    *   }
    * </pre>
+   *
+   * <p>By default, only the message value is returned. By setting the global property
+   * 'stellar.kafka.message.view' = 'rich' the function will return additional Kafka metadata
+   * including the topic, partition, offset, key, and timestamp contained in a map. Setting
+   * this property value to 'simple' or simply not setting the property value, will result
+   * in the default view behavior.
    */
   @Stellar(
           namespace = "KAFKA",
@@ -273,6 +279,12 @@ public class KafkaFunctions {
    *   KAFKA_TAIL('topic', 10)
    *   }
    * </pre>
+   *
+   * <p>By default, only the message value is returned. By setting the global property
+   * 'stellar.kafka.message.view' = 'rich' the function will return additional Kafka metadata
+   * including the topic, partition, offset, key, and timestamp contained in a map. Setting
+   * this property value to 'simple' or simply not setting the property value, will result
+   * in the default view behavior.
    */
   @Stellar(
           namespace = "KAFKA",
@@ -384,6 +396,7 @@ public class KafkaFunctions {
    *  KAFKA_PUT('topic', ["message1"], { "bootstrap.servers": "kafka-broker-1:6667" })
    *  }
    * </pre>
+   *
    */
   @Stellar(
           namespace = "KAFKA",
@@ -603,6 +616,12 @@ public class KafkaFunctions {
    * KAFKA_FIND('topic', m -> MAP_EXISTS('geo', m), 10)
    * }
    * </pre>
+   * 
+   * <p>By default, only the message value is returned. By setting the global property
+   * 'stellar.kafka.message.view' = 'rich' the function will return additional Kafka metadata
+   * including the topic, partition, offset, key, and timestamp contained in a map. Setting
+   * this property value to 'simple' or simply not setting the property value, will result
+   * in the default view behavior.
    */
   @Stellar(
           namespace = "KAFKA",
