@@ -18,6 +18,7 @@
 
 package org.apache.metron.management;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -437,9 +438,49 @@ public class KafkaFunctions {
 
       // send the messages
       Properties properties = buildKafkaProperties(overrides, context);
-      List<Object> response = putMessages(topic, messages, properties);
+      List<RecordMetadata> records = putMessages(topic, messages, properties);
 
-      return response;
+      // render a view of the messages that were written for the user
+      Object view = render(records, properties);
+      return view;
+    }
+
+    /**
+     * Render a view of the {@link RecordMetadata} that resulted from writing
+     * messages to Kafka.
+     *
+     * @param records The record metadata.
+     * @param properties The properties.
+     * @return
+     */
+    private Object render(List<RecordMetadata> records, Properties properties) {
+
+      Object view;
+      if(MESSAGE_VIEW_RICH.equals(getMessageView(properties))) {
+
+        // build a 'rich' view of the messages that were written
+        List<Object> responses = new ArrayList<>();
+        for(RecordMetadata record: records) {
+
+          // render the 'rich' view of the record
+          Map<String, Object> richView = new HashMap<>();
+          richView.put("topic", record.topic());
+          richView.put("partition", record.partition());
+          richView.put("offset", record.offset());
+          richView.put("timestamp", record.timestamp());
+
+          responses.add(richView);
+        }
+
+        // the rich view is a list of maps containing metadata about how each message was written
+        view = responses;
+
+      } else {
+
+        // otherwise, the view is simply a count of the number of messages written
+        view = CollectionUtils.size(records);
+      }
+      return view;
     }
 
     /**
@@ -450,11 +491,12 @@ public class KafkaFunctions {
      * @param topic The topic to send messages to.
      * @param messages The messages to send.
      * @param properties The properties to use with Kafka.
+     * @return Metadata about all the records written to Kafka.
      */
-    private List<Object> putMessages(String topic, List<String> messages, Properties properties) {
+    private List<RecordMetadata> putMessages(String topic, List<String> messages, Properties properties) {
 
       LOG.debug("KAFKA_PUT sending messages; topic={}, count={}", topic, messages.size());
-      List<Object> responses = new ArrayList<>();
+      List<RecordMetadata> records = new ArrayList<>();
       try (KafkaProducer<String, String> producer = new KafkaProducer<>(properties)) {
 
         List<Future<RecordMetadata>> futures = new ArrayList<>();
@@ -467,31 +509,30 @@ public class KafkaFunctions {
 
         // wait for the sends to complete
         for(Future<RecordMetadata> future : futures) {
-          Object response = waitForResponse(future, properties);
-          responses.add(response);
+          RecordMetadata record = waitForResponse(future, properties);
+          records.add(record);
         }
 
         producer.flush();
       }
 
-      return responses;
+      return records;
     }
     /**
      * Wait for response to the message being sent.
      *
      * @param future The future for the message being sent.
      * @param properties The configuration properties.
-     * @return
+     * @return Metadata about the record that was written to Kafka.
      */
-    private Object waitForResponse(Future<RecordMetadata> future, Properties properties) {
+    private RecordMetadata waitForResponse(Future<RecordMetadata> future, Properties properties) {
 
-      Object response = null;
+      RecordMetadata record = null;
       int maxWait = getMaxWait(properties);
 
       try {
         // wait for the record and then render it for the user
-        RecordMetadata record = future.get(maxWait, TimeUnit.MILLISECONDS);
-        response = render(record, properties);
+        record = future.get(maxWait, TimeUnit.MILLISECONDS);
 
         LOG.debug("KAFKA_PUT message sent; topic={}, partition={}, offset={}",
                 record.topic(), record.partition(), record.offset());
@@ -501,40 +542,7 @@ public class KafkaFunctions {
         LOG.error("KAFKA_PUT message send failure", e);
       }
 
-      return response;
-    }
-
-    /**
-     * Renders the record metadata into a form useful for the user.
-     *
-     * <p>A user can customize the way in which a Kafka record is rendered by altering
-     * the "stellar.kafka.message.view" property.
-     *
-     * @param recordMetadata Metadata associated with a record.
-     * @param properties The properties which allows a user to customize the rendered view of a record.
-     * @return
-     */
-    private Object render(RecordMetadata recordMetadata, Properties properties) {
-
-      Object result;
-      if(MESSAGE_VIEW_RICH.equals(getMessageView(properties))) {
-
-        // build the detailed view of the record
-        Map<String, Object> view = new HashMap<>();
-        view.put("topic", recordMetadata.topic());
-        view.put("partition", recordMetadata.partition());
-        view.put("offset", recordMetadata.offset());
-        view.put("timestamp", recordMetadata.timestamp());
-
-        result = view;
-
-      } else {
-
-        // default to no details about the response
-        result = null;
-      }
-
-      return result;
+      return record;
     }
 
     @Override
@@ -616,7 +624,7 @@ public class KafkaFunctions {
    * KAFKA_FIND('topic', m -> MAP_EXISTS('geo', m), 10)
    * }
    * </pre>
-   * 
+   *
    * <p>By default, only the message value is returned. By setting the global property
    * 'stellar.kafka.message.view' = 'rich' the function will return additional Kafka metadata
    * including the topic, partition, offset, key, and timestamp contained in a map. Setting
