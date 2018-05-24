@@ -24,12 +24,20 @@ import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
 
 public class IndexingCacheUtil {
-  public static Function<String, String> getIndexLookupFunction(ConfigurationsCache cache) {
+
+  @SuppressWarnings("unchecked")
+  public static Function<String, String> getIndexLookupFunction(ConfigurationsCache cache, String writerName) {
     return sensorType -> {
+      String indexingTopic = sensorType;
       IndexingConfigurations indexingConfigs = cache.get( IndexingConfigurations.class);
       Map<String, Object> indexingSensorConfigs = indexingConfigs.getSensorIndexingConfig(sensorType);
-      String indexingTopic = (String) indexingSensorConfigs.get(IndexingConfigurations.INDEX_CONF);
-      return indexingTopic != null ? indexingTopic : sensorType;
+      if (indexingSensorConfigs != null) {
+        Map<String, Object> writerConfigs = (Map<String, Object>) indexingSensorConfigs.get(writerName);
+        if (writerConfigs != null) {
+          indexingTopic = (String) writerConfigs.get(IndexingConfigurations.INDEX_CONF);
+        }
+      }
+      return indexingTopic;
     };
   }
 }

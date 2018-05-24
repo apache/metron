@@ -50,6 +50,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_WRITER_NAME;
+
 public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   public static final String JAVA_SECURITY_CONFIG_PROPERTY = "java.security.auth.login.config";
@@ -237,7 +239,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   @Override
   public String getName() {
-    return "solr";
+    return SOLR_WRITER_NAME;
   }
 
   @Override
