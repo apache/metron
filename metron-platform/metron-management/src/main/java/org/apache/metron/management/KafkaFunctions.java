@@ -931,6 +931,9 @@ public class KafkaFunctions {
     // set the default poll timeout
     properties.put(POLL_TIMEOUT_PROPERTY, DEFAULT_POLL_TIMEOUT);
 
+    // set the default message view
+    properties.put(MESSAGE_VIEW_PROPERTY, MESSAGE_VIEW_SIMPLE);
+
     return properties;
   }
 
