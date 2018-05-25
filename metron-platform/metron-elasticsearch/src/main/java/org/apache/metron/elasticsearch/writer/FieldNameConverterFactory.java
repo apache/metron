@@ -22,6 +22,13 @@ import org.apache.metron.common.field.FieldNameConverter;
 
 /**
  * A factory that creates {@link FieldNameConverter} objects.
+ *
+ * <p>The {@link WriterConfiguration} allows a user to define the {@link FieldNameConverter}
+ * that should be used.
+ *
+ * <p>Each sensor type can use a different {@link FieldNameConverter} implementation.
+ *
+ * <p>The user can change the {@link FieldNameConverter} in use at runtime.
  */
 public interface FieldNameConverterFactory {
 

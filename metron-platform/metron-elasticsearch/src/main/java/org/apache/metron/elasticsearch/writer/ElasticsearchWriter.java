@@ -70,7 +70,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     client = ElasticsearchUtils.getClient(globalConfiguration);
     dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
-    fieldNameConverterFactory = new CachedFieldNameConverterFactory();
+    fieldNameConverterFactory = new SharedFieldNameConverterFactory();
   }
 
   @Override

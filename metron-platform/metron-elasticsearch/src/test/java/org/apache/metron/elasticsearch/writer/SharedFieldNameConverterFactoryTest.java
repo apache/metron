@@ -17,9 +17,6 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.common.testing.FakeTicker;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
@@ -30,38 +27,20 @@ import org.apache.metron.common.field.NoopFieldNameConverter;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests the {@link CachedFieldNameConverterFactory}.
+ * Tests the {@link SharedFieldNameConverterFactory}.
  */
-public class CachedFieldNameConverterFactoryTest {
+public class SharedFieldNameConverterFactoryTest {
 
-  private CachedFieldNameConverterFactory factory;
-  private Cache<String, FieldNameConverter> cache;
-  private FakeTicker ticker;
+  private SharedFieldNameConverterFactory factory;
 
   @Before
   public void setup() throws Exception {
 
-    // allows us to advance time in the cache
-    ticker = new FakeTicker();
-
-    // a cache configured for testing
-    cache = Caffeine.newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .executor(Runnable::run)
-            .ticker(ticker::read)
-            .recordStats()
-            .build();
-
     // the factory being tested
-    factory = new CachedFieldNameConverterFactory(cache);
+    factory = new SharedFieldNameConverterFactory();
   }
 
   private WriterConfiguration createConfig(String writer, String sensor, String json) throws Exception {
@@ -87,8 +66,7 @@ public class CachedFieldNameConverterFactoryTest {
   private static String jsonWithDedot;
 
   /**
-   * The factory should be able to create the {@link FieldNameConverter}
-   * that has been defined by the user.
+   * The factory should be able to create a {@link DeDotFieldNameConverter}.
    */
   @Test
   public void testCreateDedot() throws Exception {
@@ -118,8 +96,7 @@ public class CachedFieldNameConverterFactoryTest {
   private static String jsonWithNoop;
 
   /**
-   * The factory should be able to create the {@link FieldNameConverter}
-   * that has been defined by the user.
+   * The factory should be able to create a {@link NoopFieldNameConverter}.
    */
   @Test
   public void testCreateNoop() throws Exception {
@@ -164,33 +141,6 @@ public class CachedFieldNameConverterFactoryTest {
   }
 
   /**
-   * The factory should cache and reuse {@link FieldNameConverter} objects.
-   */
-  @Test
-  public void testCacheUsage() throws Exception {
-
-    final String writer = "elasticsearch";
-    final String sensor = "bro";
-    WriterConfiguration config = createConfig(writer, sensor, jsonWithNoConverter);
-
-    // validate the converter created for 'bro'
-    FieldNameConverter converter1 = factory.create(sensor, config);
-    assertNotNull(converter1);
-    assertEquals(1, cache.stats().requestCount());
-    assertEquals(0, cache.stats().hitCount());
-    assertEquals(1, cache.stats().missCount());
-
-    // the converter should come from the cache on the next request
-    FieldNameConverter converter2 = factory.create(sensor, config);
-    assertNotNull(converter2);
-    assertEquals(2, cache.stats().requestCount());
-    assertEquals(1, cache.stats().hitCount());
-    assertEquals(1, cache.stats().missCount());
-
-    assertSame(converter1, converter2);
-  }
-
-  /**
    * If the user changes the {@link FieldNameConverter} in the writer configuration, the new
    * {@link FieldNameConverter} should be used after the old one expires.
    */
@@ -206,14 +156,6 @@ public class CachedFieldNameConverterFactoryTest {
 
     // an 'updated' config uses the 'NOOP' converter
     WriterConfiguration newConfig = createConfig(writer, sensor, jsonWithNoop);
-
-    // even though config has changed, the cache has not expired yet, still using 'DEDOT'
-    assertTrue(factory.create(sensor, newConfig) instanceof DeDotFieldNameConverter);
-
-    // advance 30 minutes
-    ticker.advance(8, TimeUnit.MINUTES);
-
-    // now the 'NOOP' converter should be used
     assertTrue(factory.create(sensor, newConfig) instanceof NoopFieldNameConverter);
   }
 
