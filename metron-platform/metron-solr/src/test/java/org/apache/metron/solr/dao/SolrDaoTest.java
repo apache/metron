@@ -17,6 +17,7 @@
  */
 package org.apache.metron.solr.dao;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -25,8 +26,11 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -100,12 +104,12 @@ public class SolrDaoTest {
     );
 
     solrDao = spy(new SolrDao());
-    doReturn(client).when(solrDao).getSolrClient("zookeeper:2181");
+    doReturn(client).when(solrDao).getSolrClient(Collections.singletonList("zookeeper:2181"));
     whenNew(SolrSearchDao.class).withArguments(client, accessConfig).thenReturn(solrSearchDao);
     whenNew(SolrUpdateDao.class).withArguments(client, accessConfig).thenReturn(solrUpdateDao);
     whenNew(SolrRetrieveLatestDao.class).withArguments(client)
         .thenReturn(solrRetrieveLatestDao);
-    whenNew(SolrColumnMetadataDao.class).withArguments("zookeeper:2181")
+    whenNew(SolrColumnMetadataDao.class).withArguments(client)
         .thenReturn(solrColumnMetadataDao);
 
     solrDao.init(accessConfig);
@@ -138,5 +142,42 @@ public class SolrDaoTest {
 
     solrDao.getColumnMetadata(Arrays.asList("bro", "snort"));
     verify(solrColumnMetadataDao).getColumnMetadata(Arrays.asList("bro", "snort"));
+  }
+
+  @Test
+  public void testGetZkHostsSingle() {
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setGlobalConfigSupplier(() ->
+        new HashMap<String, Object>() {{
+          put("solr.zookeeper", "zookeeper:2181");
+        }}
+    );
+
+    SolrDao solrDao = new SolrDao();
+    solrDao.init(accessConfig);
+
+    List<String> actual = solrDao.getZkHosts();
+    List<String> expected = new ArrayList<>();
+    expected.add("zookeeper:2181");
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testGetZkHostsMultiple() {
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setGlobalConfigSupplier(() ->
+        new HashMap<String, Object>() {{
+          put("solr.zookeeper", "zookeeper:2181,zookeeper2:2181");
+        }}
+    );
+
+    SolrDao solrDao = new SolrDao();
+    solrDao.init(accessConfig);
+
+    List<String> actual = solrDao.getZkHosts();
+    List<String> expected = new ArrayList<>();
+    expected.add("zookeeper:2181");
+    expected.add("zookeeper2:2181");
+    assertEquals(expected, actual);
   }
 }

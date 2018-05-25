@@ -52,7 +52,7 @@ public class SolrMetaAlertRetrieveLatestDao implements
           .setFields("*", "[child parentFilter=" + guidClause + " limit=999]");
 
       try {
-        QueryResponse response = solrDao.getSolrClient(solrDao.getZkHost())
+        QueryResponse response = solrDao.getSolrClient(solrDao.getZkHosts())
             .query(METAALERTS_COLLECTION, query);
         // GUID is unique, so it's definitely the first result
         if (response.getResults().size() == 1) {

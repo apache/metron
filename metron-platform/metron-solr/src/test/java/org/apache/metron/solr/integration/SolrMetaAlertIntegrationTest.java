@@ -100,7 +100,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     );
 
     SolrMetaAlertSearchDao searchDao = new SolrMetaAlertSearchDao(
-        solrDao.getSolrClient(solrDao.getZkHost()),
+        solrDao.getSolrClient(solrDao.getZkHosts()),
         solrDao.getSolrSearchDao());
     SolrMetaAlertRetrieveLatestDao retrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao);
     SolrMetaAlertUpdateDao updateDao = new SolrMetaAlertUpdateDao(solrDao, searchDao,
