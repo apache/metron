@@ -143,7 +143,11 @@ public class BaseStellarProcessor<T> {
     try {
       return clazz.cast(expression
           .apply(new StellarCompiler.ExpressionState(context, functionResolver, variableResolver)));
-    }finally {
+    }
+    catch(Throwable e) {
+      throw new ParseException("Unable to parse: " + rule + " due to: " + e.getMessage(), e);
+    }
+    finally {
         // always reset the activity type
         context.setActivityType(null);
     }

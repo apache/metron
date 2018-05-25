@@ -21,11 +21,15 @@ import static org.apache.metron.enrichment.bolt.GenericEnrichmentBolt.STELLAR_CO
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
+
+import com.google.common.base.Joiner;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.enrichment.bolt.CacheKey;
@@ -92,6 +96,19 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     }
   }
 
+  private static String getStellarMessage(String stellarStatement, Exception e, StellarProcessor processor, Map<String, Object> message) {
+    Set<String> variablesUsed = processor.variablesUsed(stellarStatement);
+    if(variablesUsed.isEmpty()) {
+      return e.getMessage();
+    }
+    List<Map.Entry<String, Object>> messagesUsed = new ArrayList<>(variablesUsed.size());
+    for(String v : variablesUsed) {
+      messagesUsed.add(new AbstractMap.SimpleEntry<>(v, message.getOrDefault(v, "missing")));
+    }
+
+    return e.getMessage() + " with relevant variables " + Joiner.on(",").join(messagesUsed);
+  }
+
   public static JSONObject process( Map<String, Object> message
                                            , ConfigHandler handler
                                            , String field
@@ -112,7 +129,16 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
           if (kv.getValue() instanceof String) {
             long startTime = System.currentTimeMillis();
             String stellarStatement = (String) kv.getValue();
-            Object o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+            Object o = null;
+            try {
+              o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+            }
+            catch(Exception e) {
+              String errorMessage = getStellarMessage(stellarStatement, e, processor, message);
+              IllegalStateException throwable = new IllegalStateException(errorMessage, e);
+              _LOG.error(errorMessage, e);
+              throw throwable;
+            }
             if (slowLogThreshold != null && _PERF_LOG.isDebugEnabled()) {
               long duration = System.currentTimeMillis() - startTime;
               if (duration > slowLogThreshold) {
