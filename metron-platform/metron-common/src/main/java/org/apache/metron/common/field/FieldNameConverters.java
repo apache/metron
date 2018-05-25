@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -81,7 +81,7 @@ public enum FieldNameConverters {
       result = FieldNameConverters.valueOf(converterName).get();
 
     } catch(IllegalArgumentException e) {
-      LOG.error("Unable to create field name converter, using default; badValue={}, knownValues={}, error={}",
+      LOG.error("Invalid field name converter, using default; configured={}, knownValues={}, error={}",
               converterName, FieldNameConverters.values(), ExceptionUtils.getRootCauseMessage(e));
     }
 
@@ -90,7 +90,7 @@ public enum FieldNameConverters {
       result = FieldNameConverters.DEDOT.get();
     }
 
-    LOG.debug("Created field name converter; sensorType={}, configuredName={}, class={}",
+    LOG.debug("Created field name converter; sensorType={}, configured={}, class={}",
             sensorType, converterName, ClassUtils.getShortClassName(result, "null"));
 
     return result;
