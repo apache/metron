@@ -19,8 +19,6 @@ package org.apache.metron.common.bolt;
 
 import java.lang.invoke.MethodHandles;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.common.configuration.writer.ConfigurationsStrategies;
-import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,12 +28,7 @@ public abstract class ConfiguredEnrichmentBolt extends ConfiguredBolt<Enrichment
 
 
   public ConfiguredEnrichmentBolt(String zookeeperUrl) {
-    super(zookeeperUrl);
-  }
-
-  @Override
-  protected ConfigurationsUpdater<EnrichmentConfigurations> createUpdater() {
-    return ConfigurationsStrategies.ENRICHMENT.createUpdater(this, this::getConfigurations);
+    super(zookeeperUrl, "ENRICHMENT");
   }
 
 }

@@ -64,7 +64,7 @@ public class EnrichmentConfigurations extends Configurations {
   }
 
   /**
-   * Pull from global config
+   * Pulled from global config
    * Note: enrichment writes out to 1 kafka topic, so it is not pulling this config by sensor.
    *
    * @param sensorName not used

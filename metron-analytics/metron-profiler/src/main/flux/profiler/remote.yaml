@@ -183,6 +183,7 @@ bolts:
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
             - "${kafka.zk}"
+            - "PROFILER"
         configMethods:
             -   name: "withBulkMessageWriter"
                 args: [ref: "kafkaWriter"]

@@ -29,6 +29,8 @@ import java.io.InputStream;
  * Used to manage configurations for the Profiler.
  */
 public class ProfilerConfigurations extends Configurations {
+  public static final String BATCH_SIZE_CONF = "profiler.writer.batchSize";
+  public static final String BATCH_TIMEOUT_CONF = "profiler.writer.batchTimeout";
 
   public ProfilerConfig getProfilerConfig() {
     return (ProfilerConfig) getConfigurations().get(getKey());
@@ -53,6 +55,30 @@ public class ProfilerConfigurations extends Configurations {
 
   public void delete() {
     configurations.remove(getKey());
+  }
+
+  /**
+   * Pulled from global config.
+   * Note: profiler writes out to 1 kafka topic, so it is not pulling this config by sensor.
+   *
+   * @param sensorName not used
+   * @return batch size for writing to kafka
+   * @see org.apache.metron.common.configuration.profiler.ProfilerConfigurations#BATCH_SIZE_CONF
+   */
+  public int getBatchSize() {
+    return getAs(BATCH_SIZE_CONF, getGlobalConfig(true), 1, Integer.class);
+  }
+
+  /**
+   * Pulled from global config
+   * Note: profiler writes out to 1 kafka topic, so it is not pulling this config by sensor.
+   *
+   * @param sensorName not used
+   * @return batch timeout for writing to kafka
+   * @see org.apache.metron.common.configuration.profiler.ProfilerConfigurations#BATCH_TIMEOUT_CONF
+   */
+  public int getBatchTimeout() {
+    return getAs(BATCH_TIMEOUT_CONF, getGlobalConfig(true), 1, Integer.class);
   }
 
 }

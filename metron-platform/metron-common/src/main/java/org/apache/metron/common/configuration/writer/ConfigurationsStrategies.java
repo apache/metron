@@ -57,13 +57,7 @@ public enum ConfigurationsStrategies implements ConfigurationStrategy {
     @Override
     public ConfigurationsUpdater<ParserConfigurations> createUpdater(Reloadable reloadable,
         Supplier configSupplier) {
-      if (configSupplier.get() instanceof ParserConfigurations) {
-        return new ParserUpdater(reloadable, configSupplier);
-      } else {
-        throw new IllegalArgumentException(
-            "Expected config supplier of type ParserConfigurations but found " + configSupplier
-                .get().getClass());
-      }
+      return new ParserUpdater(reloadable, configSupplier);
     }
   }),
 
@@ -83,13 +77,7 @@ public enum ConfigurationsStrategies implements ConfigurationStrategy {
     @Override
     public ConfigurationsUpdater<EnrichmentConfigurations> createUpdater(Reloadable reloadable,
         Supplier configSupplier) {
-      if (configSupplier.get() instanceof EnrichmentConfigurations) {
-        return new EnrichmentUpdater(reloadable, configSupplier);
-      } else {
-        throw new IllegalArgumentException(
-            "Expected config supplier of type EnrichmentConfigurations but found " + configSupplier
-                .get().getClass());
-      }
+      return new EnrichmentUpdater(reloadable, configSupplier);
     }
   }),
 
@@ -109,13 +97,7 @@ public enum ConfigurationsStrategies implements ConfigurationStrategy {
     @Override
     public ConfigurationsUpdater<IndexingConfigurations> createUpdater(Reloadable reloadable,
         Supplier configSupplier) {
-      if (configSupplier.get() instanceof IndexingConfigurations) {
-        return new IndexingUpdater(reloadable, configSupplier);
-      } else {
-        throw new IllegalArgumentException(
-            "Expected config supplier of type IndexingConfigurations but found " + configSupplier
-                .get().getClass());
-      }
+      return new IndexingUpdater(reloadable, configSupplier);
     }
   }),
 
@@ -124,19 +106,17 @@ public enum ConfigurationsStrategies implements ConfigurationStrategy {
     @Override
     public WriterConfiguration createWriterConfig(BulkMessageWriter writer,
         Configurations configs) {
-      throw new UnsupportedOperationException(
-          "Profiler does not currently use a WriterConfiguration mechanism.");
+        if (configs instanceof ProfilerConfigurations) {
+          return new ProfilerWriterConfiguration((ProfilerConfigurations) configs);
+        } else {
+          throw new IllegalArgumentException(
+              "Expected config of type IndexingConfigurations but found " + configs.getClass());
+        }
     }
 
     @Override
     public ConfigurationsUpdater createUpdater(Reloadable reloadable, Supplier configSupplier) {
-      if (configSupplier.get() instanceof ProfilerConfigurations) {
-        return new ProfilerUpdater(reloadable, configSupplier);
-      } else {
-        throw new IllegalArgumentException(
-            "Expected config supplier of type ProfilerConfigurations but found " + configSupplier
-                .get().getClass());
-      }
+      return new ProfilerUpdater(reloadable, configSupplier);
     }
   });
 

@@ -26,8 +26,6 @@ import java.util.function.Function;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredBolt;
 import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.writer.ConfigurationStrategy;
-import org.apache.metron.common.configuration.writer.ConfigurationsStrategies;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
@@ -35,7 +33,6 @@ import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.MessageWriter;
-import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
 import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.metron.writer.WriterToBulkWriter;
 import org.apache.storm.Config;
@@ -48,7 +45,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BulkMessageWriterBolt<CONFIGT extends Configurations> extends ConfiguredBolt {
+public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends ConfiguredBolt<CONFIG_T> {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(BulkMessageWriterBolt.class);
@@ -62,33 +59,27 @@ public class BulkMessageWriterBolt<CONFIGT extends Configurations> extends Confi
   private int requestedTickFreqSecs;
   private int defaultBatchTimeout;
   private int batchTimeoutDivisor = 1;
-  private ConfigurationStrategy configurationStrategy;
 
-  public BulkMessageWriterBolt(String zookeeperUrl) {
-    super(zookeeperUrl);
+  public BulkMessageWriterBolt(String zookeeperUrl, String configurationStrategy) {
+    super(zookeeperUrl, configurationStrategy);
   }
 
-  public BulkMessageWriterBolt withConfigurationStrategy(String configurationStrategy) {
-    this.configurationStrategy = ConfigurationsStrategies.valueOf(configurationStrategy);
-    return this;
-  }
-
-  public BulkMessageWriterBolt withBulkMessageWriter(BulkMessageWriter<JSONObject> bulkMessageWriter) {
+  public BulkMessageWriterBolt<CONFIG_T> withBulkMessageWriter(BulkMessageWriter<JSONObject> bulkMessageWriter) {
     this.bulkMessageWriter = bulkMessageWriter;
     return this;
   }
 
-  public BulkMessageWriterBolt withMessageWriter(MessageWriter<JSONObject> messageWriter) {
+  public BulkMessageWriterBolt<CONFIG_T> withMessageWriter(MessageWriter<JSONObject> messageWriter) {
     this.bulkMessageWriter = new WriterToBulkWriter<>(messageWriter);
     return this;
   }
 
-  public BulkMessageWriterBolt withMessageGetter(String messageGetStrategyType) {
+  public BulkMessageWriterBolt<CONFIG_T> withMessageGetter(String messageGetStrategyType) {
     this.messageGetStrategyType = messageGetStrategyType;
     return this;
   }
 
-  public BulkMessageWriterBolt withMessageGetterField(String messageGetField) {
+  public BulkMessageWriterBolt<CONFIG_T> withMessageGetterField(String messageGetField) {
     this.messageGetField = messageGetField;
     return this;
   }
@@ -111,17 +102,12 @@ public class BulkMessageWriterBolt<CONFIGT extends Configurations> extends Confi
    * @param batchTimeoutDivisor
    * @return BulkMessageWriterBolt
    */
-  public BulkMessageWriterBolt withBatchTimeoutDivisor(int batchTimeoutDivisor) {
+  public BulkMessageWriterBolt<CONFIG_T> withBatchTimeoutDivisor(int batchTimeoutDivisor) {
     if (batchTimeoutDivisor <= 0) {
       throw new IllegalArgumentException(String.format("batchTimeoutDivisor must be positive. Value provided was %s", batchTimeoutDivisor));
     }
     this.batchTimeoutDivisor = batchTimeoutDivisor;
     return this;
-  }
-
-  @Override
-  protected ConfigurationsUpdater<CONFIGT> createUpdater() {
-    return configurationStrategy.createUpdater(this, this::getConfigurations);
   }
 
   /**
@@ -146,6 +132,7 @@ public class BulkMessageWriterBolt<CONFIGT extends Configurations> extends Confi
   public void setWriterComponent(BulkWriterComponent<JSONObject> component) {
     writerComponent = component;
   }
+
   /**
    * This method is called by TopologyBuilder.createTopology() to obtain topology and
    * bolt specific configuration parameters.  We use it primarily to configure how often
@@ -165,7 +152,7 @@ public class BulkMessageWriterBolt<CONFIGT extends Configurations> extends Confi
       configurationXform = x -> x;
     }
     WriterConfiguration writerconf = configurationXform
-        .apply(configurationStrategy.createWriterConfig(bulkMessageWriter, getConfigurations()));
+        .apply(getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations()));
 
     BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
     this.requestedTickFreqSecs = timeoutHelper.getRecommendedTickInterval();
@@ -201,7 +188,7 @@ public class BulkMessageWriterBolt<CONFIGT extends Configurations> extends Confi
     }
     try {
       WriterConfiguration writerconf = configurationTransformation
-          .apply(configurationStrategy.createWriterConfig(bulkMessageWriter, getConfigurations()));
+          .apply(getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations()));
       if (defaultBatchTimeout == 0) {
         //This means getComponentConfiguration was never called to initialize defaultBatchTimeout,
         //probably because we are in a unit test scenario.  So calculate it here.
@@ -232,7 +219,7 @@ public class BulkMessageWriterBolt<CONFIGT extends Configurations> extends Confi
           //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
           LOG.debug("Flushing message queues older than their batchTimeouts");
           getWriterComponent().flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
-              configurationStrategy.createWriterConfig(bulkMessageWriter, getConfigurations())),
+              getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations())),
               messageGetStrategy);
         }
       }
@@ -251,7 +238,7 @@ public class BulkMessageWriterBolt<CONFIGT extends Configurations> extends Confi
       String sensorType = MessageUtils.getSensorType(message);
       LOG.trace("Writing enrichment message: {}", message);
       WriterConfiguration writerConfiguration = configurationTransformation
-          .apply(configurationStrategy.createWriterConfig(bulkMessageWriter, getConfigurations()));
+          .apply(getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations()));
       if(sensorType == null) {
         //sensor type somehow ended up being null.  We want to error this message directly.
         getWriterComponent().error("null"
