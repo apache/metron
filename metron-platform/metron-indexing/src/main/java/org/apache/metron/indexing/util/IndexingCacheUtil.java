@@ -34,7 +34,7 @@ public class IndexingCacheUtil {
       if (indexingSensorConfigs != null) {
         Map<String, Object> writerConfigs = (Map<String, Object>) indexingSensorConfigs.get(writerName);
         if (writerConfigs != null) {
-          indexingTopic = (String) writerConfigs.get(IndexingConfigurations.INDEX_CONF);
+          indexingTopic = (String) writerConfigs.getOrDefault(IndexingConfigurations.INDEX_CONF, indexingTopic);
         }
       }
       return indexingTopic;

@@ -17,8 +17,12 @@
  */
 package org.apache.metron.solr.dao;
 
+import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.util.IndexingCacheUtil;
 import org.apache.metron.solr.matcher.SolrInputDocumentListMatcher;
 import org.apache.metron.solr.matcher.SolrInputDocumentMatcher;
 import org.apache.solr.client.solrj.SolrClient;
@@ -43,6 +47,7 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CollectionAdminRequest.class})
@@ -63,7 +68,17 @@ public class SolrUpdateDaoTest {
           put("solr.zookeeper", "zookeeper:2181");
         }}
     );
-    accessConfig.setIndexSupplier(s -> null);
+    IndexingConfigurations indexingConfigs = mock(IndexingConfigurations.class);
+    ConfigurationsCache cache = mock(ConfigurationsCache.class);
+
+    Map<String, Object> broIndexingConfig = new HashMap<String, Object>() {{
+      put("solr", new HashMap<String, Object>() {{
+      }});
+    }};
+    when(indexingConfigs.getSensorIndexingConfig("bro")).thenReturn(broIndexingConfig);
+    when(cache.get(IndexingConfigurations.class)).thenReturn(indexingConfigs);
+
+    accessConfig.setIndexSupplier(IndexingCacheUtil.getIndexLookupFunction(cache, "solr"));
   }
 
   @SuppressWarnings("unchecked")
@@ -74,7 +89,7 @@ public class SolrUpdateDaoTest {
   }
 
   @Test
-  public void updateShouldProperlyUpdateDocument() throws Exception {
+  public void updateShouldProperlyUpdateDocumentImplicitIndex() throws Exception {
     Document document = new Document(new HashMap<String, Object>(){{
       put("field", "value");
     }}, "guid", "bro", 0L);
@@ -84,7 +99,18 @@ public class SolrUpdateDaoTest {
 
     solrUpdateDao.update(document, Optional.empty());
 
-    verify(client).add(argThat(new SolrInputDocumentMatcher(solrInputDocument)));
+    verify(client).add(eq("bro"), argThat(new SolrInputDocumentMatcher(solrInputDocument)));
+
+  }
+
+  @Test
+  public void updateShouldProperlyUpdateDocumentExplicitIndex() throws Exception {
+    Document document = new Document(new HashMap<String, Object>(){{
+      put("field", "value");
+    }}, "guid", "bro", 0L);
+
+    SolrInputDocument solrInputDocument = new SolrInputDocument();
+    solrInputDocument.addField("field", "value");
 
     solrUpdateDao.update(document, Optional.of("bro"));
 
@@ -144,7 +170,7 @@ public class SolrUpdateDaoTest {
 
     solrUpdateDao.batchUpdate(updates);
 
-    verify(client).add((String) Matchers.isNull(), argThat(new SolrInputDocumentListMatcher(Arrays.asList(snortSolrInputDocument1, snortSolrInputDocument2))));
+    verify(client).add(eq("snort"), argThat(new SolrInputDocumentListMatcher(Arrays.asList(snortSolrInputDocument1, snortSolrInputDocument2))));
   }
 
 }
