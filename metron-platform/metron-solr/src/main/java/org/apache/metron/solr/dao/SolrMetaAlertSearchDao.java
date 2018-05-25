@@ -93,7 +93,8 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
         QueryResponse rsp = solrClient.query(METAALERTS_COLLECTION, solrQuery);
         String nextCursorMark = rsp.getNextCursorMark();
         rsp.getResults().stream()
-            .map(solrDocument -> SolrUtilities.getSearchResult(solrDocument, null))
+            .map(solrDocument -> SolrUtilities.getSearchResult(solrDocument, null,
+                    solrSearchDao.getAccessConfig().getIndexSupplier()))
             .forEachOrdered(allResults::add);
         if (cursorMark.equals(nextCursorMark)) {
           done = true;

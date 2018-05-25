@@ -361,4 +361,13 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   protected IndexDao getIndexDao() {
     return dao;
   }
+
+  @Override
+  protected String getIndexName(String sensorType) {
+    if ("bro".equals(sensorType)) {
+      return "bro_index_2017.01.01.01";
+    } else {
+      return "snort_index_2017.01.01.02";
+    }
+  }
 }
