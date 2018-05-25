@@ -1,47 +1,17 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.apache.metron.elasticsearch.writer;
+package org.apache.metron.common.field;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.field.DeDotFieldNameConverter;
-import org.apache.metron.common.field.FieldNameConverter;
-import org.apache.metron.common.field.NoopFieldNameConverter;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests the {@link SharedFieldNameConverterFactory}.
+ * Test the {@link FieldNameConverters} class.
  */
-public class SharedFieldNameConverterFactoryTest {
-
-  private SharedFieldNameConverterFactory factory;
-
-  @Before
-  public void setup() throws Exception {
-
-    // the factory being tested
-    factory = new SharedFieldNameConverterFactory();
-  }
+public class FieldNameConvertersTest {
 
   private WriterConfiguration createConfig(String writer, String sensor, String json) throws Exception {
 
@@ -76,7 +46,7 @@ public class SharedFieldNameConverterFactoryTest {
     WriterConfiguration config = createConfig(writer, sensor, jsonWithDedot);
 
     // validate the converter created for 'bro'
-    FieldNameConverter converter = factory.create(sensor, config);
+    FieldNameConverter converter = FieldNameConverters.create(sensor, config);
     assertTrue(converter instanceof DeDotFieldNameConverter);
   }
 
@@ -106,7 +76,7 @@ public class SharedFieldNameConverterFactoryTest {
     WriterConfiguration config = createConfig(writer, sensor, jsonWithNoop);
 
     // validate the converter created for 'bro'
-    FieldNameConverter converter = factory.create(sensor, config);
+    FieldNameConverter converter = FieldNameConverters.create(sensor, config);
     assertTrue(converter instanceof NoopFieldNameConverter);
   }
 
@@ -136,7 +106,7 @@ public class SharedFieldNameConverterFactoryTest {
     WriterConfiguration config = createConfig(writer, sensor, jsonWithNoConverter);
 
     // if none defined, should default to 'DEDOT'
-    FieldNameConverter converter = factory.create(sensor, config);
+    FieldNameConverter converter = FieldNameConverters.create(sensor, config);
     assertTrue(converter instanceof DeDotFieldNameConverter);
   }
 
@@ -152,11 +122,11 @@ public class SharedFieldNameConverterFactoryTest {
 
     // no converter defined in config, should use 'DEDOT' converter
     WriterConfiguration config = createConfig(writer, sensor, jsonWithNoConverter);
-    assertTrue(factory.create(sensor, config) instanceof DeDotFieldNameConverter);
+    assertTrue(FieldNameConverters.create(sensor, config) instanceof DeDotFieldNameConverter);
 
     // an 'updated' config uses the 'NOOP' converter
     WriterConfiguration newConfig = createConfig(writer, sensor, jsonWithNoop);
-    assertTrue(factory.create(sensor, newConfig) instanceof NoopFieldNameConverter);
+    assertTrue(FieldNameConverters.create(sensor, newConfig) instanceof NoopFieldNameConverter);
   }
 
   /**
@@ -186,7 +156,38 @@ public class SharedFieldNameConverterFactoryTest {
     WriterConfiguration config = createConfig(writer, sensor, jsonWithInvalidConverter);
 
     // if invalid value defined, it should fall-back to using default 'DEDOT'
-    FieldNameConverter converter = factory.create(sensor, config);
+    FieldNameConverter converter = FieldNameConverters.create(sensor, config);
+    assertTrue(converter instanceof DeDotFieldNameConverter);
+  }
+
+  /**
+   * {
+   *  "elasticsearch": {
+   *
+   *    "index": "theIndex",
+   *    "batchSize": 100,
+   *    "batchTimeout": 1000,
+   *    "enabled": true,
+   *    "fieldNameConverter": ""
+   *  }
+   * }
+   */
+  @Multiline
+  private static String jsonWithBlankConverter;
+
+  /**
+   * If the field name converter field is blank, it should fall-back to using the
+   * default converter.
+   */
+  @Test
+  public void testCreateBlank() throws Exception {
+
+    final String writer = "elasticsearch";
+    final String sensor = "bro";
+    WriterConfiguration config = createConfig(writer, sensor, jsonWithInvalidConverter);
+
+    // if invalid value defined, it should fall-back to using default 'DEDOT'
+    FieldNameConverter converter = FieldNameConverters.create(sensor, config);
     assertTrue(converter instanceof DeDotFieldNameConverter);
   }
 }

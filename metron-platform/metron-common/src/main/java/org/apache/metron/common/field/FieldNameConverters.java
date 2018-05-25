@@ -18,6 +18,14 @@
 
 package org.apache.metron.common.field;
 
+import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.invoke.MethodHandles;
+
 /**
  * Enumerates a set of {@link FieldNameConverter} implementations.
  *
@@ -40,6 +48,8 @@ public enum FieldNameConverters {
    */
   DEDOT(new DeDotFieldNameConverter());
 
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private FieldNameConverter converter;
 
   FieldNameConverters(FieldNameConverter converter) {
@@ -53,5 +63,36 @@ public enum FieldNameConverters {
    */
   public FieldNameConverter get() {
     return converter;
+  }
+
+  /**
+   * Create a new {@link FieldNameConverter}.
+   *
+   * @param sensorType The type of sensor.
+   * @param config The writer configuration.
+   * @return
+   */
+  public static FieldNameConverter create(String sensorType, WriterConfiguration config) {
+
+    // which field name converter should be used?
+    String converterName = config.getFieldNameConverter(sensorType);
+    FieldNameConverter result = null;
+    try {
+      result = FieldNameConverters.valueOf(converterName).get();
+
+    } catch(IllegalArgumentException e) {
+      LOG.error("Unable to create field name converter, using default; badValue={}, knownValues={}, error={}",
+              converterName, FieldNameConverters.values(), ExceptionUtils.getRootCauseMessage(e));
+    }
+
+    if(result == null) {
+      // default to the 'DEDOT' field name converter to maintain backwards compatibility
+      result = FieldNameConverters.DEDOT.get();
+    }
+
+    LOG.debug("Created field name converter; sensorType={}, configuredName={}, class={}",
+            sensorType, converterName, ClassUtils.getShortClassName(result, "null"));
+
+    return result;
   }
 }

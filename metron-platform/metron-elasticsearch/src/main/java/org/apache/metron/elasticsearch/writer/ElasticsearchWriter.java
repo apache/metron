@@ -20,6 +20,7 @@ package org.apache.metron.elasticsearch.writer;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.field.FieldNameConverter;
+import org.apache.metron.common.field.FieldNameConverters;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
@@ -59,10 +60,6 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
    */
   private SimpleDateFormat dateFormat;
 
-  /**
-   * A factory that creates {@link FieldNameConverter} objects.
-   */
-  private FieldNameConverterFactory fieldNameConverterFactory;
 
   @Override
   public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
@@ -70,14 +67,13 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     client = ElasticsearchUtils.getClient(globalConfiguration);
     dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
-    fieldNameConverterFactory = new SharedFieldNameConverterFactory();
   }
 
   @Override
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
 
     // fetch the field name converter for this sensor type
-    FieldNameConverter fieldNameConverter = fieldNameConverterFactory.create(sensorType, configurations);
+    FieldNameConverter fieldNameConverter = FieldNameConverters.create(sensorType, configurations);
 
     final String indexPostfix = dateFormat.format(new Date());
     BulkRequestBuilder bulkRequest = client.prepareBulk();
