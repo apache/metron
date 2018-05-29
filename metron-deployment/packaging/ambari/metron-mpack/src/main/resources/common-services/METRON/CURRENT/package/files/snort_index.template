@@ -198,7 +198,7 @@
         "guid": {
           "type": "keyword"
         },
-        "alert": {
+        "metron_alert": {
           "type": "nested"
         }
       }

@@ -38,7 +38,7 @@
         "error_type": {
           "type": "keyword"
         },
-        "alert": {
+        "metron_alert": {
           "type": "nested"
         }
       }
