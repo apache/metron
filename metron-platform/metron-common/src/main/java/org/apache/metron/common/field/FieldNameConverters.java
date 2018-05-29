@@ -89,20 +89,22 @@ public enum FieldNameConverters implements FieldNameConverter {
    * @return
    */
   public static FieldNameConverter create(String sensorType, WriterConfiguration config) {
-
-    // which field name converter should be used?
-    String converterName = config.getFieldNameConverter(sensorType);
     FieldNameConverter result = null;
-    try {
-      result = FieldNameConverters.valueOf(converterName);
 
-    } catch(IllegalArgumentException e) {
-      LOG.error("Invalid field name converter, using default; configured={}, knownValues={}, error={}",
-              converterName, FieldNameConverters.values(), ExceptionUtils.getRootCauseMessage(e));
+    // which field name converter has been configured?
+    String converterName = config.getFieldNameConverter(sensorType);
+    if(StringUtils.isNotBlank(converterName)) {
+      try {
+        result = FieldNameConverters.valueOf(converterName);
+
+      } catch (IllegalArgumentException e) {
+        LOG.error("Invalid field name converter, using default; configured={}, knownValues={}, error={}",
+                converterName, FieldNameConverters.values(), ExceptionUtils.getRootCauseMessage(e));
+      }
     }
 
     if(result == null) {
-      // default to the 'DEDOT' field name converter to maintain backwards compatibility
+      // if no converter defined or an invalid converter is defined, default to 'DEDOT'
       result = FieldNameConverters.DEDOT;
     }
 
