@@ -92,7 +92,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
   /**
    {
      "properties": {
-       "alert": {
+       "metron_alert": {
          "type": "nested"
        }
      }
@@ -175,7 +175,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
            "score" : {
              "type" : "integer"
            },
-           "alert" : {
+           "metron_alert" : {
              "type" : "nested"
            }
          }
