@@ -109,7 +109,6 @@ public class MultiIndexDao implements IndexDao {
 
   @Override
   public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    System.out.println("INDICES: " + indices);
     List<String> exceptions =
         indices.parallelStream().map(dao -> {
           try {

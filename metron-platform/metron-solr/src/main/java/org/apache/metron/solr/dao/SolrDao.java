@@ -169,7 +169,7 @@ public class SolrDao implements IndexDao {
     this.solrUpdateDao.removeCommentFromAlert(request, latest);
   }
 
-  protected SolrClient getSolrClient(String zkHost) {
+  public SolrClient getSolrClient(String zkHost) {
     return new CloudSolrClient.Builder().withZkHost(zkHost).build();
   }
 

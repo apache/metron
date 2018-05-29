@@ -26,6 +26,8 @@ import org.apache.metron.indexing.dao.update.UpdateDao;
  */
 public interface IndexDao extends UpdateDao, SearchDao, RetrieveLatestDao, ColumnMetadataDao {
 
+  String COMMENTS_FIELD = "comments";
+
   /**
    * Initialize the DAO with the AccessConfig object.
    * @param config The config to use for initialization

@@ -18,7 +18,7 @@
 
 package org.apache.metron.solr.dao;
 
-import static org.apache.metron.indexing.dao.update.UpdateDao.COMMENTS_FIELD;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,6 +75,7 @@ public class SolrUtilities {
       try {
         List<AlertComment> comments = new ArrayList<>();
         for (String commentStr : commentStrs) {
+          System.out.println("COMMENTSTR IS: " + commentStr);
           comments.add(new AlertComment(commentStr));
         }
         document.put(COMMENTS_FIELD,

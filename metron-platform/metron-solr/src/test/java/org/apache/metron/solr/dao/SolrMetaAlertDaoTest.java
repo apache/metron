@@ -100,6 +100,14 @@ public class SolrMetaAlertDaoTest {
       }
 
       @Override
+      public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+      }
+
+      @Override
+      public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
+      }
+
+      @Override
       public void patch(RetrieveLatestDao dao, PatchRequest request, Optional<Long> timestamp) {
       }
 

@@ -17,6 +17,8 @@
  */
 package org.apache.metron.solr.dao;
 
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
@@ -67,8 +69,17 @@ public class SolrUpdateDao implements UpdateDao {
 
   @Override
   public void update(Document update, Optional<String> rawIndex) throws IOException {
+    Document newVersion = update;
+    // Handle any case where we're given comments in Map form, instead of raw String
+    Object commentsObj = update.getDocument().get(COMMENTS_FIELD);
+    if ( commentsObj instanceof List &&
+        ((List<Object>) commentsObj).size() > 0 &&
+      ((List<Object>) commentsObj).get(0) instanceof Map) {
+      newVersion = new Document(update);
+      convertCommentsToRaw(newVersion.getDocument());
+    }
     try {
-      SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(update);
+      SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(newVersion);
       Optional<String> index = getIndex(update.getSensorType(), rawIndex);
       if (index.isPresent()) {
         this.client.add(index.get(), solrInputDocument);
@@ -146,8 +157,9 @@ public class SolrUpdateDao implements UpdateDao {
         request.getTimestamp()
     ).asJson());
 
-    latest.getDocument().put(COMMENTS_FIELD, commentStrs);
-    update(latest, request.getIndex());
+    Document newVersion = new Document(latest);
+    newVersion.getDocument().put(COMMENTS_FIELD, commentStrs);
+    update(newVersion, request.getIndex());
   }
 
   @Override
@@ -182,12 +194,11 @@ public class SolrUpdateDao implements UpdateDao {
         new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp()));
     List<String> commentsAsJson = comments.stream().map(AlertComment::asJson)
         .collect(Collectors.toList());
-
-    latest.getDocument().put(COMMENTS_FIELD, commentsAsJson);
-    update(latest, request.getIndex());
+    Document newVersion = new Document(latest);
+    newVersion.getDocument().put(COMMENTS_FIELD, commentsAsJson);
+    update(newVersion, request.getIndex());
   }
 
-  @Override
   public void convertCommentsToRaw(Map<String,Object> source) {
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> comments = (List<Map<String, Object>>) source.get(COMMENTS_FIELD);

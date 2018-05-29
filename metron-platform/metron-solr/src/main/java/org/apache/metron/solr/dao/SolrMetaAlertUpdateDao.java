@@ -193,6 +193,18 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
     getUpdateDao().removeCommentFromAlert(request);
   }
 
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    getUpdateDao().addCommentToAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    getUpdateDao().removeCommentFromAlert(request, latest);
+  }
+
   protected boolean replaceAlertInMetaAlert(Document metaAlert, Document alert) {
     boolean metaAlertUpdated = removeAlertsFromMetaAlert(metaAlert,
         Collections.singleton(alert.getGuid()));

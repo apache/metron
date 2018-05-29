@@ -307,8 +307,9 @@ public class HBaseDao implements IndexDao {
         request.getTimestamp())
         .asMap());
 
-    latest.getDocument().put(COMMENTS_FIELD, commentsMap);
-    update(latest, request.getIndex());
+    Document newVersion = new Document(latest);
+    newVersion.getDocument().put(COMMENTS_FIELD, commentsMap);
+    update(newVersion, request.getIndex());
   }
 
   @Override
@@ -338,13 +339,16 @@ public class HBaseDao implements IndexDao {
     }
 
     comments.remove(new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp()));
+    Document newVersion = new Document(latest);
     if (comments.size() > 0) {
       List<Map<String, Object>> commentsAsMap = comments.stream().map(AlertComment::asMap)
           .collect(Collectors.toList());
-      latest.getDocument().put(COMMENTS_FIELD, commentsAsMap);
+      newVersion.getDocument().put(COMMENTS_FIELD, commentsAsMap);
+      update(newVersion, request.getIndex());
     } else {
-      latest.getDocument().remove(COMMENTS_FIELD);
+      newVersion.getDocument().remove(COMMENTS_FIELD);
     }
-    update(latest, request.getIndex());
+
+    update(newVersion, request.getIndex());
   }
 }

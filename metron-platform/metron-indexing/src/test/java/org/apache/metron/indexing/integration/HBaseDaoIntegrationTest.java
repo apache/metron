@@ -20,7 +20,7 @@ package org.apache.metron.indexing.integration;
 
 import static org.apache.metron.indexing.dao.HBaseDao.HBASE_CF;
 import static org.apache.metron.indexing.dao.HBaseDao.HBASE_TABLE;
-import static org.apache.metron.indexing.dao.update.UpdateDao.COMMENTS_FIELD;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -169,32 +169,6 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
       alerts.add(alert);
     }
     return alerts;
-  }
-
-  @Test
-  public void testAddComments() throws Exception {
-    Map<String, Object> fields = new HashMap<>();
-    fields.put("guid", "add_comment");
-    fields.put("source.type", SENSOR_NAME);
-
-    Document document = new Document(fields, "add_comment", SENSOR_NAME, 1526401584951L);
-    hbaseDao.update(document, Optional.of(SENSOR_NAME));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-
-    addAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
-    // Ensure we have the first comment
-    ArrayList<AlertComment> comments = new ArrayList<>();
-    comments.add(new AlertComment("New Comment", "test_user", 1526401584951L));
-    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-        Collectors.toList()));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-
-    addAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
-    // Ensure we have the second comment
-    comments.add(new AlertComment("New Comment 2", "test_user_2", 1526401584952L));
-    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-        Collectors.toList()));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
   }
 
   @Test

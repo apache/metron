@@ -17,7 +17,7 @@
  */
 package org.apache.metron.solr.dao;
 
-import static org.apache.metron.indexing.dao.update.UpdateDao.COMMENTS_FIELD;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;

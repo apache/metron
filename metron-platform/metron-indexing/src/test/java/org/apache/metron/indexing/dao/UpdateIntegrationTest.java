@@ -107,8 +107,9 @@ public abstract class UpdateIntegrationTest {
       }}, Optional.empty());
 
       Assert.assertEquals(1, getMockHTable().size());
-      Document doc = getDao().getLatest(guid, SENSOR_NAME);
-      Assert.assertEquals(message0, doc.getDocument());
+//      Document doc = getDao().getLatest(guid, SENSOR_NAME);
+      findUpdatedDoc(message0, guid, SENSOR_NAME);
+//      Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
         Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
@@ -148,6 +149,7 @@ public abstract class UpdateIntegrationTest {
       Assert.assertEquals(1, getMockHTable().size());
       Document doc = getDao().getLatest(guid, SENSOR_NAME);
       Assert.assertEquals(message0, doc.getDocument());
+      findUpdatedDoc(message0, guid, SENSOR_NAME);
       {
         //ensure hbase is up to date
         Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
@@ -178,42 +180,13 @@ public abstract class UpdateIntegrationTest {
   }
 
   @Test
-  public void testAddComments() throws Exception {
-    Map<String, Object> fields = new HashMap<>();
-    fields.put("guid", "add_comment");
-    fields.put("source.type", SENSOR_NAME);
-
-    Document document = new Document(fields, "add_comment", SENSOR_NAME, 1526401584951L);
-    getDao().update(document, Optional.of(SENSOR_NAME));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-
-    addAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
-    // Ensure we have the first comment
-    ArrayList<AlertComment> comments = new ArrayList<>();
-    comments.add(new AlertComment("New Comment", "test_user", 1526401584951L));
-    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-        Collectors.toList()));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-
-    addAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
-    // Ensure we have the second comment
-    comments.add(new AlertComment("New Comment 2", "test_user_2", 1526401584952L));
-    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-        Collectors.toList()));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-  }
-
-  @Test
   public void testAddCommentAndPatch() throws Exception {
-    dao = new MultiIndexDao(createDao());
-    dao.init(getAccessConfig());
-
     Map<String, Object> fields = new HashMap<>();
     fields.put("guid", "add_comment");
     fields.put("source.type", SENSOR_NAME);
 
     Document document = new Document(fields, "add_comment", SENSOR_NAME, 1526306463050L);
-    dao.update(document, Optional.of(SENSOR_NAME));
+    getDao().update(document, Optional.of(SENSOR_NAME));
     findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
 
     addAlertComment("add_comment", "New Comment", "test_user", 1526306463050L);
@@ -236,17 +209,10 @@ public abstract class UpdateIntegrationTest {
     pr.setIndex(SENSOR_NAME);
     pr.setSensorType(SENSOR_NAME);
     pr.setPatch(patchList);
-    dao.patch(pr, Optional.of(new Date().getTime()));
+    getDao().patch(getDao(), pr, Optional.of(new Date().getTime()));
 
     document.getDocument().put("project", "metron");
     findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-
-//    addAlertComment("add_comment", "New Comment 2", "test_user_2", 1526306463051L);
-//     Ensure we have the second comment
-//    comments.add(new AlertComment("New Comment 2", "test_user_2", 1526306463051L));
-//    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-//        Collectors.toList()));
-//    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
   }
 
   @Test

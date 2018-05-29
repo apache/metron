@@ -65,7 +65,9 @@ public interface UpdateDao {
   default void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request
       , Optional<Long> timestamp
   ) throws OriginalNotFoundException, IOException {
+    System.out.println("APPLYING PATCH");
     Document d = getPatchedDocument(retrieveLatestDao, request, timestamp);
+    System.out.println("CALLING UPDATE");
     update(d, Optional.ofNullable(request.getIndex()));
   }
 
@@ -82,24 +84,12 @@ public interface UpdateDao {
             "Unable to patch an document that doesn't exist and isn't specified.");
       }
     }
-    Map<String, Object> source = new HashMap<>(latest);
 
-    // Comments are a special case due to varied backend implementation.
-    convertCommentsToRaw(source);
-    latest.putAll(source);
     Map<String, Object> updated = JSONUtils.INSTANCE.applyPatch(request.getPatch(), latest);
     return new Document(updated,
         request.getGuid(),
         request.getSensorType(),
         timestamp.orElse(System.currentTimeMillis()));
-  }
-
-  // Patch is a special case in terms of handling Documents. We return comments as a
-  // Map<String, Object> to maintain backwards compability with original ES implementation.
-  // However this forces any other representation (e.g. Solr and JSON) to be in raw form
-  // when a direct patch is made.
-  default void convertCommentsToRaw(Map<String,Object> source) {
-    // Do nothing
   }
 
   /**

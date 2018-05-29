@@ -17,7 +17,7 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
-import static org.apache.metron.indexing.dao.IndexDao.IndexDao.COMMENTS_FIELD;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -130,9 +130,10 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     originalComments.add(
         new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp())
             .asMap());
-    latest.getDocument().put(COMMENTS_FIELD, originalComments);
 
-    update(latest, request.getIndex());
+    Document newVersion = new Document(latest);
+    newVersion.getDocument().put(COMMENTS_FIELD, originalComments);
+    update(newVersion, request.getIndex());
   }
 
   @Override
@@ -161,13 +162,15 @@ public class ElasticsearchUpdateDao implements UpdateDao {
         new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp()));
     List<Map<String, Object>> commentsFinal = alertComments.stream().map(AlertComment::asMap)
         .collect(Collectors.toList());
+    Document newVersion = new Document(latest);
     if (commentsFinal.size() > 0) {
-      latest.getDocument().put(COMMENTS_FIELD, commentsFinal);
+      newVersion.getDocument().put(COMMENTS_FIELD, commentsFinal);
+      update(newVersion, request.getIndex());
     } else {
-      latest.getDocument().remove(COMMENTS_FIELD);
+      newVersion.getDocument().remove(COMMENTS_FIELD);
     }
 
-    update(latest, request.getIndex());
+    update(newVersion, request.getIndex());
   }
 
   protected String getIndexName(Document update, Optional<String> index, String indexPostFix) {
