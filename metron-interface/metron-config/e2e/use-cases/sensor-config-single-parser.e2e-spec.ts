@@ -20,7 +20,7 @@ import {SensorConfigPage} from '../sensor-config/sensor-config.po';
 import {SensorListPage} from '../sensor-list/sensor-list.po';
 import {SensorDetailsPage} from '../sensor-config-readonly/sensor-config-readonly.po';
 
-describe('E2E test to add and very the config for parser "e2e1"', function() {
+describe('E2E test to add and verify the config for parser "e2e1"', function() {
   let page = new SensorConfigPage();
   let sensorListPage = new SensorListPage();
   let sensorDetailsPage = new SensorDetailsPage();
@@ -43,8 +43,10 @@ describe('E2E test to add and very the config for parser "e2e1"', function() {
 
   it('should add mandatory fields for e2e parser', (done) => {
 
+    page.cleanupBeforeExecution('e2e1');
     page.clickAddButton();
     page.setParserName('e2e1');
+    page.setParserTopicName('e2e1');
     page.setParserType('Grok');
 
     done();
@@ -72,7 +74,7 @@ describe('E2E test to add and very the config for parser "e2e1"', function() {
     page.testGrokStatement();
     expect(page.getGrokResponse()).toEqual(expectedGrokResponse);
     page.saveGrokStatement();
-    expect(page.getGrokStatementFromMainPane()).toEqual(['E2E1 ' + grokStatement]);
+    expect(page.getGrokStatementFromMainPane('e2e1')).toEqual(['E2E1 ' + grokStatement]);
 
     done();
 
@@ -154,7 +156,7 @@ describe('E2E test to add and very the config for parser "e2e1"', function() {
       solrEnabled: 'on',
       advanced: [ 'grokPath', '/apps/metron/patterns/e2e1', 'patternLabel', 'E2E1', 'enter field', 'enter value' ]
     };
-    expect(sensorListPage.openEditPane('e2e1')).toEqual('http://localhost:4200/sensors(dialog:sensors-config/e2e1)');
+    expect(sensorListPage.openEditPane('e2e1')).toEqual('http://node1:4200/sensors(dialog:sensors-config/e2e1)');
     expect(page.getFormData()).toEqual(expectedFormData);
 
     page.closeMainPane().then(() => {
@@ -177,6 +179,14 @@ describe('E2E test to add and very the config for parser "e2e1"', function() {
       'THROUGHPUT:-',
       'EMITTED(10 MIN):-',
       'ACKED(10 MIN):-',
+      'NUM WORKERS:-',
+      'NUM ACKERS:-',
+      'SPOUT PARALLELISM:1',
+      'SPOUT NUM TASKS:1',
+      'PARSER PARALLELISM:1',
+      'PARSER NUM TASKS:1',
+      'ERROR WRITER PARALLELISM:1',
+      'ERROR NUM TASKS:1',
       ' ',
       'KAFKA:No Kafka Topic',
       'PARTITONS:-',
@@ -188,7 +198,7 @@ describe('E2E test to add and very the config for parser "e2e1"', function() {
     threatTriageTableValues[threatTriageRule2] = '5';
 
     sensorDetailsPage.navigateTo('e2e1');
-    expect(sensorDetailsPage.getCurrentUrl()).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/e2e1)');
+    expect(sensorDetailsPage.getCurrentUrl()).toEqual('http://node1:4200/sensors(dialog:sensors-readonly/e2e1)');
     expect(sensorDetailsPage.getTitle()).toEqual('e2e1');
     expect(sensorDetailsPage.getParserConfig()).toEqual(parserNotRunnigExpected);
     expect(sensorDetailsPage.getButtons()).toEqual([ 'EDIT', 'START', 'Delete' ]);
@@ -212,9 +222,9 @@ describe('E2E test to add and very the config for parser "e2e1"', function() {
 
 
   it('should delete the e2e parser', (done) => {
-    expect(sensorListPage.getParserCount()).toEqual(8);
+    expect(sensorListPage.getParserCount()).toEqual(9);
     expect(sensorListPage.deleteParser('e2e1')).toEqual(true);
-    expect(sensorListPage.getParserCount()).toEqual(7);
+    expect(sensorListPage.getParserCount()).toEqual(8);
     done();
   });
 

@@ -50,7 +50,7 @@ describe('Sensor List', function() {
   });
 
   it('should have title defined', () => {
-    expect(page.getTitle()).toEqual('Sensors (7)');
+    expect(page.getTitle()).toEqual('Sensors (8)');
   });
 
   it('should have add button', () => {
@@ -58,7 +58,7 @@ describe('Sensor List', function() {
   });
 
   it('should have all the default parsers', () => {
-    expect(page.getParserCount()).toEqual(7);
+    expect(page.getParserCount()).toEqual(8);
   });
 
   it('should have all the table headers', () => {
@@ -68,34 +68,34 @@ describe('Sensor List', function() {
   it('should sort table headers', () => {
     page.toggleSort('Name');
     expect(page.getSortOrder('Name')).toEqual(ASCENDING_CSS);
-    expect(page.getColumnValues(0)).toEqual(['asa', 'bro', 'jsonMap', 'snort', 'squid', 'websphere', 'yaf']);
+    expect(page.getColumnValues(0)).toEqual(['asa', 'bro', 'jsonMap', 'jsonMapQuery', 'snort', 'squid', 'websphere', 'yaf']);
 
     page.toggleSort('Name');
     expect(page.getSortOrder('Name')).toEqual(DESCENDING_CSS);
-    expect(page.getColumnValues(0)).toEqual(['yaf', 'websphere', 'squid', 'snort', 'jsonMap', 'bro', 'asa']);
+    expect(page.getColumnValues(0)).toEqual(['yaf', 'websphere', 'squid', 'snort', 'jsonMapQuery', 'jsonMap', 'bro', 'asa']);
 
     page.toggleSort('Parser');
     expect(page.getSortOrder('Parser')).toEqual(ASCENDING_CSS);
-    expect(page.getColumnValues(1)).toEqual(['Asa', 'Bro', 'Grok', 'Grok', 'GrokWebSphere', 'JSONMap', 'Snort']);
+    expect(page.getColumnValues(1)).toEqual(['Asa', 'Bro', 'Grok', 'Grok', 'GrokWebSphere', 'JSONMap', 'JSONMap', 'Snort']);
 
     page.toggleSort('Parser');
     expect(page.getSortOrder('Parser')).toEqual(DESCENDING_CSS);
-    expect(page.getColumnValues(1)).toEqual(['Snort', 'JSONMap', 'GrokWebSphere', 'Grok', 'Grok', 'Bro', 'Asa']);
+    expect(page.getColumnValues(1)).toEqual(['Snort', 'JSONMap', 'JSONMap', 'GrokWebSphere', 'Grok', 'Grok', 'Bro', 'Asa']);
 
     page.toggleSort('Status');
     expect(page.getSortOrder('Status')).toEqual(ASCENDING_CSS);
-    expect(page.getColumnValues(2)).toEqual(['Running', 'Running', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped']);
+    expect(page.getColumnValues(2)).toEqual(['Running', 'Running', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped']);
 
     page.toggleSort('Status');
     expect(page.getSortOrder('Status')).toEqual(DESCENDING_CSS);
-    expect(page.getColumnValues(2)).toEqual(['Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Running', 'Running']);
+    expect(page.getColumnValues(2)).toEqual(['Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Running', 'Running']);
 
     page.toggleSort('Latency');
     expect(page.getSortOrder('Latency')).toEqual(ASCENDING_CSS);
     let latencyValues = page.getColumnValues(3);
     latencyValues.then(values => {
-      expect(values.slice(0, 5)).toEqual(['-', '-', '-', '-', '-']);
-      expect(values.slice(5)).not.toEqual(['-', '-']);
+      expect(values.slice(0, 6)).toEqual(['-', '-', '-', '-', '-', '-']);
+      expect(values.slice(6)).not.toEqual(['-', '-']);
     });
 
     page.toggleSort('Latency');
@@ -103,19 +103,19 @@ describe('Sensor List', function() {
     latencyValues = page.getColumnValues(3);
     latencyValues.then(values => {
       expect(values.slice(0, 2)).not.toEqual(['-', '-']);
-      expect(values.slice(2)).toEqual(['-', '-', '-', '-', '-']);
+      expect(values.slice(2)).toEqual(['-', '-', '-', '-', '-', '-']);
     });
   });
 
   it('should select deselect all rows', () => {
     page.toggleSelectAll();
-    expect(page.getSelectedRowCount()).toEqual(7);
+    expect(page.getSelectedRowCount()).toEqual(8);
     page.toggleSelectAll();
     expect(page.getSelectedRowCount()).toEqual(0);
   });
 
   it('should select deselect individual rows', () => {
-    ['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
+    ['websphere', 'jsonMap', 'jsonMapQuery', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
       page.toggleRowSelect(pName);
       expect(page.getSelectedRowCount()).toEqual(1);
       page.toggleRowSelect(pName);
@@ -136,7 +136,7 @@ describe('Sensor List', function() {
     page.toggleDropdown();
     page.toggleSelectAll();
 
-    ['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
+    ['websphere', 'jsonMap', 'jsonMapQuery', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
       page.toggleRowSelect(pName);
       page.toggleDropdown();
       expect(page.getDropdownActionState()).toEqual({ enabled: 5, disabled: 0, displayed: true});
@@ -146,7 +146,7 @@ describe('Sensor List', function() {
   });
 
   it('should have all the actions with default value', () => {
-    ['websphere', 'jsonMap', 'squid', 'asa', 'yaf'].map(pName => {
+    ['websphere', 'jsonMap', 'jsonMapQuery', 'squid', 'asa', 'yaf'].map(pName => {
       expect(page.getActions(pName)).toEqual(defaultActionState);
     });
 
@@ -156,15 +156,15 @@ describe('Sensor List', function() {
   });
 
   it('should open the details pane', (done) => {
-    ['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
-      expect(page.openDetailsPane(pName)).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/' + pName + ')');
+    ['websphere', 'jsonMap', 'jsonMapQuery', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
+      expect(page.openDetailsPane(pName)).toEqual('http://node1:4200/sensors(dialog:sensors-readonly/' + pName + ')');
     });
     page.closePane().then(() => { done(); });
   }, 300000);
 
   it('should open the edit pane', () => {
-    ['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
-      expect(page.openEditPaneAndClose(pName)).toEqual('http://localhost:4200/sensors(dialog:sensors-config/' + pName + ')');
+    ['websphere', 'jsonMap', 'jsonMapQuery', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
+      expect(page.openEditPaneAndClose(pName)).toEqual('http://node1:4200/sensors(dialog:sensors-config/' + pName + ')');
     });
   });
 

@@ -32,7 +32,7 @@ describe('Sensor Details View', function () {
 
   it('should navigate to snort parser', () => {
     page.navigateTo('snort');
-    expect(page.getCurrentUrl()).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/snort)');
+    expect(page.getCurrentUrl()).toEqual('http://node1:4200/sensors(dialog:sensors-readonly/snort)');
     expect(page.getTitle()).toEqual('snort');
   });
 
@@ -42,7 +42,7 @@ describe('Sensor Details View', function () {
     expect(page.getButtons()).toEqual([ 'EDIT', 'STOP', 'ENABLE',  'Delete' ]);
     expect(page.getStormStatus()).toEqual('Disabled');
     expect(page.getParserState()).toEqual('Disabled');
-    expect(page.getKafkaState()).toEqual('Emitting');
+    expect(page.getKafkaState()).toEqual('Disabled');
   });
 
   it('should enable snort parser', () => {
@@ -70,7 +70,7 @@ describe('Sensor Details View', function () {
     expect(page.getParserState()).toEqual('Enabled');
     expect(page.getKafkaState()).toEqual('Emitting');
 
-    page.closePane('squid');
+    page.closePane('snort');
     done();
   }, 300000);
 });

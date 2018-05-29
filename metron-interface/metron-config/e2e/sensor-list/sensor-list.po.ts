@@ -127,7 +127,8 @@ export class SensorListPage {
     }
 
     getIconButton(name: string, className: string) {
-        return element(by.cssContainingText('td', name)).element(by.xpath('..')).element(by.css(className));
+        let regexp = new RegExp('^'+name+'$');
+        return element(by.cssContainingText('td', regexp)).element(by.xpath('..')).element(by.css(className));
     }
 
     getParserCount() {

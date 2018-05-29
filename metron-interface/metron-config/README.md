@@ -125,11 +125,18 @@ The application will be available at http://localhost:4200/.  The REST applicati
 ## E2E Testing
 ### Prerequisites
 
-- quick-dev-platfom should be up and running. For more information on running quick-dev click [here](https://github.com/apache/incubator-metron/tree/master/metron-deployment/vagrant/quick-dev-platform).
+- quick-dev-platfom should be up and running. For more information on running quick-dev click [here](https://github.com/apache/metron/tree/master/metron-deployment/development/centos6).
 - quick-dev-platfom should have snort and bro parser topologies deployed and they should be in a running state. ( This should be available by default unless they are stopped manually ).
-- Metron rest application should be up and running on quick-dev-platfom.  For more information on running metron rest on quick-dev-platfom click [here](https://github.com/apache/incubator-metron/blob/master/metron-interface/metron-rest/README.md#quick-dev).
+- Metron rest application should be up and running on quick-dev-platfom.  For more information on running metron rest on quick-dev-platfom click [here](https://github.com/apache/metron/blob/master/metron-interface/metron-rest/README.md#full-dev).
 - Metron rest application should be running as hdfs user. Once logged in as root you can run 'sudo su - hdfs' to become a hdfs user.
 - Port 4200 should be available on the machine running management ui.
+
+#### Note: Before running E2E tests
+
+- By default, the quick-dev-platform will come up with all the services turned ON, of which many services are not required for running E2E tests.
+- In order for the E2E tests to run reliably without transient failures, it is adviced to turn off the following services on the quick-dev-platfom.
+1. SSH into the full-dev node and stop the [sensor-stubs](https://github.com/apache/metron/blob/master/metron-deployment/ansible/roles/sensor-stubs/README.md) service by running the command `service sensor-stubs stop`. This will prevent ingestion of mock data into the full-dev node.
+2. From the Ambari UI, stop the 'Metron Profiler' service.
 
 ### Running E2E tests
 1. Execute the script 'start_server_for_e2e.sh' by passing the port to run the config UI and metron rest URL as arguments. The script perform two tasks:
