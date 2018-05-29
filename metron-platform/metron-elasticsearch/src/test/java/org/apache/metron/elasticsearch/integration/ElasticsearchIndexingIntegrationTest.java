@@ -44,7 +44,7 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
   private String indexDir = "target/elasticsearch";
   private String dateFormat = "yyyy.MM.dd.HH";
   private String index = "yaf_index_" + new SimpleDateFormat(dateFormat).format(new Date());
-  private FieldNameConverter fieldNameConverter = FieldNameConverters.DEDOT.get();
+  private FieldNameConverter fieldNameConverter = FieldNameConverters.DEDOT;
   /**
    * {
    * "yaf_doc": {

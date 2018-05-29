@@ -19,6 +19,7 @@
 package org.apache.metron.common.field;
 
 import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ import java.lang.invoke.MethodHandles;
  * <p>Allows the field name converter to be specified using a short-hand
  * name, rather than the entire fully-qualified class name.
  */
-public enum FieldNameConverters {
+public enum FieldNameConverters implements FieldNameConverter {
 
   /**
    * A {@link FieldNameConverter} that does not rename any fields.  All field
@@ -66,6 +67,21 @@ public enum FieldNameConverters {
   }
 
   /**
+   * Allows the {@link FieldNameConverters} enums to be used directly as a {@link FieldNameConverter}.
+   *
+   * {@code
+   * FieldNameConverter converter = FieldNameConverters.DEDOT;
+   * }
+   *
+   * @param originalField The original field name.
+   * @return
+   */
+  @Override
+  public String convert(String originalField) {
+    return converter.convert(originalField);
+  }
+
+  /**
    * Create a new {@link FieldNameConverter}.
    *
    * @param sensorType The type of sensor.
@@ -78,7 +94,7 @@ public enum FieldNameConverters {
     String converterName = config.getFieldNameConverter(sensorType);
     FieldNameConverter result = null;
     try {
-      result = FieldNameConverters.valueOf(converterName).get();
+      result = FieldNameConverters.valueOf(converterName);
 
     } catch(IllegalArgumentException e) {
       LOG.error("Invalid field name converter, using default; configured={}, knownValues={}, error={}",
@@ -87,7 +103,7 @@ public enum FieldNameConverters {
 
     if(result == null) {
       // default to the 'DEDOT' field name converter to maintain backwards compatibility
-      result = FieldNameConverters.DEDOT.get();
+      result = FieldNameConverters.DEDOT;
     }
 
     LOG.debug("Created field name converter; sensorType={}, configured={}, class={}",

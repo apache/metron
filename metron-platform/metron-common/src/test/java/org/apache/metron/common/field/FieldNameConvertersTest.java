@@ -24,7 +24,7 @@ import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test the {@link FieldNameConverters} class.
@@ -65,7 +65,7 @@ public class FieldNameConvertersTest {
 
     // validate the converter created for 'bro'
     FieldNameConverter converter = FieldNameConverters.create(sensor, config);
-    assertTrue(converter instanceof DeDotFieldNameConverter);
+    assertEquals(FieldNameConverters.DEDOT, converter);
   }
 
   /**
@@ -95,7 +95,7 @@ public class FieldNameConvertersTest {
 
     // validate the converter created for 'bro'
     FieldNameConverter converter = FieldNameConverters.create(sensor, config);
-    assertTrue(converter instanceof NoopFieldNameConverter);
+    assertEquals(FieldNameConverters.NOOP, converter);
   }
 
   /**
@@ -125,7 +125,7 @@ public class FieldNameConvertersTest {
 
     // if none defined, should default to 'DEDOT'
     FieldNameConverter converter = FieldNameConverters.create(sensor, config);
-    assertTrue(converter instanceof DeDotFieldNameConverter);
+    assertEquals(FieldNameConverters.DEDOT, converter);
   }
 
   /**
@@ -140,11 +140,11 @@ public class FieldNameConvertersTest {
 
     // no converter defined in config, should use 'DEDOT' converter
     WriterConfiguration config = createConfig(writer, sensor, jsonWithNoConverter);
-    assertTrue(FieldNameConverters.create(sensor, config) instanceof DeDotFieldNameConverter);
+    assertEquals(FieldNameConverters.DEDOT, FieldNameConverters.create(sensor, config));
 
     // an 'updated' config uses the 'NOOP' converter
     WriterConfiguration newConfig = createConfig(writer, sensor, jsonWithNoop);
-    assertTrue(FieldNameConverters.create(sensor, newConfig) instanceof NoopFieldNameConverter);
+    assertEquals(FieldNameConverters.NOOP, FieldNameConverters.create(sensor, newConfig));
   }
 
   /**
@@ -175,7 +175,7 @@ public class FieldNameConvertersTest {
 
     // if invalid value defined, it should fall-back to using default 'DEDOT'
     FieldNameConverter converter = FieldNameConverters.create(sensor, config);
-    assertTrue(converter instanceof DeDotFieldNameConverter);
+    assertEquals(FieldNameConverters.DEDOT, converter);
   }
 
   /**
@@ -206,6 +206,6 @@ public class FieldNameConvertersTest {
 
     // if invalid value defined, it should fall-back to using default 'DEDOT'
     FieldNameConverter converter = FieldNameConverters.create(sensor, config);
-    assertTrue(converter instanceof DeDotFieldNameConverter);
+    assertEquals(FieldNameConverters.DEDOT, converter);
   }
 }
