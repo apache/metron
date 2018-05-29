@@ -36,9 +36,7 @@ import org.apache.metron.common.zookeeper.configurations.ParserUpdater;
 import org.apache.metron.common.zookeeper.configurations.ProfilerUpdater;
 import org.apache.metron.common.zookeeper.configurations.Reloadable;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -54,9 +52,6 @@ public class ConfigurationsStrategiesTest {
     MockitoAnnotations.initMocks(this);
   }
 
-  @Rule
-  public ExpectedException exception = ExpectedException.none();
-
   @Test
   public void strategies_build_writer_configs() {
     assertThat(PARSERS.createWriterConfig(writer, new ParserConfigurations()),
@@ -65,8 +60,8 @@ public class ConfigurationsStrategiesTest {
         instanceOf(EnrichmentWriterConfiguration.class));
     assertThat(INDEXING.createWriterConfig(writer, new IndexingConfigurations()),
         instanceOf(IndexingWriterConfiguration.class));
-    exception.expect(UnsupportedOperationException.class);
-    PROFILER.createWriterConfig(writer, new ProfilerConfigurations());
+    assertThat(PROFILER.createWriterConfig(writer, new ProfilerConfigurations()),
+        instanceOf(ProfilerWriterConfiguration.class));
   }
 
   @Test

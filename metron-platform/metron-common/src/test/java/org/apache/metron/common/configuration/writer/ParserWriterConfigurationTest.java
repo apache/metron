@@ -65,7 +65,8 @@ public class ParserWriterConfigurationTest {
         parserConfigurations);
     assertThat("batch size should match", writerConfiguration.getBatchSize(sensorName), equalTo(5));
     assertThat("batch timeout should match", writerConfiguration.getBatchTimeout(sensorName), equalTo(10000));
-    assertThat("index should match", writerConfiguration.getIndex(sensorName), equalTo("modified-testtopic"));
+    assertThat("index should match", writerConfiguration.getIndex(sensorName), equalTo("modified-index"));
     assertThat("enabled should match", writerConfiguration.isEnabled(sensorName), equalTo(false));
   }
+
 }
