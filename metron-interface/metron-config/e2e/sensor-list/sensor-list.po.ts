@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-import { browser, element, by, protractor } from 'protractor/globals';
-import { waitForElementPresence, waitForStalenessOf } from '../utils/e2e_util';
-var Promise = require('bluebird');
+import { browser, element, by, protractor } from 'protractor';
+import { waitForStalenessOf, waitForElementVisibility } from '../utils/e2e_util';
+let Promise = require('bluebird');
 
 export class SensorListPage {
 
@@ -31,11 +31,7 @@ export class SensorListPage {
         });
 
         return queueForClick.then(() => {
-            let promiseArray = [];
-            parserNames.map(name => {
-                promiseArray.push(this.waitForElement(this.getIconButton(name, waitOnClassName)));
-            });
-
+            let promiseArray = parserNames.map(name => waitForElementVisibility(this.getIconButton(name, waitOnClassName)));
             return protractor.promise.all(promiseArray).then(args => {
                 return args;
             });
@@ -43,31 +39,28 @@ export class SensorListPage {
     }
 
     clickOnDropdownAndWait(parserNames: string[], dropDownLinkName: string, waitOnClassName: string) {
-        return protractor.promise.all([this.toggleSelectAll(), this.toggleDropdown()]).then(() => {
+        return protractor.promise.all([this.toggleRowsSelect(parserNames), this.toggleDropdown()]).then(() => {
 
-            return element(by.css('span[data-action=\"'+ dropDownLinkName +'\"]')).click().then(() => {
-                let promiseArray = [];
-                parserNames.map(name => {
-                    promiseArray.push(this.waitForElement(this.getIconButton(name, waitOnClassName)));
-                });
-
+            return element(by.css('span[data-action=\"' + dropDownLinkName + '\"]')).click().then(() => {
+                let promiseArray = parserNames.map(name => waitForElementVisibility(this.getIconButton(name, waitOnClassName)));
                 return protractor.promise.all(promiseArray).then(args => {
-                    return this.toggleSelectAll().then(() => {
-                        return args;
-                    })
+                    this.toggleRowsSelect(parserNames);
+                    return args;
                 });
             });
         });
     }
 
-    closePane(className: string ='.close-button') {
-        return this.waitForElement(element(by.css(className))).then(() => {
+    closePane(className = '.close-button') {
+        return waitForElementVisibility(element(by.css(className))).then(() => {
             return element(by.css(className)).click();
         });
     }
 
     disableParsers(names: string[]) {
-        return this.clickOnActionsAndWait(names, 'i.fa-ban', 'i.fa-check-circle-o');
+        return waitForElementVisibility(this.getIconButton(names[0], 'i.fa-ban')).then(() => {
+            return this.clickOnActionsAndWait(names, 'i.fa-ban', 'i.fa-check-circle-o');
+        });
     }
 
     disableParsersFromDropdown(names: string[]) {
@@ -80,10 +73,10 @@ export class SensorListPage {
             return element(by.css('.metron-dialog .btn-primary')).click().then(() => {
                 browser.sleep(1000);
                 return element(by.css('.alert .close')).click().then(() => {
-                    return waitForStalenessOf(element(by.cssContainingText('td', name))).then(() =>{
+                    return waitForStalenessOf(element(by.cssContainingText('td', name))).then(() => {
                         return true;
                     });
-                })
+                });
             });
         });
     }
@@ -100,7 +93,7 @@ export class SensorListPage {
         return element.all(by.css('table>tbody>tr')).filter(row => {
             return row.all(by.tagName('td')).get(0).getText().then(pName => {
                 return pName === name;
-            })
+            });
         }).get(0).all(by.tagName('i')).map(icon => {
             return icon.getAttribute('class').then(classNames => {
                 let className = classNames.replace('fa ', '').replace('fa-lg', '').replace('fa-spin  fa-fw', '').trim();
@@ -119,8 +112,8 @@ export class SensorListPage {
         });
     }
 
-    getDropdownActionState() {
-        return protractor.promise.all([
+    getDropdownActionState(): any {
+        return protractor.promise.all<any>([
             element.all(by.css('.dropdown.open .dropdown-menu span:not(.disabled)')).count(),
             element.all(by.css('.dropdown.open .dropdown-menu span.disabled')).count(),
             element.all(by.css('.dropdown-menu')).isDisplayed()
@@ -129,16 +122,12 @@ export class SensorListPage {
                 enabled: args[0],
                 disabled: args[1],
                 displayed: args[2][0],
-            }
+            };
         });
     }
 
     getIconButton(name: string, className: string) {
-        return element.all(by.css('table>tbody>tr')).filter(row => {
-            return row.all(by.tagName('td')).get(0).getText().then(pName => {
-                return pName === name;
-            })
-        }).get(0).element(by.css(className));
+        return element(by.cssContainingText('td', name)).element(by.xpath('..')).element(by.css(className));
     }
 
     getParserCount() {
@@ -150,7 +139,7 @@ export class SensorListPage {
         return element.all(by.css('table>tbody>tr')).filter(row => {
             return row.all(by.tagName('td')).get(0).getText().then(pName => {
                 return pName === name;
-            })
+            });
         }).get(0);
     }
 
@@ -169,7 +158,10 @@ export class SensorListPage {
     }
 
     getTitle() {
-        return element(by.css('.metron-title')).getText();
+        let titleElement = element(by.css('.metron-title'));
+        return waitForElementVisibility(titleElement).then(() => {
+            return titleElement.getText();
+        });
     }
 
     load() {
@@ -177,22 +169,23 @@ export class SensorListPage {
     }
 
     openDetailsPane(name: string) {
-        return this.getRow(name).click().then(() =>{
+        return this.getRow(name).click().then(() => {
             return browser.getCurrentUrl();
         });
     }
 
     openEditPane(name: string) {
         let row = element(by.cssContainingText('td', name));
-        return waitForElementPresence(row).then(() => {
-            return this.getIconButton(name, '.fa-pencil').click().then(() =>{
-                return browser.getCurrentUrl();
-            });
-        })
+        let protactorControlFlow = protractor.promise.controlFlow();
+
+        protactorControlFlow.execute(() => { waitForElementVisibility(row); })
+          .then(() => protactorControlFlow.execute(() => { this.getIconButton(name, '.fa-pencil').click(); }));
+
+        return browser.getCurrentUrl();
     }
 
     openEditPaneAndClose(name: string) {
-        return this.getIconButton(name, '.fa-pencil').click().then(() =>{
+        return this.getIconButton(name, '.fa-pencil').click().then(() => {
             let url = browser.getCurrentUrl();
             browser.sleep(500);
             return this.closePane('.main.close-button').then(() => {
@@ -222,7 +215,13 @@ export class SensorListPage {
     }
 
     toggleRowSelect(name: string) {
-        element.all(by.css('label[for=\"'+name+'\"]')).click();
+        element.all(by.css('label[for=\"' + name + '\"]')).click();
+    }
+
+    toggleRowsSelect(parserNames: string[]) {
+        parserNames.forEach((name) => {
+            element.all(by.css('label[for=\"' + name + '\"]')).click();
+        });
     }
 
     toggleSelectAll() {
@@ -232,9 +231,4 @@ export class SensorListPage {
     toggleSort(name: string) {
         element.all(by.linkText(name)).click();
     }
-
-    waitForElement ( _element ) {
-        var EC = protractor.ExpectedConditions;
-        return browser.wait(EC.visibilityOf(_element));
-    };
 }

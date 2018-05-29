@@ -122,6 +122,42 @@ The application will be available at http://localhost:4200/.  The REST applicati
     npm test
     ```
 
+## E2E Testing
+### Prerequisites
+
+- quick-dev-platfom should be up and running. For more information on running quick-dev click [here](https://github.com/apache/incubator-metron/tree/master/metron-deployment/vagrant/quick-dev-platform).
+- quick-dev-platfom should have snort and bro parser topologies deployed and they should be in a running state. ( This should be available by default unless they are stopped manually ).
+- Metron rest application should be up and running on quick-dev-platfom.  For more information on running metron rest on quick-dev-platfom click [here](https://github.com/apache/incubator-metron/blob/master/metron-interface/metron-rest/README.md#quick-dev).
+- Metron rest application should be running as hdfs user. Once logged in as root you can run 'sudo su - hdfs' to become a hdfs user.
+- Port 4200 should be available on the machine running management ui.
+
+### Running E2E tests
+1. Execute the script 'start_server_for_e2e.sh' by passing the port to run the config UI and metron rest URL as arguments. The script perform two tasks:
+    - Build the UI
+    - Start a expressjs server for the UI on the given port and proxy the rest calls to metron rest on quick-dev-platform
+
+    Ex: If metron rest on quick-dev-platform is available on node1:8081 and you wish to start UI on port 4200 the command would look like
+    ```
+      sh ./scripts/start_server_for_e2e.sh  -p 4200 -r http://node1:8081
+
+       -p  Port to run metron management ui                [required]
+       -r  Url where metron rest application is available  [required]
+    ```
+
+1. You can execute all the test cases by issuing the following command.
+
+    Note: Running all the test cases can be a time-consuming process since it involves starting and stopping parsers multiple times
+    ```
+    npm run e2e-all
+    ```
+
+1. You can also execute subset of test cases that would test all the functionality that does not involve starting of parsers. The command used for this as follows
+   ```
+    npm run e2e
+   ```
+
+NOTE: Automated UI test cases can be [flaky at times](https://testing.googleblog.com/2016/05/flaky-tests-at-google-and-how-we.html). To rerun potentially flakey protractor tests before failing we are using [protractor-flake](https://www.npmjs.com/package/protractor-flake).
+
 ## License
 
 This projects bundles Font Awesome which is available under the SIL Open Font License.  See http://fontawesome.io/license/ for more details.
