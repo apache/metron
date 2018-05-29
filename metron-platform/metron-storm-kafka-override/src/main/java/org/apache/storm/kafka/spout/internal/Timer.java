@@ -18,7 +18,6 @@
 package org.apache.storm.kafka.spout.internal;
 
 import java.util.concurrent.TimeUnit;
-import org.apache.storm.utils.Time;
 
 public class Timer {
   private final long delay;

@@ -92,11 +92,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.apache.metron</groupId>
-            <artifactId>metron-common</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -128,15 +123,19 @@
                           <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.apache.metron.guava.storm-kafka-override</shadedPattern>
+                                    <shadedPattern>org.apache.metron.storm.kafka.override.guava.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>org.apache.metron.storm.kafka.override.guava.thirdparty</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.apache.commons.lang</pattern>
-                                    <shadedPattern>org.apache.metron.commons.lang.storm-kafka-override</shadedPattern>
+                                    <shadedPattern>org.apache.metron.storm.kafka.override.commons.lang</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.fasterxml</pattern>
-                                    <shadedPattern>org.apache.metron.com.fasterxml.storm-kafka-override</shadedPattern>
+                                    <shadedPattern>org.apache.metron.storm.kafka.override.com.fasterxml</shadedPattern>
                                 </relocation>
                             </relocations>
                             <artifactSet>
