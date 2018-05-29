@@ -118,28 +118,32 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   private MessageGetStrategy messageGetStrategy;
 
   @Test
-  public void testSensorTypeMissing() throws Exception {
+  public void testSourceTypeMissing() throws Exception {
+
+    // setup the bold
     BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
-            .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
+            .withBulkMessageWriter(bulkMessageWriter)
+            .withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
             .withMessageGetterField("message");
     bulkMessageWriterBolt.setCuratorFramework(client);
     bulkMessageWriterBolt.setZKCache(cache);
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType,
             new FileInputStream(sampleSensorIndexingConfigPath));
 
+    // initialize the bolt
     bulkMessageWriterBolt.declareOutputFields(declarer);
-    verify(declarer, times(1)).declareStream(eq("error"), argThat(
-            new FieldsMatcher("message")));
     Map stormConf = new HashMap();
     bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
-    BulkWriterComponent<JSONObject> component = mock(BulkWriterComponent.class);
-    bulkMessageWriterBolt.setWriterComponent(component);
-    verify(bulkMessageWriter, times(1)).init(eq(stormConf),any(TopologyContext.class), any(WriterConfiguration.class));
+
+    // create a message with no source type
     JSONObject message = (JSONObject) new JSONParser().parse(sampleMessageString);
     message.remove("source.type");
     when(tuple.getValueByField("message")).thenReturn(message);
+
+    // the tuple should be handled as an error and ack'd
     bulkMessageWriterBolt.execute(tuple);
-    verify(component, times(1)).error(eq("null"), any(), any(), any());
+    verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), any());
+    verify(outputCollector, times(1)).ack(tuple);
   }
 
   @Test
@@ -294,5 +298,37 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
             , eq(tupleList), argThat(new MessageListMatcher(messageList)));
     assertEquals(3, tupleList.size());
     verify(outputCollector, times(5)).ack(tuple);  // 3 messages + 2nd tick
+  }
+
+  /**
+   * If an invalid message is sent to indexing, the message should be handled as an error
+   * and the topology should continue processing.
+   */
+  @Test
+  public void testMessageInvalid() throws Exception {
+    FakeClock clock = new FakeClock();
+
+    // setup the bolt
+    BulkMessageWriterBolt bolt = new BulkMessageWriterBolt("zookeeperUrl")
+            .withBulkMessageWriter(bulkMessageWriter)
+            .withMessageGetter(MessageGetters.JSON_FROM_POSITION.name())
+            .withMessageGetterField("message");
+    bolt.setCuratorFramework(client);
+    bolt.setZKCache(cache);
+    bolt.getConfigurations().updateSensorIndexingConfig(sensorType, new FileInputStream(sampleSensorIndexingConfigPath));
+
+    // initialize the bolt
+    bolt.declareOutputFields(declarer);
+    Map stormConf = new HashMap();
+    bolt.prepare(stormConf, topologyContext, outputCollector, clock);
+
+    // execute a tuple that contains an invalid message
+    byte[] invalidJSON = "this is not valid JSON".getBytes();
+    when(tuple.getBinary(0)).thenReturn(invalidJSON);
+    bolt.execute(tuple);
+
+    // the tuple should be handled as an error and ack'd
+    verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), any());
+    verify(outputCollector, times(1)).ack(tuple);
   }
 }

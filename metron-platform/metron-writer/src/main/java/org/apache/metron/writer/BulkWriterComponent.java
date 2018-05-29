@@ -19,6 +19,7 @@
 package org.apache.metron.writer;
 
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
@@ -115,15 +116,37 @@ public class BulkWriterComponent<MESSAGE_T> {
   }
 
   public void error(String sensorType, Throwable e, Iterable<Tuple> tuples, MessageGetStrategy messageGetStrategy) {
+
+    if(!Iterables.isEmpty(tuples)) {
+      LOG.error("Failing tuples; count={}, error={}", Iterables.size(tuples), ExceptionUtils.getRootCauseMessage(e));
+    }
     tuples.forEach(t -> collector.ack(t));
     MetronError error = new MetronError()
             .withSensorType(sensorType)
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
             .withThrowable(e);
-    if(!Iterables.isEmpty(tuples)) {
-      LOG.error("Failing {} tuples", Iterables.size(tuples), e);
-    }
     tuples.forEach(t -> error.addRawMessage(messageGetStrategy.get(t)));
+    ErrorUtils.handleError(collector, error);
+  }
+
+  /**
+   * Error a set of tuples that may not contain a valid message.
+   *
+   * <p>Without a valid message, the source type is unknown.
+   * <p>Without a valid message, the JSON message cannot be added to the error.
+   *
+   * @param e The exception that occurred.
+   * @param tuples The tuples to error that may not contain valid messages.
+   */
+  public void error(Throwable e, Iterable<Tuple> tuples) {
+
+    if(!Iterables.isEmpty(tuples)) {
+      LOG.error("Failing tuples; count={}, error={}", Iterables.size(tuples), ExceptionUtils.getRootCauseMessage(e));
+    }
+    tuples.forEach(t -> collector.ack(t));
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+            .withThrowable(e);
     ErrorUtils.handleError(collector, error);
   }
 

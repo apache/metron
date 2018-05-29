@@ -18,6 +18,7 @@
 package org.apache.metron.writer.bolt;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredIndexingBolt;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
@@ -213,60 +214,144 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
+
     if (isTick(tuple)) {
-      try {
-        if (!(bulkMessageWriter instanceof WriterToBulkWriter)) {
-          //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
-          LOG.debug("Flushing message queues older than their batchTimeouts");
-          getWriterComponent().flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
-                  new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
-                  , messageGetStrategy);
-        }
-      }
-      catch(Exception e) {
-        throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);
-      }
-      finally {
-        collector.ack(tuple);
-      }
-      return;
-    }
+      handleTick(tuple);
 
-    try
-    {
-      JSONObject message = (JSONObject) messageGetStrategy.get(tuple);
+    } else {
+      handleMessage(tuple);
+    }
+  }
+
+  /**
+   * Handle a tuple containing a message; anything other than a tick tuple.
+   *
+   * @param tuple The tuple containing a message.
+   */
+  private void handleMessage(Tuple tuple) {
+    try {
+
+      JSONObject message = getMessage(tuple);
+      if(message == null) {
+        handleMissingMessage(tuple);
+        return;
+      }
+
       String sensorType = MessageUtils.getSensorType(message);
-      LOG.trace("Writing enrichment message: {}", message);
-      WriterConfiguration writerConfiguration = configurationTransformation.apply(
-              new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
       if(sensorType == null) {
-        //sensor type somehow ended up being null.  We want to error this message directly.
-        getWriterComponent().error("null"
-                             , new Exception("Sensor type is not specified for message "
-                                            + message.toJSONString()
-                                            )
-                             , ImmutableList.of(tuple)
-                             , messageGetStrategy
-                             );
+        handleMissingSensorType(tuple, message);
+        return;
       }
-      else {
-        if (writerConfiguration.isDefault(sensorType)) {
-          //want to warn, but not fail the tuple
-          collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
-        }
 
-        getWriterComponent().write(sensorType
-                , tuple
-                , message
-                , bulkMessageWriter
-                , writerConfiguration
-                , messageGetStrategy
-        );
-      }
-    }
-    catch(Exception e) {
+      writeMessage(tuple, message, sensorType);
+
+    } catch (Exception e) {
       throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);
     }
+  }
+
+  /**
+   * Handles a tick tuple.
+   *
+   * @param tickTuple The tick tuple.
+   */
+  private void handleTick(Tuple tickTuple) {
+
+    try {
+      if (!(bulkMessageWriter instanceof WriterToBulkWriter)) {
+        //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
+        LOG.debug("Flushing message queues older than their batchTimeouts");
+        getWriterComponent().flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
+                new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
+                , messageGetStrategy);
+      }
+
+    } catch(Exception e) {
+      throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);
+
+    } finally {
+      collector.ack(tickTuple);
+    }
+  }
+
+  /**
+   * Retrieves the JSON message contained in a tuple.
+   *
+   * @param tuple The tuple containing a JSON message.
+   * @return The JSON message contained in the tuple. If none, returns null.
+   */
+  private JSONObject getMessage(Tuple tuple) {
+
+    JSONObject message = null;
+    try {
+      message = (JSONObject) messageGetStrategy.get(tuple);
+
+    } catch(Throwable e) {
+      LOG.error("Unable to retrieve message from tuple", e);
+    }
+
+    return message;
+  }
+
+  /**
+   * Write a message.
+   *
+   * @param tuple The tuple containing a message.
+   * @param message The message to write.
+   * @param sensorType The sensor type of the message.
+   * @throws Exception
+   */
+  private void writeMessage(Tuple tuple, JSONObject message, String sensorType) throws Exception {
+
+    LOG.trace("Writing message: sourceType={}, message={}", sensorType, message);
+    WriterConfiguration writerConfiguration = configurationTransformation.apply(
+            new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
+
+    if (writerConfiguration.isDefault(sensorType)) {
+      //want to warn, but not fail the tuple
+      collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
+    }
+
+    getWriterComponent().write(sensorType
+            , tuple
+            , message
+            , bulkMessageWriter
+            , writerConfiguration
+            , messageGetStrategy
+    );
+  }
+
+  /**
+   * Handles error processing when a message is missing a sensor type.
+   *
+   * @param tuple The tuple.
+   * @param message The message with no sensor type.
+   */
+  private void handleMissingSensorType(Tuple tuple, JSONObject message) {
+
+    LOG.debug("Message is missing sensor type");
+
+    // sensor type somehow ended up being null.  We want to error this message directly.
+    getWriterComponent().error("null",
+            new Exception("Sensor type is not specified for message " + message.toJSONString()),
+            ImmutableList.of(tuple),
+            messageGetStrategy
+    );
+  }
+
+  /**
+   * Handles error processing when a tuple does not contain a valid message.
+   *
+   * @param tuple The tuple.
+   */
+  private void handleMissingMessage(Tuple tuple) {
+
+    LOG.debug("Unable to extract message from tuple; expected valid JSON");
+
+    getWriterComponent().error(
+            new Exception("Unable to extract message from tuple; expected valid JSON"),
+            ImmutableList.of(tuple)
+    );
   }
 
   @Override
