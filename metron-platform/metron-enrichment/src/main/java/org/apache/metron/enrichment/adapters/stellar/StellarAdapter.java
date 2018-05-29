@@ -96,18 +96,6 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     }
   }
 
-  private static String getStellarMessage(String stellarStatement, Exception e, StellarProcessor processor, Map<String, Object> message) {
-    Set<String> variablesUsed = processor.variablesUsed(stellarStatement);
-    if(variablesUsed.isEmpty()) {
-      return e.getMessage();
-    }
-    List<Map.Entry<String, Object>> messagesUsed = new ArrayList<>(variablesUsed.size());
-    for(String v : variablesUsed) {
-      messagesUsed.add(new AbstractMap.SimpleEntry<>(v, message.getOrDefault(v, "missing")));
-    }
-
-    return e.getMessage() + " with relevant variables " + Joiner.on(",").join(messagesUsed);
-  }
 
   public static JSONObject process( Map<String, Object> message
                                            , ConfigHandler handler
@@ -134,10 +122,8 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
               o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
             }
             catch(Exception e) {
-              String errorMessage = getStellarMessage(stellarStatement, e, processor, message);
-              IllegalStateException throwable = new IllegalStateException(errorMessage, e);
-              _LOG.error(errorMessage, e);
-              throw throwable;
+              _LOG.error(e.getMessage(), e);
+              throw e;
             }
             if (slowLogThreshold != null && _PERF_LOG.isDebugEnabled()) {
               long duration = System.currentTimeMillis() - startTime;
