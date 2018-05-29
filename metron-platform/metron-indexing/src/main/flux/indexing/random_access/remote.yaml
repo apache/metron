@@ -122,7 +122,7 @@ bolts:
             - "${kafka.zk}"
             - "INDEXING"
         configMethods:
-            -   name: "withMessageWriter"
+            -   name: "withBulkMessageWriter"
                 args:
                     - ref: "kafkaWriter"
 
