@@ -26,7 +26,7 @@
     <tbody>
     <ng-container *ngFor="let alert of alerts; let alertIndex = index;">
 
-      <ng-container *ngIf="!alert.source.alert || alert.source.alert.length === 0">
+      <ng-container *ngIf="!alert.source.metron_alert || alert.source.metron_alert.length === 0">
         <tr (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
           <td width="15" class="icon-cell"></td>
           <td (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])">
@@ -50,7 +50,7 @@
         </tr>
       </ng-container>
 
-      <ng-container *ngIf="alert.source.alert && alert.source.alert.length > 0">
+      <ng-container *ngIf="alert.source.metron_alert && alert.source.metron_alert.length > 0">
         <tr (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
           <td width="15" class="icon-cell dropdown-cell" (click)="toggleExpandCollapse($event, alert)">
             <i class="fa" aria-hidden="true"
