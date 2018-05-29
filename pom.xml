@@ -91,7 +91,7 @@
         <global_curator_version>2.7.1</global_curator_version>
         <global_classindex_version>3.3</global_classindex_version>
         <global_storm_version>1.0.3</global_storm_version>
-        <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
+        <global_storm_kafka_version>1.2.1</global_storm_kafka_version>
         <global_flux_version>${base_flux_version}</global_flux_version>
         <global_pcap_version>1.7.1</global_pcap_version>
         <global_kafka_version>0.10.0.1</global_kafka_version>
@@ -129,7 +129,7 @@
             <properties>
                 <hdp_version>2.5.0.0</hdp_version>
                 <build_number>1245</build_number>
-                <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
+                <global_storm_kafka_version>1.2.1</global_storm_kafka_version>
                 <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
                 <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
             </properties>
