@@ -15,18 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.elasticsearch.writer;
+package org.apache.metron.common.field;
 
-import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 
-public class ElasticsearchFieldNameConverter implements FieldNameConverter, Serializable {
+/**
+ * A {@link FieldNameConverter} that replaces all field names containing dots
+ * with colons.
+ */
+public class DeDotFieldNameConverter implements FieldNameConverter, Serializable {
 
-    private static final long serialVersionUID = -3126840090749760299L;
+  private static final long serialVersionUID = -3126840090749760299L;
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    @Override
-    public String convert(String originalField) {
-        return originalField.replace(".",":");
+  @Override
+  public String convert(String originalField) {
+
+    String newField = originalField.replace(".",":");
+
+    if(LOG.isDebugEnabled() && originalField.contains(".")) {
+      LOG.debug("Renamed dotted field; original={}, new={}", originalField, newField);
     }
 
+    return newField;
+  }
 }
