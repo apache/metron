@@ -18,10 +18,19 @@
 #
 METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/$METRON_VERSION
-SOLR_VERSION=${global_solr_version}
-SOLR_USER=solr
-SOLR_SERVICE=$SOLR_USER
-SOLR_VAR_DIR="/var/$SOLR_SERVICE"
+ZOOKEEPER=${ZOOKEEPER:-localhost:2181}
+ZOOKEEPER_HOME=${ZOOKEEPER_HOME:-/usr/hdp/current/zookeeper-client}
+SECURITY_ENABLED=${SECURITY_ENABLED:-false}
+NEGOTIATE=''
+if [ ${SECURITY_ENABLED,,} == 'true' ]; then
+    NEGOTIATE=' --negotiate -u : '
+fi
 
-cd $SOLR_VAR_DIR/solr-${SOLR_VERSION}
-su $SOLR_USER -c "bin/solr create -c $1 -d $METRON_HOME/config/schema/$1/"
+# Get the first Solr node from the list of live nodes in Zookeeper
+SOLR_NODE=`$ZOOKEEPER_HOME/bin/zkCli.sh -server $ZOOKEEPER ls /live_nodes | tail -n 1 | sed 's/\[\([^,]*\).*\]/\1/' | sed 's/_solr//'`
+
+# Upload the collection config set
+zip -rj - $METRON_HOME/config/schema/$1 | curl -X POST $NEGOTIATE --header "Content-Type:text/xml" --data-binary @- "http://$SOLR_NODE/solr/admin/configs?action=UPLOAD&name=$1"
+
+# Create the collection
+curl -X GET $NEGOTIATE "http://$SOLR_NODE/solr/admin/collections?action=CREATE&name=$1&numShards=1"

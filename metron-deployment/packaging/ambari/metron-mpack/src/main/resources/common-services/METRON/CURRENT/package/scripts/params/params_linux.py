@@ -128,6 +128,9 @@ if has_zk_host:
 solr_version = '6.6.2'
 solr_home = '/var/solr/solr-' + solr_version
 solr_zookeeper_url = format(format(config['configurations']['metron-env']['solr_zookeeper_url']))
+solr_user = config['configurations']['solr-config-env']['solr_config_user']
+solr_principal_name = config['configurations']['solr-config-env']['solr_principal_name']
+solr_keytab_path = config['configurations']['solr-config-env']['solr_keytab_path']
 
 # Storm
 storm_rest_addr = status_params.storm_rest_addr
@@ -255,6 +258,8 @@ if security_enabled:
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
 
     nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']
+
+    solr_principal_name = solr_principal_name.replace('_HOST', hostname_lowercase)
 
 # Management UI
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
