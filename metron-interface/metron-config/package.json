@@ -20,11 +20,6 @@
   },
   "private": true,
   "dependencies": {
-    "@types/ace": "0.0.32",
-    "@types/bootstrap": "^3.3.32",
-    "@types/jasmine": "2.2.30",
-    "@types/jquery": "^2.0.32",
-    "@types/tether": "^1.1.27",
     "@angular/common": "2.0.0",
     "@angular/compiler": "2.0.0",
     "@angular/core": "2.0.0",
@@ -61,6 +56,11 @@
     "ts-node": "1.2.1",
     "tslint": "3.13.0",
     "typescript": "~2.0.3",
-    "@types/request": "2.0.3"
+    "@types/request": "2.0.3",
+    "@types/ace": "0.0.32",
+    "@types/bootstrap": "^3.3.32",
+    "@types/jasmine": "2.2.30",
+    "@types/jquery": "^2.0.32",
+    "@types/tether": "^1.1.27"
   }
 }
