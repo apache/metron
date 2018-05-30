@@ -44,7 +44,7 @@ Alerts that are contained in a a meta alert are generally excluded from search r
 * The Management UI should be installed (which includes [Express](https://expressjs.com/))
 * The alerts can be populated using Full Dev or any other setup
 * UI is developed using angular4 and uses angular-cli
-* node.JS >= 7.8.0
+* node.JS >= v8.9.4, nodejs v8.9.4(nodejs can be installed on Full Dev with `curl --silent --location https://rpm.nodesource.com/setup_8.x | bash - && yum install -y nodejs`)
 
 ## Installation
 
@@ -120,7 +120,7 @@ The application will be available at http://host:4201 assuming the port is set t
 1. Install all the dependent node_modules using the following command
     ```
     cd metron/metron-interface/metron-alerts
-    npm install
+    yarn
     ```
 1. UI can be run by using the following command
     ```
@@ -143,7 +143,7 @@ An expressjs server is available for mocking the elastic search api.
 1. run e2e test using the following command
     ```
     cd metron/metron-interface/metron-alerts
-    npm run e2e
+    yarn run e2e
     ```
 
 1. E2E tests uses data from full-dev wherever applicable. The tests assume rest-api's are available @http://node1:8082

@@ -22,7 +22,7 @@ This module provides a user interface for management functions in Metron.
 ## Prerequisites
 
 * A network accessible Metron REST application
-* nodejs v6.9+ (nodejs can be installed on Full Dev with `curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - && yum install -y nodejs`)
+* nodejs v8.9.4(nodejs can be installed on Full Dev with `curl --silent --location https://rpm.nodesource.com/setup_8.x | bash - && yum install -y nodejs`)
 
 ## Installation
 
@@ -53,7 +53,8 @@ This module provides a user interface for management functions in Metron.
 1. Install the [Express](https://expressjs.com/) web framework from the `package.json` file in `$METRON_HOME/web/expressjs`:
 
     ```
-    npm --prefix $METRON_HOME/web/expressjs/ install
+    cd $METRON_HOME/web/expressjs/
+    yarn
     ```
 
 ### From Package Manager
@@ -96,7 +97,7 @@ The Management UI can also be started in development mode.  This allows changes 
 
     ```
     cd metron-interface/metron-config
-    npm install
+    yarn
     ```
 
 1. Start the application:
@@ -113,13 +114,13 @@ The application will be available at http://localhost:4200/.  The REST applicati
 
     ```
     cd metron-interface/metron-config
-    npm install
+    yarn
     ```
 
 1. Unit tests can be run with:
 
     ```
-    npm test
+    yarn run test
     ```
 
 ## License
