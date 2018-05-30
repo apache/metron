@@ -20,11 +20,6 @@
   },
   "private": true,
   "dependencies": {
-    "@types/ace": "0.0.32",
-    "@types/bootstrap": "^3.3.32",
-    "@types/jasmine": "2.2.30",
-    "@types/jquery": "^2.0.32",
-    "@types/tether": "^1.1.27",
     "@angular/common": "2.0.0",
     "@angular/compiler": "2.0.0",
     "@angular/core": "2.0.0",
@@ -33,6 +28,11 @@
     "@angular/platform-browser": "2.0.0",
     "@angular/platform-browser-dynamic": "2.0.0",
     "@angular/router": "3.0.0",
+    "@types/ace": "0.0.32",
+    "@types/bootstrap": "^3.3.32",
+    "@types/jasmine": "2.2.30",
+    "@types/jquery": "^2.0.32",
+    "@types/tether": "^1.1.27",
     "ace-builds": "^1.2.5",
     "bootstrap": "4.0.0-alpha.5",
     "core-js": "^2.4.1",
@@ -44,6 +44,7 @@
     "zone.js": "^0.6.23"
   },
   "devDependencies": {
+    "@types/request": "2.0.3",
     "angular-cli": "1.0.0-beta.15",
     "buffer-shims": "^1.0.0",
     "codelyzer": "~0.0.26",
@@ -58,9 +59,12 @@
     "karma-remap-istanbul": "0.6.0",
     "phantomjs-prebuilt": "^2.1.14",
     "protractor": "4.0.5",
+    "stylelint": "^9.1.1",
+    "stylelint-config-standard": "^18.2.0",
+    "stylelint-scss": "^2.5.0",
     "ts-node": "1.2.1",
     "tslint": "3.13.0",
-    "typescript": "~2.0.3",
-    "@types/request": "2.0.3"
-  }
+    "typescript": "~2.0.3"
+  },
+  "main": "index.js"
 }

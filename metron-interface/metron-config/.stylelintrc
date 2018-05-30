@@ -1,0 +1,23 @@
+{
+  "extends": "stylelint-config-standard",
+  "plugins": [
+    "stylelint-scss"
+  ],
+  "rules": {
+    "no-empty-source": null,
+    "selector-pseudo-element-no-unknown": [true, {
+      "ignorePseudoElements": ["ng-deep"]
+    }],
+    "selector-type-no-unknown": null,
+    "scss/selector-no-redundant-nesting-selector": true,
+    "scss/dollar-variable-colon-newline-after": "always-multi-line",
+    "scss/dollar-variable-colon-space-after": "always-single-line",
+    "scss/dollar-variable-colon-space-before": "never",
+    "scss/dollar-variable-no-missing-interpolation": true,
+    "scss/double-slash-comment-whitespace-inside": "always",
+    "scss/media-feature-value-dollar-variable": "always",
+    "scss/operator-no-newline-after": true,
+    "scss/operator-no-newline-before": true,
+    "scss/operator-no-unspaced": true
+  }
+}
