@@ -27,7 +27,7 @@ export class AlertSource {
   tcpwindow: number;
   tcpack: number;
   protocol: string;
-  'source.type': string;
+  'source:type': string;
   ip_dst_addr: number;
   original_string: string;
   tos: number;
