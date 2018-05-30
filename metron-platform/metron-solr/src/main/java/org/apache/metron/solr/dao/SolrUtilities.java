@@ -75,7 +75,6 @@ public class SolrUtilities {
       try {
         List<AlertComment> comments = new ArrayList<>();
         for (String commentStr : commentStrs) {
-          System.out.println("COMMENTSTR IS: " + commentStr);
           comments.add(new AlertComment(commentStr));
         }
         document.put(COMMENTS_FIELD,

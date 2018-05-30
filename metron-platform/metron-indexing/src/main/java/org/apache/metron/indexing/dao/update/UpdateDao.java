@@ -65,9 +65,7 @@ public interface UpdateDao {
   default void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request
       , Optional<Long> timestamp
   ) throws OriginalNotFoundException, IOException {
-    System.out.println("APPLYING PATCH");
     Document d = getPatchedDocument(retrieveLatestDao, request, timestamp);
-    System.out.println("CALLING UPDATE");
     update(d, Optional.ofNullable(request.getIndex()));
   }
 
