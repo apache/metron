@@ -293,7 +293,7 @@ export class MetronAlertsPage {
     .then(() => waitForElementPresence(element(by.css('.icon-cell.dropdown-cell'))));
   }
 
-  isDateSeettingDisabled() {
+  isDateSettingDisabled() {
     return element.all(by.css('app-time-range button.btn.btn-search[disabled=""]')).count().then((count) => { return (count === 1); });
   }
 
@@ -350,7 +350,6 @@ export class MetronAlertsPage {
   }
 
   getChangesAlertTableTitle(previousText: string) {
-    // browser.pause();
     let title = element(by.css('.col-form-label-lg'));
     return this.waitForTextChange(title, previousText).then(() => {
       return title.getText();
