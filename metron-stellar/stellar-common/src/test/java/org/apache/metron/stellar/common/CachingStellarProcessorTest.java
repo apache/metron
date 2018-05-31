@@ -22,83 +22,160 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.stellar.dsl.VariableResolver;
-import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class CachingStellarProcessorTest {
+
+  private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static Map<String, Object> fields = new HashMap<String, Object>() {{
       put("name", "blah");
     }};
 
+  private CachingStellarProcessor processor;
+  private Cache<CachingStellarProcessor.Key, Object> cache;
+  private Context contextWithCache;
+
+  @Before
+  public void setup() throws Exception {
+
+    // create the cache
+    Map<String, Object> cacheConfig = ImmutableMap.of(
+            CachingStellarProcessor.MAX_CACHE_SIZE_PARAM, 2,
+            CachingStellarProcessor.MAX_TIME_RETAIN_PARAM, 10,
+            CachingStellarProcessor.RECORD_STATS, true
+    );
+    cache = CachingStellarProcessor.createCache(cacheConfig);
+    contextWithCache = new Context.Builder()
+            .with(Context.Capabilities.CACHE, () -> cache)
+            .build();
+
+    // create the object to test
+    processor = new CachingStellarProcessor();
+  }
+
+  /**
+   * Running the same expression multiple times should hit the cache.
+   */
   @Test
-  public void testNoCaching() throws Exception {
-    //no caching, so every expression is a cache miss.
-    Assert.assertEquals(2, countMisses(2, Context.EMPTY_CONTEXT(), "TO_UPPER(name)"));
-    //Ensure the correct result is returned.
-    Assert.assertEquals("BLAH", evaluateExpression(Context.EMPTY_CONTEXT(), "TO_UPPER(name)"));
+  public void testWithCache() {
+
+    Object result = execute("TO_UPPER(name)", contextWithCache);
+    assertEquals("BLAH", result);
+    assertEquals(1, cache.stats().requestCount());
+    assertEquals(1, cache.stats().missCount());
+    assertEquals(0, cache.stats().hitCount());
+
+    result = execute("TO_UPPER(name)", contextWithCache);
+    assertEquals("BLAH", result);
+    assertEquals(2, cache.stats().requestCount());
+    assertEquals(1, cache.stats().missCount());
+    assertEquals(1, cache.stats().hitCount());
+
+    result = execute("TO_UPPER(name)", contextWithCache);
+    assertEquals("BLAH", result);
+    assertEquals(3, cache.stats().requestCount());
+    assertEquals(1, cache.stats().missCount());
+    assertEquals(2, cache.stats().hitCount());
+  }
+
+  /**
+   * The processor should work, even if no cache is present in the execution context.
+   */
+  @Test
+  public void testNoCache() throws Exception {
+
+    // the execution context does not contain a cache
+    Context contextNoCache = Context.EMPTY_CONTEXT();
+
+    assertEquals("BLAH", execute("TO_UPPER(name)", contextNoCache));
+    assertEquals("BLAH", execute("TO_UPPER(name)", contextNoCache));
   }
 
   @Test
-  public void testCaching() throws Exception {
-    Cache<CachingStellarProcessor.Key, Object> cache = CachingStellarProcessor.createCache(
-                                                 ImmutableMap.of(CachingStellarProcessor.MAX_CACHE_SIZE_PARAM, 2
-                                                                ,CachingStellarProcessor.MAX_TIME_RETAIN_PARAM, 10
-                                                                )
-                                                                           );
-    Context context = new Context.Builder()
-                                 .with( Context.Capabilities.CACHE , () -> cache )
-                                 .build();
-    //running the same expression twice should hit the cache on the 2nd time and only yield one miss
-    Assert.assertEquals(1, countMisses(2, context, "TO_UPPER(name)"));
-
-    //Ensure the correct result is returned.
-    Assert.assertEquals("BLAH", evaluateExpression(context, "TO_UPPER(name)"));
-
-    //running the same expression 20 more times should pull from the cache
-    Assert.assertEquals(0, countMisses(20, context, "TO_UPPER(name)"));
-
-    //Now we are running 4 distinct operations with a cache size of 2.  The cache has 1 element in it before we start:
-    //  TO_LOWER(name) - miss (brand new), cache is full
-    //  TO_UPPER(name) - hit, cache is full
-    //  TO_UPPER('foo') - miss (brand new), cache is still full, but TO_LOWER is evicted as the least frequently used
-    //  JOIN... - miss (brand new), cache is still full, but TO_UPPER('foo') is evicted as the least frequently used
-    //this pattern repeats a 2nd time to add another 3 cache misses, totalling 6.
-    Assert.assertEquals(6, countMisses(2, context, "TO_LOWER(name)", "TO_UPPER(name)", "TO_UPPER('foo')", "JOIN([name, 'blah'], ',')"));
+  public void testInvalidMaxCacheSize() {
+    Map<String, Object> cacheConfig = ImmutableMap.of(
+            CachingStellarProcessor.MAX_CACHE_SIZE_PARAM, -1,
+            CachingStellarProcessor.MAX_TIME_RETAIN_PARAM, 10
+    );
+    cache = CachingStellarProcessor.createCache(cacheConfig);
+    assertNull(cache);
   }
 
-  private Object evaluateExpression(Context context, String expression) {
-    StellarProcessor processor = new CachingStellarProcessor();
-    return processor.parse(expression
-                , new MapVariableResolver(fields)
-                , StellarFunctions.FUNCTION_RESOLVER()
-                , context);
+  @Test
+  public void testMissingMaxCacheSize() {
+    Map<String, Object> cacheConfig = ImmutableMap.of(
+            CachingStellarProcessor.MAX_TIME_RETAIN_PARAM, 10
+    );
+    cache = CachingStellarProcessor.createCache(cacheConfig);
+    assertNull(cache);
   }
 
-  private int countMisses(int numRepetition, Context context, String... expressions) {
-    AtomicInteger numExpressions = new AtomicInteger(0);
-    StellarProcessor processor = new CachingStellarProcessor() {
-      @Override
-      protected Object parseUncached(String expression, VariableResolver variableResolver, FunctionResolver functionResolver, Context context) {
-        numExpressions.incrementAndGet();
-        return super.parseUncached(expression, variableResolver, functionResolver, context);
-      }
-    };
+  @Test
+  public void testInvalidMaxTimeRetain() {
+    Map<String, Object> cacheConfig = ImmutableMap.of(
+            CachingStellarProcessor.MAX_CACHE_SIZE_PARAM, 10,
+            CachingStellarProcessor.MAX_TIME_RETAIN_PARAM, -2
+    );
+    cache = CachingStellarProcessor.createCache(cacheConfig);
+    assertNull(cache);
+  }
 
-    for(int i = 0;i < numRepetition;++i) {
-      for(String expression : expressions) {
-        processor.parse(expression
-                , new MapVariableResolver(fields)
-                , StellarFunctions.FUNCTION_RESOLVER()
-                , context);
-      }
-    }
-    return numExpressions.get();
+  @Test
+  public void testMissingMaxTimeRetain() {
+    Map<String, Object> cacheConfig = ImmutableMap.of(
+            CachingStellarProcessor.MAX_CACHE_SIZE_PARAM, 10
+    );
+    cache = CachingStellarProcessor.createCache(cacheConfig);
+    assertNull(cache);
+  }
+
+  /**
+   * The cache should continue to hit, even if variables not used in the cached expression change.
+   */
+  @Test
+  public void testUnrelatedVariableChange() {
+
+    // expect miss
+    Object result = execute("TO_UPPER(name)", contextWithCache);
+    assertEquals("BLAH", result);
+    assertEquals(1, cache.stats().requestCount());
+    assertEquals(1, cache.stats().missCount());
+    assertEquals(0, cache.stats().hitCount());
+
+    // add an irrelevant variable that is not used in the expression
+    fields.put("unrelated_var_1", "true");
+    fields.put("unrelated_var_2", 22);
+
+    // still expect a hit
+    result = execute("TO_UPPER(name)", contextWithCache);
+    assertEquals("BLAH", result);
+    assertEquals(2, cache.stats().requestCount());
+    assertEquals(1, cache.stats().missCount());
+    assertEquals(1, cache.stats().hitCount());
+
+  }
+
+  /**
+   * Execute each expression.
+   * @param expression The expression to execute.
+   */
+  private Object execute(String expression, Context context) {
+
+    Object result = processor.parse(
+            expression,
+            new MapVariableResolver(fields),
+            StellarFunctions.FUNCTION_RESOLVER(),
+            context);
+    return result;
   }
 }

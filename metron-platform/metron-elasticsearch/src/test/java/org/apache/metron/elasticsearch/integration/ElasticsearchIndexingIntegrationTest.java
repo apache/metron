@@ -18,9 +18,10 @@
 package org.apache.metron.elasticsearch.integration;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.apache.metron.common.field.DeDotFieldNameConverter;
+import org.apache.metron.common.field.FieldNameConverter;
+import org.apache.metron.common.field.FieldNameConverters;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
-import org.apache.metron.elasticsearch.writer.ElasticsearchFieldNameConverter;
 import org.apache.metron.indexing.integration.IndexingIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.InMemoryComponent;
@@ -43,7 +44,7 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
   private String indexDir = "target/elasticsearch";
   private String dateFormat = "yyyy.MM.dd.HH";
   private String index = "yaf_index_" + new SimpleDateFormat(dateFormat).format(new Date());
-  private FieldNameConverter fieldNameConverter = new ElasticsearchFieldNameConverter();
+  private FieldNameConverter fieldNameConverter = FieldNameConverters.DEDOT;
   /**
    * {
    * "yaf_doc": {
