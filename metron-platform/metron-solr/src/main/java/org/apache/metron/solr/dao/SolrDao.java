@@ -17,9 +17,9 @@
  */
 package org.apache.metron.solr.dao;
 
+import com.google.common.base.Splitter;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,9 +37,9 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.solr.SolrConstants;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.CloudSolrClient.Builder;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
 import org.slf4j.Logger;
@@ -156,8 +156,8 @@ public class SolrDao implements IndexDao {
    */
   public List<String> getZkHosts() {
     Map<String, Object> globalConfig = accessConfig.getGlobalConfigSupplier().get();
-    String solrZookeeper = (String) globalConfig.get("solr.zookeeper");
-    return Arrays.asList(solrZookeeper.split(","));
+    return Splitter.on(',').trimResults()
+        .splitToList((String) globalConfig.getOrDefault("solr.zookeeper", ""));
   }
 
   void enableKerberos() {
