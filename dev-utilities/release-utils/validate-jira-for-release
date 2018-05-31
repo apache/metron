@@ -162,9 +162,10 @@ fi
 # clone the metron repo and fetch all tags
 WORKDIR="./tmp"
 cd ~
+rm -rf "$WORKDIR/metron-$VERSION"
 git clone $REPO "$WORKDIR/metron-$VERSION"
-git checkout $BRANCH
 cd "$WORKDIR/metron-$VERSION"
+git checkout $BRANCH
 git fetch --all --tags
 
 # find all JIRAs that have been committed since the last release
