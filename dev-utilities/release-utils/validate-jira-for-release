@@ -137,8 +137,6 @@ for i in "$@"; do
   esac
 done
 
-WORKDIR="~/tmp"
-
 # ensure all required values are set
 if [ -z "$VERSION" ]; then
 	echo "Missing -v/--version is is required"
@@ -162,9 +160,21 @@ if [ -z "$BRANCH" ]; then
 fi
 
 # clone the metron repo and fetch all tags
-git clone $REPO "metron-$VERSION"
+WORK="./tmp"
+cd ~
+# warn the user if the working directory exists
+if [ -d "$WORK" ]; then
+  read -p "  directory exists [$WORK].  overwrite existing repo? [yN] " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    exit 1
+  fi
+fi
+
+rm -rf "$WORK/metron-$VERSION"
+git clone $REPO "$WORK/metron-$VERSION"
+cd "$WORK/metron-$VERSION"
 git checkout $BRANCH
-cd "$WORKDIR/metron-$VERSION"
 git fetch --all --tags
 
 # find all JIRAs that have been committed since the last release
