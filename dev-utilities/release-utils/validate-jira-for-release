@@ -160,11 +160,20 @@ if [ -z "$BRANCH" ]; then
 fi
 
 # clone the metron repo and fetch all tags
-WORKDIR="./tmp"
+WORK="./tmp"
 cd ~
-rm -rf "$WORKDIR/metron-$VERSION"
-git clone $REPO "$WORKDIR/metron-$VERSION"
-cd "$WORKDIR/metron-$VERSION"
+# warn the user if the working directory exists
+if [ -d "$WORK" ]; then
+  read -p "  directory exists [$WORK].  overwrite existing repo? [yN] " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    exit 1
+  fi
+fi
+
+rm -rf "$WORK/metron-$VERSION"
+git clone $REPO "$WORK/metron-$VERSION"
+cd "$WORK/metron-$VERSION"
 git checkout $BRANCH
 git fetch --all --tags
 
