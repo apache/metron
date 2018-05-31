@@ -42,6 +42,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
+
 /**
  * This component implements message batching, with both flush on queue size, and flush on queue timeout.
  * There is a queue for each sensorType.
@@ -116,17 +118,13 @@ public class BulkWriterComponent<MESSAGE_T> {
   }
 
   public void error(String sensorType, Throwable e, Iterable<Tuple> tuples, MessageGetStrategy messageGetStrategy) {
-    if(!Iterables.isEmpty(tuples)) {
-      LOG.error(String.format("Failing tuples; count=%d, error=%s",
-              Iterables.size(tuples), ExceptionUtils.getRootCauseMessage(e)), e);
-    }
-    tuples.forEach(t -> collector.ack(t));
+    LOG.error(format("Failing %d tuple(s); sensorType=%s", Iterables.size(tuples), sensorType), e);
     MetronError error = new MetronError()
             .withSensorType(sensorType)
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
             .withThrowable(e);
     tuples.forEach(t -> error.addRawMessage(messageGetStrategy.get(t)));
-    ErrorUtils.handleError(collector, error);
+    handleError(tuples, error);
   }
 
   /**
@@ -139,14 +137,21 @@ public class BulkWriterComponent<MESSAGE_T> {
    * @param tuples The tuples to error that may not contain valid messages.
    */
   public void error(Throwable e, Iterable<Tuple> tuples) {
-    if(!Iterables.isEmpty(tuples)) {
-      LOG.error(String.format("Failing tuples; count=%d, error=%s",
-              Iterables.size(tuples), ExceptionUtils.getRootCauseMessage(e)), e);
-    }
-    tuples.forEach(t -> collector.ack(t));
+    LOG.error(format("Failing %d tuple(s)", Iterables.size(tuples)), e);
     MetronError error = new MetronError()
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
             .withThrowable(e);
+    handleError(tuples, error);
+  }
+
+  /**
+   * Errors a set of tuples.
+   *
+   * @param tuples The tuples to error.
+   * @param error
+   */
+  private void handleError(Iterable<Tuple> tuples, MetronError error) {
+    tuples.forEach(t -> collector.ack(t));
     ErrorUtils.handleError(collector, error);
   }
 
