@@ -42,7 +42,7 @@ public class ParserWriterConfiguration implements WriterConfiguration {
             && config.getSensorParserConfig(sensorName).getParserConfig() != null
             ) {
       Object batchObj = config.getSensorParserConfig(sensorName).getParserConfig().get(IndexingConfigurations.BATCH_SIZE_CONF);
-      return batchObj == null ? 1 : ConversionUtils.convert(batchObj, Integer.class);
+      return batchObj == null ? 15 : ConversionUtils.convert(batchObj, Integer.class);
     }
     return 1;
   }

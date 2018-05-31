@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Future;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.InterruptException;
 import org.apache.metron.common.Constants;
@@ -66,6 +67,15 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
       return null;
     }
   }
+
+  /**
+   * Default batch size in bytes. Note, we don't want to expose this to clients. End users should
+   * set the writer batchSize setting via the BulkWriterComponent.
+   *
+   * @see ProducerConfig#BATCH_SIZE_DOC
+   * @see <a href="https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.4/bk_kafka-component-guide/content/kafka-producer-settings.html">https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.4/bk_kafka-component-guide/content/kafka-producer-settings.html</a>
+   */
+  private static final int DEFAULT_BATCH_SIZE = 16_384 * 4; // 64 bytes
   private String brokerUrl;
   private String keySerializer = "org.apache.kafka.common.serialization.StringSerializer";
   private String valueSerializer = "org.apache.kafka.common.serialization.StringSerializer";
@@ -181,6 +191,7 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
     producerConfig.put("key.serializer", keySerializer);
     producerConfig.put("value.serializer", valueSerializer);
     producerConfig.put("request.required.acks", requiredAcks);
+    producerConfig.put(ProducerConfig.BATCH_SIZE_CONFIG, DEFAULT_BATCH_SIZE);
     producerConfig.putAll(producerConfigs == null?new HashMap<>():producerConfigs);
     producerConfig = KafkaUtils.INSTANCE.normalizeProtocol(producerConfig);
     return producerConfig;

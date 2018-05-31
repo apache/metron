@@ -66,7 +66,7 @@ public class ProfilerConfigurations extends Configurations {
    * @see org.apache.metron.common.configuration.profiler.ProfilerConfigurations#BATCH_SIZE_CONF
    */
   public int getBatchSize() {
-    return getAs(BATCH_SIZE_CONF, getGlobalConfig(true), 1, Integer.class);
+    return getAs(BATCH_SIZE_CONF, getGlobalConfig(true), 15, Integer.class);
   }
 
   /**
@@ -78,7 +78,7 @@ public class ProfilerConfigurations extends Configurations {
    * @see org.apache.metron.common.configuration.profiler.ProfilerConfigurations#BATCH_TIMEOUT_CONF
    */
   public int getBatchTimeout() {
-    return getAs(BATCH_TIMEOUT_CONF, getGlobalConfig(true), 1, Integer.class);
+    return getAs(BATCH_TIMEOUT_CONF, getGlobalConfig(true), 0, Integer.class);
   }
 
 }

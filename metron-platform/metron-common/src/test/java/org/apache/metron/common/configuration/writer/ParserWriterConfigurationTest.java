@@ -46,7 +46,7 @@ public class ParserWriterConfigurationTest {
    *   "parserClassName":"some-parser",
    *   "sensorTopic":"testtopic",
    *   "parserConfig": {
-   *     "batchSize" : "5",
+   *     "batchSize" : 5,
    *     "batchTimeout" : "10000",
    *     "index" : "modified-index",
    *     "enabled" : "false"
