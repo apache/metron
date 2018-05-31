@@ -107,9 +107,7 @@ public abstract class UpdateIntegrationTest {
       }}, Optional.empty());
 
       Assert.assertEquals(1, getMockHTable().size());
-//      Document doc = getDao().getLatest(guid, SENSOR_NAME);
       findUpdatedDoc(message0, guid, SENSOR_NAME);
-//      Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
         Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));

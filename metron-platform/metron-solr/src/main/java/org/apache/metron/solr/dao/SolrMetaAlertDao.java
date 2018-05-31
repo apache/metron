@@ -243,9 +243,4 @@ public class SolrMetaAlertDao implements MetaAlertDao {
     public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
         solrDao.removeCommentFromAlert(request, latest);
     }
-
-//    @Override
-//    public void convertCommentsToRaw(Map<String,Object> source) {
-//        solrDao.convertCommentsToRaw(source);
-//    }
 }
