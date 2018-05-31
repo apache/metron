@@ -120,7 +120,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   @Test
   public void testSourceTypeMissing() throws Exception {
 
-    // setup the bold
+    // setup the bolt
     BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
             .withBulkMessageWriter(bulkMessageWriter)
             .withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
