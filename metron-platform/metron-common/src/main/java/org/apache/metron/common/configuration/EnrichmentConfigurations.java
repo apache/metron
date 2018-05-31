@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EnrichmentConfigurations extends Configurations {
+  public static final Integer DEFAULT_KAFKA_BATCH_SIZE = 15;
   public static final String BATCH_SIZE_CONF = "enrichment.writer.batchSize";
   public static final String BATCH_TIMEOUT_CONF = "enrichment.writer.batchTimeout";
 
@@ -55,19 +56,17 @@ public class EnrichmentConfigurations extends Configurations {
    * Pulled from global config.
    * Note: enrichment writes out to 1 kafka topic, so it is not pulling this config by sensor.
    *
-   * @param sensorName not used
    * @return batch size for writing to kafka
    * @see org.apache.metron.common.configuration.EnrichmentConfigurations#BATCH_SIZE_CONF
    */
   public int getBatchSize() {
-    return getAs(BATCH_SIZE_CONF, getGlobalConfig(true), 15, Integer.class);
+    return getAs(BATCH_SIZE_CONF, getGlobalConfig(true), DEFAULT_KAFKA_BATCH_SIZE, Integer.class);
   }
 
   /**
    * Pulled from global config
    * Note: enrichment writes out to 1 kafka topic, so it is not pulling this config by sensor.
    *
-   * @param sensorName not used
    * @return batch timeout for writing to kafka
    * @see org.apache.metron.common.configuration.EnrichmentConfigurations#BATCH_TIMEOUT_CONF
    */

@@ -100,4 +100,10 @@ public class ProfilerWriterConfiguration implements WriterConfiguration {
     return false;
   }
 
+  @Override
+  public String getFieldNameConverter(String sensorName) {
+    // not applicable
+    return null;
+  }
+
 }
