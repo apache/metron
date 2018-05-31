@@ -137,8 +137,6 @@ for i in "$@"; do
   esac
 done
 
-WORKDIR="~/tmp"
-
 # ensure all required values are set
 if [ -z "$VERSION" ]; then
 	echo "Missing -v/--version is is required"
@@ -162,7 +160,9 @@ if [ -z "$BRANCH" ]; then
 fi
 
 # clone the metron repo and fetch all tags
-git clone $REPO "metron-$VERSION"
+WORKDIR="./tmp"
+cd ~
+git clone $REPO "$WORKDIR/metron-$VERSION"
 git checkout $BRANCH
 cd "$WORKDIR/metron-$VERSION"
 git fetch --all --tags
