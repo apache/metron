@@ -116,9 +116,9 @@ public class BulkWriterComponent<MESSAGE_T> {
   }
 
   public void error(String sensorType, Throwable e, Iterable<Tuple> tuples, MessageGetStrategy messageGetStrategy) {
-
     if(!Iterables.isEmpty(tuples)) {
-      LOG.error("Failing tuples; count={}, error={}", Iterables.size(tuples), ExceptionUtils.getRootCauseMessage(e));
+      LOG.error(String.format("Failing tuples; count=%d, error=%s",
+              Iterables.size(tuples), ExceptionUtils.getRootCauseMessage(e)), e);
     }
     tuples.forEach(t -> collector.ack(t));
     MetronError error = new MetronError()
@@ -139,9 +139,9 @@ public class BulkWriterComponent<MESSAGE_T> {
    * @param tuples The tuples to error that may not contain valid messages.
    */
   public void error(Throwable e, Iterable<Tuple> tuples) {
-
     if(!Iterables.isEmpty(tuples)) {
-      LOG.error("Failing tuples; count={}, error={}", Iterables.size(tuples), ExceptionUtils.getRootCauseMessage(e));
+      LOG.error(String.format("Failing tuples; count=%d, error=%s",
+              Iterables.size(tuples), ExceptionUtils.getRootCauseMessage(e)), e);
     }
     tuples.forEach(t -> collector.ack(t));
     MetronError error = new MetronError()
