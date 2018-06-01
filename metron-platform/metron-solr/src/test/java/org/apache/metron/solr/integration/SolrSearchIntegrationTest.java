@@ -84,6 +84,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
         }}
     );
 
+    config.setIndexSupplier( sensorType -> sensorType);
     IndexDao dao = new SolrDao();
     dao.init(config);
     return dao;
@@ -232,5 +233,10 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
   @Override
   protected String getSourceTypeField() {
     return Constants.SENSOR_TYPE;
+  }
+
+  @Override
+  protected String getIndexName(String sensorType) {
+    return sensorType;
   }
 }

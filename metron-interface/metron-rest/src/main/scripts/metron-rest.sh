@@ -113,10 +113,13 @@ echo "METRON_REST_CLASSPATH=${METRON_REST_CLASSPATH}"
 if [[ ${METRON_RA_INDEXING_WRITER} == "Solr" ]]; then
     METRON_INDEX_DAO=" --index.dao.impl=org.apache.metron.solr.dao.SolrDao,org.apache.metron.indexing.dao.HBaseDao"
     METRON_METAALERT_DAO=" --meta.dao.impl=org.apache.metron.solr.dao.SolrMetaAlertDao"
+    METRON_WRITER_NAME=" --index.writer.name=solr"
     echo "METRON_INDEX_DAO=${METRON_INDEX_DAO}"
     echo "METRON_METAALERT_DAO=${METRON_METAALERT_DAO}"
+    echo "METRON_WRITER_NAME=${METRON_WRITER_NAME}"
     METRON_SPRING_OPTIONS+=${METRON_INDEX_DAO}
     METRON_SPRING_OPTIONS+=${METRON_METAALERT_DAO}
+    METRON_SPRING_OPTIONS+=${METRON_WRITER_NAME}
 fi
 
 echo "Starting application"

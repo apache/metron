@@ -484,10 +484,12 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(10, results.size());
     for(int i = 0;i < 5;++i) {
       Assert.assertEquals("snort", results.get(i).getSource().get(getSourceTypeField()));
+      Assert.assertEquals(getIndexName("snort"), results.get(i).getIndex());
       Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
     for (int i = 5; i < 10; ++i) {
       Assert.assertEquals("bro", results.get(i).getSource().get(getSourceTypeField()));
+      Assert.assertEquals(getIndexName("bro"), results.get(i).getIndex());
       Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
   }
@@ -940,4 +942,6 @@ public abstract class SearchIntegrationTest {
   protected abstract IndexDao getIndexDao();
 
   protected abstract String getSourceTypeField();
+
+  protected abstract String getIndexName(String sensorType);
 }

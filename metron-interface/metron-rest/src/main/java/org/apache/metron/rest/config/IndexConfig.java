@@ -18,6 +18,7 @@
 package org.apache.metron.rest.config;
 
 import static org.apache.metron.rest.MetronRestConstants.INDEX_DAO_IMPL;
+import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
 
 import java.util.Optional;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
@@ -73,7 +74,7 @@ public class IndexConfig {
           throw new IllegalStateException("Unable to retrieve the global config.", e);
         }
       });
-      config.setIndexSupplier(IndexingCacheUtil.getIndexLookupFunction(cache));
+      config.setIndexSupplier(IndexingCacheUtil.getIndexLookupFunction(cache, environment.getProperty(INDEX_WRITER_NAME)));
       config.setTableProvider(TableProvider.create(hbaseProviderImpl, () -> new HTableProvider()));
       config.setKerberosEnabled(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false));
       if (indexDaoImpl == null) {

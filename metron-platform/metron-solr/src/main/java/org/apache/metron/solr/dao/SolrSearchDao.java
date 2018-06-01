@@ -68,6 +68,10 @@ public class SolrSearchDao implements SearchDao {
     this.accessConfig = accessConfig;
   }
 
+  protected AccessConfig getAccessConfig() {
+    return accessConfig;
+  }
+
   @Override
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
     return search(searchRequest, null);
@@ -181,7 +185,8 @@ public class SolrSearchDao implements SearchDao {
 
     // search hits --> search results
     List<SearchResult> results = solrDocumentList.stream()
-        .map(solrDocument -> SolrUtilities.getSearchResult(solrDocument, searchRequest.getFields()))
+        .map(solrDocument -> SolrUtilities.getSearchResult(solrDocument, searchRequest.getFields(),
+                accessConfig.getIndexSupplier()))
         .collect(Collectors.toList());
     searchResponse.setResults(results);
 

@@ -17,6 +17,8 @@
  */
 package org.apache.metron.solr.writer;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_WRITER_NAME;
+
 import com.google.common.base.Joiner;
 import java.io.IOException;
 import java.io.Serializable;
@@ -236,7 +238,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   @Override
   public String getName() {
-    return "solr";
+    return SOLR_WRITER_NAME;
   }
 
   @Override

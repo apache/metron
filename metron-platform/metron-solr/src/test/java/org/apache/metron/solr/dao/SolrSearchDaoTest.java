@@ -90,6 +90,7 @@ public class SolrSearchDaoTest {
   public void setUp() throws Exception {
     client = mock(SolrClient.class);
     accessConfig = mock(AccessConfig.class);
+    when(accessConfig.getIndexSupplier()).thenReturn(sensorType -> sensorType);
     solrSearchDao = new SolrSearchDao(client, accessConfig);
     solrRetrieveLatestDao = new SolrRetrieveLatestDao(client);
     mockStatic(CollectionAdminRequest.class);
@@ -312,28 +313,31 @@ public class SolrSearchDaoTest {
     SolrDocument solrDocument = mock(SolrDocument.class);
 
     when(solrDocument.getFieldValue(Constants.GUID)).thenReturn("guid");
+    when(solrDocument.getFieldValue(Constants.SENSOR_TYPE)).thenReturn("sensorType");
     when(solrDocument.getFieldValue("field1")).thenReturn("value1");
     when(solrDocument.getFieldValue("field2")).thenReturn("value2");
     when(solrDocument.getFieldNames()).thenReturn(Arrays.asList("field1", "field2"));
 
     SearchResult expectedSearchResult = new SearchResult();
     expectedSearchResult.setId("guid");
+    expectedSearchResult.setIndex("sensorType");
     expectedSearchResult.setSource(new HashMap<String, Object>() {{
       put("field1", "value1");
     }});
 
     assertEquals(expectedSearchResult, SolrUtilities.getSearchResult(solrDocument,
-        Collections.singletonList("field1")));
+        Collections.singletonList("field1"), solrSearchDao.getAccessConfig().getIndexSupplier()));
 
     SearchResult expectedSearchResultAllFields = new SearchResult();
     expectedSearchResultAllFields.setId("guid");
+    expectedSearchResultAllFields.setIndex("sensorType");
     expectedSearchResultAllFields.setSource(new HashMap<String, Object>() {{
       put("field1", "value1");
       put("field2", "value2");
     }});
 
     assertEquals(expectedSearchResultAllFields,
-        SolrUtilities.getSearchResult(solrDocument, null));
+        SolrUtilities.getSearchResult(solrDocument, null, solrSearchDao.getAccessConfig().getIndexSupplier()));
   }
 
   @Test
