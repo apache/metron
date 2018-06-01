@@ -239,7 +239,6 @@ export class AlertDetailsComponent implements OnInit {
 
     this.metronDialogBox.showConfirmationMessage(commentText).subscribe(response => {
       if (response) {
-        this.alertCommentsWrapper.splice(index, 1);
         let commentRequest = new CommentAddRemoveRequest();
         commentRequest.guid = this.alertSource.guid;
         commentRequest.comment = this.alertCommentsWrapper[index].alertComment.comment;
