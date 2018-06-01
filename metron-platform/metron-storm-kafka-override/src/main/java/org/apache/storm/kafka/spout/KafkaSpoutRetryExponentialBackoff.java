@@ -35,6 +35,14 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.Validate;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
+/*
+ This file is pulled from Apache Storm, with some modification to support lower version of
+ Apache Storm.
+
+ - Time.nanoTime() is introduced in Storm 1.1.0 so we changed to System.nanoTime()
+ -- Time.nanoTime() calls System.nanoTime() when it's not in time simulation mode.
+*/
+
 /**
  * Implementation of {@link KafkaSpoutRetryService} using the exponential backoff formula. The time of the nextRetry is set as follows:
  * nextRetry = failCount == 1 ? currentTime + initialDelay : currentTime + delayPeriod*2^(failCount-1)    where failCount = 1, 2, 3, ...
