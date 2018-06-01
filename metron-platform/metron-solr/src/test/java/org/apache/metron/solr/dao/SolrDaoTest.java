@@ -17,6 +17,7 @@
  */
 package org.apache.metron.solr.dao;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -99,7 +100,7 @@ public class SolrDaoTest {
     AccessConfig accessConfig = new AccessConfig();
     accessConfig.setGlobalConfigSupplier(() ->
         new HashMap<String, Object>() {{
-          put("solr.zookeeper", "zookeeper:2181");
+          put(SOLR_ZOOKEEPER, "zookeeper:2181");
         }}
     );
 
@@ -149,7 +150,7 @@ public class SolrDaoTest {
     AccessConfig accessConfig = new AccessConfig();
     accessConfig.setGlobalConfigSupplier(() ->
         new HashMap<String, Object>() {{
-          put("solr.zookeeper", "   zookeeper:2181   ");
+          put(SOLR_ZOOKEEPER, "   zookeeper:2181   ");
         }}
     );
 
@@ -167,7 +168,7 @@ public class SolrDaoTest {
     AccessConfig accessConfig = new AccessConfig();
     accessConfig.setGlobalConfigSupplier(() ->
         new HashMap<String, Object>() {{
-          put("solr.zookeeper", "   zookeeper:2181    ,   zookeeper2:2181    ");
+          put(SOLR_ZOOKEEPER, "   zookeeper:2181    ,   zookeeper2:2181    ");
         }}
     );
 

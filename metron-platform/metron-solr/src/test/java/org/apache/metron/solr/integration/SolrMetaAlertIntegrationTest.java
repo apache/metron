@@ -23,6 +23,7 @@ import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAAL
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_SORT_DEFAULT;
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 import static org.apache.metron.solr.dao.SolrMetaAlertDao.METAALERTS_COLLECTION;
 
 import java.io.IOException;
@@ -80,7 +81,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
         put("solr.port", "9300");
         put("solr.ip", "localhost");
         put("solr.date.format", DATE_FORMAT);
-        put("solr.zookeeper", solr.getZookeeperUrl());
+        put(SOLR_ZOOKEEPER, solr.getZookeeperUrl());
       }
     };
     accessConfig.setMaxSearchResults(1000);

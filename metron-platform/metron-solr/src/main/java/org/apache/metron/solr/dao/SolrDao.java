@@ -17,6 +17,8 @@
  */
 package org.apache.metron.solr.dao;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+
 import com.google.common.base.Splitter;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -157,7 +159,7 @@ public class SolrDao implements IndexDao {
   public List<String> getZkHosts() {
     Map<String, Object> globalConfig = accessConfig.getGlobalConfigSupplier().get();
     return Splitter.on(',').trimResults()
-        .splitToList((String) globalConfig.getOrDefault("solr.zookeeper", ""));
+        .splitToList((String) globalConfig.getOrDefault(SOLR_ZOOKEEPER, ""));
   }
 
   void enableKerberos() {
