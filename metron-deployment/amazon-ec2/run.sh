@@ -17,6 +17,38 @@
 #
 
 #
+# Check operating system and change the control_path in ansible.cfg 
+# accordingly
+#
+changeAnsibleControlPath()
+{
+    unameosname=`uname`
+    filename="ansible.cfg"
+
+    case $unameosname in
+       'Linux'*)
+          #platform='Linux'
+          ansiblecontrolpath="~/.ssh/ansbile-ssh-%%h-%%r"
+          ;;
+       'Darwin'*)
+          #platform='Mac OS/Darwin'
+          ansiblecontrolpath="~/.ssh/ansbile-ssh-%%C"
+          ;;
+       *)
+          #platform='Other'
+          ansiblecontrolpath=""
+          ;;
+    esac
+
+    if [ ! -z ansiblecontrolpath ]
+    then
+        #Make the change to the control_path. Ignore #comments
+        sed -i.bak -e "/^#/!s|control_path.*=.*|control_path =$ansiblecontrolpath|g" -- "${filename}"
+    fi
+}
+changeAnsibleControlPath
+
+#
 # Builds Metron platform jars, instantiates hosts, and deploys Metron to those
 # hosts on Amazon EC2
 #
