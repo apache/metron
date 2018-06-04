@@ -49,6 +49,7 @@ metron_user = status_params.metron_user
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
 metron_pid_dir = config['configurations']['metron-env']['metron_pid_dir']
+source_type_field = config['configurations']['metron-env']['source_type_field']
 
 metron_rest_port = status_params.metron_rest_port
 metron_management_ui_host = status_params.metron_management_ui_host

@@ -137,4 +137,10 @@
         <value>yyyy.MM.dd.HH</value>
         <display-name>Elasticsearch Date Format</display-name>
     </property>
+    <property>
+        <name>source_type_field</name>
+        <display-name>Source Type Field</display-name>
+        <description>Name of the message field that contains the source type.</description>
+        <value>source.type</value>
+    </property>
 </configuration>

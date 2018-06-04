@@ -29,6 +29,7 @@ from resource_management.core.resources.system import Execute
 
 from resource_management.core.logger import Logger
 
+import metron_service
 from alerts_ui_commands import AlertsUICommands
 
 
@@ -40,10 +41,9 @@ class AlertsUIMaster(Script):
         self.install_packages(env)
 
     def configure(self, env, upgrade_type=None, config_dir=None):
-        print 'configure alerts_ui'
         from params import params
         env.set_params(params)
-
+        metron_service.refresh_configs(params)
         File(format("{metron_config_path}/alerts_ui.yml"),
              mode=0755,
              content=Template("alerts_ui.yml.j2"),
