@@ -75,7 +75,7 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
    * @see ProducerConfig#BATCH_SIZE_DOC
    * @see <a href="https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.4/bk_kafka-component-guide/content/kafka-producer-settings.html">https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.4/bk_kafka-component-guide/content/kafka-producer-settings.html</a>
    */
-  private static final int DEFAULT_BATCH_SIZE = 16_384 * 4; // 64 bytes
+  private static final int DEFAULT_BATCH_SIZE = 1_024 * 64; // 64 kilobytes
   private String brokerUrl;
   private String keySerializer = "org.apache.kafka.common.serialization.StringSerializer";
   private String valueSerializer = "org.apache.kafka.common.serialization.StringSerializer";
