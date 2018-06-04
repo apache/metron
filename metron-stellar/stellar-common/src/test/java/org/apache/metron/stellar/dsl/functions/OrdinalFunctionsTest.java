@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Assert;
 import org.junit.Before;
@@ -172,8 +173,8 @@ public class OrdinalFunctionsTest {
 
     try {
       res = run("MAX(input_list)", ImmutableMap.of("input_list", inputList));
-    } catch(IllegalStateException e) {
-      Assert.assertThat(e.getMessage(), is("Incomparable objects were submitted to MAX: class java.lang.String is incomparable to class java.lang.Long"));
+    } catch(ParseException e) {
+      Assert.assertTrue(e.getMessage().contains("Incomparable objects were submitted to MAX: class java.lang.String is incomparable to class java.lang.Long"));
       Assert.assertNull(res);
     }
   }
@@ -212,8 +213,8 @@ public class OrdinalFunctionsTest {
 
     try {
       res = run("MIN(input_list)", ImmutableMap.of("input_list", inputList));
-    } catch(IllegalStateException e) {
-      Assert.assertThat(e.getMessage(), is("Noncomparable object type org.apache.metron.stellar.dsl.functions.OrdinalFunctionsTest$1TestObject submitted to MIN"));
+    } catch(ParseException e) {
+      Assert.assertTrue(e.getMessage().contains("Noncomparable object type org.apache.metron.stellar.dsl.functions.OrdinalFunctionsTest$1TestObject submitted to MIN"));
       Assert.assertNull(res);
     }
   }
