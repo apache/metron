@@ -20,6 +20,7 @@ package org.apache.metron.solr.integration;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Iterables;
@@ -94,6 +95,28 @@ public class SolrRetrieveLatestIntegrationTest {
   }
 
   @Test
+  public void testGetMissing() throws IOException {
+    Document actual = dao.getLatest("message_1_bro", TEST_SENSOR);
+    assertNull(actual);
+  }
+
+  @Test
+  public void testGetBrokenMapping() throws IOException {
+    AccessConfig accessConfig = new AccessConfig();
+    Map<String, Object> globalConfig = new HashMap<>();
+    globalConfig.put(SOLR_ZOOKEEPER, solrComponent.getZookeeperUrl());
+    accessConfig.setGlobalConfigSupplier(() -> globalConfig);
+    // Map the sensor name to the collection name for test.
+    accessConfig.setIndexSupplier(s -> null);
+
+    dao = new SolrDao();
+    dao.init(accessConfig);
+
+    Document actual = dao.getLatest("message_1_bro", TEST_SENSOR);
+    assertNull(actual);
+  }
+
+  @Test
   public void testGetLatestCollectionSensorDiffer() throws IOException {
     Document actual = dao.getLatest("message_1_test_sensor", TEST_SENSOR);
     assertEquals(buildExpectedDocument(TEST_SENSOR, 1), actual);
@@ -106,22 +129,23 @@ public class SolrRetrieveLatestIntegrationTest {
     requests.add(buildGetRequest(BRO_SENSOR, 2));
 
     Iterable<Document> actual = dao.getAllLatest(requests);
-    for (Document doc : actual) {
-      System.out.println("DOC: " + doc);
-    }
     assertTrue(Iterables.contains(actual, buildExpectedDocument(BRO_SENSOR, 1)));
     assertTrue(Iterables.contains(actual, buildExpectedDocument(BRO_SENSOR, 2)));
+    assertEquals(2, Iterables.size(actual));
   }
 
   @Test
-  public void testGetAllLatestCollectionSensorDiffer() throws IOException {
+  public void testGetAllLatestCollectionExplicitIndex() throws IOException {
     List<GetRequest> requests = new ArrayList<>();
-    requests.add(buildGetRequest(TEST_SENSOR, 1));
-    requests.add(buildGetRequest(TEST_SENSOR, 2));
+    GetRequest getRequestOne = buildGetRequest(TEST_SENSOR, 1);
+    // Explicitly use the incorrect index. This forces it to prefer the explicit index over the
+    // implicit one.
+    getRequestOne.setIndex(BRO_SENSOR);
+    requests.add(getRequestOne);
 
     Iterable<Document> actual = dao.getAllLatest(requests);
-    assertTrue(Iterables.contains(actual, buildExpectedDocument(TEST_SENSOR, 1)));
-    assertTrue(Iterables.contains(actual, buildExpectedDocument(TEST_SENSOR, 2)));
+    // Expect 0 because the explicit index was incorrect.
+    assertEquals(0, Iterables.size(actual));
   }
 
   @Test
@@ -133,6 +157,21 @@ public class SolrRetrieveLatestIntegrationTest {
     Iterable<Document> actual = dao.getAllLatest(requests);
     assertTrue(Iterables.contains(actual, buildExpectedDocument(TEST_SENSOR, 1)));
     assertTrue(Iterables.contains(actual, buildExpectedDocument(BRO_SENSOR, 2)));
+    assertEquals(2, Iterables.size(actual));
+  }
+
+  @Test
+  public void testGetAllLatestCollectionOneMissing() throws IOException {
+    List<GetRequest> requests = new ArrayList<>();
+    requests.add(buildGetRequest(TEST_SENSOR, 1));
+    GetRequest brokenRequest= new GetRequest();
+    brokenRequest.setGuid(buildGuid(BRO_SENSOR, 2));
+    brokenRequest.setSensorType(TEST_SENSOR);
+    requests.add(brokenRequest);
+
+    Iterable<Document> actual = dao.getAllLatest(requests);
+    assertTrue(Iterables.contains(actual, buildExpectedDocument(TEST_SENSOR, 1)));
+    assertEquals(1, Iterables.size(actual));
   }
 
   protected Document buildExpectedDocument(String sensor, int i) {
