@@ -45,6 +45,7 @@ public class SolrRetrieveLatestDao implements RetrieveLatestDao {
 
   @Override
   public Document getLatest(String guid, String collection) throws IOException {
+
     try {
       SolrDocument solrDocument = client.getById(collection, guid);
       if (solrDocument == null) {

@@ -17,14 +17,21 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.search.AlertComment;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -101,6 +108,69 @@ public class ElasticsearchUpdateDao implements UpdateDao {
       throw new IOException(
           "ElasticsearchDao upsert failed: " + bulkResponse.buildFailureMessage());
     }
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
+    addCommentToAlert(request, latest);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    if (latest == null) {
+      return;
+    }
+    List<Map<String, Object>> commentsField = (List<Map<String, Object>>) latest.getDocument()
+        .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+    List<Map<String, Object>> originalComments = new ArrayList<>(commentsField);
+
+    originalComments.add(
+        new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp())
+            .asMap());
+
+    Document newVersion = new Document(latest);
+    newVersion.getDocument().put(COMMENTS_FIELD, originalComments);
+    update(newVersion, Optional.empty());
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
+    removeCommentFromAlert(request, latest);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    if (latest == null) {
+      return;
+    }
+    List<Map<String, Object>> commentsField = (List<Map<String, Object>>) latest.getDocument()
+        .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+    List<Map<String, Object>> originalComments = new ArrayList<>(commentsField);
+
+    List<AlertComment> alertComments = new ArrayList<>();
+    for (Map<String, Object> commentRaw : originalComments) {
+      alertComments.add(new AlertComment(commentRaw));
+    }
+
+    alertComments.remove(
+        new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp()));
+    List<Map<String, Object>> commentsFinal = alertComments.stream().map(AlertComment::asMap)
+        .collect(Collectors.toList());
+    Document newVersion = new Document(latest);
+    if (commentsFinal.size() > 0) {
+      newVersion.getDocument().put(COMMENTS_FIELD, commentsFinal);
+      update(newVersion, Optional.empty());
+    } else {
+      newVersion.getDocument().remove(COMMENTS_FIELD);
+    }
+
+    update(newVersion, Optional.empty());
   }
 
   protected String getIndexName(Document update, Optional<String> index, String indexPostFix) {

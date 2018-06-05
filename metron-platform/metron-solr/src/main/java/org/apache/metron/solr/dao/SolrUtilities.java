@@ -18,18 +18,23 @@
 
 package org.apache.metron.solr.dao;
 
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import java.util.stream.Collectors;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
+import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
+import org.json.simple.parser.ParseException;
 
 public class SolrUtilities {
 
@@ -53,6 +58,34 @@ public class SolrUtilities {
     solrDocument.getFieldNames().stream()
         .filter(name -> !name.equals(SolrDao.VERSION_FIELD))
         .forEach(name -> document.put(name, solrDocument.getFieldValue(name)));
+
+    reformatComments(solrDocument, document);
+    insertChildAlerts(solrDocument, document);
+
+    return new Document(document,
+        (String) solrDocument.getFieldValue(Constants.GUID),
+        (String) solrDocument.getFieldValue(Constants.SENSOR_TYPE), 0L);
+  }
+
+  protected static void reformatComments(SolrDocument solrDocument, Map<String, Object> document) {
+    // Make sure comments are in the proper format
+    @SuppressWarnings("unchecked")
+    List<String> commentStrs = (List<String>) solrDocument.get(COMMENTS_FIELD);
+    if (commentStrs != null) {
+      try {
+        List<AlertComment> comments = new ArrayList<>();
+        for (String commentStr : commentStrs) {
+          comments.add(new AlertComment(commentStr));
+        }
+        document.put(COMMENTS_FIELD,
+            comments.stream().map(AlertComment::asMap).collect(Collectors.toList()));
+      } catch (ParseException e) {
+        throw new IllegalStateException("Unable to parse comment", e);
+      }
+    }
+  }
+
+  protected static void insertChildAlerts(SolrDocument solrDocument, Map<String, Object> document) {
     // Make sure to put child alerts in
     if (solrDocument.hasChildDocuments() && solrDocument
         .getFieldValue(Constants.SENSOR_TYPE)
@@ -68,9 +101,6 @@ public class SolrUtilities {
 
       document.put(MetaAlertConstants.ALERT_FIELD, childDocuments);
     }
-    return new Document(document,
-        (String) solrDocument.getFieldValue(Constants.GUID),
-        (String) solrDocument.getFieldValue(Constants.SENSOR_TYPE), 0L);
   }
 
   public static SolrInputDocument toSolrInputDocument(Document document) {

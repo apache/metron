@@ -58,6 +58,7 @@ import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.json.simple.JSONArray;
@@ -143,6 +144,22 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
 
     @Override
     public void update(Document update, Optional<String> index) {
+    }
+
+    @Override
+    public void addCommentToAlert(CommentAddRemoveRequest request) {
+    }
+
+    @Override
+    public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+    }
+
+    @Override
+    public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+    }
+
+    @Override
+    public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
     }
 
     @Override

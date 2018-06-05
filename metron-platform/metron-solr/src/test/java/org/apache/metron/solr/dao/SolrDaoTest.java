@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -107,9 +109,10 @@ public class SolrDaoTest {
     solrDao = spy(new SolrDao());
     doReturn(client).when(solrDao).getSolrClient(Collections.singletonList("zookeeper:2181"));
     whenNew(SolrSearchDao.class).withArguments(client, accessConfig).thenReturn(solrSearchDao);
-    whenNew(SolrUpdateDao.class).withArguments(client, accessConfig).thenReturn(solrUpdateDao);
     whenNew(SolrRetrieveLatestDao.class).withArguments(client)
         .thenReturn(solrRetrieveLatestDao);
+    whenNew(SolrUpdateDao.class).withArguments(client, solrRetrieveLatestDao, accessConfig)
+        .thenReturn(solrUpdateDao);
     whenNew(SolrColumnMetadataDao.class).withArguments(client)
         .thenReturn(solrColumnMetadataDao);
 

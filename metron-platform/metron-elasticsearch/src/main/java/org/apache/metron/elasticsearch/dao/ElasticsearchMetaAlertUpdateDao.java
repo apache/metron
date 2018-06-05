@@ -44,6 +44,7 @@ import org.apache.metron.indexing.dao.metaalert.lucene.AbstractLuceneMetaAlertUp
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.index.query.InnerHitBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -183,6 +184,28 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
       // Run the alert's update
       elasticsearchDao.batchUpdate(updates);
     }
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    getUpdateDao().addCommentToAlert(request);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    getUpdateDao().removeCommentFromAlert(request);
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    getUpdateDao().addCommentToAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    getUpdateDao().removeCommentFromAlert(request, latest);
   }
 
   /**

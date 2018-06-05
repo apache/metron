@@ -31,6 +31,7 @@ import {Utils} from '../utils/utils';
 import {Patch} from '../model/patch';
 import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../utils/constants';
 import { GlobalConfigService } from './global-config.service';
+import {CommentAddRemoveRequest} from "../model/comment-add-remove-request";
 
 @Injectable()
 export class UpdateService {
@@ -40,10 +41,36 @@ export class UpdateService {
   alertChangedSource = new Subject<PatchRequest>();
   alertChanged$ = this.alertChangedSource.asObservable();
   sourceType = 'source:type';
+  alertCommentChangedSource = new Subject<CommentAddRemoveRequest>();
+  alertCommentChanged$ = this.alertCommentChangedSource.asObservable();
 
   constructor(private http: Http, private globalConfigService: GlobalConfigService) {
     this.globalConfigService.get().subscribe((config: {}) => {
       this.sourceType = config['source.type.field'];
+    });
+  }
+
+  public addComment(commentRequest: CommentAddRemoveRequest, fireChangeListener = true): Observable<{}> {
+    let url = '/api/v1/update/add/comment';
+    return this.http.post(url, commentRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    .catch(HttpUtil.handleError)
+    .map(result => {
+      if (fireChangeListener) {
+        this.alertCommentChangedSource.next(commentRequest);
+      }
+      return result;
+    });
+  }
+
+  public removeComment(commentRequest: CommentAddRemoveRequest, fireChangeListener = true): Observable<{}> {
+    let url = '/api/v1/update/remove/comment';
+    return this.http.post(url, commentRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    .catch(HttpUtil.handleError)
+    .map(result => {
+      if (fireChangeListener) {
+        this.alertCommentChangedSource.next(commentRequest);
+      }
+      return result;
     });
   }
 

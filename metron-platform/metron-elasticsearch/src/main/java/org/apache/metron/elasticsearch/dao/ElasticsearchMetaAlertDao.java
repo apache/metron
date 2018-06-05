@@ -41,6 +41,8 @@ import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
@@ -213,6 +215,26 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   @Override
   public void batchUpdate(Map<Document, Optional<String>> updates) {
     metaAlertUpdateDao.batchUpdate(updates);
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    indexDao.addCommentToAlert(request);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    indexDao.removeCommentFromAlert(request);
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    indexDao.addCommentToAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    indexDao.removeCommentFromAlert(request, latest);
   }
 
   @Override

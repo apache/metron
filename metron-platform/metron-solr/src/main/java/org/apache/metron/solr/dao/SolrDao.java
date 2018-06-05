@@ -22,13 +22,16 @@ import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 import com.google.common.base.Splitter;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.ColumnMetadataDao;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
+import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
@@ -36,6 +39,7 @@ import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
@@ -88,9 +92,18 @@ public class SolrDao implements IndexDao {
       this.accessConfig = config;
       this.client = getSolrClient(getZkHosts());
       this.solrSearchDao = new SolrSearchDao(this.client, this.accessConfig);
-      this.solrUpdateDao = new SolrUpdateDao(this.client, this.accessConfig);
       this.solrRetrieveLatestDao = new SolrRetrieveLatestDao(this.client);
+      this.solrUpdateDao = new SolrUpdateDao(this.client, this.solrRetrieveLatestDao, this.accessConfig);
       this.solrColumnMetadataDao = new SolrColumnMetadataDao(this.client);
+    }
+  }
+
+  public Optional<String> getIndex(String sensorName, Optional<String> index) {
+    if (index.isPresent()) {
+      return index;
+    } else {
+      String realIndex = accessConfig.getIndexSupplier().apply(sensorName);
+      return Optional.ofNullable(realIndex);
     }
   }
 
@@ -125,6 +138,16 @@ public class SolrDao implements IndexDao {
   }
 
   @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    this.solrUpdateDao.addCommentToAlert(request);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    this.solrUpdateDao.removeCommentFromAlert(request);
+  }
+
+  @Override
   public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
       Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
@@ -134,6 +157,18 @@ public class SolrDao implements IndexDao {
   @Override
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     return this.solrColumnMetadataDao.getColumnMetadata(indices);
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    this.solrUpdateDao.addCommentToAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    this.solrUpdateDao.removeCommentFromAlert(request, latest);
   }
 
   /**
@@ -170,7 +205,7 @@ public class SolrDao implements IndexDao {
     return solrSearchDao;
   }
 
-  public SolrSearchDao getSolrUpdateDao() {
-    return solrSearchDao;
+  public SolrUpdateDao getSolrUpdateDao() {
+    return solrUpdateDao;
   }
 }
