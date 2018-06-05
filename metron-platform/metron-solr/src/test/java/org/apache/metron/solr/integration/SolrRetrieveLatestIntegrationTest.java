@@ -37,6 +37,7 @@ import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -79,6 +80,11 @@ public class SolrRetrieveLatestIntegrationTest {
   @After
   public void reset() {
     solrComponent.reset();
+  }
+
+  @AfterClass
+  public static void teardown() {
+    solrComponent.stop();
   }
 
   @Test
