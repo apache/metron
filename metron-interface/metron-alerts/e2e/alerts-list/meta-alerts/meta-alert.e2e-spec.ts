@@ -94,35 +94,36 @@ describe('Test spec for meta alerts workflow', function() {
     expect(await tablePage.getAllRowsCount()).toEqualBcoz(38, '38 rows to be available after group expand');
     expect(await tablePage.getHiddenRowCount()).toEqualBcoz(0, '0 rows to be hidden after group expand');
 
-    /* Meta Alert Status Change // These do not work till patch works */
-    // await tablePage.toggleAlertInList(0);
-    // await tablePage.clickActionDropdownOption('Open');
-    // expect(await tablePage.getAlertStatus(0, 'NEW', 2)).toEqual('OPEN');
-    // expect(await tablePage.getAlertStatus(1, 'NEW')).toEqual('OPEN');
-    // expect(await tablePage.getAlertStatus(2, 'NEW')).toEqual('OPEN');
+    /* Meta Alert Status Change */
+    await tablePage.toggleAlertInList(0);
+    await tablePage.clickActionDropdownOption('Open');
+    expect(await tablePage.getAlertStatus(0, 'NEW', 2)).toEqual('OPEN');
+    expect(await tablePage.getAlertStatus(1, 'NEW')).toEqual('OPEN');
+    expect(await tablePage.getAlertStatus(2, 'NEW')).toEqual('OPEN');
 
-    /* Details Edit Should work - add comments - remove comments - multiple alerts */
+    /* Details Edit - add comments - remove comments - multiple alerts */
     await tablePage.clickOnMetaAlertRow(0);
     expect(await detailsPage.getAlertDetailsCount()).toEqualBcoz(13, '13 alert details should be present');
     await detailsPage.clickRenameMetaAlert();
     await detailsPage.renameMetaAlert('e2e-meta-alert');
     await detailsPage.cancelRename();
     expect(await detailsPage.getAlertNameOrId()).not.toEqual('e2e-meta-alert');
-    // These do not work till patch works
-    // detailsPage.clickRenameMetaAlert();
-    // detailsPage.renameMetaAlert('e2e-meta-alert');
-    // detailsPage.saveRename();
-    // expect(detailsPage.getAlertNameOrId()).toEqual('e2e-meta-alert');
+    await detailsPage.clickRenameMetaAlert();
+    await detailsPage.renameMetaAlert('e2e-meta-alert');
+    await detailsPage.saveRename();
+    expect(detailsPage.getAlertNameOrId()).toEqual('e2e-meta-alert');
 
-    // detailsPage.clickCommentsInSideNav();
-    // detailsPage.addCommentAndSave(comment1, 0);
-    // expect(detailsPage.getCommentsText()).toEqual([comment1]);
-    // expect(detailsPage.getCommentsUserNameAndTimeStamp()).toEqual([userNameAndTimestamp]);
-    // expect(detailsPage.getCommentIconCountInListView()).toEqual(1);
-    //
-    // detailsPage.deleteComment();
-    // detailsPage.clickYesForConfirmation();
-    // ******************************************************************************
+    // The below code will fail until this issue is resolved in Protractor: https://github.com/angular/protractor/issues/4693
+    // This is because the connection resets before deleting the test comment, which causes are assertion to be false
+
+    // await detailsPage.clickCommentsInSideNav();
+    // await detailsPage.addCommentAndSave(comment1, 0);
+    // expect(await detailsPage.getCommentsText()).toEqual([comment1]);
+    // expect(await detailsPage.getCommentsUserNameAndTimeStamp()).toEqual([userNameAndTimestamp]);
+    // expect(await detailsPage.getCommentIconCountInListView()).toEqual(1);
+
+    // await detailsPage.deleteComment();
+    // await detailsPage.clickYesForConfirmation(comment1);
     await detailsPage.closeDetailPane();
 
     /* Add to alert */
@@ -131,7 +132,7 @@ describe('Test spec for meta alerts workflow', function() {
     await metaAlertPage.waitForDialog();
     expect(await metaAlertPage.getPageTitle()).toEqualBcoz('Add to Alert', 'Add Alert Title should be present');
     expect(await metaAlertPage.getMetaAlertsTitle()).toEqualBcoz('SELECT OPEN ALERT', 'select open alert title should be present');
-    // // // expect(await metaAlertPage.getAvailableMetaAlerts()).toEqualBcoz('e2e-meta-alert (13)', 'Meta alert should be present');
+    expect(await metaAlertPage.getAvailableMetaAlerts()).toEqualBcoz('e2e-meta-alert (13)', 'Meta alert should be present');
     await metaAlertPage.selectRadio();
     await metaAlertPage.addToMetaAlert();
     expect(await tablePage.getCellValue(0, 2, '(13')).toContain('(14)', 'alert count should be incremented');
