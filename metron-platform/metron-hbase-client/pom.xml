@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-platform</artifactId>
-        <version>0.4.3</version>
+        <version>0.5.0</version>
     </parent>
     <!--
     The purpose of this project is to provide a version of the hbase client which has a shaded and relocated gauva.

@@ -31,6 +31,7 @@ public class IndexingConfigurations extends Configurations {
   public static final String ENABLED_CONF = "enabled";
   public static final String INDEX_CONF = "index";
   public static final String OUTPUT_PATH_FUNCTION_CONF = "outputPathFunction";
+  public static final String FIELD_NAME_CONVERTER_CONF = "fieldNameConverter";
 
   public Map<String, Object> getSensorIndexingConfig(String sensorType, boolean emptyMapOnNonExistent) {
     Map<String, Object> ret = (Map<String, Object>) getConfigurations().get(getKey(sensorType));
@@ -61,7 +62,8 @@ public class IndexingConfigurations extends Configurations {
   }
 
   public Map<String, Object> getSensorIndexingConfig(String sensorType, String writerName) {
-    Map<String, Object> ret = (Map<String, Object>) getConfigurations().get(getKey(sensorType));
+    String key = getKey(sensorType);
+    Map<String, Object> ret = (Map<String, Object>) getConfigurations().get(key);
     if(ret == null) {
       return new HashMap();
     }
@@ -147,6 +149,10 @@ public class IndexingConfigurations extends Configurations {
     return getOutputPathFunction(getSensorIndexingConfig(sensorName, writerName), sensorName);
   }
 
+  public String getFieldNameConverter(String sensorName, String writerName) {
+    return getFieldNameConverter(getSensorIndexingConfig(sensorName, writerName), sensorName);
+  }
+
   public static boolean isEnabled(Map<String, Object> conf) {
     return getAs( ENABLED_CONF
                  ,conf
@@ -187,6 +193,10 @@ public class IndexingConfigurations extends Configurations {
     );
   }
 
+  public static String getFieldNameConverter(Map<String, Object> conf, String sensorName) {
+    return getAs(FIELD_NAME_CONVERTER_CONF, conf, "", String.class);
+  }
+
   public static Map<String, Object> setEnabled(Map<String, Object> conf, boolean enabled) {
     Map<String, Object> ret = conf == null?new HashMap<>():conf;
     ret.put(ENABLED_CONF, enabled);
@@ -207,6 +217,12 @@ public class IndexingConfigurations extends Configurations {
   public static Map<String, Object> setIndex(Map<String, Object> conf, String index) {
     Map<String, Object> ret = conf == null?new HashMap<>():conf;
     ret.put(INDEX_CONF, index);
+    return ret;
+  }
+
+  public static Map<String, Object> setFieldNameConverter(Map<String, Object> conf, String index) {
+    Map<String, Object> ret = conf == null ? new HashMap<>(): conf;
+    ret.put(FIELD_NAME_CONVERTER_CONF, index);
     return ret;
   }
 

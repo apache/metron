@@ -52,7 +52,7 @@ Any platform that supports these tools is suitable, but the following instructio
 
 1. Run the following command in a terminal to install all of the required tools.
 
-    ```  
+    ```
     brew cask install vagrant virtualbox docker
     brew cask install caskroom/versions/java8
     brew install maven@3.3 git
@@ -82,8 +82,8 @@ Any platform that supports these tools is suitable, but the following instructio
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
 
-* [Metron Alerts](http://node1:4201)
-* [Ambari](http://node1:8080)
+* [Metron Alerts](http://node1:4201) credentials: user/password
+* [Ambari](http://node1:8080) credentials: admin/admin
 
 Connecting to the host through SSH is as simple as running the following command.
 
