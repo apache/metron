@@ -21,6 +21,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.metron.common.message.resolver.RawMessageStrategy;
+import org.apache.metron.common.message.resolver.RawMessageSuppliers;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
@@ -194,6 +196,33 @@ public class SensorParserConfig implements Serializable {
    * <li>stellar.cache.maxTimeRetain - The maximum amount of time an element is kept in the cache (in minutes).
    */
   private Map<String, Object> cacheConfig = new HashMap<>();
+
+  /**
+   * Return the raw message supplier.  This is the strategy to use to extract the raw message and metadata from
+   * the tuple.
+   */
+  private RawMessageStrategy rawMessageStrategy = RawMessageSuppliers.DEFAULT;
+
+  /**
+   * The config for the raw message supplier.
+   */
+  private Map<String, Object> rawMessageStrategyConfig = new HashMap<>();
+
+  public RawMessageStrategy getRawMessageStrategy() {
+    return rawMessageStrategy;
+  }
+
+  public void setRawMessageStrategy(String rawMessageSupplierName) {
+    this.rawMessageStrategy = RawMessageSuppliers.valueOf(rawMessageSupplierName);
+  }
+
+  public Map<String, Object> getRawMessageStrategyConfig() {
+    return rawMessageStrategyConfig;
+  }
+
+  public void setRawMessageStrategyConfig(Map<String, Object> rawMessageStrategyConfig) {
+    this.rawMessageStrategyConfig = rawMessageStrategyConfig;
+  }
 
   public Map<String, Object> getCacheConfig() {
     return cacheConfig;
@@ -430,6 +459,8 @@ public class SensorParserConfig implements Serializable {
             .append(cacheConfig, that.cacheConfig)
             .append(parserConfig, that.parserConfig)
             .append(fieldTransformations, that.fieldTransformations)
+            .append(rawMessageStrategy, that.rawMessageStrategy)
+            .append(rawMessageStrategyConfig, that.rawMessageStrategyConfig)
             .isEquals();
   }
 
@@ -459,6 +490,8 @@ public class SensorParserConfig implements Serializable {
             .append(cacheConfig)
             .append(parserConfig)
             .append(fieldTransformations)
+            .append(rawMessageStrategy)
+            .append(rawMessageStrategyConfig)
             .toHashCode();
   }
 
@@ -488,6 +521,8 @@ public class SensorParserConfig implements Serializable {
             .append("cacheConfig", cacheConfig)
             .append("parserConfig", parserConfig)
             .append("fieldTransformations", fieldTransformations)
+            .append("rawMessageStrategy", rawMessageStrategy)
+            .append("rawMessageStrategyConfig", rawMessageStrategyConfig)
             .toString();
   }
 }

@@ -17,8 +17,6 @@
  */
 package org.apache.metron.parsers.bolt;
 
-import static org.apache.metron.common.Constants.METADATA_PREFIX;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
@@ -47,6 +45,9 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.common.message.resolver.RawMessage;
+import org.apache.metron.common.message.resolver.RawMessageStrategy;
+import org.apache.metron.common.message.resolver.RawMessageSuppliers;
 import org.apache.metron.stellar.common.CachingStellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -61,7 +62,6 @@ import org.slf4j.LoggerFactory;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
-  private static final int KEY_INDEX = 1;
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private OutputCollector collector;
   private MessageParser<JSONObject> parser;
@@ -69,6 +69,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private MessageFilter<JSONObject> filter;
   private WriterHandler writer;
   private Context stellarContext;
+  private transient RawMessageStrategy rawMessageStrategy;
   private transient MessageGetStrategy messageGetStrategy;
   private transient Cache<CachingStellarProcessor.Key, Object> cache;
   public ParserBolt( String zookeeperUrl
@@ -96,6 +97,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
+    rawMessageStrategy = RawMessageSuppliers.DEFAULT;
     messageGetStrategy = MessageGetters.DEFAULT_BYTES_FROM_POSITION.get();
     this.collector = collector;
     if(getSensorParserConfig() != null) {
@@ -138,57 +140,28 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     StellarFunctions.initialize(stellarContext);
   }
 
-  private Map<String, Object> getMetadata(Tuple t, boolean readMetadata) {
-    Map<String, Object> ret = new HashMap<>();
-    if(!readMetadata) {
-      return ret;
-    }
-    Fields tupleFields = t.getFields();
-    for(int i = 2;i < tupleFields.size();++i) {
-      String envMetadataFieldName = tupleFields.get(i);
-      Object envMetadataFieldValue = t.getValue(i);
-      if(!StringUtils.isEmpty(envMetadataFieldName) && envMetadataFieldValue != null) {
-        ret.put(METADATA_PREFIX + envMetadataFieldName, envMetadataFieldValue);
-      }
-    }
-    byte[] keyObj = t.getBinary(KEY_INDEX);
-    String keyStr = null;
-    try {
-      keyStr = keyObj == null?null:new String(keyObj);
-      if(!StringUtils.isEmpty(keyStr)) {
-        Map<String, Object> metadata = JSONUtils.INSTANCE.load(keyStr,JSONUtils.MAP_SUPPLIER);
-        for(Map.Entry<String, Object> kv : metadata.entrySet()) {
-          ret.put(METADATA_PREFIX + kv.getKey(), kv.getValue());
-        }
-
-      }
-    } catch (IOException e) {
-        String reason = "Unable to parse metadata; expected JSON Map: " + (keyStr == null?"NON-STRING!":keyStr);
-        LOG.error(reason, e);
-        throw new IllegalStateException(reason, e);
-      }
-    return ret;
-  }
 
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    byte[] originalMessage = (byte[]) messageGetStrategy.get(tuple);
     SensorParserConfig sensorParserConfig = getSensorParserConfig();
+    byte[] originalMessage = (byte[]) messageGetStrategy.get(tuple);
     try {
       //we want to ack the tuple in the situation where we have are not doing a bulk write
       //otherwise we want to defer to the writerComponent who will ack on bulk commit.
       boolean ackTuple = !writer.handleAck();
       int numWritten = 0;
       if(sensorParserConfig != null) {
-        Map<String, Object> metadata = getMetadata(tuple, sensorParserConfig.getReadMetadata());
+        //TODO: Pass config along
+        RawMessage rawMessage = rawMessageStrategy.get(tuple, originalMessage, sensorParserConfig.getReadMetadata(), sensorParserConfig.getRawMessageStrategyConfig());
+        Map<String, Object> metadata = rawMessage.getMetadata();
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
-        Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
+        Optional<List<JSONObject>> messages = parser.parseOptional(rawMessage.getMessage());
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
-          message.put(Constants.SENSOR_TYPE, getSensorType());
           if(sensorParserConfig.getMergeMetadata()) {
             message.putAll(metadata);
           }
+          message.put(Constants.SENSOR_TYPE, getSensorType());
           for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
             if (handler != null) {
               if(!sensorParserConfig.getMergeMetadata()) {
