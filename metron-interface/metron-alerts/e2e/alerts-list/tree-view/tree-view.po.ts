@@ -31,9 +31,13 @@ export class TreeViewPage {
 
   clickOnRow(id: string) {
     let idElement = element(by.css('a[title="' + id +'"]'));
+    let td = idElement.element(by.xpath('../..')).all(by.css('td')).get(9);
+    let detailsPane = element(by.css('.metron-slider-pane-details'));
     return waitForElementPresence(idElement)
     .then(() => browser.actions().mouseMove(idElement).perform())
-    .then(() => idElement.element(by.xpath('../..')).all(by.css('td')).get(9).click())
+    .then(() => browser.actions().mouseMove(td).perform())
+    .then(() => browser.actions().click().perform())
+    .then(() => waitForElementVisibility(detailsPane))
     .then(() => browser.sleep(2000));
   }
 
@@ -180,7 +184,6 @@ export class TreeViewPage {
 
   getIdOfAllExpandedRows() {
     return element.all(by.css('[data-name="' + name + '"] table tbody tr')).then(row => {
-      browser.pause();
     });
   }
 
