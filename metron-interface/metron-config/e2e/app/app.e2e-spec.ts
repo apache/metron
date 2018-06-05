@@ -41,9 +41,9 @@ describe('Application Skeleton', function() {
 
   it('should navigate to all pages', () => {
     expect(page.selectNavLink('General Settings')).toEqual(true);
-    expect(page.getUrl()).toEqual('http://localhost:4200/general-settings');
+    expect(page.getUrl()).toEqual('http://node1:4200/general-settings');
 
     expect(page.selectNavLink('Sensors')).toEqual(true);
-    expect(page.getUrl()).toEqual('http://localhost:4200/sensors');
+    expect(page.getUrl()).toEqual('http://node1:4200/sensors');
   });
 });

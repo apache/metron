@@ -28,6 +28,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.utils.CompressionStrategies;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 
@@ -42,6 +43,9 @@ import java.time.ZoneOffset;
 import java.util.Map;
 
 public class GeoEnrichmentLoader {
+
+  private static final String DEFAULT_RETRIES = "2";
+
   private static abstract class OptionHandler implements Function<String, Option> {
   }
 
@@ -67,6 +71,15 @@ public class GeoEnrichmentLoader {
       public Option apply(@Nullable String s) {
         Option o = new Option(s, "remote_dir", true, "HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/<epoch millis>/");
         o.setArgName("REMOTE_DIR");
+        o.setRequired(false);
+        return o;
+      }
+    }), RETRIES("re", new GeoEnrichmentLoader.OptionHandler() {
+      @Nullable
+      @Override
+      public Option apply(@Nullable String s) {
+        Option o = new Option(s, "retries", true, "Number of geo db download retries, after an initial failure.");
+        o.setArgName("RETRIES");
         o.setRequired(false);
         return o;
       }
@@ -146,7 +159,14 @@ public class GeoEnrichmentLoader {
     System.out.println("Retrieving GeoLite2 archive");
     String url = GeoEnrichmentOptions.GEO_URL.get(cli, "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz");
     String tmpDir = GeoEnrichmentOptions.TMP_DIR.get(cli, "/tmp") + "/"; // Make sure there's a file separator at the end
-    File localGeoFile = downloadGeoFile(url, tmpDir);
+    int numRetries = Integer.parseInt(GeoEnrichmentOptions.RETRIES.get(cli, DEFAULT_RETRIES));
+    File localGeoFile = null;
+    try {
+      localGeoFile = downloadGeoFile(url, tmpDir, numRetries);
+    } catch (IllegalStateException ies) {
+      System.err.println("Failed to download geo db file. Aborting");
+      System.exit(5);
+    }
     // Want to delete the tar in event of failure
     localGeoFile.deleteOnExit();
     System.out.println("GeoIP files downloaded successfully");
@@ -167,26 +187,40 @@ public class GeoEnrichmentLoader {
     System.out.println("Successfully created and updated new GeoIP information");
   }
 
-  protected File downloadGeoFile(String urlStr, String tmpDir) {
+  protected File downloadGeoFile(String urlStr, String tmpDir, int  numRetries) {
     File localFile = null;
-    try {
-      URL url = new URL(urlStr);
-      localFile = new File(tmpDir + new File(url.getPath()).getName());
+    int attempts = 0;
+    boolean valid = false;
+    while (!valid && attempts <= numRetries) {
+      try {
+        URL url = new URL(urlStr);
+        localFile = new File(tmpDir + new File(url.getPath()).getName());
 
-      System.out.println("Downloading " + url.toString() + " to " + localFile.getAbsolutePath());
-      if (localFile.exists() && !localFile.delete()) {
-        System.err.println("File already exists locally and can't be deleted.  Please delete before continuing");
-        System.exit(3);
+        System.out.println("Downloading " + url.toString() + " to " + localFile.getAbsolutePath());
+        if (localFile.exists() && !localFile.delete()) {
+          System.err.println(
+              "File already exists locally and can't be deleted.  Please delete before continuing");
+          System.exit(3);
+        }
+        FileUtils.copyURLToFile(url, localFile, 5000, 10000);
+        if (!CompressionStrategies.GZIP.test(localFile)) {
+          throw new IOException("Invalid Gzip file");
+        } else {
+          valid = true;
+        }
+      } catch (MalformedURLException e) {
+        System.err.println("Malformed URL - aborting: " + e);
+        e.printStackTrace();
+        System.exit(4);
+      } catch (IOException e) {
+        System.err.println("Warning: Unable to copy remote GeoIP database to local file, attempt " + attempts + ": " + e);
+        e.printStackTrace();
       }
-      FileUtils.copyURLToFile(url, localFile, 5000, 10000);
-    } catch (MalformedURLException e) {
-      System.err.println("Malformed URL - aborting: " + e);
-      e.printStackTrace();
-      System.exit(4);
-    } catch (IOException e) {
-      System.err.println("Unable to copy remote GeoIP database to local file: " + e);
-      e.printStackTrace();
-      System.exit(5);
+      attempts++;
+    }
+    if (!valid) {
+      System.err.println("Unable to copy remote GeoIP database to local file after " + attempts + " attempts");
+      throw new IllegalStateException("Unable to download geo enrichment database.");
     }
     return localFile;
   }

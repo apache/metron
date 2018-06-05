@@ -92,7 +92,7 @@ export class SensorDetailsPage {
 
     getParserConfig() {
         return element.all(by.css('metron-config-sensor-parser-readonly .row')).getText().then((data: any) => {
-            return data.slice(1, 19).map(val => val.replace('\n', ':'));
+            return data.slice(1, 27).map(val => val.replace('\n', ':'));
         });
     }
 

@@ -19,7 +19,7 @@ limitations under the License.
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
 
-## 0.4.2 to 0.4.3
+## 0.4.2 to 0.5.0
 
 ### [METRON-941: native PaloAlto parser corrupts message when having a comma in the payload](https://issues.apache.org/jira/browse/METRON-941)
 While modifying the PaloAlto log parser to support logs from newer

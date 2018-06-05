@@ -16,9 +16,13 @@
  * limitations under the License.
  */
 import { browser, element, by, protractor } from 'protractor';
-import {changeURL, waitForElementVisibility, waitForElementInVisibility, waitForElementPresence} from '../utils/e2e_util';
+import {SensorListPage} from '../sensor-list/sensor-list.po';
+import { changeURL, waitForElementVisibility, waitForElementPresence } from '../utils/e2e_util';
+
 
 export class SensorConfigPage {
+
+  sensorListPage = new SensorListPage();
 
   private getEnrichmentsMultipleInput() {
     return element.all(by.css('.config.container')).all(by.css('metron-config-multiple-input')).get(1).all(by.css('select')).last();
@@ -33,9 +37,24 @@ export class SensorConfigPage {
   }
 
   clearGrokStatement(length) {
-    let grokTextArea = element(by.css('metron-config-sensor-grok .ace_text-input'));
-    waitForElementInVisibility(grokTextArea).then(() => {
-      grokTextArea.clear();
+    return browser.executeScript(function() {
+      var editorDiv = document.querySelector('metron-config-sensor-grok .ace_editor') as HTMLElement;
+      ace.edit(editorDiv).setValue('');
+    })
+    .catch((error) => console.log(error));
+  }
+
+  cleanupBeforeExecution(parser: string) {
+    var elem = element(by.cssContainingText('metron-config-sensor-parser-list td', parser));
+      elem.isPresent().then(present => {
+        if (present) {
+          console.log("Parser: " + parser + " is present. Deleting the parser.");
+          this.sensorListPage.deleteParser(parser);
+        } else {
+          console.log("Parser: " + parser + " is not present. Continuing with test execution.");
+        }
+      }, err => {
+        console.log("Error occured when trying to cleanup before execution");
     });
   }
 
@@ -89,7 +108,7 @@ export class SensorConfigPage {
     return element.all(by.css('metron-config-sensor-threat-triage .form-title + i')).click();
   }
 
-  getGrokStatementFromMainPane() {
+  getGrokStatementFromMainPane(parserName: string) {
     browser.waitForAngular();
     return element.all(by.css('input[formcontrolname="grokStatement"]')). getAttribute('value');
   }
@@ -106,7 +125,7 @@ export class SensorConfigPage {
 
   getGrokResponse() {
     let tableRows = element(by.css('metron-config-sensor-grok table tr'));
-    return waitForElementPresence(tableRows).then(() => {
+    return waitForElementVisibility(tableRows).then(() => {
       return element.all(by.css('metron-config-sensor-grok table tr')).getText();
     });
   }
@@ -203,7 +222,11 @@ export class SensorConfigPage {
   }
 
   setGrokStatement(statement: string) {
-    return element(by.css('metron-config-sensor-grok .ace_text-input')).sendKeys(statement);
+    browser.executeScript(function(statement) {
+      var editorDiv = document.querySelector('metron-config-sensor-grok .ace_editor') as HTMLElement;
+      ace.edit(editorDiv).setValue(statement);
+    }, statement)
+    .catch((error) => console.log(error));
   }
 
   saveParser() {
@@ -211,6 +234,10 @@ export class SensorConfigPage {
   }
 
   setParserName(name: string) {
+    return element(by.css('input[name="sensorName"]')).sendKeys(name);
+  }
+
+  setParserTopicName(name: string) {
     return element(by.css('input[name="sensorTopic"]')).sendKeys(name);
   }
 
@@ -267,6 +294,7 @@ export class SensorConfigPage {
   }
 
   testGrokStatement() {
+    element(by.className('buttons-bar')).click();
     let saveButton = element(by.cssContainingText('metron-config-sensor-grok button', 'TEST'));
     return waitForElementVisibility(saveButton).then(() => {
       return element(by.cssContainingText('metron-config-sensor-grok button', 'TEST')).click();

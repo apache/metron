@@ -47,6 +47,7 @@ import de.javakaffee.kryoserializers.guava.ImmutableSetSerializer;
 import de.javakaffee.kryoserializers.jodatime.JodaLocalDateSerializer;
 import de.javakaffee.kryoserializers.jodatime.JodaLocalDateTimeSerializer;
 import java.io.ByteArrayInputStream;
+import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
@@ -188,7 +189,7 @@ public class SerDeUtils {
 
   public static Serializer SERIALIZER = new Serializer();
 
-  private static class Serializer implements Function<Object, byte[]> {
+  private static class Serializer implements Function<Object, byte[]>, Serializable {
     /**
      * Serializes the given Object into bytes.
      *
@@ -199,9 +200,10 @@ public class SerDeUtils {
     }
   }
 
-  public static class Deserializer<T> implements Function<byte[], T> {
+  public static class Deserializer<T> implements Function<byte[], T>, Serializable {
 
     private Class<T> clazz;
+
     public Deserializer(Class<T> clazz) {
       this.clazz = clazz;
     }
@@ -216,7 +218,6 @@ public class SerDeUtils {
       return fromBytes(bytes, clazz);
     }
   }
-
 
   private SerDeUtils() {
     // do not instantiate

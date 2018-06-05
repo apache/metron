@@ -123,7 +123,7 @@ Creating and refining profiles is an iterative process.  Iterating against a liv
 	[Stellar]>>> %functions PROFILER
 	PROFILER_APPLY, PROFILER_FLUSH, PROFILER_INIT
 	```  
-	
+
 1. Create a simple `hello-world` profile that will count the number of messages for each `ip_src_addr`.  The `SHELL_EDIT` function will open an editor in which you can copy/paste the following Profiler configuration.
 	```
 	[Stellar]>>> conf := SHELL_EDIT()
@@ -142,12 +142,12 @@ Creating and refining profiles is an iterative process.  Iterating against a liv
 	}
 	```
 
-1. Create a Profile execution environment; the Profile Debugger. 
+1. Create a Profile execution environment; the Profile Debugger.
 
 	The Profiler will output the number of profiles that have been defined, the number of messages that have been applied and the number of routes that have been followed.  
 
 	A route is defined when a message is applied to a specific profile.
-	* If a message is not needed by any profile, then there are no routes. 
+	* If a message is not needed by any profile, then there are no routes.
 	* If a message is needed by one profile, then one route has been followed.
 	* If a message is needed by two profiles, then two routes have been followed.
 
@@ -157,7 +157,7 @@ Creating and refining profiles is an iterative process.  Iterating against a liv
 	Profiler{1 profile(s), 0 messages(s), 0 route(s)}
 	```
 
-1. Create a message that mimics the telemetry that your profile will consume. 
+1. Create a message that mimics the telemetry that your profile will consume.
 
 	This message can be as simple or complex as you like.  For the `hello-world` profile, all you need is a message containing an `ip_src_addr` field.
 
@@ -181,11 +181,11 @@ Creating and refining profiles is an iterative process.  Iterating against a liv
 	```
 
 1. Flush the Profiler.  
-	
-	A flush is what occurs at the end of each 15 minute period in the Profiler.  The result is a list of Profile Measurements. Each measurement is a map containing detailed information about the profile data that has been generated. The `value` field is what is written to HBase when running this profile in the Profiler topology. 
-	
+
+	A flush is what occurs at the end of each 15 minute period in the Profiler.  The result is a list of Profile Measurements. Each measurement is a map containing detailed information about the profile data that has been generated. The `value` field is what is written to HBase when running this profile in the Profiler topology.
+
 	There will always be one measurement for each [profile, entity] pair.  This profile simply counts the number of messages by IP source address. Notice that the value is '3' for the entity '10.0.0.1' as we applied 3 messages with an 'ip_src_addr' of ’10.0.0.1'.
-	
+
 	```
 	[Stellar]>>> values := PROFILER_FLUSH(profiler)
 	[Stellar]>>> values
@@ -197,9 +197,9 @@ Creating and refining profiles is an iterative process.  Iterating against a liv
 
 	Once you are happy with your profile against a controlled data set, it can be useful to introduce more complex, live data.  This example extracts 10 messages of live, enriched telemetry to test your profile(s).
 	```
-	[Stellar]>>> %define bootstrap.servers := "node1:6667" 
+	[Stellar]>>> %define bootstrap.servers := "node1:6667"
 	node1:6667
-	[Stellar]>>> msgs := KAFKA_GET("indexing", 10) 
+	[Stellar]>>> msgs := KAFKA_GET("indexing", 10)
 	[Stellar]>>> LENGTH(msgs)
 	10
 	```
@@ -228,7 +228,7 @@ Continuing the previous running example, at this point, you have seen how your p
 	[Stellar]>>>
 	[Stellar]>>> %functions CONFIG CONFIG_GET, CONFIG_PUT
 	```
-	
+
 1. If you haven't already, define your profile.
 	```
 	[Stellar]>>> conf := SHELL_EDIT()
@@ -250,7 +250,7 @@ Continuing the previous running example, at this point, you have seen how your p
 1. Check what is already deployed.  
 
 	Pushing a new profile configuration is destructive.  It will overwrite any existing configuration.  Check what you have out there.  Manually merge the existing configuration with your new profile definition.
-	
+
 	```
 	[Stellar]>>> existing := CONFIG_GET("PROFILER")
 	```
@@ -260,7 +260,7 @@ Continuing the previous running example, at this point, you have seen how your p
 	[Stellar]>>> CONFIG_PUT("PROFILER", conf)
 	```
 
-### Deploying Profiles from the Command Line 
+### Deploying Profiles from the Command Line
 
 1. Create the profile definition in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  This file will likely not exist, if you have never created Profiles before.
 
@@ -364,7 +364,7 @@ Indicates whether processing time or event time is used. By default, processing 
 
 By default, no `timestampField` is defined.  In this case, the Profiler uses system time when generating profiles.  This means that the profiles are generated based on when the data has been processed by the Profiler.  This is also known as 'processing time'.
 
-This is the simplest mode of operation, but has some draw backs.  If the Profiler is consuming live data and all is well, the processing and event times will likely remain similar and consistent. If processing time diverges from event time, then the Profiler will generate skewed profiles. 
+This is the simplest mode of operation, but has some draw backs.  If the Profiler is consuming live data and all is well, the processing and event times will likely remain similar and consistent. If processing time diverges from event time, then the Profiler will generate skewed profiles.
 
 There are a few scenarios that might cause skewed profiles when using processing time.  For example when a system has undergone a scheduled maintenance window and is restarted, a high volume of messages will need to be processed by the Profiler. The output of the Profiler might indicate an increase in activity during this time, although no change in activity actually occurred on the target network. The same situation could occur if an upstream system which provides telemetry undergoes an outage.  
 
@@ -380,7 +380,7 @@ Alternatively, a `timestampField` can be defined.  This must be the name of a fi
 
 * The Profiler will use the same field across all telemetry sources and for all profiles.
 
-* Be aware of clock skew across telemetry sources.  If your profile is processing telemetry from multiple sources where the clock differs significantly, the Profiler may assume that some of those messages are late and will be ignored.  Adjusting the [`profiler.window.duration`](#profilerwindowduration) and [`profiler.window.lag`](#profilerwindowlag) can help accommodate skewed clocks. 
+* Be aware of clock skew across telemetry sources.  If your profile is processing telemetry from multiple sources where the clock differs significantly, the Profiler may assume that some of those messages are late and will be ignored.  Adjusting the [`profiler.window.duration`](#profilerwindowduration) and [`profiler.window.lag`](#profilerwindowlag) can help accommodate skewed clocks.
 
 ### Profiles
 
@@ -516,14 +516,12 @@ The REPL can be a powerful for developing profiles. Read all about [Developing P
 
 ## Configuring the Profiler
 
-The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in local filesystem at `$METRON_HOME/config/profiler.properties`.
-The values can be changed on disk and then the Profiler topology must be restarted.
-
+The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in local filesystem at `$METRON_HOME/config/profiler.properties`. After changing these values, the Profiler topology must be restarted for the changes to take effect.
 
 | Setting                                                                       | Description
 |---                                                                            |---
 | [`profiler.input.topic`](#profilerinputtopic)                                 | The name of the input Kafka topic.
-| [`profiler.output.topic`](#profileroutputtopic)                               | The name of the output Kafka topic. 
+| [`profiler.output.topic`](#profileroutputtopic)                               | The name of the output Kafka topic.
 | [`profiler.period.duration`](#profilerperiodduration)                         | The duration of each profile period.  
 | [`profiler.period.duration.units`](#profilerperioddurationunits)              | The units used to specify the [`profiler.period.duration`](#profilerperiodduration).
 | [`profiler.window.duration`](#profilerwindowduration)                         | The duration of each profile window.
@@ -539,6 +537,8 @@ The values can be changed on disk and then the Profiler topology must be restart
 | [`profiler.hbase.column.family`](#profilerhbasecolumnfamily)                  | The column family used to store profiles.
 | [`profiler.hbase.batch`](#profilerhbasebatch)                                 | The number of puts that are written to HBase in a single batch.
 | [`profiler.hbase.flush.interval.seconds`](#profilerhbaseflushintervalseconds) | The maximum number of seconds between batch writes to HBase.
+| [`topology.kryo.register`](#topologykryoregister)                             | Storm will use Kryo serialization for these classes.
+
 
 ### `profiler.input.topic`
 
@@ -653,6 +653,30 @@ The number of puts that are written to HBase in a single batch.
 *Default*: 30
 
 The maximum number of seconds between batch writes to HBase.
+
+### `topology.kryo.register`
+
+*Default*:
+```
+[ org.apache.metron.profiler.ProfileMeasurement, \
+  org.apache.metron.profiler.ProfilePeriod, \
+  org.apache.metron.common.configuration.profiler.ProfileResult, \
+  org.apache.metron.common.configuration.profiler.ProfileResultExpressions, \
+  org.apache.metron.common.configuration.profiler.ProfileTriageExpressions, \
+  org.apache.metron.common.configuration.profiler.ProfilerConfig, \
+  org.apache.metron.common.configuration.profiler.ProfileConfig, \
+  org.json.simple.JSONObject, \
+  java.util.LinkedHashMap, \
+  org.apache.metron.statistics.OnlineStatisticsProvider ]
+```               
+
+Storm will use Kryo serialization for these classes. Kryo serialization is more performant than Java serialization, in most cases.  
+
+For these classes, Storm will uses Kryo's `FieldSerializer` as defined in the [Storm Serialization docs](http://storm.apache.org/releases/1.1.2/Serialization.html).  For all other classes not in this list, Storm defaults to using Java serialization which is slower and not recommended for a production topology.
+
+This value should only need altered if you have defined a profile that results in a non-primitive, user-defined type that is not in this list.  If the class is not defined in this list, Java serialization will be used and the class must adhere to Java's serialization requirements.  
+
+The performance of the entire Profiler topology can be negatively impacted if any profile produces results that undergo Java serialization.
 
 ## Examples
 

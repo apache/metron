@@ -48,15 +48,15 @@ describe('Sensor List Long Running Cases', function() {
     let latencyValues = page.getColumnValues(2);
     latencyValues.then(values => {
       expect(values.slice(0, 2)).toEqual(['Disabled', 'Disabled']);
-      expect(values.slice(2)).toEqual(['Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped']);
+      expect(values.slice(2)).toEqual(['Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped']);
     });
 
     page.toggleSort('Status');
     expect(page.getSortOrder('Status')).toEqual(DESCENDING_CSS);
     latencyValues = page.getColumnValues(2);
     latencyValues.then(values => {
-      expect(values.slice(0, 5)).toEqual(['Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped']);
-      expect(values.slice(5)).toEqual(['Disabled', 'Disabled']);
+      expect(values.slice(0, 6)).toEqual(['Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped']);
+      expect(values.slice(6)).toEqual(['Disabled', 'Disabled']);
     });
   });
 
