@@ -131,7 +131,7 @@ public class SolrUpdateDao implements UpdateDao {
 
   @Override
   public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
-    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getIndex().get());
+    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
     addCommentToAlert(request, latest);
   }
 
@@ -159,13 +159,13 @@ public class SolrUpdateDao implements UpdateDao {
 
     Document newVersion = new Document(latest);
     newVersion.getDocument().put(COMMENTS_FIELD, commentStrs);
-    update(newVersion, request.getIndex());
+    update(newVersion, Optional.empty());
   }
 
   @Override
   public void removeCommentFromAlert(CommentAddRemoveRequest request)
       throws IOException {
-    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getIndex().get());
+    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
     removeCommentFromAlert(request, latest);
   }
 
@@ -196,7 +196,7 @@ public class SolrUpdateDao implements UpdateDao {
         .collect(Collectors.toList());
     Document newVersion = new Document(latest);
     newVersion.getDocument().put(COMMENTS_FIELD, commentsAsJson);
-    update(newVersion, request.getIndex());
+    update(newVersion, Optional.empty());
   }
 
   public void convertCommentsToRaw(Map<String,Object> source) {

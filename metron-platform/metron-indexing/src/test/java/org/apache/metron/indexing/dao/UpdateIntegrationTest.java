@@ -273,7 +273,6 @@ public abstract class UpdateIntegrationTest {
     request.setUsername(username);
     request.setTimestamp(timestamp);
     request.setSensorType(SENSOR_NAME);
-    request.setIndex(SENSOR_NAME);
     return request;
   }
 

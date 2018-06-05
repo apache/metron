@@ -133,7 +133,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
     Document newVersion = new Document(latest);
     newVersion.getDocument().put(COMMENTS_FIELD, originalComments);
-    update(newVersion, request.getIndex());
+    update(newVersion, Optional.empty());
   }
 
   @Override
@@ -165,12 +165,12 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     Document newVersion = new Document(latest);
     if (commentsFinal.size() > 0) {
       newVersion.getDocument().put(COMMENTS_FIELD, commentsFinal);
-      update(newVersion, request.getIndex());
+      update(newVersion, Optional.empty());
     } else {
       newVersion.getDocument().remove(COMMENTS_FIELD);
     }
 
-    update(newVersion, request.getIndex());
+    update(newVersion, Optional.empty());
   }
 
   protected String getIndexName(Document update, Optional<String> index, String indexPostFix) {

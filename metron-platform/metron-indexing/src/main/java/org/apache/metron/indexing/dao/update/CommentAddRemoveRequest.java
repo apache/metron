@@ -18,18 +18,12 @@
 
 package org.apache.metron.indexing.dao.update;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import java.util.Map;
-import java.util.Optional;
-import org.apache.metron.indexing.dao.search.AlertComment;
-
 public class CommentAddRemoveRequest {
   private String guid;
   private String sensorType;
   private String comment;
   private String username;
   private long timestamp;
-  private String index;
 
   public String getGuid() {
     return guid;
@@ -71,19 +65,6 @@ public class CommentAddRemoveRequest {
     this.timestamp = timestamp;
   }
 
-  public Optional<String> getIndex() {
-    return index != null ? Optional.of(this.index) : Optional.empty();
-  }
-
-  public void setIndex(String index) {
-    this.index = index;
-  }
-
-  @JsonGetter("index")
-  public String getIndexString() {
-    return index;
-  }
-
   @Override
   public String toString() {
     return "CommentAddRemoveRequest{" +
@@ -92,7 +73,6 @@ public class CommentAddRemoveRequest {
         ", comment='" + comment + '\'' +
         ", username='" + username + '\'' +
         ", timestamp=" + timestamp +
-        ", index='" + index + '\'' +
         '}';
   }
 }

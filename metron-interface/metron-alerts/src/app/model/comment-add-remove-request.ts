@@ -22,5 +22,4 @@ export class CommentAddRemoveRequest {
   username: string;
   sensorType: string;
   timestamp: number;
-  index: string;
 }

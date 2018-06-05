@@ -211,7 +211,6 @@ export class AlertDetailsComponent implements OnInit {
     commentRequest.username = this.authenticationService.getCurrentUserName();
     commentRequest.timestamp = new Date().getTime();
     commentRequest.sensorType = this.alertSourceType;
-    commentRequest.index = this.alertIndex;
     this.updateService.addComment(commentRequest).subscribe( () => {
       this.getData(true);
     });
@@ -245,7 +244,6 @@ export class AlertDetailsComponent implements OnInit {
         commentRequest.username = this.alertCommentsWrapper[index].alertComment.username;
         commentRequest.timestamp = this.alertCommentsWrapper[index].alertComment.timestamp;
         commentRequest.sensorType = this.alertSourceType;
-        commentRequest.index = this.alertIndex;
         this.updateService.removeComment(commentRequest).subscribe( () => {
           this.getData(true);
         });

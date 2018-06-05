@@ -309,7 +309,7 @@ public class HBaseDao implements IndexDao {
 
     Document newVersion = new Document(latest);
     newVersion.getDocument().put(COMMENTS_FIELD, commentsMap);
-    update(newVersion, request.getIndex());
+    update(newVersion, Optional.empty());
   }
 
   @Override
@@ -344,11 +344,11 @@ public class HBaseDao implements IndexDao {
       List<Map<String, Object>> commentsAsMap = comments.stream().map(AlertComment::asMap)
           .collect(Collectors.toList());
       newVersion.getDocument().put(COMMENTS_FIELD, commentsAsMap);
-      update(newVersion, request.getIndex());
+      update(newVersion, Optional.empty());
     } else {
       newVersion.getDocument().remove(COMMENTS_FIELD);
     }
 
-    update(newVersion, request.getIndex());
+    update(newVersion, Optional.empty());
   }
 }

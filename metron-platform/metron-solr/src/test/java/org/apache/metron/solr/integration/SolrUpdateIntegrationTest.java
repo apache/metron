@@ -25,8 +25,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -35,6 +38,7 @@ import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.util.IndexingCacheUtil;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.junit.After;
@@ -79,6 +83,13 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
     globalConfig.put(HBaseDao.HBASE_CF, CF);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
+
+    CuratorFramework client = ConfigurationsUtils
+        .getClient(solrComponent.getZookeeperUrl());
+    client.start();
+    ZKConfigurationsCache cache = new ZKConfigurationsCache(client);
+    cache.start();
+    accessConfig.setIndexSupplier(IndexingCacheUtil.getIndexLookupFunction(cache, "solr"));
 
     MultiIndexDao dao = new MultiIndexDao(hbaseDao, new SolrDao());
     dao.init(accessConfig);
