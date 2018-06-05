@@ -50,6 +50,7 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
     ,VALUE_SERIALIZER("kafka.valueSerializer")
     ,REQUIRED_ACKS("kafka.requiredAcks")
     ,TOPIC("kafka.topic")
+    ,TOPIC_FIELD("kafka.topicField")
     ,PRODUCER_CONFIGS("kafka.producerConfigs");
     ;
     String key;
@@ -81,6 +82,7 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
   private String valueSerializer = "org.apache.kafka.common.serialization.StringSerializer";
   private int requiredAcks = 1;
   private String kafkaTopic = Constants.ENRICHMENT_TOPIC;
+  private String kafkaTopicField = null;
   private KafkaProducer kafkaProducer;
   private String configPrefix = null;
   private String zkQuorum = null;
@@ -120,6 +122,12 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
     this.kafkaTopic= topic;
     return this;
   }
+
+  public KafkaWriter withTopicField(String topicField) {
+    this.kafkaTopicField = topicField;
+    return this;
+  }
+
   public KafkaWriter withConfigPrefix(String prefix) {
     this.configPrefix = prefix;
     return this;
@@ -166,6 +174,10 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
     if(topic != null) {
       withTopic(topic);
     }
+    String topicField = Configurations.TOPIC_FIELD.getAndConvert(getConfigPrefix(), configMap, String.class);
+    if(topicField != null) {
+      withTopicField(topicField);
+    }
     Map<String, Object> producerConfigs = (Map)Configurations.PRODUCER_CONFIGS.get(getConfigPrefix(), configMap);
     if(producerConfigs != null) {
       withProducerConfigs(producerConfigs);
@@ -197,6 +209,15 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
     return producerConfig;
   }
 
+  public Optional<String> getKafkaTopic(JSONObject message) {
+    if(kafkaTopicField != null) {
+      return Optional.ofNullable((String)message.get(kafkaTopicField));
+    }
+    else {
+      return Optional.ofNullable(kafkaTopic);
+    }
+  }
+
   @Override
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations,
       Iterable<Tuple> tuples, List<JSONObject> messages) {
@@ -212,10 +233,13 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
         writerResponse.addError(t, tuple);
         continue;
       }
-      Future future = kafkaProducer
-          .send(new ProducerRecord<String, String>(kafkaTopic, jsonMessage));
-      // we want to manage the batching
-      results.add(new AbstractMap.SimpleEntry<>(tuple, future));
+      Optional<String> topic = getKafkaTopic(message);
+      if(topic.isPresent()) {
+        Future future = kafkaProducer
+            .send(new ProducerRecord<String, String>(kafkaTopic, jsonMessage));
+        // we want to manage the batching
+        results.add(new AbstractMap.SimpleEntry<>(tuple, future));
+      }
     }
 
     try {
