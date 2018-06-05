@@ -47,6 +47,7 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
@@ -124,6 +125,22 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   public Map<String, FieldType> getColumnMetadata(List<String> indices)
       throws IOException {
     return indexDao.getColumnMetadata(indices);
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request) {
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
   }
 
   @Override

@@ -39,8 +39,8 @@ import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -91,6 +91,22 @@ public class SolrMetaAlertDaoTest {
 
       @Override
       public void batchUpdate(Map<Document, Optional<String>> updates) {
+      }
+
+      @Override
+      public void addCommentToAlert(CommentAddRemoveRequest request) {
+      }
+
+      @Override
+      public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+      }
+
+      @Override
+      public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+      }
+
+      @Override
+      public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
       }
 
       @Override

@@ -33,6 +33,7 @@ import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
@@ -150,6 +151,16 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    updateDao.addCommentToAlert(request);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    updateDao.removeCommentFromAlert(request);
+  }
+
+  @Override
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     return this.columnMetadataDao.getColumnMetadata(indices);
   }
@@ -157,6 +168,16 @@ public class ElasticsearchDao implements IndexDao {
   @Override
   public Optional<Map<String, Object>> getLatestResult(GetRequest request) throws IOException {
     return retrieveLatestDao.getLatestResult(request);
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    this.updateDao.addCommentToAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    this.updateDao.removeCommentFromAlert(request, latest);
   }
 
   protected Optional<String> getIndexName(String guid, String sensorType) {

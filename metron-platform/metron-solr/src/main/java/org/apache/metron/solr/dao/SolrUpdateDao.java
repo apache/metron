@@ -17,17 +17,23 @@
  */
 package org.apache.metron.solr.dao;
 
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.search.AlertComment;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.apache.solr.client.solrj.SolrClient;
@@ -37,23 +43,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SolrUpdateDao implements UpdateDao {
-
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private transient SolrClient client;
   private AccessConfig config;
+  private transient SolrRetrieveLatestDao retrieveLatestDao;
 
-  public SolrUpdateDao(SolrClient client, AccessConfig config) {
+  public SolrUpdateDao(SolrClient client, SolrRetrieveLatestDao retrieveLatestDao, AccessConfig config) {
     this.client = client;
+    this.retrieveLatestDao = retrieveLatestDao;
     this.config = config;
   }
 
   @Override
   public void update(Document update, Optional<String> rawIndex) throws IOException {
+    Document newVersion = update;
+    // Handle any case where we're given comments in Map form, instead of raw String
+    Object commentsObj = update.getDocument().get(COMMENTS_FIELD);
+    if ( commentsObj instanceof List &&
+        ((List<Object>) commentsObj).size() > 0 &&
+      ((List<Object>) commentsObj).get(0) instanceof Map) {
+      newVersion = new Document(update);
+      convertCommentsToRaw(newVersion.getDocument());
+    }
     try {
-      SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(update);
+      SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(newVersion);
       Optional<String> index = SolrUtilities
-          .getIndex(config.getIndexSupplier(), update.getSensorType(), rawIndex);
+          .getIndex(config.getIndexSupplier(), newVersion.getSensorType(), rawIndex);
       if (index.isPresent()) {
         this.client.add(index.get(), solrInputDocument);
         this.client.commit(index.get());
@@ -101,5 +117,88 @@ public class SolrUpdateDao implements UpdateDao {
     } catch (SolrServerException e) {
       throw new IOException(e);
     }
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
+    addCommentToAlert(request, latest);
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    if (latest == null) {
+      return;
+    }
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> comments = (List<Map<String, Object>>) latest.getDocument()
+        .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+    List<Map<String, Object>> originalComments = new ArrayList<>(comments);
+
+    // Convert all comments back to raw JSON before updating.
+    List<String> commentStrs = new ArrayList<>();
+    for (Map<String, Object> comment : originalComments) {
+      commentStrs.add(new AlertComment(comment).asJson());
+    }
+    commentStrs.add(new AlertComment(
+        request.getComment(),
+        request.getUsername(),
+        request.getTimestamp()
+    ).asJson());
+
+    Document newVersion = new Document(latest);
+    newVersion.getDocument().put(COMMENTS_FIELD, commentStrs);
+    update(newVersion, Optional.empty());
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request)
+      throws IOException {
+    Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
+    removeCommentFromAlert(request, latest);
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    if (latest == null) {
+      return;
+    }
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> commentMap = (List<Map<String, Object>>) latest.getDocument()
+        .get(COMMENTS_FIELD);
+    // Can't remove anything if there's nothing there
+    if (commentMap == null) {
+      LOG.debug("Provided alert had no comments to be able to remove from");
+      return;
+    }
+    List<Map<String, Object>> originalComments = new ArrayList<>(commentMap);
+    List<AlertComment> comments = new ArrayList<>();
+    for (Map<String, Object> commentStr : originalComments) {
+      comments.add(new AlertComment(commentStr));
+    }
+
+    comments.remove(
+        new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp()));
+    List<String> commentsAsJson = comments.stream().map(AlertComment::asJson)
+        .collect(Collectors.toList());
+    Document newVersion = new Document(latest);
+    newVersion.getDocument().put(COMMENTS_FIELD, commentsAsJson);
+    update(newVersion, Optional.empty());
+  }
+
+  public void convertCommentsToRaw(Map<String,Object> source) {
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> comments = (List<Map<String, Object>>) source.get(COMMENTS_FIELD);
+    if (comments == null || comments.isEmpty()) {
+      return;
+    }
+    List<String> asJson = new ArrayList<>();
+    for (Map<String, Object> comment : comments) {
+      asJson.add((new AlertComment(comment)).asJson());
+    }
+    source.put(COMMENTS_FIELD, asJson);
   }
 }

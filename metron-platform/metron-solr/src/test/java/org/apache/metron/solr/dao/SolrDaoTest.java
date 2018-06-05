@@ -107,9 +107,10 @@ public class SolrDaoTest {
     solrDao = spy(new SolrDao());
     doReturn(client).when(solrDao).getSolrClient(Collections.singletonList("zookeeper:2181"));
     whenNew(SolrSearchDao.class).withArguments(client, accessConfig).thenReturn(solrSearchDao);
-    whenNew(SolrUpdateDao.class).withArguments(client, accessConfig).thenReturn(solrUpdateDao);
     whenNew(SolrRetrieveLatestDao.class).withArguments(client, accessConfig)
         .thenReturn(solrRetrieveLatestDao);
+    whenNew(SolrUpdateDao.class).withArguments(client, solrRetrieveLatestDao, accessConfig)
+        .thenReturn(solrUpdateDao);
     whenNew(SolrColumnMetadataDao.class).withArguments(client)
         .thenReturn(solrColumnMetadataDao);
 

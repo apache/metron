@@ -110,8 +110,8 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     // getColumnMetadata with only bro
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
-      // Don't test all 256, just test a sample of different fields
-      Assert.assertEquals(262, fieldTypes.size());
+      // Don't test all fields, just test a sample of different fields
+      Assert.assertEquals(263, fieldTypes.size());
 
       // Fields present in both with same type
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
@@ -147,7 +147,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     // getColumnMetadata with only snort
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(32, fieldTypes.size());
+      Assert.assertEquals(33, fieldTypes.size());
 
       // Fields present in both with same type
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));

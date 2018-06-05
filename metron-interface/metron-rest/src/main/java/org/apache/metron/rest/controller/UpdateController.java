@@ -20,6 +20,7 @@ package org.apache.metron.rest.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
@@ -65,6 +66,28 @@ public class UpdateController {
           ReplaceRequest request
   ) throws RestException {
     service.replace(request);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Add a comment to an alert")
+  @ApiResponse(message = "Nothing", code = 200)
+  @RequestMapping(value = "/add/comment", method = RequestMethod.POST)
+  ResponseEntity<Void> addCommentToAlert(
+      @RequestBody @ApiParam(name = "request", value = "Comment add request", required = true) final
+      CommentAddRemoveRequest request
+  ) throws RestException {
+    service.addComment(request);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Remove a comment to an alert")
+  @ApiResponse(message = "Nothing", code = 200)
+  @RequestMapping(value = "/remove/comment", method = RequestMethod.POST)
+  ResponseEntity<Void> removeCommentFromAlert(
+      @RequestBody @ApiParam(name = "request", value = "Comment remove request", required = true) final
+      CommentAddRemoveRequest request
+  ) throws RestException {
+    service.removeComment(request);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 }

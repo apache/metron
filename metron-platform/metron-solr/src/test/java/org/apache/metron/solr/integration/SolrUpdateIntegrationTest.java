@@ -26,8 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -36,6 +39,7 @@ import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.util.IndexingCacheUtil;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.junit.After;
@@ -82,8 +86,16 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
     accessConfig.setIndexSupplier(s -> s);
 
-    dao = new MultiIndexDao(hbaseDao, new SolrDao());
+    CuratorFramework client = ConfigurationsUtils
+        .getClient(solrComponent.getZookeeperUrl());
+    client.start();
+    ZKConfigurationsCache cache = new ZKConfigurationsCache(client);
+    cache.start();
+    accessConfig.setIndexSupplier(IndexingCacheUtil.getIndexLookupFunction(cache, "solr"));
+
+    MultiIndexDao dao = new MultiIndexDao(hbaseDao, new SolrDao());
     dao.init(accessConfig);
+    setDao(dao);
   }
 
   @After
@@ -137,9 +149,9 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     fields.put("field.location_point", "48.5839,7.7455");
 
     Document document = new Document(fields, "bro_1", SENSOR_NAME, 0L);
-    dao.update(document, Optional.of(SENSOR_NAME));
+    getDao().update(document, Optional.of(SENSOR_NAME));
 
-    Document indexedDocument = dao.getLatest("bro_1", SENSOR_NAME);
+    Document indexedDocument = getDao().getLatest("bro_1", SENSOR_NAME);
 
     // assert no extra expanded fields are included
     assertEquals(8, indexedDocument.getDocument().size());
@@ -156,10 +168,10 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     documentMap.put("raw_message", hugeString);
     documentMap.put("raw_message_1", hugeStringTwo);
     Document errorDoc = new Document(documentMap, "error", "error", 0L);
-    dao.update(errorDoc, Optional.of("error"));
+    getDao().update(errorDoc, Optional.of("error"));
 
     // Ensure that the huge string is returned when not a string field
-    Document latest = dao.getLatest("error_guid", "error");
+    Document latest = getDao().getLatest("error_guid", "error");
     @SuppressWarnings("unchecked")
     String actual = (String) latest.getDocument().get("raw_message");
     assertEquals(actual, hugeString);
@@ -172,6 +184,6 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
     exception.expect(IOException.class);
     exception.expectMessage("Document contains at least one immense term in field=\"error_hash\"");
-    dao.update(errorDoc, Optional.of("error"));
+    getDao().update(errorDoc, Optional.of("error"));
   }
 }

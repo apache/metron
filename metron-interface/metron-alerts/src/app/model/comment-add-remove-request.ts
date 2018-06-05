@@ -15,22 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.indexing.dao;
 
-import org.apache.metron.indexing.dao.search.SearchDao;
-import org.apache.metron.indexing.dao.update.UpdateDao;
-
-/**
- * The IndexDao provides a common interface for retrieving and storing data in a variety of persistent stores.
- * Document reads and writes require a GUID and sensor type with an index being optional.
- */
-public interface IndexDao extends UpdateDao, SearchDao, RetrieveLatestDao, ColumnMetadataDao {
-
-  String COMMENTS_FIELD = "comments";
-
-  /**
-   * Initialize the DAO with the AccessConfig object.
-   * @param config The config to use for initialization
-   */
-  void init(AccessConfig config);
+export class CommentAddRemoveRequest {
+  guid: string;
+  comment: string;
+  username: string;
+  sensorType: string;
+  timestamp: number;
 }
