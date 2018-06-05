@@ -951,6 +951,45 @@ public class ElasticsearchMetaAlertIntegrationTest {
         }
       }
     }
+    //modify the same message and modify the new field with the patch method
+    {
+      Map<String, Object> message0 = new HashMap<String, Object>(alerts.get(0)) {
+        {
+          put(NEW_FIELD, "metron3");
+        }
+      };
+      String guid = "" + message0.get(Constants.GUID);
+      PatchRequest patchRequest = new PatchRequest();
+      patchRequest.setGuid(guid);
+      patchRequest.setIndex(INDEX);
+      patchRequest.setSensorType(SENSOR_NAME);
+      patchRequest.setPatch(Collections.singletonList(new HashMap<String, Object>() {{
+        put("op", "replace");
+        put("path", "/" + NEW_FIELD);
+        put("value", "metron3");
+      }}));
+
+      metaDao.patch(patchRequest, Optional.empty());
+
+      {
+        // Verify ES is up-to-date
+        findUpdatedDoc(message0, guid, SENSOR_NAME);
+        long cnt = getMatchingAlertCount(NEW_FIELD, message0.get(NEW_FIELD));
+        if (cnt == 0) {
+          Assert.fail("Elasticsearch alert not updated!");
+        }
+      }
+      {
+        // Verify meta alerts in ES are up-to-date
+        long cnt = getMatchingMetaAlertCount(NEW_FIELD, "metron3");
+        if (cnt == 0) {
+          Assert.fail("Active metaalert was not updated!");
+        }
+        if (cnt != 1) {
+          Assert.fail("Elasticsearch metaalerts not updated correctly!");
+        }
+      }
+    }
   }
 
   @Test

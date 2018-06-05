@@ -22,6 +22,7 @@ import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.stellar.common.shell.VariableResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.junit.Assert;
@@ -75,7 +76,7 @@ public class IndexingConfigFunctionsTest {
     Assert.assertEquals(2,  IndexingConfigurations.getBatchTimeout((Map<String, Object>) config.get("hdfs")));
   }
 
-  @Test(expected=IllegalStateException.class)
+  @Test(expected=ParseException.class)
   public void testSetBatchBad() {
     Map<String,Object> variables = new HashMap<String,Object>(){{
       put("config",null);
@@ -94,7 +95,7 @@ public class IndexingConfigFunctionsTest {
     Assert.assertTrue(IndexingConfigurations.isEnabled((Map<String, Object>) config.get("hdfs")));
   }
 
-  @Test(expected=IllegalStateException.class)
+  @Test(expected=ParseException.class)
   public void testSetEnabledBad() {
     Map<String,Object> variables = new HashMap<String,Object>(){{
       put("config",null);
@@ -113,7 +114,7 @@ public class IndexingConfigFunctionsTest {
     Assert.assertEquals("foo", IndexingConfigurations.getIndex((Map<String, Object>)config.get("hdfs"), null));
   }
 
-  @Test(expected= IllegalStateException.class)
+  @Test(expected= ParseException.class)
   public void testSetIndexBad() {
     Map<String,Object> variables = new HashMap<String,Object>(){{
       put("config",null);

@@ -20,7 +20,7 @@ Metron on CentOS 6
 
 This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized host running CentOS 6.
 
-Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.  
+Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.
 
 Getting Started
 ---------------
@@ -52,7 +52,7 @@ Any platform that supports these tools is suitable, but the following instructio
 
 1. Run the following command in a terminal to install all of the required tools.
 
-    ```  
+    ```
     brew cask install vagrant virtualbox docker
     brew cask install caskroom/versions/java8
     brew install maven@3.3 git
@@ -82,8 +82,8 @@ Any platform that supports these tools is suitable, but the following instructio
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
 
-* [Metron Alerts](http://node1:4201)
-* [Ambari](http://node1:8080)
+* [Metron Alerts](http://node1:4201) credentials: user/password
+* [Ambari](http://node1:8080) credentials: admin/admin
 
 Connecting to the host through SSH is as simple as running the following command.
 ```
