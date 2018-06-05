@@ -17,6 +17,7 @@
  */
 package org.apache.metron.solr.integration;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -119,7 +120,7 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
   private static Map<String, Object> createGlobalConfig() {
     return new HashMap<String, Object>() {{
-      put("solr.zookeeper", solrComponent.getZookeeperUrl());
+      put(SOLR_ZOOKEEPER, solrComponent.getZookeeperUrl());
     }};
   }
 

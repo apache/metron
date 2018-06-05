@@ -17,6 +17,9 @@
  */
 package org.apache.metron.solr.dao;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+
+import com.google.common.base.Splitter;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
@@ -40,6 +43,7 @@ import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.solr.SolrConstants;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
@@ -85,14 +89,12 @@ public class SolrDao implements IndexDao {
       enableKerberos();
     }
     if (this.client == null) {
-      Map<String, Object> globalConfig = config.getGlobalConfigSupplier().get();
-      String zkHost = (String) globalConfig.get("solr.zookeeper");
-      this.client = getSolrClient(zkHost);
       this.accessConfig = config;
+      this.client = getSolrClient(getZkHosts());
       this.solrSearchDao = new SolrSearchDao(this.client, this.accessConfig);
       this.solrRetrieveLatestDao = new SolrRetrieveLatestDao(this.client);
       this.solrUpdateDao = new SolrUpdateDao(this.client, this.solrRetrieveLatestDao, this.accessConfig);
-      this.solrColumnMetadataDao = new SolrColumnMetadataDao(zkHost);
+      this.solrColumnMetadataDao = new SolrColumnMetadataDao(this.client);
     }
   }
 
@@ -169,13 +171,30 @@ public class SolrDao implements IndexDao {
     this.solrUpdateDao.removeCommentFromAlert(request, latest);
   }
 
-  public SolrClient getSolrClient(String zkHost) {
-    return new CloudSolrClient.Builder().withZkHost(zkHost).build();
+  /**
+   * Builds a Solr client using the ZK hosts from the global config.
+   * @return SolrClient
+   */
+  public SolrClient getSolrClient() {
+    return new CloudSolrClient.Builder().withZkHost(getZkHosts()).build();
   }
 
-  public String getZkHost() {
+  /**
+   * Builds a Solr client using the ZK hosts specified.
+   * @return SolrClient
+   */
+  public SolrClient getSolrClient(List<String> zkHosts) {
+    return new CloudSolrClient.Builder().withZkHost(zkHosts).build();
+  }
+
+  /**
+   * Get ZK hosts from the global config.
+   * @return List of ZkHosts
+   */
+  public List<String> getZkHosts() {
     Map<String, Object> globalConfig = accessConfig.getGlobalConfigSupplier().get();
-    return (String) globalConfig.get("solr.zookeeper");
+    return Splitter.on(',').trimResults()
+        .splitToList((String) globalConfig.getOrDefault(SOLR_ZOOKEEPER, ""));
   }
 
   void enableKerberos() {

@@ -66,7 +66,7 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
       SolrMetaAlertRetrieveLatestDao retrieveLatestDao,
       MetaAlertConfig config) {
     super(solrDao, retrieveLatestDao, config);
-    this.solrClient = solrDao.getSolrClient(solrDao.getZkHost());
+    this.solrClient = solrDao.getSolrClient(solrDao.getZkHosts());
     this.metaAlertSearchDao = metaAlertSearchDao;
   }
 

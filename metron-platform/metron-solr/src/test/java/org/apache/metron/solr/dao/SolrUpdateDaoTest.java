@@ -18,6 +18,7 @@
 package org.apache.metron.solr.dao;
 
 import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
@@ -74,7 +75,7 @@ public class SolrUpdateDaoTest {
   public static void setupBefore() {
     accessConfig.setGlobalConfigSupplier(() ->
         new HashMap<String, Object>() {{
-          put("solr.zookeeper", "zookeeper:2181");
+          put(SOLR_ZOOKEEPER, "zookeeper:2181");
         }}
     );
     IndexingConfigurations indexingConfigs = mock(IndexingConfigurations.class);

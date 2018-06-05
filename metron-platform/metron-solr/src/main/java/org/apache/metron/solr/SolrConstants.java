@@ -27,4 +27,5 @@ public class SolrConstants {
   public static final String REQUEST_COLLECTIONS_PATH = "/admin/collections";
   public static final String RESPONSE_COLLECTIONS = "collections";
   public static final String SOLR_WRITER_NAME = "solr";
+  public static final String SOLR_ZOOKEEPER = "solr.zookeeper";
 }
