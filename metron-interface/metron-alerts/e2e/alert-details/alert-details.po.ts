@@ -19,7 +19,7 @@
 import {browser, element, by, protractor} from 'protractor';
 import {
   scrollIntoView, waitForElementInVisibility, waitForElementPresence,
-  waitForElementVisibility
+  waitForElementVisibility, waitForStalenessOf
 } from '../utils/e2e_util';
 
 export class MetronAlertDetailsPage {
@@ -33,12 +33,12 @@ export class MetronAlertDetailsPage {
   addCommentAndSave(comment: string, index: number) {
     let textAreaElement = element(by.css('app-alert-details textarea'));
     let addCommentButtonElement = element(by.buttonText('ADD COMMENT'));
-    let latestCommentEle = element.all(by.css('.comment-container .comment')).get(index);
+    let latestCommentEle = element.all(by.cssContainingText('.comment-container .comment', comment));
 
     return textAreaElement.clear()
     .then(() => textAreaElement.sendKeys(comment))
     .then(() => addCommentButtonElement.click())
-    .then(() => waitForElementPresence(latestCommentEle));
+    .then(() => waitForElementVisibility(latestCommentEle));
   }
 
   clickNew() {
@@ -62,37 +62,39 @@ export class MetronAlertDetailsPage {
   }
 
   clickCommentsInSideNav() {
-    return element(by.css('app-alert-details .fa.fa-comment')).click()
+    let commentIcon = element(by.css('app-alert-details .fa.fa-comment'));
+    return waitForElementVisibility(commentIcon)
+    .then(() => commentIcon.click())
     .then(() => waitForElementVisibility(element(by.buttonText('ADD COMMENT'))));
   }
 
   clickNoForConfirmation() {
-    browser.sleep(1000);
-    let dialogElement = element(by.css('.metron-dialog .modal-header .close'));
-    let maskElement = element(by.css('.modal-backdrop.fade'));
-    waitForElementVisibility(dialogElement).then(() => element(by.css('.metron-dialog')).element(by.buttonText('Cancel')).click())
+    let cancelButton = element(by.css('.metron-dialog')).element(by.buttonText('Cancel'));
+    let maskElement = element(by.css('.modal-backdrop'));
+    waitForElementVisibility(cancelButton).then(() => element(by.css('.metron-dialog')).element(by.buttonText('Cancel')).click())
     .then(() => waitForElementInVisibility(maskElement));
   }
 
-  clickYesForConfirmation() {
-    browser.sleep(1000);
-    let dialogElement = element(by.css('.metron-dialog .modal-header .close'));
-    let maskElement = element(by.css('.modal-backdrop.fade'));
-    waitForElementVisibility(dialogElement).then(() => element(by.css('.metron-dialog')).element(by.buttonText('OK')).click())
+  clickYesForConfirmation(comment) {
+    let okButton = element(by.css('.metron-dialog')).element(by.buttonText('OK'));
+    let maskElement = element(by.css('.modal-backdrop'));
+    waitForElementVisibility(okButton).then(() => element(by.css('.metron-dialog')).element(by.buttonText('OK')).click())
     .then(() => waitForElementInVisibility(maskElement));
   }
 
   closeDetailPane() {
-    return scrollIntoView(element(by.css('app-alert-details .close-button')), true)
-          .then(() => element(by.css('app-alert-details .close-button')).click())
-          .then(() => waitForElementInVisibility(element(by.css('app-alert-details'))));
-  }
+  let dialogElement = element(by.css('.metron-dialog.modal.show'));
+  return waitForElementInVisibility(dialogElement).then(() => scrollIntoView(element(by.css('app-alert-details .close-button')), true)
+        .then(() => element(by.css('app-alert-details .close-button')).click())
+        .then(() => waitForElementInVisibility(element(by.css('app-alert-details')))));
+}
 
   deleteComment() {
     let scrollToEle = element.all(by.css('.comment-container')).get(0);
     let trashIcon = element.all(by.css('.fa.fa-trash-o')).get(0);
     browser.actions().mouseMove(scrollToEle).perform().then(() => waitForElementVisibility(trashIcon))
-    .then(() => element.all(by.css('.fa.fa-trash-o')).get(0).click());
+    .then(() => trashIcon.click())
+    .then(() => waitForElementVisibility(element(by.css('.modal-backdrop'))));
   }
 
   getAlertStatus(previousText) {
