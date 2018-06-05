@@ -124,6 +124,17 @@ public class SolrRetrieveLatestIntegrationTest {
     assertTrue(Iterables.contains(actual, buildExpectedDocument(TEST_SENSOR, 2)));
   }
 
+  @Test
+  public void testGetAllLatestCollectionSensorMixed() throws IOException {
+    List<GetRequest> requests = new ArrayList<>();
+    requests.add(buildGetRequest(TEST_SENSOR, 1));
+    requests.add(buildGetRequest(BRO_SENSOR, 2));
+
+    Iterable<Document> actual = dao.getAllLatest(requests);
+    assertTrue(Iterables.contains(actual, buildExpectedDocument(TEST_SENSOR, 1)));
+    assertTrue(Iterables.contains(actual, buildExpectedDocument(BRO_SENSOR, 2)));
+  }
+
   protected Document buildExpectedDocument(String sensor, int i) {
     Map<String, Object> expectedMapOne = new HashMap<>();
     expectedMapOne.put("source.type", sensor);
