@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
@@ -44,28 +42,18 @@ public class SolrUpdateDao implements UpdateDao {
 
   private transient SolrClient client;
   private AccessConfig config;
-  private Function<String, String> indexSupplier;
+
   public SolrUpdateDao(SolrClient client, AccessConfig config) {
     this.client = client;
     this.config = config;
-    this.indexSupplier = config.getIndexSupplier();
-  }
-
-  private Optional<String> getIndex(String sensorName, Optional<String> index) {
-    if(index.isPresent()) {
-      return Optional.ofNullable(index.get());
-    }
-    else {
-      String realIndex = indexSupplier.apply(sensorName);
-      return Optional.ofNullable(realIndex);
-    }
   }
 
   @Override
   public void update(Document update, Optional<String> rawIndex) throws IOException {
     try {
       SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(update);
-      Optional<String> index = getIndex(update.getSensorType(), rawIndex);
+      Optional<String> index = SolrUtilities
+          .getIndex(config.getIndexSupplier(), update.getSensorType(), rawIndex);
       if (index.isPresent()) {
         this.client.add(index.get(), solrInputDocument);
         this.client.commit(index.get());
@@ -85,7 +73,8 @@ public class SolrUpdateDao implements UpdateDao {
 
     for (Entry<Document, Optional<String>> entry : updates.entrySet()) {
       SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(entry.getKey());
-      Optional<String> index = getIndex(entry.getKey().getSensorType(), entry.getValue());
+      Optional<String> index = SolrUtilities
+          .getIndex(config.getIndexSupplier(), entry.getKey().getSensorType(), entry.getValue());
       if (index.isPresent()) {
         Collection<SolrInputDocument> solrInputDocuments = solrCollectionUpdates
             .getOrDefault(index.get(), new ArrayList<>());

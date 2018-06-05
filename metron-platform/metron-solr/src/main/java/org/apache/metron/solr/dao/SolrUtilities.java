@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
-
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.search.SearchResult;
@@ -91,5 +91,22 @@ public class SolrUtilities {
       }
     }
     return solrInputDocument;
+  }
+
+  /**
+   * Gets the actual collection for the given sensor type
+   * @param indexSupplier The function to employ in the lookup
+   * @param sensorName The sensor type to be looked up
+   * @param index An index to use, if present.
+   * @return An Optional containing the actual collection
+   */
+  public static Optional<String> getIndex(Function<String, String> indexSupplier, String sensorName,
+      Optional<String> index) {
+    if (index.isPresent()) {
+      return index;
+    } else {
+      String realIndex = indexSupplier.apply(sensorName);
+      return Optional.ofNullable(realIndex);
+    }
   }
 }

@@ -39,7 +39,6 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.solr.SolrConstants;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
@@ -89,7 +88,7 @@ public class SolrDao implements IndexDao {
       this.client = getSolrClient(getZkHosts());
       this.solrSearchDao = new SolrSearchDao(this.client, this.accessConfig);
       this.solrUpdateDao = new SolrUpdateDao(this.client, this.accessConfig);
-      this.solrRetrieveLatestDao = new SolrRetrieveLatestDao(this.client);
+      this.solrRetrieveLatestDao = new SolrRetrieveLatestDao(this.client, this.accessConfig);
       this.solrColumnMetadataDao = new SolrColumnMetadataDao(this.client);
     }
   }
@@ -105,8 +104,8 @@ public class SolrDao implements IndexDao {
   }
 
   @Override
-  public Document getLatest(String guid, String collection) throws IOException {
-    return this.solrRetrieveLatestDao.getLatest(guid, collection);
+  public Document getLatest(String guid, String sensorType) throws IOException {
+    return this.solrRetrieveLatestDao.getLatest(guid, sensorType);
   }
 
   @Override

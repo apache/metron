@@ -80,6 +80,7 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
     globalConfig.put(HBaseDao.HBASE_CF, CF);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
+    accessConfig.setIndexSupplier(s -> s);
 
     dao = new MultiIndexDao(hbaseDao, new SolrDao());
     dao.init(accessConfig);

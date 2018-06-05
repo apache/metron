@@ -25,7 +25,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
@@ -38,15 +40,23 @@ import org.apache.solr.common.SolrDocumentList;
 public class SolrRetrieveLatestDao implements RetrieveLatestDao {
 
   private transient SolrClient client;
+  private AccessConfig config;
 
-  public SolrRetrieveLatestDao(SolrClient client) {
+  public SolrRetrieveLatestDao(SolrClient client, AccessConfig config) {
     this.client = client;
+    this.config = config;
   }
 
   @Override
-  public Document getLatest(String guid, String collection) throws IOException {
+  public Document getLatest(String guid, String sensorType) throws IOException {
     try {
-      SolrDocument solrDocument = client.getById(collection, guid);
+      Optional<String> index = SolrUtilities
+          .getIndex(config.getIndexSupplier(), sensorType, Optional.empty());
+      if (!index.isPresent()) {
+        return null;
+      }
+
+      SolrDocument solrDocument = client.getById(index.get(), guid);
       if (solrDocument == null) {
         return null;
       }
@@ -60,10 +70,13 @@ public class SolrRetrieveLatestDao implements RetrieveLatestDao {
   public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
     Map<String, Collection<String>> collectionIdMap = new HashMap<>();
     for (GetRequest getRequest : getRequests) {
-      Collection<String> ids = collectionIdMap
-          .getOrDefault(getRequest.getSensorType(), new HashSet<>());
-      ids.add(getRequest.getGuid());
-      collectionIdMap.put(getRequest.getSensorType(), ids);
+      Optional<String> index = SolrUtilities
+          .getIndex(config.getIndexSupplier(), getRequest.getSensorType(), Optional.empty());
+      if (index.isPresent()) {
+        Collection<String> ids = collectionIdMap.getOrDefault(index.get(), new HashSet<>());
+        ids.add(getRequest.getGuid());
+        collectionIdMap.put(index.get(), ids);
+      }
     }
     try {
       List<Document> documents = new ArrayList<>();
