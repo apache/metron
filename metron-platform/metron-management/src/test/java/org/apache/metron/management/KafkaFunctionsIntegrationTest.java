@@ -18,7 +18,6 @@
 
 package org.apache.metron.management;
 
-import org.apache.commons.collections4.MapUtils;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.KafkaComponent;
@@ -48,13 +47,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import static java.util.Collections.singletonList;
-import static java.util.Collections.emptyList;
 
 /**
  * Tests the KafkaFunctions class.
@@ -461,7 +459,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     Map<String, String> properties = (Map<String, String>) run(expression);
     assertEquals(expected, properties.get(overriddenKey));
   }
-
+  
   /**
    * KAFKA_FIND should only return messages that satisfy a filter expression.
    */

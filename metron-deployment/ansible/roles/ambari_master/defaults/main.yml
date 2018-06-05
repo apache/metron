@@ -16,7 +16,7 @@
 #
 ---
 ambari_server_mem: 2048
-ambari_mpack_version: 0.4.3.0
+ambari_mpack_version: 0.5.0.0
 metron_mpack_name: metron_mpack-{{ ambari_mpack_version }}.tar.gz
 metron_mpack_path: "{{ playbook_dir }}/../../packaging/ambari/metron-mpack/target/{{ metron_mpack_name }}"
 elasticsearch_mpack_name: elasticsearch_mpack-{{ ambari_mpack_version }}.tar.gz

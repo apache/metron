@@ -28,6 +28,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.common.utils.SerDeUtils;
@@ -172,7 +173,7 @@ public class StellarStatisticsFunctionsTest {
     values.stream().forEach(val -> run(format("STATS_ADD (stats, %f)", val), variables));
   }
 
-  @Test(expected=IllegalStateException.class)
+  @Test(expected=ParseException.class)
   public void testOverflow() throws Exception {
    run(format("STATS_ADD(STATS_INIT(), %f)", (Double.MAX_VALUE + 1)), new HashMap<>());
   }
@@ -354,7 +355,7 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(summaryStats.getSumOfLogs(), (Double) actual, 0.1);
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test(expected = ParseException.class)
   public void testSumLogsWithWindow() throws Exception {
     statsInit(100);
     run("STATS_SUM_LOGS(stats)", variables);

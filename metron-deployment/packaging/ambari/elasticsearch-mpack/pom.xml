@@ -20,13 +20,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.metron.packaging.mpacks</groupId>
     <artifactId>elasticsearch_mpack</artifactId>
-    <version>0.4.3.0</version>
+    <version>0.5.0.0</version>
     <name>Elasticsearch Ambari Management Pack</name>
 
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-deployment</artifactId>
-        <version>0.4.3</version>
+        <version>0.5.0</version>
         <relativePath>../../..</relativePath>
     </parent>
 
