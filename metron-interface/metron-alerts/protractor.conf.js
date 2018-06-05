@@ -26,16 +26,15 @@ exports.config = {
   SELENIUM_PROMISE_MANAGER: false,
   allScriptsTimeout: 15000,
   specs: [
-    // './e2e/login/login.e2e-spec.ts',
-    // './e2e/alerts-list/alerts-list.e2e-spec.ts',
-    // './e2e/alerts-list/configure-table/configure-table.e2e-spec.ts',
-    // './e2e/alerts-list/save-search/save-search.e2e-spec.ts',
-    // './e2e/alerts-list/tree-view/tree-view.e2e-spec.ts',
-    // './e2e/alerts-list/alert-filters/alert-filters.e2e-spec.ts',
-    // './e2e/alerts-list/alert-status/alerts-list-status.e2e-spec.ts',
-    // The below file will fail until this issue is resolved in Protractor: https://github.com/angular/protractor/issues/4693
+    './e2e/login/login.e2e-spec.ts',
+    './e2e/alerts-list/alerts-list.e2e-spec.ts',
+    './e2e/alerts-list/configure-table/configure-table.e2e-spec.ts',
+    './e2e/alerts-list/save-search/save-search.e2e-spec.ts',
+    './e2e/alerts-list/tree-view/tree-view.e2e-spec.ts',
+    './e2e/alerts-list/alert-filters/alert-filters.e2e-spec.ts',
+    './e2e/alerts-list/alert-status/alerts-list-status.e2e-spec.ts',
     './e2e/alert-details/alert-status/alert-details-status.e2e-spec.ts',
-    // './e2e/alerts-list/meta-alerts/meta-alert.e2e-spec.ts'
+    './e2e/alerts-list/meta-alerts/meta-alert.e2e-spec.ts'
   ],
   capabilities: {
     'browserName': 'chrome',
