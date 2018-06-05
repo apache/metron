@@ -19,6 +19,8 @@ import {Injectable, EventEmitter}     from '@angular/core';
 import {Http, Headers, RequestOptions, Response} from '@angular/http';
 import {Router} from '@angular/router';
 import {Observable}     from 'rxjs/Observable';
+import { GlobalConfigService } from './global-config.service';
+import { DataSource } from './data-source';
 
 @Injectable()
 export class AuthenticationService {
@@ -30,7 +32,10 @@ export class AuthenticationService {
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  constructor(private http: Http, private router: Router) {
+  constructor(private http: Http,
+              private router: Router,
+              private globalConfigService: GlobalConfigService,
+              private dataSource: DataSource) {
     this.init();
   }
 
@@ -39,6 +44,7 @@ export class AuthenticationService {
         this.currentUser = response.text();
         if (this.currentUser) {
           this.onLoginEvent.emit(true);
+          this.dataSource.getDefaultAlertTableColumnNames();
         }
       }, error => {
         this.onLoginEvent.emit(false);
@@ -53,6 +59,8 @@ export class AuthenticationService {
         this.currentUser = response.text();
         this.router.navigateByUrl('/alerts-list');
         this.onLoginEvent.emit(true);
+        this.globalConfigService.get();
+        this.dataSource.getDefaultAlertTableColumnNames();
       },
       error => {
         onError(error);

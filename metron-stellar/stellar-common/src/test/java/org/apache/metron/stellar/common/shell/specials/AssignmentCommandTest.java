@@ -22,6 +22,7 @@ package org.apache.metron.stellar.common.shell.specials;
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
 import org.apache.metron.stellar.common.shell.StellarResult;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -155,12 +156,14 @@ public class AssignmentCommandTest {
    */
   @Test
   public void testErrorMessageWhenAssignmentFails() {
-    StellarResult result = command.execute("x := 0/0", executor);
+    String stmt = "0/0";
+    StellarResult result = command.execute("x := " + stmt, executor);
 
     // validate the result
     assertTrue(result.isError());
     assertTrue(result.getException().isPresent());
-    assertEquals(ArithmeticException.class, result.getException().get().getClass());
+    assertEquals(ParseException.class, result.getException().get().getClass());
+    assertTrue(result.getException().get().getMessage().contains(stmt));
   }
 
   @Test

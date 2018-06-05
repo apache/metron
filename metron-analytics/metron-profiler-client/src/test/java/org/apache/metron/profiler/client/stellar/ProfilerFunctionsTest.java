@@ -25,6 +25,7 @@ import org.apache.metron.profiler.StandAloneProfiler;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -145,12 +146,12 @@ public class ProfilerFunctionsTest {
     assertEquals(0, profiler.getRouteCount());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = ParseException.class)
   public void testProfilerInitNoArgs() {
     run("PROFILER_INIT()", StandAloneProfiler.class);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = ParseException.class)
   public void testProfilerInitInvalidArg() {
     run("PROFILER_INIT({ \"invalid\": 2 })", StandAloneProfiler.class);
   }
@@ -273,17 +274,17 @@ public class ProfilerFunctionsTest {
     assertEquals(0, profiler.getRouteCount());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = ParseException.class)
   public void testProfilerApplyWithNoArgs() {
     run("PROFILER_APPLY()", StandAloneProfiler.class);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = ParseException.class)
   public void testProfilerApplyWithInvalidArg() {
     run("PROFILER_APPLY(undefined)", StandAloneProfiler.class);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = ParseException.class)
   public void testProfilerApplyWithNullMessage() {
 
     // initialize the profiler
@@ -321,12 +322,12 @@ public class ProfilerFunctionsTest {
     assertEquals(Collections.emptyList(), measurement.get("groups"));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = ParseException.class)
   public void testProfilerFlushNoArgs() {
     run("PROFILER_FLUSH()", StandAloneProfiler.class);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = ParseException.class)
   public void testProfilerFlushInvalidArg() {
     run("PROFILER_FLUSH(undefined)", StandAloneProfiler.class);
   }

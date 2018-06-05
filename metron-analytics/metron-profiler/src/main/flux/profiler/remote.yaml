@@ -23,6 +23,9 @@ config:
     topology.auto-credentials: ${topology.auto-credentials}
     topology.message.timeout.secs: ${topology.message.timeout.secs}
     topology.max.spout.pending: ${topology.max.spout.pending}
+    topology.testing.always.try.serialize: ${topology.testing.always.try.serialize}
+    topology.fall.back.on.java.serialization: ${topology.fall.back.on.java.serialization}
+    topology.kryo.register: ${topology.kryo.register}
 
 components:
 

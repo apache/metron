@@ -19,11 +19,16 @@ package org.apache.metron.stellar.common;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -35,12 +40,38 @@ import java.util.concurrent.TimeUnit;
  * LFU cache.
  */
 public class CachingStellarProcessor extends StellarProcessor {
+
+  private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static ThreadLocal<Map<String, Set<String>> > variableCache = ThreadLocal.withInitial(() -> new HashMap<>());
+
+  /**
+   * A property that defines the maximum cache size.
+   */
   public static String MAX_CACHE_SIZE_PARAM = "stellar.cache.maxSize";
+
+  /**
+   * A property that defines the max time in minutes that elements are retained in the cache.
+   */
   public static String MAX_TIME_RETAIN_PARAM = "stellar.cache.maxTimeRetain";
 
+  /**
+   * A property that defines if cache usage stats should be recorded.
+   */
+  public static String RECORD_STATS = "stellar.cache.record.stats";
+
+  /**
+   * The cache key is based on the expression and input values.
+   */
   public static class Key {
+
+    /**
+     * The expression to execute.
+     */
     private String expression;
+
+    /**
+     * The variables that serve as input to the expression.
+     */
     private Map<String, Object> input;
 
     public Key(String expression, Map<String, Object> input) {
@@ -58,59 +89,98 @@ public class CachingStellarProcessor extends StellarProcessor {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) {
+        return true;
+      }
+
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
 
       Key key = (Key) o;
-
-      if (getExpression() != null ? !getExpression().equals(key.getExpression()) : key.getExpression() != null)
-        return false;
-      return getInput() != null ? getInput().equals(key.getInput()) : key.getInput() == null;
-
+      return new EqualsBuilder()
+              .append(expression, key.expression)
+              .append(input, key.input)
+              .isEquals();
     }
 
     @Override
     public int hashCode() {
-      int result = getExpression() != null ? getExpression().hashCode() : 0;
-      result = 31 * result + (getInput() != null ? getInput().hashCode() : 0);
-      return result;
+      return new HashCodeBuilder(17, 37)
+              .append(expression)
+              .append(input)
+              .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+      return new ToStringBuilder(this)
+              .append("expression", expression)
+              .append("input", input)
+              .toString();
     }
   }
 
-
   /**
-   * Parses and evaluates the given Stellar expression, {@code expression}.  Results will be taken from a cache if possible.
+   * Parses and evaluates the given Stellar expression, {@code expression}. Results will be taken
+   * from a cache if possible.
    *
-   * @param expression             The Stellar expression to parse and evaluate.
-   * @param variableResolver The {@link VariableResolver} to determine values of variables used in the Stellar expression, {@code expression}.
-   * @param functionResolver The {@link FunctionResolver} to determine values of functions used in the Stellar expression, {@code expression}.
-   * @param context          The context used during validation.
+   * @param expression The Stellar expression to parse and evaluate.
+   * @param variableResolver The {@link VariableResolver} to determine values of variables used in
+   *     the Stellar expression, {@code expression}.
+   * @param functionResolver The {@link FunctionResolver} to determine values of functions used in
+   *     the Stellar expression, {@code expression}.
+   * @param context The context used during validation.
    * @return The value of the evaluated Stellar expression, {@code expression}.
    */
   @Override
-  public Object parse(String expression, VariableResolver variableResolver, FunctionResolver functionResolver, Context context) {
+  public Object parse(
+      String expression,
+      VariableResolver variableResolver,
+      FunctionResolver functionResolver,
+      Context context) {
+
     Optional<Object> cacheOpt = context.getCapability(Context.Capabilities.CACHE, false);
     if(cacheOpt.isPresent()) {
+
+      // use the cache
       Cache<Key, Object> cache = (Cache<Key, Object>) cacheOpt.get();
       Key k = toKey(expression, variableResolver);
       return cache.get(k, x -> parseUncached(x.expression, variableResolver, functionResolver, context));
-    }
-    else {
+
+    } else {
+
+      LOG.debug("No cache present.");
       return parseUncached(expression, variableResolver, functionResolver, context);
     }
   }
 
   protected Object parseUncached(String expression, VariableResolver variableResolver, FunctionResolver functionResolver, Context context) {
+    LOG.debug("Executing Stellar; expression={}", expression);
     return super.parse(expression, variableResolver, functionResolver, context);
   }
 
-  private Key toKey(String expression, VariableResolver resolver) {
+  /**
+   * Create a cache key using the expression and all variables used by that expression.
+   *
+   * @param expression The Stellar expression.
+   * @param resolver The variable resolver.
+   * @return A key with which to do a cache lookup.
+   */
+  protected Key toKey(String expression, VariableResolver resolver) {
+
+    // fetch only the variables used in the expression
     Set<String> variablesUsed = variableCache.get().computeIfAbsent(expression, this::variablesUsed);
+
+    // resolve each of the variables used by the expression
     Map<String, Object> input = new HashMap<>();
     for(String v : variablesUsed) {
       input.computeIfAbsent(v, resolver::resolve);
     }
-    return new Key(expression, input);
+
+    Key cacheKey = new Key(expression, input);
+    LOG.debug("Created cache key; {}", cacheKey);
+    return cacheKey;
   }
 
   /**
@@ -119,18 +189,39 @@ public class CachingStellarProcessor extends StellarProcessor {
    * @return A cache.
    */
   public static Cache<Key, Object> createCache(Map<String, Object> config) {
+
+    // the cache configuration is required
     if(config == null) {
+      LOG.debug("Cannot create cache; missing cache configuration");
       return null;
     }
+
+    // max cache size is required
     Long maxSize = getParam(config, MAX_CACHE_SIZE_PARAM, null, Long.class);
-    Integer maxTimeRetain = getParam(config, MAX_TIME_RETAIN_PARAM, null, Integer.class);
-    if(maxSize == null || maxTimeRetain == null || maxSize <= 0 || maxTimeRetain <= 0) {
+    if(maxSize == null || maxSize <= 0) {
+      LOG.error("Cannot create cache; missing or invalid configuration; {} = {}", MAX_CACHE_SIZE_PARAM, maxSize);
       return null;
     }
-    return Caffeine.newBuilder()
-                   .maximumSize(maxSize)
-                   .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
-                   .build();
+
+    // max time retain is required
+    Integer maxTimeRetain = getParam(config, MAX_TIME_RETAIN_PARAM, null, Integer.class);
+    if(maxTimeRetain == null || maxTimeRetain <= 0) {
+      LOG.error("Cannot create cache; missing or invalid configuration; {} = {}", MAX_TIME_RETAIN_PARAM, maxTimeRetain);
+      return null;
+    }
+
+    Caffeine<Object, Object> cache = Caffeine
+            .newBuilder()
+            .maximumSize(maxSize)
+            .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES);
+
+    // record stats is optional
+    Boolean recordStats = getParam(config, RECORD_STATS, false, Boolean.class);
+    if(recordStats) {
+      cache.recordStats();
+    }
+
+    return cache.build();
   }
 
   private static <T> T getParam(Map<String, Object> config, String key, T defaultVal, Class<T> clazz) {

@@ -72,4 +72,9 @@ public class IndexingWriterConfiguration implements WriterConfiguration{
   public boolean isDefault(String sensorName) {
     return config.orElse(new IndexingConfigurations()).isDefault(sensorName, writerName);
   }
+
+  @Override
+  public String getFieldNameConverter(String sensorName) {
+    return config.orElse(new IndexingConfigurations()).getFieldNameConverter(sensorName, writerName);
+  }
 }

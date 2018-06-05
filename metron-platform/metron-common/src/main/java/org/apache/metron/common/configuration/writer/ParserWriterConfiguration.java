@@ -101,4 +101,10 @@ public class ParserWriterConfiguration implements WriterConfiguration {
   public boolean isDefault(String sensorName) {
     return false;
   }
+
+  @Override
+  public String getFieldNameConverter(String sensorName) {
+    // not applicable
+    return null;
+  }
 }
