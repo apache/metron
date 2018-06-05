@@ -17,6 +17,8 @@
  */
 package org.apache.metron.solr.integration;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -78,7 +80,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     config.setMaxSearchGroups(100);
     config.setGlobalConfigSupplier( () ->
         new HashMap<String, Object>() {{
-          put("solr.zookeeper", solrComponent.getZookeeperUrl());
+          put(SOLR_ZOOKEEPER, solrComponent.getZookeeperUrl());
         }}
     );
 

@@ -18,6 +18,8 @@
 
 package org.apache.metron.solr.dao;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,7 +52,7 @@ public class SolrMetaAlertDaoTest {
   public static void setupBefore() {
     accessConfig.setGlobalConfigSupplier(() ->
         new HashMap<String, Object>() {{
-          put("solr.zookeeper", "zookeeper:2181");
+          put(SOLR_ZOOKEEPER, "zookeeper:2181");
         }}
     );
   }

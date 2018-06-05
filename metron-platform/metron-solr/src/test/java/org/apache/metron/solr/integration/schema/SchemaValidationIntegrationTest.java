@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 import static org.mockito.Mockito.mock;
 
 public class SchemaValidationIntegrationTest {
@@ -50,7 +51,7 @@ public class SchemaValidationIntegrationTest {
 
   public static Map<String, Object> getGlobalConfig(String sensorType, SolrComponent component) {
     Map<String, Object> globalConfig = new HashMap<>();
-    globalConfig.put("solr.zookeeper", component.getZookeeperUrl());
+    globalConfig.put(SOLR_ZOOKEEPER, component.getZookeeperUrl());
     return globalConfig;
   }
 

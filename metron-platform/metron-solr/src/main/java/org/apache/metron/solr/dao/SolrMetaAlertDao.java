@@ -133,7 +133,7 @@ public class SolrMetaAlertDao implements MetaAlertDao {
         Constants.SENSOR_TYPE
     );
 
-    SolrClient solrClient = solrDao.getSolrClient(solrDao.getZkHost());
+    SolrClient solrClient = solrDao.getSolrClient(solrDao.getZkHosts());
     this.metaAlertSearchDao = new SolrMetaAlertSearchDao(solrClient, solrDao.getSolrSearchDao());
     this.metaAlertRetrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao);
     this.metaAlertUpdateDao = new SolrMetaAlertUpdateDao(

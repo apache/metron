@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -65,7 +66,7 @@ public class SolrUpdateDaoTest {
   public static void setupBefore() {
     accessConfig.setGlobalConfigSupplier(() ->
         new HashMap<String, Object>() {{
-          put("solr.zookeeper", "zookeeper:2181");
+          put(SOLR_ZOOKEEPER, "zookeeper:2181");
         }}
     );
     IndexingConfigurations indexingConfigs = mock(IndexingConfigurations.class);

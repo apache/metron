@@ -18,6 +18,7 @@
 package org.apache.metron.solr.dao;
 
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrException;
 import org.junit.Before;
@@ -44,14 +45,12 @@ public class SolrColumnMetadataTest {
   @Rule
   public final ExpectedException exception = ExpectedException.none();
 
-  private static final String zkHost = "zookeeper:2181";
-
   private SolrColumnMetadataDao solrColumnMetadataDao;
 
   @SuppressWarnings("unchecked")
   @Before
   public void setUp() throws Exception {
-    solrColumnMetadataDao = new SolrColumnMetadataDao(zkHost);
+    solrColumnMetadataDao = new SolrColumnMetadataDao(null);
   }
 
   @Test
@@ -105,7 +104,7 @@ public class SolrColumnMetadataTest {
       put("type", "plong");
     }});
 
-    solrColumnMetadataDao = spy(new SolrColumnMetadataDao(zkHost));
+    solrColumnMetadataDao = spy(new SolrColumnMetadataDao(null));
     doReturn(broFields).when(solrColumnMetadataDao).getIndexFields("bro");
     doReturn(snortFields).when(solrColumnMetadataDao).getIndexFields("snort");
 
@@ -129,7 +128,7 @@ public class SolrColumnMetadataTest {
     exception.expect(IOException.class);
     exception.expectMessage("solr exception");
 
-    solrColumnMetadataDao = spy(new SolrColumnMetadataDao(zkHost));
+    solrColumnMetadataDao = spy(new SolrColumnMetadataDao(null));
     doThrow(new SolrServerException("solr exception")).when(solrColumnMetadataDao).getIndexFields("bro");
 
     solrColumnMetadataDao.getColumnMetadata(Arrays.asList("bro", "snort"));
@@ -137,7 +136,7 @@ public class SolrColumnMetadataTest {
 
   @Test
   public void getColumnMetadataShouldHandle400Exception() throws Exception {
-    solrColumnMetadataDao = spy(new SolrColumnMetadataDao(zkHost));
+    solrColumnMetadataDao = spy(new SolrColumnMetadataDao(null));
     SolrException solrException = new SolrException(SolrException.ErrorCode.BAD_REQUEST, "solr exception");
 
     doThrow(solrException).when(solrColumnMetadataDao).getIndexFields("bro");

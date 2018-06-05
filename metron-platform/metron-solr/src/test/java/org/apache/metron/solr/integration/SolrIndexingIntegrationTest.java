@@ -17,6 +17,8 @@
  */
 package org.apache.metron.solr.integration;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+
 import com.google.common.base.Function;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +62,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
                   String testZookeeperUrl = topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY);
                   Configurations configurations = SampleUtil.getSampleConfigs();
                   Map<String, Object> globalConfig = configurations.getGlobalConfig();
-                  globalConfig.put("solr.zookeeper", solrComponent.getZookeeperUrl());
+                  globalConfig.put(SOLR_ZOOKEEPER, solrComponent.getZookeeperUrl());
                   ConfigurationsUtils.writeGlobalConfigToZookeeper(JSONUtils.INSTANCE.toJSONPretty(globalConfig), testZookeeperUrl);
                 } catch (Exception e) {
                   e.printStackTrace();

@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.metron.indexing.dao.ColumnMetadataDao;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
@@ -61,10 +62,10 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
     solrTypeMap = Collections.unmodifiableMap(fieldTypeMap);
   }
 
-  private String zkHost;
+  private transient SolrClient client;
 
-  public SolrColumnMetadataDao(String zkHost) {
-    this.zkHost = zkHost;
+  public SolrColumnMetadataDao(SolrClient client) {
+    this.client = client;
   }
 
   @Override
@@ -115,14 +116,11 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
 
   protected List<Map<String, Object>> getIndexFields(String index)
       throws IOException, SolrServerException {
-    CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(zkHost).build();
-    client.setDefaultCollection(index);
-
     List<Map<String, Object>> indexFields = new ArrayList<>();
 
     // Get all the fields in use, including dynamic fields
     LukeRequest lukeRequest = new LukeRequest();
-    LukeResponse lukeResponse = lukeRequest.process(client);
+    LukeResponse lukeResponse = lukeRequest.process(client, index);
     for (Entry<String, LukeResponse.FieldInfo> field : lukeResponse.getFieldInfo().entrySet()) {
       Map<String, Object> fieldData = new HashMap<>();
       fieldData.put("name", field.getValue().getName());
@@ -132,7 +130,7 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
     }
 
     // Get all the schema fields
-    SchemaRepresentation schemaRepresentation = new SchemaRequest().process(client)
+    SchemaRepresentation schemaRepresentation = new SchemaRequest().process(client, index)
         .getSchemaRepresentation();
     indexFields.addAll(schemaRepresentation.getFields());
 
