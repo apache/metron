@@ -367,18 +367,15 @@ public class KafkaFunctions {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-
       String topic = ConversionUtils.convert(args.get(0), String.class);
 
       List<String> messages;
       if(args.get(1) instanceof String) {
-
         // a single message needs sent
         String msg = ConversionUtils.convert(args.get(1), String.class);
         messages = Collections.singletonList(msg);
 
       } else {
-
         // a list of messages; all need sent
         messages = ConversionUtils.convert(args.get(1), List.class);
       }
@@ -406,7 +403,6 @@ public class KafkaFunctions {
      * @param properties The properties to use with Kafka.
      */
     private void putMessages(String topic, List<String> messages, Properties properties) {
-
       LOG.debug("KAFKA_PUT sending messages; topic={}, count={}", topic, messages.size());
       try (KafkaProducer<String, String> producer = new KafkaProducer<>(properties)) {
 
@@ -435,17 +431,14 @@ public class KafkaFunctions {
      * @return
      */
     private void waitForResponse(Future<RecordMetadata> future, Properties properties) {
-
       int maxWait = getMaxWait(properties);
       try {
         // wait for the record and then render it for the user
         RecordMetadata record = future.get(maxWait, TimeUnit.MILLISECONDS);
-
         LOG.debug("KAFKA_PUT message sent; topic={}, partition={}, offset={}",
                 record.topic(), record.partition(), record.offset());
 
       } catch(TimeoutException | InterruptedException | ExecutionException e) {
-
         LOG.error("KAFKA_PUT message send failure", e);
       }
     }
