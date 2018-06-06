@@ -201,16 +201,23 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations,
       Iterable<Tuple> tuples, List<JSONObject> messages) {
     BulkWriterResponse writerResponse = new BulkWriterResponse();
-
     List<Map.Entry<Tuple, Future>> results = new ArrayList<>();
     int i = 0;
     for (Tuple tuple : tuples) {
       JSONObject message = messages.get(i++);
+      String jsonMessage;
+      try {
+         jsonMessage = message.toJSONString();
+      } catch (Throwable t) {
+        writerResponse.addError(t, tuple);
+        continue;
+      }
       Future future = kafkaProducer
-          .send(new ProducerRecord<String, String>(kafkaTopic, message.toJSONString()));
+          .send(new ProducerRecord<String, String>(kafkaTopic, jsonMessage));
       // we want to manage the batching
       results.add(new AbstractMap.SimpleEntry<>(tuple, future));
     }
+
     try {
       // ensures all Future.isDone() == true
       kafkaProducer.flush();
@@ -218,6 +225,7 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
       writerResponse.addAllErrors(e, tuples);
       return writerResponse;
     }
+
     for (Map.Entry<Tuple, Future> kv : results) {
       try {
         kv.getValue().get();
