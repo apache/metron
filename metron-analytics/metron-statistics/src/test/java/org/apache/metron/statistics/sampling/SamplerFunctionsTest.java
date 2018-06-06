@@ -22,6 +22,7 @@ package org.apache.metron.statistics.sampling;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -69,7 +70,7 @@ public class SamplerFunctionsTest {
     Assert.assertEquals(10, s.getSize());
   }
 
-  @Test(expected=IllegalStateException.class)
+  @Test(expected=ParseException.class)
   public void testInvalidInit(){
     String stmt = "SAMPLE_INIT(size)";
     Sampler s = (Sampler) StellarProcessorUtils.run(stmt, ImmutableMap.of("size", -10 ));

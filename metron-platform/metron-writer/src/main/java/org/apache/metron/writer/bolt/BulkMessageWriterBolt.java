@@ -234,39 +234,85 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
 
     try
     {
-      JSONObject message = (JSONObject) messageGetStrategy.get(tuple);
+      JSONObject message = getMessage(tuple);
+      if(message == null) {
+        handleMissingMessage(tuple);
+        return;
+      }
+
       String sensorType = MessageUtils.getSensorType(message);
+      if(sensorType == null) {
+        handleMissingSensorType(tuple, message);
+        return;
+      }
+
       LOG.trace("Writing enrichment message: {}", message);
       WriterConfiguration writerConfiguration = configurationTransformation
           .apply(getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations()));
-      if(sensorType == null) {
-        //sensor type somehow ended up being null.  We want to error this message directly.
-        getWriterComponent().error("null"
-                             , new Exception("Sensor type is not specified for message "
-                                            + message.toJSONString()
-                                            )
-                             , ImmutableList.of(tuple)
-                             , messageGetStrategy
-                             );
-      }
-      else {
-        if (writerConfiguration.isDefault(sensorType)) {
-          //want to warn, but not fail the tuple
-          collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
-        }
 
-        getWriterComponent().write(sensorType
-                , tuple
-                , message
-                , bulkMessageWriter
-                , writerConfiguration
-                , messageGetStrategy
-        );
+      if (writerConfiguration.isDefault(sensorType)) {
+        //want to warn, but not fail the tuple
+        collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
       }
+
+      getWriterComponent().write(sensorType
+              , tuple
+              , message
+              , bulkMessageWriter
+              , writerConfiguration
+              , messageGetStrategy
+      );
     }
     catch(Exception e) {
       throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);
     }
+  }
+
+  /**
+   * Retrieves the JSON message contained in a tuple.
+   *
+   * @param tuple The tuple containing a JSON message.
+   * @return The JSON message contained in the tuple. If none, returns null.
+   */
+  private JSONObject getMessage(Tuple tuple) {
+    JSONObject message = null;
+    try {
+      message = (JSONObject) messageGetStrategy.get(tuple);
+
+    } catch(Throwable e) {
+      LOG.error("Unable to retrieve message from tuple", e);
+    }
+
+    return message;
+  }
+
+  /**
+   * Handles error processing when a message is missing a sensor type.
+   *
+   * @param tuple The tuple.
+   * @param message The message with no sensor type.
+   */
+  private void handleMissingSensorType(Tuple tuple, JSONObject message) {
+    // sensor type somehow ended up being null.  We want to error this message directly.
+    LOG.debug("Message is missing sensor type");
+    getWriterComponent().error("null",
+            new Exception("Sensor type is not specified for message " + message.toJSONString()),
+            ImmutableList.of(tuple),
+            messageGetStrategy
+    );
+  }
+
+  /**
+   * Handles error processing when a tuple does not contain a valid message.
+   *
+   * @param tuple The tuple.
+   */
+  private void handleMissingMessage(Tuple tuple) {
+    LOG.debug("Unable to extract message from tuple; expected valid JSON");
+    getWriterComponent().error(
+            new Exception("Unable to extract message from tuple; expected valid JSON"),
+            ImmutableList.of(tuple)
+    );
   }
 
   @Override

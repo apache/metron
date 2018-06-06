@@ -137,35 +137,52 @@ for i in "$@"; do
   esac
 done
 
-WORKDIR="~/tmp"
 
 # ensure all required values are set
 if [ -z "$VERSION" ]; then
-	echo "Missing -v/--version is is required"
-	exit 1
+  help
+  echo "Missing -v/--version is is required"
+  exit 1
 fi
 if [ -z "$START" ]; then
-	echo "Missing -s/--start which is required"
-	exit 1
+  help
+  echo "Missing -s/--start which is required"
+  exit 1
 fi
 if [ -z "$END" ]; then
-	echo "Missing -e/--end which is required"
-	exit 1
+  help
+  echo "Missing -e/--end which is required"
+  exit 1
 fi
 if [ -z "$REPO" ]; then
-	echo "Missing -r/--repo which is required"
-	exit 1
+  help
+  echo "Missing -r/--repo which is required"
+  exit 1
 fi
 if [ -z "$BRANCH" ]; then
-	echo "Missing -b/--branch which is required"
-	exit 1
+  help
+  echo "Missing -b/--branch which is required"
+  exit 1
 fi
 
-# clone the metron repo and fetch all tags
-git clone $REPO "metron-$VERSION"
+TMPDIR="$HOME/tmp"
+WORKDIR="$TMPDIR/metron-$VERSION"
+
+# warn the user if the working directory exists
+if [ -d "$WORKDIR" ]; then
+  read -p "  directory exists [$WORKDIR].  overwrite existing repo? [yN] " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    exit 1
+  fi
+fi
+
+# fetch the repo and all tags
+rm -rf "$WORKDIR"
+git clone $REPO "$WORKDIR"
+cd "$WORKDIR"
 git checkout $BRANCH
-cd "$WORKDIR/metron-$VERSION"
-git fetch --all --tags
+git fetch --tags
 
 # find all JIRAs that have been committed since the last release
 GET_JIRAS="git log $START..$END --oneline | grep -E -o 'METRON[- ]*[0-9]+'"
@@ -177,21 +194,21 @@ printf "$FORMAT_STR" "JIRA" "STATUS" "FIX VERSION" "ASSIGNEE" "FIX"
 # for each JIRA since the last release tag...
 eval $GET_JIRAS | while read JIRA ; do
 
-	# fetch the JIRA content
-	URL="https://issues.apache.org/jira/si/jira.issueviews:issue-xml/$JIRA/$JIRA.xml"
-        CONTENT=`curl -s $URL`
+  # fetch the JIRA content
+  URL="https://issues.apache.org/jira/si/jira.issueviews:issue-xml/$JIRA/$JIRA.xml"
+  CONTENT=`curl -s $URL`
 
-	# painfully extract some fields
-	STATUS=`echo "$CONTENT" | grep "<status[^>]*>" | sed 's/^.*<status[^>]*>//' | sed 's/<.status>.*$//'`
-	ASSIGNEE=`echo "$CONTENT" | grep "<assignee[^>]*>" | sed 's/^.*<assignee[^>]*>//' | sed 's/<.assignee>.*$//'`
-	FIXV=`echo "$CONTENT" | grep "<fixVersion[^>]*>" | sed 's/^.*<fixVersion[^>]*>//' | sed 's/<.fixVersion>.*$//'`
+  # painfully extract some fields
+  STATUS=`echo "$CONTENT" | grep "<status[^>]*>" | sed 's/^.*<status[^>]*>//' | sed 's/<.status>.*$//'`
+  ASSIGNEE=`echo "$CONTENT" | grep "<assignee[^>]*>" | sed 's/^.*<assignee[^>]*>//' | sed 's/<.assignee>.*$//'`
+  FIXV=`echo "$CONTENT" | grep "<fixVersion[^>]*>" | sed 's/^.*<fixVersion[^>]*>//' | sed 's/<.fixVersion>.*$//'`
 
-	# the link is only populated, if there is something to fix
-	LINK=""
-	if [ "$FIXV" != "$VERSION" ] || [ "$STATUS" != "Done" ]; then
-		LINK="https://issues.apache.org/jira/browse/$JIRA"
-	fi
+  # the link is only populated, if there is something to fix
+  LINK=""
+  if [ "$FIXV" != "$VERSION" ] || [ "$STATUS" != "Done" ]; then
+    LINK="https://issues.apache.org/jira/browse/$JIRA"
+  fi
 
-	# show the JIRA
-      	printf "$FORMAT_STR" "$JIRA" "$STATUS" "$FIXV" "$ASSIGNEE" "$LINK"
+  # show the JIRA
+  printf "$FORMAT_STR" "$JIRA" "$STATUS" "$FIXV" "$ASSIGNEE" "$LINK"
 done
