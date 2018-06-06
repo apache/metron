@@ -164,6 +164,6 @@ public class RegexRoutingTransformationTest {
 
   @Test
   public void testBadRegex() throws Exception{
-    Assert.assertNull(transform("metron", routeBadRegex));
+    Assert.assertEquals("option_2", transform("metron", routeBadRegex));
   }
 }
