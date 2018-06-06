@@ -161,7 +161,11 @@ Example Stellar Filter which includes messages which contain a the `field1` fiel
 then it is assumed to be a regex and will match any topic matching the pattern (e.g. `/bro.*/` would match `bro_cust0`, `bro_cust1` and `bro_cust2`)
 * `readMetadata` : Boolean indicating whether to read metadata or not (`false` by default).  See below for a discussion about metadata.
 * `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (`false` by default).  See below for a discussion about metadata.
-* `parserConfig` : A JSON Map representing the parser implementation specific configuration.
+* `parserConfig` : A JSON Map representing the parser implementation specific configuration. Also include batch sizing and timeout for writer configuration here.
+  * `batchSize` : Integer indicating number of records to batch together before sending to the writer. (default to `15`)
+  * `batchTimeout` : The timeout after which a batch will be flushed even if batchSize has not been met.  Optional.
+    If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm
+    parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
 * `spoutParallelism` : The kafka spout parallelism (default to `1`).  This can be overridden on the command line.
 * `spoutNumTasks` : The number of tasks for the spout (default to `1`). This can be overridden on the command line.

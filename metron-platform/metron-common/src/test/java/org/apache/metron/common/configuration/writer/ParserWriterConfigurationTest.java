@@ -16,14 +16,19 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.writer;
+package org.apache.metron.common.configuration.writer;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+import java.io.IOException;
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class ParserWriterConfigurationTest {
+
   @Test
   public void testDefaultBatchSize() {
     ParserWriterConfiguration config = new ParserWriterConfiguration( new ParserConfigurations() );
@@ -35,4 +40,33 @@ public class ParserWriterConfigurationTest {
     ParserWriterConfiguration config = new ParserWriterConfiguration( new ParserConfigurations() );
     Assert.assertEquals("foo", config.getIndex("foo"));
   }
+
+  /**
+   * {
+   *   "parserClassName":"some-parser",
+   *   "sensorTopic":"testtopic",
+   *   "parserConfig": {
+   *     "batchSize" : 5,
+   *     "batchTimeout" : "10000",
+   *     "index" : "modified-index",
+   *     "enabled" : "false"
+   *   }
+   * }
+   */
+  @Multiline
+  private static String configJson;
+
+  @Test
+  public void pulls_writer_configuration_from_parserConfig() throws IOException {
+    ParserConfigurations parserConfigurations = new ParserConfigurations();
+    final String sensorName = "some-sensor";
+    parserConfigurations.updateSensorParserConfig("some-sensor", configJson.getBytes());
+    ParserWriterConfiguration writerConfiguration = new ParserWriterConfiguration(
+        parserConfigurations);
+    assertThat("batch size should match", writerConfiguration.getBatchSize(sensorName), equalTo(5));
+    assertThat("batch timeout should match", writerConfiguration.getBatchTimeout(sensorName), equalTo(10000));
+    assertThat("index should match", writerConfiguration.getIndex(sensorName), equalTo("modified-index"));
+    assertThat("enabled should match", writerConfiguration.isEnabled(sensorName), equalTo(false));
+  }
+
 }

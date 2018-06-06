@@ -17,9 +17,27 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
@@ -42,19 +60,6 @@ import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Matchers;
 import org.mockito.Mock;
-
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
 
 public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
 
@@ -119,9 +124,9 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
 
   @Test
   public void testSourceTypeMissing() throws Exception {
-
     // setup the bolt
-    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
+    BulkMessageWriterBolt<IndexingConfigurations> bulkMessageWriterBolt = new BulkMessageWriterBolt<IndexingConfigurations>(
+          "zookeeperUrl", "INDEXING")
             .withBulkMessageWriter(bulkMessageWriter)
             .withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
             .withMessageGetterField("message");
@@ -148,9 +153,11 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
 
   @Test
   public void testFlushOnBatchSize() throws Exception {
-    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
-            .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
-            .withMessageGetterField("message");
+    BulkMessageWriterBolt<IndexingConfigurations> bulkMessageWriterBolt = new BulkMessageWriterBolt<IndexingConfigurations>(
+        "zookeeperUrl", "INDEXING")
+        .withBulkMessageWriter(bulkMessageWriter)
+        .withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
+        .withMessageGetterField("message");
     bulkMessageWriterBolt.setCuratorFramework(client);
     bulkMessageWriterBolt.setZKCache(cache);
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType,
@@ -207,9 +214,12 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   @Test
   public void testFlushOnBatchTimeout() throws Exception {
     FakeClock clock = new FakeClock();
-    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
-            .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
-            .withMessageGetterField("message").withBatchTimeoutDivisor(3);
+    BulkMessageWriterBolt<IndexingConfigurations> bulkMessageWriterBolt = new BulkMessageWriterBolt<IndexingConfigurations>(
+        "zookeeperUrl", "INDEXING")
+        .withBulkMessageWriter(bulkMessageWriter)
+        .withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
+        .withMessageGetterField("message")
+        .withBatchTimeoutDivisor(3);
     bulkMessageWriterBolt.setCuratorFramework(client);
     bulkMessageWriterBolt.setZKCache(cache);
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType,
@@ -251,9 +261,11 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   @Test
   public void testFlushOnTickTuple() throws Exception {
     FakeClock clock = new FakeClock();
-    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
-            .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
-            .withMessageGetterField("message");
+    BulkMessageWriterBolt<IndexingConfigurations> bulkMessageWriterBolt = new BulkMessageWriterBolt<IndexingConfigurations>(
+        "zookeeperUrl", "INDEXING")
+        .withBulkMessageWriter(bulkMessageWriter)
+        .withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
+        .withMessageGetterField("message");
     bulkMessageWriterBolt.setCuratorFramework(client);
     bulkMessageWriterBolt.setZKCache(cache);
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType
@@ -309,7 +321,8 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     FakeClock clock = new FakeClock();
 
     // setup the bolt
-    BulkMessageWriterBolt bolt = new BulkMessageWriterBolt("zookeeperUrl")
+    BulkMessageWriterBolt<IndexingConfigurations> bolt = new BulkMessageWriterBolt<IndexingConfigurations>(
+        "zookeeperUrl", "INDEXING")
             .withBulkMessageWriter(bulkMessageWriter)
             .withMessageGetter(MessageGetters.JSON_FROM_POSITION.name())
             .withMessageGetterField("message");
@@ -331,4 +344,5 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), any());
     verify(outputCollector, times(1)).ack(tuple);
   }
+
 }

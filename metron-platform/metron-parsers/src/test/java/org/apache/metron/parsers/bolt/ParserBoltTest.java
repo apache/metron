@@ -17,45 +17,58 @@
  */
 package org.apache.metron.parsers.bolt;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
+import org.apache.metron.parsers.BasicParser;
+import org.apache.metron.parsers.interfaces.MessageFilter;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
-import com.google.common.collect.ImmutableList;
-import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.common.writer.BulkMessageWriter;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.writer.BulkWriterResponse;
-import org.apache.metron.parsers.BasicParser;
-import org.apache.metron.test.bolt.BaseBoltTest;
-import org.apache.metron.parsers.interfaces.MessageFilter;
-import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.metron.common.writer.MessageWriter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
 
 public class ParserBoltTest extends BaseBoltTest {
 
@@ -285,33 +298,6 @@ public class ParserBoltTest extends BaseBoltTest {
     parserBolt.execute(tuple);
     verify(outputCollector, times(1)).reportError(any(Throwable.class));
   }
-@Test
-public void testImplicitBatchOfOne() throws Exception {
-
-  String sensorType = "yaf";
-
-  ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
-    @Override
-    protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
-      return ParserBoltTest.createUpdater();
-    }
-  };
-
-  parserBolt.setCuratorFramework(client);
-  parserBolt.setZKCache(cache);
-  parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
-  verify(parser, times(1)).init();
-  verify(batchWriter, times(1)).init(any(), any(), any());
-  when(parser.validate(any())).thenReturn(true);
-  when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
-  when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
-  BulkWriterResponse response = new BulkWriterResponse();
-  response.addSuccess(t1);
-  when(batchWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(Collections.singleton(t1)), any())).thenReturn(response);
-  parserBolt.withMessageFilter(filter);
-  parserBolt.execute(t1);
-  verify(outputCollector, times(1)).ack(t1);
-}
 
   /**
    {
@@ -343,7 +329,7 @@ public void testImplicitBatchOfOne() throws Exception {
       }
       @Override
       protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
-        return ParserBoltTest.createUpdater();
+        return ParserBoltTest.createUpdater(Optional.of(1));
       }
     };
 
@@ -459,7 +445,7 @@ public void testImplicitBatchOfOne() throws Exception {
 
       @Override
       protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
-        return ParserBoltTest.createUpdater();
+        return ParserBoltTest.createUpdater(Optional.of(1));
       }
     };
 
@@ -474,6 +460,87 @@ public void testImplicitBatchOfOne() throws Exception {
   }
 
   @Test
+  public void testDefaultBatchSize() throws Exception {
+
+    String sensorType = "yaf";
+
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
+      @Override
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        // this uses default batch size
+        return ParserBoltTest.createUpdater();
+      }
+    };
+
+    parserBolt.setCuratorFramework(client);
+    parserBolt.setZKCache(cache);
+    parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
+    verify(parser, times(1)).init();
+    verify(batchWriter, times(1)).init(any(), any(), any());
+    when(parser.validate(any())).thenReturn(true);
+    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
+    when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
+    BulkWriterResponse response = new BulkWriterResponse();
+    Tuple[] uniqueTuples = new Tuple[ParserConfigurations.DEFAULT_KAFKA_BATCH_SIZE];
+    for (int i=0; i < uniqueTuples.length; i++) {
+      uniqueTuples[i] = mock(Tuple.class);
+      response.addSuccess(uniqueTuples[i]);
+    }
+    when(batchWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(new HashSet<>(Arrays.asList(uniqueTuples))), any())).thenReturn(response);
+    parserBolt.withMessageFilter(filter);
+    for (Tuple tuple : uniqueTuples) {
+      parserBolt.execute(tuple);
+    }
+    for (Tuple uniqueTuple : uniqueTuples) {
+      verify(outputCollector, times(1)).ack(uniqueTuple);
+    }
+  }
+
+  @Test
+  public void testLessRecordsThanDefaultBatchSize() throws Exception {
+
+    String sensorType = "yaf";
+
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
+      @Override
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        // this uses default batch size
+        return ParserBoltTest.createUpdater();
+      }
+    };
+
+    parserBolt.setCuratorFramework(client);
+    parserBolt.setZKCache(cache);
+    parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
+    verify(parser, times(1)).init();
+    verify(batchWriter, times(1)).init(any(), any(), any());
+    when(parser.validate(any())).thenReturn(true);
+    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
+    when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
+    int oneLessThanDefaultBatchSize = ParserConfigurations.DEFAULT_KAFKA_BATCH_SIZE - 1;
+    BulkWriterResponse response = new BulkWriterResponse();
+    Tuple[] uniqueTuples = new Tuple[oneLessThanDefaultBatchSize];
+    for (int i=0; i < uniqueTuples.length; i++) {
+      uniqueTuples[i] = mock(Tuple.class);
+      response.addSuccess(uniqueTuples[i]);
+    }
+    parserBolt.withMessageFilter(filter);
+    for (Tuple tuple : uniqueTuples) {
+      parserBolt.execute(tuple);
+    }
+    // should have no acking yet - batch size not fulfilled
+    verify(outputCollector, never()).ack(any(Tuple.class));
+    response.addSuccess(t1); // used to achieve count in final verify
+    Iterable<Tuple> tuples = new HashSet(Arrays.asList(uniqueTuples)) {{
+      add(t1);
+    }};
+    when(batchWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(tuples), any())).thenReturn(response);
+    // meet batch size requirement and now it should ack
+    parserBolt.execute(t1);
+    verify(outputCollector, times(ParserConfigurations.DEFAULT_KAFKA_BATCH_SIZE)).ack(any(Tuple.class));
+  }
+
+  @Test
   public void testBatchOfOne() throws Exception {
 
     String sensorType = "yaf";
@@ -481,7 +548,7 @@ public void testImplicitBatchOfOne() throws Exception {
     ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
       @Override
       protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
-        return ParserBoltTest.createUpdater();
+        return ParserBoltTest.createUpdater(Optional.of(1));
       }
     };
 
@@ -500,6 +567,7 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.execute(t1);
     verify(outputCollector, times(1)).ack(t1);
   }
+
   @Test
   public void testBatchOfFive() throws Exception {
 
