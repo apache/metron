@@ -17,13 +17,14 @@
  */
 package org.apache.metron.common.configuration;
 
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.common.utils.JSONUtils;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.metron.common.utils.JSONUtils;
 
 public class IndexingConfigurations extends Configurations {
   public static final String BATCH_SIZE_CONF = "batchSize";
@@ -226,7 +227,4 @@ public class IndexingConfigurations extends Configurations {
     return ret;
   }
 
-  public static <T> T getAs(String key, Map<String, Object> map, T defaultValue, Class<T> clazz) {
-    return map == null?defaultValue: ConversionUtils.convert(map.getOrDefault(key, defaultValue), clazz);
-  }
 }

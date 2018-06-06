@@ -94,6 +94,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
    *    "outputTopic": "output",
    *    "errorTopic": "parser_error",
    *    "parserConfig": {
+   *        "batchSize" : 1,
    *        "columns" : {
    *            "action" : 0,
    *            "dummy" : 1
@@ -246,7 +247,10 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
    *    "parserClassName":"org.apache.metron.writers.integration.WriterBoltIntegrationTest$EmptyObjectParser",
    *    "sensorTopic":"emptyobjectparser",
    *    "outputTopic": "enrichments",
-   *    "errorTopic": "parser_error"
+   *    "errorTopic": "parser_error",
+   *    "parserConfig": {
+   *        "batchSize" : 1
+   *    }
    * }
    */
   @Multiline
