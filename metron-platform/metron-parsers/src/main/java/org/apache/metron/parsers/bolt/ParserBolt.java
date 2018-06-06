@@ -69,7 +69,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private MessageFilter<JSONObject> filter;
   private WriterHandler writer;
   private Context stellarContext;
-  private transient RawMessageStrategy rawMessageStrategy;
   private transient MessageGetStrategy messageGetStrategy;
   private transient Cache<CachingStellarProcessor.Key, Object> cache;
   public ParserBolt( String zookeeperUrl
@@ -97,7 +96,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
-    rawMessageStrategy = RawMessageSuppliers.DEFAULT;
     messageGetStrategy = MessageGetters.DEFAULT_BYTES_FROM_POSITION.get();
     this.collector = collector;
     if(getSensorParserConfig() != null) {
@@ -140,6 +138,18 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     StellarFunctions.initialize(stellarContext);
   }
 
+  private void mergeMetadata(JSONObject message, Map<String, Object> metadata) {
+    //we want to ensure the original string from the metadata, if provided is used
+    String originalStringFromMetadata = (String)metadata.get(Constants.Fields.ORIGINAL.getName());
+    for(Map.Entry<String, Object> kv : metadata.entrySet()) {
+      //and that otherwise we prefer fields from the current message, not the metadata
+      message.putIfAbsent(kv.getKey(), kv.getValue());
+    }
+    if(originalStringFromMetadata != null) {
+      message.put(Constants.Fields.ORIGINAL.getName(), originalStringFromMetadata);
+    }
+  }
+
 
   @SuppressWarnings("unchecked")
   @Override
@@ -152,14 +162,18 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       boolean ackTuple = !writer.handleAck();
       int numWritten = 0;
       if(sensorParserConfig != null) {
-        //TODO: Pass config along
-        RawMessage rawMessage = rawMessageStrategy.get(tuple, originalMessage, sensorParserConfig.getReadMetadata(), sensorParserConfig.getRawMessageStrategyConfig());
+        RawMessage rawMessage = sensorParserConfig.getRawMessageStrategy().get( tuple
+                                                                              , originalMessage
+                                                                              , sensorParserConfig.getReadMetadata()
+                                                                              , sensorParserConfig.getRawMessageStrategyConfig()
+                                                                              );
         Map<String, Object> metadata = rawMessage.getMetadata();
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
+
         Optional<List<JSONObject>> messages = parser.parseOptional(rawMessage.getMessage());
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
           if(sensorParserConfig.getMergeMetadata()) {
-            message.putAll(metadata);
+            mergeMetadata(message, metadata);
           }
           message.put(Constants.SENSOR_TYPE, getSensorType());
           for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {

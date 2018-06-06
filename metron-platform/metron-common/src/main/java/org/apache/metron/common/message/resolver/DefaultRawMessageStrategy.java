@@ -39,7 +39,13 @@ public class DefaultRawMessageStrategy implements RawMessageStrategy {
 
   private Map<String, Object> extractMetadata(String prefix, Tuple t) {
     Map<String, Object> metadata = new HashMap<>();
+    if(t == null) {
+      return metadata;
+    }
     Fields tupleFields = t.getFields();
+    if(tupleFields == null) {
+      return metadata;
+    }
     for (int i = 2; i < tupleFields.size(); ++i) {
       String envMetadataFieldName = tupleFields.get(i);
       Object envMetadataFieldValue = t.getValue(i);
