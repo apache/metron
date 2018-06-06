@@ -92,8 +92,8 @@ but a convenient index is provided here:
 | [`stellar.function.resolver.excludes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes) | Stellar       | CSV String | N/A                        |
 | [`profiler.period.duration`](../../metron-analytics/metron-profiler#profilerperiodduration)                         | Profiler      | Integer    | `profiler_period_duration` |
 | [`profiler.period.duration.units`](../../metron-analytics/metron-profiler#profilerperioddurationunits)              | Profiler      | String     | `profiler_period_units`    |
-| [`profiler.writer.batchSize`](../metron-analytics/metron-profiler/#profilerwriterbatchsize)                         | Profiler      | Integer    |  N/A                       |
-| [`profiler.writer.batchTimeout`](../metron-analytics/metron-profiler/#profilerwriterbatchtimeout)                   | Profiler      | Integer    |  N/A                       |
+| [`profiler.writer.batchSize`](../../metron-analytics/metron-profiler/#profilerwriterbatchsize)                      | Profiler      | Integer    |  N/A                       |
+| [`profiler.writer.batchTimeout`](../../metron-analytics/metron-profiler/#profilerwriterbatchtimeout)                | Profiler      | Integer    |  N/A                       |
 | [`update.hbase.table`](../metron-indexing#updatehbasetable)                                                         | REST/Indexing | String     | `update_hbase_table`       |
 | [`update.hbase.cf`](../metron-indexing#updatehbasecf)                                                               | REST/Indexing | String     | `update_hbase_cf`          |
 | [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`            |
