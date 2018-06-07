@@ -294,6 +294,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(1, jsonDoc.get("one"));
     Assert.assertEquals(1, jsonDoc.get("map.blah"));
     Assert.assertNotNull(jsonDoc.get("foo"));
+    Assert.assertNotNull(jsonDoc.get("alt_src_type"));
+    Assert.assertEquals("test", jsonDoc.get("alt_src_type"));
     Assert.assertEquals("TEST", jsonDoc.get("ALL_CAPS"));
     Assert.assertNotNull(jsonDoc.get("bar"));
     Assert.assertEquals("TEST", jsonDoc.get("bar"));
