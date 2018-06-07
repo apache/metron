@@ -18,6 +18,7 @@
 package org.apache.metron.common.message.metadata;
 
 import org.apache.storm.tuple.Tuple;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,5 +33,17 @@ public class DefaultRawMessageStrategy implements RawMessageStrategy {
   @Override
   public RawMessage get(Map<String, Object> rawMetadata, byte[] rawMessage, boolean ignoreMetadata, Map<String, Object> config) {
     return new RawMessage(rawMessage, rawMetadata);
+  }
+
+  @Override
+  public void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata) {
+    if(mergeMetadata) {
+      message.putAll(metadata);
+    }
+  }
+
+  @Override
+  public boolean mergeMetadataDefault() {
+    return false;
   }
 }

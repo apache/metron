@@ -19,9 +19,11 @@ package org.apache.metron.common.message.metadata;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +39,7 @@ public enum RawMessageUtil {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String METADATA_PREFIX = "metron.metadata";
   public static final String METADATA_PREFIX_CONFIG = "metadata_prefix";
-  private static final int KEY_INDEX = 1;
+  static final int KEY_INDEX = 1;
 
   public RawMessage getRawMessage(RawMessageStrategy strategy, Tuple t, byte[] rawMessage, boolean ignoreMetadata, Map<String, Object> config) {
     Map<String, Object> metadata = new HashMap<>();

@@ -22,7 +22,7 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.metron.common.message.metadata.RawMessageStrategy;
-import org.apache.metron.common.message.metadata.RawMessageSuppliers;
+import org.apache.metron.common.message.metadata.RawMessageStrategies;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * The configuration object that defines a parser for a given sensor.  Each
@@ -97,9 +98,13 @@ public class SensorParserConfig implements Serializable {
    * Determines if parser metadata is automatically merged into the message.  If
    * true, parser metadata values will appear as fields within the message.
    *
-   * <p>By default, this is false and metadata is not merged.
+   * <p>The default is dependent upon the raw message strategy used:
+   * <ul>
+   * <li>The default strategy sets this to false and metadata is not merged by default.</li>
+   * <li>The envelope strategy sets this to true and metadata is merged by default.</li>
+   * </ul>
    */
-  private Boolean mergeMetadata = false;
+  private Boolean mergeMetadata = null;
 
   /**
    * The number of workers for the topology.
@@ -201,7 +206,7 @@ public class SensorParserConfig implements Serializable {
    * Return the raw message supplier.  This is the strategy to use to extract the raw message and metadata from
    * the tuple.
    */
-  private RawMessageStrategy rawMessageStrategy = RawMessageSuppliers.DEFAULT;
+  private RawMessageStrategy rawMessageStrategy = RawMessageStrategies.DEFAULT;
 
   /**
    * The config for the raw message supplier.
@@ -213,7 +218,7 @@ public class SensorParserConfig implements Serializable {
   }
 
   public void setRawMessageStrategy(String rawMessageSupplierName) {
-    this.rawMessageStrategy = RawMessageSuppliers.valueOf(rawMessageSupplierName);
+    this.rawMessageStrategy = RawMessageStrategies.valueOf(rawMessageSupplierName);
   }
 
   public Map<String, Object> getRawMessageStrategyConfig() {
@@ -321,7 +326,7 @@ public class SensorParserConfig implements Serializable {
   }
 
   public Boolean getMergeMetadata() {
-    return mergeMetadata;
+    return Optional.ofNullable(mergeMetadata).orElse(getRawMessageStrategy().mergeMetadataDefault());
   }
 
   public void setMergeMetadata(Boolean mergeMetadata) {

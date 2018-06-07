@@ -18,10 +18,18 @@
 package org.apache.metron.common.message.metadata;
 
 import org.apache.storm.tuple.Tuple;
+import org.json.simple.JSONObject;
 
 import java.io.Serializable;
 import java.util.Map;
 
 public interface RawMessageStrategy extends Serializable {
-  RawMessage get(Map<String, Object> rawMetadata, byte[] rawMessage, boolean ignoreMetadata, Map<String, Object> config);
+  RawMessage get( Map<String, Object> rawMetadata
+                , byte[] rawMessage
+                , boolean ignoreMetadata
+                , Map<String, Object> config
+                );
+
+  void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata);
+  boolean mergeMetadataDefault();
 }

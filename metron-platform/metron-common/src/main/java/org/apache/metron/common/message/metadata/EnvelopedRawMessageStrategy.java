@@ -17,8 +17,10 @@
  */
 package org.apache.metron.common.message.metadata;
 
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.storm.tuple.Tuple;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,5 +62,25 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
       throw new IllegalStateException("Expected a JSON Map as the envelope.", e);
     }
     return null;
+  }
+
+  @Override
+  public void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata) {
+    //we want to ensure the original string from the metadata, if provided is used
+    String originalStringFromMetadata = (String)metadata.get(Constants.Fields.ORIGINAL.getName());
+    if(mergeMetadata) {
+      for (Map.Entry<String, Object> kv : metadata.entrySet()) {
+        //and that otherwise we prefer fields from the current message, not the metadata
+        message.putIfAbsent(kv.getKey(), kv.getValue());
+      }
+    }
+    if(originalStringFromMetadata != null) {
+      message.put(Constants.Fields.ORIGINAL.getName(), originalStringFromMetadata);
+    }
+  }
+
+  @Override
+  public boolean mergeMetadataDefault() {
+    return true;
   }
 }

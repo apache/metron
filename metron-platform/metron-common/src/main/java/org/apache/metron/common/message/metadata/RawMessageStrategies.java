@@ -17,16 +17,16 @@
  */
 package org.apache.metron.common.message.metadata;
 
-import org.apache.storm.tuple.Tuple;
+import org.json.simple.JSONObject;
 
 import java.util.Map;
 
-public enum RawMessageSuppliers implements RawMessageStrategy {
+public enum RawMessageStrategies implements RawMessageStrategy {
   DEFAULT(new DefaultRawMessageStrategy()),
   ENVELOPE(new EnvelopedRawMessageStrategy())
   ;
   RawMessageStrategy supplier;
-  RawMessageSuppliers(RawMessageStrategy supplier) {
+  RawMessageStrategies(RawMessageStrategy supplier) {
     this.supplier = supplier;
   }
 
@@ -34,4 +34,16 @@ public enum RawMessageSuppliers implements RawMessageStrategy {
   public RawMessage get(Map<String, Object> rawMetadata, byte[] originalMessage, boolean ignoreMetadata, Map<String, Object> config) {
     return this.supplier.get(rawMetadata, originalMessage, ignoreMetadata, config);
   }
+
+  @Override
+  public void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata) {
+    this.supplier.mergeMetadata(message, metadata, mergeMetadata);
+  }
+
+  @Override
+  public boolean mergeMetadataDefault() {
+    return this.supplier.mergeMetadataDefault();
+  }
+
+
 }

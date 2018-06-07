@@ -137,21 +137,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   }
 
 
-
-
-  private void mergeMetadata(JSONObject message, Map<String, Object> metadata) {
-    //we want to ensure the original string from the metadata, if provided is used
-    String originalStringFromMetadata = (String)metadata.get(Constants.Fields.ORIGINAL.getName());
-    for(Map.Entry<String, Object> kv : metadata.entrySet()) {
-      //and that otherwise we prefer fields from the current message, not the metadata
-      message.putIfAbsent(kv.getKey(), kv.getValue());
-    }
-    if(originalStringFromMetadata != null) {
-      message.put(Constants.Fields.ORIGINAL.getName(), originalStringFromMetadata);
-    }
-  }
-
-
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
@@ -174,9 +159,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
         Optional<List<JSONObject>> messages = parser.parseOptional(rawMessage.getMessage());
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
-          if(sensorParserConfig.getMergeMetadata()) {
-            mergeMetadata(message, metadata);
-          }
+          sensorParserConfig.getRawMessageStrategy().mergeMetadata(message, metadata, sensorParserConfig.getMergeMetadata());
           message.put(Constants.SENSOR_TYPE, getSensorType());
           for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
             if (handler != null) {
