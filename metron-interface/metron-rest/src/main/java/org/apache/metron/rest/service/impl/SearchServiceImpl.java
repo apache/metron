@@ -18,6 +18,7 @@
 package org.apache.metron.rest.service.impl;
 
 import static org.apache.metron.common.Constants.ERROR_TYPE;
+import static org.apache.metron.common.Constants.SENSOR_TYPE_FIELD_PROPERTY;
 import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
 import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
 import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
@@ -151,7 +152,7 @@ public class SearchServiceImpl implements SearchService {
       String sourceTypeField = Constants.SENSOR_TYPE.replace('.', ':');
       List<String> facetFields = new ArrayList<>();
       if (globalConfig != null) {
-        sourceTypeField = (String) globalConfig.getOrDefault("source.type.field", sourceTypeField);
+        sourceTypeField = (String) globalConfig.getOrDefault(SENSOR_TYPE_FIELD_PROPERTY, sourceTypeField);
       }
       facetFields.add(sourceTypeField);
       if (facetFieldsProperty != null) {
