@@ -31,18 +31,23 @@ public enum RawMessageStrategies implements RawMessageStrategy {
   }
 
   @Override
-  public RawMessage get(Map<String, Object> rawMetadata, byte[] originalMessage, boolean ignoreMetadata, Map<String, Object> config) {
-    return this.supplier.get(rawMetadata, originalMessage, ignoreMetadata, config);
+  public RawMessage get(Map<String, Object> rawMetadata, byte[] originalMessage, boolean readMetadata, Map<String, Object> config) {
+    return this.supplier.get(rawMetadata, originalMessage, readMetadata, config);
   }
 
   @Override
-  public void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata) {
-    this.supplier.mergeMetadata(message, metadata, mergeMetadata);
+  public void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata, Map<String, Object> config) {
+    this.supplier.mergeMetadata(message, metadata, mergeMetadata, config);
   }
 
   @Override
   public boolean mergeMetadataDefault() {
     return this.supplier.mergeMetadataDefault();
+  }
+
+  @Override
+  public boolean readMetadataDefault() {
+    return this.supplier.readMetadataDefault();
   }
 
 

@@ -31,12 +31,12 @@ public class DefaultRawMessageStrategy implements RawMessageStrategy {
 
 
   @Override
-  public RawMessage get(Map<String, Object> rawMetadata, byte[] rawMessage, boolean ignoreMetadata, Map<String, Object> config) {
+  public RawMessage get(Map<String, Object> rawMetadata, byte[] rawMessage, boolean readMetadata, Map<String, Object> config) {
     return new RawMessage(rawMessage, rawMetadata);
   }
 
   @Override
-  public void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata) {
+  public void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata, Map<String, Object> config) {
     if(mergeMetadata) {
       message.putAll(metadata);
     }
@@ -44,6 +44,11 @@ public class DefaultRawMessageStrategy implements RawMessageStrategy {
 
   @Override
   public boolean mergeMetadataDefault() {
+    return false;
+  }
+
+  @Override
+  public boolean readMetadataDefault() {
     return false;
   }
 }

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.message.metadata;
 
+import com.google.common.base.Joiner;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.storm.tuple.Tuple;
@@ -34,7 +35,7 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
   public static final String MESSAGE_FIELD_CONFIG = "messageField";
 
   @Override
-  public RawMessage get(Map<String, Object> rawMetadata, byte[] rawMessage, boolean ignoreMetadata, Map<String, Object> config) {
+  public RawMessage get(Map<String, Object> rawMetadata, byte[] rawMessage, boolean readMetadata, Map<String, Object> config) {
     String messageField = (String)config.get(MESSAGE_FIELD_CONFIG);
     if(messageField == null) {
       throw new IllegalStateException("You must specify a message field in the message supplier config.  " +
@@ -43,17 +44,25 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
     byte[] envelope = rawMessage;
 
     try {
+      String prefix = MetadataUtil.INSTANCE.getMetadataPrefix(config);
       Map<String, Object> extraMetadata = JSONUtils.INSTANCE.load(new String(envelope), JSONUtils.MAP_SUPPLIER);
-      rawMetadata.putAll(extraMetadata);
-      String message = (String) rawMetadata.get(messageField);
+      String message = null;
+      if(extraMetadata != null) {
+        for(Map.Entry<String, Object> kv : extraMetadata.entrySet()) {
+          if(kv.getKey().equals(messageField)) {
+            message = (String)kv.getValue();
+          }
+          rawMetadata.put(MetadataUtil.INSTANCE.prefixKey(prefix, kv.getKey()), kv.getValue());
+        }
+      }
       if(message != null) {
-        if(ignoreMetadata) {
+        if(!readMetadata) {
           LOG.debug("Ignoring metadata; Message: " + message + " rawMetadata: " + rawMetadata + " and field = " + messageField);
           return new RawMessage(message.getBytes(), new HashMap<>());
         }
         else {
           //remove the message field from the metadata since it's data, not metadata.
-          rawMetadata.remove(messageField);
+          rawMetadata.remove(MetadataUtil.INSTANCE.prefixKey(prefix, messageField));
           LOG.debug("Attaching metadata; Message: " + message + " rawMetadata: " + rawMetadata + " and field = " + messageField);
           return new RawMessage(message.getBytes(), rawMetadata);
         }
@@ -65,9 +74,10 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
   }
 
   @Override
-  public void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata) {
+  public void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata, Map<String, Object> config) {
     //we want to ensure the original string from the metadata, if provided is used
-    String originalStringFromMetadata = (String)metadata.get(Constants.Fields.ORIGINAL.getName());
+    String prefix = MetadataUtil.INSTANCE.getMetadataPrefix(config);
+    String originalStringFromMetadata = (String)metadata.get(MetadataUtil.INSTANCE.prefixKey(prefix, Constants.Fields.ORIGINAL.getName()));
     if(mergeMetadata) {
       for (Map.Entry<String, Object> kv : metadata.entrySet()) {
         //and that otherwise we prefer fields from the current message, not the metadata
@@ -81,6 +91,11 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
 
   @Override
   public boolean mergeMetadataDefault() {
+    return true;
+  }
+
+  @Override
+  public boolean readMetadataDefault() {
     return true;
   }
 }

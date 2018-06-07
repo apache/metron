@@ -26,10 +26,15 @@ import java.util.Map;
 public interface RawMessageStrategy extends Serializable {
   RawMessage get( Map<String, Object> rawMetadata
                 , byte[] rawMessage
-                , boolean ignoreMetadata
+                , boolean readMetadata
                 , Map<String, Object> config
                 );
 
-  void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata);
+  void mergeMetadata( JSONObject message
+                    , Map<String, Object> metadata
+                    , boolean mergeMetadata
+                    , Map<String, Object> config
+                    );
   boolean mergeMetadataDefault();
+  boolean readMetadataDefault();
 }

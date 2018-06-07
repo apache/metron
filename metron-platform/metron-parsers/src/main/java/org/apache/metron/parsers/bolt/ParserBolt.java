@@ -159,7 +159,11 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
         Optional<List<JSONObject>> messages = parser.parseOptional(rawMessage.getMessage());
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
-          sensorParserConfig.getRawMessageStrategy().mergeMetadata(message, metadata, sensorParserConfig.getMergeMetadata());
+          sensorParserConfig.getRawMessageStrategy().mergeMetadata( message
+                                                                  , metadata
+                                                                  , sensorParserConfig.getMergeMetadata()
+                                                                  , sensorParserConfig.getRawMessageStrategyConfig()
+                                                                  );
           message.put(Constants.SENSOR_TYPE, getSensorType());
           for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
             if (handler != null) {

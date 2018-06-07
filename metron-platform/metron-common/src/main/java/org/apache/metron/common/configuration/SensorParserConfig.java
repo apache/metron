@@ -89,10 +89,13 @@ public class SensorParserConfig implements Serializable {
    * transformations. If true, the parser field transformations can access
    * parser metadata values.
    *
-   * <p>By default, this is false and parser metadata is not available
-   * to the field transformations.
+   * <p>The default is dependent upon the raw message strategy used:
+   * <ul>
+   * <li>The default strategy sets this to false and metadata is not read by default.</li>
+   * <li>The envelope strategy sets this to true and metadata is read by default.</li>
+   * </ul>
    */
-  private Boolean readMetadata = false;
+  private Boolean readMetadata = null;
 
   /**
    * Determines if parser metadata is automatically merged into the message.  If
@@ -334,7 +337,7 @@ public class SensorParserConfig implements Serializable {
   }
 
   public Boolean getReadMetadata() {
-    return readMetadata;
+    return Optional.ofNullable(readMetadata).orElse(getRawMessageStrategy().readMetadataDefault());
   }
 
   public void setReadMetadata(Boolean readMetadata) {
