@@ -47,6 +47,9 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
 
+        commands = IndexingCommands(params)
+        commands.check_indexing_parameters()
+
         Logger.info("Running indexing configure")
         File(format("{metron_config_path}/elasticsearch.properties"),
              content=Template("elasticsearch.properties.j2"),
@@ -69,7 +72,6 @@ class Indexing(Script):
             metron_service.set_zk_configured(params)
         metron_service.refresh_configs(params)
 
-        commands = IndexingCommands(params)
         if not commands.is_configured():
             commands.init_kafka_topics()
             commands.init_hdfs_dir()
@@ -96,6 +98,7 @@ class Indexing(Script):
         env.set_params(params)
         self.configure(env)
         commands = IndexingCommands(params)
+        commands.check_indexing_parameters()
         if params.ra_indexing_writer == 'Solr':
             Logger.info("Loading Solr schemas")
             # Install Solr schemas
@@ -126,28 +129,32 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
         commands = IndexingCommands(params)
+        commands.check_indexing_parameters()
         commands.stop_indexing_topology(env)
 
     def status(self, env):
         from params import status_params
         env.set_params(status_params)
         commands = IndexingCommands(status_params)
+        commands.check_indexing_parameters()
         if not commands.is_topology_active(env):
             raise ComponentIsNotRunning()
 
     def restart(self, env):
         from params import params
         env.set_params(params)
+
         self.configure(env)
         commands = IndexingCommands(params)
+        commands.check_indexing_parameters()
         commands.restart_indexing_topology(env)
 
     def elasticsearch_template_install(self, env):
         from params import params
         env.set_params(params)
         Logger.info("Installing Elasticsearch index templates")
-
         commands = IndexingCommands(params)
+        commands.check_indexing_parameters()
         for template_name, template_path in commands.get_templates().iteritems():
 
             # install the index template
@@ -161,9 +168,10 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
         Logger.info("Deleting Elasticsearch index templates")
-
         commands = IndexingCommands(params)
+        commands.check_indexing_parameters()
         for template_name in commands.get_templates():
+
             # delete the index template
             cmd = "curl -s -XDELETE \"http://{0}/_template/{1}\""
             Execute(
@@ -174,12 +182,11 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
         Logger.info("Installing Solr schemas")
-
         commands = IndexingCommands(params)
+        commands.check_indexing_parameters()
         for collection_name, config_path in commands.get_solr_schemas().iteritems():
 
             # install the schema
-
             cmd = "{0}/bin/solr create -c {1} -d {2}"
             Execute(
                 cmd.format(params.solr_home, collection_name, config_path),
@@ -189,8 +196,8 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
         Logger.info("Deleting Solr schemas")
-
         commands = IndexingCommands(params)
+        commands.check_indexing_parameters()
         for collection_name, config_path in commands.get_solr_schemas().iteritems():
             # delete the schema
             cmd = "{0}/bin/solr delete -c {1}"
@@ -203,8 +210,10 @@ class Indexing(Script):
       from params import params
       env.set_params(params)
 
-      Logger.info("Connecting to Elasticsearch on: %s" % (params.es_http_url))
+      commands = IndexingCommands(params)
+      commands.check_indexing_parameters()
 
+      Logger.info("Connecting to Elasticsearch on: %s" % (params.es_http_url))
       kibanaTemplate = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'kibana.template')
       if not os.path.isfile(kibanaTemplate):
         raise IOError(
@@ -230,7 +239,7 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
         commands = IndexingCommands(params)
-
+        commands.check_indexing_parameters()
         Logger.info(ambari_format('Searching for Zeppelin Notebooks in {metron_config_zeppelin_path}'))
 
         # Check if authentication is configured on Zeppelin server, and fetch details if enabled.
