@@ -538,6 +538,8 @@ The Profiler runs as an independent Storm topology.  The configuration for the P
 | [`profiler.hbase.batch`](#profilerhbasebatch)                                 | The number of puts that are written to HBase in a single batch.
 | [`profiler.hbase.flush.interval.seconds`](#profilerhbaseflushintervalseconds) | The maximum number of seconds between batch writes to HBase.
 | [`topology.kryo.register`](#topologykryoregister)                             | Storm will use Kryo serialization for these classes.
+| [`profiler.writer.batchSize`](#profilerwriterbatchsize)                       | The number of records to batch when writing to Kakfa.
+| [`profiler.writer.batchTimeout`](#profilerwriterbatchtimeout)                 | The timeout in ms for batching when writing to Kakfa.
 
 
 ### `profiler.input.topic`
@@ -851,6 +853,19 @@ Merge all of the profile measurements over the past 30 minutes into a single sum
 More information on accessing profile data can be found in the [Profiler Client](../metron-profiler-client).
 
 More information on using the [`STATS_*` functions in Stellar can be found here](../../metron-platform/metron-common).
+
+### `profiler.writer.batchSize`
+
+*Default*: 15
+
+The number of records to batch when writing to Kakfa. This is managed in the global configuration and does not require a topology restart.
+
+### `profiler.writer.batchTimeout`
+
+*Default*: 0
+
+The timeout after which a batch will be flushed even if batchSize has not been met.  Optional. If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm parameter `topology.message.timeout.secs`.
+Ignored if batchSize is `1`, since this disables batching. This is managed in the global configuration and does not require a topology restart.
 
 ## Implementation
 

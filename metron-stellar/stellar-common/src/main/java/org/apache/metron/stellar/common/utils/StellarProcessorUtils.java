@@ -62,14 +62,14 @@ public class StellarProcessorUtils {
    * validates successfully and produces a result that can be serialized correctly.
    *
    * @param expression The expression to execute.
-   * @param variables The variables to expose to the expression.
+   * @param varResolver The variable resolver to use
    * @param context The execution context.
    * @return The result of executing the expression.
    */
-  public static Object run(String expression, Map<String, Object> variables, Context context) {
+  public static Object run(String expression, VariableResolver varResolver, Context context) {
 
     validate(expression, context);
-    Object result = execute(expression, variables, context);
+    Object result = execute(expression, varResolver, context);
     ensureKryoSerializable(result, expression);
     ensureJavaSerializable(result, expression);
 
@@ -77,19 +77,44 @@ public class StellarProcessorUtils {
   }
 
   /**
-   * Execute a Stellar expression.
+   * Execute and validate a Stellar expression.
+   *
+   * <p>This is intended for use while unit testing Stellar expressions.  This ensures that the expression
+   * validates successfully and produces a result that can be serialized correctly.
    *
    * @param expression The expression to execute.
-   * @param variables The variables available to the expression.
+   * @param variables The variables to expose to the expression.
    * @param context The execution context.
    * @return The result of executing the expression.
    */
-  private static Object execute(String expression, Map<String, Object> variables, Context context) {
+  public static Object run(String expression, Map<String, Object> variables, Context context) {
+    VariableResolver varResolver = new DefaultVariableResolver(
+            x -> {
+              if(x.equals(MapVariableResolver.ALL_FIELDS)) {
+                return variables;
+              }
+              return variables.get(x);
+            }
+            ,x-> x.equals(MapVariableResolver.ALL_FIELDS) || variables.containsKey(x)
+    );
+    return run(expression, varResolver, context);
+  }
+
+  /**
+   * Execute a Stellar expression.
+   *
+   * @param expression The expression to execute.
+   * @param variableResolver Variable Resolver to use
+   * @param context The execution context.
+   * @return The result of executing the expression.
+   */
+  private static Object execute(String expression, VariableResolver variableResolver, Context context) {
 
     StellarProcessor processor = new StellarProcessor();
+
     Object result = processor.parse(
             expression,
-            new DefaultVariableResolver(x -> variables.get(x), x -> variables.containsKey(x)),
+            variableResolver,
             StellarFunctions.FUNCTION_RESOLVER(),
             context);
 
@@ -170,6 +195,20 @@ public class StellarProcessorUtils {
    * @return The result of executing the expression.
    */
   public static Object run(String expression, Map<String, Object> variables) {
+    return run(expression, variables, Context.EMPTY_CONTEXT());
+  }
+
+  /**
+   * Execute and validate a Stellar expression.
+   *
+   * <p>This is intended for use while unit testing Stellar expressions.  This ensures that the expression
+   * validates successfully and produces a result that can be serialized correctly.
+   *
+   * @param expression The expression to execute.
+   * @param variables The variables to expose to the expression.
+   * @return The result of executing the expression.
+   */
+  public static Object run(String expression, VariableResolver variables) {
     return run(expression, variables, Context.EMPTY_CONTEXT());
   }
 
