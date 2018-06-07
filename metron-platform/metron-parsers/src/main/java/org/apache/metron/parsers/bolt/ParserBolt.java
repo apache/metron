@@ -17,7 +17,6 @@
  */
 package org.apache.metron.parsers.bolt;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
@@ -40,14 +39,12 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.metron.common.message.resolver.RawMessage;
-import org.apache.metron.common.message.resolver.RawMessageStrategy;
-import org.apache.metron.common.message.resolver.RawMessageSuppliers;
+import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.stellar.common.CachingStellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -61,6 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
+
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private OutputCollector collector;
@@ -138,6 +136,9 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     StellarFunctions.initialize(stellarContext);
   }
 
+
+
+
   private void mergeMetadata(JSONObject message, Map<String, Object> metadata) {
     //we want to ensure the original string from the metadata, if provided is used
     String originalStringFromMetadata = (String)metadata.get(Constants.Fields.ORIGINAL.getName());
@@ -162,11 +163,12 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       boolean ackTuple = !writer.handleAck();
       int numWritten = 0;
       if(sensorParserConfig != null) {
-        RawMessage rawMessage = sensorParserConfig.getRawMessageStrategy().get( tuple
-                                                                              , originalMessage
-                                                                              , sensorParserConfig.getReadMetadata()
-                                                                              , sensorParserConfig.getRawMessageStrategyConfig()
-                                                                              );
+        RawMessage rawMessage = RawMessageUtil.INSTANCE.getRawMessage( sensorParserConfig.getRawMessageStrategy()
+                                                                   , tuple
+                                                                   , originalMessage
+                                                                   , sensorParserConfig.getReadMetadata()
+                                                                   , sensorParserConfig.getRawMessageStrategyConfig()
+                                                                   );
         Map<String, Object> metadata = rawMessage.getMetadata();
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
 

@@ -15,23 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.message.resolver;
+package org.apache.metron.common.message.metadata;
 
 import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
 import java.util.Map;
 
-public enum RawMessageSuppliers implements RawMessageStrategy {
-  DEFAULT(new DefaultRawMessageStrategy()),
-  ENVELOPE(new EnvelopedRawMessageStrategy())
-  ;
-  RawMessageStrategy supplier;
-  RawMessageSuppliers(RawMessageStrategy supplier) {
-    this.supplier = supplier;
-  }
+public class DefaultRawMessageStrategy implements RawMessageStrategy {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
 
   @Override
-  public RawMessage get(Tuple t, byte[] originalMessage, boolean ignoreMetadata, Map<String, Object> config) {
-    return this.supplier.get(t, originalMessage, ignoreMetadata, config);
+  public RawMessage get(Map<String, Object> rawMetadata, byte[] rawMessage, boolean ignoreMetadata, Map<String, Object> config) {
+    return new RawMessage(rawMessage, rawMetadata);
   }
 }
