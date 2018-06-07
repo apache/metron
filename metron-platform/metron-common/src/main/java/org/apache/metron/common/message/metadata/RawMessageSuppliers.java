@@ -31,7 +31,7 @@ public enum RawMessageSuppliers implements RawMessageStrategy {
   }
 
   @Override
-  public RawMessage get(Tuple t, byte[] originalMessage, boolean ignoreMetadata, Map<String, Object> config) {
-    return this.supplier.get(t, originalMessage, ignoreMetadata, config);
+  public RawMessage get(Map<String, Object> rawMetadata, byte[] originalMessage, boolean ignoreMetadata, Map<String, Object> config) {
+    return this.supplier.get(rawMetadata, originalMessage, ignoreMetadata, config);
   }
 }
