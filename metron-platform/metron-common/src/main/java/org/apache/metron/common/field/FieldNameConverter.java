@@ -15,18 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.common.field;
 
-package org.apache.metron.elasticsearch.writer;
+/**
+ * Allows field names to be transformed before a message is written to an endpoint.
+ */
+public interface FieldNameConverter {
 
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
-public class ElasticsearchFieldNameConverterTest {
-
-    @Test
-    public void convert() throws Exception {
-        assertEquals("testfield:with:colons",new ElasticsearchFieldNameConverter().convert("testfield.with.colons"));
-    }
-
+  /**
+   * Convert the field name.
+   *
+   * @param originalField The original field name.
+   * @return The new field name.
+   */
+  String convert(String originalField);
 }

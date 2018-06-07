@@ -17,6 +17,7 @@
  */
 package org.apache.metron.statistics.sampling;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -25,7 +26,8 @@ import java.util.Random;
  * This is a reservoir sampler without replacement where each element sampled will be included
  * with equal probability in the reservoir.
  */
-public class UniformSampler implements Sampler {
+public class UniformSampler implements Sampler, Serializable {
+
   private List<Object> reservoir;
   private int seen = 0;
   private int size;
@@ -83,7 +85,6 @@ public class UniformSampler implements Sampler {
 
     if (getSize() != that.getSize()) return false;
     return reservoir != null ? reservoir.equals(that.reservoir) : that.reservoir == null;
-
   }
 
   @Override

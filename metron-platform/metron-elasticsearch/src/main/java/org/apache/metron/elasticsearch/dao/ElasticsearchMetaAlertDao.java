@@ -349,7 +349,6 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     boolean metaAlertUpdated = !status.getStatusString().equals(currentStatus);
     if (metaAlertUpdated) {
       metaAlert.getDocument().put(MetaAlertDao.STATUS_FIELD, status.getStatusString());
-      updates.put(metaAlert, Optional.of(index));
       List<GetRequest> getRequests = new ArrayList<>();
       List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
           .get(MetaAlertDao.ALERT_FIELD);
@@ -357,6 +356,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         getRequests.add(new GetRequest((String) currentAlert.get(GUID), (String) currentAlert.get(SOURCE_TYPE)));
       });
       Iterable<Document> alerts = indexDao.getAllLatest(getRequests);
+      List<Map<String, Object>> updatedAlerts = new ArrayList<>();
       for (Document alert : alerts) {
         boolean metaAlertAdded = false;
         boolean metaAlertRemoved = false;
@@ -371,7 +371,12 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         if (metaAlertAdded || metaAlertRemoved) {
           updates.put(alert, Optional.empty());
         }
+        updatedAlerts.add(alert.getDocument());
       }
+      if (MetaAlertStatus.ACTIVE.equals(status)) {
+        metaAlert.getDocument().put(MetaAlertDao.ALERT_FIELD, updatedAlerts);
+      }
+      updates.put(metaAlert, Optional.of(index));
     }
     if (metaAlertUpdated) {
       indexDaoUpdate(updates);
@@ -425,7 +430,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       // We need to update an alert itself.  Only that portion of the update can be delegated.
       // We still need to get meta alerts potentially associated with it and update.
       Collection<Document> metaAlerts = getMetaAlertsForAlert(update.getGuid()).getResults().stream()
-          .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(), METAALERT_TYPE, 0L))
+          .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(), METAALERT_TYPE, update.getTimestamp()))
           .collect(Collectors.toList());
       // Each meta alert needs to be updated with the new alert
       for (Document metaAlert : metaAlerts) {
@@ -463,12 +468,17 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   @Override
   public void patch(PatchRequest request, Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
-    if (isPatchAllowed(request)) {
-      Document d = getPatchedDocument(request, timestamp);
-      indexDao.update(d, Optional.ofNullable(request.getIndex()));
+    if (METAALERT_TYPE.equals(request.getSensorType())) {
+      if (isPatchAllowed(request)) {
+        Document d = getPatchedDocument(request, timestamp);
+        indexDao.update(d, Optional.ofNullable(request.getIndex()));
+      } else {
+        throw new IllegalArgumentException("Meta alert patches are not allowed for /alert or /status paths.  "
+                + "Please use the add/remove alert or update status functions instead.");
+      }
     } else {
-      throw new IllegalArgumentException("Meta alert patches are not allowed for /alert or /status paths.  "
-          + "Please use the add/remove alert or update status functions instead.");
+      Document d = getPatchedDocument(request, timestamp);
+      update(d, Optional.ofNullable(request.getIndex()));
     }
   }
 

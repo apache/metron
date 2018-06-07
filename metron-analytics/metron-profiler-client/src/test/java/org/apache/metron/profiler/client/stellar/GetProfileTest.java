@@ -24,6 +24,7 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.profiler.client.ProfileWriter;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SingletonFunctionResolver;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -266,7 +267,7 @@ public class GetProfileTest {
   /**
    * Initialization should fail if the required context values are missing.
    */
-  @Test(expected = IllegalStateException.class)
+  @Test(expected = ParseException.class)
   public void testMissingContext() {
     Context empty = Context.EMPTY_CONTEXT();
 

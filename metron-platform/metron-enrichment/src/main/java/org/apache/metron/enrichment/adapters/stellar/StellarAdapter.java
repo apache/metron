@@ -21,11 +21,15 @@ import static org.apache.metron.enrichment.bolt.GenericEnrichmentBolt.STELLAR_CO
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
+
+import com.google.common.base.Joiner;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.enrichment.bolt.CacheKey;
@@ -92,6 +96,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     }
   }
 
+
   public static JSONObject process( Map<String, Object> message
                                            , ConfigHandler handler
                                            , String field
@@ -112,7 +117,14 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
           if (kv.getValue() instanceof String) {
             long startTime = System.currentTimeMillis();
             String stellarStatement = (String) kv.getValue();
-            Object o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+            Object o = null;
+            try {
+              o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+            }
+            catch(Exception e) {
+              _LOG.error(e.getMessage(), e);
+              throw e;
+            }
             if (slowLogThreshold != null && _PERF_LOG.isDebugEnabled()) {
               long duration = System.currentTimeMillis() - startTime;
               if (duration > slowLogThreshold) {

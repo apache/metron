@@ -45,6 +45,7 @@ import {UpdateService} from './service/update.service';
 import {MetaAlertService} from './service/meta-alert.service';
 import {MetaAlertsModule} from './alerts/meta-alerts/meta-alerts.module';
 import {SearchService} from './service/search.service';
+import { GlobalConfigService } from './service/global-config.service';
 
 
 
@@ -82,7 +83,8 @@ export function initConfig(config: ColumnNamesService) {
               MetronDialogBox,
               ColumnNamesService,
               UpdateService,
-              MetaAlertService],
+              MetaAlertService,
+              GlobalConfigService],
   bootstrap: [AppComponent]
 })
 

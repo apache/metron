@@ -22,7 +22,7 @@ function help {
   echo "usage: ${0}"
   echo "    -v/--version=<version>   The version of the metron release. [Required]"
   echo "    -c/--candidate=<RC#>      Defines the Release Candidate. [Required]"
-  echo "    -b/--bro=<bro version>   The version of the bro kafka plugin. [Required]"
+  echo "    -b/--bro=<bro version>   The version of the bro kafka plugin. [Optional]"
   echo "    -h/--help                Usage information."
   echo " "
   echo "example: "
@@ -119,21 +119,22 @@ else
   exit 1
 fi
 
-if [ -z "$BRO" ]; then
-	echo "Missing -b/--bro which is required"
-	exit 1
-fi
-
-if [[ "$BRO" =~ ^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2} ]]; then
-  BRO_VERSION="$BRO"
-else
-  echo "[ERROR] $BRO may not be a valid version number"
-  exit 1
+# validating the bro plugin is not required
+if [ -n "$BRO" ]; then
+  if [[ "$BRO" =~ ^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2} ]]; then
+    BRO_VERSION="$BRO"
+  else
+    echo "[ERROR] $BRO may not be a valid version number"
+    exit 1
+  fi
 fi
 
 echo "Metron Version $METRON_VERSION"
 echo "Release Candidate $RC"
-echo "Bro Plugin Version $BRO_VERSION"
+
+if [ -n "$BRO" ]; then
+  echo "Bro Plugin Version $BRO_VERSION"
+fi
 
 METRON_RC_DIST="$METRON_DIST$METRON_VERSION-$UPPER_RC"
 echo "Metron RC Distribution Root is $METRON_RC_DIST"
@@ -158,8 +159,7 @@ echo "Working directory $WORK"
 KEYS="$METRON_RC_DIST/KEYS"
 METRON_ASSEMBLY="$METRON_RC_DIST/apache-metron-$METRON_VERSION-$RC.tar.gz"
 METRON_ASSEMBLY_SIG="$METRON_ASSEMBLY.asc"
-METRON_KAFKA_BRO_ASSEMBLY="$METRON_RC_DIST/apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz"
-METRON_KAFKA_BRO_ASSEMBLY_ASC="$METRON_KAFKA_BRO_ASSEMBLY.asc"
+
 
 echo "Downloading $KEYS"
 if ! wget -P "$WORK" "$KEYS" ; then
@@ -172,20 +172,29 @@ if ! wget -P "$WORK" "$METRON_ASSEMBLY" ; then
   echo "[ERROR] Failed to download $METRON_ASSEMBLY"
   exit 1
 fi
+
 echo "Downloading $METRON_ASSEMBLY_SIG"
 if ! wget -P "$WORK" "$METRON_ASSEMBLY_SIG" ; then
   echo "[ERROR] Failed to download $METRON_ASSEMBLY_SIG"
   exit 1
 fi
-echo "Downloading $METRON_KAFKA_BRO_ASSEMBLY"
-if ! wget -P "$WORK" "$METRON_KAFKA_BRO_ASSEMBLY" ; then
-  echo "[ERROR] Failed to download $METRON_KAFKA_BRO_ASSEMBLY"
-  exit 1
-fi
-echo "Downloading $METRON_KAFKA_BRO_ASSEMBLY_ASC"
-if ! wget -P "$WORK" "$METRON_KAFKA_BRO_ASSEMBLY_ASC" ; then
-  echo "[ERROR] Failed to download $METRON_KAFKA_BRO_ASSEMBLY_ASC"
-  exit 1
+
+if [ -n "$BRO" ]; then
+
+  METRON_KAFKA_BRO_ASSEMBLY="$METRON_RC_DIST/apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz"
+  METRON_KAFKA_BRO_ASSEMBLY_ASC="$METRON_KAFKA_BRO_ASSEMBLY.asc"
+
+  echo "Downloading $METRON_KAFKA_BRO_ASSEMBLY"
+  if ! wget -P "$WORK" "$METRON_KAFKA_BRO_ASSEMBLY" ; then
+    echo "[ERROR] Failed to download $METRON_KAFKA_BRO_ASSEMBLY"
+    exit 1
+  fi
+
+  echo "Downloading $METRON_KAFKA_BRO_ASSEMBLY_ASC"
+  if ! wget -P "$WORK" "$METRON_KAFKA_BRO_ASSEMBLY_ASC" ; then
+    echo "[ERROR] Failed to download $METRON_KAFKA_BRO_ASSEMBLY_ASC"
+    exit 1
+  fi
 fi
 
 cd "$WORK" || exit 1
@@ -202,20 +211,24 @@ if ! gpg --verify ./"apache-metron-$METRON_VERSION-$RC.tar.gz.asc" "apache-metro
   exit 1
 fi
 
-echo "Verifying Bro Kafka Plugin Assembly"
-if ! gpg --verify ./"apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz.asc" "apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz" ; then
-  echo "[ERROR] failed to verify Bro Kafka Plugin Assembly"
-  exit 1
+if [ -n "$BRO" ]; then
+
+  echo "Verifying Bro Kafka Plugin Assembly"
+  if ! gpg --verify ./"apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz.asc" "apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz" ; then
+    echo "[ERROR] failed to verify Bro Kafka Plugin Assembly"
+    exit 1
+  fi
+
+  if ! tar -xzf "apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz" ; then
+    echo "[ERROR] failed to unpack  Bro Kafka Plugin Assembly"
+    exit 1
+  fi
+
 fi
 
 echo "Unpacking Assemblies"
 if ! tar -xzf "apache-metron-$METRON_VERSION-$RC.tar.gz" ; then
   echo "[ERROR] failed to unpack Metron Assembly"
-  exit 1
-fi
-
-if ! tar -xzf "apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz" ; then
-  echo "[ERROR] failed to unpack  Bro Kafka Plugin Assembly"
   exit 1
 fi
 

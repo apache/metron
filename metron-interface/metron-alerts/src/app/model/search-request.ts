@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {SortField} from './sort-field';
-import {DEFAULT_FACETS, DEFAULT_GROUPS, INDEXES} from '../utils/constants';
+import { INDEXES } from '../utils/constants';
 
 export class SearchRequest {
   fields: string[];

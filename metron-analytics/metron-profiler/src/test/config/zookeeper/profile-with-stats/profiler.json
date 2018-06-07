@@ -1,0 +1,12 @@
+{
+  "profiles": [
+    {
+      "profile": "profile-with-stats",
+      "foreach": "'global'",
+      "init":   { "stats": "STATS_INIT()" },
+      "update": { "stats": "STATS_ADD(stats, 1)" },
+      "result": "stats"
+    }
+  ],
+  "timestampField": "timestamp"
+}

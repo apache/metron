@@ -17,10 +17,15 @@
  */
 package org.apache.metron.writer.bolt;
 
+import static org.apache.storm.utils.TupleUtils.isTick;
+
 import com.google.common.collect.ImmutableList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredIndexingBolt;
-import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
+import org.apache.metron.common.bolt.ConfiguredBolt;
+import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
@@ -40,13 +45,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
-import static org.apache.storm.utils.TupleUtils.isTick;
-
-public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
+public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends ConfiguredBolt<CONFIG_T> {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(BulkMessageWriterBolt.class);
@@ -61,26 +60,26 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   private int defaultBatchTimeout;
   private int batchTimeoutDivisor = 1;
 
-  public BulkMessageWriterBolt(String zookeeperUrl) {
-    super(zookeeperUrl);
+  public BulkMessageWriterBolt(String zookeeperUrl, String configurationStrategy) {
+    super(zookeeperUrl, configurationStrategy);
   }
 
-  public BulkMessageWriterBolt withBulkMessageWriter(BulkMessageWriter<JSONObject > bulkMessageWriter) {
+  public BulkMessageWriterBolt<CONFIG_T> withBulkMessageWriter(BulkMessageWriter<JSONObject> bulkMessageWriter) {
     this.bulkMessageWriter = bulkMessageWriter;
     return this;
   }
 
-  public BulkMessageWriterBolt withMessageWriter(MessageWriter<JSONObject> messageWriter) {
+  public BulkMessageWriterBolt<CONFIG_T> withMessageWriter(MessageWriter<JSONObject> messageWriter) {
     this.bulkMessageWriter = new WriterToBulkWriter<>(messageWriter);
     return this;
   }
 
-  public BulkMessageWriterBolt withMessageGetter(String messageGetStrategyType) {
+  public BulkMessageWriterBolt<CONFIG_T> withMessageGetter(String messageGetStrategyType) {
     this.messageGetStrategyType = messageGetStrategyType;
     return this;
   }
 
-  public BulkMessageWriterBolt withMessageGetterField(String messageGetField) {
+  public BulkMessageWriterBolt<CONFIG_T> withMessageGetterField(String messageGetField) {
     this.messageGetField = messageGetField;
     return this;
   }
@@ -103,7 +102,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
    * @param batchTimeoutDivisor
    * @return BulkMessageWriterBolt
    */
-  public BulkMessageWriterBolt withBatchTimeoutDivisor(int batchTimeoutDivisor) {
+  public BulkMessageWriterBolt<CONFIG_T> withBatchTimeoutDivisor(int batchTimeoutDivisor) {
     if (batchTimeoutDivisor <= 0) {
       throw new IllegalArgumentException(String.format("batchTimeoutDivisor must be positive. Value provided was %s", batchTimeoutDivisor));
     }
@@ -133,6 +132,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   public void setWriterComponent(BulkWriterComponent<JSONObject> component) {
     writerComponent = component;
   }
+
   /**
    * This method is called by TopologyBuilder.createTopology() to obtain topology and
    * bolt specific configuration parameters.  We use it primarily to configure how often
@@ -151,8 +151,8 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     else {
       configurationXform = x -> x;
     }
-    WriterConfiguration writerconf = configurationXform.apply(
-            new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
+    WriterConfiguration writerconf = configurationXform
+        .apply(getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations()));
 
     BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
     this.requestedTickFreqSecs = timeoutHelper.getRecommendedTickInterval();
@@ -187,8 +187,8 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
       configurationTransformation = x -> x;
     }
     try {
-      WriterConfiguration writerconf = configurationTransformation.apply(
-              new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
+      WriterConfiguration writerconf = configurationTransformation
+          .apply(getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations()));
       if (defaultBatchTimeout == 0) {
         //This means getComponentConfiguration was never called to initialize defaultBatchTimeout,
         //probably because we are in a unit test scenario.  So calculate it here.
@@ -219,8 +219,8 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
           //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
           LOG.debug("Flushing message queues older than their batchTimeouts");
           getWriterComponent().flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
-                  new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
-                  , messageGetStrategy);
+              getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations())),
+              messageGetStrategy);
         }
       }
       catch(Exception e) {
@@ -234,39 +234,85 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
 
     try
     {
-      JSONObject message = (JSONObject) messageGetStrategy.get(tuple);
-      String sensorType = MessageUtils.getSensorType(message);
-      LOG.trace("Writing enrichment message: {}", message);
-      WriterConfiguration writerConfiguration = configurationTransformation.apply(
-              new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
-      if(sensorType == null) {
-        //sensor type somehow ended up being null.  We want to error this message directly.
-        getWriterComponent().error("null"
-                             , new Exception("Sensor type is not specified for message "
-                                            + message.toJSONString()
-                                            )
-                             , ImmutableList.of(tuple)
-                             , messageGetStrategy
-                             );
+      JSONObject message = getMessage(tuple);
+      if(message == null) {
+        handleMissingMessage(tuple);
+        return;
       }
-      else {
-        if (writerConfiguration.isDefault(sensorType)) {
-          //want to warn, but not fail the tuple
-          collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
-        }
 
-        getWriterComponent().write(sensorType
-                , tuple
-                , message
-                , bulkMessageWriter
-                , writerConfiguration
-                , messageGetStrategy
-        );
+      String sensorType = MessageUtils.getSensorType(message);
+      if(sensorType == null) {
+        handleMissingSensorType(tuple, message);
+        return;
       }
+
+      LOG.trace("Writing enrichment message: {}", message);
+      WriterConfiguration writerConfiguration = configurationTransformation
+          .apply(getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations()));
+
+      if (writerConfiguration.isDefault(sensorType)) {
+        //want to warn, but not fail the tuple
+        collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
+      }
+
+      getWriterComponent().write(sensorType
+              , tuple
+              , message
+              , bulkMessageWriter
+              , writerConfiguration
+              , messageGetStrategy
+      );
     }
     catch(Exception e) {
       throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);
     }
+  }
+
+  /**
+   * Retrieves the JSON message contained in a tuple.
+   *
+   * @param tuple The tuple containing a JSON message.
+   * @return The JSON message contained in the tuple. If none, returns null.
+   */
+  private JSONObject getMessage(Tuple tuple) {
+    JSONObject message = null;
+    try {
+      message = (JSONObject) messageGetStrategy.get(tuple);
+
+    } catch(Throwable e) {
+      LOG.error("Unable to retrieve message from tuple", e);
+    }
+
+    return message;
+  }
+
+  /**
+   * Handles error processing when a message is missing a sensor type.
+   *
+   * @param tuple The tuple.
+   * @param message The message with no sensor type.
+   */
+  private void handleMissingSensorType(Tuple tuple, JSONObject message) {
+    // sensor type somehow ended up being null.  We want to error this message directly.
+    LOG.debug("Message is missing sensor type");
+    getWriterComponent().error("null",
+            new Exception("Sensor type is not specified for message " + message.toJSONString()),
+            ImmutableList.of(tuple),
+            messageGetStrategy
+    );
+  }
+
+  /**
+   * Handles error processing when a tuple does not contain a valid message.
+   *
+   * @param tuple The tuple.
+   */
+  private void handleMissingMessage(Tuple tuple) {
+    LOG.debug("Unable to extract message from tuple; expected valid JSON");
+    getWriterComponent().error(
+            new Exception("Unable to extract message from tuple; expected valid JSON"),
+            ImmutableList.of(tuple)
+    );
   }
 
   @Override

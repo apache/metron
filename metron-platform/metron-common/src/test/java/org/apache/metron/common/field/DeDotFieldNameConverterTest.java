@@ -16,23 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.writer;
+package org.apache.metron.common.field;
 
-import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
-import org.junit.Assert;
 import org.junit.Test;
 
-public class ParserWriterConfigurationTest {
+import static org.junit.Assert.assertEquals;
+
+public class DeDotFieldNameConverterTest {
+
   @Test
-  public void testDefaultBatchSize() {
-    ParserWriterConfiguration config = new ParserWriterConfiguration( new ParserConfigurations() );
-    Assert.assertEquals(1, config.getBatchSize("foo"));
+  public void testWithColons() throws Exception {
+    String actual = new DeDotFieldNameConverter().convert("testfield.with.colons");
+    assertEquals("testfield:with:colons", actual);
   }
 
   @Test
-  public void testDefaultIndex() {
-    ParserWriterConfiguration config = new ParserWriterConfiguration( new ParserConfigurations() );
-    Assert.assertEquals("foo", config.getIndex("foo"));
+  public void testNoColons() throws Exception {
+    String actual = new DeDotFieldNameConverter().convert("test-field-no-colons");
+    assertEquals("test-field-no-colons", actual);
   }
 }

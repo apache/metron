@@ -17,7 +17,7 @@
  */
 import {Observable} from 'rxjs/Rx';
 import {Headers, RequestOptions} from '@angular/http';
-
+import { Injectable } from '@angular/core';
 import {HttpUtil} from '../utils/httpUtil';
 import {DataSource} from './data-source';
 import {ColumnMetadata} from '../model/column-metadata';
@@ -34,7 +34,11 @@ import {SearchResponse} from '../model/search-response';
 import {SearchRequest} from '../model/search-request';
 import {AlertSource} from '../model/alert-source';
 
+@Injectable()
 export class ElasticSearchLocalstorageImpl extends DataSource {
+
+  globalConfig: {} = {};
+  sourceType: 'source:type';
 
   private defaultColumnMetadata = [
     new ColumnMetadata('id', 'string'),
