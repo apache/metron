@@ -214,10 +214,10 @@ public class ElasticsearchMetaAlertDaoTest {
     List<Map<String, Object>> alertList = new ArrayList<>();
 
     // add an alert with a threat score
-    alertList.add( Collections.singletonMap(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0f));
+    alertList.add( Collections.singletonMap(ElasticsearchMetaAlertDao.THREAT_TRIAGE_FIELD, 10.0f));
 
     // add a second alert with a threat score
-    alertList.add( Collections.singletonMap(MetaAlertDao.THREAT_FIELD_DEFAULT, 20.0f));
+    alertList.add( Collections.singletonMap(ElasticsearchMetaAlertDao.THREAT_TRIAGE_FIELD, 20.0f));
 
     // add a third alert with NO threat score
     alertList.add( Collections.singletonMap("alert3", "has no threat score"));
@@ -230,7 +230,7 @@ public class ElasticsearchMetaAlertDaoTest {
     // calculate the threat score for the metaalert
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
     metaAlertDao.calculateMetaScores(metaalert);
-    Object threatScore = metaalert.getDocument().get(ElasticsearchMetaAlertDao.THREAT_FIELD_DEFAULT);
+    Object threatScore = metaalert.getDocument().get(ElasticsearchMetaAlertDao.THREAT_TRIAGE_FIELD);
 
     // the metaalert must contain a summary of all child threat scores
     assertEquals(20D, (Double) metaalert.getDocument().get("max"), delta);
@@ -245,5 +245,32 @@ public class ElasticsearchMetaAlertDaoTest {
 
     // by default, the overall threat score is the sum of all child threat scores
     assertEquals(30.0F, threatScore);
+  }
+
+  @Test
+  public void testCalculateMetaScoresWithDifferentFieldName() {
+    List<Map<String, Object>> alertList = new ArrayList<>();
+
+    // add an alert with a threat score
+    alertList.add( Collections.singletonMap(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0f));
+
+    // create the metaalert
+    Map<String, Object> docMap = new HashMap<>();
+    docMap.put(MetaAlertDao.ALERT_FIELD, alertList);
+    Document metaalert = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
+
+    // Configure a different threat triage score field name
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setGlobalConfigSupplier(() -> new HashMap<String, Object>() {{
+      put(MetaAlertDao.THREAT_FIELD_PROPERTY, MetaAlertDao.THREAT_FIELD_DEFAULT);
+    }});
+    ElasticsearchDao elasticsearchDao = new ElasticsearchDao();
+    elasticsearchDao.setAccessConfig(accessConfig);
+
+    // calculate the threat score for the metaalert
+    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
+    metaAlertDao.init(elasticsearchDao);
+    metaAlertDao.calculateMetaScores(metaalert);
+    assertNotNull(metaalert.getDocument().get(MetaAlertDao.THREAT_FIELD_DEFAULT));
   }
 }

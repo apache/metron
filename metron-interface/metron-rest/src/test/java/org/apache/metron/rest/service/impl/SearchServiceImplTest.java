@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE_FIELD_PROPERTY;
 import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
 import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
 import static org.junit.Assert.assertEquals;
@@ -183,7 +184,7 @@ public class SearchServiceImplTest {
     when(environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, ""))
         .thenReturn("ip_src_addr");
     Map<String, Object> globalConfig = new HashMap<>();
-    globalConfig.put("source.type.field", "source.type");
+    globalConfig.put(SENSOR_TYPE_FIELD_PROPERTY, "source.type");
     when(globalConfigService.get()).thenReturn(globalConfig);
     when(alertsUIService.getAlertsUIUserSettings()).thenReturn(Optional.empty());
     List<String> defaultFields = searchService.getDefaultFacetFields();

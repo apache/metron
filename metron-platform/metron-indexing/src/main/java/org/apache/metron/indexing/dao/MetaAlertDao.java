@@ -68,7 +68,8 @@ public interface MetaAlertDao extends IndexDao {
   String METAALERT_TYPE = "metaalert";
   String METAALERT_FIELD = "metaalerts";
   String METAALERT_DOC = METAALERT_TYPE + "_doc";
-  String THREAT_FIELD_DEFAULT = "threat:triage:score";
+  String THREAT_FIELD_DEFAULT = "threat.triage.score";
+  String THREAT_FIELD_PROPERTY = "threat.triage.score.field";
   String THREAT_SORT_DEFAULT = "sum";
   String ALERT_FIELD = "metron_alert";
   String STATUS_FIELD = "status";
