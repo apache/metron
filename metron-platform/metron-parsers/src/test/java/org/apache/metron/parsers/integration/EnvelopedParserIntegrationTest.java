@@ -78,7 +78,7 @@ public class EnvelopedParserIntegrationTest {
    *   ,"rawMessageStrategy" : "ENVELOPE"
    *   ,"rawMessageStrategyConfig" : {
    *       "messageField" : "data",
-   *       "metadata_prefix" : ""
+   *       "metadataPrefix" : ""
    *   }
    *   ,"parserConfig": {
    *     "columns" : {
@@ -146,4 +146,64 @@ public class EnvelopedParserIntegrationTest {
     Assert.assertEquals(inputRecord.get(Constants.Fields.ORIGINAL.getName()), outputRecord.get(Constants.Fields.ORIGINAL.getName()));
     Assert.assertFalse(outputRecord.containsKey(MetadataUtil.METADATA_PREFIX + ".metadata_field"));
   }
+
+  /**
+   * {
+   *    "parserClassName" : "org.apache.metron.parsers.GrokParser"
+   *   ,"sensorTopic" : "ciscoPix"
+
+   *   , "parserConfig": {
+   *      "grokPath": "/patterns/cisco_patterns",
+   *      "patternLabel": "CISCO_PIX",
+   *      "timestampField": "timestamp",
+   *      "timeFields" : [ "timestamp" ],
+   *      "dateFormat" : "MMM dd yyyy HH:mm:ss"
+   *    }
+   * }
+   */
+  @Multiline
+  public static String ciscoPixSyslogConfig;
+
+  /**
+   * {
+   *    "parserClassName" : "org.apache.metron.parsers.GrokParser"
+   *   ,"sensorTopic" : "cisco302020"
+   *   ,"rawMessageStrategy" : "ENVELOPE"
+   *   ,"rawMessageStrategyConfig" : {
+   *       "messageField" : "data",
+   *       "metadataPrefix" : ""
+   *   }
+   *   , "parserConfig": {
+   *      "grokPath": "/patterns/cisco_patterns",
+   *      "patternLabel": "CISCOFW302020_302021"
+   *    }
+   * }
+   */
+  @Multiline
+  public static String cisco302020Config;
+
+  @Test
+  public void testCiscoPixEnvelopingCisco302020() throws Exception {
+    byte[] envelopedData = null;
+    {
+      ParserDriver driver = new ParserDriver("ciscoPix", ciscoPixSyslogConfig, "{}");
+      String inputRecord = "Mar 29 2004 09:54:18: %PIX-6-302005: Built UDP connection for faddr 198.207.223.240/53337 gaddr 10.0.0.187/53 laddr 192.168.0.2/53";
+      ProcessorResult<List<byte[]>> results = driver.run(ImmutableList.of(inputRecord.getBytes()));
+      Assert.assertFalse(results.failed());
+      List<byte[]> resultList = results.getResult();
+      envelopedData = resultList.get(0);
+    }
+    {
+      ParserDriver driver = new ParserDriver("cisco302020", cisco302020Config, "{}");
+      ProcessorResult<List<byte[]>> results = driver.run(ImmutableList.of(envelopedData));
+      Assert.assertFalse(results.failed());
+      List<byte[]> resultList = results.getResult();
+      Assert.assertEquals(1, resultList.size());
+      Map<String, Object> result = JSONUtils.INSTANCE.load(new String(resultList.get(0)), JSONUtils.MAP_SUPPLIER);
+      Assert.assertEquals("UDP", result.get("protocol"));
+      Assert.assertTrue((long)result.get("timestamp") > 1000 );
+    }
+
+  }
+
 }
