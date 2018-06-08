@@ -337,6 +337,28 @@ The following config will rename the fields `old_field` and `different_old_field
                       ]
 }
 ```
+* `REGEX_ROUTING` : This transformation lets users set an output field to one of a set of possibilities based on matching regexes. This has functional overlap with Stellar match statements, but the syntax is more bearable for large sets of conditionals.
+ 
+The following config will set the field `my_output` to one of the
+following, dependent upon the value of the `my_input` field:
+* `awesome` if `my_input` starts with `metron` or `mortron`
+* `boo` if `my_input` starts with `scary`
+```
+{
+...
+    "fieldTransformations" : [
+          {
+            "transformation" : "REGEX_ROUTING"
+          , "input" : "my_input"
+          , "output" : "my_output"
+          , "config" : {
+            "awesome" : [ "^metron.*", "^mortron.*" ],
+            "boo" : "^scary.*"
+                       }
+          }
+                      ]
+}
+```
 
 
 ### Assignment to `null`
