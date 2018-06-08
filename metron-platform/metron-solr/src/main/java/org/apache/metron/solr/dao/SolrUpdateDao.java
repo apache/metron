@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.search.AlertComment;
@@ -48,23 +47,12 @@ public class SolrUpdateDao implements UpdateDao {
 
   private transient SolrClient client;
   private AccessConfig config;
-  private Function<String, String> indexSupplier;
   private transient SolrRetrieveLatestDao retrieveLatestDao;
 
   public SolrUpdateDao(SolrClient client, SolrRetrieveLatestDao retrieveLatestDao, AccessConfig config) {
     this.client = client;
     this.retrieveLatestDao = retrieveLatestDao;
     this.config = config;
-    this.indexSupplier = config.getIndexSupplier();
-  }
-
-  private Optional<String> getIndex(String sensorName, Optional<String> index) {
-    if (index.isPresent()) {
-      return index;
-    } else {
-      String realIndex = indexSupplier.apply(sensorName);
-      return Optional.ofNullable(realIndex);
-    }
   }
 
   @Override
@@ -80,7 +68,8 @@ public class SolrUpdateDao implements UpdateDao {
     }
     try {
       SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(newVersion);
-      Optional<String> index = getIndex(update.getSensorType(), rawIndex);
+      Optional<String> index = SolrUtilities
+          .getIndex(config.getIndexSupplier(), newVersion.getSensorType(), rawIndex);
       if (index.isPresent()) {
         this.client.add(index.get(), solrInputDocument);
         this.client.commit(index.get());
@@ -100,7 +89,8 @@ public class SolrUpdateDao implements UpdateDao {
 
     for (Entry<Document, Optional<String>> entry : updates.entrySet()) {
       SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(entry.getKey());
-      Optional<String> index = getIndex(entry.getKey().getSensorType(), entry.getValue());
+      Optional<String> index = SolrUtilities
+          .getIndex(config.getIndexSupplier(), entry.getKey().getSensorType(), entry.getValue());
       if (index.isPresent()) {
         Collection<SolrInputDocument> solrInputDocuments = solrCollectionUpdates
             .getOrDefault(index.get(), new ArrayList<>());

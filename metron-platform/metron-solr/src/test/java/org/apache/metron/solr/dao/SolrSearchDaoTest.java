@@ -92,7 +92,7 @@ public class SolrSearchDaoTest {
     accessConfig = mock(AccessConfig.class);
     when(accessConfig.getIndexSupplier()).thenReturn(sensorType -> sensorType);
     solrSearchDao = new SolrSearchDao(client, accessConfig);
-    solrRetrieveLatestDao = new SolrRetrieveLatestDao(client);
+    solrRetrieveLatestDao = new SolrRetrieveLatestDao(client, accessConfig);
     mockStatic(CollectionAdminRequest.class);
     when(CollectionAdminRequest.listCollections(client)).thenReturn(Arrays.asList("bro", "snort"));
   }
