@@ -18,7 +18,9 @@
 
 package org.apache.metron.management;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -28,7 +30,10 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.metron.common.system.Clock;
+import org.apache.metron.profiler.client.stellar.Util;
+import org.apache.metron.stellar.common.LambdaExpression;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -36,6 +41,7 @@ import org.apache.metron.stellar.dsl.StellarFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -150,18 +156,18 @@ public class KafkaFunctions {
     public Object apply(List<Object> args, Context context) throws ParseException {
 
       // required - name of the topic to retrieve messages from
-      String topic = ConversionUtils.convert(args.get(0), String.class);
+      String topic = getArg("topic", 0, String.class, args);
 
       // optional - how many messages should be retrieved?
       int count = 1;
       if(args.size() > 1) {
-        count = ConversionUtils.convert(args.get(1), Integer.class);
+        count = getArg("count", 1, Integer.class, args);
       }
 
       // optional - property overrides provided by the user
       Map<String, String> overrides = new HashMap<>();
       if(args.size() > 2) {
-        overrides = ConversionUtils.convert(args.get(2), Map.class);
+        overrides = getArg("overrides", 2, Map.class, args);
       }
 
       // build the properties for kafka
@@ -259,18 +265,18 @@ public class KafkaFunctions {
     public Object apply(List<Object> args, Context context) throws ParseException {
 
       // required - name of the topic to retrieve messages from
-      String topic = ConversionUtils.convert(args.get(0), String.class);
+      String topic = getArg("topic", 0, String.class, args);
 
       // optional - how many messages should be retrieved?
       int count = 1;
       if(args.size() > 1) {
-        count = ConversionUtils.convert(args.get(1), Integer.class);
+        count = getArg("count", 1, Integer.class, args);
       }
 
       // optional - property overrides provided by the user
       Map<String, String> overrides = new HashMap<>();
       if(args.size() > 2) {
-        overrides = ConversionUtils.convert(args.get(2), Map.class);
+        overrides = getArg("overrides", 2, Map.class, args);
       }
 
       Properties properties = buildKafkaProperties(overrides, context);
@@ -372,18 +378,18 @@ public class KafkaFunctions {
       List<String> messages;
       if(args.get(1) instanceof String) {
         // a single message needs sent
-        String msg = ConversionUtils.convert(args.get(1), String.class);
+        String msg = getArg("message(s)", 1, String.class, args);
         messages = Collections.singletonList(msg);
 
       } else {
         // a list of messages; all need sent
-        messages = ConversionUtils.convert(args.get(1), List.class);
+        messages = getArg("message(s)", 1, List.class, args);
       }
 
       // are there any overrides?
       Map<String, String> overrides = new HashMap<>();
       if(args.size() > 2) {
-        overrides = ConversionUtils.convert(args.get(2), Map.class);
+        overrides = getArg("overrides", 2, Map.class, args);
       }
 
       // send the messages
@@ -485,11 +491,168 @@ public class KafkaFunctions {
       // optional - did the user provide any overrides?
       Map<String, String> overrides = new HashMap<>();
       if(args.size() > 0) {
-        overrides = ConversionUtils.convert(args.get(0), Map.class);
+        overrides = getArg("overrides", 0, Map.class, args);
       }
 
       return buildKafkaProperties(overrides, context);
     }
+
+    @Override
+    public void initialize(Context context) {
+      // no initialization required
+    }
+
+    @Override
+    public boolean isInitialized() {
+      // no initialization required
+      return true;
+    }
+  }
+
+  /**
+   * KAFKA_FIND
+   *
+   * <p>Finds messages that satisfy a given filter expression. Subsequent calls will continue retrieving messages
+   * sequentially from the original offset.
+   *
+   * <p>Example: Retrieve a 'bro' message.
+   * <pre>
+   * {@code
+   * KAFKA_FIND('topic', m -> MAP_GET('source.type', m) == 'bro')
+   * }
+   * </pre>
+   *
+   * <p>Example: Find 10 messages that contain geo-location data.
+   * <pre>
+   * {@code
+   * KAFKA_FIND('topic', m -> MAP_EXISTS('geo', m), 10)
+   * }
+   * </pre>
+   */
+  @Stellar(
+          namespace = "KAFKA",
+          name = "FIND",
+          description = "Find messages that satisfy a given filter expression. Messages are filtered starting from " +
+                  "the latest offset.",
+          params = {
+                  "topic - The name of the Kafka topic",
+                  "filter - A lambda expression that filters messages. Messages are presented as a map of fields to the expression.",
+                  "count - The number of Kafka messages to retrieve",
+                  "config - Optional map of key/values that override any global properties."
+          },
+          returns = "The messages as a list of strings"
+  )
+  public static class KafkaFind implements StellarFunction {
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      // required - name of the topic to retrieve messages from
+      String topic = getArg("topic", 0, String.class, args);
+
+      // required - a lambda which filters the messages
+      LambdaExpression filter = getArg("filter", 1, LambdaExpression.class, args);
+
+      // optional - how many messages should be retrieved?
+      int count = 1;
+      if(args.size() > 2) {
+        count = getArg("count", 2, Integer.class, args);
+      }
+
+      // optional - property overrides provided by the user
+      Map<String, String> overrides = new HashMap<>();
+      if(args.size() > 3) {
+        overrides = getArg("overrides", 3, Map.class, args);
+      }
+
+      Properties properties = buildKafkaProperties(overrides, context);
+      properties.put("max.poll.records", 10 * count);
+
+      return findMessages(topic, filter, count, properties);
+    }
+
+    /**
+     * Find messages in Kafka that satisfy a filter expression.
+     *
+     * @param topic The kafka topic.
+     * @param filter The filter expression.
+     * @param count The maximum number of messages to find.
+     * @param properties Function configuration values.
+     * @return A list of messages that satisfy the filter expression.
+     */
+    private List<Object> findMessages(String topic, LambdaExpression filter, int count, Properties properties) {
+      final int pollTimeout = getPollTimeout(properties);
+      final int maxWait = getMaxWait(properties);
+
+      List<Object> messages = new ArrayList<>();
+      try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
+
+        // seek to the end of all topic/partitions
+        Set<TopicPartition> partitions = manualPartitionAssignment(topic, consumer);
+        consumer.seekToEnd(partitions);
+
+        // continue until we have enough messages or exceeded the max wait time
+        long wait = 0L;
+        final long start = clock.currentTimeMillis();
+        while(messages.size() < count && wait < maxWait) {
+
+          // poll kafka for messages
+          ConsumerRecords<String, String> records = consumer.poll(pollTimeout);
+          for(ConsumerRecord<String, String> record : records) {
+
+            // only keep the message if the filter expression is satisfied
+            if(isSatisfied(filter, record.value())) {
+              messages.add(record.value());
+
+              // do we have enough messages already?
+              if(messages.size() >= count) {
+                break;
+              }
+            }
+          }
+
+          // how long have we waited?
+          wait = clock.currentTimeMillis() - start;
+          consumer.commitSync();
+
+          LOG.debug("KAFKA_FIND polled for messages; topic={}, count={}, waitTime={} ms",
+                  topic, messages.size(), wait);
+        }
+      }
+
+      return messages;
+    }
+
+    /**
+     * Executes a given expression on a message.
+     *
+     * @param expr The filter expression to execute.
+     * @param message The message that the expression is executed on.
+     * @return Returns true, only if the expression returns true.  If the expression
+     * returns false or fails to execute, false is returned.
+     */
+    public boolean isSatisfied(LambdaExpression expr, String message) {
+      boolean result = false;
+      Map<String, Object> messageAsMap;
+      try {
+        // transform the message to a map of fields
+        messageAsMap = JSONUtils.INSTANCE.load(message, JSONUtils.MAP_SUPPLIER);
+
+        // apply the filter expression
+        Object out = expr.apply(Collections.singletonList(messageAsMap));
+        if(out instanceof Boolean) {
+          result = (Boolean) out;
+
+        } else {
+          LOG.error("Expected boolean from filter expression, got {}", ClassUtils.getShortClassName(out, "null"));
+        }
+
+      } catch(IOException e) {
+        LOG.error("Unable to parse message", e);
+      }
+
+      return result;
+    }
+
 
     @Override
     public void initialize(Context context) {
@@ -511,7 +674,6 @@ public class KafkaFunctions {
    * @return A set of topic-partitions that were manually assigned to the consumer.
    */
   private static Set<TopicPartition> manualPartitionAssignment(String topic, KafkaConsumer<String, String> consumer) {
-
     // find all partitions for the topic
     Set<TopicPartition> partitions = new HashSet<>();
     for(PartitionInfo partition : consumer.partitionsFor(topic)) {
@@ -539,7 +701,6 @@ public class KafkaFunctions {
    * @param context The Stellar context.
    */
   private static Properties buildKafkaProperties(Map<String, String> overrides, Context context) {
-
     // start with minimal set of default properties
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
@@ -599,7 +760,6 @@ public class KafkaFunctions {
    * via the global properties.
    */
   private static Properties defaultKafkaProperties() {
-
     Properties properties = new Properties();
     properties.put("bootstrap.servers", "localhost:9092");
     properties.put("group.id", "kafka-functions-stellar");
@@ -633,5 +793,23 @@ public class KafkaFunctions {
     properties.put(POLL_TIMEOUT_PROPERTY, DEFAULT_POLL_TIMEOUT);
 
     return properties;
+  }
+
+  /**
+   * Get an argument from a list of arguments.
+   *
+   * @param argName The name of the argument.
+   * @param index The index within the list of arguments.
+   * @param clazz The type expected.
+   * @param args All of the arguments.
+   * @param <T> The type of the argument expected.
+   */
+  public static <T> T getArg(String argName, int index, Class<T> clazz, List<Object> args) {
+    if(index >= args.size()) {
+      throw new IllegalArgumentException(format("missing '%s'; expected at least %d argument(s), found %d",
+              argName, index+1, args.size()));
+    }
+
+    return ConversionUtils.convert(args.get(index), clazz);
   }
 }
