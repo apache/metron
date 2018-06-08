@@ -119,13 +119,14 @@ CISCO_PIX %{GREEDYDATA:timestamp}: %PIX-%{NOTSPACE:pix_type}: %{GREEDYDATA:data}
 ```
 /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --zookeeper $ZOOKEEPER --create --topic pix_syslog_router --partitions 1 --replication-factor 1
 ```
-* Create the `pix_syslog_router` parser by opening `$METRON_HOME/config/zookeeper/parser/pix_syslog_router.json` and placing the following:
+* Create the `pix_syslog_router` parser by opening `$METRON_HOME/config/zookeeper/parsers/pix_syslog_router.json` and placing the following:
 ```
 {
    "parserClassName" : "org.apache.metron.parsers.GrokParser"
   ,"sensorTopic" : "ciscoPix"
   , "parserConfig": {
      "grokPath": "/tmp/cisco_patterns",
+     "batchSize" : 1,
      "patternLabel": "CISCO_PIX",
      "timestampField": "timestamp",
      "timeFields" : [ "timestamp" ],
@@ -156,7 +157,7 @@ A couple of things to note about this config:
 ```
 /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --zookeeper $ZOOKEEPER --create --topic cisco-6-302 --partitions 1 --replication-factor 1
 ```
-* Create the `cisco-6-302` parser by opening `$METRON_HOME/config/zookeeper/parser/cisco-6-302.json` and placing the following:
+* Create the `cisco-6-302` parser by opening `$METRON_HOME/config/zookeeper/parsers/cisco-6-302.json` and placing the following:
 ```
 {
    "parserClassName" : "org.apache.metron.parsers.GrokParser"
@@ -168,6 +169,7 @@ A couple of things to note about this config:
   }
   , "parserConfig": {
      "grokPath": "/tmp/cisco_patterns",
+     "batchSize" : 1,
      "patternLabel": "CISCOFW302020_302021"
    }
 }
@@ -184,7 +186,7 @@ Note a couple of things:
 ```
 /usr/hdp/current/kafka-broker/bin/kafka-topics.sh --zookeeper $ZOOKEEPER --create --topic cisco-5-304 --partitions 1 --replication-factor 1
 ```
-* Create the `cisco-5-304` parser by opening `$METRON_HOME/config/zookeeper/parser/cisco-5-304.json` and placing the following:
+* Create the `cisco-5-304` parser by opening `$METRON_HOME/config/zookeeper/parsers/cisco-5-304.json` and placing the following:
 ```
 {
    "parserClassName" : "org.apache.metron.parsers.GrokParser"
@@ -196,6 +198,7 @@ Note a couple of things:
   }
   , "parserConfig": {
      "grokPath": "/tmp/cisco_patterns",
+     "batchSize" : 1,
      "patternLabel": "ACCESSED"
    }
 }
