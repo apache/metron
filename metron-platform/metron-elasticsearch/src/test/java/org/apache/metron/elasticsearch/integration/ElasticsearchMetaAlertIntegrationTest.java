@@ -92,7 +92,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
   /**
    {
      "properties": {
-       "alert": {
+       "metron_alert": {
          "type": "nested"
        }
      }
@@ -175,7 +175,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
            "score" : {
              "type" : "integer"
            },
-           "alert" : {
+           "metron_alert" : {
              "type" : "nested"
            }
          }
@@ -761,7 +761,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
     SearchResponse searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery(
-            "(ip_src_addr:192.168.1.1 AND ip_src_port:8009) OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8009)");
+            "(ip_src_addr:192.168.1.1 AND ip_src_port:8009) OR (metron_alert.ip_src_addr:192.168.1.1 AND metron_alert.ip_src_port:8009)");
         setIndices(Collections.singletonList(MetaAlertDao.METAALERT_TYPE));
         setFrom(0);
         setSize(5);
@@ -781,7 +781,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
       {
         setQuery(
             "(ip_src_addr:192.168.1.1 AND ip_src_port:8010)"
-                + " OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8010)");
+                + " OR (metron_alert.ip_src_addr:192.168.1.1 AND metron_alert.ip_src_port:8010)");
         setIndices(Collections.singletonList("*"));
         setFrom(0);
         setSize(5);
@@ -804,7 +804,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
       {
         setQuery(
             "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
-                + " OR (alert.ip_src_addr:192.168.1.3 AND alert.ip_src_port:8008)");
+                + " OR (metron_alert.ip_src_addr:192.168.1.3 AND metron_alert.ip_src_port:8008)");
         setIndices(Collections.singletonList("*"));
         setFrom(0);
         setSize(1);
