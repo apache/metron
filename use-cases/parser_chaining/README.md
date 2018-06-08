@@ -229,7 +229,7 @@ $METRON_HOME/bin/start_parser_topology.sh -k $BROKERLIST -z $ZOOKEEPER -s pix_sy
 * Create a file called `~/data.log` with the sample syslog loglines [here](http://www.monitorware.com/en/logsamples/cisco-pix-61(2).php).
 * Send the data in via kafka console producer
 ```
-cat ~/data/log | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list $BROKERLIST --topic pix_syslog_router
+cat ~/data.log | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list $BROKERLIST --topic pix_syslog_router
 ```
 
 You should see indices created for the `cisco-5-304` and `cisco-6-302` data with appropriate fields created for each type.
