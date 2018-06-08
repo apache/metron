@@ -546,7 +546,6 @@ public class KafkaFunctions {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-
       // required - name of the topic to retrieve messages from
       String topic = getArg("topic", 0, String.class, args);
 
@@ -581,7 +580,6 @@ public class KafkaFunctions {
      * @return A list of messages that satisfy the filter expression.
      */
     private List<Object> findMessages(String topic, LambdaExpression filter, int count, Properties properties) {
-
       final int pollTimeout = getPollTimeout(properties);
       final int maxWait = getMaxWait(properties);
 
@@ -603,7 +601,6 @@ public class KafkaFunctions {
 
             // only keep the message if the filter expression is satisfied
             if(isSatisfied(filter, record.value())) {
-
               messages.add(record.value());
 
               // do we have enough messages already?
@@ -637,7 +634,6 @@ public class KafkaFunctions {
       boolean result = false;
       Map<String, Object> messageAsMap;
       try {
-
         // transform the message to a map of fields
         messageAsMap = JSONUtils.INSTANCE.load(message, JSONUtils.MAP_SUPPLIER);
 
@@ -678,7 +674,6 @@ public class KafkaFunctions {
    * @return A set of topic-partitions that were manually assigned to the consumer.
    */
   private static Set<TopicPartition> manualPartitionAssignment(String topic, KafkaConsumer<String, String> consumer) {
-
     // find all partitions for the topic
     Set<TopicPartition> partitions = new HashSet<>();
     for(PartitionInfo partition : consumer.partitionsFor(topic)) {
@@ -706,7 +701,6 @@ public class KafkaFunctions {
    * @param context The Stellar context.
    */
   private static Properties buildKafkaProperties(Map<String, String> overrides, Context context) {
-
     // start with minimal set of default properties
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
@@ -766,7 +760,6 @@ public class KafkaFunctions {
    * via the global properties.
    */
   private static Properties defaultKafkaProperties() {
-
     Properties properties = new Properties();
     properties.put("bootstrap.servers", "localhost:9092");
     properties.put("group.id", "kafka-functions-stellar");
@@ -812,7 +805,6 @@ public class KafkaFunctions {
    * @param <T> The type of the argument expected.
    */
   public static <T> T getArg(String argName, int index, Class<T> clazz, List<Object> args) {
-
     if(index >= args.size()) {
       throw new IllegalArgumentException(format("missing '%s'; expected at least %d argument(s), found %d",
               argName, index+1, args.size()));
