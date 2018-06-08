@@ -165,6 +165,7 @@ public class StellarAdapterTest extends StellarEnrichmentTest {
   @Multiline
   public static String mapConfig_default;
 
+
   private void testMapEnrichment(String config, String field) throws Exception {
     JSONObject message = getMessage();
     EnrichmentConfig enrichmentConfig = JSONUtils.INSTANCE.load(config, EnrichmentConfig.class);
@@ -185,4 +186,29 @@ public class StellarAdapterTest extends StellarEnrichmentTest {
   public void testMapEnrichment_default() throws Exception {
     testMapEnrichment(mapConfig_default, "");
   }
+
+  /**
+   {
+    "fieldMap": {
+      "stellar" : {
+        "config" : [
+            "stmt1 := MAP_GET('source.type', _)"
+        ]
+      }
+    }
+  }
+   */
+  @Multiline
+  public static String allVariableConfig;
+
+  @Test
+  public void testAllVariableUsage() throws Exception {
+    JSONObject message = getMessage();
+    EnrichmentConfig enrichmentConfig = JSONUtils.INSTANCE.load(allVariableConfig, EnrichmentConfig.class);
+    Assert.assertNotNull(enrichmentConfig.getEnrichmentConfigs().get("stellar"));
+    ConfigHandler handler = enrichmentConfig.getEnrichmentConfigs().get("stellar");
+    JSONObject enriched = enrich(message, "", handler);
+    Assert.assertEquals("stellar_test", enriched.get("stmt1"));
+  }
+
 }

@@ -27,8 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +73,11 @@ public class Configurations implements Serializable {
 
   public void deleteGlobalConfig() {
     getConfigurations().remove(ConfigurationType.GLOBAL.getTypeName());
+  }
+
+  public static <T> T getAs(String key, Map<String, Object> map, T defaultValue, Class<T> clazz) {
+    return map == null ? defaultValue
+        : ConversionUtils.convert(map.getOrDefault(key, defaultValue), clazz);
   }
 
   @Override

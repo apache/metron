@@ -628,10 +628,6 @@ The last step before restarting the topology is to create a custom X-Pack shaded
             <exclusions>
               <exclusion>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-smile</artifactId>
-              </exclusion>
-              <exclusion>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-yaml</artifactId>
               </exclusion>
               <exclusion>
