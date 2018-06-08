@@ -123,7 +123,7 @@ CISCO_PIX %{GREEDYDATA:timestamp}: %PIX-%{NOTSPACE:pix_type}: %{GREEDYDATA:data}
 ```
 {
    "parserClassName" : "org.apache.metron.parsers.GrokParser"
-  ,"sensorTopic" : "ciscoPix"
+  ,"sensorTopic" : "pix_syslog_router"
   , "parserConfig": {
      "grokPath": "/tmp/cisco_patterns",
      "batchSize" : 1,
