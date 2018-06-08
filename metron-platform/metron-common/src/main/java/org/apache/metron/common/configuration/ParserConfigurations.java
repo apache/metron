@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ParserConfigurations extends Configurations {
+  public static final Integer DEFAULT_KAFKA_BATCH_SIZE = 15;
 
   public SensorParserConfig getSensorParserConfig(String sensorType) {
     return (SensorParserConfig) getConfigurations().get(getKey(sensorType));

@@ -57,7 +57,7 @@ public class BatchTimeoutHelper {
   protected int minBatchTimeoutRequestedSecs; //min of all sensorType configured batchTimeout requests
   protected int recommendedTickIntervalSecs;  //the answer
 
-  BatchTimeoutHelper( Supplier<List<Integer>> listAllConfiguredTimeouts
+  public BatchTimeoutHelper( Supplier<List<Integer>> listAllConfiguredTimeouts
           , int batchTimeoutDivisor
           )
   {
@@ -130,7 +130,7 @@ public class BatchTimeoutHelper {
    * @return the max batchTimeout allowed, in seconds
    * Guaranteed positive number.
    */
-  protected int getDefaultBatchTimeout() {
+  public int getDefaultBatchTimeout() {
     if (!initialized) {this.init();}
     return maxBatchTimeoutAllowedSecs;
   }
@@ -160,7 +160,7 @@ public class BatchTimeoutHelper {
    * @return the recommended TickInterval to request, in seconds
    * Guaranteed positive number.
    */
-  protected int getRecommendedTickInterval() {
+  public int getRecommendedTickInterval() {
     if (!initialized) {this.init();}
     // Remember that parameter settings in the CLI override parameter settings set by the Storm component.
     // We shouldn't have to deal with this in the Metron environment, but just in case,

@@ -134,6 +134,7 @@ bolts:
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
             - "${kafka.zk}"
+            - "INDEXING"
         configMethods:
             -   name: "withBulkMessageWriter"
                 args:
@@ -147,8 +148,9 @@ bolts:
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
             - "${kafka.zk}"
+            - "INDEXING"
         configMethods:
-            -   name: "withMessageWriter"
+            -   name: "withBulkMessageWriter"
                 args:
                     - ref: "kafkaWriter"
 
