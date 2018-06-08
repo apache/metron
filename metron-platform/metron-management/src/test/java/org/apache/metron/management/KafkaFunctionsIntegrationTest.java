@@ -161,6 +161,26 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
+   * KAFKA_PUT should be able to write a message passed as a String, rather than a List.
+   */
+  @Test
+  public void testKafkaPutOneMessagePassedAsString() {
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // put a message onto the topic - the message is just a string, not a list
+    run("KAFKA_PUT(topic, message1)");
+
+    // get a message from the topic
+    Object actual = run("KAFKA_GET(topic)");
+
+    // validate
+    assertEquals(Collections.singletonList(message1), actual);
+  }
+
+  /**
    * KAFKA_PUT should be able to write multiple messages passed as a List.
    * KAFKA_GET should be able to read multiple messages at once.
    */
@@ -373,3 +393,4 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     }
   }
 }
+
