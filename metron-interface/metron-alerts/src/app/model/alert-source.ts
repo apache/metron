@@ -44,7 +44,7 @@ export class AlertSource {
   guid: string;
   sig_id: number;
   sig_generator: number;
-  alert: AlertSource[] = [];
+  metron_alert: AlertSource[] = [];
   comments: AlertComment[] = [];
   'threat:triage:score': number;
   'threatinteljoinbolt:joiner:ts': number;
