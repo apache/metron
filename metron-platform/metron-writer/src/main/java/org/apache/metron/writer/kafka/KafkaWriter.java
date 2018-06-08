@@ -236,7 +236,7 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
       Optional<String> topic = getKafkaTopic(message);
       if(topic.isPresent()) {
         Future future = kafkaProducer
-            .send(new ProducerRecord<String, String>(kafkaTopic, jsonMessage));
+            .send(new ProducerRecord<String, String>(topic.get(), jsonMessage));
         // we want to manage the batching
         results.add(new AbstractMap.SimpleEntry<>(tuple, future));
       }
