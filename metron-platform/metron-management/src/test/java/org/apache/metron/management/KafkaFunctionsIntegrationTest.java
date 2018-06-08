@@ -47,8 +47,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -160,7 +158,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     assertEquals(1, run("KAFKA_PUT(topic, [message1])"));
 
     // validate the message in the topic
-    assertEquals(singletonList(message1), run("KAFKA_GET(topic)"));
+    assertEquals(Collections.singletonList(message1), run("KAFKA_GET(topic)"));
   }
 
   /**
@@ -195,10 +193,13 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     variables.put("topic", topicName);
 
     // put a message onto the topic - the message is just a string, not a list
-    assertEquals(1, run("KAFKA_PUT(topic, message1)"));
+    run("KAFKA_PUT(topic, message1)");
 
-    // validate the message in the topic
-    assertEquals(singletonList(message1), run("KAFKA_GET(topic)"));
+    // get a message from the topic
+    Object actual = run("KAFKA_GET(topic)");
+
+    // validate
+    assertEquals(Collections.singletonList(message1), actual);
   }
 
   /**
@@ -309,16 +310,16 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     run("KAFKA_PUT(topic, [message1, message2, message3])");
 
     // read the first message
-    assertEquals(singletonList(message1), run("KAFKA_GET(topic, 1)"));
+    assertEquals(Collections.singletonList(message1), run("KAFKA_GET(topic, 1)"));
 
     // pick-up from where we left off and read the second message
-    assertEquals(singletonList(message2), run("KAFKA_GET(topic, 1)"));
+    assertEquals(Collections.singletonList(message2), run("KAFKA_GET(topic, 1)"));
 
     // pick-up from where we left off and read the third message
-    assertEquals(singletonList(message3), run("KAFKA_GET(topic, 1)"));
+    assertEquals(Collections.singletonList(message3), run("KAFKA_GET(topic, 1)"));
 
     // no more messages left to read
-    assertEquals(emptyList(), run("KAFKA_GET(topic, 1)"));
+    assertEquals(Collections.emptyList(), run("KAFKA_GET(topic, 1)"));
   }
 
   /**
@@ -332,7 +333,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     variables.put("topic", topicName);
 
     // no more messages left to read
-    assertEquals(emptyList(), run("KAFKA_GET(topic, 1)"));
+    assertEquals(Collections.emptyList(), run("KAFKA_GET(topic, 1)"));
   }
 
   /**
@@ -356,7 +357,8 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
 
     // expect to receive message1, which were added to the topic while KAFKA_TAIL was running
     Object actual = tailFuture.get(10, TimeUnit.SECONDS);
-    assertEquals(singletonList(message1), actual);
+    List<String> expected = Collections.singletonList(message1);
+    assertEquals(expected, actual);
   }
 
   /**
@@ -377,7 +379,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     run("KAFKA_PUT(topic, [message1, message2, message3])");
 
     // no messages to read as KAFKA_TAIL should "seek to end" of the topic
-    assertEquals(emptyList(), run("KAFKA_TAIL(topic, 1)"));
+    assertEquals(Collections.emptyList(), run("KAFKA_TAIL(topic, 1)"));
   }
 
   /**
@@ -459,7 +461,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     Map<String, String> properties = (Map<String, String>) run(expression);
     assertEquals(expected, properties.get(overriddenKey));
   }
-  
+
   /**
    * KAFKA_FIND should only return messages that satisfy a filter expression.
    */
@@ -478,7 +480,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
 
     // only expect `message2` where value == 23 to be returned
     Object actual = future.get(10, TimeUnit.SECONDS);
-    List<String> expected = singletonList(message2);
+    List<String> expected = Collections.singletonList(message2);
     assertEquals(expected, actual);
   }
 
@@ -500,7 +502,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
 
     // no messages satisfy the filter expression
     Object actual = future.get(10, TimeUnit.SECONDS);
-    List<String> expected = emptyList();
+    List<String> expected = Collections.emptyList();
     assertEquals(expected, actual);
   }
 
@@ -586,7 +588,8 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     assertTrue("Expected wait not to exceed max wait; actual wait = " + wait, wait < 2 * 1000);
 
     // expect no messages
-    assertEquals(emptyList(), actual);
+    List<String> expected = Collections.emptyList();
+    assertEquals(expected, actual);
   }
 
   /**
@@ -644,4 +647,3 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     }
   }
 }
-

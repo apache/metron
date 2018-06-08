@@ -74,24 +74,24 @@ title: Apache Metron Documentation
 <section class="events-section info-block darken" id="releases">
     <div class="wrapper downloads">
         <div class="text-center">
-            <h4>Current Release: 0.4.2</h4>
+            <h4>Current Release: 0.5.0</h4>
         </div>
         <div class="content-960 hover-btn text-center">
             <ul>
                 <li>
-                <a href="http://www.apache.org/dyn/closer.cgi/metron/0.4.2/apache-metron-0.4.2.tar.gz" target="new">
-                    apache-metron-0.4.2.tar.gz
+                <a href="http://www.apache.org/dyn/closer.cgi/metron/0.5.0/apache-metron-0.5.0.tar.gz" target="new">
+                    apache-metron-0.5.0.tar.gz
                 </a>
-                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.2/apache-metron-0.4.2.tar.gz.asc" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.5.0/apache-metron-0.5.0.tar.gz.asc" target="new">
                     PGP
                  </a>]
-                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.2/apache-metron-0.4.2.tar.gz.sha1" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.5.0/apache-metron-0.5.0.tar.gz.sha1" target="new">
                     SHA
                  </a>]
-                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.2/apache-metron-0.4.2.tar.gz.sha512" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.5.0/apache-metron-0.5.0.tar.gz.sha512" target="new">
                     SHA512
                  </a>]
-                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.2/apache-metron-0.4.2.tar.gz.md5" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.5.0/apache-metron-0.5.0.tar.gz.md5" target="new">
                     MD5
                   </a>]
                  [ <a href="/current-book/index.html" target="new"> Book </a>]

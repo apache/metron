@@ -78,6 +78,32 @@ public class StellarTransformationTest {
   @Multiline
   public static String badConfig;
 
+  /**
+   { "fieldTransformations" : [
+        { "transformation" : "STELLAR"
+        ,"output" : [ "new_field"]
+        ,"config" : {
+          "new_field" : "MAP_GET('source.type', _)"
+                    }
+        }
+                                ]
+      }
+   */
+ @Multiline
+ public static String configAll;
+
+  @Test
+  public void testConfigAll() throws Exception {
+    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(configAll));
+    JSONObject input = new JSONObject();
+    input.put("source.type", "test");
+    for (FieldTransformer handler : c.getFieldTransformations()) {
+      handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
+    }
+    Assert.assertEquals(2, input.size());
+    Assert.assertTrue(input.containsKey("new_field"));
+    Assert.assertEquals("test", input.get("new_field"));
+  }
 
   /** { "fieldTransformations" : [
         { "transformation" : "STELLAR"
@@ -92,8 +118,8 @@ public class StellarTransformationTest {
                                 ]
       }
    */
-  @Multiline
-  public static String configRename;
+ @Multiline
+ public static String configRename;
 
  @Test
  public void testStellarRename() throws Exception {

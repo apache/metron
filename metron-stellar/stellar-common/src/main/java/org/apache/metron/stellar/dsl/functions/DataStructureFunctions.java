@@ -27,6 +27,7 @@ import org.apache.metron.stellar.common.utils.SerDeUtils;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DataStructureFunctions {
@@ -210,6 +211,9 @@ public class DataStructureFunctions {
       Object o = list.get(0);
       if(o instanceof Collection) {
         return ((Collection)o).size();
+      }
+      else if(o instanceof Map) {
+        return ((Map)o).size();
       }
       else if(o instanceof String) {
         String val = (String) list.get(0);
