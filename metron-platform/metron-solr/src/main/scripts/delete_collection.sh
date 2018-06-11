@@ -18,10 +18,16 @@
 #
 METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/$METRON_VERSION
-SOLR_VERSION=${global_solr_version}
-SOLR_USER=solr
-SOLR_SERVICE=$SOLR_USER
-SOLR_VAR_DIR="/var/$SOLR_SERVICE"
+ZOOKEEPER=${ZOOKEEPER:-localhost:2181}
+ZOOKEEPER_HOME=${ZOOKEEPER_HOME:-/usr/hdp/current/zookeeper-client}
+SECURITY_ENABLED=${SECURITY_ENABLED:-false}
+NEGOTIATE=''
+if [ ${SECURITY_ENABLED,,} == 'true' ]; then
+    NEGOTIATE=' --negotiate -u : '
+fi
 
-cd $SOLR_VAR_DIR/solr-${SOLR_VERSION}
-su $SOLR_USER -c "bin/solr delete -c $1"
+# Get the first Solr node from the list of live nodes in Zookeeper
+SOLR_NODE=`$ZOOKEEPER_HOME/bin/zkCli.sh -server $ZOOKEEPER ls /live_nodes | tail -n 1 | sed 's/\[\([^,]*\).*\]/\1/' | sed 's/_solr//'`
+
+# Delete the collection
+curl -X GET $NEGOTIATE "http://$SOLR_NODE/solr/admin/collections?action=DELETE&name=$1"
