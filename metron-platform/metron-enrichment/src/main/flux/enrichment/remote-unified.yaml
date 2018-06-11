@@ -295,8 +295,9 @@ bolts:
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
             - "${kafka.zk}"
+            - "ENRICHMENT"
         configMethods:
-            -   name: "withMessageWriter"
+            -   name: "withBulkMessageWriter"
                 args:
                     - ref: "enrichmentErrorKafkaWriter"
 
@@ -329,8 +330,9 @@ bolts:
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
             - "${kafka.zk}"
+            - "ENRICHMENT"
         configMethods:
-            -   name: "withMessageWriter"
+            -   name: "withBulkMessageWriter"
                 args:
                     - ref: "threatIntelErrorKafkaWriter"
 
@@ -339,8 +341,9 @@ bolts:
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
             - "${kafka.zk}"
+            - "ENRICHMENT"
         configMethods:
-            -   name: "withMessageWriter"
+            -   name: "withBulkMessageWriter"
                 args:
                     - ref: "kafkaWriter"
         parallelism: ${kafka.writer.parallelism}

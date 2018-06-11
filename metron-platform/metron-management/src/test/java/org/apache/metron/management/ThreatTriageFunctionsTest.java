@@ -26,6 +26,7 @@ import org.apache.metron.stellar.common.shell.VariableResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
 import org.junit.Assert;
@@ -173,7 +174,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(20.0, greater.getScore().doubleValue(), 1e-6 );
   }
 
-  @Test(expected=IllegalStateException.class)
+  @Test(expected=ParseException.class)
   public void testAddMalformed() {
     Object o = run(
             "THREAT_TRIAGE_ADD(config, { 'rule': SHELL_GET_EXPRESSION('foo'), 'score' : 10 } )"
@@ -398,7 +399,7 @@ Aggregation: MAX*/
     Assert.assertEquals(testPrintEmptyExpected, out);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = ParseException.class)
   public void testPrintNull() {
     Map<String,Object> variables = new HashMap<String,Object>(){{
       put("config", null);
@@ -447,7 +448,7 @@ Aggregation: MAX*/
     Assert.assertEquals(1, engine.getRiskLevelRules().size());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = ParseException.class)
   public void testTriageInitWithBadArg() {
     run("THREAT_TRIAGE_INIT(missing)");
   }

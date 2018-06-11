@@ -19,7 +19,6 @@
 package org.apache.metron.elasticsearch.integration;
 
 import static org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao.METAALERTS_INDEX;
-import static org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao.THREAT_TRIAGE_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_DOC;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
@@ -46,6 +45,7 @@ import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertIntegrationTest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -119,6 +119,12 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
         .withIndexDir(new File(INDEX_DIR))
         .build();
     es.start();
+  }
+
+  @Before
+  public void setup() throws IOException {
+    es.createIndexWithMapping(METAALERTS_INDEX, METAALERT_DOC, template.replace("%MAPPING_NAME%", "metaalert"));
+    es.createIndexWithMapping(INDEX, "index_doc", template.replace("%MAPPING_NAME%", "index"));
 
     AccessConfig accessConfig = new AccessConfig();
     Map<String, Object> globalConfig = new HashMap<String, Object>() {
@@ -138,14 +144,6 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     ElasticsearchMetaAlertDao elasticsearchMetaDao = new ElasticsearchMetaAlertDao(esDao);
     elasticsearchMetaDao.setPageSize(5);
     metaDao = elasticsearchMetaDao;
-  }
-
-  @Before
-  public void setup() throws IOException {
-    es.createIndexWithMapping(METAALERTS_INDEX, METAALERT_DOC,
-        template.replace("%MAPPING_NAME%", "metaalert"));
-    es.createIndexWithMapping(
-        INDEX_WITH_SEPARATOR, "index_doc", template.replace("%MAPPING_NAME%", "index"));
   }
 
   @AfterClass

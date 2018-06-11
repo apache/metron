@@ -19,6 +19,7 @@
                       "map" : "{ 'blah' : 1}"
                       ,"one" : "MAP_GET('blah', map)"
                       ,"foo": "1 + 1"
+                      ,"alt_src_type" : "MAP_GET('source.type', _)"
                       }
           ,"ALL_CAPS" : "TO_UPPER(source.type)"
           ,"src_enrichment" : {

@@ -22,7 +22,7 @@
     <parent>
         <artifactId>Metron</artifactId>
         <groupId>org.apache.metron</groupId>
-        <version>0.4.3</version>
+        <version>0.5.0</version>
     </parent>
     <description>DSL for stream analytics</description>
     <url>https://metron.apache.org/</url>

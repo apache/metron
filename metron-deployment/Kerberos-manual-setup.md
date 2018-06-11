@@ -568,7 +568,7 @@ New settings have been added to configure the Elasticsearch client. By default t
 Add the es settings to global.json
 
 ```
-/usr/metron/0.4.3/config/zookeeper/global.json ->
+/usr/metron/0.5.0/config/zookeeper/global.json ->
 
   "es.client.settings" : {
       "es.client.class" : "org.elasticsearch.xpack.client.PreBuiltXPackTransportClient",
@@ -626,10 +626,6 @@ The last step before restarting the topology is to create a custom X-Pack shaded
             <artifactId>x-pack-transport</artifactId>
             <version>5.6.2</version>
             <exclusions>
-              <exclusion>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-smile</artifactId>
-              </exclusion>
               <exclusion>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-yaml</artifactId>
@@ -732,7 +728,7 @@ The last step before restarting the topology is to create a custom X-Pack shaded
 Once you've built the elasticsearch-xpack-shaded-5.6.2.jar, it needs to be made available to Storm when you submit the topology. Create a contrib directory for indexing and put the jar file in this directory.
 
 ```
-/usr/metron/0.4.3/indexing_contrib/elasticsearch-xpack-shaded-5.6.2.jar
+/usr/metron/0.5.0/indexing_contrib/elasticsearch-xpack-shaded-5.6.2.jar
 ```
 
 Now you can restart the Elasticsearch topology. Note, you should perform this step manually, as follows.

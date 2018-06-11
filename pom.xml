@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.metron</groupId>
     <artifactId>Metron</artifactId>
-    <version>0.4.3</version>
+    <version>0.5.0</version>
     <packaging>pom</packaging>
     <name>Metron</name>
     <description>Metron Top Level Project</description>
@@ -347,8 +347,7 @@
                         <!-- Generated svg and bundle.css containing Font Awesome fonts are covered in the
                              metron-interface/metron-config README and NOTICE files -->
                         <exclude>dist/*.svg</exclude>
-                        <exclude>dist/styles.a0b6b99c10d9a13dc67e.bundle.css</exclude>
-                        <exclude>dist/styles.f56deed131e58bd7ee04.bundle.css</exclude>
+                        <exclude>dist/styles.*.bundle.css</exclude>
                         <!-- 3rdpartylicenses.txt is an empty file carried along by imported libraries -->
                         <exclude>dist/3rdpartylicenses.txt</exclude>
                         <exclude>e2e/*.js.map</exclude>

@@ -33,17 +33,17 @@ export class GlobalConfigService {
     return this.http.get(this.url , new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map((res: Response): any => {
         let body = res.json();
-        this.setDefaultSourceType(body);
-        return body || {};
+        let globalConfig = this.setDefaultSourceType(body);
+        return globalConfig || {};
       })
       .catch(HttpUtil.handleError);
   }
 
   private setDefaultSourceType(globalConfig) {
-    let sourceType: {} = {};
     if(!globalConfig['source.type.field']) {
-      sourceType = Object.assign({}, globalConfig, {'source.type.field': 'source:type'});
-      return sourceType;
+      return Object.assign({}, globalConfig, {'source.type.field': 'source:type'});
+    } else {
+      return globalConfig;
     }
   }
 

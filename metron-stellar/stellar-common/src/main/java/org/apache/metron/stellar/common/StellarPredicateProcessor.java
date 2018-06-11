@@ -62,5 +62,11 @@ public class StellarPredicateProcessor extends BaseStellarProcessor<Boolean> {
       // predicate must return boolean
       throw new IllegalArgumentException(String.format("The rule '%s' does not return a boolean value.", rule), e);
     }
+    catch(Exception e) {
+      if(e.getCause() != null && e.getCause() instanceof ClassCastException) {
+        throw new IllegalArgumentException(String.format("The rule '%s' does not return a boolean value.", rule), e.getCause());
+      }
+      throw e;
+    }
   }
 }
