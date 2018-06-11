@@ -33,7 +33,6 @@ import {AlertSource} from '../../../model/alert-source';
 import {PatchRequest} from '../../../model/patch-request';
 import {Patch} from '../../../model/patch';
 import {UpdateService} from '../../../service/update.service';
-import {META_ALERTS_INDEX} from '../../../utils/constants';
 import {MetaAlertService} from '../../../service/meta-alert.service';
 import {MetaAlertAddRemoveRequest} from '../../../model/meta-alert-add-remove-request';
 import {GetRequest} from '../../../model/get-request';
@@ -226,7 +225,6 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   showMetaAlertDetails($event, alertSource: AlertSource) {
     let alert = new Alert();
     alert.source = alertSource;
-    alert.index = META_ALERTS_INDEX;
     this.showDetails($event, alert);
   }
 
@@ -260,10 +258,10 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
     $event.stopPropagation();
   }
 
-  deleteMetaAlert($event, alert: Alert, index: number) {
+  deleteMetaAlert($event, alert: Alert) {
     this.metronDialogBox.showConfirmationMessage('Do you wish to remove all the alerts from meta alert?').subscribe(response => {
       if (response) {
-        this.doDeleteMetaAlert(alert, index);
+        this.doDeleteMetaAlert(alert);
       }
     });
     $event.stopPropagation();
@@ -279,7 +277,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
-  doDeleteMetaAlert(alert: Alert, index: number) {
+  doDeleteMetaAlert(alert: Alert) {
     this.metaAlertService.updateMetaAlertStatus(alert.source.guid, 'inactive').subscribe(() => {
     });
   }
