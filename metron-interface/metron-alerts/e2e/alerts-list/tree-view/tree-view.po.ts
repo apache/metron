@@ -42,7 +42,7 @@ export class TreeViewPage {
   }
 
   getActiveGroups() {
-    return waitForElementCountGreaterThan('app-group-by .group-by-items .name', 5)
+    return waitForElementCountGreaterThan('app-group-by .group-by-items .name', 4)
     .then(() => element.all(by.css('app-group-by .group-by-items.active .name')).reduce(reduce_for_get_all(), []));
   }
 

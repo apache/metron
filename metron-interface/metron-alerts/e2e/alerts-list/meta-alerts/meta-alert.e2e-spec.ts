@@ -59,39 +59,39 @@ describe('Test spec for meta alerts workflow', function() {
   it('should have all the steps for meta alerts workflow', async function() : Promise<any> {
     let comment1 = 'This is a sample comment';
     let userNameAndTimestamp = '- admin - a few seconds ago';
-    let confirmText = 'Do you wish to create a meta alert with 13 selected alerts?';
+    let confirmText = 'Do you wish to create a meta alert with 22 selected alerts?';
     let dashRowValues = {
-      'firstDashRow': ['0', 'runlove.us', 'ALERTS', '13']
+      'firstDashRow': ['0', '192.168.138.2', 'ALERTS', '22']
     };
 
     await tablePage.navigateTo();
     expect(await tablePage.getChangesAlertTableTitle('Alerts (0)')).toEqual('Alerts (169)');
 
     /* Create Meta Alert */
-    await treePage.selectGroup('host');
-    expect(await treePage.getDashGroupValues('runlove.us')).toEqualBcoz(dashRowValues.firstDashRow, 'First Dashrow to be present');
+    await treePage.selectGroup('ip_dst_addr');
+    expect(await treePage.getDashGroupValues('192.168.138.2')).toEqualBcoz(dashRowValues.firstDashRow, 'First Dashrow to be present');
 
-    await treePage.clickOnMergeAlerts('runlove.us');
+    await treePage.clickOnMergeAlerts('192.168.138.2');
     expect(await treePage.getConfirmationText()).toEqualBcoz(confirmText, 'confirmation text to be present');
     await treePage.clickNoForConfirmation();
 
-    await treePage.clickOnMergeAlerts('runlove.us');
+    await treePage.clickOnMergeAlerts('192.168.138.2');
     await treePage.clickYesForConfirmation();
 
-    await treePage.waitForElementToDisappear('runlove.us');
+    await treePage.waitForElementToDisappear('192.168.138.2');
 
     await treePage.unGroup();
 
     /* Table should have all alerts */
-    await tablePage.waitForMetaAlert(157);
-    expect(await tablePage.getChangedPaginationText('1 - 25 of 169')).toEqualBcoz('1 - 25 of 157', 'pagination text to be present');
-    expect(await tablePage.getCellValue(0, 2, '(14)')).toContain('(13)', 'number of alerts in a meta alert should be correct');
+    await tablePage.waitForMetaAlert(148);
+    expect(await tablePage.getChangedPaginationText('1 - 25 of 169')).toEqualBcoz('1 - 25 of 148', 'pagination text to be present');
+    expect(await tablePage.getCellValue(0, 2, '(14)')).toContain('(22)');
     expect(await tablePage.getNonHiddenRowCount()).toEqualBcoz(25, '25 rows to be visible');
-    expect(await tablePage.getAllRowsCount()).toEqualBcoz(38, '38 rows to be available');
-    expect(await tablePage.getHiddenRowCount()).toEqualBcoz(13, '13 rows to be hidden');
+    expect(await tablePage.getAllRowsCount()).toEqualBcoz(47, '47 rows to be available');
+    expect(await tablePage.getHiddenRowCount()).toEqualBcoz(22, '22 rows to be hidden');
     await tablePage.expandMetaAlert(0);
-    expect(await tablePage.getNonHiddenRowCount()).toEqualBcoz(38, '38 rows to be visible after group expand');
-    expect(await tablePage.getAllRowsCount()).toEqualBcoz(38, '38 rows to be available after group expand');
+    expect(await tablePage.getNonHiddenRowCount()).toEqualBcoz(47, '47 rows to be visible after group expand');
+    expect(await tablePage.getAllRowsCount()).toEqualBcoz(47, '47 rows to be available after group expand');
     expect(await tablePage.getHiddenRowCount()).toEqualBcoz(0, '0 rows to be hidden after group expand');
 
     /* Meta Alert Status Change */
@@ -103,7 +103,7 @@ describe('Test spec for meta alerts workflow', function() {
 
     /* Details Edit - add comments - remove comments - multiple alerts */
     await tablePage.clickOnMetaAlertRow(0);
-    expect(await detailsPage.getAlertDetailsCount()).toEqualBcoz(13, '13 alert details should be present');
+    expect(await detailsPage.getAlertDetailsCount()).toEqualBcoz(22, '22 alert details should be present');
     await detailsPage.clickRenameMetaAlert();
     await detailsPage.renameMetaAlert('e2e-meta-alert');
     await detailsPage.cancelRename();
@@ -114,7 +114,7 @@ describe('Test spec for meta alerts workflow', function() {
     expect(detailsPage.getAlertNameOrId()).toEqual('e2e-meta-alert');
 
     // The below code will fail until this issue is resolved in Protractor: https://github.com/angular/protractor/issues/4693
-    // This is because the connection resets before deleting the test comment, which causes are assertion to be false
+    // This is because the connection resets before deleting the test comment, which causes the assertion to be false
 
     // await detailsPage.clickCommentsInSideNav();
     // await detailsPage.addCommentAndSave(comment1, 0);
@@ -132,17 +132,17 @@ describe('Test spec for meta alerts workflow', function() {
     await metaAlertPage.waitForDialog();
     expect(await metaAlertPage.getPageTitle()).toEqualBcoz('Add to Alert', 'Add Alert Title should be present');
     expect(await metaAlertPage.getMetaAlertsTitle()).toEqualBcoz('SELECT OPEN ALERT', 'select open alert title should be present');
-    expect(await metaAlertPage.getAvailableMetaAlerts()).toEqualBcoz('e2e-meta-alert (13)', 'Meta alert should be present');
+    expect(await metaAlertPage.getAvailableMetaAlerts()).toEqualBcoz('e2e-meta-alert (22)', 'Meta alert should be present');
     await metaAlertPage.selectRadio();
     await metaAlertPage.addToMetaAlert();
-    expect(await tablePage.getCellValue(0, 2, '(13')).toContain('(14)', 'alert count should be incremented');
+    expect(await tablePage.getCellValue(0, 2, '(22')).toContain('(23)', 'alert count should be incremented');
 
     // /* Remove from alert */
     let removAlertConfirmText = 'Do you wish to remove the alert from the meta alert?';
     await tablePage.removeAlert(2);
     expect(await treePage.getConfirmationText()).toEqualBcoz(removAlertConfirmText, 'confirmation text to remove alert from meta alert');
     await treePage.clickYesForConfirmation();
-    expect(await tablePage.getCellValue(0, 2, '(14')).toContain('(13)', 'alert count should be decremented');
+    expect(await tablePage.getCellValue(0, 2, '(23')).toContain('(22)', 'alert count should be decremented');
 
     // /* Delete Meta Alert */
     let removeMetaAlertConfirmText = 'Do you wish to remove all the alerts from meta alert?';
@@ -155,7 +155,6 @@ describe('Test spec for meta alerts workflow', function() {
     let groupByItems = {
       'source:type': '1',
       'ip_dst_addr': '7',
-      'host': '9',
       'enrichm...:country': '3',
       'ip_src_addr': '2'
     };
@@ -216,9 +215,9 @@ describe('Test spec for meta alerts workflow', function() {
     expect(await tablePage.getChangedPaginationText('1 - 25 of 169')).toEqualBcoz('1 - 25 of 150', 'pagination text to be present');
 
     // Meta Alert should appear in Filters
-    await alertFacetsPage.toggleFacetState(4);
-    let facetValues = await alertFacetsPage.getFacetValues(4);
-    expect(facetValues['metaalert']).toEqual('1', 'for source:type facet');
+    await alertFacetsPage.toggleFacetState(3);
+    let facetValues = await alertFacetsPage.getFacetValues(3);
+    expect(await facetValues['metaalert']).toEqual('1', 'for source:type facet');
 
     // Meta Alert should not appear in Groups
     expect(await treePage.getGroupByItemNames()).toEqualBcoz(Object.keys(groupByItems), 'Group By Elements names should be present');

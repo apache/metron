@@ -47,7 +47,7 @@ describe('Test spec for facet filters', function() {
   });
 
   it('should display facets data', async function() : Promise<any> {
-    let facetValues = [ 'enrichm...:country 3', 'host 9', 'ip_dst_addr 8', 'ip_src_addr 2', 'source:type 1' ];
+    let facetValues = [ 'enrichm...:country 3', 'ip_dst_addr 8', 'ip_src_addr 2', 'source:type 1' ];
 
     await page.navgateToAlertList();
     expect(await page.getFacetsTitle()).toEqualBcoz('Filters', 'for Title as Filters');
@@ -58,8 +58,8 @@ describe('Test spec for facet filters', function() {
     await page.toggleFacetState(1);
     expect(await page.getFacetState(1)).toEqualBcoz('collapse show', 'for second facet');
 
-    await page.selectFilter('ubb67.3c147o.u806a4.w07d919.o5f.f1.b80w.r0faf9.e8mfzdgrf7g0.groupprograms.in');
-    expect(await tablePage.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (1)');
+    await page.selectFilter('95.163.121.204');
+    expect(await tablePage.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (44)');
 
   });
 });

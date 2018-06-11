@@ -52,17 +52,16 @@ describe('Test spec for tree view', function () {
     let groupByItems = {
       'source:type': '1',
       'ip_dst_addr': '8',
-      'host': '9',
       'enrichm...:country': '3',
       'ip_src_addr': '2'
     };
 
     expect(await listPage.getChangesAlertTableTitle('Alerts (0)')).toEqualBcoz('Alerts (169)', 'for alerts title');
 
-    expect(await page.getGroupByCount()).toEqualBcoz(Object.keys(groupByItems).length, '5 Group By Elements should be present');
+    expect(await page.getGroupByCount()).toEqualBcoz(Object.keys(groupByItems).length, '4 Group By Elements should be present');
     expect(await page.getGroupByItemNames()).toEqualBcoz(Object.keys(groupByItems), 'Group By Elements names should be present');
     expect(await page.getGroupByItemCounts()).toEqualBcoz(Object.keys(groupByItems).map(key => groupByItems[key]),
-                                                    '5 Group By Elements values should be present');
+                                                    '4 Group By Elements values should be present');
   });
 
   it('drag and drop should change group order',  async function() : Promise<any> {
