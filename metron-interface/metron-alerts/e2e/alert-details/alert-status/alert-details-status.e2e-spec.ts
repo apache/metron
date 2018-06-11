@@ -70,7 +70,7 @@ describe('Test spec for metron details page', function() {
   });
 
   // The below code will fail until this issue is resolved in Protractor: https://github.com/angular/protractor/issues/4693
-  // This is because the connection resets before deleting the test comment, which causes are assertion to be false
+  // This is because the connection resets before deleting the test comment, which causes the assertion to be false
 
   // it('should add comments for table view', async function() : Promise<any> {
   //   let comment1 = 'This is a sample comment';
