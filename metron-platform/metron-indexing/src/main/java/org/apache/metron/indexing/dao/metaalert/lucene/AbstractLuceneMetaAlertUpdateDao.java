@@ -30,8 +30,10 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
@@ -331,4 +333,5 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
       updateDao.batchUpdate(updates);
     } // else we have no updates, so don't do anything
   }
+
 }
