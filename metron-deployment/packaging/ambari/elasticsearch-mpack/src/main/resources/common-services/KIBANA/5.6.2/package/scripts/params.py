@@ -23,6 +23,7 @@ Kibana Params configurations
 from urlparse import urlparse
 
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.script import Script
 
 # server configurations
@@ -38,9 +39,16 @@ log_dir = config['configurations']['kibana-env']['kibana_log_dir']
 pid_dir = config['configurations']['kibana-env']['kibana_pid_dir']
 pid_file = format("{pid_dir}/kibanasearch.pid")
 es_url = config['configurations']['kibana-env']['kibana_es_url']
-parsed = urlparse(es_url)
-es_host = parsed.netloc.split(':')[0]
-es_port = parsed.netloc.split(':')[1]
+if (len(es_url) == 0):
+    # default to the ES hosts provided by Ambari
+    es_host = default('/clusterHostInfo/es_master_hosts',[])[0]
+    es_port = config['configurations']['elastic-site']['http_port']
+    es_url = "http://{0}:{1}".format(es_host, es_port)
+else:
+    parsed = urlparse(es_url)
+    es_host = parsed.netloc.split(':')[0]
+    es_port = parsed.netloc.split(':')[1]
+
 kibana_port = config['configurations']['kibana-env']['kibana_server_port']
 kibana_server_host = config['configurations']['kibana-env']['kibana_server_host']
 kibana_default_application = config['configurations']['kibana-env']['kibana_default_application']

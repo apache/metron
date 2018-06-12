@@ -54,10 +54,13 @@
     <value>/var/run/kibana</value>
     <description>PID directory for Kibana</description>
   </property>
-  <property require-input="true">
+  <property>
     <name>kibana_es_url</name>
     <value></value>
     <description>The Elasticsearch instance to use for all your queries. (http://eshost:9200)</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   <property require-input="true">
     <name>kibana_server_port</name>

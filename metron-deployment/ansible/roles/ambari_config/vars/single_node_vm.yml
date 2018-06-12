@@ -37,11 +37,13 @@ metron_parsers : [METRON_PARSERS]
 metron_rest: [METRON_REST]
 metron_management_ui: [METRON_MANAGEMENT_UI]
 metron_alerts_ui: [METRON_ALERTS_UI]
+zeppelin: [ZEPPELIN_MASTER]
 
 metron_components: >
   {{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(hbase_master) | union(hadoop_slave) | union(zookeeper_slave) |
   union(storm_slave) | union(kafka_broker) | union(hbase_slave) | union(kibana_master) | union(metron_indexing) | union(metron_profiler) |
-  union(metron_enrichment_master) | union(metron_parsers) | union(metron_rest) | union(metron_management_ui) | union(metron_alerts_ui) | union(es_master)  }}
+  union(metron_enrichment_master) | union(metron_parsers) | union(metron_rest) | union(metron_management_ui) | union(metron_alerts_ui) | 
+  union(es_master) | union(zeppelin) }}
 
 cluster_name: "metron_cluster"
 blueprint_name: "metron_blueprint"
@@ -113,10 +115,6 @@ configurations:
       masters_also_are_datanodes: "1"
 
 required_configurations:
-  - metron-env:
-      storm_rest_addr: "http://{{ groups.ambari_slave[0] }}:8744"
-      es_hosts: "{{ groups.search | join(',') }}"
-      zeppelin_server_url: "{{ groups.zeppelin[0] }}:9995"
   - metron-rest-env:
       metron_jdbc_driver: "org.h2.Driver"
       metron_jdbc_url: "jdbc:h2:file:~/metrondb"
@@ -125,7 +123,6 @@ required_configurations:
       metron_jdbc_platform: "h2"
   - kibana-env:
       kibana_pid_dir: /var/run/kibana
-      kibana_es_url: http://{{ groups.search[0] }}:9200
       kibana_log_dir: /var/log/kibana
       kibana_server_port: 5000
       kibana_default_application: "dashboard/AV-YpDmwdXwc6Ua9Muh9"
