@@ -19,9 +19,12 @@
 package org.apache.metron.solr.dao;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
+
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -57,7 +60,6 @@ public class SolrMetaAlertDao implements MetaAlertDao {
   private SolrMetaAlertUpdateDao metaAlertUpdateDao;
   private SolrMetaAlertRetrieveLatestDao metaAlertRetrieveLatestDao;
   protected String metaAlertsCollection = METAALERTS_COLLECTION;
-  protected String threatTriageField = MetaAlertConstants.THREAT_FIELD_DEFAULT;
   protected String threatSort = MetaAlertConstants.THREAT_SORT_DEFAULT;
 
   /**
@@ -69,14 +71,12 @@ public class SolrMetaAlertDao implements MetaAlertDao {
       SolrMetaAlertRetrieveLatestDao metaAlertRetrieveLatestDao) {
     this(indexDao, metaAlertSearchDao, metaAlertUpdateDao, metaAlertRetrieveLatestDao,
         METAALERTS_COLLECTION,
-        MetaAlertConstants.THREAT_FIELD_DEFAULT,
         MetaAlertConstants.THREAT_SORT_DEFAULT);
   }
 
   /**
    * Wraps an {@link org.apache.metron.indexing.dao.IndexDao} to handle meta alerts.
    * @param indexDao The Dao to wrap
-   * @param triageLevelField The field name to use as the threat scoring field
    * @param threatSort The summary aggregation of all child threat triage scores used
    *                   as the overall threat triage score for the metaalert. This
    *                   can be either max, min, average, count, median, or sum.
@@ -85,14 +85,12 @@ public class SolrMetaAlertDao implements MetaAlertDao {
       SolrMetaAlertUpdateDao metaAlertUpdateDao,
       SolrMetaAlertRetrieveLatestDao metaAlertRetrieveLatestDao,
       String metaAlertsCollection,
-      String triageLevelField,
       String threatSort) {
     init(indexDao, Optional.of(threatSort));
     this.metaAlertSearchDao = metaAlertSearchDao;
     this.metaAlertUpdateDao = metaAlertUpdateDao;
     this.metaAlertRetrieveLatestDao = metaAlertRetrieveLatestDao;
     this.metaAlertsCollection = metaAlertsCollection;
-    this.threatTriageField = triageLevelField;
     this.threatSort = threatSort;
   }
 
@@ -126,16 +124,29 @@ public class SolrMetaAlertDao implements MetaAlertDao {
           "Need a SolrDao when using SolrMetaAlertDao"
       );
     }
+    Supplier<Map<String, Object>> globalConfigSupplier = () -> new HashMap<>();
+    if(metaAlertSearchDao != null && metaAlertSearchDao.solrSearchDao != null && metaAlertSearchDao.solrSearchDao.getAccessConfig() != null) {
+      globalConfigSupplier = metaAlertSearchDao.solrSearchDao.getAccessConfig().getGlobalConfigSupplier();
+    }
 
     MetaAlertConfig config = new MetaAlertConfig(
         metaAlertsCollection,
-        threatTriageField,
         this.threatSort,
-        Constants.SENSOR_TYPE
-    );
+        globalConfigSupplier
+    ) {
+      @Override
+      protected String getDefaultThreatTriageField() {
+        return MetaAlertConstants.THREAT_FIELD_DEFAULT.replace(':', '.');
+      }
+
+      @Override
+      protected String getDefaultSourceTypeField() {
+        return Constants.SENSOR_TYPE;
+      }
+    };
 
     SolrClient solrClient = solrDao.getSolrClient(solrDao.getZkHosts());
-    this.metaAlertSearchDao = new SolrMetaAlertSearchDao(solrClient, solrDao.getSolrSearchDao());
+    this.metaAlertSearchDao = new SolrMetaAlertSearchDao(solrClient, solrDao.getSolrSearchDao(), config);
     this.metaAlertRetrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao);
     this.metaAlertUpdateDao = new SolrMetaAlertUpdateDao(
         solrDao,
