@@ -222,7 +222,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onSelectedAlertsChange(selectedAlerts) {
     this.selectedAlerts = selectedAlerts;
-    this.isMetaAlertPresentInSelectedAlerts = this.selectedAlerts.some(alert => (alert.source.alert && alert.source.alert.length > 0));
+    this.isMetaAlertPresentInSelectedAlerts = this.selectedAlerts.some(alert => (alert.source.metron_alert && alert.source.metron_alert.length > 0));
 
     if (selectedAlerts.length > 0) {
       this.pause();

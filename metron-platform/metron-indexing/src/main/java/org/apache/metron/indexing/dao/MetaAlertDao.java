@@ -70,7 +70,7 @@ public interface MetaAlertDao extends IndexDao {
   String METAALERT_DOC = METAALERT_TYPE + "_doc";
   String THREAT_FIELD_DEFAULT = "threat:triage:score";
   String THREAT_SORT_DEFAULT = "sum";
-  String ALERT_FIELD = "alert";
+  String ALERT_FIELD = "metron_alert";
   String STATUS_FIELD = "status";
   String GROUPS_FIELD = "groups";
 
