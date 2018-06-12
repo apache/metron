@@ -43,6 +43,7 @@ import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.InnerHitBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -77,6 +78,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   public static final String THREAT_TRIAGE_FIELD = THREAT_FIELD_DEFAULT.replace('.', ':');
   private static final String STATUS_PATH = "/status";
   private static final String ALERT_PATH = "/alert";
+  private static final String INDEX_NOT_FOUND_INDICES_KEY = "es.index";
 
   private IndexDao indexDao;
   private ElasticsearchDao elasticsearchDao;
@@ -421,15 +423,24 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     } else {
       Map<Document, Optional<String>> updates = new HashMap<>();
       updates.put(update, index);
-      // We need to update an alert itself.  Only that portion of the update can be delegated.
-      // We still need to get meta alerts potentially associated with it and update.
-      Collection<Document> metaAlerts = getMetaAlertsForAlert(update.getGuid()).getResults().stream()
-          .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(), METAALERT_TYPE, update.getTimestamp()))
-          .collect(Collectors.toList());
-      // Each meta alert needs to be updated with the new alert
-      for (Document metaAlert : metaAlerts) {
-        replaceAlertInMetaAlert(metaAlert, update);
-        updates.put(metaAlert, Optional.of(METAALERTS_INDEX));
+      try {
+        // We need to update an alert itself.  Only that portion of the update can be delegated.
+        // We still need to get meta alerts potentially associated with it and update.
+        Collection<Document> metaAlerts = getMetaAlertsForAlert(update.getGuid()).getResults().stream()
+                .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(), METAALERT_TYPE, update.getTimestamp()))
+                .collect(Collectors.toList());
+        // Each meta alert needs to be updated with the new alert
+        for (Document metaAlert : metaAlerts) {
+          replaceAlertInMetaAlert(metaAlert, update);
+          updates.put(metaAlert, Optional.of(METAALERTS_INDEX));
+        }
+      } catch (IndexNotFoundException e) {
+        List<String> indicesNotFound = e.getMetadata(INDEX_NOT_FOUND_INDICES_KEY);
+        // If no metaalerts have been created yet and the metaalerts index does not exist, assume no metaalerts exist for alert.
+        // Otherwise throw the exception.
+        if (indicesNotFound.size() != 1 || !METAALERTS_INDEX.equals(indicesNotFound.get(0))) {
+          throw e;
+        }
       }
 
       // Run the alert's update
