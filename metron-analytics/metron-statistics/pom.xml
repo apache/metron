@@ -18,7 +18,7 @@
     <parent>
         <artifactId>metron-analytics</artifactId>
         <groupId>org.apache.metron</groupId>
-        <version>0.4.3</version>
+        <version>0.5.0</version>
     </parent>
     <artifactId>metron-statistics</artifactId>
     <url>https://metron.apache.org/</url>

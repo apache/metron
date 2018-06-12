@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.math.util.MathUtils;
 import org.apache.metron.common.Constants;
@@ -88,12 +90,24 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
   private static final String METAALERT_INDEX = "metaalert_index";
   private static final String METAALERT_GUID = "meta_0";
   private static final String DEFAULT_PREFIX = "child_";
-  private static final MetaAlertConfig TEST_CONFIG = new MetaAlertConfig(
-      METAALERT_INDEX,
-      THREAT_FIELD_DEFAULT,
-      THREAT_SORT_DEFAULT,
-      Constants.SENSOR_TYPE
-  );
+  private static final MetaAlertConfig TEST_CONFIG =
+          new MetaAlertConfig(METAALERT_INDEX
+                             , THREAT_SORT_DEFAULT
+                             , () -> ImmutableMap.of(Constants.SENSOR_TYPE_FIELD_PROPERTY, Constants.SENSOR_TYPE
+                                                    , Constants.THREAT_SCORE_FIELD_PROPERTY, THREAT_FIELD_DEFAULT
+                                                    )
+          ) {
+
+            @Override
+            protected String getDefaultThreatTriageField() {
+              return THREAT_FIELD_DEFAULT.replace(':', '.');
+            }
+
+            @Override
+            protected String getDefaultSourceTypeField() {
+              return Constants.SENSOR_TYPE;
+            }
+          };
 
   private static Map<String, Document> documents = new HashMap<>();
 
@@ -190,7 +204,7 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
    "patch": [
    {
    "op": "add",
-   "path": "/alert",
+   "path": "/metron_alert",
    "value": []
    }
    ],

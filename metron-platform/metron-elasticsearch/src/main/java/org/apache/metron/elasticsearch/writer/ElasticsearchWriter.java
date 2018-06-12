@@ -17,15 +17,10 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.apache.metron.common.field.FieldNameConverter;
+import org.apache.metron.common.field.FieldNameConverters;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
@@ -40,31 +35,53 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * A {@link BulkMessageWriter} that writes messages to Elasticsearch.
+ */
 public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  /**
+   * The Elasticsearch client.
+   */
   private transient TransportClient client;
+
+  /**
+   * A simple data formatter used to build the appropriate Elasticsearch index name.
+   */
   private SimpleDateFormat dateFormat;
-  private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchWriter.class);
-  private FieldNameConverter fieldNameConverter = new ElasticsearchFieldNameConverter();
+
 
   @Override
   public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
+
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     client = ElasticsearchUtils.getClient(globalConfiguration);
     dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
   }
 
-
   @Override
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
+
+    // fetch the field name converter for this sensor type
+    FieldNameConverter fieldNameConverter = FieldNameConverters.create(sensorType, configurations);
+
     final String indexPostfix = dateFormat.format(new Date());
     BulkRequestBuilder bulkRequest = client.prepareBulk();
-
     for(JSONObject message: messages) {
 
       JSONObject esDoc = new JSONObject();
       for(Object k : message.keySet()){
-        deDot(k.toString(), message, esDoc);
+        copyField(k.toString(), message, esDoc, fieldNameConverter);
       }
 
       String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
@@ -125,19 +142,30 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     client.close();
   }
 
+  /**
+   * Copies the value of a field from the source message to the destination message.
+   *
+   * <p>A field name may also be transformed in the destination message by the {@link FieldNameConverter}.
+   *
+   * @param sourceFieldName The name of the field to copy from the source message
+   * @param source The source message.
+   * @param destination The destination message.
+   * @param fieldNameConverter The field name converter that transforms the field name
+   *                           between the source and destination.
+   */
   //JSONObject doesn't expose map generics
   @SuppressWarnings("unchecked")
-  private void deDot(String field, JSONObject origMessage, JSONObject message){
+  private void copyField(
+          String sourceFieldName,
+          JSONObject source,
+          JSONObject destination,
+          FieldNameConverter fieldNameConverter) {
 
-    if(field.contains(".")){
+    // allow the field name to be transformed
+    String destinationFieldName = fieldNameConverter.convert(sourceFieldName);
 
-      LOG.debug("Dotted field: {}", field);
-
-    }
-    String newkey = fieldNameConverter.convert(field);
-    message.put(newkey,origMessage.get(field));
-
+    // copy the field
+    destination.put(destinationFieldName, source.get(sourceFieldName));
   }
-
 }
 

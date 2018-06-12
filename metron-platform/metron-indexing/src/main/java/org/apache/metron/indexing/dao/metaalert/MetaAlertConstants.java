@@ -24,7 +24,7 @@ public class MetaAlertConstants {
   public static String METAALERT_DOC = METAALERT_TYPE + "_doc";
   public static String THREAT_FIELD_DEFAULT = "threat:triage:score";
   public static String THREAT_SORT_DEFAULT = "sum";
-  public static String ALERT_FIELD = "alert";
+  public static String ALERT_FIELD = "metron_alert";
   public static String STATUS_FIELD = "status";
   public static String GROUPS_FIELD = "groups";
 }

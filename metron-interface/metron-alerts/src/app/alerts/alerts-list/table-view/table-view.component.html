@@ -26,7 +26,7 @@
     <tbody>
     <ng-container *ngFor="let alert of alerts; let alertIndex = index;">
 
-      <ng-container *ngIf="!alert.source.alert || alert.source.alert.length === 0">
+      <ng-container *ngIf="!alert.source.metron_alert || alert.source.metron_alert.length === 0">
         <tr (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
           <td width="15" class="icon-cell"></td>
           <td (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])">
@@ -50,7 +50,7 @@
         </tr>
       </ng-container>
 
-      <ng-container *ngIf="alert.source.alert && alert.source.alert.length > 0">
+      <ng-container *ngIf="alert.source.metron_alert && alert.source.metron_alert.length > 0">
         <tr (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
           <td width="15" class="icon-cell dropdown-cell" (click)="toggleExpandCollapse($event, alert)">
             <i class="fa" aria-hidden="true"
@@ -62,7 +62,7 @@
           </td>
           <td [attr.colspan]="alertsColumnsToDisplay.length - 1">
             <a (click)="addFilter('guid', alert.id)" [attr.title]="alert.id" style="color:#689AA9"> {{ alert.source['name'] ? alert.source['name'] : alert.id | centerEllipses:20:cell }}</a>
-              <span> ({{ alert.source.alert.length }})</span>
+              <span> ({{ alert.source.metron_alert.length }})</span>
           </td>
           <td>
             <a *ngIf="isStatusFieldPresent" (click)="addFilter('alert_status', alert.source['alert_status'])" style="color:#689AA9">
@@ -80,7 +80,7 @@
             <label attr.for="{{ alert.id }}"></label>
           </td>
         </tr>
-        <tr *ngFor="let metaAlerts of alert.source.alert; let metaAlertIndex = index;" (click)="showMetaAlertDetails($event, metaAlerts)"
+        <tr *ngFor="let metaAlerts of alert.source.metron_alert; let metaAlertIndex = index;" (click)="showMetaAlertDetails($event, metaAlerts)"
             [ngClass]="{'selected' : selectedAlerts.indexOf(metaAlerts) != -1 , 'd-none': metaAlertsDisplayState[alert.id] === metronAlertDisplayState.COLLAPSE}">
           <td width="15" class="icon-cell" class="dropdown-cell"></td>
           <td (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])" style="padding-left: 15px">

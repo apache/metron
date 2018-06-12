@@ -90,7 +90,7 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
         getConfig().getThreatSort());
 
     // Add source type to be consistent with other sources and allow filtering
-    metaAlert.getDocument().put(Constants.SENSOR_TYPE, MetaAlertConstants.METAALERT_TYPE);
+    metaAlert.getDocument().put(getConfig().getSourceTypeField(), MetaAlertConstants.METAALERT_TYPE);
 
     // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();

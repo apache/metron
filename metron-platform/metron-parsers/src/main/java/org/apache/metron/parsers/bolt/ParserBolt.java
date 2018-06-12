@@ -19,6 +19,7 @@ package org.apache.metron.parsers.bolt;
 
 import static org.apache.metron.common.Constants.METADATA_PREFIX;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
@@ -30,15 +31,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
@@ -50,11 +51,15 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.stellar.common.CachingStellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.writer.WriterToBulkWriter;
+import org.apache.metron.writer.bolt.BatchTimeoutHelper;
+import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
+import org.apache.storm.utils.TupleUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +76,10 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private Context stellarContext;
   private transient MessageGetStrategy messageGetStrategy;
   private transient Cache<CachingStellarProcessor.Key, Object> cache;
+  private int requestedTickFreqSecs;
+  private int defaultBatchTimeout;
+  private int batchTimeoutDivisor = 1;
+
   public ParserBolt( String zookeeperUrl
                    , String sensorType
                    , MessageParser<JSONObject> parser
@@ -88,8 +97,83 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     return this;
   }
 
+  /**
+   * If this ParserBolt is in a topology where it is daisy-chained with
+   * other queuing Writers, then the max amount of time it takes for a tuple
+   * to clear the whole topology is the sum of all the batchTimeouts for all the
+   * daisy-chained Writers.  In the common case where each Writer is using the default
+   * batchTimeout, it is then necessary to divide that batchTimeout by the number of
+   * daisy-chained Writers.  There are no examples of daisy-chained batching Writers
+   * in the current Metron topologies, but the feature is available as a "fluent"-style
+   * mutator if needed.  It would be used in the parser topology builder.
+   * Default value, if not otherwise set, is 1.
+   *
+   * If non-default batchTimeouts are configured for some components, the administrator
+   * may want to take this behavior into account.
+   *
+   * @param batchTimeoutDivisor
+   * @return BulkMessageWriterBolt
+   */
+  public ParserBolt withBatchTimeoutDivisor(int batchTimeoutDivisor) {
+    if (batchTimeoutDivisor <= 0) {
+      throw new IllegalArgumentException(String.format("batchTimeoutDivisor must be positive. Value provided was %s", batchTimeoutDivisor));
+    }
+    this.batchTimeoutDivisor = batchTimeoutDivisor;
+    return this;
+  }
+
+  /**
+   * Used only for unit testing
+   * @param defaultBatchTimeout
+   */
+  protected void setDefaultBatchTimeout(int defaultBatchTimeout) {
+    this.defaultBatchTimeout = defaultBatchTimeout;
+  }
+
+  /**
+   * Used only for unit testing
+   */
+  public int getDefaultBatchTimeout() {
+    return defaultBatchTimeout;
+  }
+
   public MessageParser<JSONObject> getParser() {
     return parser;
+  }
+
+  /**
+   * This method is called by TopologyBuilder.createTopology() to obtain topology and
+   * bolt specific configuration parameters.  We use it primarily to configure how often
+   * a tick tuple will be sent to our bolt.
+   * @return conf topology and bolt specific configuration parameters
+   */
+  @Override
+  public Map<String, Object> getComponentConfiguration() {
+    // This is called long before prepare(), so do some of the same stuff as prepare() does,
+    // to get the valid WriterConfiguration.  But don't store any non-serializable objects,
+    // else Storm will throw a runtime error.
+    Function<WriterConfiguration, WriterConfiguration> configurationXform;
+    if(writer.isWriterToBulkWriter()) {
+      configurationXform = WriterToBulkWriter.TRANSFORMATION;
+    }
+    else {
+      configurationXform = x -> x;
+    }
+    WriterConfiguration writerconf = configurationXform
+        .apply(getConfigurationStrategy().createWriterConfig(writer.getBulkMessageWriter(), getConfigurations()));
+
+    BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
+    this.requestedTickFreqSecs = timeoutHelper.getRecommendedTickInterval();
+    //And while we've got BatchTimeoutHelper handy, capture the defaultBatchTimeout for writerComponent.
+    this.defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
+
+    Map<String, Object> conf = super.getComponentConfiguration();
+    if (conf == null) {
+      conf = new HashMap<String, Object>();
+    }
+    conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, requestedTickFreqSecs);
+    LOG.info("Requesting " + Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS + " set to " + Integer.toString(requestedTickFreqSecs));
+    return conf;
   }
 
   @SuppressWarnings("unchecked")
@@ -114,6 +198,15 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     parser.init();
 
     writer.init(stormConf, context, collector, getConfigurations());
+    if (defaultBatchTimeout == 0) {
+      //This means getComponentConfiguration was never called to initialize defaultBatchTimeout,
+      //probably because we are in a unit test scenario.  So calculate it here.
+      WriterConfiguration writerConfig = getConfigurationStrategy()
+          .createWriterConfig(writer.getBulkMessageWriter(), getConfigurations());
+      BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerConfig::getAllConfiguredTimeouts, batchTimeoutDivisor);
+      defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
+    }
+    writer.setDefaultBatchTimeout(defaultBatchTimeout);
 
     SensorParserConfig config = getSensorParserConfig();
     if(config != null) {
@@ -173,6 +266,17 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
+    if (TupleUtils.isTick(tuple)) {
+      try {
+        writer.flush(getConfigurations(), messageGetStrategy);
+      } catch (Exception e) {
+        throw new RuntimeException(
+            "This should have been caught in the writerHandler.  If you see this, file a JIRA", e);
+      } finally {
+        collector.ack(tuple);
+      }
+      return;
+    }
     byte[] originalMessage = (byte[]) messageGetStrategy.get(tuple);
     SensorParserConfig sensorParserConfig = getSensorParserConfig();
     try {

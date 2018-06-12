@@ -18,26 +18,30 @@
 
 package org.apache.metron.indexing.dao.metaalert;
 
-public class MetaAlertConfig {
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+public abstract class MetaAlertConfig {
   private String metaAlertIndex;
-  private String threatTriageField;
   private String threatSort;
-  private String sourceTypeField;
+  private Supplier<Map<String, Object>> globalConfigSupplier;
 
   /**
    * Simple object for storing and retrieving configs, primarily to make passing all the info to
    * the sub DAOs easier.
    * @param metaAlertIndex The metaalert index or collection we're using
-   * @param threatTriageField The threat triage field's name
    * @param threatSort The sorting operation on the threat triage field
-   * @param sourceTypeField The source type field
    */
-  public MetaAlertConfig(String metaAlertIndex, String threatTriageField,
-      String threatSort, String sourceTypeField) {
+  public MetaAlertConfig( String metaAlertIndex
+                        , String threatSort
+                        , Supplier<Map<String, Object>> globalConfigSupplier) {
     this.metaAlertIndex = metaAlertIndex;
-    this.threatTriageField = threatTriageField;
     this.threatSort = threatSort;
-    this.sourceTypeField = sourceTypeField;
+    this.globalConfigSupplier = globalConfigSupplier;
   }
 
   public String getMetaAlertIndex() {
@@ -49,12 +53,14 @@ public class MetaAlertConfig {
   }
 
   public String getThreatTriageField() {
-    return threatTriageField;
+    Optional<Map<String, Object>> globalConfig = Optional.ofNullable(globalConfigSupplier.get());
+    if(!globalConfig.isPresent()) {
+      return getDefaultThreatTriageField();
+    }
+    return ConfigurationsUtils.getFieldName(globalConfig.get(), Constants.THREAT_SCORE_FIELD_PROPERTY, getDefaultThreatTriageField());
   }
 
-  public void setThreatTriageField(String threatTriageField) {
-    this.threatTriageField = threatTriageField;
-  }
+  protected abstract String getDefaultThreatTriageField();
 
   public String getThreatSort() {
     return threatSort;
@@ -65,10 +71,13 @@ public class MetaAlertConfig {
   }
 
   public String getSourceTypeField() {
-    return sourceTypeField;
+    Optional<Map<String, Object>> globalConfig = Optional.ofNullable(globalConfigSupplier.get());
+    if(!globalConfig.isPresent()) {
+      return getDefaultSourceTypeField();
+    }
+    return ConfigurationsUtils.getFieldName(globalConfig.get(), Constants.SENSOR_TYPE_FIELD_PROPERTY, getDefaultSourceTypeField());
   }
 
-  public void setSourceTypeField(String sourceTypeField) {
-    this.sourceTypeField = sourceTypeField;
-  }
+  protected abstract String getDefaultSourceTypeField();
+
 }

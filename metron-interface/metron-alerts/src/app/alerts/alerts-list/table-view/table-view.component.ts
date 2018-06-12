@@ -121,7 +121,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
   updateExpandedStateForChangedData(expandedMetaAlerts: string[]) {
     this.alerts.forEach(alert => {
-      if (alert.source.alert && alert.source.alert.length > 0) {
+      if (alert.source.metron_alert && alert.source.metron_alert.length > 0) {
         this.metaAlertsDisplayState[alert.id] = expandedMetaAlerts.indexOf(alert.id) === -1 ?
                                                   MetronAlertDisplayState.COLLAPSE : MetronAlertDisplayState.EXPAND;
       }

@@ -93,7 +93,7 @@ export class AlertDetailsComponent implements OnInit {
     this.searchService.getAlert(this.alertSourceType, this.alertId).subscribe(alertSource => {
       this.alertSource = alertSource;
       this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
-      this.alertSources = (alertSource.alert && alertSource.alert.length > 0) ? alertSource.alert : [alertSource];
+      this.alertSources = (alertSource.metron_alert && alertSource.metron_alert.length > 0) ? alertSource.metron_alert : [alertSource];
       this.setComments(alertSource);
 
       if (fireToggleEditor) {

@@ -157,6 +157,11 @@ public class SchemaValidationIntegrationTest {
         public boolean isDefault(String sensorName) {
           return false;
         }
+
+        @Override
+        public String getFieldNameConverter(String sensorName) {
+          return null;
+        }
       };
 
       solrWriter.init(null, null, writerConfig);
