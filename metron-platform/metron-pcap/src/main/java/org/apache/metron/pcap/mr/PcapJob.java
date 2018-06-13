@@ -48,6 +48,9 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
+import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.JobStatus.STATE;
+import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
@@ -57,12 +60,14 @@ import org.apache.metron.pcap.utils.FileFilterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PcapJob {
+public class PcapJob implements Statusable {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String START_TS_CONF = "start_ts";
   public static final String END_TS_CONF = "end_ts";
   public static final String WIDTH_CONF = "width";
+  private Job job; // store a running MR job reference for async status check
+  private Path outputPath;
 
   public static enum PCAP_COUNTER {
     MALFORMED_PACKET_COUNT
@@ -156,6 +161,75 @@ public class PcapJob {
   }
 
   /**
+   * Run query synchronously.
+   */
+  public <T> SequenceFileIterable query(Path basePath
+                            , Path baseOutputPath
+                            , long beginNS
+                            , long endNS
+                            , int numReducers
+                            , T fields
+                            , Configuration conf
+                            , FileSystem fs
+                            , PcapFilterConfigurator<T> filterImpl
+                            ) throws IOException, ClassNotFoundException, InterruptedException {
+    Statusable statusable = query(basePath, baseOutputPath, beginNS, endNS, numReducers, fields,
+        conf,
+        fs, filterImpl, true);
+    JobStatus jobStatus = statusable.getStatus();
+    if (jobStatus.getState() == STATE.SUCCEEDED) {
+      Path resultPath = jobStatus.getResultPath();
+      return readResults(resultPath, conf, fs);
+    } else {
+      throw new RuntimeException(
+          "Unable to complete query due to errors.  Please check logs for full errors.");
+    }
+  }
+
+  /**
+   * Run query sync OR async based on flag. Async mode allows the client to check the returned
+   * statusable object for status details.
+   */
+  public <T> Statusable query(Path basePath,
+      Path baseOutputPath,
+      long beginNS,
+      long endNS,
+      int numReducers,
+      T fields,
+      Configuration conf,
+      FileSystem fs,
+      PcapFilterConfigurator<T> filterImpl,
+      boolean sync)
+      throws IOException, ClassNotFoundException, InterruptedException {
+    String fileName = Joiner.on("_").join(beginNS, endNS, filterImpl.queryToString(fields), UUID.randomUUID().toString());
+    if(LOG.isDebugEnabled()) {
+      DateFormat format = SimpleDateFormat.getDateTimeInstance( SimpleDateFormat.LONG
+          , SimpleDateFormat.LONG
+      );
+      String from = format.format(new Date(Long.divideUnsigned(beginNS, 1000000)));
+      String to = format.format(new Date(Long.divideUnsigned(endNS, 1000000)));
+      LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
+    }
+    outputPath =  new Path(baseOutputPath, fileName);
+    job = createJob( basePath
+        , outputPath
+        , beginNS
+        , endNS
+        , numReducers
+        , fields
+        , conf
+        , fs
+        , filterImpl
+    );
+    if (sync) {
+      job.waitForCompletion(true);
+    } else {
+      job.submit();
+    }
+    return this;
+  }
+
+  /**
    * Returns a lazily-read Iterable over a set of sequence files
    */
   private SequenceFileIterable readResults(Path outputPath, Configuration config, FileSystem fs) throws IOException {
@@ -168,57 +242,18 @@ public class PcapJob {
       }
       files.add(p);
     }
-    LOG.debug("Output path={}", outputPath);
-    Collections.sort(files, (o1,o2) -> o1.getName().compareTo(o2.getName()));
+    if (files.size() == 0) {
+      LOG.info("No files to process with specified date range.");
+    } else {
+      LOG.debug("Output path={}", outputPath);
+      Collections.sort(files, (o1, o2) -> o1.getName().compareTo(o2.getName()));
+    }
     return new SequenceFileIterable(files, config);
   }
 
-  public <T> SequenceFileIterable query(Path basePath
-                            , Path baseOutputPath
-                            , long beginNS
-                            , long endNS
-                            , int numReducers
-                            , T fields
-                            , Configuration conf
-                            , FileSystem fs
-                            , PcapFilterConfigurator<T> filterImpl
-                            ) throws IOException, ClassNotFoundException, InterruptedException {
-    String fileName = Joiner.on("_").join(beginNS, endNS, filterImpl.queryToString(fields), UUID.randomUUID().toString());
-    if(LOG.isDebugEnabled()) {
-      DateFormat format = SimpleDateFormat.getDateTimeInstance( SimpleDateFormat.LONG
-                                                              , SimpleDateFormat.LONG
-                                                              );
-      String from = format.format(new Date(Long.divideUnsigned(beginNS, 1000000)));
-      String to = format.format(new Date(Long.divideUnsigned(endNS, 1000000)));
-      LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
-    }
-    Path outputPath =  new Path(baseOutputPath, fileName);
-    Job job = createJob( basePath
-                       , outputPath
-                       , beginNS
-                       , endNS
-                       , numReducers
-                       , fields
-                       , conf
-                       , fs
-                       , filterImpl
-                       );
-    if (job == null) {
-      LOG.info("No files to process with specified date range.");
-      return new SequenceFileIterable(new ArrayList<>(), conf);
-    }
-    boolean completed = job.waitForCompletion(true);
-    if(completed) {
-      return readResults(outputPath, conf, fs);
-    } else {
-      throw new RuntimeException("Unable to complete query due to errors.  Please check logs for full errors.");
-    }
-  }
-
-  public static long findWidth(long start, long end, int numReducers) {
-    return Long.divideUnsigned(end - start, numReducers) + 1;
-  }
-
+  /**
+   * Creates, but does not submit the job.
+   */
   public <T> Job createJob( Path basePath
                       , Path outputPath
                       , long beginNS
@@ -256,6 +291,10 @@ public class PcapJob {
     return job;
   }
 
+  public static long findWidth(long start, long end, int numReducers) {
+    return Long.divideUnsigned(end - start, numReducers) + 1;
+  }
+
   protected Iterable<Path> listFiles(FileSystem fs, Path basePath) throws IOException {
     List<Path> ret = new ArrayList<>();
     RemoteIterator<LocatedFileStatus> filesIt = fs.listFiles(basePath, true);
@@ -264,5 +303,50 @@ public class PcapJob {
     }
     return ret;
   }
+
+  @Override
+  public JobStatus getStatus() {
+    // Note: this method is only reading state from the underlying job, so locking not needed
+    JobStatus status = new JobStatus().withResultPath(outputPath);
+    if (job == null) {
+      status.withPercentComplete(100).withState(STATE.SUCCEEDED);
+    } else {
+      try {
+        if (job.isComplete()) {
+          status.withPercentComplete(100);
+          switch (job.getStatus().getState()) {
+            case SUCCEEDED:
+              status.withState(STATE.SUCCEEDED);
+              break;
+            case FAILED:
+              status.withState(STATE.FAILED);
+              break;
+            case KILLED:
+              status.withState(STATE.KILLED);
+              break;
+          }
+        } else {
+          float mapProg = job.mapProgress();
+          float reduceProg = job.reduceProgress();
+          float totalProgress = ((mapProg / 2) + (reduceProg / 2)) * 100;
+          status.withPercentComplete(totalProgress).withState(STATE.RUNNING);
+        }
+      } catch (Exception e) {
+        throw new RuntimeException("Error occurred while attempting to retrieve job status.", e);
+      }
+    }
+    return status;
+  }
+
+  @Override
+  public boolean isDone() {
+    // Note: this method is only reading state from the underlying job, so locking not needed
+    try {
+      return job.isComplete();
+    } catch (Exception e) {
+      throw new RuntimeException("Error occurred while attempting to retrieve job status.", e);
+    }
+  }
+
 
 }
