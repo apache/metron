@@ -17,8 +17,10 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE_FIELD_PROPERTY;
 import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
 import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -28,15 +30,17 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.AlertsUIUserSettings;
 import org.apache.metron.rest.service.AlertsUIService;
-import org.apache.metron.rest.service.SearchService;
+import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,16 +56,24 @@ public class SearchServiceImplTest {
   IndexDao dao;
   Environment environment;
   SensorIndexingConfigService sensorIndexingConfigService;
+  GlobalConfigService globalConfigService;
   AlertsUIService alertsUIService;
-  SearchService searchService;
+  SearchServiceImpl searchService;
 
   @Before
   public void setUp() throws Exception {
     dao = mock(IndexDao.class);
     environment = mock(Environment.class);
     sensorIndexingConfigService = mock(SensorIndexingConfigService.class);
+    globalConfigService = mock(GlobalConfigService.class);
     alertsUIService = mock(AlertsUIService.class);
-    searchService = new SearchServiceImpl(dao, environment, sensorIndexingConfigService, alertsUIService);
+    searchService = new SearchServiceImpl(
+        dao,
+        environment,
+        sensorIndexingConfigService,
+        globalConfigService,
+        alertsUIService
+    );
   }
 
 
@@ -97,7 +109,7 @@ public class SearchServiceImplTest {
   @Test
   public void searchShouldProperlySearchDefaultFacetFields() throws Exception {
     when(environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, ""))
-        .thenReturn("source:type,ip_src_addr");
+        .thenReturn("ip_src_addr,ip_dst_addr");
     when(alertsUIService.getAlertsUIUserSettings()).thenReturn(Optional.empty());
 
     SearchRequest searchRequest = new SearchRequest();
@@ -107,14 +119,14 @@ public class SearchServiceImplTest {
 
     SearchRequest expectedSearchRequest = new SearchRequest();
     expectedSearchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
-    expectedSearchRequest.setFacetFields(Arrays.asList("source:type", "ip_src_addr"));
+    expectedSearchRequest.setFacetFields(Arrays.asList("source:type", "ip_src_addr", "ip_dst_addr"));
     verify(dao).search(eq(expectedSearchRequest));
   }
 
   @Test
   public void searchShouldProperlySearchWithUserSettingsFacetFields() throws Exception {
     AlertsUIUserSettings alertsUIUserSettings = new AlertsUIUserSettings();
-    alertsUIUserSettings.setFacetFields(Arrays.asList("source:type", "ip_dst_addr"));
+    alertsUIUserSettings.setFacetFields(Arrays.asList("ip_src_addr", "ip_dst_addr"));
     when(alertsUIService.getAlertsUIUserSettings()).thenReturn(Optional.of(alertsUIUserSettings));
 
     SearchRequest searchRequest = new SearchRequest();
@@ -124,7 +136,7 @@ public class SearchServiceImplTest {
 
     SearchRequest expectedSearchRequest = new SearchRequest();
     expectedSearchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
-    expectedSearchRequest.setFacetFields(Arrays.asList("source:type", "ip_dst_addr"));
+    expectedSearchRequest.setFacetFields(Arrays.asList("ip_src_addr", "ip_dst_addr"));
     verify(dao).search(eq(expectedSearchRequest));
   }
 
@@ -165,5 +177,38 @@ public class SearchServiceImplTest {
     verify(dao).getColumnMetadata(eq(Arrays.asList("bro", "snort", "metaalert")));
 
     verifyNoMoreInteractions(dao);
+  }
+
+  @Test
+  public void testGetDefaultFacetFieldsGlobalConfig() throws RestException {
+    when(environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, ""))
+        .thenReturn("ip_src_addr");
+    Map<String, Object> globalConfig = new HashMap<>();
+    globalConfig.put(SENSOR_TYPE_FIELD_PROPERTY, "source.type");
+    when(globalConfigService.get()).thenReturn(globalConfig);
+    when(alertsUIService.getAlertsUIUserSettings()).thenReturn(Optional.empty());
+    List<String> defaultFields = searchService.getDefaultFacetFields();
+
+    List<String> expectedFields = new ArrayList<>();
+    expectedFields.add("source.type");
+    expectedFields.add("ip_src_addr");
+
+    assertEquals(expectedFields, defaultFields);
+  }
+
+  @Test
+  public void testGetDefaultFacetFieldsEmptyGlobalConfig() throws RestException {
+    when(environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, ""))
+        .thenReturn("ip_src_addr");
+    Map<String, Object> globalConfig = new HashMap<>();
+    when(globalConfigService.get()).thenReturn(globalConfig);
+    when(alertsUIService.getAlertsUIUserSettings()).thenReturn(Optional.empty());
+    List<String> defaultFields = searchService.getDefaultFacetFields();
+
+    List<String> expectedFields = new ArrayList<>();
+    expectedFields.add("source:type");
+    expectedFields.add("ip_src_addr");
+
+    assertEquals(expectedFields, defaultFields);
   }
 }

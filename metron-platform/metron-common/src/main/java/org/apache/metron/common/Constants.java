@@ -17,9 +17,7 @@
  */
 package org.apache.metron.common;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Constants {
@@ -29,6 +27,7 @@ public class Constants {
   public static final String ZOOKEEPER_TOPOLOGY_ROOT = ZOOKEEPER_ROOT + "/topology";
   public static final long DEFAULT_CONFIGURED_BOLT_TIMEOUT = 5000;
   public static final String SENSOR_TYPE = "source.type";
+  public static final String SENSOR_TYPE_FIELD_PROPERTY = "source.type.field";
   public static final String ENRICHMENT_TOPIC = "enrichments";
   public static final String INDEXING_TOPIC = "indexing";
   public static final String ERROR_STREAM = "error";
@@ -37,9 +36,17 @@ public class Constants {
   public static final String SIMPLE_HBASE_THREAT_INTEL = "hbaseThreatIntel";
   public static final String GUID = "guid";
 
+  /**
+   * The key in the global configuration that defines the global parser error topic.
+   *
+   * <p>This value is used only if the error topic is left undefined in a sensor's parser configuration.
+   */
+  public static final String PARSER_ERROR_TOPIC_GLOBALS_KEY = "parser.error.topic";
+
   public interface Field {
     String getName();
   }
+
   public enum Fields implements Field {
      SRC_ADDR("ip_src_addr")
     ,SRC_PORT("ip_src_port")

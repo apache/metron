@@ -37,6 +37,7 @@ For a variety of components (threat intelligence triage and field transformation
 
 The Stellar language supports the following:
 * Referencing fields in the enriched JSON
+* Referencing all fields in the enriched JSON via the `_` reserved variable name.
 * String literals are quoted with either `'` or `"`
 * String literals support escaping for `'`, `"`, `\t`, `\r`, `\n`, and backslash 
   * The literal `'\'foo\''` would represent `'foo'`
@@ -1462,7 +1463,7 @@ operating system.
 
 
 ```bash
-metron-stellar/stellar-common/target/stellar-common-0.4.3-stand-alone.tar.gz
+metron-stellar/stellar-common/target/stellar-common-0.5.0-stand-alone.tar.gz
 ```
 
 When unpacked, the following structure will be created:
@@ -1472,7 +1473,7 @@ When unpacked, the following structure will be created:
 ├── bin
 │   └── stellar
 └── lib
-    └── stellar-common-0.4.3-uber.jar
+    └── stellar-common-0.5.0-uber.jar
 ```
 
 To run the Stellar Shell run the following from the directory you unpacked to:

@@ -17,25 +17,32 @@
  */
 package org.apache.metron.writer.kafka;
 
-import org.apache.storm.tuple.Tuple;
 import com.google.common.base.Joiner;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.writer.MessageWriter;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.common.utils.KafkaUtils;
-import org.apache.metron.common.utils.StringUtils;
-import org.apache.metron.writer.AbstractWriter;
-import org.json.simple.JSONObject;
-
 import java.io.Serializable;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Future;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.errors.InterruptException;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.utils.KafkaUtils;
+import org.apache.metron.common.utils.StringUtils;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.writer.AbstractWriter;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.tuple.Tuple;
+import org.json.simple.JSONObject;
 
-public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObject>, Serializable {
+public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSONObject>, Serializable {
   public enum Configurations {
      BROKER("kafka.brokerUrl")
     ,KEY_SERIALIZER("kafka.keySerializer")
@@ -60,6 +67,15 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
       return null;
     }
   }
+
+  /**
+   * Default batch size in bytes. Note, we don't want to expose this to clients. End users should
+   * set the writer batchSize setting via the BulkWriterComponent.
+   *
+   * @see ProducerConfig#BATCH_SIZE_DOC
+   * @see <a href="https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.4/bk_kafka-component-guide/content/kafka-producer-settings.html">https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.4/bk_kafka-component-guide/content/kafka-producer-settings.html</a>
+   */
+  private static final int DEFAULT_BATCH_SIZE = 1_024 * 64; // 64 kilobytes
   private String brokerUrl;
   private String keySerializer = "org.apache.kafka.common.serialization.StringSerializer";
   private String valueSerializer = "org.apache.kafka.common.serialization.StringSerializer";
@@ -74,6 +90,11 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
 
   public KafkaWriter(String brokerUrl) {
     this.brokerUrl = brokerUrl;
+  }
+
+  public KafkaWriter withBrokerUrl(String brokerUrl) {
+    this.brokerUrl = brokerUrl;
+    return this;
   }
 
   public KafkaWriter withZkQuorum(String zkQuorum) {
@@ -151,19 +172,9 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     }
   }
 
-  public Map<String, Object> createProducerConfigs() {
-    Map<String, Object> producerConfig = new HashMap<>();
-    producerConfig.put("bootstrap.servers", brokerUrl);
-    producerConfig.put("key.serializer", keySerializer);
-    producerConfig.put("value.serializer", valueSerializer);
-    producerConfig.put("request.required.acks", requiredAcks);
-    producerConfig.putAll(producerConfigs == null?new HashMap<>():producerConfigs);
-    producerConfig = KafkaUtils.INSTANCE.normalizeProtocol(producerConfig);
-    return producerConfig;
-  }
-
   @Override
-  public void init() {
+  public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration config)
+      throws Exception {
     if(this.zkQuorum != null && this.brokerUrl == null) {
       try {
         this.brokerUrl = Joiner.on(",").join(KafkaUtils.INSTANCE.getBrokersFromZookeeper(this.zkQuorum));
@@ -174,10 +185,56 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     this.kafkaProducer = new KafkaProducer<>(createProducerConfigs());
   }
 
-  @SuppressWarnings("unchecked")
+  public Map<String, Object> createProducerConfigs() {
+    Map<String, Object> producerConfig = new HashMap<>();
+    producerConfig.put("bootstrap.servers", brokerUrl);
+    producerConfig.put("key.serializer", keySerializer);
+    producerConfig.put("value.serializer", valueSerializer);
+    producerConfig.put("request.required.acks", requiredAcks);
+    producerConfig.put(ProducerConfig.BATCH_SIZE_CONFIG, DEFAULT_BATCH_SIZE);
+    producerConfig.putAll(producerConfigs == null?new HashMap<>():producerConfigs);
+    producerConfig = KafkaUtils.INSTANCE.normalizeProtocol(producerConfig);
+    return producerConfig;
+  }
+
   @Override
-  public void write(String sourceType, WriterConfiguration configurations, Tuple tuple, JSONObject message) throws Exception {
-    kafkaProducer.send(new ProducerRecord<String, String>(kafkaTopic, message.toJSONString()));
+  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations,
+      Iterable<Tuple> tuples, List<JSONObject> messages) {
+    BulkWriterResponse writerResponse = new BulkWriterResponse();
+    List<Map.Entry<Tuple, Future>> results = new ArrayList<>();
+    int i = 0;
+    for (Tuple tuple : tuples) {
+      JSONObject message = messages.get(i++);
+      String jsonMessage;
+      try {
+         jsonMessage = message.toJSONString();
+      } catch (Throwable t) {
+        writerResponse.addError(t, tuple);
+        continue;
+      }
+      Future future = kafkaProducer
+          .send(new ProducerRecord<String, String>(kafkaTopic, jsonMessage));
+      // we want to manage the batching
+      results.add(new AbstractMap.SimpleEntry<>(tuple, future));
+    }
+
+    try {
+      // ensures all Future.isDone() == true
+      kafkaProducer.flush();
+    } catch (InterruptException e) {
+      writerResponse.addAllErrors(e, tuples);
+      return writerResponse;
+    }
+
+    for (Map.Entry<Tuple, Future> kv : results) {
+      try {
+        kv.getValue().get();
+        writerResponse.addSuccess(kv.getKey());
+      } catch (Exception e) {
+        writerResponse.addError(e, kv.getKey());
+      }
+    }
+    return writerResponse;
   }
 
   @Override

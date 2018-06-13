@@ -271,13 +271,13 @@ Notes on other settings for types in ES
 
 ## Using Metron with Elasticsearch 5.6.2
 
-There is a requirement that all sensors templates have a nested alert field defined.  This field is a dummy field.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
+There is a requirement that all sensors templates have a nested `metron_alert` field defined.  This field is a dummy field.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
 
 Without this field, an error will be thrown during ALL searches (including from UIs, resulting in no alerts being found for any sensor). This error will be found in the REST service's logs.
 
 Exception seen:
 ```
-QueryParsingException[[nested] failed to find nested object under path [alert]];
+QueryParsingException[[nested] failed to find nested object under path [metron_alert]];
 ```
 
 There are two steps to resolve this issue.  First is to update the Elasticsearch template for each sensor, so any new indices have the field. This requires retrieving the template, removing an extraneous JSON field so we can put it back later, and adding our new field.
@@ -290,7 +290,7 @@ export SENSOR="bro"
 curl -XGET "http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index*?pretty=true" -o "${SENSOR}.template"
 sed -i '' '2d;$d' ./${SENSOR}.template
 sed -i '' '/"properties" : {/ a\
-"alert": { "type": "nested"},' ${SENSOR}.template
+"metron_alert": { "type": "nested"},' ${SENSOR}.template
 ```
 
 To manually verify this, you can optionally pretty print it again with:
@@ -309,7 +309,7 @@ To update existing indexes, update Elasticsearch mappings with the new field for
 curl -XPUT "http://${ELASTICSEARCH}:9200/${SENSOR}_index*/_mapping/${SENSOR}_doc" -d '
 {
   "properties" : {
-    "alert" : {
+    "metron_alert" : {
       "type" : "nested"
     }
   }

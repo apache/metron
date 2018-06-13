@@ -22,6 +22,7 @@ package org.apache.metron.profiler;
 
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  * <p>A profile contains many individual {@link ProfileMeasurement} values captured over a
  * period of time.  These values in aggregate form a time series.
  */
-public class ProfileMeasurement {
+public class ProfileMeasurement implements Serializable {
 
   /**
    * The name of the profile that this measurement is associated with.

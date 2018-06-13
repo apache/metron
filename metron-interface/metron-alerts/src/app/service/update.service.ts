@@ -30,6 +30,7 @@ import {PatchRequest} from '../model/patch-request';
 import {Utils} from '../utils/utils';
 import {Patch} from '../model/patch';
 import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../utils/constants';
+import { GlobalConfigService } from './global-config.service';
 
 @Injectable()
 export class UpdateService {
@@ -38,8 +39,13 @@ export class UpdateService {
 
   alertChangedSource = new Subject<PatchRequest>();
   alertChanged$ = this.alertChangedSource.asObservable();
+  sourceType = 'source:type';
 
-  constructor(private http: Http) { }
+  constructor(private http: Http, private globalConfigService: GlobalConfigService) {
+    this.globalConfigService.get().subscribe((config: {}) => {
+      this.sourceType = config['source.type.field'];
+    });
+  }
 
   public patch(patchRequest: PatchRequest, fireChangeListener = true): Observable<{}> {
     let url = '/api/v1/update/patch';
@@ -57,7 +63,7 @@ export class UpdateService {
     let patchRequests: PatchRequest[] = alerts.map(alert => {
       let patchRequest = new PatchRequest();
       patchRequest.guid = alert.source.guid;
-      patchRequest.sensorType = Utils.getAlertSensorType(alert);
+      patchRequest.sensorType = Utils.getAlertSensorType(alert, this.sourceType);
       patchRequest.patch = [new Patch('add', '/alert_status', state)];
       if (patchRequest.sensorType === META_ALERTS_SENSOR_TYPE) {
         patchRequest.index = META_ALERTS_INDEX;

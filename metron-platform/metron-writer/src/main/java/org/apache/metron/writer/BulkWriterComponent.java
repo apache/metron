@@ -19,6 +19,7 @@
 package org.apache.metron.writer;
 
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
@@ -40,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import static java.lang.String.format;
 
 /**
  * This component implements message batching, with both flush on queue size, and flush on queue timeout.
@@ -115,15 +118,40 @@ public class BulkWriterComponent<MESSAGE_T> {
   }
 
   public void error(String sensorType, Throwable e, Iterable<Tuple> tuples, MessageGetStrategy messageGetStrategy) {
-    tuples.forEach(t -> collector.ack(t));
+    LOG.error(format("Failing %d tuple(s); sensorType=%s", Iterables.size(tuples), sensorType), e);
     MetronError error = new MetronError()
             .withSensorType(sensorType)
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
             .withThrowable(e);
-    if(!Iterables.isEmpty(tuples)) {
-      LOG.error("Failing {} tuples", Iterables.size(tuples), e);
-    }
     tuples.forEach(t -> error.addRawMessage(messageGetStrategy.get(t)));
+    handleError(tuples, error);
+  }
+
+  /**
+   * Error a set of tuples that may not contain a valid message.
+   *
+   * <p>Without a valid message, the source type is unknown.
+   * <p>Without a valid message, the JSON message cannot be added to the error.
+   *
+   * @param e The exception that occurred.
+   * @param tuples The tuples to error that may not contain valid messages.
+   */
+  public void error(Throwable e, Iterable<Tuple> tuples) {
+    LOG.error(format("Failing %d tuple(s)", Iterables.size(tuples)), e);
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+            .withThrowable(e);
+    handleError(tuples, error);
+  }
+
+  /**
+   * Errors a set of tuples.
+   *
+   * @param tuples The tuples to error.
+   * @param error
+   */
+  private void handleError(Iterable<Tuple> tuples, MetronError error) {
+    tuples.forEach(t -> collector.ack(t));
     ErrorUtils.handleError(collector, error);
   }
 

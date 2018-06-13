@@ -29,14 +29,14 @@ limitations under the License.
 
 For a variety of components (threat intelligence triage and field
 transformations) we have the need to do simple computation and
-transformation using the data from messages as variables.  
-For those purposes, there exists a simple, scaled down DSL 
+transformation using the data from messages as variables.
+For those purposes, there exists a simple, scaled down DSL
 created to do simple computation and transformation.
 
 The query language supports the following:
 * Referencing fields in the enriched JSON
 * String literals are quoted with either `'` or `"`, and
-support escaping for `'`, `"`, `\t`, `\r`, `\n`, and backslash 
+support escaping for `'`, `"`, `\t`, `\r`, `\n`, and backslash
 * Simple boolean operations: `and`, `not`, `or`
   * Boolean expressions are short-circuited (e.g. `true or FUNC()` would never execute `FUNC`)
 * Simple arithmetic operations: `*`, `/`, `+`, `-` on real numbers or integers
@@ -46,7 +46,7 @@ support escaping for `'`, `"`, `\t`, `\r`, `\n`, and backslash
 * Determining whether a field exists (via `exists`)
 * An `in` operator that works like the `in` in Python
 * The ability to have parenthesis to make order of operations explicit
-* User defined functions, including Lambda expressions 
+* User defined functions, including Lambda expressions
 
 For documentation of Stellar, please see the [Stellar README](../../metron-stellar/stellar-common/README.md).
 
@@ -71,7 +71,7 @@ This configuration is stored in zookeeper, but looks something like
                 "config" : {
                     "type" : "IPV4"
                            }
-              } 
+              }
                        ]
 }
 ```
@@ -92,9 +92,15 @@ but a convenient index is provided here:
 | [`stellar.function.resolver.excludes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes) | Stellar       | CSV String | N/A                        |
 | [`profiler.period.duration`](../../metron-analytics/metron-profiler#profilerperiodduration)                         | Profiler      | Integer    | `profiler_period_duration` |
 | [`profiler.period.duration.units`](../../metron-analytics/metron-profiler#profilerperioddurationunits)              | Profiler      | String     | `profiler_period_units`    |
+| [`profiler.writer.batchSize`](../../metron-analytics/metron-profiler/#profilerwriterbatchsize)                      | Profiler      | Integer    |  N/A                       |
+| [`profiler.writer.batchTimeout`](../../metron-analytics/metron-profiler/#profilerwriterbatchtimeout)                | Profiler      | Integer    |  N/A                       |
 | [`update.hbase.table`](../metron-indexing#updatehbasetable)                                                         | REST/Indexing | String     | `update_hbase_table`       |
 | [`update.hbase.cf`](../metron-indexing#updatehbasecf)                                                               | REST/Indexing | String     | `update_hbase_cf`          |
 | [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`            |
+| [`enrichment.writer.batchSize`](../metron-enrichment#enrichmentwriterbatchsize)                                     | Enrichment    | Integer    |  N/A                       |
+| [`enrichment.writer.batchTimeout`](../metron-enrichment#enrichmentwriterbatchtimeout)                               | Enrichment    | Integer    |  N/A                       |
+| [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`            |
+| [`source.type.field`](../../metron-interface/metron-alerts#sourcetypefield)                                         | UI            | String     |  N/A                       |
 
 ## Note Configs in Ambari
 If a field is managed via ambari, you should change the field via
@@ -106,7 +112,7 @@ overwritten.
 Inside of the global configuration, there is a validation framework in
 place that enables the validation that messages coming from all parsers
 are valid.  This is done in the form of validation plugins where
-assertions about fields or whole messages can be made. 
+assertions about fields or whole messages can be made.
 
 The format for this is a `fieldValidations` field inside of global
 config.  This is associated with an array of field validation objects
@@ -344,7 +350,7 @@ Each topology can be configured to send error messages to a specific Kafka topic
 ```
 
 Error topics for enrichment and threat intel errors are passed into the enrichment topology as flux properties named `enrichment.error.topic` and `threat.intel.error.topic`.  These properties can be found in `$METRON_HOME/config/enrichment.properties`.
-  
+
 The error topic for indexing errors is passed into the indexing topology as a flux property named `index.error.topic`.  This property can be found in either `$METRON_HOME/config/elasticsearch.properties` or `$METRON_HOME/config/solr.properties` depending on the search engine selected.
 
 By default all error messages are sent to the `indexing` topic so that they are indexed and archived, just like other messages.  The indexing config for error messages can be found at `$METRON_HOME/config/zookeeper/indexing/error.json`.

@@ -19,6 +19,7 @@
 package org.apache.metron.stellar.common.utils;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.stellar.common.StellarPredicateProcessor;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
@@ -28,6 +29,11 @@ import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.dsl.VariableResolver;
 import org.junit.Assert;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.List;
@@ -39,6 +45,10 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Utilities for executing and validating Stellar expressions.
@@ -52,30 +62,126 @@ public class StellarProcessorUtils {
    * validates successfully and produces a result that can be serialized correctly.
    *
    * @param expression The expression to execute.
+   * @param varResolver The variable resolver to use
+   * @param context The execution context.
+   * @return The result of executing the expression.
+   */
+  public static Object run(String expression, VariableResolver varResolver, Context context) {
+
+    validate(expression, context);
+    Object result = execute(expression, varResolver, context);
+    ensureKryoSerializable(result, expression);
+    ensureJavaSerializable(result, expression);
+
+    return result;
+  }
+
+  /**
+   * Execute and validate a Stellar expression.
+   *
+   * <p>This is intended for use while unit testing Stellar expressions.  This ensures that the expression
+   * validates successfully and produces a result that can be serialized correctly.
+   *
+   * @param expression The expression to execute.
    * @param variables The variables to expose to the expression.
    * @param context The execution context.
    * @return The result of executing the expression.
    */
   public static Object run(String expression, Map<String, Object> variables, Context context) {
+    VariableResolver varResolver = new DefaultVariableResolver(
+            x -> {
+              if(x.equals(MapVariableResolver.ALL_FIELDS)) {
+                return variables;
+              }
+              return variables.get(x);
+            }
+            ,x-> x.equals(MapVariableResolver.ALL_FIELDS) || variables.containsKey(x)
+    );
+    return run(expression, varResolver, context);
+  }
 
-    // validate the expression
+  /**
+   * Execute a Stellar expression.
+   *
+   * @param expression The expression to execute.
+   * @param variableResolver Variable Resolver to use
+   * @param context The execution context.
+   * @return The result of executing the expression.
+   */
+  private static Object execute(String expression, VariableResolver variableResolver, Context context) {
+
     StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue("Invalid expression; expr=" + expression,
-            processor.validate(expression, context));
 
-    // execute the expression
-    Object ret = processor.parse(
+    Object result = processor.parse(
             expression,
-            new DefaultVariableResolver(x -> variables.get(x), x -> variables.containsKey(x)),
+            variableResolver,
             StellarFunctions.FUNCTION_RESOLVER(),
             context);
 
-    // ensure the result can be serialized/deserialized
-    byte[] raw = SerDeUtils.toBytes(ret);
-    Object actual = SerDeUtils.fromBytes(raw, Object.class);
-    Assert.assertEquals(ret, actual);
+    return result;
+  }
 
-    return ret;
+  /**
+   * Ensure that a value can be serialized and deserialized using Kryo.
+   *
+   * <p>When a Stellar function is used in a Storm topology there are cases when the result
+   * needs to be serializable, like when using the Profiler.  Storm can use either Kryo or
+   * basic Java serialization.  It is highly recommended that all Stellar functions return a
+   * result that is Kryo serializable to allow for the broadest possible use of the function.
+   *
+   * @param value The value to validate.
+   */
+  private static void ensureKryoSerializable(Object value, String expression) {
+
+    String msg = String.format("Expression result is not Kryo serializable. It is highly recommended for all " +
+            "functions to return a result that is Kryo serializable to allow for their broadest possible use. " +
+            "expr=%s, value=%s", expression, value);
+
+    byte[] raw = SerDeUtils.toBytes(value);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
+    Assert.assertEquals(msg, value, actual);
+  }
+
+  /**
+   * Ensure a value can be serialized and deserialized using Java serialization.
+   *
+   * <p>When a Stellar function is used in a Storm topology there are cases when the result
+   * needs to be serializable, like when using the Profiler.  Storm can use either Kryo or
+   * basic Java serialization.  It is highly recommended that all Stellar functions return a
+   * result that is Java serializable to allow for the broadest possible use of the function.
+   *
+   * @param value The value to serialize
+   */
+  private static void ensureJavaSerializable(Object value, String expression) {
+
+    String msg = String.format("Expression result is not Java serializable. It is highly recommended for all " +
+            "functions to return a result that is Java serializable to allow for their broadest possible use. " +
+            "expr=%s, value=%s", expression, value);
+
+    try {
+      // serialize using java
+      ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+      ObjectOutputStream out = new ObjectOutputStream(bytes);
+      out.writeObject(value);
+
+      // the serialized bits
+      byte[] raw = bytes.toByteArray();
+      assertTrue(raw.length > 0);
+
+      // deserialize using java
+      ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
+      Object actual = in.readObject();
+
+      // ensure that the round-trip was successful
+      assertEquals(msg, value, actual);
+
+    } catch(IOException | ClassNotFoundException e) {
+
+      String error = String.format("Expression result is not Java serializable. It is highly recommended for all " +
+              "functions to return a result that is Java serializable to allow for their broadest possible use. " +
+              "expr=%s, value=%s, error=%s", expression, value, ExceptionUtils.getRootCauseMessage(e));
+      fail(error);
+    }
   }
 
   /**
@@ -89,6 +195,20 @@ public class StellarProcessorUtils {
    * @return The result of executing the expression.
    */
   public static Object run(String expression, Map<String, Object> variables) {
+    return run(expression, variables, Context.EMPTY_CONTEXT());
+  }
+
+  /**
+   * Execute and validate a Stellar expression.
+   *
+   * <p>This is intended for use while unit testing Stellar expressions.  This ensures that the expression
+   * validates successfully and produces a result that can be serialized correctly.
+   *
+   * @param expression The expression to execute.
+   * @param variables The variables to expose to the expression.
+   * @return The result of executing the expression.
+   */
+  public static Object run(String expression, VariableResolver variables) {
     return run(expression, variables, Context.EMPTY_CONTEXT());
   }
 
