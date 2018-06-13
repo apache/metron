@@ -1,20 +1,21 @@
+
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 package org.apache.metron.elasticsearch.integration;
 
@@ -30,12 +31,14 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
@@ -43,6 +46,7 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
+import org.apache.metron.guava.collect.ImmutableList;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
@@ -58,28 +62,44 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
   private static IndexDao esDao;
   private static ElasticSearchComponent es;
 
   protected static final String INDEX_DIR = "target/elasticsearch_meta";
+  private static String POSTFIX= new SimpleDateFormat(DATE_FORMAT).format(new Date());
+  private static final String INDEX_RAW = SENSOR_NAME + POSTFIX;
+  protected static final String INDEX = INDEX_RAW + "_index";
+  protected List<String> queryIndices = null;
 
-  protected static final String INDEX =
-      SENSOR_NAME + "_" + new SimpleDateFormat(DATE_FORMAT).format(new Date());
-  protected static final String INDEX_WITH_SEPARATOR = INDEX + "_index";
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    Function<List<String>, List<String>> asteriskTransform = x -> ImmutableList.of("*");
+    Function<List<String>, List<String>> explicitTransform =
+            allIndices -> allIndices.stream().map(x -> x.replace("_index", ""))
+                       .collect(Collectors.toCollection(ArrayList::new));
+    return Arrays.asList(new Object[][]{
+            {asteriskTransform},
+            {explicitTransform}
+            }
+    );
+  }
 
-  protected ArrayList<String> queryIndices = allIndices.stream().map(x -> x.replace("_index", ""))
-      .collect(Collectors.toCollection(ArrayList::new));
+  public ElasticsearchMetaAlertIntegrationTest(Function<List<String>, List<String>> queryIndices) {
+    this.queryIndices = queryIndices.apply(allIndices);
+  }
+
 
   /**
    {
-   "properties": {
-   "alert": {
-   "type": "nested"
-   }
-   }
+     "properties": {
+       "metron_alert": { "type": "nested" }
+     }
    }
    */
   @Multiline
@@ -87,22 +107,15 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
   /**
    * {
-   "%MAPPING_NAME%_doc" : {
-   "properties" : {
-   "guid" : {
-   "type" : "keyword"
-   },
-   "ip_src_addr" : {
-   "type" : "keyword"
-   },
-   "score" : {
-   "type" : "integer"
-   },
-   "alert" : {
-   "type" : "nested"
-   }
-   }
-   }
+       "%MAPPING_NAME%_doc" : {
+         "properties" : {
+           "guid" : { "type" : "keyword" },
+           "ip_src_addr" : { "type" : "keyword" },
+           "score" : { "type" : "integer" },
+           "metron_alert" : { "type" : "nested" },
+           "source:type" : { "type" : "keyword"}
+         }
+     }
    }
    */
   @Multiline
@@ -115,16 +128,16 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
     // setup the client
     es = new ElasticSearchComponent.Builder()
-        .withHttpPort(9211)
-        .withIndexDir(new File(INDEX_DIR))
-        .build();
+            .withHttpPort(9211)
+            .withIndexDir(new File(INDEX_DIR))
+            .build();
     es.start();
   }
 
   @Before
   public void setup() throws IOException {
-    es.createIndexWithMapping(METAALERTS_INDEX, METAALERT_DOC, template.replace("%MAPPING_NAME%", "metaalert"));
-    es.createIndexWithMapping(INDEX, "index_doc", template.replace("%MAPPING_NAME%", "index"));
+    es.createIndexWithMapping(METAALERTS_INDEX, METAALERT_DOC, template.replace("%MAPPING_NAME%", METAALERT_TYPE));
+    es.createIndexWithMapping(INDEX, "test_doc", template.replace("%MAPPING_NAME%", "test"));
 
     AccessConfig accessConfig = new AccessConfig();
     Map<String, Object> globalConfig = new HashMap<String, Object>() {
@@ -173,34 +186,34 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     alerts.get(2).put("ip_src_port", 8008);
     alerts.get(3).put("ip_src_addr", "192.168.1.4");
     alerts.get(3).put("ip_src_port", 8007);
-    addRecords(alerts, INDEX_WITH_SEPARATOR, SENSOR_NAME);
+    addRecords(alerts, INDEX, SENSOR_NAME);
 
     // Put the nested type into the test index, so that it'll match appropriately
     setupTypings();
 
     // Load metaAlerts
     Map<String, Object> activeMetaAlert = buildMetaAlert("meta_active", MetaAlertStatus.ACTIVE,
-        Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
+            Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
     Map<String, Object> inactiveMetaAlert = buildMetaAlert("meta_inactive",
-        MetaAlertStatus.INACTIVE,
-        Optional.of(Arrays.asList(alerts.get(2), alerts.get(3))));
+            MetaAlertStatus.INACTIVE,
+            Optional.of(Arrays.asList(alerts.get(2), alerts.get(3))));
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
     addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), METAALERTS_INDEX,
-        METAALERT_TYPE);
+            METAALERT_TYPE);
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
-        new GetRequest("message_0", SENSOR_NAME),
-        new GetRequest("message_1", SENSOR_NAME),
-        new GetRequest("message_2", SENSOR_NAME),
-        new GetRequest("message_3", SENSOR_NAME),
-        new GetRequest("meta_active", METAALERT_TYPE),
-        new GetRequest("meta_inactive", METAALERT_TYPE)));
+            new GetRequest("message_0", SENSOR_NAME),
+            new GetRequest("message_1", SENSOR_NAME),
+            new GetRequest("message_2", SENSOR_NAME),
+            new GetRequest("message_3", SENSOR_NAME),
+            new GetRequest("meta_active", METAALERT_TYPE),
+            new GetRequest("meta_inactive", METAALERT_TYPE)));
 
     SearchResponse searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery(
-            "(ip_src_addr:192.168.1.1 AND ip_src_port:8009) OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8009)");
+                "(ip_src_addr:192.168.1.1 AND ip_src_port:8009) OR (metron_alert.ip_src_addr:192.168.1.1 AND metron_alert.ip_src_port:8009)");
         setIndices(Collections.singletonList(METAALERT_TYPE));
         setFrom(0);
         setSize(5);
@@ -219,8 +232,8 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery(
-            "(ip_src_addr:192.168.1.1 AND ip_src_port:8010)"
-                + " OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8010)");
+                "(ip_src_addr:192.168.1.1 AND ip_src_port:8010)"
+                        + " OR (metron_alert.ip_src_addr:192.168.1.1 AND metron_alert.ip_src_port:8010)");
         setIndices(queryIndices);
         setFrom(0);
         setSize(5);
@@ -235,16 +248,16 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     // Nested query should match a nested alert
     Assert.assertEquals(1, searchResponse.getTotal());
     Assert.assertEquals("meta_active",
-        searchResponse.getResults().get(0).getSource().get("guid"));
+            searchResponse.getResults().get(0).getSource().get("guid"));
 
     // Query against all indices. The child alert has no actual attached meta alerts, and should
     // be returned on its own.
     searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery(
-            "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
-                + " OR (alert.ip_src_addr:192.168.1.3 AND alert.ip_src_port:8008)");
-        setIndices(queryIndices);
+                "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
+                        + " OR (metron_alert.ip_src_addr:192.168.1.3 AND metron_alert.ip_src_port:8008)");
+        setIndices(Collections.singletonList("*"));
         setFrom(0);
         setSize(1);
         setSort(Collections.singletonList(new SortField() {
@@ -258,83 +271,83 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     // Nested query should match a plain alert
     Assert.assertEquals(1, searchResponse.getTotal());
     Assert.assertEquals("message_2",
-        searchResponse.getResults().get(0).getSource().get("guid"));
+            searchResponse.getResults().get(0).getSource().get("guid"));
   }
 
   @Override
   protected long getMatchingAlertCount(String fieldName, Object fieldValue)
-      throws IOException, InterruptedException {
+          throws IOException, InterruptedException {
     long cnt = 0;
     for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t, Thread.sleep(SLEEP_MS)) {
       List<Map<String, Object>> docs = es
-          .getAllIndexedDocs(INDEX_WITH_SEPARATOR, SENSOR_NAME + "_doc");
+              .getAllIndexedDocs(INDEX, SENSOR_NAME + "_doc");
       cnt = docs
-          .stream()
-          .filter(d -> {
-            Object newfield = d.get(fieldName);
-            return newfield != null && newfield.equals(fieldValue);
-          }).count();
+              .stream()
+              .filter(d -> {
+                Object newfield = d.get(fieldName);
+                return newfield != null && newfield.equals(fieldValue);
+              }).count();
     }
     return cnt;
   }
 
   @Override
   protected long getMatchingMetaAlertCount(String fieldName, String fieldValue)
-      throws IOException, InterruptedException {
+          throws IOException, InterruptedException {
     long cnt = 0;
     for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t, Thread.sleep(SLEEP_MS)) {
       List<Map<String, Object>> docs = es
-          .getAllIndexedDocs(METAALERTS_INDEX, METAALERT_DOC);
+              .getAllIndexedDocs(METAALERTS_INDEX, METAALERT_DOC);
       cnt = docs
-          .stream()
-          .filter(d -> {
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> alerts = (List<Map<String, Object>>) d
-                .get(ALERT_FIELD);
+              .stream()
+              .filter(d -> {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> alerts = (List<Map<String, Object>>) d
+                        .get(ALERT_FIELD);
 
-            for (Map<String, Object> alert : alerts) {
-              Object newField = alert.get(fieldName);
-              if (newField != null && newField.equals(fieldValue)) {
-                return true;
-              }
-            }
+                for (Map<String, Object> alert : alerts) {
+                  Object newField = alert.get(fieldName);
+                  if (newField != null && newField.equals(fieldValue)) {
+                    return true;
+                  }
+                }
 
-            return false;
-          }).count();
+                return false;
+              }).count();
     }
     return cnt;
   }
 
   @Override
   protected void addRecords(List<Map<String, Object>> inputData, String index, String docType)
-      throws IOException {
+          throws IOException {
     es.add(index, docType, inputData.stream().map(m -> {
-          try {
-            return JSONUtils.INSTANCE.toJSON(m, true);
-          } catch (JsonProcessingException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-          }
-        }
-        ).collect(Collectors.toList())
+              try {
+                return JSONUtils.INSTANCE.toJSON(m, true);
+              } catch (JsonProcessingException e) {
+                throw new IllegalStateException(e.getMessage(), e);
+              }
+            }
+            ).collect(Collectors.toList())
     );
   }
 
   @Override
   protected void setupTypings() {
-    ((ElasticsearchDao) esDao).getClient().admin().indices().preparePutMapping(INDEX_WITH_SEPARATOR)
-        .setType("test_doc")
-        .setSource(nestedAlertMapping)
-        .get();
+    ((ElasticsearchDao) esDao).getClient().admin().indices().preparePutMapping(INDEX)
+            .setType("test_doc")
+            .setSource(nestedAlertMapping)
+            .get();
   }
 
   @Override
   protected String getTestIndexName() {
-    return INDEX;
+    return INDEX_RAW;
   }
 
   @Override
   protected String getTestIndexFullName() {
-    return INDEX_WITH_SEPARATOR;
+    return INDEX;
   }
 
   @Override
