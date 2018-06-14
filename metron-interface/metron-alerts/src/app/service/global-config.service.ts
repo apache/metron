@@ -33,15 +33,23 @@ export class GlobalConfigService {
     return this.http.get(this.url , new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map((res: Response): any => {
         let body = res.json();
-        let globalConfig = this.setDefaultSourceType(body);
+        let globalConfig = this.setDefaults(body);
         return globalConfig || {};
       })
       .catch(HttpUtil.handleError);
   }
 
-  private setDefaultSourceType(globalConfig) {
-    if(!globalConfig['source.type.field']) {
-      return Object.assign({}, globalConfig, {'source.type.field': 'source:type'});
+  private setDefaults(globalConfig) {
+    let missingSourceTypeField = !globalConfig['source.type.field'];
+    let missingThreatScoreField = !globalConfig['threat.triage.score.field'];
+    if(missingSourceTypeField || missingThreatScoreField) {
+      let sourceTypeField = missingSourceTypeField?'source:type':globalConfig['source.type.field'];
+      let threatScoreField = missingThreatScoreField?'threat:triage:score':globalConfig['threat.triage.score.field'];
+      return Object.assign({}, globalConfig,
+                          {'source.type.field': sourceTypeField
+                          , 'threat.triage.score.field' : threatScoreField
+                          }
+                          );
     } else {
       return globalConfig;
     }

@@ -51,8 +51,6 @@ export enum MetronAlertDisplayState {
 
 export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
-  threatScoreFieldName = 'threat:triage:score';
-
   router: Router;
   searchService: SearchService;
   updateService: UpdateService;
@@ -118,6 +116,10 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.configSubscription.unsubscribe();
+  }
+
+  threatScoreFieldName() {
+    return this.globalConfig['threat.triage.score.field']
   }
 
   updateExpandedStateForChangedData(expandedMetaAlerts: string[]) {

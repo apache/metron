@@ -34,8 +34,8 @@
                         <div class="col-md-10 px-0">
                             <div class="form-title row ml-2">
                                 <div class="col px-0">
-                                    <span appAlertSeverity [severity]="alertSource['threat:triage:score']"> </span>
-                                    <span> {{ alertSource['threat:triage:score'] }} </span>
+                                    <span appAlertSeverity [severity]="getScore(alertSource)"> </span>
+                                    <span> {{ getScore(alertSource) }} </span>
                                 </div>
                                 <div class="px-0" style="width: 205px">
                                     <span [ngClass]="{'editable-text': alertSources.length > 1}" *ngIf="!showEditor" (click)="toggleNameEditor()"> {{ (alertSource.name && alertSource.name.length > 0)? alertSource.name : alertId | centerEllipses:20 }} </span>
