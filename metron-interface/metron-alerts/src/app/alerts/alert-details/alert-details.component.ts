@@ -31,7 +31,6 @@ import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
-import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
 import { GlobalConfigService } from '../../service/global-config.service';
 
 export enum AlertState {
