@@ -37,7 +37,9 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.pcap.mr.PcapJob;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.mock.MockPcapJob;
 import org.apache.metron.rest.mock.MockStormCLIClientWrapper;
 import org.apache.metron.rest.mock.MockStormRestTemplate;
 import org.apache.metron.rest.service.impl.StormCLIWrapper;
@@ -184,5 +186,10 @@ public class TestConfig {
   @Bean()
   public UserSettingsClient userSettingsClient() throws RestException, IOException {
     return new UserSettingsClient(new MockHBaseTableProvider().addToCache("user_settings", "cf"), Bytes.toBytes("cf"));
+  }
+
+  @Bean
+  public PcapJob mockPcapJob() {
+    return new MockPcapJob();
   }
 }

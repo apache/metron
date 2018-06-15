@@ -17,28 +17,34 @@
  */
 package org.apache.metron.rest.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.PcapsResponse;
-import org.apache.metron.rest.service.PcapQueryService;
+import org.apache.metron.rest.service.PcapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
+import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/v1/pcap/query")
-public class PcapQueryController {
+@RequestMapping("/api/v1/pcap")
+public class PcapController {
 
   @Autowired
-  private PcapQueryService pcapQueryService;
+  private ObjectMapper objectMapper;
 
-  @RequestMapping(method = RequestMethod.GET)
-  ResponseEntity<PcapsResponse> query() throws RestException {
-    PcapsResponse pcapsResponse = pcapQueryService.query();
+  @Autowired
+  private PcapService pcapQueryService;
+
+  @RequestMapping(value = "/fixed", method = RequestMethod.POST)
+  ResponseEntity<PcapsResponse> fixed(@RequestBody FixedPcapRequest fixedPcapRequest) throws RestException, IOException {
+    PcapsResponse pcapsResponse = pcapQueryService.fixed(fixedPcapRequest);
     if (pcapsResponse != null) {
       return new ResponseEntity<>(pcapsResponse, HttpStatus.OK);
     } else {

@@ -17,9 +17,13 @@
  */
 package org.apache.metron.rest.service;
 
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.PcapsResponse;
+import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 
-public interface PcapQueryService {
+import java.io.IOException;
 
-  PcapsResponse query();
+public interface PcapService {
+
+  PcapsResponse fixed(FixedPcapRequest fixedPcapRequest) throws RestException, IOException;
 }
