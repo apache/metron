@@ -29,7 +29,7 @@ import {Patch} from '../../model/patch';
 import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
-import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
+import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
 
 export enum AlertState {
@@ -127,7 +127,7 @@ export class AlertDetailsComponent implements OnInit {
       this.alertId = params['guid'];
       this.alertSourceType = params['source.type.field'];
       this.alertIndex = params['index'];
-      this.isMetaAlert = (this.alertIndex === META_ALERTS_INDEX && this.alertSourceType !== META_ALERTS_SENSOR_TYPE) ? true : false;
+      this.isMetaAlert = this.alertSourceType === META_ALERTS_SENSOR_TYPE;
       this.getData();
     });
   };
@@ -195,7 +195,6 @@ export class AlertDetailsComponent implements OnInit {
       let patchRequest = new PatchRequest();
       patchRequest.guid = this.alertId;
       patchRequest.sensorType = 'metaalert';
-      patchRequest.index = META_ALERTS_INDEX;
       patchRequest.patch = [new Patch('add', '/name', this.alertName)];
 
       this.updateService.patch(patchRequest).subscribe(rep => {
