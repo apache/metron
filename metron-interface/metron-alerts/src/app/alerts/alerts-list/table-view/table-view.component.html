@@ -29,9 +29,9 @@
       <ng-container *ngIf="!alert.source.metron_alert || alert.source.metron_alert.length === 0">
         <tr (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
           <td width="15" class="icon-cell"></td>
-          <td (click)="addFilter(threatScoreFieldName(), alert.source[threatScoreFieldName()])">
-            <div appAlertSeverity [severity]="alert.source[threatScoreFieldName]">
-              <a> {{ alert.source[threatScoreFieldName()] ? alert.source[threatScoreFieldName()] : '-' }} </a>
+          <td (click)="addFilter(threatScoreFieldName(), getScore(alert.source))">
+            <div appAlertSeverity [severity]="getScore(alert.source)">
+              <a> {{ hasScore(alert.source) ? getScore(alert.source) : '-' }} </a>
             </div>
           </td>
           <td *ngFor="let column of alertsColumnsToDisplay" #cell>
@@ -57,8 +57,8 @@
                [ngClass]="{'fa-caret-right': metaAlertsDisplayState[alert.id] === metronAlertDisplayState.COLLAPSE, 'fa-caret-down': metaAlertsDisplayState[alert.id] === metronAlertDisplayState.EXPAND}">
             </i>
           </td>
-          <td (click)="addFilter(threatScoreFieldName(), alert.source[threatScoreFieldName()])">
-            <span appAlertSeverity [severity]="alert.source[threatScoreFieldName()]"> <a> {{ alert.source[threatScoreFieldName()] ? alert.source[threatScoreFieldName()] : '-' }} </a> </span>
+          <td (click)="addFilter(threatScoreFieldName(), getScore(alert.source))">
+            <span appAlertSeverity [severity]="getScore(alert.source)"> <a> {{ hasScore(alert.source) ? getScore(alert.source) : '-' }} </a> </span>
           </td>
           <td [attr.colspan]="alertsColumnsToDisplay.length - 1">
             <a (click)="addFilter('guid', alert.id)" [attr.title]="alert.id" style="color:#689AA9"> {{ alert.source['name'] ? alert.source['name'] : alert.id | centerEllipses:20:cell }}</a>
@@ -83,9 +83,9 @@
         <tr *ngFor="let metaAlerts of alert.source.metron_alert; let metaAlertIndex = index;" (click)="showMetaAlertDetails($event, metaAlerts)"
             [ngClass]="{'selected' : selectedAlerts.indexOf(metaAlerts) != -1 , 'd-none': metaAlertsDisplayState[alert.id] === metronAlertDisplayState.COLLAPSE}">
           <td width="15" class="icon-cell" class="dropdown-cell"></td>
-          <td (click)="addFilter(threatScoreFieldName(), alert.source[threatScoreFieldName()])" style="padding-left: 15px">
-            <div appAlertSeverity [severity]="metaAlerts[threatScoreFieldName()]">
-              <a> {{ metaAlerts[threatScoreFieldName()] ? metaAlerts[threatScoreFieldName()] : '-' }} </a>
+          <td (click)="addFilter(threatScoreFieldName(), getScore(alert.source))" style="padding-left: 15px">
+            <div appAlertSeverity [severity]="getScore(metaAlerts)">
+              <a> {{ hasScore(metaAlerts) ? getScore(metaAlerts) : '-' }} </a>
             </div>
           </td>
           <td *ngFor="let column of alertsColumnsToDisplay">

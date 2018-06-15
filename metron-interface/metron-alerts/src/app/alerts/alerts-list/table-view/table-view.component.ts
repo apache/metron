@@ -122,6 +122,19 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
     return this.globalConfig['threat.triage.score.field']
   }
 
+  hasScore(alertSource) {
+    if(alertSource[this.threatScoreFieldName()]) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  getScore(alertSource) {
+    return alertSource[this.threatScoreFieldName()];
+  }
+
   updateExpandedStateForChangedData(expandedMetaAlerts: string[]) {
     this.alerts.forEach(alert => {
       if (alert.source.metron_alert && alert.source.metron_alert.length > 0) {

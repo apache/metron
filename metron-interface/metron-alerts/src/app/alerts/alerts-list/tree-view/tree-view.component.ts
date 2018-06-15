@@ -401,9 +401,26 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
       }
     });
   }
-  
+
+  hasScore(alertSource) {
+    if(alertSource[this.threatScoreFieldName()]) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  getScore(alertSource) {
+    return alertSource[this.threatScoreFieldName()];
+  }
+
+  threatScoreFieldName() {
+    return this.globalConfig['threat.triage.score.field'];
+  }
+
   getGroupRequest() {
-    return this.queryBuilder.groupRequest(this.globalConfig['threat.triage.score.field']);
+    return this.queryBuilder.groupRequest(this.threatScoreFieldName());
     }
 
   createMetaAlert($event, group: TreeGroupData, index: number) {
