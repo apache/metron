@@ -38,7 +38,7 @@
             <tr>
               <th> </th>
               <th class="table-score-col">
-                <metron-config-sorter [type]="'number'" [sortBy]="threatScoreFieldName" [sortOnCol]="group.sortEvent.sortBy"  [sortOrder]="group.sortEvent.sortOrder"> Score </metron-config-sorter>
+                <metron-config-sorter [type]="'number'" [sortBy]="threatScoreFieldName()" [sortOnCol]="group.sortEvent.sortBy"  [sortOrder]="group.sortEvent.sortOrder"> Score </metron-config-sorter>
               </th>
               <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name">
                 <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}" [sortOnCol]="group.sortEvent.sortBy"  [sortOrder]="group.sortEvent.sortOrder"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter>
@@ -52,9 +52,9 @@
             <tbody>
               <ng-container>
                 <tr  *ngFor="let alert of group.response.results"  [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1, 'd-none': !group.expand || !group.show}" (click)="showDetails($event, alert)">
-                  <td [attr.colspan]="2" (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])">
-                    <div appAlertSeverity [severity]="alert.source[threatScoreFieldName]">
-                      <a> {{ alert.source[threatScoreFieldName] ? alert.source[threatScoreFieldName] : '-' }}</a>
+                  <td [attr.colspan]="2" (click)="addFilter(threatScoreFieldName(), getScore(alert.source))">
+                    <div appAlertSeverity [severity]="getScore(alert.source)">
+                      <a> {{ hasScore(alert.source) ? getScore(alert.source) : '-' }}</a>
                     </div>
                   </td>
                   <td #cell *ngFor="let column of alertsColumnsToDisplay"  [attr.data-name]="column.name">
@@ -90,9 +90,9 @@
                 </tr>
 
                 <tr *ngFor="let alert of subGroup.response.results" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1, 'd-none': !subGroup.expand || !subGroup.show}" (click)="showDetails($event, alert)">
-                  <td [attr.colspan]="2" [ngStyle]="{'padding-left.px': (16 * (subGroup.level -1)) + 23}" (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])">
-                    <div appAlertSeverity [severity]="alert.source[threatScoreFieldName]">
-                      <a> {{ alert.source[threatScoreFieldName] ? alert.source[threatScoreFieldName] : '-' }}</a>
+                  <td [attr.colspan]="2" [ngStyle]="{'padding-left.px': (16 * (subGroup.level -1)) + 23}" (click)="addFilter(threatScoreFieldName(), getScore(alert.source))">
+                    <div appAlertSeverity [severity]="getScore(alert.source)">
+                      <a> {{ hasScore(alert.source) ? getScore(alert.source) : '-' }}</a>
                     </div>
                   </td>
                   <td #cell *ngFor="let column of alertsColumnsToDisplay" [attr.data-name]="column.name">
