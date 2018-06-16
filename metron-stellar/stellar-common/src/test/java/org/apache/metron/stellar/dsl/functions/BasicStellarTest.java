@@ -985,5 +985,7 @@ public class BasicStellarTest {
     Assert.assertFalse(runPredicate("if is_alert then true || is_alert else false", resolver));
     Assert.assertFalse(runPredicate("if is_alert then true || is_alert else false && is_alert", resolver));
     Assert.assertFalse(runPredicate("if is_alert then true || is_alert else false && (is_alert || true)", resolver));
+    //make sure that nulls aren't replaced by false everywhere, only in boolean expressions.
+    Assert.assertNull(run("MAP_GET(is_alert, {false : 'blah'})", resolver));
   }
 }
