@@ -23,7 +23,7 @@ import org.apache.hadoop.fs.Path;
 /**
  * Capture metadata about a batch job
  */
-public class JobStatus {
+public class JobStatus<T> {
 
   public enum STATE {
     NOT_RUNNING,
@@ -36,6 +36,7 @@ public class JobStatus {
   private STATE state = STATE.NOT_RUNNING;
   private double percentComplete = 0.0;
   private Path resultPath;
+  private Pageable<T> pagedResults;
 
   public JobStatus withState(STATE state) {
     this.state = state;
@@ -52,6 +53,11 @@ public class JobStatus {
     return this;
   }
 
+  public JobStatus withPagedResults(Pageable<T> pagedResults) {
+    this.pagedResults = pagedResults;
+    return this;
+  }
+
   public STATE getState() {
     return state;
   }
@@ -62,6 +68,10 @@ public class JobStatus {
 
   public Path getResultPath() {
     return resultPath;
+  }
+
+  public Pageable<T> getPagedResults() {
+    return pagedResults;
   }
 
 }

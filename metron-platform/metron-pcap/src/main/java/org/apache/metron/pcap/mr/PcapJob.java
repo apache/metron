@@ -22,6 +22,7 @@ import static org.apache.metron.pcap.PcapHelper.greaterThanOrEqualTo;
 import static org.apache.metron.pcap.PcapHelper.lessThanOrEqualTo;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.text.DateFormat;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
@@ -57,6 +59,7 @@ import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
 import org.apache.metron.pcap.utils.FileFilterUtil;
+import org.apache.metron.pcap.writer.ResultsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,7 +176,7 @@ public class PcapJob implements Statusable {
                             , FileSystem fs
                             , PcapFilterConfigurator<T> filterImpl
                             ) throws IOException, ClassNotFoundException, InterruptedException {
-    Statusable statusable = query(basePath, baseOutputPath, beginNS, endNS, numReducers, fields,
+    Statusable statusable = query(basePath, baseOutputPath, finalBaseOutputPath, beginNS, endNS, numReducers, fields,
         conf,
         fs, filterImpl, true);
     JobStatus jobStatus = statusable.getStatus();
@@ -192,6 +195,7 @@ public class PcapJob implements Statusable {
    */
   public <T> Statusable query(Path basePath,
       Path baseOutputPath,
+      Path finalBaseOutputPath,
       long beginNS,
       long endNS,
       int numReducers,
@@ -249,6 +253,33 @@ public class PcapJob implements Statusable {
       Collections.sort(files, (o1, o2) -> o1.getName().compareTo(o2.getName()));
     }
     return new SequenceFileIterable(files, config);
+  }
+
+  public List<Path> writeResults(SequenceFileIterable results, ResultsWriter resultsWriter,
+      Path outPath, int recPerFile, String prefix) throws IOException {
+    List<Path> outFiles = new ArrayList<>();
+    try {
+      Iterable<List<byte[]>> partitions = Iterables.partition(results, recPerFile);
+      int part = 1;
+      if (partitions.iterator().hasNext()) {
+        for (List<byte[]> data : partitions) {
+          String outFileName = String.format("%s/pcap-data-%s+%04d.pcap", outPath, prefix, part++);
+          if (data.size() > 0) {
+            resultsWriter.write(new Configuration(), data, outFileName);
+            outFiles.add(new Path(outFileName));
+          }
+        }
+      } else {
+        LOG.info("No results returned.");
+      }
+    } finally {
+      try {
+        results.cleanup();
+      } catch (IOException e) {
+        LOG.warn("Unable to cleanup files in HDFS", e);
+      }
+    }
+    return outFiles;
   }
 
   /**
@@ -348,5 +379,15 @@ public class PcapJob implements Statusable {
     }
   }
 
+  @Override
+  public void kill() throws IOException {
+    job.killJob();
+  }
+
+  @Override
+  public boolean validate(Map<String, Object> configuration) {
+    // default implementation placeholder
+    return true;
+  }
 
 }

@@ -15,34 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.pcap.query;
 
-import org.apache.metron.pcap.PcapMerger;
+package org.apache.metron.job;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.List;
+public interface Pageable<T> {
 
-public class ResultsWriter {
+  /**
+   * Transform into an Iterable.
+   *
+   * @return Iterable version of this Pageable.
+   */
+  Iterable<T> asIterable();
 
-  public void write(List<byte[]> pcaps, String outPath) throws IOException {
-    File out = new File(outPath);
-    try (FileOutputStream fos = new FileOutputStream(out)) {
-      fos.write(mergePcaps(pcaps));
-    }
-  }
+  /**
+   * Provides access to a specific page of results in the result set.
+   *
+   * @param num page number to access.
+   * @return value at the specified page.
+   */
+  T getPage(int num);
 
-  public byte[] mergePcaps(List<byte[]> pcaps) throws IOException {
-    if (pcaps == null) {
-      return new byte[]{};
-    }
-    if (pcaps.size() == 1) {
-      return pcaps.get(0);
-    }
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PcapMerger.merge(baos, pcaps);
-    return baos.toByteArray();
-  }
 }

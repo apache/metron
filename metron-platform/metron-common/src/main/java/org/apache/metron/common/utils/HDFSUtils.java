@@ -23,6 +23,7 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
@@ -56,4 +57,21 @@ public class HDFSUtils {
     return IOUtils.readLines(inputStream, "UTF-8");
   }
 
+  /**
+   * Write file to HDFS. Writes to local FS if file:// used as protocol.
+   *
+   * @param config filesystem configuration
+   * @param bytes bytes to write
+   * @param path output path
+   * @throws IOException This is the generic Hadoop "everything is an IOException."
+   */
+  public static void write(Configuration config, byte[] bytes, String path) throws IOException {
+    FileSystem fs = FileSystem.newInstance(config);
+    Path outPath = new Path(path);
+    fs.mkdirs(outPath.getParent());
+    try (FSDataOutputStream outputStream = fs.create(outPath)) {
+      outputStream.write(bytes);
+      outputStream.flush();
+    }
+  }
 }

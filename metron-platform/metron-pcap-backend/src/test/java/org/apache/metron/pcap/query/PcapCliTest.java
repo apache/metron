@@ -28,6 +28,7 @@ import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
+import org.apache.metron.pcap.writer.ResultsWriter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

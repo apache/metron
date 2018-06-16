@@ -20,6 +20,7 @@ package org.apache.metron.pcap;
 
 import static java.lang.Long.toUnsignedString;
 import static java.lang.String.format;
+import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
@@ -125,6 +126,8 @@ public class PcapJobTest {
     String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
     Assert.assertThat(status.getResultPath(), notNullValue());
     Assert.assertThat(status.getResultPath().toString(), startsWith(expectedOutPath));
+    Assert.assertThat(status.getPagedResults(), notNullValue());
+    Assert.assertThat(((Path)status.getPagedResults().getPage(0)).getName(), endsWith("pcap-data-1234+0001.pcap"));
   }
 
   @Test
