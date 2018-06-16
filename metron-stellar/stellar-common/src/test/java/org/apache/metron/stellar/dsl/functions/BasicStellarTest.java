@@ -988,4 +988,13 @@ public class BasicStellarTest {
     //make sure that nulls aren't replaced by false everywhere, only in boolean expressions.
     Assert.assertNull(run("MAP_GET(is_alert, {false : 'blah'})", resolver));
   }
+
+  @Test
+  public void emptyAsFalse() {
+    VariableResolver resolver = new MapVariableResolver(new HashMap<>());
+    Assert.assertTrue(runPredicate("if [] then false else true", resolver));
+    Assert.assertTrue(runPredicate("if [] || true then true else false", resolver));
+    Assert.assertTrue(runPredicate("if {} then false else true", resolver));
+    Assert.assertTrue(runPredicate("NOT([])", resolver));
+  }
 }

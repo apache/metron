@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.metron.stellar.common.evaluators.ArithmeticEvaluator;
@@ -105,10 +107,11 @@ public class StellarCompiler extends StellarBaseListener {
       return tokenDeque;
     }
 
-    private boolean isBooleanExpr(Token<?> token) {
+    private boolean isBoolean(Token<?> token) {
       if(token == null || token.getValue() == null) {
         return false;
       }
+
       Class<?> tokenValueType = token.getValue().getClass();
       return tokenValueType == BooleanArg.class || tokenValueType == IfExpr.class;
     }
@@ -146,7 +149,9 @@ public class StellarCompiler extends StellarBaseListener {
           and with the current context.
            */
           Token<?> curr = instanceDeque.peek();
-          if( curr != null && curr.getValue() == null && isBooleanExpr(token)){
+          if( curr != null && ((curr.getValue() == null && isBoolean(token))
+          || (curr.getValue() != null && isEmptyList(curr.getValue())))
+            ){
             curr = new Token<Boolean>(false, Boolean.class, curr.getMultiArgContext());
           }
           if (curr != null && curr.getValue() != null && curr.getValue() instanceof Boolean
@@ -221,6 +226,18 @@ public class StellarCompiler extends StellarBaseListener {
         throw new ParseException("Invalid parse, stack not empty: " + Joiner.on(',').join(instanceDeque));
       } else {
         throw new ParseException("Invalid parse, found " + token);
+      }
+    }
+
+    private boolean isEmptyList(Object value) {
+      if(value instanceof Iterable) {
+        return Iterables.isEmpty((Iterable)value);
+      }
+      else if(value instanceof Map) {
+        return ((Map)value).isEmpty();
+      }
+      else {
+        return false;
       }
     }
 
@@ -391,7 +408,8 @@ public class StellarCompiler extends StellarBaseListener {
     final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
     Token<Boolean> arg = (Token<Boolean>) popDeque(tokenDeque);
-    tokenDeque.push(new Token<>(!Optional.ofNullable(arg.getValue()).orElse(false), Boolean.class, context));
+    Boolean v = Optional.ofNullable(ConversionUtils.convert(arg.getValue(), Boolean.class)).orElse(false);
+    tokenDeque.push(new Token<>(!v, Boolean.class, context));
     }, DeferredFunction.class, context));
   }
 
