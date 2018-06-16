@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -104,6 +105,14 @@ public class StellarCompiler extends StellarBaseListener {
       return tokenDeque;
     }
 
+    private boolean isBooleanExpr(Token<?> token) {
+      if(token == null || token.getValue() == null) {
+        return false;
+      }
+      Class<?> tokenValueType = token.getValue().getClass();
+      return tokenValueType == BooleanArg.class || tokenValueType == IfExpr.class;
+    }
+
     public Object apply(ExpressionState state) {
       Deque<Token<?>> instanceDeque = new ArrayDeque<>();
       {
@@ -137,6 +146,9 @@ public class StellarCompiler extends StellarBaseListener {
           and with the current context.
            */
           Token<?> curr = instanceDeque.peek();
+          if( curr != null && curr.getValue() == null && isBooleanExpr(token)){
+            curr = new Token<Boolean>(false, Boolean.class, curr.getMultiArgContext());
+          }
           if (curr != null && curr.getValue() != null && curr.getValue() instanceof Boolean
               && ShortCircuitOp.class.isAssignableFrom(token.getUnderlyingType())) {
             //if we have a boolean as the current value and the next non-contextual token is a short circuit op
@@ -379,7 +391,7 @@ public class StellarCompiler extends StellarBaseListener {
     final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
     Token<Boolean> arg = (Token<Boolean>) popDeque(tokenDeque);
-    tokenDeque.push(new Token<>(!arg.getValue(), Boolean.class, context));
+    tokenDeque.push(new Token<>(!Optional.ofNullable(arg.getValue()).orElse(false), Boolean.class, context));
     }, DeferredFunction.class, context));
   }
 
@@ -393,7 +405,8 @@ public class StellarCompiler extends StellarBaseListener {
         // when parsing, missing variables are an error!
         throw new ParseException(String.format("variable: %s is not defined",varName));
       }
-      tokenDeque.push(new Token<>(state.variableResolver.resolve(varName), Object.class, context));
+      Object resolved = state.variableResolver.resolve(varName);
+      tokenDeque.push(new Token<>(resolved, Object.class, context));
     }, DeferredFunction.class, context));
     expression.variablesUsed.add(ctx.getText());
   }
@@ -492,11 +505,8 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   private boolean booleanOp(final Token<?> left, final Token<?> right, final BooleanOp op, final String opName) {
-    Boolean l = ConversionUtils.convert(left.getValue(), Boolean.class);
-    Boolean r = ConversionUtils.convert(right.getValue(), Boolean.class);
-    if (l == null || r == null) {
-      throw new ParseException("Unable to operate on " + left.getValue() + " " + opName + " " + right.getValue() + ", null value");
-    }
+    Boolean l = Optional.ofNullable(ConversionUtils.convert(left.getValue(), Boolean.class)).orElse(false);
+    Boolean r = Optional.ofNullable(ConversionUtils.convert(right.getValue(), Boolean.class)).orElse(false);
     return op.op(l, r);
   }
 

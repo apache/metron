@@ -975,4 +975,15 @@ public class BasicStellarTest {
     Assert.assertEquals("val1", ret.get("field1"));
     Assert.assertEquals("val2", ret.get("field2"));
   }
+
+  @Test
+  public void nullAsFalse() {
+    VariableResolver resolver = new MapVariableResolver(new HashMap<>());
+    Assert.assertTrue(runPredicate("is_alert || true", resolver));
+    Assert.assertTrue(runPredicate("NOT(is_alert)", resolver));
+    Assert.assertFalse(runPredicate("if is_alert then true else false", resolver));
+    Assert.assertFalse(runPredicate("if is_alert then true || is_alert else false", resolver));
+    Assert.assertFalse(runPredicate("if is_alert then true || is_alert else false && is_alert", resolver));
+    Assert.assertFalse(runPredicate("if is_alert then true || is_alert else false && (is_alert || true)", resolver));
+  }
 }

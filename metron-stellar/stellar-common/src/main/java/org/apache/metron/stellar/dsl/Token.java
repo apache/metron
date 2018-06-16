@@ -42,6 +42,7 @@ public class Token<T> {
   public T getValue() {
     return value;
   }
+
   public Class<T> getUnderlyingType() {
     return underlyingType;
   }
