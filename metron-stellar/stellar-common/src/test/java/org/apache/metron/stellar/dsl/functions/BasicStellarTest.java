@@ -978,23 +978,25 @@ public class BasicStellarTest {
 
   @Test
   public void nullAsFalse() {
+    checkFalsey("is_alert");
+  }
+
+  private void checkFalsey(String falseyExpr) {
     VariableResolver resolver = new MapVariableResolver(new HashMap<>());
-    Assert.assertTrue(runPredicate("is_alert || true", resolver));
-    Assert.assertTrue(runPredicate("NOT(is_alert)", resolver));
-    Assert.assertFalse(runPredicate("if is_alert then true else false", resolver));
-    Assert.assertFalse(runPredicate("if is_alert then true || is_alert else false", resolver));
-    Assert.assertFalse(runPredicate("if is_alert then true || is_alert else false && is_alert", resolver));
-    Assert.assertFalse(runPredicate("if is_alert then true || is_alert else false && (is_alert || true)", resolver));
+    Assert.assertTrue(runPredicate(String.format(" %s || true", falseyExpr), resolver));
+    Assert.assertTrue(runPredicate(String.format("NOT(%s)", falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true else false", falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true || %s else false", falseyExpr, falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true || %s else false && %s", falseyExpr, falseyExpr, falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true || %s else false && (%s || true)", falseyExpr, falseyExpr, falseyExpr), resolver));
     //make sure that nulls aren't replaced by false everywhere, only in boolean expressions.
-    Assert.assertNull(run("MAP_GET(is_alert, {false : 'blah'})", resolver));
+    Assert.assertNull(run(String.format("MAP_GET(%s, {false : 'blah'})", falseyExpr), resolver));
   }
 
   @Test
   public void emptyAsFalse() {
-    VariableResolver resolver = new MapVariableResolver(new HashMap<>());
-    Assert.assertTrue(runPredicate("if [] then false else true", resolver));
-    Assert.assertTrue(runPredicate("if [] || true then true else false", resolver));
-    Assert.assertTrue(runPredicate("if {} then false else true", resolver));
-    Assert.assertTrue(runPredicate("NOT([])", resolver));
+    checkFalsey("[]");
+    checkFalsey("{}");
+    checkFalsey("LIST_ADD([])");
   }
 }
