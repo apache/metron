@@ -448,10 +448,6 @@
           "subsection-name": "subsection-index-settings"
         },
         {
-          "config": "metron-env/source_type_field",
-          "subsection-name": "subsection-alerts-ui"
-        },
-        {
           "config": "metron-parsers-env/parsers",
           "subsection-name": "subsection-parsers"
         },
@@ -796,6 +792,10 @@
           "subsection-name": "subsection-rest"
         },
         {
+          "config": "metron-rest-env/source_type_field",
+          "subsection-name": "subsection-rest"
+        },
+        {
           "config": "metron-management-ui-env/metron_management_ui_port",
           "subsection-name": "subsection-management-ui"
         },
@@ -837,7 +837,7 @@
         }
       },
       {
-        "config": "metron-env/source_type_field",
+        "config": "metron-rest-env/source_type_field",
         "widget": {
           "type": "text-field"
         }
