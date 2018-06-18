@@ -23,7 +23,7 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.rest.mock.MockPcapJob;
-import org.apache.metron.rest.model.PcapsResponse;
+import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.service.PcapService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -103,7 +103,7 @@ public class PcapControllerIntegrationTest {
     List<byte[]> results = Arrays.asList("pcap1".getBytes(), "pcap2".getBytes());
     mockPcapJob.setResults(results);
 
-    PcapsResponse expectedReponse = new PcapsResponse();
+    PcapResponse expectedReponse = new PcapResponse();
     expectedReponse.setPcaps(results);
     this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
             .andExpect(status().isOk())

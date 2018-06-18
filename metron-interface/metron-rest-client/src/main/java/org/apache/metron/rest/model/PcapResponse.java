@@ -15,13 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.rest.model;
 
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.PcapResponse;
-import org.apache.metron.rest.model.pcap.FixedPcapRequest;
+import java.util.ArrayList;
+import java.util.List;
 
-public interface PcapService {
+public class PcapResponse {
 
-  PcapResponse fixed(FixedPcapRequest fixedPcapRequest) throws RestException;
+  private List<byte[]> pcaps = new ArrayList<>();
+
+  public List<byte[]> getPcaps(){
+    if(pcaps == null) {
+      return new ArrayList<>();
+    } else {
+      return pcaps;
+    }
+  }
+
+  public void setPcaps(List<byte[]> pcaps) {
+    this.pcaps = pcaps;
+  }
 }

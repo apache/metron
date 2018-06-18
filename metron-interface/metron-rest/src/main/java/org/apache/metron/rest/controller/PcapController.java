@@ -17,10 +17,13 @@
  */
 package org.apache.metron.rest.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.PcapsResponse;
 import org.apache.metron.rest.service.PcapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,18 +40,14 @@ import java.io.IOException;
 public class PcapController {
 
   @Autowired
-  private ObjectMapper objectMapper;
-
-  @Autowired
   private PcapService pcapQueryService;
 
+  @ApiOperation(value = "Executes a Fixed Pcap Query.")
+  @ApiResponses(value = { @ApiResponse(message = "Returns a PcapResponse containing an array of pcaps.", code = 200)})
   @RequestMapping(value = "/fixed", method = RequestMethod.POST)
-  ResponseEntity<PcapsResponse> fixed(@RequestBody FixedPcapRequest fixedPcapRequest) throws RestException, IOException {
-    PcapsResponse pcapsResponse = pcapQueryService.fixed(fixedPcapRequest);
-    if (pcapsResponse != null) {
-      return new ResponseEntity<>(pcapsResponse, HttpStatus.OK);
-    } else {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
+  ResponseEntity<PcapResponse> fixed(@ApiParam(name="fixedPcapRequest", value="A Fixed Pcap Request"
+          + " which includes fixed filter fields like ip source address and protocol.", required=true)@RequestBody FixedPcapRequest fixedPcapRequest) throws RestException {
+    PcapResponse pcapsResponse = pcapQueryService.fixed(fixedPcapRequest);
+    return new ResponseEntity<>(pcapsResponse, HttpStatus.OK);
   }
 }

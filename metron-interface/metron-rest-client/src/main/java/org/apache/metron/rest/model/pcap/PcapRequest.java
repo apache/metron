@@ -21,9 +21,9 @@ public class PcapRequest {
 
   private String baseOutputPath;
   private String basePath;
-  private long startTime;
-  private long endTime;
-  private int numReducers;
+  private Long startTime = 0L;
+  private Long endTime = System.currentTimeMillis();
+  private Integer numReducers = 1;
 
   public String getBaseOutputPath() {
     return baseOutputPath;
@@ -41,27 +41,51 @@ public class PcapRequest {
     this.basePath = basePath;
   }
 
-  public long getStartTime() {
+  public Long getStartTime() {
     return startTime;
   }
 
-  public void setStartTime(long startTime) {
+  public void setStartTime(Long startTime) {
     this.startTime = startTime;
   }
 
-  public long getEndTime() {
+  public Long getEndTime() {
     return endTime;
   }
 
-  public void setEndTime(long endTime) {
+  public void setEndTime(Long endTime) {
     this.endTime = endTime;
   }
 
-  public int getNumReducers() {
+  public Integer getNumReducers() {
     return numReducers;
   }
 
-  public void setNumReducers(int numReducers) {
+  public void setNumReducers(Integer numReducers) {
     this.numReducers = numReducers;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    PcapRequest pcapRequest = (PcapRequest) o;
+
+    return (getBaseOutputPath() != null ? getBaseOutputPath().equals(pcapRequest.getBaseOutputPath()) : pcapRequest.getBaseOutputPath() != null) &&
+            (getBasePath() != null ? getBasePath().equals(pcapRequest.getBasePath()) : pcapRequest.getBasePath() == null) &&
+            (getStartTime() != null ? getStartTime().equals(pcapRequest.getStartTime()) : pcapRequest.getStartTime() == null) &&
+            (getEndTime() != null ? getEndTime().equals(pcapRequest.getEndTime()) : pcapRequest.getEndTime() == null) &&
+            (getNumReducers() != null ? getNumReducers().equals(pcapRequest.getNumReducers()) : pcapRequest.getNumReducers() == null);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getBaseOutputPath() != null ? getBaseOutputPath().hashCode() : 0;
+    result = 31 * result + (getBasePath() != null ? getBasePath().hashCode() : 0);
+    result = 31 * result + (getStartTime() != null ? getStartTime().hashCode() : 0);
+    result = 31 * result + (getEndTime() != null ? getEndTime().hashCode() : 0);
+    result = 31 * result + (getNumReducers() != null ? getNumReducers().hashCode() : 0);
+    return result;
   }
 }

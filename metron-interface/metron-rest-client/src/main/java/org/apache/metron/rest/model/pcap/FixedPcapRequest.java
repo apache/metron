@@ -21,11 +21,11 @@ public class FixedPcapRequest extends PcapRequest {
 
   private String ipSrcAddr;
   private String ipDstAddr;
-  private String ipSrcPort;
-  private String ipDstPort;
+  private Integer ipSrcPort;
+  private Integer ipDstPort;
   private String protocol;
   private String packetFilter;
-  private String includeReverse;
+  private Boolean includeReverse = false;
 
   public String getIpSrcAddr() {
     return ipSrcAddr;
@@ -43,19 +43,19 @@ public class FixedPcapRequest extends PcapRequest {
     this.ipDstAddr = ipDstAddr;
   }
 
-  public String getIpSrcPort() {
+  public Integer getIpSrcPort() {
     return ipSrcPort;
   }
 
-  public void setIpSrcPort(String ipSrcPort) {
+  public void setIpSrcPort(Integer ipSrcPort) {
     this.ipSrcPort = ipSrcPort;
   }
 
-  public String getIpDstPort() {
+  public Integer getIpDstPort() {
     return ipDstPort;
   }
 
-  public void setIpDstPort(String ipDstPort) {
+  public void setIpDstPort(Integer ipDstPort) {
     this.ipDstPort = ipDstPort;
   }
 
@@ -75,11 +75,41 @@ public class FixedPcapRequest extends PcapRequest {
     this.packetFilter = packetFilter;
   }
 
-  public String getIncludeReverse() {
+  public Boolean getIncludeReverse() {
     return includeReverse;
   }
 
-  public void setIncludeReverse(String includeReverse) {
+  public void setIncludeReverse(Boolean includeReverse) {
     this.includeReverse = includeReverse;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    FixedPcapRequest fixedPcapRequest = (FixedPcapRequest) o;
+
+    return (super.equals(o)) &&
+            (getIpSrcAddr() != null ? getIpSrcAddr().equals(fixedPcapRequest.getIpSrcAddr()) : fixedPcapRequest.getIpSrcAddr() != null) &&
+            (getIpDstAddr() != null ? getIpDstAddr().equals(fixedPcapRequest.getIpDstAddr()) : fixedPcapRequest.getIpDstAddr() != null) &&
+            (getIpSrcPort() != null ? getIpSrcPort().equals(fixedPcapRequest.getIpSrcPort()) : fixedPcapRequest.getIpSrcPort() != null) &&
+            (getIpDstPort() != null ? getIpDstPort().equals(fixedPcapRequest.getIpDstPort()) : fixedPcapRequest.getIpDstPort() != null) &&
+            (getProtocol() != null ? getProtocol().equals(fixedPcapRequest.getProtocol()) : fixedPcapRequest.getProtocol() != null) &&
+            (getPacketFilter() != null ? getPacketFilter().equals(fixedPcapRequest.getPacketFilter()) : fixedPcapRequest.getPacketFilter() != null) &&
+            (getIncludeReverse() != null ? getIncludeReverse().equals(fixedPcapRequest.getIncludeReverse()) : fixedPcapRequest.getIncludeReverse() != null);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (getIpSrcAddr() != null ? getIpSrcAddr().hashCode() : 0);
+    result = 31 * result + (getIpDstAddr() != null ? getIpDstAddr().hashCode() : 0);
+    result = 31 * result + (getIpSrcPort() != null ? getIpSrcPort().hashCode() : 0);
+    result = 31 * result + (getIpDstPort() != null ? getIpDstPort().hashCode() : 0);
+    result = 31 * result + (getProtocol() != null ? getProtocol().hashCode() : 0);
+    result = 31 * result + (getPacketFilter() != null ? getPacketFilter().hashCode() : 0);
+    result = 31 * result + (getIncludeReverse() != null ? getIncludeReverse().hashCode() : 0);
+    return result;
   }
 }
