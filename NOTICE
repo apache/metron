@@ -10,3 +10,9 @@
    This product includes software developed by Chef Software (https://www.chef.io)
    Copyright (c) 2012-2015, Chef Software, Inc.
 
+   This includes derived works from the Apache Storm (ASLv2 licensed) project (https://github.com/apache/storm):
+   Copyright 2015 The Apache Software Foundation
+   The derived work is adapted from
+     org/apache/storm/kafka/spout/KafkaSpoutRetryExponentialBackoff.java
+     org/apache/storm/kafka/spout/internal/Timer.java
+   and can be found in the org.apache.storm.kafka package

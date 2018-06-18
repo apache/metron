@@ -799,5 +799,12 @@ public class ConfigurationsUtils {
       out.println(type + " Config: " + name + System.lineSeparator() + data);
     }, configType, configName);
   }
+
+  public static String getFieldName(Map<String, Object> globalConfig, String globalConfigKey, String defaultFieldName) {
+    if (globalConfig == null) {
+      return defaultFieldName;
+    }
+    return (String) globalConfig.getOrDefault(globalConfigKey, defaultFieldName);
+  }
 }
 

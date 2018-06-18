@@ -125,6 +125,14 @@ public class ElasticsearchDao implements IndexDao {
     //uninitialized.
   }
 
+  public AccessConfig getAccessConfig() {
+    return accessConfig;
+  }
+
+  public void setAccessConfig(AccessConfig accessConfig) {
+    this.accessConfig = accessConfig;
+  }
+
   private static Map<String, FieldType> elasticsearchSearchTypeMap;
 
   static {

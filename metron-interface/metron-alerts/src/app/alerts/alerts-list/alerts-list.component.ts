@@ -36,7 +36,7 @@ import {AlertSearchDirective} from '../../shared/directives/alert-search.directi
 import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
 import {Filter} from '../../model/filter';
-import {THREAT_SCORE_FIELD_NAME, TIMESTAMP_FIELD_NAME, ALL_TIME} from '../../utils/constants';
+import {TIMESTAMP_FIELD_NAME, ALL_TIME} from '../../utils/constants';
 import {TableViewComponent} from './table-view/table-view.component';
 import {Pagination} from '../../model/pagination';
 import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
@@ -65,7 +65,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   isMetaAlertPresentInSelectedAlerts = false;
   timeStampfilterPresent = false;
   selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
-  threatScoreFieldName = THREAT_SCORE_FIELD_NAME;
 
   @ViewChild('table') table: ElementRef;
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
@@ -118,7 +117,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   addLoadSavedSearchListner() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
       let queryBuilder = new QueryBuilder();
-      queryBuilder.setGroupby(this.queryBuilder.groupRequest.groups.map(group => group.field));
+      queryBuilder.setGroupby(this.getGroupRequest().groups.map(group => group.field));
       queryBuilder.searchRequest = savedSearch.searchRequest;
       queryBuilder.filters = savedSearch.filters;
       this.queryBuilder = queryBuilder;
@@ -168,7 +167,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   getColumnNamesForQuery() {
     let fieldNames = this.alertsColumns.map(columnMetadata => columnMetadata.name);
     fieldNames = fieldNames.filter(name => !(name === 'id' || name === 'alert_status'));
-    fieldNames.push(this.threatScoreFieldName);
+    fieldNames.push(this.globalConfig['threat.score.field.name']);
     return fieldNames;
   }
 
@@ -219,7 +218,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onSelectedAlertsChange(selectedAlerts) {
     this.selectedAlerts = selectedAlerts;
-    this.isMetaAlertPresentInSelectedAlerts = this.selectedAlerts.some(alert => (alert.source.alert && alert.source.alert.length > 0));
+    this.isMetaAlertPresentInSelectedAlerts = this.selectedAlerts.some(alert => (alert.source.metron_alert && alert.source.metron_alert.length > 0));
 
     if (selectedAlerts.length > 0) {
       this.pause();
@@ -342,8 +341,12 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.tryStartPolling();
   }
 
+  getGroupRequest() {
+    return this.queryBuilder.groupRequest(this.globalConfig['threat.triage.score.field']);
+  }
+
   setSearchRequestSize() {
-    if (this.queryBuilder.groupRequest.groups.length === 0) {
+    if (this.getGroupRequest().groups.length === 0) {
       this.queryBuilder.searchRequest.from = this.pagination.from;
       if (this.tableMetaData.size) {
         this.pagination.size = this.tableMetaData.size;

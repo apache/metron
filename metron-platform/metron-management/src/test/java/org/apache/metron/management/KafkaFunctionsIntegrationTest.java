@@ -48,6 +48,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the KafkaFunctions class.
@@ -109,6 +110,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
             .withClass(KafkaFunctions.KafkaPut.class)
             .withClass(KafkaFunctions.KafkaProps.class)
             .withClass(KafkaFunctions.KafkaTail.class)
+            .withClass(KafkaFunctions.KafkaFind.class)
             .withClass(MapFunctions.MapGet.class);
   }
 
@@ -152,6 +154,26 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
 
     // put a message onto the topic
     run("KAFKA_PUT(topic, [message1])");
+
+    // get a message from the topic
+    Object actual = run("KAFKA_GET(topic)");
+
+    // validate
+    assertEquals(Collections.singletonList(message1), actual);
+  }
+
+  /**
+   * KAFKA_PUT should be able to write a message passed as a String, rather than a List.
+   */
+  @Test
+  public void testKafkaPutOneMessagePassedAsString() {
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // put a message onto the topic - the message is just a string, not a list
+    run("KAFKA_PUT(topic, message1)");
 
     // get a message from the topic
     Object actual = run("KAFKA_GET(topic)");
@@ -319,6 +341,102 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   }
   
   /**
+   * KAFKA_FIND should only return messages that satisfy a filter expression.
+   */
+  @Test
+  public void testKafkaFind() throws Exception {
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // find all messages satisfying the filter expression
+    Future<Object> future = runAsync("KAFKA_FIND(topic, m -> MAP_GET('value', m) == 23)");
+
+    // put 10 messages onto the topic for KAFKA_TAIL to grab
+    runAsyncAndWait(Collections.nCopies(10, "KAFKA_PUT(topic, [message2])"));
+
+    // only expect `message2` where value == 23 to be returned
+    Object actual = future.get(10, TimeUnit.SECONDS);
+    List<String> expected = Collections.singletonList(message2);
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * KAFKA_FIND should return no messages, if none match the filter expression.
+   */
+  @Test
+  public void testKafkaFindNone() throws Exception {
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // find all messages satisfying the filter expression
+    Future<Object> future = runAsync("KAFKA_FIND(topic, m -> false)");
+
+    // put 10 messages onto the topic for KAFKA_TAIL to grab
+    runAsyncAndWait(Collections.nCopies(10, "KAFKA_PUT(topic, [message1])"));
+
+    // no messages satisfy the filter expression
+    Object actual = future.get(10, TimeUnit.SECONDS);
+    List<String> expected = Collections.emptyList();
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * KAFKA_FIND should return no more messages than its limit.
+   */
+  @Test
+  public void testKafkaFindMultiple() throws Exception {
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // find all messages satisfying the filter expression
+    Future<Object> future = runAsync("KAFKA_FIND(topic, m -> true, 2)");
+
+    // put 10 messages onto the topic for KAFKA_TAIL to grab
+    runAsyncAndWait(Collections.nCopies(10, "KAFKA_PUT(topic, [message2])"));
+
+    // all messages should satisfy the filter
+    List<String> expected = new ArrayList<String>() {{
+      add(message2);
+      add(message2);
+    }};
+    Object actual = future.get(10, TimeUnit.SECONDS);
+    assertEquals(expected, actual);
+  }
+
+  /**
+   * KAFKA_FIND should wait no more than a maximum time before returning, even if no matching
+   * messages are found.
+   */
+  @Test
+  public void testKafkaFindExceedsMaxWait() {
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // write all 3 messages to the topic
+    run("KAFKA_PUT(topic, [message1, message2, message3])");
+
+    // execute the test - none of the messages satisfy the filter
+    long before = System.currentTimeMillis();
+    Object actual = run("KAFKA_FIND(topic, m -> false, 10, { 'stellar.kafka.max.wait.millis': 1000 })");
+
+    // expect not to have waited more than roughly 1000 millis
+    long wait = System.currentTimeMillis() - before;
+    assertTrue("Expected wait not to exceed max wait; actual wait = " + wait, wait < 2 * 1000);
+
+    // expect no messages
+    List<String> expected = Collections.emptyList();
+    assertEquals(expected, actual);
+  }
+
+  /**
    * Runs a Stellar expression.
    * @param expression The expression to run.
    */
@@ -373,3 +491,4 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     }
   }
 }
+

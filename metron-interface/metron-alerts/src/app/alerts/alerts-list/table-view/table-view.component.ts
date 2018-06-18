@@ -51,8 +51,6 @@ export enum MetronAlertDisplayState {
 
 export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
-  threatScoreFieldName = 'threat:triage:score';
-
   router: Router;
   searchService: SearchService;
   updateService: UpdateService;
@@ -120,9 +118,26 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
     this.configSubscription.unsubscribe();
   }
 
+  threatScoreFieldName() {
+    return this.globalConfig['threat.triage.score.field']
+  }
+
+  hasScore(alertSource) {
+    if(alertSource[this.threatScoreFieldName()]) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  getScore(alertSource) {
+    return alertSource[this.threatScoreFieldName()];
+  }
+
   updateExpandedStateForChangedData(expandedMetaAlerts: string[]) {
     this.alerts.forEach(alert => {
-      if (alert.source.alert && alert.source.alert.length > 0) {
+      if (alert.source.metron_alert && alert.source.metron_alert.length > 0) {
         this.metaAlertsDisplayState[alert.id] = expandedMetaAlerts.indexOf(alert.id) === -1 ?
                                                   MetronAlertDisplayState.COLLAPSE : MetronAlertDisplayState.EXPAND;
       }

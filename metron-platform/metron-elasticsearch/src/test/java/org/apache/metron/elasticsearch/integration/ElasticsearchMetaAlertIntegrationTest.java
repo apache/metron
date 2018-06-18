@@ -18,11 +18,14 @@
 
 package org.apache.metron.elasticsearch.integration;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
+import static org.apache.metron.common.Constants.SENSOR_TYPE_FIELD_PROPERTY;
 import static org.apache.metron.indexing.dao.MetaAlertDao.ALERT_FIELD;
 import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERTS_INDEX;
 import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_FIELD;
 import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
 import static org.apache.metron.indexing.dao.MetaAlertDao.STATUS_FIELD;
+import static org.apache.metron.indexing.dao.MetaAlertDao.THREAT_FIELD_PROPERTY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Joiner;
@@ -41,6 +44,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.google.common.collect.ImmutableList;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
@@ -85,14 +90,14 @@ public class ElasticsearchMetaAlertIntegrationTest {
   private static final String NEW_FIELD = "new-field";
   private static final String NAME_FIELD = "name";
 
-  private static IndexDao esDao;
+  private static ElasticsearchDao esDao;
   private static MetaAlertDao metaDao;
   private static ElasticSearchComponent es;
 
   /**
    {
      "properties": {
-       "alert": {
+       "metron_alert": {
          "type": "nested"
        }
      }
@@ -175,7 +180,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
            "score" : {
              "type" : "integer"
            },
-           "alert" : {
+           "metron_alert" : {
              "type" : "nested"
            }
          }
@@ -193,6 +198,12 @@ public class ElasticsearchMetaAlertIntegrationTest {
         .withIndexDir(new File(INDEX_DIR))
         .build();
     es.start();
+  }
+
+  @Before
+  public void setup() throws IOException {
+    es.createIndexWithMapping(METAALERTS_INDEX, MetaAlertDao.METAALERT_DOC, template.replace("%MAPPING_NAME%", "metaalert"));
+    es.createIndexWithMapping(INDEX, "index_doc", template.replace("%MAPPING_NAME%", "index"));
 
     AccessConfig accessConfig = new AccessConfig();
     Map<String, Object> globalConfig = new HashMap<String, Object>() {
@@ -210,12 +221,6 @@ public class ElasticsearchMetaAlertIntegrationTest {
     esDao = new ElasticsearchDao();
     esDao.init(accessConfig);
     metaDao = new ElasticsearchMetaAlertDao(esDao);
-  }
-
-  @Before
-  public void setup() throws IOException {
-    es.createIndexWithMapping(METAALERTS_INDEX, MetaAlertDao.METAALERT_DOC, template.replace("%MAPPING_NAME%", "metaalert"));
-    es.createIndexWithMapping(INDEX, "index_doc", template.replace("%MAPPING_NAME%", "index"));
   }
 
   @AfterClass
@@ -320,6 +325,12 @@ public class ElasticsearchMetaAlertIntegrationTest {
         findCreatedDoc(metaAlertCreateResponse.getGuid(), MetaAlertDao.METAALERT_TYPE);
       }
       {
+        // Verify metaalert has the default field names
+        Document metaAlert = metaDao.getLatest(metaAlertCreateResponse.getGuid(), MetaAlertDao.METAALERT_TYPE);
+        Assert.assertTrue(metaAlert.getDocument().containsKey(ElasticsearchMetaAlertDao.SOURCE_TYPE));
+        Assert.assertTrue(metaAlert.getDocument().containsKey(ElasticsearchMetaAlertDao.THREAT_TRIAGE_FIELD));
+      }
+      {
         // Verify alert 0 was not updated with metaalert field
         Document alert = metaDao.getLatest("message_0", SENSOR_NAME);
         Assert.assertEquals(4, alert.getDocument().size());
@@ -338,6 +349,45 @@ public class ElasticsearchMetaAlertIntegrationTest {
         Assert.assertEquals(5, alert.getDocument().size());
         Assert.assertEquals(1, ((List) alert.getDocument().get(METAALERT_FIELD)).size());
         Assert.assertEquals(metaAlertCreateResponse.getGuid(), ((List) alert.getDocument().get(METAALERT_FIELD)).get(0));
+      }
+    }
+  }
+
+  @Test
+  public void shouldCreateMetaAlertWithConfiguredFieldNames() throws Exception {
+    // Configure field names
+    AccessConfig accessConfig = esDao.getAccessConfig();
+    accessConfig.setGlobalConfigSupplier(() -> new HashMap<String, Object>() {{
+      put("es.date.format", DATE_FORMAT);
+      put(SENSOR_TYPE_FIELD_PROPERTY, SENSOR_TYPE);
+      put(THREAT_FIELD_PROPERTY, MetaAlertDao.THREAT_FIELD_DEFAULT);
+    }});
+
+    // Load alerts
+    List<Map<String, Object>> alerts = buildAlerts(1);
+    elasticsearchAdd(alerts, INDEX, SENSOR_NAME);
+
+    // Verify load was successful
+    findCreatedDocs(Collections.singletonList(
+            new GetRequest("message_0", SENSOR_NAME)));
+
+    {
+      MetaAlertCreateRequest metaAlertCreateRequest = new MetaAlertCreateRequest() {{
+        setAlerts(new ArrayList<GetRequest>() {{
+          add(new GetRequest("message_0", SENSOR_NAME));
+        }});
+        setGroups(Collections.singletonList("group"));
+      }};
+      MetaAlertCreateResponse metaAlertCreateResponse = metaDao.createMetaAlert(metaAlertCreateRequest);
+      {
+        // Verify metaAlert was created
+        findCreatedDoc(metaAlertCreateResponse.getGuid(), MetaAlertDao.METAALERT_TYPE);
+      }
+      {
+        // Verify alert 0 was not updated with metaalert field
+        Document metaAlert = metaDao.getLatest(metaAlertCreateResponse.getGuid(), MetaAlertDao.METAALERT_TYPE);
+        Assert.assertTrue(metaAlert.getDocument().containsKey(SENSOR_TYPE));
+        Assert.assertTrue(metaAlert.getDocument().containsKey(MetaAlertDao.THREAT_FIELD_DEFAULT));
       }
     }
   }
@@ -761,7 +811,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
     SearchResponse searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery(
-            "(ip_src_addr:192.168.1.1 AND ip_src_port:8009) OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8009)");
+            "(ip_src_addr:192.168.1.1 AND ip_src_port:8009) OR (metron_alert.ip_src_addr:192.168.1.1 AND metron_alert.ip_src_port:8009)");
         setIndices(Collections.singletonList(MetaAlertDao.METAALERT_TYPE));
         setFrom(0);
         setSize(5);
@@ -781,7 +831,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
       {
         setQuery(
             "(ip_src_addr:192.168.1.1 AND ip_src_port:8010)"
-                + " OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8010)");
+                + " OR (metron_alert.ip_src_addr:192.168.1.1 AND metron_alert.ip_src_port:8010)");
         setIndices(Collections.singletonList("*"));
         setFrom(0);
         setSize(5);
@@ -804,7 +854,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
       {
         setQuery(
             "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
-                + " OR (alert.ip_src_addr:192.168.1.3 AND alert.ip_src_port:8008)");
+                + " OR (metron_alert.ip_src_addr:192.168.1.3 AND metron_alert.ip_src_port:8008)");
         setIndices(Collections.singletonList("*"));
         setFrom(0);
         setSize(1);
@@ -1173,7 +1223,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
       Map<String, Object> alerts = new HashMap<>();
       alerts.put(Constants.GUID, guid);
       alerts.put("source:type", SENSOR_NAME);
-      alerts.put(MetaAlertDao.THREAT_FIELD_DEFAULT, i);
+      alerts.put(ElasticsearchMetaAlertDao.THREAT_TRIAGE_FIELD, i);
       alerts.put("timestamp", System.currentTimeMillis());
       inputData.add(alerts);
     }
