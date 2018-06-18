@@ -30,8 +30,8 @@ import {Patch} from '../../model/patch';
 import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
-import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
 import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
+import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
 import { GlobalConfigService } from '../../service/global-config.service';
 
 export enum AlertState {
