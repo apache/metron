@@ -31,10 +31,6 @@
 		<zookeeper.version>3.4.5.2.0.6.0-76</zookeeper.version>
 		<logger.version>1.2.15</logger.version>
 
-        <storm-kafka-client.version>1.0.1</storm-kafka-client.version>
-        <storm-hdfs.version>0.0.7-SNAPSHOT</storm-hdfs.version>
-        <storm-hbase.version>0.0.5-SNAPSHOT</storm-hbase.version>
-
         <spring.integration.version>3.0.0.RELEASE</spring.integration.version>
         <spring.version>3.2.6.RELEASE</spring.version>
         <commons-fileupload.version>1.2.2</commons-fileupload.version>
