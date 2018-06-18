@@ -139,8 +139,8 @@
     </property>
     <property>
         <name>source_type_field</name>
-        <display-name>Source Type Field</display-name>
-        <description>Name of the message field that contains the source type.</description>
-        <value>source.type</value>
+        <display-name>Source Type Field Name</display-name>
+        <description>The field name where the source type can be found in the search indices. This setting primarily affects the Alerts UI.  This does not alter how the source type is found in the incoming telemetry during Enrichment and Indexing. </description>
+        <value>source:type</value>
     </property>
 </configuration>
