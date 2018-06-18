@@ -417,7 +417,7 @@ curl -XPOST "http://$ES_HOST/_template/squid_index" -d '{
                  "url" : {
                    "type" : "text","fielddata" : true
                  },
-                 "alert" : {
+                 "metron_alert" : {
                    "type" : "nested"
                  }
               }
