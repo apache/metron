@@ -109,6 +109,11 @@ def build_global_config_patch(params, patch_file):
         "op": "add",
         "path": "/bootstrap.servers",
         "value": "{{kafka_brokers}}"
+    },
+    {
+        "op": "add",
+        "path": "/source.type.field",
+        "value": "{{source_type_field}}"
     }
   ]
   """
