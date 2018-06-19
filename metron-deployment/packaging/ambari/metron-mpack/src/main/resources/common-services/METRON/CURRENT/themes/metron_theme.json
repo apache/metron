@@ -796,6 +796,10 @@
           "subsection-name": "subsection-rest"
         },
         {
+          "config": "metron-rest-env/threat_triage_score_field",
+          "subsection-name": "subsection-rest"
+        },
+        {
           "config": "metron-management-ui-env/metron_management_ui_port",
           "subsection-name": "subsection-management-ui"
         },
@@ -838,6 +842,12 @@
       },
       {
         "config": "metron-rest-env/source_type_field",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/threat_triage_score_field",
         "widget": {
           "type": "text-field"
         }

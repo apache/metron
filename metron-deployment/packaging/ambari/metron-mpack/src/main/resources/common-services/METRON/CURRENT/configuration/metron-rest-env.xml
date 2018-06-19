@@ -162,4 +162,10 @@
         <description>The field name where the source type can be found in the search indices. This setting primarily affects the Alerts UI.</description>
         <value>source:type</value>
     </property>
+    <property>
+        <name>threat_triage_score_field</name>
+        <display-name>Threat Triage Score Field Name</display-name>
+        <description>The field name where the threat triage score can be found in the search indices. This setting primarily affects the Alerts UI.</description>
+        <value>threat:triage:score</value>
+    </property>
 </configuration>

@@ -114,6 +114,11 @@ def build_global_config_patch(params, patch_file):
         "op": "add",
         "path": "/source.type.field",
         "value": "{{source_type_field}}"
+    },
+    {
+        "op": "add",
+        "path": "/threat.triage.score.field",
+        "value": "{{threat_triage_score_field}}"
     }
   ]
   """
