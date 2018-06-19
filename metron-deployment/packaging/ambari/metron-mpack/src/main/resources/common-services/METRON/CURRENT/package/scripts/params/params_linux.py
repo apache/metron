@@ -254,6 +254,7 @@ metron_rest_classpath = config['configurations']['metron-rest-env']['metron_rest
 metron_sysconfig = config['configurations']['metron-rest-env']['metron_sysconfig']
 user_settings_hbase_table = status_params.user_settings_hbase_table
 user_settings_hbase_cf = status_params.user_settings_hbase_cf
+source_type_field = config['configurations']['metron-rest-env']['source_type_field']
 
 # Enrichment
 metron_enrichment_topology = status_params.metron_enrichment_topology
