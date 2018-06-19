@@ -18,6 +18,7 @@
 import { Component, OnInit } from '@angular/core';
 import {Router, ActivatedRoute} from '@angular/router';
 import * as moment from 'moment/moment';
+import {Observable, Subscription} from 'rxjs/Rx';
 
 import {SearchService} from '../../service/search.service';
 import {UpdateService} from '../../service/update.service';
@@ -30,6 +31,7 @@ import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
+import { GlobalConfigService } from '../../service/global-config.service';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -71,6 +73,9 @@ export class AlertDetailsComponent implements OnInit {
   alertFields: string[] = [];
   alertCommentStr = '';
   alertCommentsWrapper: AlertCommentWrapper[] = [];
+  globalConfig: {} = {};
+  globalConfigService: GlobalConfigService;
+  configSubscription: Subscription;
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
@@ -78,8 +83,9 @@ export class AlertDetailsComponent implements OnInit {
               private updateService: UpdateService,
               private alertsService: AlertsService,
               private authenticationService: AuthenticationService,
-              private metronDialogBox: MetronDialogBox) {
-
+              private metronDialogBox: MetronDialogBox,
+              globalConfigService: GlobalConfigService) {
+    this.globalConfigService = globalConfigService;
   }
 
   goBack() {
@@ -122,6 +128,10 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
+      this.globalConfig = config;
+    });
+
     this.activatedRoute.params.subscribe(params => {
       this.alertId = params['guid'];
       this.alertSourceType = params['source.type.field'];
@@ -130,6 +140,14 @@ export class AlertDetailsComponent implements OnInit {
       this.getData();
     });
   };
+
+  ngOnDestroy() {
+    this.configSubscription.unsubscribe();
+  }
+
+  getScore(alertSource) {
+    return alertSource[this.globalConfig['threat.triage.score.field']];
+  }
 
   processOpen() {
     let tAlert = new Alert();

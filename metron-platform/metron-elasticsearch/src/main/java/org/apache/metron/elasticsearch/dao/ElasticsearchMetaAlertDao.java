@@ -18,21 +18,9 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import static org.apache.metron.common.Constants.GUID;
-import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.constantScoreQuery;
-import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
-import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import org.apache.commons.collections4.SetUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
@@ -51,40 +39,50 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.Document;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.get.MultiGetItemResponse;
-import org.elasticsearch.action.get.MultiGetRequest.Item;
-import org.elasticsearch.action.get.MultiGetRequestBuilder;
-import org.elasticsearch.action.get.MultiGetResponse;
-import org.elasticsearch.action.index.IndexRequest;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.InnerHitBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
-import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static org.apache.metron.common.Constants.GUID;
+import static org.apache.metron.common.Constants.SENSOR_TYPE_FIELD_PROPERTY;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.constantScoreQuery;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
   public static final String SOURCE_TYPE = Constants.SENSOR_TYPE.replace('.', ':');
+  public static final String THREAT_TRIAGE_FIELD = THREAT_FIELD_DEFAULT.replace('.', ':');
   private static final String STATUS_PATH = "/status";
   private static final String ALERT_PATH = "/alert";
+  private static final String INDEX_NOT_FOUND_INDICES_KEY = "es.index";
 
   private IndexDao indexDao;
   private ElasticsearchDao elasticsearchDao;
   private String index = METAALERTS_INDEX;
-  private String threatTriageField = THREAT_FIELD_DEFAULT;
 
   /**
    * Defines which summary aggregation is used to represent the overall threat triage score for
@@ -101,21 +99,19 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    * @param indexDao The Dao to wrap
    */
   public ElasticsearchMetaAlertDao(IndexDao indexDao) {
-    this(indexDao, METAALERTS_INDEX, THREAT_FIELD_DEFAULT, THREAT_SORT_DEFAULT);
+    this(indexDao, METAALERTS_INDEX, THREAT_SORT_DEFAULT);
   }
 
   /**
    * Wraps an {@link org.apache.metron.indexing.dao.IndexDao} to handle meta alerts.
    * @param indexDao The Dao to wrap
-   * @param triageLevelField The field name to use as the threat scoring field
    * @param threatSort The summary aggregation of all child threat triage scores used
    *                   as the overall threat triage score for the metaalert. This
    *                   can be either max, min, average, count, median, or sum.
    */
-  public ElasticsearchMetaAlertDao(IndexDao indexDao, String index, String triageLevelField, String threatSort) {
+  public ElasticsearchMetaAlertDao(IndexDao indexDao, String index, String threatSort) {
     init(indexDao, Optional.of(threatSort));
     this.index = index;
-    this.threatTriageField = triageLevelField;
   }
 
   public ElasticsearchMetaAlertDao() {
@@ -196,7 +192,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     Document metaAlert = buildCreateDocument(alerts, request.getGroups());
     calculateMetaScores(metaAlert);
     // Add source type to be consistent with other sources and allow filtering
-    metaAlert.getDocument().put(SOURCE_TYPE, MetaAlertDao.METAALERT_TYPE);
+    metaAlert.getDocument().put(getFieldName(SENSOR_TYPE_FIELD_PROPERTY, SOURCE_TYPE), MetaAlertDao.METAALERT_TYPE);
 
     // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();
@@ -353,7 +349,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
           .get(MetaAlertDao.ALERT_FIELD);
       currentAlerts.stream().forEach(currentAlert -> {
-        getRequests.add(new GetRequest((String) currentAlert.get(GUID), (String) currentAlert.get(SOURCE_TYPE)));
+        getRequests.add(new GetRequest((String) currentAlert.get(GUID), (String) currentAlert.get(getFieldName(SENSOR_TYPE_FIELD_PROPERTY, SOURCE_TYPE))));
       });
       Iterable<Document> alerts = indexDao.getAllLatest(getRequests);
       List<Map<String, Object>> updatedAlerts = new ArrayList<>();
@@ -427,15 +423,24 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     } else {
       Map<Document, Optional<String>> updates = new HashMap<>();
       updates.put(update, index);
-      // We need to update an alert itself.  Only that portion of the update can be delegated.
-      // We still need to get meta alerts potentially associated with it and update.
-      Collection<Document> metaAlerts = getMetaAlertsForAlert(update.getGuid()).getResults().stream()
-          .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(), METAALERT_TYPE, update.getTimestamp()))
-          .collect(Collectors.toList());
-      // Each meta alert needs to be updated with the new alert
-      for (Document metaAlert : metaAlerts) {
-        replaceAlertInMetaAlert(metaAlert, update);
-        updates.put(metaAlert, Optional.of(METAALERTS_INDEX));
+      try {
+        // We need to update an alert itself.  Only that portion of the update can be delegated.
+        // We still need to get meta alerts potentially associated with it and update.
+        Collection<Document> metaAlerts = getMetaAlertsForAlert(update.getGuid()).getResults().stream()
+                .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(), METAALERT_TYPE, update.getTimestamp()))
+                .collect(Collectors.toList());
+        // Each meta alert needs to be updated with the new alert
+        for (Document metaAlert : metaAlerts) {
+          replaceAlertInMetaAlert(metaAlert, update);
+          updates.put(metaAlert, Optional.of(METAALERTS_INDEX));
+        }
+      } catch (IndexNotFoundException e) {
+        List<String> indicesNotFound = e.getMetadata(INDEX_NOT_FOUND_INDICES_KEY);
+        // If no metaalerts have been created yet and the metaalerts index does not exist, assume no metaalerts exist for alert.
+        // Otherwise throw the exception.
+        if (indicesNotFound.size() != 1 || !METAALERTS_INDEX.equals(indicesNotFound.get(0))) {
+          throw e;
+        }
       }
 
       // Run the alert's update
@@ -685,7 +690,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       ArrayList<Double> scores = new ArrayList<>();
       for (Object alertRaw : alertsRaw) {
         Map<String, Object> alert = (Map<String, Object>) alertRaw;
-        Double scoreNum = parseThreatField(alert.get(threatTriageField));
+        Double scoreNum = parseThreatField(alert.get(getFieldName(THREAT_FIELD_PROPERTY, THREAT_TRIAGE_FIELD)));
         if (scoreNum != null) {
           scores.add(scoreNum);
         }
@@ -700,7 +705,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     Object threatScore = metaScores.getMetaScores().get(threatSort);
 
     // add the threat score as a float; type needs to match the threat score field from each of the sensor indices
-    metaAlert.getDocument().put(threatTriageField, ConversionUtils.convert(threatScore, Float.class));
+    metaAlert.getDocument().put(getFieldName(THREAT_FIELD_PROPERTY, THREAT_TRIAGE_FIELD), ConversionUtils.convert(threatScore, Float.class));
   }
 
   private Double parseThreatField(Object threatRaw) {
@@ -719,5 +724,13 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
   public void setPageSize(int pageSize) {
     this.pageSize = pageSize;
+  }
+
+  private String getFieldName(String globalConfigKey, String defaultFieldName) {
+    if (this.elasticsearchDao == null || this.elasticsearchDao.getAccessConfig() == null) {
+      return defaultFieldName;
+    }
+    Map<String, Object> globalConfig = this.elasticsearchDao.getAccessConfig().getGlobalConfigSupplier().get();
+    return ConfigurationsUtils.getFieldName(globalConfig, globalConfigKey, defaultFieldName);
   }
 }
