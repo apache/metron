@@ -23,6 +23,7 @@ import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAAL
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_SORT_DEFAULT;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -30,6 +31,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.metron.common.Constants;
+import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
 import org.junit.Test;
 
@@ -71,5 +75,27 @@ public class MetaScoresTest {
 
     // by default, the overall threat score is the sum of all child threat scores
     assertEquals(30.0F, threatScore);
+  }
+
+  @Test
+  public void testCalculateMetaScoresWithDifferentFieldName() {
+    List<Map<String, Object>> alertList = new ArrayList<>();
+
+    // add an alert with a threat score
+    alertList.add( Collections.singletonMap(MetaAlertConstants.THREAT_FIELD_DEFAULT, 10.0f));
+
+    // create the metaalert
+    Map<String, Object> docMap = new HashMap<>();
+    docMap.put(MetaAlertConstants.ALERT_FIELD, alertList);
+    Document metaalert = new Document(docMap, "guid", MetaAlertConstants.METAALERT_TYPE, 0L);
+
+    // Configure a different threat triage score field name
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setGlobalConfigSupplier(() -> new HashMap<String, Object>() {{
+      put(Constants.THREAT_SCORE_FIELD_PROPERTY, MetaAlertConstants.THREAT_FIELD_DEFAULT);
+    }});
+
+    MetaScores.calculateMetaScores(metaalert, MetaAlertConstants.THREAT_FIELD_DEFAULT, MetaAlertConstants.THREAT_SORT_DEFAULT);
+    assertNotNull(metaalert.getDocument().get(MetaAlertConstants.THREAT_FIELD_DEFAULT));
   }
 }
