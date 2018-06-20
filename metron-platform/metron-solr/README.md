@@ -92,6 +92,32 @@ Navigate to `$METRON_HOME/bin` and spin up Solr Cloud by running `install_solr.s
 Elasticsearch and Kibana will have been stopped and you should now have an instance of Solr Cloud up and running at http://localhost:8983/solr/#/~cloud.  This manner of starting Solr
 will also spin up an embedded Zookeeper instance at port 9983. More information can be found [here](https://lucene.apache.org/solr/guide/6_6/getting-started-with-solrcloud.html)
 
+Solr can also be installed using [HDP Search 3](https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.4/bk_solr-search-installation/content/ch_hdp_search_30.html).  HDP Search 3 sets the Zookeeper root to 
+`/solr` so this will need to be added to each url in the comma-separated list in Ambari UI -> Services -> Metron -> Configs -> Index Settings -> Solr Zookeeper Urls.  For example, in full dev
+this would be `node1:2181/solr`.
+
+## Enabling Solr
+
+Elasticsearch is the real-time store used by default in Metron.  Solr can be enabled following these steps:
+
+1. Stop the Metron Indexing component in Ambari.
+1. Update Ambari UI -> Services -> Metron -> Configs -> Index Settings -> Solr Zookeeper Urls to match the Solr installation described in the previous section.
+1. Change Ambari UI -> Services -> Metron -> Configs -> Indexing -> Index Writer - Random Access -> Random Access Search Engine to `Solr`.
+1. Set the `source.type.field` property to `source.type` in the [Global Configuration](../metron-common#global-configuration).
+1. Set the `threat.triage.score.field` property to `threat.triage.score` in the [Global Configuration](../metron-common#global-configuration).
+1. Start the Metron Indexing component in Ambari.
+1. Restart Metron REST and the Alerts UI in Ambari.
+
+This will automatically create collections for the schemas shipped with Metron:
+
+* bro 
+* snort
+* yaf
+* error (used internally by Metron)
+* metaalert (used internall by Metron)
+
+Any other collections must be created manually before starting the Indexing component.  Alerts should be present in the Alerts UI after enabling Solr.
+
 ## Schemas
 
 As of now, we have mapped out the Schemas in `src/main/config/schema`.
