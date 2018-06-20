@@ -18,6 +18,7 @@
 
 package org.apache.metron.elasticsearch.dao;
 
+import static org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao.METAALERTS_INDEX;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.lucene.search.join.ScoreMode;
 import org.apache.metron.common.Constants;
@@ -37,6 +39,7 @@ import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
@@ -46,10 +49,13 @@ import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.InnerHitBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 
 public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao {
+
+  private static final String INDEX_NOT_FOUND_INDICES_KEY = "es.index";
 
   private ElasticsearchDao elasticsearchDao;
   private MetaAlertRetrieveLatestDao retrieveLatestDao;
@@ -96,7 +102,7 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
             getConfig().getThreatSort());
     // Add source type to be consistent with other sources and allow filtering
     metaAlert.getDocument()
-        .put(ElasticsearchMetaAlertDao.SOURCE_TYPE_FIELD, MetaAlertConstants.METAALERT_TYPE);
+        .put(getConfig().getSourceTypeField(), MetaAlertConstants.METAALERT_TYPE);
 
     // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();
@@ -167,17 +173,23 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
     } else {
       Map<Document, Optional<String>> updates = new HashMap<>();
       updates.put(update, index);
-      // We need to update an alert itself.  Only that portion of the update can be delegated.
-      // We still need to get meta alerts potentially associated with it and update.
-      Collection<Document> metaAlerts = getMetaAlertsForAlert(update.getGuid()).getResults()
-          .stream()
-          .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(),
-              MetaAlertConstants.METAALERT_TYPE, 0L))
-          .collect(Collectors.toList());
-      // Each meta alert needs to be updated with the new alert
-      for (Document metaAlert : metaAlerts) {
-        if (replaceAlertInMetaAlert(metaAlert, update)) {
-          updates.put(metaAlert, Optional.of(getConfig().getMetaAlertIndex()));
+      try {
+        // We need to update an alert itself.  Only that portion of the update can be delegated.
+        // We still need to get meta alerts potentially associated with it and update.
+        Collection<Document> metaAlerts = getMetaAlertsForAlert(update.getGuid()).getResults().stream()
+                .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(), MetaAlertConstants.METAALERT_TYPE, update.getTimestamp()))
+                .collect(Collectors.toList());
+        // Each meta alert needs to be updated with the new alert
+        for (Document metaAlert : metaAlerts) {
+          replaceAlertInMetaAlert(metaAlert, update);
+          updates.put(metaAlert, Optional.of(METAALERTS_INDEX));
+        }
+      } catch (IndexNotFoundException e) {
+        List<String> indicesNotFound = e.getMetadata(INDEX_NOT_FOUND_INDICES_KEY);
+        // If no metaalerts have been created yet and the metaalerts index does not exist, assume no metaalerts exist for alert.
+        // Otherwise throw the exception.
+        if (indicesNotFound.size() != 1 || !METAALERTS_INDEX.equals(indicesNotFound.get(0))) {
+          throw e;
         }
       }
 

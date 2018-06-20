@@ -132,6 +132,11 @@ def build_global_config_patch(params, patch_file):
         "op": "add",
         "path": "/user.settings.hbase.cf",
         "value": "{{user_settings_hbase_cf}}"
+    },
+    {
+        "op": "add",
+        "path": "/bootstrap.servers",
+        "value": "{{kafka_brokers}}"
     }
   """
   patch_template = ambari_format(

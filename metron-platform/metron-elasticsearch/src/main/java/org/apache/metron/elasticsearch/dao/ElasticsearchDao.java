@@ -85,6 +85,14 @@ public class ElasticsearchDao implements IndexDao {
     //uninitialized.
   }
 
+  public AccessConfig getAccessConfig() {
+    return accessConfig;
+  }
+
+  public void setAccessConfig(AccessConfig accessConfig) {
+    this.accessConfig = accessConfig;
+  }
+
   @Override
   public synchronized void init(AccessConfig config) {
     if (this.client == null) {

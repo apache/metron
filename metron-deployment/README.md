@@ -29,7 +29,7 @@ This project contains tools for building, packaging, and deploying Apache Metron
 How do I deploy Metron with Ambari?
 -----------------------------------
 
-This provides a Management Pack (MPack) extension for [Apache Ambari](https://ambari.apache.org/) that simplifies the provisioning, management and monitoring of Metron on clusters of any size.  
+This provides a Management Pack (MPack) extension for [Apache Ambari](https://ambari.apache.org/) that simplifies the provisioning, management and monitoring of Metron on clusters of any size.
 
 This allows you to easily install Metron using a simple, guided process.  This also allows you to monitor cluster health and even secure your cluster with kerberos.
 
@@ -47,13 +47,13 @@ To deploy Apache Metron using Ambari, follow the instructions at [packaging/amba
 How do I deploy Metron on a single VM?
 --------------------------------------
 
-This will deploy Metron and all of its dependencies on a virtual machine running on your computer.  
+This will deploy Metron and all of its dependencies on a virtual machine running on your computer.
 
 #### What is this good for?
 
-* If you are new to Metron and want to explore the functionality that it offers, this is good place to start.  
+* If you are new to Metron and want to explore the functionality that it offers, this is good place to start.
 
-* If you are a developer contributing to the Apache Metron project, this is also a great way to test your changes.  
+* If you are a developer contributing to the Apache Metron project, this is also a great way to test your changes.
 
 #### What is this **not** good for?
 
@@ -69,6 +69,10 @@ Running Metron within the resource constraints of a single VM is incredibly chal
 
 To deploy Metron in a VM running on your computer, follow the instructions at [development/centos6](development/centos6).
 
+#### How do I address services crashing when running Metron on a single VM?
+
+We recommend looking at Ambari and shutting down any services you may not be using. For example, we recommend turning off Metron Profiler, as this commonly causes REST services to crash when running on a single VM.
+
 
 How do I build RPM packages?
 ----------------------------
@@ -77,7 +81,7 @@ This provides RPM packages that allow you to install Metron on an RPM-based oper
 
 #### What is this good for?
 
-* If you want to manually install Apache Metron on an RPM-based system like CentOS, installation can be simplified by using these packages.  
+* If you want to manually install Apache Metron on an RPM-based system like CentOS, installation can be simplified by using these packages.
 
 * If you want a guided installation process using Ambari on an RPM-based system, then these RPMs are a necessary prerequisite.
 
@@ -113,25 +117,25 @@ To build the DEB packages, follow the instructions at [packaging/docker/deb-dock
 How do I deploy Metron within AWS?
 ----------------------------------
 
-This deploys Apache Metron on an automatically provisioned 10-node cluster running in Amazon Web Service's EC2 platform.  
+This deploys Apache Metron on an automatically provisioned 10-node cluster running in Amazon Web Service's EC2 platform.
 
 This installs real sources of telemetry like Bro, Snort, and YAF, but feeds those sensors with canned pcap data.
 
 #### What is this good for?
 
-* If you are a Metron developer wanting to test at-scale on a multi-node cluster, then this is the right option for you.  
+* If you are a Metron developer wanting to test at-scale on a multi-node cluster, then this is the right option for you.
 
 #### What is this **not** good for?
 
 * If you want to run Metron in AWS with real data for either testing or production, then this is NOT the right option for you.
 
 * **WARNING** This is only intended for creating an ephemeral cluster for brief periods of testing.  This deployment method has the following severe limitations.
-    * The cluster is not secured in any way. It is up to you to manually secure it.  
+    * The cluster is not secured in any way. It is up to you to manually secure it.
     * The cluster will not survive a reboot.
 
 #### How?
 
-Follow the instructions available at [amazon-ec2](amazon-ec2).  
+Follow the instructions available at [amazon-ec2](amazon-ec2).
 
 
 How do I build Metron with Docker?

@@ -84,6 +84,7 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
     globalConfig.put(HBaseDao.HBASE_CF, CF);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
+    accessConfig.setIndexSupplier(s -> s);
 
     CuratorFramework client = ConfigurationsUtils
         .getClient(solrComponent.getZookeeperUrl());

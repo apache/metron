@@ -476,7 +476,7 @@ The Enrichment topology has been show to scale relatively linearly.  Adding more
 
 #### Environment
 
-* Apache Metron 0.4.3 (pre-release) March, 2018
+* Apache Metron 0.5.0 (pre-release) March, 2018
 	* This included [a patch to the underlying caching mechanism](https://github.com/apache/metron/pull/947) that greatly improves performance.
 
 * Cisco UCS nodes

@@ -65,7 +65,7 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   /**
    * {
    * "indices": ["metaalert"],
-   * "query": "alert|guid:${GUID}",
+   * "query": "metron_alert|guid:${GUID}",
    * "from": 0,
    * "size": 10,
    * "sort": [

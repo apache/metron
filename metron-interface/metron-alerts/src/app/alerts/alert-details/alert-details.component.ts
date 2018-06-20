@@ -18,6 +18,7 @@
 import { Component, OnInit } from '@angular/core';
 import {Router, ActivatedRoute} from '@angular/router';
 import * as moment from 'moment/moment';
+import {Observable, Subscription} from 'rxjs/Rx';
 
 import {SearchService} from '../../service/search.service';
 import {UpdateService} from '../../service/update.service';
@@ -29,8 +30,9 @@ import {Patch} from '../../model/patch';
 import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
-import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
+import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
+import { GlobalConfigService } from '../../service/global-config.service';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -72,6 +74,9 @@ export class AlertDetailsComponent implements OnInit {
   alertFields: string[] = [];
   alertCommentStr = '';
   alertCommentsWrapper: AlertCommentWrapper[] = [];
+  globalConfig: {} = {};
+  globalConfigService: GlobalConfigService;
+  configSubscription: Subscription;
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
@@ -79,8 +84,9 @@ export class AlertDetailsComponent implements OnInit {
               private updateService: UpdateService,
               private alertsService: AlertsService,
               private authenticationService: AuthenticationService,
-              private metronDialogBox: MetronDialogBox) {
-
+              private metronDialogBox: MetronDialogBox,
+              globalConfigService: GlobalConfigService) {
+    this.globalConfigService = globalConfigService;
   }
 
   goBack() {
@@ -93,7 +99,7 @@ export class AlertDetailsComponent implements OnInit {
     this.searchService.getAlert(this.alertSourceType, this.alertId).subscribe(alertSource => {
       this.alertSource = alertSource;
       this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
-      this.alertSources = (alertSource.alert && alertSource.alert.length > 0) ? alertSource.alert : [alertSource];
+      this.alertSources = (alertSource.metron_alert && alertSource.metron_alert.length > 0) ? alertSource.metron_alert : [alertSource];
       this.setComments(alertSource);
 
       if (fireToggleEditor) {
@@ -123,14 +129,26 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
+      this.globalConfig = config;
+    });
+
     this.activatedRoute.params.subscribe(params => {
       this.alertId = params['guid'];
       this.alertSourceType = params['source.type.field'];
       this.alertIndex = params['index'];
-      this.isMetaAlert = (this.alertIndex === META_ALERTS_INDEX && this.alertSourceType !== META_ALERTS_SENSOR_TYPE) ? true : false;
+      this.isMetaAlert = this.alertSourceType === META_ALERTS_SENSOR_TYPE;
       this.getData();
     });
   };
+
+  ngOnDestroy() {
+    this.configSubscription.unsubscribe();
+  }
+
+  getScore(alertSource) {
+    return alertSource[this.globalConfig['threat.triage.score.field']];
+  }
 
   processOpen() {
     let tAlert = new Alert();
@@ -195,7 +213,6 @@ export class AlertDetailsComponent implements OnInit {
       let patchRequest = new PatchRequest();
       patchRequest.guid = this.alertId;
       patchRequest.sensorType = 'metaalert';
-      patchRequest.index = META_ALERTS_INDEX;
       patchRequest.patch = [new Patch('add', '/name', this.alertName)];
 
       this.updateService.patch(patchRequest).subscribe(rep => {

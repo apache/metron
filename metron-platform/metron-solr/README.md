@@ -20,7 +20,10 @@ limitations under the License.
 ## Table of Contents
 
 * [Introduction](#introduction)
+* [Configuration](#configuration)
 * [Installing](#installing)
+* [Schemas](#schemas)
+* [Collections](#collections)
 
 ## Introduction
 
@@ -111,3 +114,31 @@ A PointType field should be defined as:
 <fieldType name="point" class="solr.PointType" subFieldSuffix="_point"/>
 ```
 If any copy fields are defined, stored and docValues should be set to false.
+
+## Collections
+
+Convenience scripts are provided with Metron to create and delete collections.  Ambari uses these scripts to automatically create collections.  To use them outside of Ambari, a few environment variables must be set first:
+```
+# Path to the zookeeper node used by Solr
+export ZOOKEEPER=node1:2181/solr
+# Set to true if Kerberos is enabled
+export SECURITY_ENABLED=true 
+```
+The scripts can then be called directly with the collection name as the first argument .  For example, to create the bro collection:
+```
+$METRON_HOME/bin/create_collection.sh bro
+```
+To delete the bro collection:
+```
+$METRON_HOME/bin/delete_collection.sh bro
+```
+The `create_collection.sh` script depends on schemas installed in `$METRON_HOME/config/schema`.  There are several schemas that come with Metron:
+
+* bro
+* snort
+* yaf
+* metaalert
+* error
+
+Additional schemas should be installed in that location if using the `create_collection.sh` script.  Any collection can be deleted with the `delete_collection.sh` script.
+These scripts use the [Solr Collection API](http://lucene.apache.org/solr/guide/6_6/collections-api.html).

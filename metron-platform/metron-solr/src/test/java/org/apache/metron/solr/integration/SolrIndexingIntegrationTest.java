@@ -26,7 +26,7 @@ import java.util.Properties;
 import javax.annotation.Nullable;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.apache.metron.common.field.FieldNameConverter;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.utils.SampleUtil;
 import org.apache.metron.indexing.integration.IndexingIntegrationTest;
@@ -38,6 +38,7 @@ import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.solr.integration.components.SolrComponent;
+
 
 public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
 

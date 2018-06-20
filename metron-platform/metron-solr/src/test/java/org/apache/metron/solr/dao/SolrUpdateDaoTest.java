@@ -95,7 +95,7 @@ public class SolrUpdateDaoTest {
   @Before
   public void setUp() throws Exception {
     client = mock(SolrClient.class);
-    solrRetrieveLatestDao = new SolrRetrieveLatestDao(client);
+    solrRetrieveLatestDao = new SolrRetrieveLatestDao(client, accessConfig);
     solrUpdateDao = new SolrUpdateDao(client, solrRetrieveLatestDao, accessConfig);
   }
 
@@ -217,7 +217,7 @@ public class SolrUpdateDaoTest {
     latestDoc.put(COMMENTS_FIELD, comments);
     Document latest = new Document(latestDoc, "guid", "bro", 0L);
 
-    SolrRetrieveLatestDao retrieveLatestDao = spy(new SolrRetrieveLatestDao(null));
+    SolrRetrieveLatestDao retrieveLatestDao = spy(new SolrRetrieveLatestDao(null, accessConfig));
     doReturn(latest).when(retrieveLatestDao).getLatest("guid", "bro");
 
     // Create the patch

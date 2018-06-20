@@ -17,9 +17,27 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
@@ -42,19 +60,6 @@ import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Matchers;
 import org.mockito.Mock;
-
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
 
 public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
 
@@ -118,35 +123,41 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   private MessageGetStrategy messageGetStrategy;
 
   @Test
-  public void testSensorTypeMissing() throws Exception {
-    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
-            .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
+  public void testSourceTypeMissing() throws Exception {
+    // setup the bolt
+    BulkMessageWriterBolt<IndexingConfigurations> bulkMessageWriterBolt = new BulkMessageWriterBolt<IndexingConfigurations>(
+          "zookeeperUrl", "INDEXING")
+            .withBulkMessageWriter(bulkMessageWriter)
+            .withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
             .withMessageGetterField("message");
     bulkMessageWriterBolt.setCuratorFramework(client);
     bulkMessageWriterBolt.setZKCache(cache);
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType,
             new FileInputStream(sampleSensorIndexingConfigPath));
 
+    // initialize the bolt
     bulkMessageWriterBolt.declareOutputFields(declarer);
-    verify(declarer, times(1)).declareStream(eq("error"), argThat(
-            new FieldsMatcher("message")));
     Map stormConf = new HashMap();
     bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
-    BulkWriterComponent<JSONObject> component = mock(BulkWriterComponent.class);
-    bulkMessageWriterBolt.setWriterComponent(component);
-    verify(bulkMessageWriter, times(1)).init(eq(stormConf),any(TopologyContext.class), any(WriterConfiguration.class));
+
+    // create a message with no source type
     JSONObject message = (JSONObject) new JSONParser().parse(sampleMessageString);
     message.remove("source.type");
     when(tuple.getValueByField("message")).thenReturn(message);
+
+    // the tuple should be handled as an error and ack'd
     bulkMessageWriterBolt.execute(tuple);
-    verify(component, times(1)).error(eq("null"), any(), any(), any());
+    verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), any());
+    verify(outputCollector, times(1)).ack(tuple);
   }
 
   @Test
   public void testFlushOnBatchSize() throws Exception {
-    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
-            .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
-            .withMessageGetterField("message");
+    BulkMessageWriterBolt<IndexingConfigurations> bulkMessageWriterBolt = new BulkMessageWriterBolt<IndexingConfigurations>(
+        "zookeeperUrl", "INDEXING")
+        .withBulkMessageWriter(bulkMessageWriter)
+        .withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
+        .withMessageGetterField("message");
     bulkMessageWriterBolt.setCuratorFramework(client);
     bulkMessageWriterBolt.setZKCache(cache);
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType,
@@ -203,9 +214,12 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   @Test
   public void testFlushOnBatchTimeout() throws Exception {
     FakeClock clock = new FakeClock();
-    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
-            .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
-            .withMessageGetterField("message").withBatchTimeoutDivisor(3);
+    BulkMessageWriterBolt<IndexingConfigurations> bulkMessageWriterBolt = new BulkMessageWriterBolt<IndexingConfigurations>(
+        "zookeeperUrl", "INDEXING")
+        .withBulkMessageWriter(bulkMessageWriter)
+        .withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
+        .withMessageGetterField("message")
+        .withBatchTimeoutDivisor(3);
     bulkMessageWriterBolt.setCuratorFramework(client);
     bulkMessageWriterBolt.setZKCache(cache);
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType,
@@ -247,9 +261,11 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   @Test
   public void testFlushOnTickTuple() throws Exception {
     FakeClock clock = new FakeClock();
-    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
-            .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
-            .withMessageGetterField("message");
+    BulkMessageWriterBolt<IndexingConfigurations> bulkMessageWriterBolt = new BulkMessageWriterBolt<IndexingConfigurations>(
+        "zookeeperUrl", "INDEXING")
+        .withBulkMessageWriter(bulkMessageWriter)
+        .withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
+        .withMessageGetterField("message");
     bulkMessageWriterBolt.setCuratorFramework(client);
     bulkMessageWriterBolt.setZKCache(cache);
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType
@@ -295,4 +311,38 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     assertEquals(3, tupleList.size());
     verify(outputCollector, times(5)).ack(tuple);  // 3 messages + 2nd tick
   }
+
+  /**
+   * If an invalid message is sent to indexing, the message should be handled as an error
+   * and the topology should continue processing.
+   */
+  @Test
+  public void testMessageInvalid() throws Exception {
+    FakeClock clock = new FakeClock();
+
+    // setup the bolt
+    BulkMessageWriterBolt<IndexingConfigurations> bolt = new BulkMessageWriterBolt<IndexingConfigurations>(
+        "zookeeperUrl", "INDEXING")
+            .withBulkMessageWriter(bulkMessageWriter)
+            .withMessageGetter(MessageGetters.JSON_FROM_POSITION.name())
+            .withMessageGetterField("message");
+    bolt.setCuratorFramework(client);
+    bolt.setZKCache(cache);
+    bolt.getConfigurations().updateSensorIndexingConfig(sensorType, new FileInputStream(sampleSensorIndexingConfigPath));
+
+    // initialize the bolt
+    bolt.declareOutputFields(declarer);
+    Map stormConf = new HashMap();
+    bolt.prepare(stormConf, topologyContext, outputCollector, clock);
+
+    // execute a tuple that contains an invalid message
+    byte[] invalidJSON = "this is not valid JSON".getBytes();
+    when(tuple.getBinary(0)).thenReturn(invalidJSON);
+    bolt.execute(tuple);
+
+    // the tuple should be handled as an error and ack'd
+    verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), any());
+    verify(outputCollector, times(1)).ack(tuple);
+  }
+
 }

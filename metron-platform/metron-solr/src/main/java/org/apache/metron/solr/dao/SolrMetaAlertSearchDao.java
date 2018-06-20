@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertSearchDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
@@ -57,10 +58,12 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
 
   transient SolrSearchDao solrSearchDao;
   transient SolrClient solrClient;
+  private MetaAlertConfig config;
 
-  public SolrMetaAlertSearchDao(SolrClient solrClient, SolrSearchDao solrSearchDao) {
+  public SolrMetaAlertSearchDao(SolrClient solrClient, SolrSearchDao solrSearchDao, MetaAlertConfig config) {
     this.solrClient = solrClient;
     this.solrSearchDao = solrSearchDao;
+    this.config = config;
   }
 
   @Override
@@ -76,7 +79,7 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
         MetaAlertConstants.STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString();
     String guidClause = Constants.GUID + ":" + guid;
     String fullClause = "{!parent which=" + activeClause + "}" + guidClause;
-    String metaalertTypeClause = Constants.SENSOR_TYPE + ":" + MetaAlertConstants.METAALERT_TYPE;
+    String metaalertTypeClause = config.getSourceTypeField() + ":" + MetaAlertConstants.METAALERT_TYPE;
     SolrQuery solrQuery = new SolrQuery()
         .setQuery(fullClause)
         .setFields("*", "[child parentFilter=" + metaalertTypeClause + " limit=999]")
@@ -120,7 +123,7 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
     String activeStatusClause =
         MetaAlertConstants.STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString();
 
-    String metaalertTypeClause = Constants.SENSOR_TYPE + ":" + MetaAlertConstants.METAALERT_TYPE;
+    String metaalertTypeClause = config.getSourceTypeField() + ":" + MetaAlertConstants.METAALERT_TYPE;
     // Use the 'v=' form in order to ensure complex clauses are properly handled.
     // Per the docs, the 'which=' clause should be used to identify all metaalert parents, not to
     //   filter
@@ -157,10 +160,10 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
     // Get them in a second query.
     // However, we can only retrieve them if we have the source type field (either explicit or
     // wildcard).
-    if (fieldList.contains("*") || fieldList.contains(Constants.SENSOR_TYPE)) {
+    if (fieldList.contains("*") || fieldList.contains(config.getSourceTypeField())) {
       List<String> metaalertGuids = new ArrayList<>();
       for (SearchResult result : results.getResults()) {
-        if (result.getSource().get(Constants.SENSOR_TYPE)
+        if (result.getSource().get(config.getSourceTypeField())
             .equals(MetaAlertConstants.METAALERT_TYPE)) {
           // Then we need to add it to the list to retrieve child alerts in a second query.
           metaalertGuids.add(result.getId());
@@ -201,7 +204,7 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
     // Make sure to escape any problematic characters here
-    String sourceType = ClientUtils.escapeQueryChars(Constants.SENSOR_TYPE);
+    String sourceType = ClientUtils.escapeQueryChars(config.getSourceTypeField());
     String baseQuery = groupRequest.getQuery();
     String adjustedQuery = baseQuery + " -" + MetaAlertConstants.METAALERT_FIELD + ":[* TO *]"
         + " -" + sourceType + ":" + MetaAlertConstants.METAALERT_TYPE;

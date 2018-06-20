@@ -29,7 +29,6 @@ import {Http} from '@angular/http';
 import {PatchRequest} from '../model/patch-request';
 import {Utils} from '../utils/utils';
 import {Patch} from '../model/patch';
-import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../utils/constants';
 import { GlobalConfigService } from './global-config.service';
 import {CommentAddRemoveRequest} from "../model/comment-add-remove-request";
 
@@ -92,9 +91,6 @@ export class UpdateService {
       patchRequest.guid = alert.source.guid;
       patchRequest.sensorType = Utils.getAlertSensorType(alert, this.sourceType);
       patchRequest.patch = [new Patch('add', '/alert_status', state)];
-      if (patchRequest.sensorType === META_ALERTS_SENSOR_TYPE) {
-        patchRequest.index = META_ALERTS_INDEX;
-      }
       return patchRequest;
     });
     let patchObservables = [];

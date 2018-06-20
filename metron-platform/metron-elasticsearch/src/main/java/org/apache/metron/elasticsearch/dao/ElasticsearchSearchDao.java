@@ -443,22 +443,24 @@ public class ElasticsearchSearchDao implements SearchDao {
   private List<GroupResult> getGroupResults(GroupRequest groupRequest, int index, Aggregations aggregations, Map<String, FieldType> commonColumnMetadata) {
     List<Group> groups = groupRequest.getGroups();
     String field = groups.get(index).getField();
-    Terms terms = aggregations.get(getGroupByAggregationName(field));
     List<GroupResult> searchResultGroups = new ArrayList<>();
-    for(Bucket bucket: terms.getBuckets()) {
-      GroupResult groupResult = new GroupResult();
-      groupResult.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
-      groupResult.setTotal(bucket.getDocCount());
-      Optional<String> scoreField = groupRequest.getScoreField();
-      if (scoreField.isPresent()) {
-        Sum score = bucket.getAggregations().get(getSumAggregationName(scoreField.get()));
-        groupResult.setScore(score.getValue());
+    if(aggregations != null) {
+      Terms terms = aggregations.get(getGroupByAggregationName(field));
+      for (Bucket bucket : terms.getBuckets()) {
+        GroupResult groupResult = new GroupResult();
+        groupResult.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
+        groupResult.setTotal(bucket.getDocCount());
+        Optional<String> scoreField = groupRequest.getScoreField();
+        if (scoreField.isPresent()) {
+          Sum score = bucket.getAggregations().get(getSumAggregationName(scoreField.get()));
+          groupResult.setScore(score.getValue());
+        }
+        if (index < groups.size() - 1) {
+          groupResult.setGroupedBy(groups.get(index + 1).getField());
+          groupResult.setGroupResults(getGroupResults(groupRequest, index + 1, bucket.getAggregations(), commonColumnMetadata));
+        }
+        searchResultGroups.add(groupResult);
       }
-      if (index < groups.size() - 1) {
-        groupResult.setGroupedBy(groups.get(index + 1).getField());
-        groupResult.setGroupResults(getGroupResults(groupRequest, index + 1, bucket.getAggregations(), commonColumnMetadata));
-      }
-      searchResultGroups.add(groupResult);
     }
     return searchResultGroups;
   }

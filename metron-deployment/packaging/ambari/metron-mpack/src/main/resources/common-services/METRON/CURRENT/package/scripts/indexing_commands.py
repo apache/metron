@@ -26,10 +26,10 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.script import Script
+from resource_management.libraries.functions.format import format
 
 import metron_service
 import metron_security
-
 
 # Wrap major operations and functionality in this class
 class IndexingCommands:
@@ -86,14 +86,13 @@ class IndexingCommands:
         :return: Dict where key is the name of a collection and the
           value is a path to file containing the schema definition.
         """
-        from params import params
-        return {
-            "bro": params.bro_schema_path,
-            "yaf": params.yaf_schema_path,
-            "snort": params.snort_schema_path,
-            "error": params.error_schema_path,
-            "metaalert": params.meta_schema_path
-        }
+        return [
+            "bro",
+            "yaf",
+            "snort",
+            "error",
+            "metaalert"
+        ]
 
     def is_configured(self):
         return self.__configured
@@ -200,6 +199,53 @@ class IndexingCommands:
               cmd=cmd.format(self.__params.es_http_url, template_name),
               user=self.__params.metron_user,
               err_msg=err_msg.format(template_name))
+
+    def solr_schema_install(self, env):
+        from params import params
+        env.set_params(params)
+        Logger.info("Installing Solr schemas")
+        if self.__params.security_enabled:
+            metron_security.kinit(self.__params.kinit_path_local,
+                                  self.__params.solr_keytab_path,
+                                  self.__params.solr_principal_name,
+                                  self.__params.solr_user)
+
+        commands = IndexingCommands(params)
+        for collection_name in commands.get_solr_schemas():
+
+            # install the schema
+            cmd = format((
+                "export ZOOKEEPER={solr_zookeeper_url};"
+                "export SECURITY_ENABLED={security_enabled};"
+            ))
+            cmd += "{0}/bin/create_collection.sh {1};"
+
+            Execute(
+                cmd.format(params.metron_home, collection_name),
+                user=self.__params.solr_user)
+
+    def solr_schema_delete(self, env):
+        from params import params
+        env.set_params(params)
+        Logger.info("Deleting Solr schemas")
+        if self.__params.security_enabled:
+            metron_security.kinit(self.__params.kinit_path_local,
+                                  self.__params.solr_keytab_path,
+                                  self.__params.solr_principal_name,
+                                  self.__params.solr_user)
+
+        commands = IndexingCommands(params)
+        for collection_name in commands.get_solr_schemas():
+            # delete the schema
+            cmd = format((
+                "export ZOOKEEPER={solr_zookeeper_url};"
+                "export SECURITY_ENABLED={security_enabled};"
+            ))
+            cmd += "{0}/bin/delete_collection.sh {1};"
+
+            Execute(
+                cmd.format(params.metron_home, collection_name),
+                user=self.__params.solr_user)
 
     def start_batch_indexing_topology(self, env):
         Logger.info('Starting ' + self.__batch_indexing_topology)

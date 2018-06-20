@@ -100,11 +100,10 @@ class Indexing(Script):
         commands = IndexingCommands(params)
         commands.check_indexing_parameters()
         if params.ra_indexing_writer == 'Solr':
-            Logger.info("Loading Solr schemas")
             # Install Solr schemas
             try:
                 if not commands.is_solr_schema_installed():
-                    self.solr_schema_install(env)
+                    commands.solr_schema_install(env)
                     commands.set_solr_schema_installed()
 
             except Exception as e:
@@ -177,33 +176,6 @@ class Indexing(Script):
             Execute(
               cmd.format(params.es_http_url, template_name),
               logoutput=True)
-
-    def solr_schema_install(self, env):
-        from params import params
-        env.set_params(params)
-        Logger.info("Installing Solr schemas")
-        commands = IndexingCommands(params)
-        commands.check_indexing_parameters()
-        for collection_name, config_path in commands.get_solr_schemas().iteritems():
-
-            # install the schema
-            cmd = "{0}/bin/solr create -c {1} -d {2}"
-            Execute(
-                cmd.format(params.solr_home, collection_name, config_path),
-                logoutput=True, user="solr")
-
-    def solr_schema_delete(self, env):
-        from params import params
-        env.set_params(params)
-        Logger.info("Deleting Solr schemas")
-        commands = IndexingCommands(params)
-        commands.check_indexing_parameters()
-        for collection_name, config_path in commands.get_solr_schemas().iteritems():
-            # delete the schema
-            cmd = "{0}/bin/solr delete -c {1}"
-            Execute(
-                cmd.format(params.solr_home, collection_name),
-                logoutput=True, user="solr")
 
     @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
     def kibana_dashboard_install(self, env):

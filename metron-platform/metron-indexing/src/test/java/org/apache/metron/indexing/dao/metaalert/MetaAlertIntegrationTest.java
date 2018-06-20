@@ -111,7 +111,7 @@ public abstract class MetaAlertIntegrationTest {
    },
    {
    "op": "add",
-   "path": "/alert",
+   "path": "/metron_alert",
    "value": []
    }
    ],

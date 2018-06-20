@@ -33,6 +33,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import com.google.common.collect.ImmutableMap;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
@@ -93,16 +95,28 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     solrDao = new SolrDao();
     solrDao.init(accessConfig);
 
-    MetaAlertConfig config = new MetaAlertConfig(
-        METAALERTS_COLLECTION,
-        THREAT_FIELD_DEFAULT,
-        THREAT_SORT_DEFAULT,
-        Constants.SENSOR_TYPE
-    );
+    MetaAlertConfig config = new MetaAlertConfig(METAALERTS_COLLECTION
+                             , THREAT_SORT_DEFAULT
+                             , () -> ImmutableMap.of(Constants.SENSOR_TYPE_FIELD_PROPERTY, Constants.SENSOR_TYPE
+                                                    , Constants.THREAT_SCORE_FIELD_PROPERTY, THREAT_FIELD_DEFAULT
+                                                    )
+    ) {
+
+      @Override
+      protected String getDefaultThreatTriageField() {
+        return THREAT_FIELD_DEFAULT.replace(':', '.');
+      }
+
+      @Override
+      protected String getDefaultSourceTypeField() {
+        return Constants.SENSOR_TYPE;
+      }
+    };
+
 
     SolrMetaAlertSearchDao searchDao = new SolrMetaAlertSearchDao(
         solrDao.getSolrClient(solrDao.getZkHosts()),
-        solrDao.getSolrSearchDao());
+        solrDao.getSolrSearchDao(), config);
     SolrMetaAlertRetrieveLatestDao retrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao);
     SolrMetaAlertUpdateDao updateDao = new SolrMetaAlertUpdateDao(solrDao, searchDao,
         retrieveLatestDao, config);
