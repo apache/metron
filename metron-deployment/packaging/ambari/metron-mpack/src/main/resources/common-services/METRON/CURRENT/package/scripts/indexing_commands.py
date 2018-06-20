@@ -397,41 +397,12 @@ class IndexingCommands:
     def is_topology_active(self, env):
         return self.is_batch_topology_active(env) and self.is_random_access_topology_active(env)
 
-    def check_indexing_parameters(self):
-        """
-        Ensure that all required parameters have been defined for the chosen
-        Indexer; either Solr or Elasticsearch.
-        """
-        Logger.info('Checking parameters for Indexing')
-        config = Script.get_config()
-        indexer = config['configurations']['metron-indexing-env']['ra_indexing_writer']
-        missing = []
-
-        if indexer == 'Solr':
-          # check for all required solr parameters
-          if not config['configurations']['metron-env']['solr_zookeeper_url']:
-            missing.append("metron-env/solr_zookeeper_url")
-
-        else:
-          # check for all required elasticsearch parameters
-          if not config['configurations']['metron-env']['es_cluster_name']:
-            missing.append("metron-env/es_cluster_name")
-          if not config['configurations']['metron-env']['es_hosts']:
-            missing.append("metron-env/es_hosts")
-          if not config['configurations']['metron-env']['es_binary_port']:
-            missing.append("metron-env/es_binary_port")
-          if not config['configurations']['metron-env']['es_date_format']:
-            missing.append("metron-env/es_date_format")
-
-        if len(missing) > 0:
-          raise Fail("Missing required indexing parameters(s): indexer={0}, missing={1}".format(indexer, missing))
-
     def service_check(self, env):
         """
         Performs a service check for Indexing.
         :param env: Environment
         """
-        self.check_indexing_parameters()
+        metron_service.check_indexer_parameters()
 
         Logger.info('Checking Kafka topics for Indexing')
         metron_service.check_kafka_topics(self.__params, self.__get_topics())

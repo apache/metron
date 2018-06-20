@@ -175,7 +175,7 @@ def refresh_configs(params):
   if not is_zk_configured(params):
     Logger.warning("The expected flag file '" + params.zk_configured_flag_file + "'indicating that Zookeeper has been configured does not exist. Skipping patching. An administrator should look into this.")
     return
-
+  check_indexer_parameters()
   patch_global_config(params)
   pull_config(params)
 
@@ -530,3 +530,32 @@ def check_http(host, port, user):
       Execute(cmd, tries=3, try_sleep=5, logoutput=False, user=user)
     except:
       raise ComponentIsNotRunning()
+
+def check_indexer_parameters(self):
+    """
+    Ensure that all required parameters have been defined for the chosen
+    Indexer; either Solr or Elasticsearch.
+    """
+    missing = []
+    config = Script.get_config()
+    indexer = config['configurations']['metron-indexing-env']['ra_indexing_writer']
+    Logger.info('Checking parameters for indexer = ' + indexer)
+
+    if indexer == 'Solr':
+      # check for all required solr parameters
+      if not config['configurations']['metron-env']['solr_zookeeper_url']:
+        missing.append("metron-env/solr_zookeeper_url")
+
+    else:
+      # check for all required elasticsearch parameters
+      if not config['configurations']['metron-env']['es_cluster_name']:
+        missing.append("metron-env/es_cluster_name")
+      if not config['configurations']['metron-env']['es_hosts']:
+        missing.append("metron-env/es_hosts")
+      if not config['configurations']['metron-env']['es_binary_port']:
+        missing.append("metron-env/es_binary_port")
+      if not config['configurations']['metron-env']['es_date_format']:
+        missing.append("metron-env/es_date_format")
+
+    if len(missing) > 0:
+      raise Fail("Missing required indexing parameters(s): indexer={0}, missing={1}".format(indexer, missing))
