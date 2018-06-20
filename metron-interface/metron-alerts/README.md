@@ -103,7 +103,11 @@ rest:
 
 ### `source.type.field`
 
-The source type format used. Defaults to `source:type`.
+The source type field name used in the real-time store. Defaults to `source:type`.
+
+### `threat.triage.score.field`
+
+The threat triage score field name used in the real-time store. Defaults to `threat:triage:score`.
 
 ## Usage
 
