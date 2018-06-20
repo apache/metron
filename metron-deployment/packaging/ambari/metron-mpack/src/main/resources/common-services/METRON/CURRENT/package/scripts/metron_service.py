@@ -531,7 +531,7 @@ def check_http(host, port, user):
     except:
       raise ComponentIsNotRunning()
 
-def check_indexer_parameters(self):
+def check_indexer_parameters():
     """
     Ensure that all required parameters have been defined for the chosen
     Indexer; either Solr or Elasticsearch.
