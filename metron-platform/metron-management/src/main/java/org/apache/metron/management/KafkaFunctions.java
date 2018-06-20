@@ -18,6 +18,7 @@
 
 package org.apache.metron.management;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -30,7 +31,6 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.metron.common.system.Clock;
-import org.apache.metron.profiler.client.stellar.Util;
 import org.apache.metron.stellar.common.LambdaExpression;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.common.utils.JSONUtils;
@@ -66,6 +66,7 @@ import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
  *  KAFKA_GET
  *  KAFKA_PUT
  *  KAFKA_TAIL
+ *  KAFKA_FIND
  *  KAFKA_PROPS
  */
 public class KafkaFunctions {
@@ -96,6 +97,30 @@ public class KafkaFunctions {
    * The default max wait time in milliseconds.
    */
   public static final int DEFAULT_MAX_WAIT = 5000;
+
+  /**
+   * The key for the global property that defines how a message is returned
+   * from the set of KAFKA functions.
+   *
+   * <p>simple - The result contains only the message value as a string.
+   * <p>rich - The result contains the message value, topic, partition, and offset.
+   */
+  public static final String MESSAGE_VIEW_PROPERTY = "stellar.kafka.message.view";
+
+  /**
+   * An acceptable value for the 'stellar.kafka.message.view' property. The result
+   * provided will contain only the message value as a string.
+   */
+  public static final String MESSAGE_VIEW_SIMPLE = "simple";
+
+  /**
+   * An acceptable value for the 'stellar.kafka.message.view' property.
+   *
+   * <p>Provides a view of each message with more detailed metadata beyond just the
+   * message value.  The result provided will contain the message value, topic, partition,
+   * and offset.
+   */
+  public static final String MESSAGE_VIEW_RICH = "rich";
 
   /**
    * The default set of Kafka properties.
@@ -137,6 +162,12 @@ public class KafkaFunctions {
    *   KAFKA_GET('topic', 1, { "auto.offset.reset": "earliest" })
    *   }
    * </pre>
+   *
+   * <p>By default, only the message value is returned. By setting the global property
+   * 'stellar.kafka.message.view' = 'rich' the function will return additional Kafka metadata
+   * including the topic, partition, offset, key, and timestamp contained in a map. Setting
+   * this property value to 'simple' or simply not setting the property value, will result
+   * in the default view behavior.
    */
   @Stellar(
           namespace = "KAFKA",
@@ -202,7 +233,8 @@ public class KafkaFunctions {
         while(messages.size() < count && wait < maxWait) {
 
           for(ConsumerRecord<String, String> record: consumer.poll(pollTimeout)) {
-            messages.add(record.value());
+            Object viewOfMessage = render(record, properties);
+            messages.add(viewOfMessage);
           }
 
           // how long have we waited?
@@ -247,6 +279,12 @@ public class KafkaFunctions {
    *   KAFKA_TAIL('topic', 10)
    *   }
    * </pre>
+   *
+   * <p>By default, only the message value is returned. By setting the global property
+   * 'stellar.kafka.message.view' = 'rich' the function will return additional Kafka metadata
+   * including the topic, partition, offset, key, and timestamp contained in a map. Setting
+   * this property value to 'simple' or simply not setting the property value, will result
+   * in the default view behavior.
    */
   @Stellar(
           namespace = "KAFKA",
@@ -312,7 +350,8 @@ public class KafkaFunctions {
         while(messages.size() < count && wait < maxWait) {
 
           for(ConsumerRecord<String, String> record: consumer.poll(pollTimeout)) {
-            messages.add(record.value());
+            Object viewOfMessage = render(record, properties);
+            messages.add(viewOfMessage);
           }
 
           // how long have we waited?
@@ -357,6 +396,7 @@ public class KafkaFunctions {
    *  KAFKA_PUT('topic', ["message1"], { "bootstrap.servers": "kafka-broker-1:6667" })
    *  }
    * </pre>
+   *
    */
   @Stellar(
           namespace = "KAFKA",
@@ -394,9 +434,49 @@ public class KafkaFunctions {
 
       // send the messages
       Properties properties = buildKafkaProperties(overrides, context);
-      putMessages(topic, messages, properties);
+      List<RecordMetadata> records = putMessages(topic, messages, properties);
 
-      return null;
+      // render a view of the messages that were written for the user
+      Object view = render(records, properties);
+      return view;
+    }
+
+    /**
+     * Render a view of the {@link RecordMetadata} that resulted from writing
+     * messages to Kafka.
+     *
+     * @param records The record metadata.
+     * @param properties The properties.
+     * @return
+     */
+    private Object render(List<RecordMetadata> records, Properties properties) {
+
+      Object view;
+      if(MESSAGE_VIEW_RICH.equals(getMessageView(properties))) {
+
+        // build a 'rich' view of the messages that were written
+        List<Object> responses = new ArrayList<>();
+        for(RecordMetadata record: records) {
+
+          // render the 'rich' view of the record
+          Map<String, Object> richView = new HashMap<>();
+          richView.put("topic", record.topic());
+          richView.put("partition", record.partition());
+          richView.put("offset", record.offset());
+          richView.put("timestamp", record.timestamp());
+
+          responses.add(richView);
+        }
+
+        // the rich view is a list of maps containing metadata about how each message was written
+        view = responses;
+
+      } else {
+
+        // otherwise, the view is simply a count of the number of messages written
+        view = CollectionUtils.size(records);
+      }
+      return view;
     }
 
     /**
@@ -407,9 +487,11 @@ public class KafkaFunctions {
      * @param topic The topic to send messages to.
      * @param messages The messages to send.
      * @param properties The properties to use with Kafka.
+     * @return Metadata about all the records written to Kafka.
      */
-    private void putMessages(String topic, List<String> messages, Properties properties) {
+    private List<RecordMetadata> putMessages(String topic, List<String> messages, Properties properties) {
       LOG.debug("KAFKA_PUT sending messages; topic={}, count={}", topic, messages.size());
+      List<RecordMetadata> records = new ArrayList<>();
       try (KafkaProducer<String, String> producer = new KafkaProducer<>(properties)) {
 
         List<Future<RecordMetadata>> futures = new ArrayList<>();
@@ -422,11 +504,14 @@ public class KafkaFunctions {
 
         // wait for the sends to complete
         for(Future<RecordMetadata> future : futures) {
-          waitForResponse(future, properties);
+          RecordMetadata record = waitForResponse(future, properties);
+          records.add(record);
         }
 
         producer.flush();
       }
+
+      return records;
     }
 
     /**
@@ -434,19 +519,23 @@ public class KafkaFunctions {
      *
      * @param future The future for the message being sent.
      * @param properties The configuration properties.
-     * @return
+     * @return Metadata about the record that was written to Kafka.
      */
-    private void waitForResponse(Future<RecordMetadata> future, Properties properties) {
+    private RecordMetadata waitForResponse(Future<RecordMetadata> future, Properties properties) {
+      RecordMetadata record = null;
       int maxWait = getMaxWait(properties);
+
       try {
         // wait for the record and then render it for the user
-        RecordMetadata record = future.get(maxWait, TimeUnit.MILLISECONDS);
+        record = future.get(maxWait, TimeUnit.MILLISECONDS);
         LOG.debug("KAFKA_PUT message sent; topic={}, partition={}, offset={}",
                 record.topic(), record.partition(), record.offset());
 
       } catch(TimeoutException | InterruptedException | ExecutionException e) {
         LOG.error("KAFKA_PUT message send failure", e);
       }
+
+      return record;
     }
 
     @Override
@@ -528,6 +617,12 @@ public class KafkaFunctions {
    * KAFKA_FIND('topic', m -> MAP_EXISTS('geo', m), 10)
    * }
    * </pre>
+   *
+   * <p>By default, only the message value is returned. By setting the global property
+   * 'stellar.kafka.message.view' = 'rich' the function will return additional Kafka metadata
+   * including the topic, partition, offset, key, and timestamp contained in a map. Setting
+   * this property value to 'simple' or simply not setting the property value, will result
+   * in the default view behavior.
    */
   @Stellar(
           namespace = "KAFKA",
@@ -601,7 +696,8 @@ public class KafkaFunctions {
 
             // only keep the message if the filter expression is satisfied
             if(isSatisfied(filter, record.value())) {
-              messages.add(record.value());
+              Object view = render(record, properties);
+              messages.add(view);
 
               // do we have enough messages already?
               if(messages.size() >= count) {
@@ -664,6 +760,41 @@ public class KafkaFunctions {
       // no initialization required
       return true;
     }
+  }
+
+  /**
+   * Renders the Kafka record into a view.
+   *
+   * <p>A user can customize the way in which a Kafka record is rendered by altering
+   * the "stellar.kafka.message.view" property.
+   *
+   * @param record The Kafka record to render.
+   * @param properties The properties which allows a user to customize the rendered view of a record.
+   * @return
+   */
+  private static Object render(ConsumerRecord<String, String> record, Properties properties) {
+    LOG.debug("Render message; topic={}, partition={}, offset={}",
+            record.topic(), record.partition(), record.offset());
+
+    Object result;
+    if(MESSAGE_VIEW_RICH.equals(getMessageView(properties))) {
+      // build the detailed view of the record
+      Map<String, Object> view = new HashMap<>();
+      view.put("value", record.value());
+      view.put("topic", record.topic());
+      view.put("partition", record.partition());
+      view.put("offset", record.offset());
+      view.put("timestamp", record.timestamp());
+      view.put("key", record.key());
+
+      result = view;
+
+    } else {
+      // default to the simple view
+      result = record.value();
+    }
+
+    return result;
   }
 
   /**
@@ -756,6 +887,23 @@ public class KafkaFunctions {
   }
 
   /**
+   * Determines how Kafka messages should be rendered for the user.
+   *
+   * @param properties The properties.
+   * @return How the Kafka messages should be rendered.
+   */
+  private static String getMessageView(Properties properties) {
+    // defaults to the simple view
+    String messageView = MESSAGE_VIEW_SIMPLE;
+
+    if(properties.containsKey(MESSAGE_VIEW_PROPERTY)) {
+      messageView = ConversionUtils.convert(properties.get(MESSAGE_VIEW_PROPERTY), String.class);
+    }
+
+    return messageView;
+  }
+
+  /**
    * Defines a minimal set of default parameters that can be overridden
    * via the global properties.
    */
@@ -791,6 +939,9 @@ public class KafkaFunctions {
 
     // set the default poll timeout
     properties.put(POLL_TIMEOUT_PROPERTY, DEFAULT_POLL_TIMEOUT);
+
+    // set the default message view
+    properties.put(MESSAGE_VIEW_PROPERTY, MESSAGE_VIEW_SIMPLE);
 
     return properties;
   }
