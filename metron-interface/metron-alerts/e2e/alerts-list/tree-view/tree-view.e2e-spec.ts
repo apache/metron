@@ -67,60 +67,60 @@ describe('Test spec for tree view', function () {
 //   HTML5 Drag and Drop with Selenium Webdriver issue effects this test:
 //   https://github.com/SeleniumHQ/selenium-google-code-issue-archive/issues/3604
 
-//   it('drag and drop should change group order',  async function() : Promise<any> {
-//     let before = {
-//       'firstDashRow': ['0', 'alerts_ui_e2e', 'ALERTS', '169'],
-//       'firstSubGroup': '0 US (22)',
-//       'secondSubGroup': '0 RU (44)',
-//       'thirdSubGroup': '0 FR (25)'
-//     };
+  xit('drag and drop should change group order',  async function() : Promise<any> {
+    let before = {
+      'firstDashRow': ['0', 'alerts_ui_e2e', 'ALERTS', '169'],
+      'firstSubGroup': '0 US (22)',
+      'secondSubGroup': '0 RU (44)',
+      'thirdSubGroup': '0 FR (25)'
+    };
 
-//     let after = {
-//       'firstDashRow': ['0', 'US', 'ALERTS', '22'],
-//       'secondDashRow': ['0', 'RU', 'ALERTS', '44'],
-//       'thirdDashRow': ['0', 'FR', 'ALERTS', '25'],
-//       'firstDashSubGroup': '0 alerts_ui_e2e (22)',
-//       'secondDashSubGroup': '0 alerts_ui_e2e (44)',
-//       'thirdDashSubGroup': '0 alerts_ui_e2e (25)'
-//     };
+    let after = {
+      'firstDashRow': ['0', 'US', 'ALERTS', '22'],
+      'secondDashRow': ['0', 'RU', 'ALERTS', '44'],
+      'thirdDashRow': ['0', 'FR', 'ALERTS', '25'],
+      'firstDashSubGroup': '0 alerts_ui_e2e (22)',
+      'secondDashSubGroup': '0 alerts_ui_e2e (44)',
+      'thirdDashSubGroup': '0 alerts_ui_e2e (25)'
+    };
 
-//     await page.selectGroup('source:type');
-//     await page.selectGroup('enrichments:geo:ip_dst_addr:country');
-//     expect(await page.getDashGroupValues('alerts_ui_e2e')).toEqualBcoz(before.firstDashRow, 'First Dash Row should be correct');
+    await page.selectGroup('source:type');
+    await page.selectGroup('enrichments:geo:ip_dst_addr:country');
+    expect(await page.getDashGroupValues('alerts_ui_e2e')).toEqualBcoz(before.firstDashRow, 'First Dash Row should be correct');
 
-//     await page.expandDashGroup('alerts_ui_e2e');
-//     expect(await page.getSubGroupValues('alerts_ui_e2e', 'US')).toEqualBcoz(before.firstSubGroup,
-//         'Dash Group Values should be correct for US');
-//     expect(await page.getSubGroupValues('alerts_ui_e2e', 'RU')).toEqualBcoz(before.secondSubGroup,
-//         'Dash Group Values should be present for RU');
-//     expect(await page.getSubGroupValues('alerts_ui_e2e', 'FR')).toEqualBcoz(before.thirdSubGroup,
-//         'Dash Group Values should be present for FR');
+    await page.expandDashGroup('alerts_ui_e2e');
+    expect(await page.getSubGroupValues('alerts_ui_e2e', 'US')).toEqualBcoz(before.firstSubGroup,
+        'Dash Group Values should be correct for US');
+    expect(await page.getSubGroupValues('alerts_ui_e2e', 'RU')).toEqualBcoz(before.secondSubGroup,
+        'Dash Group Values should be present for RU');
+    expect(await page.getSubGroupValues('alerts_ui_e2e', 'FR')).toEqualBcoz(before.thirdSubGroup,
+        'Dash Group Values should be present for FR');
 
-//     await page.simulateDragAndDrop('source:type', 'ip_src_addr');
+    await page.simulateDragAndDrop('source:type', 'ip_src_addr');
 
-//     expect(await page.getDashGroupValues('US')).toEqualBcoz(after.firstDashRow, 'First Dash Row after ' +
-//         'reorder should be correct');
-//     expect(await page.getDashGroupValues('RU')).toEqualBcoz(after.secondDashRow, 'Second Dash Row after ' +
-//         'reorder should be correct');
-//     expect(await page.getDashGroupValues('FR')).toEqualBcoz(after.thirdDashRow, 'Third Dash Row after ' +
-//         'reorder should be correct');
+    expect(await page.getDashGroupValues('US')).toEqualBcoz(after.firstDashRow, 'First Dash Row after ' +
+        'reorder should be correct');
+    expect(await page.getDashGroupValues('RU')).toEqualBcoz(after.secondDashRow, 'Second Dash Row after ' +
+        'reorder should be correct');
+    expect(await page.getDashGroupValues('FR')).toEqualBcoz(after.thirdDashRow, 'Third Dash Row after ' +
+        'reorder should be correct');
 
-//     await page.expandDashGroup('US');
-//     expect(await page.getSubGroupValues('US', 'alerts_ui_e2e')).toEqualBcoz(after.firstDashSubGroup,
-//         'First Dash Group Values should be present for alerts_ui_e2e');
+    await page.expandDashGroup('US');
+    expect(await page.getSubGroupValues('US', 'alerts_ui_e2e')).toEqualBcoz(after.firstDashSubGroup,
+        'First Dash Group Values should be present for alerts_ui_e2e');
 
-//     await page.expandDashGroup('RU');
-//     expect(await page.getSubGroupValues('RU', 'alerts_ui_e2e')).toEqualBcoz(after.secondDashSubGroup,
-//         'Second Dash Group Values should be present for alerts_ui_e2e');
+    await page.expandDashGroup('RU');
+    expect(await page.getSubGroupValues('RU', 'alerts_ui_e2e')).toEqualBcoz(after.secondDashSubGroup,
+        'Second Dash Group Values should be present for alerts_ui_e2e');
 
-//     await page.expandDashGroup('FR');
-//     expect(await page.getSubGroupValues('FR', 'alerts_ui_e2e')).toEqualBcoz(after.thirdDashSubGroup,
-//         'Third Dash Group Values should be present for alerts_ui_e2e');
+    await page.expandDashGroup('FR');
+    expect(await page.getSubGroupValues('FR', 'alerts_ui_e2e')).toEqualBcoz(after.thirdDashSubGroup,
+        'Third Dash Group Values should be present for alerts_ui_e2e');
 
-//     await page.simulateDragAndDrop('source:type', 'ip_dst_addr');
-//     await page.unGroup();
+    await page.simulateDragAndDrop('source:type', 'ip_dst_addr');
+    await page.unGroup();
 
-//   });
+  });
 
   // Test cannot pass until issue with missing dash score is resolved: https://issues.apache.org/jira/browse/METRON-1631
   xit('should have group details for single group by', async function() : Promise<any> {
