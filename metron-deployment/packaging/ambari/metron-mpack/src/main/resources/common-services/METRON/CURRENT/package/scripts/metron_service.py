@@ -27,6 +27,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.libraries.script import Script
 
 from metron_security import kinit
 

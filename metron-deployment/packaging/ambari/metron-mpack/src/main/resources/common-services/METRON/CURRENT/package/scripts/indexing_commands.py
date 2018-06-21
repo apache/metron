@@ -25,7 +25,6 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions import format as ambari_format
-from resource_management.libraries.script import Script
 from resource_management.libraries.functions.format import format
 
 import metron_service
