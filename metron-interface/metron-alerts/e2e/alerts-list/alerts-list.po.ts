@@ -170,6 +170,7 @@ export class MetronAlertsPage {
   clickConfigureTable() {
     let gearIcon = element(by.css('app-alerts-list .fa.fa-cog.configure-table-icon'));
     return waitForElementVisibility(gearIcon)
+    .then(() => scrollIntoView(gearIcon, true))
     .then(() => gearIcon.click())
     .then(() => waitForElementCountGreaterThan('app-configure-table tr', 282));
   }
@@ -197,7 +198,7 @@ export class MetronAlertsPage {
     return waitForElementVisibility(element.all(by.cssContainingText('table tr td a', name)).get(0))
           .then(() => element.all(by.cssContainingText('table tr td a', name)).get(0).click())
           .then(() => waitForText('.ace_line', textToWaitFor))
-          .then(() => element(by.css('.ace_line')).getText())
+          .then(() => element(by.css('.ace_line')).getText());
   }
 
   private clickTableText(name: string) {
@@ -289,10 +290,18 @@ export class MetronAlertsPage {
   }
 
   setSearchText(search: string,  alertCount = '169') {
+    // It is required to click on a visible element of Ace editor in order to
+    // bring focus to the input: https://stackoverflow.com/questions/37809915/element-not-visible-error-not-able-to-click-an-element
+    let EC = protractor.ExpectedConditions;
+    let aceInput = element(by.css('app-alerts-list .ace_text-input'));
+    let aceScroller = element(by.css('app-alerts-list .ace_scroller'));
     return this.clickClearSearch(alertCount)
-    .then(() => element(by.css('app-alerts-list .ace_text-input')).sendKeys(protractor.Key.BACK_SPACE))
-    .then(() => element(by.css('app-alerts-list .ace_text-input')).sendKeys(search))
-    .then(() => element(by.css('app-alerts-list .ace_text-input')).sendKeys(protractor.Key.ENTER))
+    .then(() => browser.wait(EC.presenceOf(aceScroller)))
+    .then(() => aceScroller.click())
+    .then(() => aceInput.sendKeys(protractor.Key.BACK_SPACE))
+    .then(() => aceInput.sendKeys(search))
+    .then(() => aceInput.sendKeys(protractor.Key.ENTER))
+    .then(() => browser.sleep(10000));
   }
 
   waitForElementPresence (element ) {
