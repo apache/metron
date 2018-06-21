@@ -156,4 +156,16 @@
         <description>The HBase column family which will hold user settings in HBase.</description>
         <display-name>User Settings HBase Column Family</display-name>
     </property>
+    <property>
+        <name>source_type_field</name>
+        <display-name>Source Type Field Name</display-name>
+        <description>The field name where the source type can be found in the search indices. This setting primarily affects the Alerts UI.</description>
+        <value>source:type</value>
+    </property>
+    <property>
+        <name>threat_triage_score_field</name>
+        <display-name>Threat Triage Score Field Name</display-name>
+        <description>The field name where the threat triage score can be found in the search indices. This setting primarily affects the Alerts UI.</description>
+        <value>threat:triage:score</value>
+    </property>
 </configuration>
