@@ -30,7 +30,6 @@ from resource_management.libraries.functions.format import format
 import metron_service
 import metron_security
 
-
 # Wrap major operations and functionality in this class
 class IndexingCommands:
     __params = None
@@ -394,7 +393,6 @@ class IndexingCommands:
             is_random_access_running = topologies[self.__random_access_indexing_topology] in ['ACTIVE', 'REBALANCING']
         return is_random_access_running
 
-
     def is_topology_active(self, env):
         return self.is_batch_topology_active(env) and self.is_random_access_topology_active(env)
 
@@ -403,6 +401,8 @@ class IndexingCommands:
         Performs a service check for Indexing.
         :param env: Environment
         """
+        metron_service.check_indexer_parameters()
+
         Logger.info('Checking Kafka topics for Indexing')
         metron_service.check_kafka_topics(self.__params, self.__get_topics())
 
