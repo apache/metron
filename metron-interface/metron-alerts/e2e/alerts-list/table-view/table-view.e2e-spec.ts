@@ -19,7 +19,6 @@ import { TableViewPage } from './table-view.po';
 import { LoginPage } from '../../login/login.po';
 import { loadTestData, deleteTestData } from '../../utils/e2e_util';
 import { protractor, browser, element, by, ElementFinder } from 'protractor';
-import { async } from 'q';
 
 class AutomationHelper {
 
@@ -51,7 +50,7 @@ describe('Alert Table View Tests', () => {
     loginPage = new LoginPage();
 
     await loadTestData();
-    await loginPage.login();
+    // await loginPage.login();
   });
 
   afterAll((params) => {
@@ -61,6 +60,14 @@ describe('Alert Table View Tests', () => {
 
   describe('Table sorting', () => {
     
+    beforeEach(async () => {
+      await loginPage.login();
+    });
+
+    afterEach(async () => {
+      await loginPage.logout();
+    });
+
     it('should sort by columns', () => {
       page.sortTable('ip_src_addr') // sorting ASC
       .then(() => {  
@@ -76,14 +83,14 @@ describe('Alert Table View Tests', () => {
       });
     });
 
-    // it('should sort by columns 2', async function() {
-    //   page.sortTable('ip_src_addr'); // sorting ASC
-    //   let firstSortResult = await AutomationHelper.getTextByQEId('alerts-table row-0 cell-3');
-    //   expect(firstSortResult).toEqual('192.168.66.1');
-    //   await page.sortTable('ip_src_addr') // sorting DESC
-    //   let secondSortResult = await AutomationHelper.getTextByQEId('alerts-table row-0 cell-3');
-    //   expect(secondSortResult).toEqual('192.168.138.158');
-    // });
+    it('should sort by columns 2', async function() {
+      page.sortTable('ip_src_addr'); // sorting ASC
+      let firstSortResult = await AutomationHelper.getTextByQEId('alerts-table row-0 cell-3');
+      expect(firstSortResult).toEqual('192.168.66.1');
+      await page.sortTable('ip_src_addr') // sorting DESC
+      let secondSortResult = await AutomationHelper.getTextByQEId('alerts-table row-0 cell-3');
+      expect(secondSortResult).toEqual('192.168.138.158');
+    });
 
     // it('should sort by score column', () => {
     //   //tablePOs.sortTable('Score');
