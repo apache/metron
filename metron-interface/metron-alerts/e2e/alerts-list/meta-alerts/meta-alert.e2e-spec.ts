@@ -69,8 +69,8 @@ describe('Test spec for meta alerts workflow', function() {
     expect(await tablePage.getChangesAlertTableTitle('Alerts (0)')).toEqual('Alerts (169)');
 
     /* Create Meta Alert */
-    // Select and unselect group is a workaround for UI bug where score doesn't show until two groups are selected
     await treePage.selectGroup('ip_dst_addr');
+    // Test cannot pass until issue with missing dash score is resolved: https://issues.apache.org/jira/browse/METRON-1631
     // expect(await treePage.getDashGroupValues('192.168.138.2')).toEqualBcoz(dashRowValues.firstDashRow, 'First Dashrow to be present');
 
     await treePage.clickOnMergeAlerts('192.168.138.2');
