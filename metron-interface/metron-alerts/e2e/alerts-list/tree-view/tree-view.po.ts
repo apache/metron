@@ -16,12 +16,11 @@
  * limitations under the License.
  */
 
-import {browser, element, by, protractor} from 'protractor';
+import { browser, element, by } from 'protractor';
 import {
   waitForElementPresence, waitForTextChange, waitForElementVisibility,
-  waitForElementInVisibility, waitForCssClass, waitForText, waitForStalenessOf,
-  waitForElementCountGreaterThan, reduce_for_get_all, UtilFun, waitForElementPresenceAndvisbility,
-  waitForNonEmptyText, waitForNonEmptyTextAndGetText, scrollIntoView
+  waitForElementInVisibility, waitForCssClass, waitForStalenessOf,
+  waitForElementCountGreaterThan, reduce_for_get_all, scrollIntoView
 } from '../../utils/e2e_util';
 
 export class TreeViewPage {
@@ -123,10 +122,10 @@ export class TreeViewPage {
   }
 
   async getDashGroupValues(name: string) {
-      let dashScore = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .dash-score')));
-      let groupName = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.severity-padding .title')));
-      let title = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.two-line .text-dark')));
-      let count = await waitForNonEmptyTextAndGetText(element(by.css('[data-name="' + name + '"] .text-light.two-line .title')));
+      let dashScore = await element(by.css('[data-name="' + name + '"] .dash-score')).getText();
+      let groupName = await element(by.css('[data-name="' + name + '"] .text-light.severity-padding .title')).getText();
+      let title = await element(by.css('[data-name="' + name + '"] .text-light.two-line .text-dark')).getText();
+      let count = await element(by.css('[data-name="' + name + '"] .text-light.two-line .title')).getText();
 
       return Promise.all([dashScore, groupName, title, count])
 
