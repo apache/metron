@@ -65,10 +65,8 @@ export class MetaAlertsComponent implements OnInit, OnDestroy {
     searchRequest.indices =  [META_ALERTS_SENSOR_TYPE];
     this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
       this.globalConfig = config;
+      searchRequest.sort = [new SortField(this.globalConfig['threat.triage.score.field'], 'desc')];
     });
-
-    searchRequest.sort = [new SortField(this.globalConfig['threat.triage.score.field'], 'desc')];
-
     this.searchService.search(searchRequest).subscribe(resp => this.searchResponse = resp);
   }
 

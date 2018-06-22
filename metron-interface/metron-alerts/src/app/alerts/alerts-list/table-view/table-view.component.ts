@@ -283,7 +283,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex) {
-    let alertToRemove = alert.source.alert[metaAlertIndex];
+    let alertToRemove = alert.source.metron_alert[metaAlertIndex];
     let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
     metaAlertAddRemoveRequest.metaAlertGuid = alert.source.guid;
     metaAlertAddRemoveRequest.alerts = [new GetRequest(alertToRemove.guid, alertToRemove[this.globalConfig['source.type.field']], '')];
