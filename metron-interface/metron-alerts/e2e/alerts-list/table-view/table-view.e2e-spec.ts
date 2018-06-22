@@ -19,6 +19,7 @@ import { TableViewPage } from './table-view.po';
 import { LoginPage } from '../../login/login.po';
 import { loadTestData, deleteTestData } from '../../utils/e2e_util';
 import { protractor, browser, element, by, ElementFinder } from 'protractor';
+import { async } from 'q';
 
 class AutomationHelper {
 
@@ -53,8 +54,8 @@ describe('Alert Table View Tests', () => {
     // await loginPage.login();
   });
 
-  afterAll((params) => {
-    deleteTestData();
+  afterAll(async () => {
+    await deleteTestData();
     // loginPage.logout();
   })
 
@@ -92,9 +93,14 @@ describe('Alert Table View Tests', () => {
       expect(secondSortResult).toEqual('192.168.138.158');
     });
 
-    // it('should sort by score column', () => {
-    //   //tablePOs.sortTable('Score');
-    // });
+    it('should sort by score column', async () => {
+      page.sortTable('Score');
+      let scoreValue = await AutomationHelper.getTextByQEId('alerts-table row-0 score');
+      expect(scoreValue).toEqual('-');
+      page.sortTable('Score');
+      scoreValue = await AutomationHelper.getTextByQEId('alerts-table row-0 score');
+      expect(scoreValue).toEqual('10');
+    });
 
   })
 
