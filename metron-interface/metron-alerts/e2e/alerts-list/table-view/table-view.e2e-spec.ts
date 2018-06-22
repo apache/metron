@@ -18,8 +18,7 @@
 import { TableViewPage } from './table-view.po';
 import { LoginPage } from '../../login/login.po';
 import { loadTestData, deleteTestData } from '../../utils/e2e_util';
-import { protractor, browser, element, by, ElementFinder } from 'protractor';
-import { async } from 'q';
+import { protractor, browser, element, by } from 'protractor';
 
 class AutomationHelper {
 
@@ -40,7 +39,7 @@ class AutomationHelper {
   }
 }
 
-describe('Alert Table View Tests', () => {
+describe('Alerts Table', () => {
 
   let page: TableViewPage;
   let loginPage: LoginPage;
@@ -51,15 +50,13 @@ describe('Alert Table View Tests', () => {
     loginPage = new LoginPage();
 
     await loadTestData();
-    // await loginPage.login();
   });
 
   afterAll(async () => {
     await deleteTestData();
-    // loginPage.logout();
   })
 
-  describe('Table sorting', () => {
+  describe('should sort by colum: ', () => {
     
     beforeEach(async () => {
       await loginPage.login();
@@ -69,23 +66,56 @@ describe('Alert Table View Tests', () => {
       await loginPage.logout();
     });
 
-    it('should sort by columns 2', async function() {
-      page.sortTable('ip_src_addr'); // sorting ASC
-      let firstSortResult = await AutomationHelper.getTextByQEId('alerts-table row-0 cell-3');
-      expect(firstSortResult).toEqual('192.168.66.1');
-      await page.sortTable('ip_src_addr') // sorting DESC
-      let secondSortResult = await AutomationHelper.getTextByQEId('alerts-table row-0 cell-3');
-      expect(secondSortResult).toEqual('192.168.138.158');
+    it('sorting ASC by ip_src_addr', async function() {
+      await page.sortTable('ip_src_addr'); // sorting ASC
+      const ascOrder = [];
+      ascOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-0 cell-3'));
+      ascOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-1 cell-3'));
+      ascOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-2 cell-3'));
+
+      expect(ascOrder).toEqual(['192.168.65.1','192.168.66.0','192.168.66.1']);
     });
 
-    it('should sort by score column', async () => {
-      page.sortTable('Score');
-      let scoreValue = await AutomationHelper.getTextByQEId('alerts-table row-0 score');
-      expect(scoreValue).toEqual('-');
-      page.sortTable('Score');
-      scoreValue = await AutomationHelper.getTextByQEId('alerts-table row-0 score');
-      expect(scoreValue).toEqual('10');
+    it('sorting DESC by ip_src_addr', async function() {
+      await page.sortTable('ip_src_addr'); // sorting ASC
+      await page.sortTable('ip_src_addr') // sorting DESC
+      const descOrder = [];
+      descOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-0 cell-3'));
+      descOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-1 cell-3'));
+      descOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-2 cell-3'));
+      
+      expect(descOrder).toEqual(['192.168.138.160','192.168.138.159','192.168.138.158']);
     });
+
+    it('sorting ASC by Score', async function() {
+      await page.sortTable('Score'); // sorting ASC
+      const ascOrder = [];
+      ascOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-0 score'));
+      ascOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-1 score'));
+      ascOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-2 score'));
+
+      expect(ascOrder).toEqual(['-','-','-']);
+    });
+
+    it('sorting DESC by Score', async function() {
+      await page.sortTable('Score'); // sorting ASC
+      await page.sortTable('Score') // sorting DESC
+      const descOrder = [];
+      descOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-0 score'));
+      descOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-1 score'));
+      descOrder.push(await AutomationHelper.getTextByQEId('alerts-table row-2 score'));
+      
+      expect(descOrder).toEqual(['10','9','8']);
+    });
+
+    // it('should sort by score column', async () => {
+    //   page.sortTable('Score');
+    //   let scoreValue = await AutomationHelper.getTextByQEId('alerts-table row-0 score');
+    //   expect(scoreValue).toEqual('-');
+    //   page.sortTable('Score');
+    //   scoreValue = await AutomationHelper.getTextByQEId('alerts-table row-0 score');
+    //   expect(scoreValue).toEqual('10');
+    // });
 
   })
 
