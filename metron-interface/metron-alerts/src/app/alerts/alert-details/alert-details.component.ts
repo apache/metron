@@ -99,7 +99,7 @@ export class AlertDetailsComponent implements OnInit {
       this.alertSource = alertSource;
       this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
       this.alertSources = (alertSource.metron_alert && alertSource.metron_alert.length > 0) ? alertSource.metron_alert : [alertSource];
-      this.setComments(alertSource);
+      this.setComments(alertSource['comments'] ? alertSource['comments'] : []);
 
       if (fireToggleEditor) {
         this.toggleNameEditor();
@@ -107,8 +107,7 @@ export class AlertDetailsComponent implements OnInit {
     });
   }
 
-  setComments(alert) {
-    let alertComments = alert['comments'] ? alert['comments'] : [];
+  setComments(alertComments) {
     this.alertCommentsWrapper = alertComments.map(alertComment =>
         new AlertCommentWrapper(alertComment, moment(new Date(alertComment.timestamp)).fromNow()));
   }
@@ -224,20 +223,22 @@ export class AlertDetailsComponent implements OnInit {
   onAddComment() {
     let alertComment = new AlertComment(this.alertCommentStr, this.authenticationService.getCurrentUserName(), new Date().getTime());
     let tAlertComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
+    let previousComments = tAlertComments.slice();
     tAlertComments.unshift(alertComment);
-    this.patchAlert(new Patch('add', '/comments', tAlertComments));
+    this.setComments(tAlertComments);
+    this.patchAlert(new Patch('add', '/comments', tAlertComments), () => {
+      this.setComments(previousComments);
+    });
   }
 
-  patchAlert(patch: Patch) {
+  patchAlert(patch: Patch, onPatchError) {
     let patchRequest = new PatchRequest();
     patchRequest.guid = this.alertSource.guid;
     patchRequest.index = this.alertIndex;
     patchRequest.patch = [patch];
     patchRequest.sensorType = this.alertSourceType;
 
-    this.updateService.patch(patchRequest).subscribe(() => {
-      this.getData();
-    });
+    this.updateService.patch(patchRequest).subscribe(() => {}, onPatchError);
   }
 
   onDeleteComment(index: number) {
@@ -250,8 +251,11 @@ export class AlertDetailsComponent implements OnInit {
 
     this.metronDialogBox.showConfirmationMessage(commentText).subscribe(response => {
       if (response) {
+        let previousCommentsWrapper = this.alertCommentsWrapper.slice();
         this.alertCommentsWrapper.splice(index, 1);
-        this.patchAlert(new Patch('add', '/comments', this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)));
+        this.patchAlert(new Patch('add', '/comments', this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)), () => {
+          this.alertCommentsWrapper = previousCommentsWrapper;
+        });
       }
     });
   }
