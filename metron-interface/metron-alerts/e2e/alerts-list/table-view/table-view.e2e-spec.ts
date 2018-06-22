@@ -17,33 +17,12 @@
  */
 import { TableViewPage } from './table-view.po';
 import { LoginPage } from '../../login/login.po';
-import { loadTestData, deleteTestData } from '../../utils/e2e_util';
-import { protractor, browser, element, by } from 'protractor';
-
-class AutomationHelper {
-
-  static readonly ID_ATTR: String = 'data-qe-id';
-
-  static getElementByQEId(qeId: String) {
-    const attr = AutomationHelper.ID_ATTR;
-    const selector = qeId.split(' ').map(qeIdPart => `[${attr}=${qeIdPart}]`).join(' ');
-    return element(by.css(selector));
-  }
-
-  static getTextByQEId(qeId: String) {
-    const el = AutomationHelper.getElementByQEId(qeId);
-    return browser.wait(protractor.ExpectedConditions.visibilityOf(el))
-    .then(() => {
-      return el.getText();
-    });
-  }
-}
+import { loadTestData, deleteTestData, AutomationHelper } from '../../utils/e2e_util';
 
 describe('Alerts Table', () => {
 
   let page: TableViewPage;
   let loginPage: LoginPage;
-  const autHelper: AutomationHelper = new AutomationHelper();
 
   beforeAll(async () => {
     page = new TableViewPage();
@@ -107,16 +86,5 @@ describe('Alerts Table', () => {
       
       expect(descOrder).toEqual(['10','9','8']);
     });
-
-    // it('should sort by score column', async () => {
-    //   page.sortTable('Score');
-    //   let scoreValue = await AutomationHelper.getTextByQEId('alerts-table row-0 score');
-    //   expect(scoreValue).toEqual('-');
-    //   page.sortTable('Score');
-    //   scoreValue = await AutomationHelper.getTextByQEId('alerts-table row-0 score');
-    //   expect(scoreValue).toEqual('10');
-    // });
-
   })
-
 });

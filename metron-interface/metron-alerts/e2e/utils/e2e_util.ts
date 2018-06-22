@@ -14,6 +14,25 @@ export class UtilFun {
   }
 }
 
+export class AutomationHelper {
+
+  static readonly ID_ATTR: String = 'data-qe-id';
+
+  static getElementByQEId(qeId: String) {
+    const attr = AutomationHelper.ID_ATTR;
+    const selector = qeId.split(' ').map(qeIdPart => `[${attr}=${qeIdPart}]`).join(' ');
+    return element(by.css(selector));
+  }
+
+  static getTextByQEId(qeId: String) {
+    const el = AutomationHelper.getElementByQEId(qeId);
+    return browser.wait(protractor.ExpectedConditions.visibilityOf(el))
+    .then(() => {
+      return el.getText();
+    });
+  }
+}
+
 export function changeURL(url: string) {
   return browser.get(url).then(() => {
       return browser.getCurrentUrl().then((newURL) => {
