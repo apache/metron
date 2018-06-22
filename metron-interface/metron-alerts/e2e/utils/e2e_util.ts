@@ -2,66 +2,59 @@ import { browser, protractor, by, element, ElementFinder } from 'protractor';
 import request = require('request');
 import fs = require('fs');
 
+const expCond = protractor.ExpectedConditions;
+
 export class UtilFun {
   public static async waitForElementPresence(element: ElementFinder): Promise<void> {
-    let EC = protractor.ExpectedConditions;
     await browser.wait(
-        EC.visibilityOf(element),
-        10000,
-        `${element.locator()} was expected to be visible`
+      expCond.visibilityOf(element),
+      10000,
+      `${element.locator()} was expected to be visible`
     );
   }
 }
 
 export function changeURL(url: string) {
-    return browser.get(url).then(() => {
-        return browser.getCurrentUrl().then((newURL) => {
-            return newURL;
-        });
-    });
+  return browser.get(url).then(() => {
+      return browser.getCurrentUrl().then((newURL) => {
+          return newURL;
+      });
+  });
 }
 
 export function waitForURL(url: string) {
-  let EC = protractor.ExpectedConditions;
-  return browser.wait(EC.urlIs(url));
+  return browser.wait(expCond.urlIs(url));
 }
 
 export function waitForText(selector, text) {
-  let EC = protractor.ExpectedConditions;
-  return browser.wait(EC.textToBePresentInElement(element(by.css(selector)), text)).catch((error) => console.log(`waitForText:`, error));;
+  return browser.wait(expCond.textToBePresentInElement(element(by.css(selector)), text)).catch((error) => console.log(`waitForText:`, error));;
 }
 
 export function waitForTextChange(element, previousText) {
-  let EC = protractor.ExpectedConditions;
   if (previousText.trim().length === 0) {
     return waitForNonEmptyText(element);
   }
-  return browser.wait(EC.not(EC.textToBePresentInElement(element, previousText))).catch((error) => console.log(`${element.locator()} waitForTextChange:`, error));
+  return browser.wait(expCond.not(expCond.textToBePresentInElement(element, previousText))).catch((error) => console.log(`${element.locator()} waitForTextChange:`, error));
 }
 
 export function waitForElementInVisibility (_element ) {
-    let EC = protractor.ExpectedConditions;
-    return browser.wait(EC.invisibilityOf(_element)).catch((error) => console.log(`${_element.locator()} waitForElementInVisibility:`, error));
+  return browser.wait(expCond.invisibilityOf(_element)).catch((error) => console.log(`${_element.locator()} waitForElementInVisibility:`, error));
 }
 
 export function waitForElementPresence (_element ) {
-    let EC = protractor.ExpectedConditions;
-    return browser.wait(EC.presenceOf(_element)).catch((error) => console.log(`${_element.locator()} waitForElementPresence:`, error));
+  return browser.wait(expCond.presenceOf(_element)).catch((error) => console.log(`${_element.locator()} waitForElementPresence:`, error));
 }
 
 export function waitForElementVisibility (_element ) {
-    let EC = protractor.ExpectedConditions;
-    return browser.wait(EC.visibilityOf(_element)).catch((error) => console.log(`${_element.locator()} waitForElementVisibility:`, error));
+  return browser.wait(expCond.visibilityOf(_element)).catch((error) => console.log(`${_element.locator()} waitForElementVisibility:`, error));
 }
 
 export function waitForElementPresenceAndvisbility(selector) {
-  let EC = protractor.ExpectedConditions;
-  return browser.wait(EC.visibilityOf(element(by.css(selector)))).catch((error) => console.log(`waitForElementPresenceAndvisbility: `, error));
+  return browser.wait(expCond.visibilityOf(element(by.css(selector)))).catch((error) => console.log(`waitForElementPresenceAndvisbility: `, error));
 }
 
 export function waitForStalenessOf (_element ) {
-    let EC = protractor.ExpectedConditions;
-    return browser.wait(EC.stalenessOf(_element)).catch((error) => console.log(`${_element.locator()} waitForStalenessOf: `, error));
+  return browser.wait(expCond.stalenessOf(_element)).catch((error) => console.log(`${_element.locator()} waitForStalenessOf: `, error));
 }
 
 export function waitForCssClass(elementFinder, desiredClass) {
