@@ -23,7 +23,6 @@
 var SpecReporter = require('jasmine-spec-reporter').SpecReporter;
 
 exports.config = {
-  SELENIUM_PROMISE_MANAGER: false,
   allScriptsTimeout: 15000,
   specs: [
     './e2e/login/login.e2e-spec.ts',
