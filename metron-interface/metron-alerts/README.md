@@ -40,7 +40,8 @@ Sorting has a similar caveat, in that if we are matching on multiple alerts, the
 Alerts that are contained in a a meta alert are generally excluded from search results, because a user has already grouped them in a meaningful way.
 
 ## Prerequisites
-* The Metron REST application should be up and running and Elasticsearch should have some alerts populated by Metron topologies
+* The Metron REST application should be up and running
+* Elasticsearch or Solr should have some alerts populated by Metron topologies, depending on which real-time store is enabled
 * The Management UI should be installed (which includes [Express](https://expressjs.com/))
 * The alerts can be populated using Full Dev or any other setup
 * UI is developed using angular4 and uses angular-cli
