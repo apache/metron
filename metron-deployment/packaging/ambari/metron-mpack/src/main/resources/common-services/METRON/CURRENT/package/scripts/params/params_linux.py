@@ -268,6 +268,8 @@ enrichment_input_topic = status_params.enrichment_input_topic
 enrichment_output_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
 enrichment_error_topic = config['configurations']['metron-enrichment-env']['enrichment_error_topic']
 threatintel_error_topic = config['configurations']['metron-enrichment-env']['threatintel_error_topic']
+enrichment_kafka_writer_batch_size = config['configurations']['metron-enrichment-env']['enrichment_kafka_writer_batch_size']
+enrichment_kafka_writer_batch_timeout = config['configurations']['metron-enrichment-env']['enrichment_kafka_writer_batch_timeout']
 
 # Enrichment - Storm common parameters
 enrichment_workers = config['configurations']['metron-enrichment-env']['enrichment_workers']
@@ -328,6 +330,8 @@ profiler_window_lag=config['configurations']['metron-profiler-env']['profiler_wi
 profiler_window_lag_units=config['configurations']['metron-profiler-env']['profiler_window_lag_units']
 profiler_topology_message_timeout_secs=config['configurations']['metron-profiler-env']['profiler_topology_message_timeout_secs']
 profiler_topology_max_spout_pending=config['configurations']['metron-profiler-env']['profiler_topology_max_spout_pending']
+profiler_kafka_writer_batch_size = config['configurations']['metron-profiler-env']['profiler_kafka_writer_batch_size']
+profiler_kafka_writer_batch_timeout = config['configurations']['metron-profiler-env']['profiler_kafka_writer_batch_timeout']
 
 # Indexing
 ra_indexing_kafka_start = config['configurations']['metron-indexing-env']['ra_indexing_kafka_start']
