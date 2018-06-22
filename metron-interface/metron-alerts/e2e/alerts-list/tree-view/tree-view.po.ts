@@ -127,8 +127,7 @@ export class TreeViewPage {
       let title = await element(by.css('[data-name="' + name + '"] .text-light.two-line .text-dark')).getText();
       let count = await element(by.css('[data-name="' + name + '"] .text-light.two-line .title')).getText();
 
-      return Promise.all([dashScore, groupName, title, count])
-
+      return Promise.all([dashScore, groupName, title, count]);
   }
 
   expandDashGroup(name: string) {
