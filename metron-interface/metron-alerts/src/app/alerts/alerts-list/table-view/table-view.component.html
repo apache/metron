@@ -31,7 +31,7 @@
           <td width="15" class="icon-cell"></td>
           <td (click)="addFilter(threatScoreFieldName(), getScore(alert.source))">
             <div appAlertSeverity [severity]="getScore(alert.source)">
-              <a attr.data-qe-id="{{'score-' + alertIndex}}"> {{ hasScore(alert.source) ? getScore(alert.source) : '-' }} </a>
+              <a attr.data-qe-id="{{'score'}}"> {{ hasScore(alert.source) ? getScore(alert.source) : '-' }} </a>
             </div>
           </td>
           <td *ngFor="let column of alertsColumnsToDisplay; let columnIndex = index;" #cell>
