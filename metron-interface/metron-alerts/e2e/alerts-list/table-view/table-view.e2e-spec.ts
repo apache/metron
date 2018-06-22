@@ -69,21 +69,6 @@ describe('Alert Table View Tests', () => {
       await loginPage.logout();
     });
 
-    it('should sort by columns', () => {
-      page.sortTable('ip_src_addr') // sorting ASC
-      .then(() => {  
-        return AutomationHelper.getTextByQEId('alerts-table row-0 cell-3');
-      }).then((result) => {
-        expect(result).toEqual('192.168.66.1');
-      }).then(() => {
-        return page.sortTable('ip_src_addr') // sorting DESC
-      }).then(() => {
-        return AutomationHelper.getTextByQEId('alerts-table row-0 cell-3');
-      }).then((result) => {
-        expect(result).toEqual('192.168.138.158');
-      });
-    });
-
     it('should sort by columns 2', async function() {
       page.sortTable('ip_src_addr'); // sorting ASC
       let firstSortResult = await AutomationHelper.getTextByQEId('alerts-table row-0 cell-3');
