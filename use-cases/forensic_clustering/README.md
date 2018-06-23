@@ -528,3 +528,11 @@ As you can see, we have found a few more malicious actors:
 * 94.78.80.45
 
 Now we can look at *other* things that they're doing to build and refine our definition of what an alert is without resorting to hard-coding of rules.  Note that nothing in our enrichments actually used the string `busybox`, so this is a more general purpose way of navigating similar things.
+
+### Version Info
+
+Verified against:
+
+- METRON_VERSION=0.5.0
+- ELASTIC_VERSION=5.6.2
+
