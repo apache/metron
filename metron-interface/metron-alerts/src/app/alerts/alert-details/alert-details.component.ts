@@ -221,12 +221,12 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   onAddComment() {
-    let alertComment = new AlertComment(this.alertCommentStr, this.authenticationService.getCurrentUserName(), new Date().getTime());
-    let newComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
-    let previousComments = newComments.slice();
-    newComments.unshift(alertComment);
-    this.setComments(newComments);
-    this.patchAlert(new Patch('add', '/comments', newComments), () => {
+    let newComment = new AlertComment(this.alertCommentStr, this.authenticationService.getCurrentUserName(), new Date().getTime());
+    let alertComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
+    let previousComments = alertComments.slice();
+    alertComments.unshift(newComment);
+    this.setComments(alertComments);
+    this.patchAlert(new Patch('add', '/comments', alertComments), () => {
       this.setComments(previousComments);
     });
   }
