@@ -32,6 +32,7 @@ import {AuthenticationService} from '../../service/authentication.service';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import { GlobalConfigService } from '../../service/global-config.service';
+import {del} from "selenium-webdriver/http";
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -223,10 +224,11 @@ export class AlertDetailsComponent implements OnInit {
   onAddComment() {
     let newComment = new AlertComment(this.alertCommentStr, this.authenticationService.getCurrentUserName(), new Date().getTime());
     let alertComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
-    let previousComments = alertComments.slice();
     alertComments.unshift(newComment);
     this.setComments(alertComments);
     this.patchAlert(new Patch('add', '/comments', alertComments), () => {
+      let previousComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)
+              .filter(alertComment => alertComment !== newComment);
       this.setComments(previousComments);
     });
   }
@@ -251,10 +253,11 @@ export class AlertDetailsComponent implements OnInit {
 
     this.metronDialogBox.showConfirmationMessage(commentText).subscribe(response => {
       if (response) {
-        let previousCommentsWrapper = this.alertCommentsWrapper.slice();
-        this.alertCommentsWrapper.splice(index, 1);
+        let deletedCommentWrapper = this.alertCommentsWrapper.splice(index, 1)[0];
         this.patchAlert(new Patch('add', '/comments', this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)), () => {
-          this.alertCommentsWrapper = previousCommentsWrapper;
+          // add the deleted comment back
+          this.alertCommentsWrapper.unshift(deletedCommentWrapper);
+          this.alertCommentsWrapper.sort((a, b) => b.alertComment.timestamp - a.alertComment.timestamp);
         });
       }
     });
