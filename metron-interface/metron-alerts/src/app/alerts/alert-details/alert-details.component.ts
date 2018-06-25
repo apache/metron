@@ -32,7 +32,6 @@ import {AuthenticationService} from '../../service/authentication.service';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import { GlobalConfigService } from '../../service/global-config.service';
-import {del} from "selenium-webdriver/http";
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
