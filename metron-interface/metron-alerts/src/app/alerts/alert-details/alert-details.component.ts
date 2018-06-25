@@ -99,7 +99,7 @@ export class AlertDetailsComponent implements OnInit {
       this.alertSource = alertSource;
       this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
       this.alertSources = (alertSource.metron_alert && alertSource.metron_alert.length > 0) ? alertSource.metron_alert : [alertSource];
-      this.setComments(alertSource['comments'] ? alertSource['comments'] : []);
+      this.setComments(alertSource['comments'] || []);
 
       if (fireToggleEditor) {
         this.toggleNameEditor();
@@ -222,11 +222,11 @@ export class AlertDetailsComponent implements OnInit {
 
   onAddComment() {
     let alertComment = new AlertComment(this.alertCommentStr, this.authenticationService.getCurrentUserName(), new Date().getTime());
-    let tAlertComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
-    let previousComments = tAlertComments.slice();
-    tAlertComments.unshift(alertComment);
-    this.setComments(tAlertComments);
-    this.patchAlert(new Patch('add', '/comments', tAlertComments), () => {
+    let newComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
+    let previousComments = newComments.slice();
+    newComments.unshift(alertComment);
+    this.setComments(newComments);
+    this.patchAlert(new Patch('add', '/comments', newComments), () => {
       this.setComments(previousComments);
     });
   }
