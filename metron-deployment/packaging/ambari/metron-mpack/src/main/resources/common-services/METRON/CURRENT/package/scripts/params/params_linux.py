@@ -92,7 +92,14 @@ global_properties_template = config['configurations']['metron-env']['elasticsear
 # Elasticsearch hosts and port management
 es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
 es_hosts = config['configurations']['metron-env']['es_hosts']
-es_host_list = es_hosts.split(",")
+
+# If there is no explicit setting for ES hosts, use those provided by Ambari
+if (len(es_hosts) == 0):
+    es_host_list = default('/clusterHostInfo/es_master_hosts', [])
+else:
+    es_host_list = es_hosts.split(",")
+    es_hosts = ",".join(es_host_list)
+
 es_binary_port = config['configurations']['metron-env']['es_binary_port']
 es_url = ",".join([host + ":" + es_binary_port for host in es_host_list])
 es_http_port = config['configurations']['metron-env']['es_http_port']
@@ -124,10 +131,24 @@ if has_zk_host:
     zookeeper_quorum += ':' + zookeeper_clientPort
 
 # Storm
-storm_rest_addr = status_params.storm_rest_addr
+storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", [])[0]
+if 'ui.https.port' in config['configurations']['storm-site']:
+    storm_ui_protocol = 'https'
+    storm_ui_port = config['configurations']['storm-site']['ui.https.port']
+else:
+    storm_ui_port = config['configurations']['storm-site']['ui.port']
+    storm_ui_protocol = 'http'
+
+storm_rest_addr = "{0}://{1}:{2}".format(storm_ui_protocol, storm_ui_host, storm_ui_port) 
 
 # Zeppelin
-zeppelin_server_url = status_params.zeppelin_server_url
+zeppelin_host = default("/clusterHostInfo/zeppelin_master_hosts", [])[0]
+zeppelin_port = config['configurations']['zeppelin-config']['zeppelin.server.port']
+zeppelin_ssl_enabled = config['configurations']['zeppelin-config']['zeppelin.ssl']
+if (zeppelin_ssl_enabled == "true"):
+    zeppelin_server_url = "https://{0}:{1}".format(zeppelin_host,zeppelin_port)
+else:
+    zeppelin_server_url = "http://{0}:{1}".format(zeppelin_host,zeppelin_port)
 
 # Kafka
 kafka_hosts = default("/clusterHostInfo/kafka_broker_hosts", [])
