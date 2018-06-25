@@ -149,7 +149,7 @@ We can represent these in the `$METRON_HOME/config/zookeeper/profiler.json` via 
     {
       "profile": "geo_distribution_from_centroid",
       "foreach": "'global'",
-      "onlyif": "exists(geo_distance) && geo_distance != null",
+      "onlyif": "geo_distance != null",
       "init" : {
         "s": "STATS_INIT()"
                },
@@ -161,7 +161,7 @@ We can represent these in the `$METRON_HOME/config/zookeeper/profiler.json` via 
     {
       "profile": "locations_by_user",
       "foreach": "user",
-      "onlyif": "exists(hash) && hash != null && LENGTH(hash) > 0",
+      "onlyif": "hash != null && LENGTH(hash) > 0",
       "init" : {
         "s": "MULTISET_INIT()"
                },
@@ -211,7 +211,6 @@ We also want to set up a triage rule associating a score and setting an alert if
           "dist_median := STATS_PERCENTILE(geo_distance_distr, 50.0)",
           "dist_sd := STATS_SD(geo_distance_distr)",
           "geo_outlier := ABS(dist_median - geo_distance) >= 5*dist_sd",
-          "is_alert := exists(is_alert) && is_alert",
           "is_alert := is_alert || (geo_outlier != null && geo_outlier == true)",
           "geo_distance_distr := null"
         ]

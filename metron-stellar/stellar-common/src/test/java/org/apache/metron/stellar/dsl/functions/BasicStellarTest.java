@@ -984,6 +984,7 @@ public class BasicStellarTest {
   private void checkFalsey(String falseyExpr) {
     VariableResolver resolver = new MapVariableResolver(new HashMap<>());
     Assert.assertTrue(runPredicate(String.format(" %s || true", falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("%s && EXCEPTION('blah')", falseyExpr), resolver));
     Assert.assertTrue(runPredicate(String.format("NOT(%s)", falseyExpr), resolver));
     Assert.assertFalse(runPredicate(String.format("if %s then true else false", falseyExpr), resolver));
     Assert.assertFalse(runPredicate(String.format("if %s then true || %s else false", falseyExpr, falseyExpr), resolver));

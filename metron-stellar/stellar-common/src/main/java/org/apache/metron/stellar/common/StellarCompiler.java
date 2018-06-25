@@ -152,7 +152,13 @@ public class StellarCompiler extends StellarBaseListener {
           if( curr != null && ((curr.getValue() == null && isBoolean(token))
           || (curr.getValue() != null && isEmptyList(curr.getValue())))
             ){
-            curr = new Token<Boolean>(false, Boolean.class, curr.getMultiArgContext());
+            //If we're in a situation where the token is a boolean token and the current value is one of the implicitly falsey scenarios
+            //* null or missing variable
+            //* empty list
+            // then we want to treat it as explicitly false by replacing the current token.
+            curr = new Token<>(false, Boolean.class, curr.getMultiArgContext());
+            instanceDeque.removeFirst();
+            instanceDeque.addFirst(curr);
           }
           if (curr != null && curr.getValue() != null && curr.getValue() instanceof Boolean
               && ShortCircuitOp.class.isAssignableFrom(token.getUnderlyingType())) {
@@ -758,13 +764,10 @@ public class StellarCompiler extends StellarBaseListener {
     // a null and we need to protect against that
     if(ctx.getStart() == ctx.getStop()) {
       expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
-        if (state.context.getActivityType().equals(ActivityType.VALIDATION_ACTIVITY)) {
-          if (tokenDeque.size() == 1 && (tokenDeque.peek().getValue() == null
-              || tokenDeque.peek().getUnderlyingType() == Boolean.class)) {
-            tokenDeque.pop();
-            tokenDeque.add(new Token<>(true, Boolean.class, getArgContext()));
-          }
-
+        if (tokenDeque.size() == 1 && (tokenDeque.peek().getValue() == null
+                || tokenDeque.peek().getUnderlyingType() == Boolean.class)) {
+          tokenDeque.pop();
+          tokenDeque.add(new Token<>(false, Boolean.class, getArgContext()));
         }
       }, DeferredFunction.class, context));
     }
