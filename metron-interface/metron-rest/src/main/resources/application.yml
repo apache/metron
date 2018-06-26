@@ -72,3 +72,7 @@ user:
   settings:
     table: user_settings
     cf: cf
+
+pcap:
+  input.path: /apps/metron/pcap
+  output.path: /tmp
