@@ -139,9 +139,13 @@ The application will be available at http://host:4201 assuming the port is set t
 
 1. E2E tests delete all the data in HBase table 'metron_update' and Elastic search index 'meta_alerts_index' for testing against its test data
 
-An Express.js server is available for accessing the rest api.
+1. E2E tests use [protractor-flake](https://github.com/NickTomlin/protractor-flake) to re-run flaky tests.
 
-1. Run the e2e webserver:
+1. It is recommended to shut down any running parsers while running E2E tests, as this sometimes causes them to fail.
+
+### Steps to run
+
+1. An Express.js server is available for accessing the rest api. Run the e2e webserver:
     ```
     cd metron/metron-interface/metron-alerts
     sh ./scripts/start-server-for-e2e.sh
