@@ -253,5 +253,5 @@ fi
 echo ""
 echo "Review commit carefully then run..."
 echo "    cd $WORK"
-echo "    git push upstream master"
+echo "    git push upstream $BASE_BRANCH"
 echo ""
