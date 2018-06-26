@@ -83,12 +83,12 @@ public class PcapJob implements Statusable {
     Long width = null;
     @Override
     public int getPartition(LongWritable longWritable, BytesWritable bytesWritable, int numPartitions) {
-      if(start == null) {
+      if (start == null) {
         initialize();
       }
       long x = longWritable.get();
       int ret = (int)Long.divideUnsigned(x - start, width);
-      if(ret > numPartitions) {
+      if (ret > numPartitions) {
         throw new IllegalArgumentException(String.format("Bad partition: key=%s, width=%d, partition=%d, numPartitions=%d"
                 , Long.toUnsignedString(x), width, ret, numPartitions)
             );
@@ -112,6 +112,7 @@ public class PcapJob implements Statusable {
       return configuration;
     }
   }
+
   public static class PcapMapper extends Mapper<LongWritable, BytesWritable, LongWritable, BytesWritable> {
 
     PcapFilter filter;
@@ -137,7 +138,7 @@ public class PcapJob implements Statusable {
         List<PacketInfo> packetInfos;
         try {
           packetInfos = PcapHelper.toPacketInfo(value.copyBytes());
-        } catch(Exception e) {
+        } catch (Exception e) {
           // toPacketInfo is throwing RuntimeExceptions. Attempt to catch and count errors with malformed packets
           context.getCounter(PCAP_COUNTER.MALFORMED_PACKET_COUNT).increment(1);
           return;
@@ -157,7 +158,7 @@ public class PcapJob implements Statusable {
   public static class PcapReducer extends Reducer<LongWritable, BytesWritable, LongWritable, BytesWritable> {
     @Override
     protected void reduce(LongWritable key, Iterable<BytesWritable> values, Context context) throws IOException, InterruptedException {
-      for(BytesWritable value : values) {
+      for (BytesWritable value : values) {
         context.write(key, value);
       }
     }
@@ -176,7 +177,7 @@ public class PcapJob implements Statusable {
                             , FileSystem fs
                             , PcapFilterConfigurator<T> filterImpl
                             ) throws IOException, ClassNotFoundException, InterruptedException {
-    Statusable statusable = query(basePath, baseOutputPath, finalBaseOutputPath, beginNS, endNS, numReducers, fields,
+    Statusable statusable = query(basePath, baseOutputPath, beginNS, endNS, numReducers, fields,
         conf,
         fs, filterImpl, true);
     JobStatus jobStatus = statusable.getStatus();
@@ -195,7 +196,6 @@ public class PcapJob implements Statusable {
    */
   public <T> Statusable query(Path basePath,
       Path baseOutputPath,
-      Path finalBaseOutputPath,
       long beginNS,
       long endNS,
       int numReducers,

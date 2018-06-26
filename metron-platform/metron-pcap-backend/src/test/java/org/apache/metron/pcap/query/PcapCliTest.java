@@ -17,6 +17,30 @@
  */
 package org.apache.metron.pcap.query;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -35,20 +59,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public class PcapCliTest {
 
   @Mock
@@ -59,8 +69,9 @@ public class PcapCliTest {
   private Clock clock;
 
   @Before
-  public void setup() {
+  public void setup() throws IOException {
     MockitoAnnotations.initMocks(this);
+    doCallRealMethod().when(jobRunner).writeResults(anyObject(), anyObject(), anyObject(), anyInt(), anyObject());
   }
 
   @Test
@@ -96,7 +107,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-random_prefix+0001.pcap");
+    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file://./pcap-data-random_prefix+0001.pcap"));
   }
 
   @Test
@@ -136,7 +147,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-random_prefix+0001.pcap");
+    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file://./pcap-data-random_prefix+0001.pcap"));
   }
 
   @Test
@@ -179,7 +190,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-random_prefix+0001.pcap");
+    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file://./pcap-data-random_prefix+0001.pcap"));
   }
 
   private long asNanos(String inDate, String format) throws ParseException {
@@ -212,7 +223,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-random_prefix+0001.pcap");
+    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file://./pcap-data-random_prefix+0001.pcap"));
   }
 
   @Test
@@ -240,7 +251,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-random_prefix+0001.pcap");
+    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file://./pcap-data-random_prefix+0001.pcap"));
   }
 
   // INVALID OPTION CHECKS

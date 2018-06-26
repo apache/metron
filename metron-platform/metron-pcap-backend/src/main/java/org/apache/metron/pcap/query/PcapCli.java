@@ -157,6 +157,7 @@ public class PcapCli {
     }
 
     try {
+      // write to local FS in the executing directory
       jobRunner.writeResults(results, resultsWriter, new Path("file://."),
           commonConfig.getNumRecordsPerFile(),
           commonConfig.getPrefix());
