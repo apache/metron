@@ -30,7 +30,7 @@ export class AlertsService {
   }
 
   public escalate(alerts: Alert[]): Observable<null> {
-    return this.http.post('/api/v1/alert/escalate', alerts, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.post('/api/v1/alerts/ui/escalate', alerts, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
     .catch(HttpUtil.handleError);
   }
 }

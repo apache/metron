@@ -33,10 +33,12 @@
             </label>
           </div>
           <div class="col-11 px-0">
-            <span class="severity" appAlertSeverity [severity]="alert.source['threat:triage:score']"></span><sup> {{ alert.source['threat:triage:score'] }} </sup>
+            <span class="severity" appAlertSeverity [severity]="getScore(alert)"></span><sup> {{ getScore(alert) }} </sup>
             <div class="px-0 guid-name-container">
-              <div [ngClass]="{'selected': selectedMetaAlert===alert.source.guid}"> {{(alert.source.name && alert.source.name.length > 0) ? alert.source.name : alert.source.guid | centerEllipses:20 }} ({{ alert.source.alert.length }})</div>
-              <span class="pull-left sub-text"> {{ (alert.source.alert_status && alert.source.alert_status.length > 0) ? alert.source.alert_status : 'NEW' }} </span>
+              <div [ngClass]="{'selected': selectedMetaAlert===alert.source.guid}" *ngIf="alert.source.name && alert.source.name.length > 0">{{ alert.source.name }} ({{ alert.source.metron_alert.length }})</div>
+              <div [ngClass]="{'selected': selectedMetaAlert===alert.source.guid}" *ngIf="!alert.source.name || alert.source.name.length === 0">{{ alert.source.guid | centerEllipses:20 }} ({{ alert.source.metron_alert.length }})</div>
+              <span class="pull-left sub-text" *ngIf="alert.source.status && alert.source.status.length > 0">{{ alert.source.status }}</span>
+              <span class="pull-left sub-text" *ngIf="!alert.source.status || alert.source.status.length === 0">NEW</span>
               <span class="pull-right sub-text"> {{ alert.source.timestamp | timeLapse }} </span>
             </div>
           </div>

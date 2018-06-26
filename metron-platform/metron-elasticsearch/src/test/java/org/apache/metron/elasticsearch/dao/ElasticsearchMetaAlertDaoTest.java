@@ -18,9 +18,14 @@
 
 package org.apache.metron.elasticsearch.dao;
 
+import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERTS_INDEX;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,6 +52,7 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.junit.Test;
 
 public class ElasticsearchMetaAlertDaoTest {
@@ -272,5 +278,31 @@ public class ElasticsearchMetaAlertDaoTest {
     metaAlertDao.init(elasticsearchDao);
     metaAlertDao.calculateMetaScores(metaalert);
     assertNotNull(metaalert.getDocument().get(MetaAlertDao.THREAT_FIELD_DEFAULT));
+  }
+
+  @Test
+  public void testUpdateShouldUpdateOnMissingMetaAlertIndex() throws Exception {
+    ElasticsearchDao elasticsearchDao = mock(ElasticsearchDao.class);
+    ElasticsearchMetaAlertDao emaDao = spy(new ElasticsearchMetaAlertDao(elasticsearchDao));
+
+    doThrow(new IndexNotFoundException(METAALERTS_INDEX)).when(emaDao).getMetaAlertsForAlert("alert_one");
+
+    Document update = new Document(new HashMap<>(), "alert_one", "", 0L);
+    emaDao.update(update, Optional.empty());
+
+    Map<Document, Optional<String>> expectedUpdate = new HashMap<Document, Optional<String>>() {{
+      put(update, Optional.empty());
+    }};
+    verify(elasticsearchDao).batchUpdate(expectedUpdate);
+  }
+
+  @Test(expected = IndexNotFoundException.class)
+  public void testUpdateShouldThrowExceptionOnMissingSensorIndex() throws Exception {
+    ElasticsearchMetaAlertDao emaDao = spy(new ElasticsearchMetaAlertDao());
+
+    doThrow(new IndexNotFoundException("bro")).when(emaDao).getMetaAlertsForAlert("alert_one");
+
+    Document update = new Document(new HashMap<>(), "alert_one", "", 0L);
+    emaDao.update(update, Optional.empty());
   }
 }

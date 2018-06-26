@@ -18,7 +18,14 @@
 package org.apache.storm.kafka.spout.internal;
 
 import java.util.concurrent.TimeUnit;
-import org.apache.storm.utils.Time;
+
+/*
+ This file is pulled from Apache Storm, with some modification to support lower version of
+ Apache Storm.
+
+ - Time.nanoTime() is introduced in Storm 1.1.0 so we changed to System.nanoTime()
+ -- Time.nanoTime() calls System.nanoTime() when it's not in time simulation mode.
+*/
 
 public class Timer {
   private final long delay;

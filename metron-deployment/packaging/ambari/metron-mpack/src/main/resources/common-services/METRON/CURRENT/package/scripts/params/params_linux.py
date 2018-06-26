@@ -256,6 +256,8 @@ metron_rest_classpath = config['configurations']['metron-rest-env']['metron_rest
 metron_sysconfig = config['configurations']['metron-rest-env']['metron_sysconfig']
 user_settings_hbase_table = status_params.user_settings_hbase_table
 user_settings_hbase_cf = status_params.user_settings_hbase_cf
+source_type_field = config['configurations']['metron-rest-env']['source_type_field']
+threat_triage_score_field = config['configurations']['metron-rest-env']['threat_triage_score_field']
 
 # Enrichment
 metron_enrichment_topology = status_params.metron_enrichment_topology
@@ -268,6 +270,8 @@ enrichment_input_topic = status_params.enrichment_input_topic
 enrichment_output_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
 enrichment_error_topic = config['configurations']['metron-enrichment-env']['enrichment_error_topic']
 threatintel_error_topic = config['configurations']['metron-enrichment-env']['threatintel_error_topic']
+enrichment_kafka_writer_batch_size = config['configurations']['metron-enrichment-env']['enrichment_kafka_writer_batch_size']
+enrichment_kafka_writer_batch_timeout = config['configurations']['metron-enrichment-env']['enrichment_kafka_writer_batch_timeout']
 
 # Enrichment - Storm common parameters
 enrichment_workers = config['configurations']['metron-enrichment-env']['enrichment_workers']
@@ -328,6 +332,8 @@ profiler_window_lag=config['configurations']['metron-profiler-env']['profiler_wi
 profiler_window_lag_units=config['configurations']['metron-profiler-env']['profiler_window_lag_units']
 profiler_topology_message_timeout_secs=config['configurations']['metron-profiler-env']['profiler_topology_message_timeout_secs']
 profiler_topology_max_spout_pending=config['configurations']['metron-profiler-env']['profiler_topology_max_spout_pending']
+profiler_kafka_writer_batch_size = config['configurations']['metron-profiler-env']['profiler_kafka_writer_batch_size']
+profiler_kafka_writer_batch_timeout = config['configurations']['metron-profiler-env']['profiler_kafka_writer_batch_timeout']
 
 # Indexing
 ra_indexing_kafka_start = config['configurations']['metron-indexing-env']['ra_indexing_kafka_start']

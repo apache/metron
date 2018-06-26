@@ -109,6 +109,36 @@ def build_global_config_patch(params, patch_file):
         "op": "add",
         "path": "/bootstrap.servers",
         "value": "{{kafka_brokers}}"
+    },
+    {
+        "op": "add",
+        "path": "/source.type.field",
+        "value": "{{source_type_field}}"
+    },
+    {
+        "op": "add",
+        "path": "/threat.triage.score.field",
+        "value": "{{threat_triage_score_field}}"
+    },
+    {
+        "op": "add",
+        "path": "/enrichment.writer.batchSize",
+        "value": "{{enrichment_kafka_writer_batch_size}}"
+    },
+    {
+        "op": "add",
+        "path": "/enrichment.writer.batchTimeout",
+        "value": "{{enrichment_kafka_writer_batch_timeout}}"
+    },
+    {
+        "op": "add",
+        "path": "/profiler.writer.batchSize",
+        "value": "{{profiler_kafka_writer_batch_size}}"
+    },
+    {
+        "op": "add",
+        "path": "/profiler.writer.batchTimeout",
+        "value": "{{profiler_kafka_writer_batch_timeout}}"
     }
   ]
   """

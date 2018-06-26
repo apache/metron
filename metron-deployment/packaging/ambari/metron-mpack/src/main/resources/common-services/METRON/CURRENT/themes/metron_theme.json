@@ -484,6 +484,14 @@
           "subsection-name": "subsection-enrichment-kafka"
         },
         {
+          "config": "metron-enrichment-env/enrichment_kafka_writer_batch_size",
+          "subsection-name": "subsection-enrichment-kafka"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_kafka_writer_batch_timeout",
+          "subsection-name": "subsection-enrichment-kafka"
+        },
+        {
           "config": "metron-enrichment-env/enrichment_workers",
           "subsection-name": "subsection-enrichment-storm"
         },
@@ -668,6 +676,14 @@
           "subsection-name": "subsection-profiler-kafka"
         },
         {
+          "config": "metron-profiler-env/profiler_kafka_writer_batch_size",
+          "subsection-name": "subsection-profiler-kafka"
+        },
+        {
+          "config": "metron-profiler-env/profiler_kafka_writer_batch_timeout",
+          "subsection-name": "subsection-profiler-kafka"
+        },
+        {
           "config": "metron-profiler-env/profiler_period_duration",
           "subsection-name": "subsection-profiler-setup"
         },
@@ -792,6 +808,14 @@
           "subsection-name": "subsection-rest"
         },
         {
+          "config": "metron-rest-env/source_type_field",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/threat_triage_score_field",
+          "subsection-name": "subsection-rest"
+        },
+        {
           "config": "metron-management-ui-env/metron_management_ui_port",
           "subsection-name": "subsection-management-ui"
         },
@@ -833,6 +857,18 @@
         }
       },
       {
+        "config": "metron-rest-env/source_type_field",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/threat_triage_score_field",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
         "config": "metron-parsers-env/parsers",
         "widget": {
           "type": "text-field"
@@ -844,7 +880,6 @@
           "type": "text-field"
         }
       },
-
       {
         "config": "metron-enrichment-env/geoip_url",
         "widget": {
@@ -883,6 +918,18 @@
       },
       {
         "config": "metron-enrichment-env/threatintel_error_topic",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_kafka_writer_batch_size",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_kafka_writer_batch_timeout",
         "widget": {
           "type": "text-field"
         }
@@ -1163,6 +1210,18 @@
         "config": "metron-profiler-env/profiler_kafka_start",
         "widget": {
           "type": "combo"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_kafka_writer_batch_size",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_kafka_writer_batch_timeout",
+        "widget": {
+          "type": "text-field"
         }
       },
       {
