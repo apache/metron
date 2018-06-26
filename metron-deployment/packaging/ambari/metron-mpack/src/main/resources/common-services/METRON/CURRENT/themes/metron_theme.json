@@ -488,6 +488,14 @@
           "subsection-name": "subsection-enrichment-kafka"
         },
         {
+          "config": "metron-enrichment-env/enrichment_kafka_writer_batch_size",
+          "subsection-name": "subsection-enrichment-kafka"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_kafka_writer_batch_timeout",
+          "subsection-name": "subsection-enrichment-kafka"
+        },
+        {
           "config": "metron-enrichment-env/enrichment_workers",
           "subsection-name": "subsection-enrichment-storm"
         },
@@ -669,6 +677,14 @@
         },
         {
           "config": "metron-profiler-env/profiler_kafka_start",
+          "subsection-name": "subsection-profiler-kafka"
+        },
+        {
+          "config": "metron-profiler-env/profiler_kafka_writer_batch_size",
+          "subsection-name": "subsection-profiler-kafka"
+        },
+        {
+          "config": "metron-profiler-env/profiler_kafka_writer_batch_timeout",
           "subsection-name": "subsection-profiler-kafka"
         },
         {
@@ -874,7 +890,6 @@
           "type": "text-field"
         }
       },
-
       {
         "config": "metron-enrichment-env/geoip_url",
         "widget": {
@@ -913,6 +928,18 @@
       },
       {
         "config": "metron-enrichment-env/threatintel_error_topic",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_kafka_writer_batch_size",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_kafka_writer_batch_timeout",
         "widget": {
           "type": "text-field"
         }
@@ -1193,6 +1220,18 @@
         "config": "metron-profiler-env/profiler_kafka_start",
         "widget": {
           "type": "combo"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_kafka_writer_batch_size",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_kafka_writer_batch_timeout",
+        "widget": {
+          "type": "text-field"
         }
       },
       {

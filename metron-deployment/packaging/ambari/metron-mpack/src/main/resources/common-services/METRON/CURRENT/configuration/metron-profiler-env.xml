@@ -221,4 +221,16 @@
     <description>The profiler storm topology acker executors</description>
     <display-name>Number of Acker Executors</display-name>
   </property>
+  <property>
+    <name>profiler_kafka_writer_batch_size</name>
+    <value>15</value>
+    <description>The number of records to batch when writing to Kakfa.</description>
+    <display-name>Kafka Writer Batch Size</display-name>
+  </property>
+  <property>
+    <name>profiler_kafka_writer_batch_timeout</name>
+    <value>0</value>
+    <description>The timeout in milliseconds after which a batch will be written to Kafka, even if the batch size has not been met.  If unspecified, or set to `0`, this defaults to a system-determined duration.</description>
+    <display-name>Kafka Writer Batch Timeout</display-name>
+  </property>
 </configuration>

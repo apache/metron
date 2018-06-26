@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import {Router, ActivatedRoute} from '@angular/router';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment/moment';
-import {Observable, Subscription} from 'rxjs/Rx';
+import {Subscription} from 'rxjs/Rx';
 
 import {SearchService} from '../../service/search.service';
 import {UpdateService} from '../../service/update.service';
@@ -32,12 +32,11 @@ import {AuthenticationService} from '../../service/authentication.service';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
 import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
-import { GlobalConfigService } from '../../service/global-config.service';
+import {GlobalConfigService} from '../../service/global-config.service';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
 }
-
 export enum Tabs {
   DETAILS, COMMENTS
 }
@@ -100,7 +99,7 @@ export class AlertDetailsComponent implements OnInit {
       this.alertSource = alertSource;
       this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
       this.alertSources = (alertSource.metron_alert && alertSource.metron_alert.length > 0) ? alertSource.metron_alert : [alertSource];
-      this.setComments(alertSource);
+      this.setComments(alertSource['comments'] || []);
 
       if (fireToggleEditor) {
         this.toggleNameEditor();
@@ -108,8 +107,7 @@ export class AlertDetailsComponent implements OnInit {
     });
   }
 
-  setComments(alert) {
-    let alertComments = alert['comments'] ? alert['comments'] : [];
+  setComments(alertComments) {
     this.alertCommentsWrapper = alertComments.map(alertComment =>
         new AlertCommentWrapper(alertComment, moment(new Date(alertComment.timestamp)).fromNow()));
   }
@@ -222,27 +220,33 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   onAddComment() {
+    let newComment = new AlertComment(this.alertCommentStr, this.authenticationService.getCurrentUserName(), new Date().getTime());
+    let alertComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
+    alertComments.unshift(newComment);
+    this.setComments(alertComments);
     let commentRequest = new CommentAddRemoveRequest();
     commentRequest.guid = this.alertSource.guid;
     commentRequest.comment = this.alertCommentStr;
     commentRequest.username = this.authenticationService.getCurrentUserName();
     commentRequest.timestamp = new Date().getTime();
     commentRequest.sensorType = this.alertSourceType;
-    this.updateService.addComment(commentRequest).subscribe( () => {
-      this.getData(true);
-    });
+    this.updateService.addComment(commentRequest).subscribe(
+        () => {},
+        () => {
+          let previousComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)
+          .filter(alertComment => alertComment !== newComment);
+          this.setComments(previousComments);
+        });
   }
 
-  patchAlert(patch: Patch) {
+  patchAlert(patch: Patch, onPatchError) {
     let patchRequest = new PatchRequest();
     patchRequest.guid = this.alertSource.guid;
     patchRequest.index = this.alertIndex;
     patchRequest.patch = [patch];
     patchRequest.sensorType = this.alertSourceType;
 
-    this.updateService.patch(patchRequest).subscribe(() => {
-      this.getData();
-    });
+    this.updateService.patch(patchRequest).subscribe(() => {}, onPatchError);
   }
 
   onDeleteComment(index: number) {
@@ -255,18 +259,23 @@ export class AlertDetailsComponent implements OnInit {
 
     this.metronDialogBox.showConfirmationMessage(commentText).subscribe(response => {
       if (response) {
+        let deletedCommentWrapper = this.alertCommentsWrapper.splice(index, 1)[0];
         let commentRequest = new CommentAddRemoveRequest();
         commentRequest.guid = this.alertSource.guid;
         commentRequest.comment = this.alertCommentsWrapper[index].alertComment.comment;
         commentRequest.username = this.alertCommentsWrapper[index].alertComment.username;
         commentRequest.timestamp = this.alertCommentsWrapper[index].alertComment.timestamp;
         commentRequest.sensorType = this.alertSourceType;
-        this.updateService.removeComment(commentRequest).subscribe( () => {
-          this.getData(true);
-        });
+        this.updateService.removeComment(commentRequest).subscribe(
+            () => {
+              this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)
+            },
+            () => {
+              // add the deleted comment back
+              this.alertCommentsWrapper.unshift(deletedCommentWrapper);
+              this.alertCommentsWrapper.sort((a, b) => b.alertComment.timestamp - a.alertComment.timestamp);
+            });
       }
     });
   }
 }
-
-
