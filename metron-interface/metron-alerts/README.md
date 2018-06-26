@@ -133,15 +133,13 @@ The application will be available at http://host:4201 assuming the port is set t
 ## E2E Tests
 
 ### Caveats
-1. E2E tests uses data from full-dev wherever applicable. The tests assume rest-api's are available @http://node1:8082
+1. E2E tests uses data from full-dev wherever applicable. The tests assume rest-api's are available @http://node1:8082. It is recommended to shutdown all other Metron services while running the E2E tests including Parsers, Enrichment, Indexing and the Profiler.
 
 1. E2E tests are run on headless chrome. To see the chrome browser in action, remove the '--headless' parameter of chromeOptions in metron/metron-interface/metron-alerts/protractor.conf.js file
 
 1. E2E tests delete all the data in HBase table 'metron_update' and Elastic search index 'meta_alerts_index' for testing against its test data
 
 1. E2E tests use [protractor-flake](https://github.com/NickTomlin/protractor-flake) to re-run flaky tests.
-
-1. It is recommended to shut down any running parsers while running E2E tests, as this sometimes causes them to fail.
 
 ### Steps to run
 
