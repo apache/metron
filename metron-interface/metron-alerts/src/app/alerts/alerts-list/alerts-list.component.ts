@@ -77,6 +77,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   groupFacets: Facets;
   globalConfig: {} = {};
   configSubscription: Subscription;
+  groups = [];
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -239,6 +240,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onGroupsChange(groups) {
+    this.groups = groups;
     this.queryBuilder.setGroupby(groups);
     this.search();
   }

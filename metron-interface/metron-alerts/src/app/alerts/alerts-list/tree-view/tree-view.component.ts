@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy, Input } from '@angular/core';
 import {Router} from '@angular/router';
 import {Subscription, Observable} from 'rxjs/Rx';
 
@@ -47,12 +47,12 @@ import { GlobalConfigService } from '../../../service/global-config.service';
 
 export class TreeViewComponent extends TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
+  @Input() globalConfig: {} = {};
   groupByFields: string[] = [];
   topGroups: TreeGroupData[] = [];
   groupResponse: GroupResponse = new GroupResponse();
   treeGroupSubscriptionMap: {[key: string]: TreeAlertsSubscription } = {};
   alertsChangedSubscription: Subscription;
-  globalConfig: {} = {};
   configSubscription: Subscription;
 
   constructor(router: Router,
@@ -186,14 +186,10 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
   ngOnInit() {
     this.addAlertChangedListner();
-    this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
-      this.globalConfig = config;
-    });
   }
 
   ngOnDestroy(): void {
     this.removeAlertChangedLister();
-    this.configSubscription.unsubscribe();
   }
 
   searchGroup(selectedGroup: TreeGroupData, searchRequest: SearchRequest): Subscription {
