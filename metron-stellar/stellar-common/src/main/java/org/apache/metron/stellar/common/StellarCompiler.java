@@ -107,13 +107,50 @@ public class StellarCompiler extends StellarBaseListener {
       return tokenDeque;
     }
 
-    private boolean isBoolean(Token<?> token) {
+    /**
+     * When treating empty or missing values as false, we need to ensure we ONLY do so in a conditional context.
+     * @param tokenValueType
+     * @return
+     */
+    private boolean isConditionalContext(Class<?> tokenValueType) {
+      return tokenValueType != null && (
+               tokenValueType == BooleanArg.class
+            || tokenValueType == IfExpr.class
+            || tokenValueType == MatchClauseCheckExpr.class
+      );
+    }
+
+    /**
+     * Determine if a token and value is an empty list in the appropriate conditional context
+     * @param token
+     * @param value
+     * @return
+     */
+    private boolean isEmptyList(Token<?> token, Object value) {
+      if(value != null && isConditionalContext(token.getUnderlyingType())) {
+        if (value instanceof Iterable) {
+          return Iterables.isEmpty((Iterable) value);
+        } else if (value instanceof Map) {
+          return ((Map) value).isEmpty();
+        }
+        else {
+          return false;
+        }
+      }else {
+        return false;
+      }
+    }
+
+    /**
+     * Determine if a token is missing in a conditional context.
+     * @param token
+     * @return
+     */
+    private boolean isBoolean(Token<?> token, Object value) {
       if(token == null || token.getValue() == null) {
         return false;
       }
-
-      Class<?> tokenValueType = token.getValue().getClass();
-      return tokenValueType == BooleanArg.class || tokenValueType == IfExpr.class;
+      return value == null && isConditionalContext(token.getValue().getClass());
     }
 
     public Object apply(ExpressionState state) {
@@ -149,9 +186,9 @@ public class StellarCompiler extends StellarBaseListener {
           and with the current context.
            */
           Token<?> curr = instanceDeque.peek();
-          if( curr != null && ((curr.getValue() == null && isBoolean(token))
-          || (curr.getValue() != null && isEmptyList(curr.getValue())))
-            ){
+          boolean isFalsey = curr != null &&
+                  (isBoolean(token, curr.getValue()) || isEmptyList(token, curr.getValue()));
+          if(isFalsey){
             //If we're in a situation where the token is a boolean token and the current value is one of the implicitly falsey scenarios
             //* null or missing variable
             //* empty list
@@ -235,17 +272,7 @@ public class StellarCompiler extends StellarBaseListener {
       }
     }
 
-    private boolean isEmptyList(Object value) {
-      if(value instanceof Iterable) {
-        return Iterables.isEmpty((Iterable)value);
-      }
-      else if(value instanceof Map) {
-        return ((Map)value).isEmpty();
-      }
-      else {
-        return false;
-      }
-    }
+
 
     public void shortCircuit(Iterator<Token<?>> it, FrameContext.Context context) {
       while (it.hasNext()) {
@@ -764,11 +791,11 @@ public class StellarCompiler extends StellarBaseListener {
     // a null and we need to protect against that
     if(ctx.getStart() == ctx.getStop()) {
       expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
-        if (tokenDeque.size() == 1 && (tokenDeque.peek().getValue() == null
-                || tokenDeque.peek().getUnderlyingType() == Boolean.class)) {
-          tokenDeque.pop();
-          tokenDeque.add(new Token<>(false, Boolean.class, getArgContext()));
-        }
+          if (tokenDeque.size() == 1 && (tokenDeque.peek().getValue() == null
+                  || tokenDeque.peek().getUnderlyingType() == Boolean.class)) {
+            tokenDeque.pop();
+            tokenDeque.add(new Token<>(false, Boolean.class, getArgContext()));
+          }
       }, DeferredFunction.class, context));
     }
     expression.tokenDeque.push(new Token<>(new MatchClauseCheckExpr(), MatchClauseCheckExpr.class, getArgContext()));
