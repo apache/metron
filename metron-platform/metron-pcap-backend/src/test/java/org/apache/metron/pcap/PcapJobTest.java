@@ -30,12 +30,14 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.JobID;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.JobStatus.State;
@@ -55,6 +57,9 @@ public class PcapJobTest {
   private Job job;
   @Mock
   private org.apache.hadoop.mapreduce.JobStatus mrStatus;
+  @Mock
+  private JobID jobId;
+  private static final String JOB_ID_VAL = "job_abc_123";
   private Path basePath;
   private Path baseOutPath;
   private long startTime;
@@ -74,6 +79,8 @@ public class PcapJobTest {
     fixedFields = new HashMap<>();
     fixedFields.put("ip_src_addr", "192.168.1.1");
     hadoopConfig = new Configuration();
+    when(jobId.toString()).thenReturn(JOB_ID_VAL);
+    when(mrStatus.getJobID()).thenReturn(jobId);
   }
 
   @Test
@@ -94,7 +101,7 @@ public class PcapJobTest {
   private class TestJob extends PcapJob {
 
     @Override
-    public <T> Job createJob(Path basePath, Path outputPath, long beginNS, long endNS,
+    public <T> Job createJob(Optional<String> jobName, Path basePath, Path outputPath, long beginNS, long endNS,
         int numReducers, T fields, Configuration conf, FileSystem fs,
         PcapFilterConfigurator<T> filterImpl) throws IOException {
       return job;
@@ -107,7 +114,9 @@ public class PcapJobTest {
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
     when(job.getStatus()).thenReturn(mrStatus);
     TestJob testJob = new TestJob();
-    Statusable statusable = testJob.query(basePath,
+    Statusable statusable = testJob.query(
+        Optional.empty(),
+        basePath,
         baseOutPath,
         startTime,
         endTime,
@@ -132,7 +141,9 @@ public class PcapJobTest {
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.FAILED);
     when(job.getStatus()).thenReturn(mrStatus);
     TestJob testJob = new TestJob();
-    Statusable statusable = testJob.query(basePath,
+    Statusable statusable = testJob.query(
+        Optional.empty(),
+        basePath,
         baseOutPath,
         startTime,
         endTime,
@@ -156,7 +167,9 @@ public class PcapJobTest {
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.KILLED);
     when(job.getStatus()).thenReturn(mrStatus);
     TestJob testJob = new TestJob();
-    Statusable statusable = testJob.query(basePath,
+    Statusable statusable = testJob.query(
+        Optional.empty(),
+        basePath,
         baseOutPath,
         startTime,
         endTime,
@@ -180,7 +193,9 @@ public class PcapJobTest {
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
     when(job.getStatus()).thenReturn(mrStatus);
     TestJob testJob = new TestJob();
-    Statusable statusable = testJob.query(basePath,
+    Statusable statusable = testJob.query(
+        Optional.empty(),
+        basePath,
         baseOutPath,
         startTime,
         endTime,
@@ -204,7 +219,9 @@ public class PcapJobTest {
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.RUNNING);
     when(job.getStatus()).thenReturn(mrStatus);
     TestJob testJob = new TestJob();
-    Statusable statusable = testJob.query(basePath,
+    Statusable statusable = testJob.query(
+        Optional.empty(),
+        basePath,
         baseOutPath,
         startTime,
         endTime,
@@ -218,11 +235,13 @@ public class PcapJobTest {
     when(job.reduceProgress()).thenReturn(0f);
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.RUNNING));
+    Assert.assertThat(status.getDescription(), equalTo("map: 50.0%, reduce: 0.0%"));
     Assert.assertThat(status.getPercentComplete(), equalTo(25.0));
     when(job.mapProgress()).thenReturn(1.0f);
     when(job.reduceProgress()).thenReturn(0.5f);
     status = statusable.getStatus();
     Assert.assertThat(status.getPercentComplete(), equalTo(75.0));
+    Assert.assertThat(status.getDescription(), equalTo("map: 100.0%, reduce: 50.0%"));
   }
 
 }

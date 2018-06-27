@@ -33,9 +33,16 @@ public class JobStatus {
     KILLED
   }
 
+  private String jobId;
   private State state = State.NOT_RUNNING;
   private double percentComplete = 0.0;
+  private String description;
   private Path resultPath;
+
+  public JobStatus withJobId(String jobId) {
+    this.jobId = jobId;
+    return this;
+  }
 
   public JobStatus withState(State state) {
     this.state = state;
@@ -44,6 +51,11 @@ public class JobStatus {
 
   public JobStatus withPercentComplete(double percentComplete) {
     this.percentComplete = percentComplete;
+    return this;
+  }
+
+  public JobStatus withDescription(String description) {
+    this.description = description;
     return this;
   }
 
@@ -58,6 +70,10 @@ public class JobStatus {
 
   public double getPercentComplete() {
     return percentComplete;
+  }
+
+  public String getDescription() {
+    return description;
   }
 
   public Path getResultPath() {

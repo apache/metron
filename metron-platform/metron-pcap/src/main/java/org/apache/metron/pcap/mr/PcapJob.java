@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
@@ -169,7 +170,8 @@ public class PcapJob implements Statusable {
   /**
    * Run query synchronously.
    */
-  public <T> SequenceFileIterable query(Path basePath
+  public <T> SequenceFileIterable query(Optional<String> jobName
+                            ,Path basePath
                             , Path baseOutputPath
                             , long beginNS
                             , long endNS
@@ -179,7 +181,7 @@ public class PcapJob implements Statusable {
                             , FileSystem fs
                             , PcapFilterConfigurator<T> filterImpl
                             ) throws IOException, ClassNotFoundException, InterruptedException {
-    Statusable statusable = query(basePath, baseOutputPath, beginNS, endNS, numReducers, fields,
+    Statusable statusable = query(jobName, basePath, baseOutputPath, beginNS, endNS, numReducers, fields,
         conf,
         fs, filterImpl, true);
     JobStatus jobStatus = statusable.getStatus();
@@ -196,7 +198,8 @@ public class PcapJob implements Statusable {
    * Run query sync OR async based on flag. Async mode allows the client to check the returned
    * statusable object for status details.
    */
-  public <T> Statusable query(Path basePath,
+  public <T> Statusable query(Optional<String> jobName,
+      Path basePath,
       Path baseOutputPath,
       long beginNS,
       long endNS,
@@ -217,7 +220,8 @@ public class PcapJob implements Statusable {
       LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
     }
     outputPath =  new Path(baseOutputPath, outputDirName);
-    job = createJob( basePath
+    job = createJob(jobName
+        , basePath
         , outputPath
         , beginNS
         , endNS
@@ -287,7 +291,8 @@ public class PcapJob implements Statusable {
   /**
    * Creates, but does not submit the job.
    */
-  public <T> Job createJob( Path basePath
+  public <T> Job createJob(Optional<String> jobName
+                      ,Path basePath
                       , Path outputPath
                       , long beginNS
                       , long endNS
@@ -303,6 +308,7 @@ public class PcapJob implements Statusable {
     conf.set(WIDTH_CONF, "" + findWidth(beginNS, endNS, numReducers));
     filterImpl.addToConfig(fields, conf);
     Job job = Job.getInstance(conf);
+    jobName.ifPresent(job::setJobName);
     job.setJarByClass(PcapJob.class);
     job.setMapperClass(PcapJob.PcapMapper.class);
     job.setMapOutputKeyClass(LongWritable.class);
@@ -345,11 +351,12 @@ public class PcapJob implements Statusable {
       status.withPercentComplete(100).withState(State.SUCCEEDED);
     } else {
       try {
+        status.withJobId(job.getStatus().getJobID().toString());
         if (job.isComplete()) {
           status.withPercentComplete(100);
           switch (job.getStatus().getState()) {
             case SUCCEEDED:
-              status.withState(State.SUCCEEDED);
+              status.withState(State.SUCCEEDED).withDescription(State.SUCCEEDED.toString());
               break;
             case FAILED:
               status.withState(State.FAILED);
@@ -362,7 +369,9 @@ public class PcapJob implements Statusable {
           float mapProg = job.mapProgress();
           float reduceProg = job.reduceProgress();
           float totalProgress = ((mapProg / 2) + (reduceProg / 2)) * 100;
-          status.withPercentComplete(totalProgress).withState(State.RUNNING);
+          String description = String.format("map: %s%%, reduce: %s%%", mapProg * 100, reduceProg * 100);
+          status.withPercentComplete(totalProgress).withState(State.RUNNING)
+              .withDescription(description);
         }
       } catch (Exception e) {
         throw new RuntimeException("Error occurred while attempting to retrieve job status.", e);

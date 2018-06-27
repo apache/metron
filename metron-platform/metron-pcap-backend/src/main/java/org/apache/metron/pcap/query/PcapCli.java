@@ -20,6 +20,7 @@ package org.apache.metron.pcap.query;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.tuple.Pair;
@@ -97,7 +98,7 @@ public class PcapCli {
       long endTime = time.getRight();
 
       try {
-        results = jobRunner.query(
+        results = jobRunner.query(Optional.empty(),
                 new Path(config.getBasePath()),
                 new Path(config.getBaseOutputPath()),
                 startTime,
@@ -131,7 +132,7 @@ public class PcapCli {
       long endTime = time.getRight();
 
       try {
-        results = jobRunner.query(
+        results = jobRunner.query(Optional.empty(),
                 new Path(config.getBasePath()),
                 new Path(config.getBaseOutputPath()),
                 startTime,
@@ -152,7 +153,8 @@ public class PcapCli {
 
     try {
       // write to local FS in the executing directory
-      jobRunner.writeResults(results, resultsWriter, new Path("file://."),
+      String execDir = System.getProperty("user.dir");
+      jobRunner.writeResults(results, resultsWriter, new Path("file:///" + execDir),
           commonConfig.getNumRecordsPerFile(),
           commonConfig.getPrefix());
     } catch (IOException e) {

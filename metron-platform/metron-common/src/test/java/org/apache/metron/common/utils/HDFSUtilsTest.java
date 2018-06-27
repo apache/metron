@@ -37,10 +37,21 @@ public class HDFSUtilsTest {
   @Test
   public void writes_file_to_local_fs() throws Exception {
     String outText = "small brown bike and casket lottery";
-    String outFile = tempDir.getRoot().getAbsolutePath() + "outfile.txt";
+    String outFile = tempDir.getRoot().getAbsolutePath() + "/outfile.txt";
     Configuration config = new Configuration();
     config.set("fs.default.name", "file:///");
     HDFSUtils.write(config, outText.getBytes(StandardCharsets.UTF_8), outFile);
+    String actual = TestUtils.read(new File(outFile));
+    assertThat("Text should match", actual, equalTo(outText));
+  }
+
+  @Test
+  public void writes_file_to_local_fs_with_scheme_defined_only_in_uri() throws Exception {
+    String outText = "small brown bike and casket lottery";
+    String outFile = tempDir.getRoot().getAbsolutePath() + "/outfile.txt";
+    Configuration config = new Configuration();
+    HDFSUtils.write(config, outText.getBytes(StandardCharsets.UTF_8), "file:///" + outFile);
+
     String actual = TestUtils.read(new File(outFile));
     assertThat("Text should match", actual, equalTo(outText));
   }

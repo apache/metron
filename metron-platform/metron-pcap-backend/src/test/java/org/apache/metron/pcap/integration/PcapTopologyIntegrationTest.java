@@ -29,11 +29,11 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import javax.annotation.Nullable;
 import kafka.consumer.ConsumerIterator;
@@ -238,7 +238,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         //Ensure that only two pcaps are returned when we look at 4 and 5
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(4, pcapEntries)
                         , getTimestamp(5, pcapEntries)
@@ -255,7 +256,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         // Ensure that only two pcaps are returned when we look at 4 and 5
         // test with empty query filter
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(4, pcapEntries)
                         , getTimestamp(5, pcapEntries)
@@ -271,7 +273,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         //ensure that none get returned since that destination IP address isn't in the dataset
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
@@ -290,7 +293,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         // ensure that none get returned since that destination IP address isn't in the dataset
         // test with query filter
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
@@ -306,7 +310,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         //same with protocol as before with the destination addr
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
@@ -325,7 +330,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         //same with protocol as before with the destination addr
         //test with query filter
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
@@ -341,7 +347,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         //make sure I get them all.
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
@@ -358,7 +365,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         //make sure I get them all.
         //with query filter
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
@@ -373,7 +381,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
       {
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
@@ -404,7 +413,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         //test with query filter and byte array matching
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
@@ -423,7 +433,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         //test with query filter
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
@@ -453,7 +464,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         //test with query filter
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
@@ -483,7 +495,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         //test with query filter
         Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
+                job.query(Optional.empty()
+                        , new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
