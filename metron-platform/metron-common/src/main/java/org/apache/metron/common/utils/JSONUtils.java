@@ -19,6 +19,7 @@
 package org.apache.metron.common.utils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -71,7 +72,8 @@ public enum JSONUtils {
       new JSONParser());
 
   private static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
-      new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
+      new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                        .configure(JsonParser.Feature.ALLOW_COMMENTS, true));
 
   public <T> T convert(Object original, Class<T> targetClass) {
     return _mapper.get().convertValue(original, targetClass);

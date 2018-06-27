@@ -18,10 +18,6 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,39 +26,49 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.MetaAlertDao;
+import org.apache.metron.indexing.dao.MultiIndexDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.junit.Test;
 
-public class ElasticsearchMetaAlertDaoTest {
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
+public class ElasticsearchMetaAlertDaoTest {
 
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidInit() {
     IndexDao dao = new IndexDao() {
       @Override
-      public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
+      public SearchResponse search(SearchRequest searchRequest) {
         return null;
       }
 
       @Override
-      public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
+      public GroupResponse group(GroupRequest groupRequest) {
         return null;
       }
 
@@ -71,120 +77,54 @@ public class ElasticsearchMetaAlertDaoTest {
       }
 
       @Override
-      public Document getLatest(String guid, String sensorType) throws IOException {
+      public Document getLatest(String guid, String sensorType) {
         return null;
       }
 
       @Override
       public Iterable<Document> getAllLatest(
-          List<GetRequest> getRequests) throws IOException {
+          List<GetRequest> getRequests) {
         return null;
       }
 
       @Override
-      public void update(Document update, Optional<String> index) throws IOException {
+      public void update(Document update, Optional<String> index) {
       }
 
       @Override
-      public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+      public void batchUpdate(Map<Document, Optional<String>> updates) {
       }
 
       @Override
-      public Map<String, FieldType> getColumnMetadata(List<String> indices)
-          throws IOException {
+      public Map<String, FieldType> getColumnMetadata(List<String> indices) {
         return null;
+      }
+
+      @Override
+      public void addCommentToAlert(CommentAddRemoveRequest request) {
+      }
+
+      @Override
+      public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+      }
+
+      @Override
+      public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+      }
+
+      @Override
+      public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
       }
     };
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
     metaAlertDao.init(dao);
   }
 
-  @Test
-  public void testBuildCreateDocumentSingleAlert() throws InvalidCreateException, IOException {
-    ElasticsearchDao esDao = new ElasticsearchDao();
-    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
-    emaDao.init(esDao);
-
-    List<String> groups = new ArrayList<>();
-    groups.add("group_one");
-    groups.add("group_two");
-
-    // Build the first response from the multiget
-    Map<String, Object> alertOne = new HashMap<>();
-    alertOne.put(Constants.GUID, "alert_one");
-    alertOne.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-    List<Document> alerts = new ArrayList<Document>() {{
-      add(new Document(alertOne, "", "", 0L));
-    }};
-
-    // Actually build the doc
-    Document actual = emaDao.buildCreateDocument(alerts, groups);
-
-    ArrayList<Map<String, Object>> alertList = new ArrayList<>();
-    alertList.add(alertOne);
-
-    Map<String, Object> actualDocument = actual.getDocument();
-    assertEquals(
-        MetaAlertStatus.ACTIVE.getStatusString(),
-        actualDocument.get(MetaAlertDao.STATUS_FIELD)
-    );
-    assertEquals(
-        alertList,
-        actualDocument.get(MetaAlertDao.ALERT_FIELD)
-    );
-    assertEquals(
-        groups,
-        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
-    );
-
-    // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
-    UUID.fromString((String) actualDocument.get(Constants.GUID));
-  }
-
-  @Test
-  public void testBuildCreateDocumentMultipleAlerts() throws InvalidCreateException, IOException {
-    ElasticsearchDao esDao = new ElasticsearchDao();
-    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
-    emaDao.init(esDao);
-
-    List<String> groups = new ArrayList<>();
-    groups.add("group_one");
-    groups.add("group_two");
-
-    // Build the first response from the multiget
-    Map<String, Object> alertOne = new HashMap<>();
-    alertOne.put(Constants.GUID, "alert_one");
-    alertOne.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-
-    // Build the second response from the multiget
-    Map<String, Object> alertTwo = new HashMap<>();
-    alertTwo.put(Constants.GUID, "alert_one");
-    alertTwo.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 5.0d);
-    List<Document> alerts = new ArrayList<Document>() {{
-      add(new Document(alertOne, "", "", 0L));
-      add(new Document(alertTwo, "", "", 0L));
-    }};
-
-    // Actually build the doc
-    Document actual = emaDao.buildCreateDocument(alerts, groups);
-
-    ArrayList<Map<String, Object>> alertList = new ArrayList<>();
-    alertList.add(alertOne);
-    alertList.add(alertTwo);
-
-    Map<String, Object> actualDocument = actual.getDocument();
-    assertNotNull(actualDocument.get(Fields.TIMESTAMP.getName()));
-    assertEquals(
-        alertList,
-        actualDocument.get(MetaAlertDao.ALERT_FIELD)
-    );
-    assertEquals(
-        groups,
-        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
-    );
-
-    // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
-    UUID.fromString((String) actualDocument.get(Constants.GUID));
+  @Test(expected = IllegalArgumentException.class)
+  public void testInitInvalidDao() {
+    HBaseDao dao = new HBaseDao();
+    ElasticsearchMetaAlertDao esDao = new ElasticsearchMetaAlertDao();
+    esDao.init(dao, Optional.empty());
   }
 
   @Test(expected = InvalidCreateException.class)
@@ -200,8 +140,9 @@ public class ElasticsearchMetaAlertDaoTest {
   @Test(expected = InvalidCreateException.class)
   public void testCreateMetaAlertEmptyGroups() throws InvalidCreateException, IOException {
     ElasticsearchDao esDao = new ElasticsearchDao();
+    MultiIndexDao miDao = new MultiIndexDao(esDao);
     ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
-    emaDao.init(esDao);
+    emaDao.init(miDao);
 
     MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
     createRequest.setAlerts(Collections.singletonList(new GetRequest("don't", "care")));
@@ -209,41 +150,33 @@ public class ElasticsearchMetaAlertDaoTest {
   }
 
   @Test
-  public void testCalculateMetaScoresList() {
-    final double delta = 0.001;
-    List<Map<String, Object>> alertList = new ArrayList<>();
+  public void testUpdateShouldUpdateOnMissingMetaAlertIndex() throws Exception {
+    ElasticsearchDao elasticsearchDao = mock(ElasticsearchDao.class);
+    ElasticsearchMetaAlertRetrieveLatestDao elasticsearchMetaAlertRetrieveLatestDao = mock(ElasticsearchMetaAlertRetrieveLatestDao.class);
+    MetaAlertConfig metaAlertConfig = mock(MetaAlertConfig.class);
+    ElasticsearchMetaAlertUpdateDao emauDao = spy(new ElasticsearchMetaAlertUpdateDao(elasticsearchDao, elasticsearchMetaAlertRetrieveLatestDao, metaAlertConfig, 1));
 
-    // add an alert with a threat score
-    alertList.add( Collections.singletonMap(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0f));
+    doThrow(new IndexNotFoundException(ElasticsearchMetaAlertDao.METAALERTS_INDEX)).when(emauDao).getMetaAlertsForAlert("alert_one");
 
-    // add a second alert with a threat score
-    alertList.add( Collections.singletonMap(MetaAlertDao.THREAT_FIELD_DEFAULT, 20.0f));
+    Document update = new Document(new HashMap<>(), "alert_one", "", 0L);
+    emauDao.update(update, Optional.empty());
 
-    // add a third alert with NO threat score
-    alertList.add( Collections.singletonMap("alert3", "has no threat score"));
+    Map<Document, Optional<String>> expectedUpdate = new HashMap<Document, Optional<String>>() {{
+      put(update, Optional.empty());
+    }};
+    verify(elasticsearchDao).batchUpdate(expectedUpdate);
+  }
 
-    // create the metaalert
-    Map<String, Object> docMap = new HashMap<>();
-    docMap.put(MetaAlertDao.ALERT_FIELD, alertList);
-    Document metaalert = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
+  @Test(expected = IndexNotFoundException.class)
+  public void testUpdateShouldThrowExceptionOnMissingSensorIndex() throws Exception {
+    ElasticsearchDao elasticsearchDao = mock(ElasticsearchDao.class);
+    ElasticsearchMetaAlertRetrieveLatestDao elasticsearchMetaAlertRetrieveLatestDao = mock(ElasticsearchMetaAlertRetrieveLatestDao.class);
+    MetaAlertConfig metaAlertConfig = mock(MetaAlertConfig.class);
+    ElasticsearchMetaAlertUpdateDao emauDao = spy(new ElasticsearchMetaAlertUpdateDao(elasticsearchDao, elasticsearchMetaAlertRetrieveLatestDao, metaAlertConfig, 1));
 
-    // calculate the threat score for the metaalert
-    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
-    metaAlertDao.calculateMetaScores(metaalert);
-    Object threatScore = metaalert.getDocument().get(ElasticsearchMetaAlertDao.THREAT_FIELD_DEFAULT);
+    doThrow(new IndexNotFoundException("bro")).when(emauDao).getMetaAlertsForAlert("alert_one");
 
-    // the metaalert must contain a summary of all child threat scores
-    assertEquals(20D, (Double) metaalert.getDocument().get("max"), delta);
-    assertEquals(10D, (Double) metaalert.getDocument().get("min"), delta);
-    assertEquals(15D, (Double) metaalert.getDocument().get("average"), delta);
-    assertEquals(2L, metaalert.getDocument().get("count"));
-    assertEquals(30D, (Double) metaalert.getDocument().get("sum"), delta);
-    assertEquals(15D, (Double) metaalert.getDocument().get("median"), delta);
-
-    // it must contain an overall threat score; a float to match the type of the threat score of the other sensor indices
-    assertTrue(threatScore instanceof Float);
-
-    // by default, the overall threat score is the sum of all child threat scores
-    assertEquals(30.0F, threatScore);
+    Document update = new Document(new HashMap<>(), "alert_one", "", 0L);
+    emauDao.update(update, Optional.empty());
   }
 }

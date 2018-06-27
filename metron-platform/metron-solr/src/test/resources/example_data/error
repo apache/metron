@@ -1,0 +1,17 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+{"guid" : "0000000","exception":"java.lang.IllegalStateException: Grok parser Error: Grok statement produced a null message. Original message was: dummy and the parsed message was: {} . Check the pattern at: \/patterns\/yaf on dummy","failed_sensor_type":"yaf","stack":"java.lang.IllegalStateException: Grok parser Error: Grok statement produced a null message. Original message was: dummy and the parsed message was: {} . Check the pattern at: \/patterns\/yaf on dummy\n\tat org.apache.metron.parsers.GrokParser.parse(GrokParser.java:164)\n\tat org.apache.metron.parsers.interfaces.MessageParser.parseOptional(MessageParser.java:45)\n\tat org.apache.metron.parsers.bolt.ParserBolt.execute(ParserBolt.java:175)\n\tat org.apache.storm.daemon.executor$fn__6573$tuple_action_fn__6575.invoke(executor.clj:734)\n\tat org.apache.storm.daemon.executor$mk_task_receiver$fn__6494.invoke(executor.clj:466)\n\tat org.apache.storm.disruptor$clojure_handler$reify__6007.onEvent(disruptor.clj:40)\n\tat org.apache.storm.utils.DisruptorQueue.consumeBatchToCursor(DisruptorQueue.java:451)\n\tat org.apache.storm.utils.DisruptorQueue.consumeBatchWhenAvailable(DisruptorQueue.java:430)\n\tat org.apache.storm.disruptor$consume_batch_when_available.invoke(disruptor.clj:73)\n\tat org.apache.storm.daemon.executor$fn__6573$fn__6586$fn__6639.invoke(executor.clj:853)\n\tat org.apache.storm.util$async_loop$fn__554.invoke(util.clj:484)\n\tat clojure.lang.AFn.run(AFn.java:22)\n\tat java.lang.Thread.run(Thread.java:745)\nCaused by: java.lang.RuntimeException: Grok statement produced a null message. Original message was: dummy and the parsed message was: {} . Check the pattern at: \/patterns\/yaf\n\tat org.apache.metron.parsers.GrokParser.parse(GrokParser.java:144)\n\t... 12 more\n","hostname":"node1","raw_message":"dummy","error_hash":"b5a2c96250612366ea272ffac6d9744aaf4b45aacd96aa7cfcb931ee3b558259","error_type":"parser_error","message":"Grok parser Error: Grok statement produced a null message. Original message was: dummy and the parsed message was: {} . Check the pattern at: \/patterns\/yaf on dummy","source.type":"error","timestamp":1517606359312}

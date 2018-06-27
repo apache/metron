@@ -30,13 +30,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.InMemoryMetaAlertDao;
-import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertAddRemoveRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
@@ -75,6 +72,7 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
   private String metaalertUrl = "/api/v1/metaalert";
   private String user = "user";
   private String password = "password";
+  private String metaAlertIndex = "metaalert_index";
 
   /**
    {
@@ -98,8 +96,8 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
 
   /**
    * [
-   *{"guid":"meta_1","alert":[{"guid":"bro_1"}],"average":"5.0","min":"5.0","median":"5.0","max":"5.0","count":"1.0","sum":"5.0"},
-   *{"guid":"meta_2","alert":[{"guid":"bro_1"},{"guid":"bro_2"},{"guid":"snort_1"}],"average":"5.0","min":"0.0","median":"5.0","max":"10.0","count":"3.0","sum":"15.0"}
+   *{"guid":"meta_1","metron_alert":[{"guid":"bro_1"}],"average":"5.0","min":"5.0","median":"5.0","max":"5.0","count":"1.0","sum":"5.0"},
+   *{"guid":"meta_2","metron_alert":[{"guid":"bro_1"},{"guid":"bro_2"},{"guid":"snort_1"}],"average":"5.0","min":"0.0","median":"5.0","max":"10.0","count":"3.0","sum":"15.0"}
    * ]
    */
   @Multiline
@@ -111,7 +109,7 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
     ImmutableMap<String, String> testData = ImmutableMap.of(
         "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
         "snort_index_2017.01.01.01", SearchIntegrationTest.snortData,
-        MetaAlertDao.METAALERTS_INDEX, metaAlertData
+        metaAlertIndex, metaAlertData
     );
     loadTestData(testData);
   }

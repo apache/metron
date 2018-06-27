@@ -18,7 +18,8 @@
 package org.apache.metron.rest.service.impl;
 
 import static org.apache.metron.common.Constants.ERROR_TYPE;
-import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
+import static org.apache.metron.common.Constants.SENSOR_TYPE_FIELD_PROPERTY;
 import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
 import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
 
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -146,13 +148,9 @@ public class SearchServiceImpl implements SearchService {
     if (!alertUserSettings.isPresent() || alertUserSettings.get().getFacetFields() == null) {
       String facetFieldsProperty = environment
           .getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, "");
-
-      Map<String, Object> globalConfig = globalConfigService.get();
-      String sourceTypeField = Constants.SENSOR_TYPE.replace('.', ':');
+      String sourceTypeField = ConfigurationsUtils.getFieldName(globalConfigService.get(), SENSOR_TYPE_FIELD_PROPERTY,
+              Constants.SENSOR_TYPE.replace('.', ':'));
       List<String> facetFields = new ArrayList<>();
-      if (globalConfig != null) {
-        sourceTypeField = (String) globalConfig.getOrDefault("source.type.field", sourceTypeField);
-      }
       facetFields.add(sourceTypeField);
       if (facetFieldsProperty != null) {
         facetFields.addAll(Arrays.asList(facetFieldsProperty.split(",")));

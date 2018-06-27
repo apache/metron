@@ -22,6 +22,7 @@ com.esotericsoftware:reflectasm:jar:1.10.1:compile,New BSD License,http://code.g
 com.flipkart.zjsonpatch:zjsonpatch:jar:0.3.4:compile,Apache v2, https://github.com/flipkart-incubator/zjsonpatch
 com.google.protobuf:protobuf-java:jar:2.5.0:compile,New BSD license,http://code.google.com/p/protobuf
 com.google.protobuf:protobuf-java:jar:2.6.1:compile,New BSD license,http://code.google.com/p/protobuf
+com.google.protobuf:protobuf-java:jar:3.1.0:compile,New BSD license,http://code.google.com/p/protobuf
 com.jcraft:jsch:jar:0.1.42:compile,BSD,http://www.jcraft.com/jsch/
 com.jayway.jsonpath:json-path:jar:2.3.0:compile,Apache v2,https://github.com/json-path/JsonPath
 com.jayway.jsonpath:json-path:jar:2.4.0:compile,Apache v2,https://github.com/json-path/JsonPath
@@ -85,6 +86,7 @@ org.jvnet.jaxb2_commons:jaxb2-basics-runtime:jar:0.6.5:compile,BSD,https://githu
 org.krakenapps:kraken-api:jar:2.1.1:compile, Apache v2,
 org.krakenapps:kraken-pcap:jar:1.7.1:compile, Apache v2,
 org.ow2.asm:asm:jar:4.0:compile,BSD,http://asm.ow2.org/
+org.ow2.asm:asm:jar:5.1:compile,BSD,http://asm.ow2.org/
 org.slf4j:slf4j-api:jar:1.6.1:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-api:jar:1.7.10:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-api:jar:1.7.5:compile,MIT,http://www.slf4j.org
@@ -100,6 +102,7 @@ org.slf4j:slf4j-log4j12:jar:1.7.25:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-log4j12:jar:1.7.5:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-log4j12:jar:1.7.7:compile,MIT,http://www.slf4j.org
 org.slf4j:slf4j-simple:jar:1.7.7:compile,MIT,http://www.slf4j.org
+org.slf4j:jcl-over-slf4j:jar:1.7.7:compile,MIT,http://www.slf4j.org
 org.slf4j:jcl-over-slf4j:jar:1.7.21:compile,MIT,http://www.slf4j.org
 org.slf4j:jul-to-slf4j:jar:1.7.21:compile,MIT,http://www.slf4j.org
 org.slf4j:jul-to-slf4j:jar:1.7.25:compile,MIT,http://www.slf4j.org
@@ -119,15 +122,19 @@ com.fasterxml.jackson.core:jackson-annotations:jar:2.2.3:compile,ASLv2,http://wi
 com.fasterxml.jackson.core:jackson-annotations:jar:2.7.4:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-annotations:jar:2.8.3:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-annotations:jar:2.9.0:compile,ASLv2,http://github.com/FasterXML/jackson
+com.fasterxml.jackson.core:jackson-annotations:jar:2.9.4:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-core:jar:2.2.3:compile,ASLv2,http://wiki.fasterxml.com/JacksonHome
+com.fasterxml.jackson.core:jackson-core:jar:2.6.3:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-core:jar:2.6.6:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-core:jar:2.7.4:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-core:jar:2.8.3:compile,ASLv2,https://github.com/FasterXML/jackson-core
+com.fasterxml.jackson.core:jackson-core:jar:2.9.4:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-core:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-databind:jar:2.2.3:compile,ASLv2,http://wiki.fasterxml.com/JacksonHome
 com.fasterxml.jackson.core:jackson-databind:jar:2.4.3:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.7.4:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.8.3:compile,ASLv2,http://github.com/FasterXML/jackson
+com.fasterxml.jackson.core:jackson-databind:jar:2.9.4:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.9.5:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:jar:2.6.6:compile,ASLv2,http://wiki.fasterxml.com/JacksonForCbor
 com.fasterxml.jackson.dataformat:jackson-dataformat-smile:jar:2.6.6:compile,ASLv2,http://wiki.fasterxml.com/JacksonForSmile

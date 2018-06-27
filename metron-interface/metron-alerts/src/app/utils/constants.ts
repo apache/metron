@@ -19,7 +19,6 @@
 import { environment } from '../../environments/environment';
 
 export const META_ALERTS_SENSOR_TYPE = 'metaalert';
-export const META_ALERTS_INDEX = 'metaalert_index';
 
 export const NUM_SAVED_SEARCH = 10;
 export const ALERTS_RECENT_SEARCH = 'metron-alerts-recent-saved-search';
@@ -27,7 +26,6 @@ export const ALERTS_SAVED_SEARCH = 'metron-alerts-saved-search';
 export const ALERTS_TABLE_METADATA = 'metron-alerts-table-metadata';
 export const ALERTS_COLUMN_NAMES = 'metron-alerts-column-names';
 
-export let THREAT_SCORE_FIELD_NAME = 'threat:triage:score';
 export let TIMESTAMP_FIELD_NAME = 'timestamp';
 export let ALL_TIME = 'all-time';
 
@@ -36,5 +34,6 @@ export let CUSTOMM_DATE_RANGE_LABEL = 'Date Range';
 
 export let TREE_SUB_GROUP_SIZE = 5;
 export let INDEXES =  environment.indices ? environment.indices.split(',') : [];
+export let POLLING_DEFAULT_STATE = environment.defaultPollingState;
 
 export let MAX_ALERTS_IN_META_ALERTS = 350;

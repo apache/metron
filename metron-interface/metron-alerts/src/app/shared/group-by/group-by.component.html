@@ -14,7 +14,7 @@
 <div class='wrapper'>
     <div class="mrow">
         <div class="group mr-2"> Group By </div>
-        <div class='container col mx-0 px-0' [dragula]='"group-bag"' [dragulaModel]='data' [dragulaOptions]="{direction: 'horizontal', removeOnSpill: false}">
+        <div class='container col mx-0 px-0' [dragula]='"group-bag"' [dragulaModel]='data' [dragulaOptions]="{direction: 'horizontal', removeOnSpill: false, ignoreInputTextSelection: false}">
             <div #dragEle class="group-by-items" *ngFor="let group of data" (click)="selectGroup(group)" [attr.data-name]="group.name"
                  data-animation="false" data-toggle="tooltip" data-placement="bottom" title="Drag to Sort"
                  [ngClass]="{'active': group.selected}">

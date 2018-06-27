@@ -36,7 +36,7 @@
           "type": "date",
           "format": "epoch_millis"
         },
-        "alert": {
+        "metron_alert": {
           "type": "nested"
         },
         "source:type": {
