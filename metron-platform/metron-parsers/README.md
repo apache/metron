@@ -337,7 +337,7 @@ The following config will rename the fields `old_field` and `different_old_field
                       ]
 }
 ```
-* `REGEX_ROUTING` : This transformation lets users set an output field to one of a set of possibilities based on matching regexes. This transformation is useful when the number or conditions are large enough to make a stellar language match statement unwieldy.
+* `REGEX_SELECT` : This transformation lets users set an output field to one of a set of possibilities based on matching regexes. This transformation is useful when the number or conditions are large enough to make a stellar language match statement unwieldy.
  
 The following config will set the field `my_output` to one of the
 following, dependent upon the value of the `my_input` field:
@@ -348,7 +348,7 @@ following, dependent upon the value of the `my_input` field:
 ...
     "fieldTransformations" : [
           {
-            "transformation" : "REGEX_ROUTING"
+            "transformation" : "REGEX_SELECT"
           , "input" : "my_input"
           , "output" : "my_output"
           , "config" : {

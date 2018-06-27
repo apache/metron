@@ -30,14 +30,14 @@ import org.junit.Test;
 
 import java.util.HashMap;
 
-public class RegexRoutingTransformationTest {
+public class RegexSelectTransformationTest {
   /**
    {
     "fieldTransformations" : [
           {
             "input" : "in_field"
           , "output" : "out_field"
-          , "transformation" : "REGEX_ROUTING"
+          , "transformation" : "REGEX_SELECT"
           , "config" : {
               "option_1" : ".*foo.*",
               "option_2" : [ ".*metron.*", ".*mortron.*" ]
@@ -81,7 +81,7 @@ public class RegexRoutingTransformationTest {
     "fieldTransformations" : [
           {
            "output" : "out_field"
-          , "transformation" : "REGEX_ROUTING"
+          , "transformation" : "REGEX_SELECT"
           , "config" : {
               "option_1" : ".*foo.*",
               "option_2" : [ ".*metron.*", ".*mortron.*" ]
@@ -103,7 +103,7 @@ public class RegexRoutingTransformationTest {
     "fieldTransformations" : [
           {
            "input" : "in_field"
-          , "transformation" : "REGEX_ROUTING"
+          , "transformation" : "REGEX_SELECT"
           , "config" : {
               "option_1" : ".*foo.*",
               "option_2" : [ ".*metron.*", ".*mortron.*" ]
@@ -126,7 +126,7 @@ public class RegexRoutingTransformationTest {
           {
            "input" : "in_field"
           ,"output" : [ "out_field", "baz_field" ]
-          , "transformation" : "REGEX_ROUTING"
+          , "transformation" : "REGEX_SELECT"
           , "config" : {
               "option_1" : ".*foo.*",
               "option_2" : [ ".*metron.*", ".*mortron.*" ]
@@ -150,7 +150,7 @@ public class RegexRoutingTransformationTest {
           {
            "input" : "in_field"
           ,"output" : "out_field"
-          , "transformation" : "REGEX_ROUTING"
+          , "transformation" : "REGEX_SELECT"
           , "config" : {
               "option_1" : "[a-z",
               "option_2" : [ ".*metron.*", ".*mortron.*" ]

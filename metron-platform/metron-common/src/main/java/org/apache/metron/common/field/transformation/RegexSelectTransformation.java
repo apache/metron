@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-public class RegexRoutingTransformation implements FieldTransformation {
+public class RegexSelectTransformation implements FieldTransformation {
   @Override
   public Map<String, Object> map( Map<String, Object> input
                                 , List<String> outputField
