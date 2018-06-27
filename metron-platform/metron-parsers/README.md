@@ -337,7 +337,7 @@ The following config will rename the fields `old_field` and `different_old_field
                       ]
 }
 ```
-* `REGEX_ROUTING` : This transformation lets users set an output field to one of a set of possibilities based on matching regexes. This has functional overlap with Stellar match statements, but the syntax is more bearable for large sets of conditionals.
+* `REGEX_ROUTING` : This transformation lets users set an output field to one of a set of possibilities based on matching regexes. This transformation is useful when the number or conditions are large enough to make a stellar language match statement unwieldy.
  
 The following config will set the field `my_output` to one of the
 following, dependent upon the value of the `my_input` field:
