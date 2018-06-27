@@ -25,6 +25,10 @@
   tags:
     - build
 
+- include: solr_install.yml
+  tags:
+    - solr
+
 - include: ambari_install.yml
   tags:
     - ambari

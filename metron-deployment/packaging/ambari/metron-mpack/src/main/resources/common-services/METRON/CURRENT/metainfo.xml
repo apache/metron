@@ -283,6 +283,7 @@
             <scriptType>PYTHON</scriptType>
           </commandScript>
           <configuration-dependencies>
+            <config-type>metron-indexing-env</config-type>
             <config-type>metron-rest-env</config-type>
           </configuration-dependencies>
         </component>
@@ -410,6 +411,9 @@
             </package>
             <package>
               <name>metron-elasticsearch</name>
+            </package>
+            <package>
+              <name>metron-solr</name>
             </package>
             <package>
               <name>metron-pcap</name>

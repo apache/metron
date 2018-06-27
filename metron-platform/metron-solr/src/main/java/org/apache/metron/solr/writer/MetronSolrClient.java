@@ -17,18 +17,22 @@
  */
 package org.apache.metron.solr.writer;
 
+import com.google.common.collect.Iterables;
 import org.apache.metron.solr.SolrConstants;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.params.CollectionParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class MetronSolrClient extends CloudSolrClient {
 
@@ -38,6 +42,36 @@ public class MetronSolrClient extends CloudSolrClient {
 
   public MetronSolrClient(String zkHost) {
     super(zkHost);
+  }
+
+  public MetronSolrClient(String zkHost, Map<String, Object> solrHttpConfig) {
+    super(zkHost, HttpClientUtil.createClient(toSolrProps(solrHttpConfig)));
+  }
+
+  public static SolrParams toSolrProps(Map<String, Object> config) {
+    if(config == null || config.isEmpty()) {
+      return null;
+    }
+
+    ModifiableSolrParams ret = new ModifiableSolrParams();
+    for(Map.Entry<String, Object> kv : config.entrySet()) {
+      Object v = kv.getValue();
+      if(v instanceof Boolean) {
+        ret.set(kv.getKey(), (Boolean)v);
+      }
+      else if(v instanceof Integer) {
+        ret.set(kv.getKey(), (Integer)v);
+      }
+      else if(v instanceof Iterable) {
+        Iterable vals = (Iterable)v;
+        String[] strVals = new String[Iterables.size(vals)];
+        int i = 0;
+        for(Object o : (Iterable)v) {
+          strVals[i++] = o.toString();
+        }
+      }
+    }
+    return ret;
   }
 
   public void createCollection(String name, int numShards, int replicationFactor) throws IOException, SolrServerException {

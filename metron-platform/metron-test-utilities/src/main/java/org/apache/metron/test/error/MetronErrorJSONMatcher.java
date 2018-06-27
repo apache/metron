@@ -37,6 +37,8 @@ public class MetronErrorJSONMatcher extends ArgumentMatcher<Values> {
     expected.remove("timestamp");
     actual.remove("stack");
     expected.remove("stack");
+    actual.remove("guid");
+    expected.remove("guid");
     return actual.equals(expected);
   }
 }

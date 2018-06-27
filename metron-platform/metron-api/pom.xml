@@ -17,7 +17,7 @@
 	<parent>
 		<groupId>org.apache.metron</groupId>
 		<artifactId>metron-platform</artifactId>
-		<version>0.5.0</version>
+		<version>0.5.1</version>
 	</parent>
 	<artifactId>metron-api</artifactId>
     <name>metron-api</name>
@@ -30,10 +30,6 @@
 		<slf4j.version>${global_slf4j_version}</slf4j.version>
 		<zookeeper.version>3.4.5.2.0.6.0-76</zookeeper.version>
 		<logger.version>1.2.15</logger.version>
-
-        <storm-kafka-client.version>1.0.1</storm-kafka-client.version>
-        <storm-hdfs.version>0.0.7-SNAPSHOT</storm-hdfs.version>
-        <storm-hbase.version>0.0.5-SNAPSHOT</storm-hbase.version>
 
         <spring.integration.version>3.0.0.RELEASE</spring.integration.version>
         <spring.version>3.2.6.RELEASE</spring.version>
