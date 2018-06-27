@@ -26,6 +26,7 @@ public enum FieldTransformations {
   ,STELLAR(new StellarTransformation())
   ,SELECT(new SelectTransformation())
   ,RENAME(new RenameTransformation())
+  ,REGEX_SELECT(new RegexSelectTransformation())
   ;
   FieldTransformation mapping;
   FieldTransformations(FieldTransformation mapping) {
