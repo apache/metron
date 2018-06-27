@@ -136,7 +136,7 @@ CISCO_PIX %{GREEDYDATA:timestamp}: %PIX-%{NOTSPACE:pix_type}: %{GREEDYDATA:data}
    }
   ,"fieldTransformations" : [
     {
-     "transformation" : "REGEX_ROUTING"
+     "transformation" : "REGEX_SELECT"
     ,"input" :  "pix_type"
     ,"output" :  "logical_source_type"
     ,"config" : {
@@ -149,7 +149,7 @@ CISCO_PIX %{GREEDYDATA:timestamp}: %PIX-%{NOTSPACE:pix_type}: %{GREEDYDATA:data}
 ```
 A couple of things to note about this config:
 * In the `parserConfig` section, note that we are specifying `kafka.topicField` is `logical_source_field`.  This specifies that the parser will send messages to the topic specified in the `logical_source_type` field.  If the field does not exist, then the message is not sent.
-* The `REGEX_ROUTING` field transformation sets the `logical_source_type` field based on the value in the `pix_type` field, which recall is our tag.  This will enable us to route the broad category of cisco firewall messages along to the specific parser.
+* The `REGEX_SELECT` field transformation sets the `logical_source_type` field based on the value in the `pix_type` field, which recall is our tag.  This will enable us to route the broad category of cisco firewall messages along to the specific parser.
 
 
 ## The `cisco-6-302` Parser
