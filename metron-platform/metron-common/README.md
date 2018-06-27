@@ -100,7 +100,8 @@ but a convenient index is provided here:
 | [`enrichment.writer.batchSize`](../metron-enrichment#enrichmentwriterbatchsize)                                     | Enrichment    | Integer    |  N/A                       |
 | [`enrichment.writer.batchTimeout`](../metron-enrichment#enrichmentwriterbatchtimeout)                               | Enrichment    | Integer    |  N/A                       |
 | [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`            |
-| [`source.type.field`](../../metron-interface/metron-alerts#sourcetypefield)                                         | UI            | String     |  N/A                       |
+| [`source.type.field`](../../metron-interface/metron-alerts#sourcetypefield)                                         | UI            | String     |  `source_type_field`       |
+| [`threat.triage.score.field`](../../metron-interface/metron-alerts#threattriagescorefield)                          | UI            | String     |  `threat_triage_score_field`       |
 
 ## Note Configs in Ambari
 If a field is managed via ambari, you should change the field via

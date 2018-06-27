@@ -70,7 +70,7 @@ export class ConfigureRowsComponent  {
       return;
     }
 
-    if (targetElement === this.srcElement) {
+    if (targetElement === this.srcElement || this.srcElement.contains(targetElement)) {
       this.showView = !this.showView;
       return;
     }

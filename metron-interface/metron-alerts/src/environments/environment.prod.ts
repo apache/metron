@@ -17,5 +17,6 @@
  */
 export const environment = {
   production: true,
-  indices: null
+  indices: null,
+  defaultPollingState: false
 };

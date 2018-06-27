@@ -17,27 +17,36 @@
  */
 
 import {browser, element, by} from 'protractor';
+import {waitForElementInVisibility, waitForElementVisibility} from '../../utils/e2e_util';
 
 export class MetaAlertPage {
 
+  waitForDialog() {
+    return waitForElementVisibility(element(by.css('app-meta-alerts')))
+        .then(() => browser.sleep(2000));
+  }
+
   getPageTitle() {
-    return element(by.css('app-meta-alerts .form-title')).getText();
+    let elementFinder = element(by.css('app-meta-alerts .form-title'));
+    return waitForElementVisibility(elementFinder).then(() => elementFinder.getText())
   }
 
   getMetaAlertsTitle() {
-    return element(by.css('app-meta-alerts .title')).getText();
+    let elementFinder = element(by.css('app-meta-alerts .title'));
+    return waitForElementVisibility(elementFinder).then(() => elementFinder.getText());
   }
 
   getAvailableMetaAlerts() {
-    return element(by.css('app-meta-alerts .guid-name-container div')).getText();
+    return waitForElementVisibility(element(by.css('app-meta-alerts .guid-name-container div')))
+    .then(() => element(by.css('app-meta-alerts .guid-name-container div')).getText());
   }
 
   selectRadio() {
-    return element.all(by.css('app-meta-alerts .checkmark')).click();
+    return element.all(by.css('app-meta-alerts .checkmark')).get(0).click();
   }
 
   addToMetaAlert() {
-    element.all(by.css('app-meta-alerts')).get(0).element(by.buttonText('ADD')).click();
-    browser.sleep(2000);
+    return element.all(by.css('app-meta-alerts')).get(0).element(by.buttonText('ADD')).click()
+    .then(() => waitForElementInVisibility(element(by.css('app-meta-alerts'))));
   }
 }

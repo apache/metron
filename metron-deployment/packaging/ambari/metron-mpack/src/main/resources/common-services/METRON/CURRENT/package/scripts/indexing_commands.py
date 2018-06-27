@@ -25,10 +25,10 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions import format as ambari_format
+from resource_management.libraries.functions.format import format
 
 import metron_service
 import metron_security
-
 
 # Wrap major operations and functionality in this class
 class IndexingCommands:
@@ -54,6 +54,7 @@ class IndexingCommands:
         self.__hbase_configured = os.path.isfile(self.__params.indexing_hbase_configured_flag_file)
         self.__hbase_acl_configured = os.path.isfile(self.__params.indexing_hbase_acl_configured_flag_file)
         self.__elasticsearch_template_installed = os.path.isfile(self.__params.elasticsearch_template_installed_flag_file)
+        self.__solr_schema_installed = os.path.isfile(self.__params.solr_schema_installed_flag_file)
         self.__hdfs_perm_configured = os.path.isfile(self.__params.indexing_hdfs_perm_configured_flag_file)
 
     def __get_topics(self):
@@ -78,6 +79,20 @@ class IndexingCommands:
             "metaalert_index": params.meta_index_path
         }
 
+    def get_solr_schemas(self):
+        """
+        Defines the Solr schemas.
+        :return: Dict where key is the name of a collection and the
+          value is a path to file containing the schema definition.
+        """
+        return [
+            "bro",
+            "yaf",
+            "snort",
+            "error",
+            "metaalert"
+        ]
+
     def is_configured(self):
         return self.__configured
 
@@ -96,6 +111,9 @@ class IndexingCommands:
     def is_elasticsearch_template_installed(self):
         return self.__elasticsearch_template_installed
 
+    def is_solr_schema_installed(self):
+        return self.__solr_schema_installed
+
     def set_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.indexing_configured_flag_file, "Setting Indexing configured to True")
 
@@ -113,6 +131,9 @@ class IndexingCommands:
 
     def set_elasticsearch_template_installed(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.elasticsearch_template_installed_flag_file, "Setting Elasticsearch template installed to True")
+
+    def set_solr_schema_installed(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.solr_schema_installed_flag_file, "Setting Solr schema installed to True")
 
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables for indexing")
@@ -178,6 +199,53 @@ class IndexingCommands:
               user=self.__params.metron_user,
               err_msg=err_msg.format(template_name))
 
+    def solr_schema_install(self, env):
+        from params import params
+        env.set_params(params)
+        Logger.info("Installing Solr schemas")
+        if self.__params.security_enabled:
+            metron_security.kinit(self.__params.kinit_path_local,
+                                  self.__params.solr_keytab_path,
+                                  self.__params.solr_principal_name,
+                                  self.__params.solr_user)
+
+        commands = IndexingCommands(params)
+        for collection_name in commands.get_solr_schemas():
+
+            # install the schema
+            cmd = format((
+                "export ZOOKEEPER={solr_zookeeper_url};"
+                "export SECURITY_ENABLED={security_enabled};"
+            ))
+            cmd += "{0}/bin/create_collection.sh {1};"
+
+            Execute(
+                cmd.format(params.metron_home, collection_name),
+                user=self.__params.solr_user)
+
+    def solr_schema_delete(self, env):
+        from params import params
+        env.set_params(params)
+        Logger.info("Deleting Solr schemas")
+        if self.__params.security_enabled:
+            metron_security.kinit(self.__params.kinit_path_local,
+                                  self.__params.solr_keytab_path,
+                                  self.__params.solr_principal_name,
+                                  self.__params.solr_user)
+
+        commands = IndexingCommands(params)
+        for collection_name in commands.get_solr_schemas():
+            # delete the schema
+            cmd = format((
+                "export ZOOKEEPER={solr_zookeeper_url};"
+                "export SECURITY_ENABLED={security_enabled};"
+            ))
+            cmd += "{0}/bin/delete_collection.sh {1};"
+
+            Execute(
+                cmd.format(params.metron_home, collection_name),
+                user=self.__params.solr_user)
+
     def start_batch_indexing_topology(self, env):
         Logger.info('Starting ' + self.__batch_indexing_topology)
 
@@ -206,8 +274,9 @@ class IndexingCommands:
                                       self.__params.metron_keytab_path,
                                       self.__params.metron_principal_name,
                                       execute_user=self.__params.metron_user)
-
             start_cmd_template = """{0}/bin/start_elasticsearch_topology.sh"""
+            if self.__params.ra_indexing_writer == 'Solr':
+                start_cmd_template = """{0}/bin/start_solr_topology.sh"""
             start_cmd = start_cmd_template.format(self.__params.metron_home)
             Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
 
@@ -324,7 +393,6 @@ class IndexingCommands:
             is_random_access_running = topologies[self.__random_access_indexing_topology] in ['ACTIVE', 'REBALANCING']
         return is_random_access_running
 
-
     def is_topology_active(self, env):
         return self.is_batch_topology_active(env) and self.is_random_access_topology_active(env)
 
@@ -333,6 +401,8 @@ class IndexingCommands:
         Performs a service check for Indexing.
         :param env: Environment
         """
+        metron_service.check_indexer_parameters()
+
         Logger.info('Checking Kafka topics for Indexing')
         metron_service.check_kafka_topics(self.__params, self.__get_topics())
 

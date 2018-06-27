@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.metron</groupId>
     <artifactId>Metron</artifactId>
-    <version>0.5.0</version>
+    <version>0.5.1</version>
     <packaging>pom</packaging>
     <name>Metron</name>
     <description>Metron Top Level Project</description>
@@ -91,7 +91,7 @@
         <global_curator_version>2.7.1</global_curator_version>
         <global_classindex_version>3.3</global_classindex_version>
         <global_storm_version>1.0.3</global_storm_version>
-        <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
+        <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
         <global_flux_version>${base_flux_version}</global_flux_version>
         <global_pcap_version>1.7.1</global_pcap_version>
         <global_kafka_version>0.10.0.1</global_kafka_version>
@@ -108,8 +108,9 @@
         <global_slf4j_version>1.7.7</global_slf4j_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_java_version>1.8</global_java_version>
-        <global_solr_version>5.2.1</global_solr_version>
+        <global_solr_version>6.6.2</global_solr_version>
         <global_mockito_version>1.10.19</global_mockito_version>
+        <global_powermock_version>1.7.0</global_powermock_version>
         <global_shade_version>2.4.3</global_shade_version>
         <global_jackson_version>2.7.4</global_jackson_version>
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
@@ -129,7 +130,7 @@
             <properties>
                 <hdp_version>2.5.0.0</hdp_version>
                 <build_number>1245</build_number>
-                <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
+                <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
                 <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
                 <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
             </properties>

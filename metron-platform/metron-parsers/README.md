@@ -583,6 +583,8 @@ it is necessary to add an additional field to the templates and mapping for exis
 
 Please see a description of the steps necessary to make this change in the metron-elasticsearch [Using Metron with Elasticsearch 2.x](../../metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2x)
 
+If Solr is selected as the real-time store, it is also necessary to add additional fields.  See the [Solr](../metron-indexing#solr) section in metron-indexing for more details.
+
 ## Kafka Queue
 The kafka queue associated with your parser is a collection point for
 all of the data sent to your parser.  As such, make sure that the number of partitions in

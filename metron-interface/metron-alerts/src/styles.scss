@@ -326,3 +326,13 @@ $background_color_3: #2196F3;
   }
 }
 
+.notransition * {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  -ms-transition: none !important;
+  transition: none !important;
+
+  animation: none !important;
+}
+

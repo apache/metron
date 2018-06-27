@@ -81,24 +81,54 @@
         <value>metron</value>
         <description>Name of Elasticsearch Cluster</description>
         <display-name>Elasticsearch Cluster Name</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
-    <property require-input="true">
+    <property>
         <name>es_hosts</name>
         <value></value>
         <description>Comma delimited list of Elasticsearch Master Hosts: eshost1,eshost2</description>
         <display-name>Elasticsearch Hosts</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
     <property>
         <name>es_binary_port</name>
         <value>9300</value>
         <description>Elasticsearch binary port. (9300)</description>
         <display-name>Elasticsearch Binary Port</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
     <property>
         <name>es_http_port</name>
         <value>9200</value>
         <description>Elasticsearch HTTP port. (9200)</description>
         <display-name>Elasticsearch HTTP port</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>es_date_format</name>
+        <description>Elasticsearch Date Format</description>
+        <value>yyyy.MM.dd.HH</value>
+        <display-name>Elasticsearch Date Format</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>solr_zookeeper_url</name>
+        <value>{{zookeeper_quorum}}</value>
+        <description>Comma delimited list of Zookeeper Urls: zkhost1:2181,zkhost1:2181</description>
+        <display-name>Solr Zookeeper Urls</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
     <property require-input = "true">
         <name>storm_rest_addr</name>
@@ -130,11 +160,5 @@
         <value-attributes>
             <empty-value-valid>true</empty-value-valid>
         </value-attributes>
-    </property>
-    <property>
-        <name>es_date_format</name>
-        <description>Elasticsearch Date Format</description>
-        <value>yyyy.MM.dd.HH</value>
-        <display-name>Elasticsearch Date Format</display-name>
     </property>
 </configuration>

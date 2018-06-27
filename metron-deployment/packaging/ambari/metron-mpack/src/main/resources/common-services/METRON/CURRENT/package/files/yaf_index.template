@@ -208,7 +208,7 @@
           "type": "text",
           "fielddata": "true"
         },
-        "alert": {
+        "metron_alert": {
           "type": "nested"
         },
         "guid": {

@@ -40,7 +40,8 @@ Sorting has a similar caveat, in that if we are matching on multiple alerts, the
 Alerts that are contained in a a meta alert are generally excluded from search results, because a user has already grouped them in a meaningful way.
 
 ## Prerequisites
-* The Metron REST application should be up and running and Elasticsearch should have some alerts populated by Metron topologies
+* The Metron REST application should be up and running
+* Elasticsearch or Solr should have some alerts populated by Metron topologies, depending on which real-time store is enabled
 * The Management UI should be installed (which includes [Express](https://expressjs.com/))
 * The alerts can be populated using Full Dev or any other setup
 * UI is developed using angular4 and uses angular-cli
@@ -103,7 +104,11 @@ rest:
 
 ### `source.type.field`
 
-The source type format used. Defaults to `source:type`.
+The source type field name used in the real-time store. Defaults to `source:type`.
+
+### `threat.triage.score.field`
+
+The threat triage score field name used in the real-time store. Defaults to `threat:triage:score`.
 
 ## Usage
 
@@ -132,20 +137,27 @@ The application will be available at http://host:4201 assuming the port is set t
 
 ## E2E Tests
 
-An expressjs server is available for mocking the elastic search api.
+### Caveats
+1. E2E tests uses data from full-dev wherever applicable. The tests assume rest-api's are available @http://node1:8082. It is recommended to shutdown all other Metron services while running the E2E tests including Parsers, Enrichment, Indexing and the Profiler.
 
-1. Run e2e webserver :
+1. E2E tests are run on headless chrome. To see the chrome browser in action, remove the '--headless' parameter of chromeOptions in metron/metron-interface/metron-alerts/protractor.conf.js file
+
+1. E2E tests delete all the data in HBase table 'metron_update' and Elastic search index 'meta_alerts_index' for testing against its test data
+
+1. E2E tests use [protractor-flake](https://github.com/NickTomlin/protractor-flake) to re-run flaky tests.
+
+### Steps to run
+
+1. An Express.js server is available for accessing the rest api. Run the e2e webserver:
     ```
     cd metron/metron-interface/metron-alerts
     sh ./scripts/start-server-for-e2e.sh
     ```
 
-1. run e2e test using the following command
+1. Run e2e tests using the following command:
     ```
     cd metron/metron-interface/metron-alerts
     npm run e2e
     ```
 
-1. E2E tests uses data from full-dev wherever applicable. The tests assume rest-api's are available @http://node1:8082
-
-**NOTE**: *e2e tests covers all the general workflows and we will extend them as we need*
+**NOTE**: *e2e tests cover all the general workflows and we will extend them as we need*

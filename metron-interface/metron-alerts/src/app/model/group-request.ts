@@ -21,6 +21,6 @@ import {INDEXES} from '../utils/constants';
 export class GroupRequest {
   indices: string[] = INDEXES;
   query: string;
-  scoreField = 'threat:triage:score';
+  scoreField: string;
   groups: Group[] = [];
 }
