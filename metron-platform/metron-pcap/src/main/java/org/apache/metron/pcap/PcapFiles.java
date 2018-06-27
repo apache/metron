@@ -16,52 +16,27 @@
  * limitations under the License.
  */
 
-package org.apache.metron.job;
+package org.apache.metron.pcap;
 
+import java.util.List;
 import org.apache.hadoop.fs.Path;
+import org.apache.metron.job.Pageable;
 
-/**
- * Capture metadata about a batch job.
- */
-public class JobStatus {
+public class PcapFiles implements Pageable<Path> {
 
-  public enum State {
-    NOT_RUNNING,
-    RUNNING,
-    SUCCEEDED,
-    FAILED,
-    KILLED
+  private List<Path> files;
+
+  public PcapFiles(List<Path> files) {
+    this.files = files;
   }
 
-  private State state = State.NOT_RUNNING;
-  private double percentComplete = 0.0;
-  private Path resultPath;
-
-  public JobStatus withState(State state) {
-    this.state = state;
-    return this;
+  @Override
+  public Iterable<Path> asIterable() {
+    return files;
   }
 
-  public JobStatus withPercentComplete(double percentComplete) {
-    this.percentComplete = percentComplete;
-    return this;
+  @Override
+  public Path getPage(int num) {
+    return files.get(num);
   }
-
-  public JobStatus withResultPath(Path resultPath) {
-    this.resultPath = resultPath;
-    return this;
-  }
-
-  public State getState() {
-    return state;
-  }
-
-  public double getPercentComplete() {
-    return percentComplete;
-  }
-
-  public Path getResultPath() {
-    return resultPath;
-  }
-
 }

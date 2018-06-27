@@ -20,7 +20,6 @@ package org.apache.metron.pcap;
 
 import static java.lang.Long.toUnsignedString;
 import static java.lang.String.format;
-import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
@@ -37,10 +36,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobStatus.State;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.job.JobStatus;
-import org.apache.metron.job.JobStatus.STATE;
+import org.apache.metron.job.JobStatus.State;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
@@ -106,7 +104,7 @@ public class PcapJobTest {
   @Test
   public void job_succeeds_synchronously() throws Exception {
     when(job.isComplete()).thenReturn(true);
-    when(mrStatus.getState()).thenReturn(State.SUCCEEDED);
+    when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
     when(job.getStatus()).thenReturn(mrStatus);
     TestJob testJob = new TestJob();
     Statusable statusable = testJob.query(basePath,
@@ -121,19 +119,17 @@ public class PcapJobTest {
         true);
     verify(job, times(1)).waitForCompletion(true);
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(STATE.SUCCEEDED));
+    Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
     String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
     Assert.assertThat(status.getResultPath(), notNullValue());
     Assert.assertThat(status.getResultPath().toString(), startsWith(expectedOutPath));
-    Assert.assertThat(status.getPagedResults(), notNullValue());
-    Assert.assertThat(((Path)status.getPagedResults().getPage(0)).getName(), endsWith("pcap-data-1234+0001.pcap"));
   }
 
   @Test
   public void job_fails_synchronously() throws Exception {
     when(job.isComplete()).thenReturn(true);
-    when(mrStatus.getState()).thenReturn(State.FAILED);
+    when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.FAILED);
     when(job.getStatus()).thenReturn(mrStatus);
     TestJob testJob = new TestJob();
     Statusable statusable = testJob.query(basePath,
@@ -147,7 +143,7 @@ public class PcapJobTest {
         new FixedPcapFilter.Configurator(),
         true);
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(STATE.FAILED));
+    Assert.assertThat(status.getState(), equalTo(State.FAILED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
     String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
     Assert.assertThat(status.getResultPath(), notNullValue());
@@ -157,7 +153,7 @@ public class PcapJobTest {
   @Test
   public void job_fails_with_killed_status_synchronously() throws Exception {
     when(job.isComplete()).thenReturn(true);
-    when(mrStatus.getState()).thenReturn(State.KILLED);
+    when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.KILLED);
     when(job.getStatus()).thenReturn(mrStatus);
     TestJob testJob = new TestJob();
     Statusable statusable = testJob.query(basePath,
@@ -171,7 +167,7 @@ public class PcapJobTest {
         new FixedPcapFilter.Configurator(),
         true);
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(STATE.KILLED));
+    Assert.assertThat(status.getState(), equalTo(State.KILLED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
     String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
     Assert.assertThat(status.getResultPath(), notNullValue());
@@ -181,7 +177,7 @@ public class PcapJobTest {
   @Test
   public void job_succeeds_asynchronously() throws Exception {
     when(job.isComplete()).thenReturn(true);
-    when(mrStatus.getState()).thenReturn(State.SUCCEEDED);
+    when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
     when(job.getStatus()).thenReturn(mrStatus);
     TestJob testJob = new TestJob();
     Statusable statusable = testJob.query(basePath,
@@ -195,7 +191,7 @@ public class PcapJobTest {
         new FixedPcapFilter.Configurator(),
         false);
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(STATE.SUCCEEDED));
+    Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
     String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
     Assert.assertThat(status.getResultPath(), notNullValue());
@@ -205,7 +201,7 @@ public class PcapJobTest {
   @Test
   public void job_reports_percent_complete() throws Exception {
     when(job.isComplete()).thenReturn(false);
-    when(mrStatus.getState()).thenReturn(State.RUNNING);
+    when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.RUNNING);
     when(job.getStatus()).thenReturn(mrStatus);
     TestJob testJob = new TestJob();
     Statusable statusable = testJob.query(basePath,
@@ -221,7 +217,7 @@ public class PcapJobTest {
     when(job.mapProgress()).thenReturn(0.5f);
     when(job.reduceProgress()).thenReturn(0f);
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(STATE.RUNNING));
+    Assert.assertThat(status.getState(), equalTo(State.RUNNING));
     Assert.assertThat(status.getPercentComplete(), equalTo(25.0));
     when(job.mapProgress()).thenReturn(1.0f);
     when(job.reduceProgress()).thenReturn(0.5f);

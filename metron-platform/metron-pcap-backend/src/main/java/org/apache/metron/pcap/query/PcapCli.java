@@ -107,10 +107,7 @@ public class PcapCli {
                 hadoopConf,
                 FileSystem.get(hadoopConf),
                 new FixedPcapFilter.Configurator());
-      } catch (IOException | ClassNotFoundException e) {
-        LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
-        return -1;
-      } catch (InterruptedException e) {
+      } catch (IOException | ClassNotFoundException | InterruptedException e) {
         LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
         return -1;
       }
@@ -144,10 +141,7 @@ public class PcapCli {
                 hadoopConf,
                 FileSystem.get(hadoopConf),
                 new QueryPcapFilter.Configurator());
-      } catch (IOException | ClassNotFoundException e) {
-        LOGGER.error("Failed to execute query filter job: {}", e.getMessage(), e);
-        return -1;
-      } catch (InterruptedException e) {
+      } catch (IOException | ClassNotFoundException | InterruptedException e) {
         LOGGER.error("Failed to execute query filter job: {}", e.getMessage(), e);
         return -1;
       }

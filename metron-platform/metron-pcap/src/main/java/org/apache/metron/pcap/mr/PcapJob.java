@@ -51,9 +51,11 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.job.JobStatus;
-import org.apache.metron.job.JobStatus.STATE;
+import org.apache.metron.job.JobStatus.State;
+import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.PacketInfo;
+import org.apache.metron.pcap.PcapFiles;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
@@ -181,7 +183,7 @@ public class PcapJob implements Statusable {
         conf,
         fs, filterImpl, true);
     JobStatus jobStatus = statusable.getStatus();
-    if (jobStatus.getState() == STATE.SUCCEEDED) {
+    if (jobStatus.getState() == State.SUCCEEDED) {
       Path resultPath = jobStatus.getResultPath();
       return readResults(resultPath, conf, fs);
     } else {
@@ -205,7 +207,7 @@ public class PcapJob implements Statusable {
       PcapFilterConfigurator<T> filterImpl,
       boolean sync)
       throws IOException, ClassNotFoundException, InterruptedException {
-    String fileName = Joiner.on("_").join(beginNS, endNS, filterImpl.queryToString(fields), UUID.randomUUID().toString());
+    String outputDirName = Joiner.on("_").join(beginNS, endNS, filterImpl.queryToString(fields), UUID.randomUUID().toString());
     if(LOG.isDebugEnabled()) {
       DateFormat format = SimpleDateFormat.getDateTimeInstance( SimpleDateFormat.LONG
           , SimpleDateFormat.LONG
@@ -214,7 +216,7 @@ public class PcapJob implements Statusable {
       String to = format.format(new Date(Long.divideUnsigned(endNS, 1000000)));
       LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
     }
-    outputPath =  new Path(baseOutputPath, fileName);
+    outputPath =  new Path(baseOutputPath, outputDirName);
     job = createJob( basePath
         , outputPath
         , beginNS
@@ -255,7 +257,7 @@ public class PcapJob implements Statusable {
     return new SequenceFileIterable(files, config);
   }
 
-  public List<Path> writeResults(SequenceFileIterable results, ResultsWriter resultsWriter,
+  public Pageable<Path> writeResults(SequenceFileIterable results, ResultsWriter resultsWriter,
       Path outPath, int recPerFile, String prefix) throws IOException {
     List<Path> outFiles = new ArrayList<>();
     try {
@@ -279,7 +281,7 @@ public class PcapJob implements Statusable {
         LOG.warn("Unable to cleanup files in HDFS", e);
       }
     }
-    return outFiles;
+    return new PcapFiles(outFiles);
   }
 
   /**
@@ -340,27 +342,27 @@ public class PcapJob implements Statusable {
     // Note: this method is only reading state from the underlying job, so locking not needed
     JobStatus status = new JobStatus().withResultPath(outputPath);
     if (job == null) {
-      status.withPercentComplete(100).withState(STATE.SUCCEEDED);
+      status.withPercentComplete(100).withState(State.SUCCEEDED);
     } else {
       try {
         if (job.isComplete()) {
           status.withPercentComplete(100);
           switch (job.getStatus().getState()) {
             case SUCCEEDED:
-              status.withState(STATE.SUCCEEDED);
+              status.withState(State.SUCCEEDED);
               break;
             case FAILED:
-              status.withState(STATE.FAILED);
+              status.withState(State.FAILED);
               break;
             case KILLED:
-              status.withState(STATE.KILLED);
+              status.withState(State.KILLED);
               break;
           }
         } else {
           float mapProg = job.mapProgress();
           float reduceProg = job.reduceProgress();
           float totalProgress = ((mapProg / 2) + (reduceProg / 2)) * 100;
-          status.withPercentComplete(totalProgress).withState(STATE.RUNNING);
+          status.withPercentComplete(totalProgress).withState(State.RUNNING);
         }
       } catch (Exception e) {
         throw new RuntimeException("Error occurred while attempting to retrieve job status.", e);
