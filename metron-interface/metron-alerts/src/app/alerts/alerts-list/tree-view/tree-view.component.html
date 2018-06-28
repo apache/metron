@@ -44,7 +44,7 @@
                 <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}" [sortOnCol]="group.sortEvent.sortBy"  [sortOrder]="group.sortEvent.sortOrder"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter>
               </th>
               <th style="width: 15px"></th>
-              <th style="width:25px"><input id="select-deselect-all-{{ group.key }}" class="fontawesome-checkbox" type="checkbox" (click)="selectAllGroupRows($event, group)">
+              <th style="width:15px"><input id="select-deselect-all-{{ group.key }}" class="fontawesome-checkbox" type="checkbox" (click)="selectAllGroupRows($event, group)">
                 <label for="select-deselect-all-{{ group.key }}"></label>
               </th>
             </tr>
@@ -81,7 +81,7 @@
                       <i class="fa" aria-hidden="true" [ngClass]="{'fa-caret-down': subGroup.expand, 'fa-caret-right': !subGroup.expand}"></i>
                     </span>
                     <span class="score" appAlertSeverity [severity]="subGroup.score"> {{ subGroup.score }} </span>
-                    <span class="group-value"> <span class="text-light"> {{ subGroup.key }} </span> ({{ subGroup.total}})</span>
+                    <span class="group-value"> <span class="text-light">{{ subGroup.key }}</span> ({{ subGroup.total }})</span>
                   </td>
                   <td>
                     <i style="color: #32ABDF;" class="fa fa-link" aria-hidden="true" (click)="createMetaAlert($event, subGroup, i)" data-animation="false" data-toggle="tooltip" data-placement="left"  title="Merge Alerts"></i>

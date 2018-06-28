@@ -63,12 +63,12 @@ export class Filter {
   private createNestedQuery(field: string, value: string): string {
 
     return '(' + Utils.escapeESField(field) + ':' +  Utils.escapeESValue(value)  + ' OR ' +
-                Utils.escapeESField('alert.' + field) + ':' +  Utils.escapeESValue(value) + ')';
+                Utils.escapeESField('metron_alert.' + field) + ':' +  Utils.escapeESValue(value) + ')';
   }
 
   private createNestedQueryWithoutValueEscaping(field: string, value: string): string {
 
     return '(' + Utils.escapeESField(field) + ':' +  value  + ' OR ' +
-        Utils.escapeESField('alert.' + field) + ':' +  value + ')';
+        Utils.escapeESField('metron_alert.' + field) + ':' +  value + ')';
   }
 }

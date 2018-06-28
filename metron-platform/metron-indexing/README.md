@@ -77,6 +77,20 @@ Alerts can be grouped, after appropriate searching, into a set of alerts called 
 ### Elasticsearch
 Metron comes with built-in templates for the default sensors for Elasticsearch. When adding a new sensor, it will be necessary to add a new template defining the output fields appropriately. In addition, there is a requirement for a field `alert` of type `nested` for Elasticsearch 2.x installs.  This is detailed at [Using Metron with Elasticsearch 2.x](../metron-elasticsearch/README.md#using-metron-with-elasticsearch-2x)
 
+### Solr
+
+Metron comes with built-in schemas for the default sensors for Solr.  When adding a new sensor, it will be necessary to add a new schema defining the output fields appropriately.  In addition, these fields are used internally by Metron and also required:
+
+* `<field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />`
+* `<field name="source.type" type="string" indexed="true" stored="true" />`
+* `<field name="timestamp" type="timestamp" indexed="true" stored="true" />`
+* `<field name="comments" type="string" indexed="true" stored="true" multiValued="true"/>`
+* `<field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>`
+
+The unique key should be set to `guid` by including `<uniqueKey>guid</uniqueKey>` in the schema.
+
+It is strongly suggested the `fieldTypes` match those in the built-in schemas.
+
 ### Indexing Configuration Examples
 For a given  sensor, the following scenarios would be indicated by
 the following cases:
@@ -196,7 +210,7 @@ The HBase column family to use for message updates.
 ### The `MetaAlertDao`
 
 The goal of meta alerts is to be able to group together a set of alerts while being able to transparently perform actions
-like searches, as if meta alerts were normal alerts.  `org.apache.metron.indexing.dao.MetaAlertDao` extends `IndexDao` and
+like searches, as if meta alerts were normal alerts.  `org.apache.metron.indexing.dao.metaalert.MetaAlertDao` extends `IndexDao` and
 enables several features: 
 * the ability to get all meta alerts associated with an alert
 * creation of a meta alert

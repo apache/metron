@@ -18,8 +18,8 @@
 package org.apache.metron.rest.service.impl;
 
 import static org.apache.metron.common.Constants.ERROR_TYPE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
 import static org.apache.metron.common.Constants.SENSOR_TYPE_FIELD_PROPERTY;
-import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
 import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
 import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
 

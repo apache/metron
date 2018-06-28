@@ -69,7 +69,7 @@
               {{ alert.source['alert_status'] ?alert.source['alert_status'] : 'New' | centerEllipses:20:cell }}
             </a>
           </td>
-          <td width="20" class="icon-cell" (click)="deleteMetaAlert($event, alert, alertIndex)">
+          <td width="20" class="icon-cell" (click)="deleteMetaAlert($event, alert)">
             <i class="fa fa-chain-broken" aria-hidden="true"></i>
           </td>
           <td width="20" class="icon-cell">

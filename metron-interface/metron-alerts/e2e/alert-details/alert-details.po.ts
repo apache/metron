@@ -17,77 +17,84 @@
  */
 
 import {browser, element, by, protractor} from 'protractor';
-import {waitForElementInVisibility, waitForElementPresence, waitForElementVisibility} from '../utils/e2e_util';
+import {
+  scrollIntoView, waitForElementInVisibility, waitForElementPresence,
+  waitForElementVisibility, waitForStalenessOf
+} from '../utils/e2e_util';
 
 export class MetronAlertDetailsPage {
 
   navigateTo(alertId: string) {
-    browser.waitForAngularEnabled(false);
-    browser.get('/alerts-list(dialog:details/alerts_ui_e2e/'+ alertId +'/alerts_ui_e2e_index)');
-    browser.sleep(2000);
+    return browser.waitForAngularEnabled(false)
+    .then(() => browser.get('/alerts-list(dialog:details/alerts_ui_e2e/'+ alertId +'/alerts_ui_e2e_index)'))
+    .then(() => browser.sleep(1000));
   }
 
   addCommentAndSave(comment: string, index: number) {
     let textAreaElement = element(by.css('app-alert-details textarea'));
     let addCommentButtonElement = element(by.buttonText('ADD COMMENT'));
-    let latestCommentEle = element.all(by.css('.comment-container .comment')).get(index);
+    let latestCommentEle = element.all(by.cssContainingText('.comment-container .comment', comment));
 
-    textAreaElement.clear()
+    return textAreaElement.clear()
     .then(() => textAreaElement.sendKeys(comment))
     .then(() => addCommentButtonElement.click())
-    .then(() => waitForElementPresence(latestCommentEle));
+    .then(() => waitForElementVisibility(latestCommentEle));
   }
 
   clickNew() {
-    element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(0).click();
+    return element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(0).click();
   }
 
   clickOpen() {
-    element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(1).click();
+    return element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(1).click();
   }
 
   clickDismiss() {
-    element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(2).click();
+    return element.all(by.css('.metron-slider-pane-details table tbody tr')).get(1).all(by.css('td')).get(2).click();
   }
 
   clickEscalate() {
-    element.all(by.css('.metron-slider-pane-details table tbody tr')).get(0).all(by.css('td')).get(1).click();
+    return element.all(by.css('.metron-slider-pane-details table tbody tr')).get(0).all(by.css('td')).get(1).click();
   }
 
   clickResolve() {
-    element.all(by.css('.metron-slider-pane-details table tbody tr')).get(2).all(by.css('td')).get(1).click();
+    return element.all(by.css('.metron-slider-pane-details table tbody tr')).get(2).all(by.css('td')).get(1).click();
   }
 
   clickCommentsInSideNav() {
-    return element(by.css('app-alert-details .fa.fa-comment')).click();
+    let commentIcon = element(by.css('app-alert-details .fa.fa-comment'));
+    return waitForElementVisibility(commentIcon)
+    .then(() => commentIcon.click())
+    .then(() => waitForElementVisibility(element(by.buttonText('ADD COMMENT'))));
   }
 
   clickNoForConfirmation() {
-    browser.sleep(1000);
-    let dialogElement = element(by.css('.metron-dialog .modal-header .close'));
-    let maskElement = element(by.css('.modal-backdrop.fade'));
-    waitForElementVisibility(dialogElement).then(() => element(by.css('.metron-dialog')).element(by.buttonText('Cancel')).click())
+    let cancelButton = element(by.css('.metron-dialog')).element(by.buttonText('Cancel'));
+    let maskElement = element(by.css('.modal-backdrop'));
+    waitForElementVisibility(cancelButton).then(() => element(by.css('.metron-dialog')).element(by.buttonText('Cancel')).click())
     .then(() => waitForElementInVisibility(maskElement));
   }
 
-  clickYesForConfirmation() {
-    browser.sleep(1000);
-    let dialogElement = element(by.css('.metron-dialog .modal-header .close'));
-    let maskElement = element(by.css('.modal-backdrop.fade'));
-    waitForElementVisibility(dialogElement).then(() => element(by.css('.metron-dialog')).element(by.buttonText('OK')).click())
+  clickYesForConfirmation(comment) {
+    let okButton = element(by.css('.metron-dialog')).element(by.buttonText('OK'));
+    let maskElement = element(by.css('.modal-backdrop'));
+    waitForElementVisibility(okButton).then(() => element(by.css('.metron-dialog')).element(by.buttonText('OK')).click())
     .then(() => waitForElementInVisibility(maskElement));
   }
 
   closeDetailPane() {
-    element(by.css('app-alert-details .close-button')).click();
-    browser.sleep(2000);
-  }
+  let dialogElement = element(by.css('.metron-dialog.modal.show'));
+  return waitForElementInVisibility(dialogElement).then(() => scrollIntoView(element(by.css('app-alert-details .close-button')), true)
+        .then(() => element(by.css('app-alert-details .close-button')).click())
+        .then(() => waitForElementInVisibility(element(by.css('app-alert-details')))));
+}
 
   deleteComment() {
     let scrollToEle = element.all(by.css('.comment-container')).get(0);
     let trashIcon = element.all(by.css('.fa.fa-trash-o')).get(0);
     browser.actions().mouseMove(scrollToEle).perform().then(() => waitForElementVisibility(trashIcon))
-    .then(() => element.all(by.css('.fa.fa-trash-o')).get(0).click());
+    .then(() => trashIcon.click())
+    .then(() => waitForElementVisibility(element(by.css('.modal-backdrop'))));
   }
 
   getAlertStatus(previousText) {
@@ -126,19 +133,19 @@ export class MetronAlertDetailsPage {
   }
 
   clickRenameMetaAlert() {
-    element(by.css('app-alert-details .editable-text')).click();
+    return element(by.css('app-alert-details .editable-text')).click();
   }
 
   renameMetaAlert(name: string) {
-    element(by.css('app-alert-details input.form-control')).sendKeys(name);
+    return element(by.css('app-alert-details input.form-control')).sendKeys(name);
   }
 
   cancelRename() {
-    element(by.css('app-alert-details .input-group .fa.fa-times')).click();
+    return element(by.css('app-alert-details .input-group .fa.fa-times')).click();
   }
 
   saveRename() {
-    element(by.css('app-alert-details .fa.fa-check')).click();
+    return element(by.css('app-alert-details .fa.fa-check')).click();
   }
 
   getAlertDetailsCount() {

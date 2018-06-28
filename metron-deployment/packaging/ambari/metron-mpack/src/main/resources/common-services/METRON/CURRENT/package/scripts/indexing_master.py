@@ -48,8 +48,14 @@ class Indexing(Script):
         env.set_params(params)
 
         Logger.info("Running indexing configure")
+        metron_service.check_indexer_parameters()
         File(format("{metron_config_path}/elasticsearch.properties"),
              content=Template("elasticsearch.properties.j2"),
+             owner=params.metron_user,
+             group=params.metron_group
+             )
+        File(format("{metron_config_path}/solr.properties"),
+             content=Template("solr.properties.j2"),
              owner=params.metron_user,
              group=params.metron_group
              )
@@ -91,17 +97,28 @@ class Indexing(Script):
         env.set_params(params)
         self.configure(env)
         commands = IndexingCommands(params)
+        if params.ra_indexing_writer == 'Solr':
+            # Install Solr schemas
+            try:
+                if not commands.is_solr_schema_installed():
+                    commands.solr_schema_install(env)
+                    commands.set_solr_schema_installed()
 
-        # Install elasticsearch templates
-        try:
-            if not commands.is_elasticsearch_template_installed():
-                self.elasticsearch_template_install(env)
-                commands.set_elasticsearch_template_installed()
+            except Exception as e:
+                msg = "WARNING: Solr schemas could not be installed.  " \
+                      "Is Solr running?  Will reattempt install on next start.  error={0}"
+                Logger.warning(msg.format(e))
+        else:
+            # Install elasticsearch templates
+            try:
+                if not commands.is_elasticsearch_template_installed():
+                    self.elasticsearch_template_install(env)
+                    commands.set_elasticsearch_template_installed()
 
-        except Exception as e:
-            msg = "WARNING: Elasticsearch index templates could not be installed.  " \
-                  "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
-            Logger.warning(msg.format(e))
+            except Exception as e:
+                msg = "WARNING: Elasticsearch index templates could not be installed.  " \
+                      "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
+                Logger.warning(msg.format(e))
 
         commands.start_indexing_topology(env)
 
@@ -121,6 +138,7 @@ class Indexing(Script):
     def restart(self, env):
         from params import params
         env.set_params(params)
+
         self.configure(env)
         commands = IndexingCommands(params)
         commands.restart_indexing_topology(env)
@@ -129,6 +147,7 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
         Logger.info("Installing Elasticsearch index templates")
+        metron_service.check_indexer_parameters()
 
         commands = IndexingCommands(params)
         for template_name, template_path in commands.get_templates().iteritems():
@@ -144,9 +163,11 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
         Logger.info("Deleting Elasticsearch index templates")
+        metron_service.check_indexer_parameters()
 
         commands = IndexingCommands(params)
         for template_name in commands.get_templates():
+
             # delete the index template
             cmd = "curl -s -XDELETE \"http://{0}/_template/{1}\""
             Execute(
@@ -157,9 +178,9 @@ class Indexing(Script):
     def kibana_dashboard_install(self, env):
       from params import params
       env.set_params(params)
+      metron_service.check_indexer_parameters()
 
       Logger.info("Connecting to Elasticsearch on: %s" % (params.es_http_url))
-
       kibanaTemplate = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'kibana.template')
       if not os.path.isfile(kibanaTemplate):
         raise IOError(
@@ -184,8 +205,9 @@ class Indexing(Script):
     def zeppelin_notebook_import(self, env):
         from params import params
         env.set_params(params)
-        commands = IndexingCommands(params)
+        metron_service.check_indexer_parameters()
 
+        commands = IndexingCommands(params)
         Logger.info(ambari_format('Searching for Zeppelin Notebooks in {metron_config_zeppelin_path}'))
 
         # Check if authentication is configured on Zeppelin server, and fetch details if enabled.
