@@ -229,6 +229,7 @@ public class ParserTopologyBuilder {
                                               SensorParserConfig parserConfig,
                                               Optional<String> outputTopic) {
 
+    // TODO can probably setup configurations here for all parsers, and pass appropriately.
     // create message parser
     MessageParser<JSONObject> parser = ReflectionUtils.createInstance(parserConfig.getParserClassName());
     parser.configure(parserConfig.getParserConfig());
@@ -251,7 +252,8 @@ public class ParserTopologyBuilder {
     // create a writer handler
     WriterHandler writerHandler = createWriterHandler(writer);
 
-    return new ParserBolt(zookeeperUrl, sensorType, parser, writerHandler);
+    // TODO handle this properly for multiple sensors
+    return new ParserBolt(zookeeperUrl, Collections.singletonMap(sensorType, parser), writerHandler);
   }
 
   /**

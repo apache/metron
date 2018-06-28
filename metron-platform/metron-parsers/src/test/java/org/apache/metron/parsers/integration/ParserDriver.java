@@ -17,9 +17,18 @@
  */
 package org.apache.metron.parsers.integration;
 
-import com.google.common.collect.ImmutableList;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.apache.commons.lang.SerializationUtils;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
@@ -31,28 +40,9 @@ import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
 import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.storm.generated.GlobalStreamId;
-import org.apache.storm.task.GeneralTopologyContext;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Fields;
-import org.apache.storm.tuple.MessageId;
 import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.TupleImpl;
 import org.json.simple.JSONObject;
-import org.mockito.Matchers;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,13 +83,18 @@ public class ParserDriver implements Serializable {
     List<byte[]> errors = new ArrayList<>();
 
     public ShimParserBolt(List<byte[]> output) {
+      // TODO Might need to make this be a bit more flexible to handle aggregated parser
       super(null
-           , sensorType == null?config.getSensorTopic():sensorType
-           , ReflectionUtils.createInstance(config.getParserClassName())
-           , new WriterHandler( new CollectingWriter(output))
+          , Collections.singletonMap(
+              sensorType == null ? config.getSensorTopic() : sensorType,
+              ReflectionUtils.createInstance(config.getParserClassName())),
+          new WriterHandler(new CollectingWriter(output))
       );
       this.output = output;
-      getParser().configure(config.getParserConfig());
+      Map<String, MessageParser<JSONObject>> sensorToParserMap = getSensorToParserMap();
+      for(Entry<String, MessageParser<JSONObject>> sensorToParser : sensorToParserMap.entrySet()) {
+        sensorToParser.getValue().configure(config.getParserConfig());
+      }
     }
 
     @Override

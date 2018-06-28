@@ -18,8 +18,18 @@
 
 package org.apache.metron.writer;
 
+import static java.lang.String.format;
+
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
@@ -32,17 +42,6 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
-import static java.lang.String.format;
 
 /**
  * This component implements message batching, with both flush on queue size, and flush on queue timeout.
@@ -120,7 +119,7 @@ public class BulkWriterComponent<MESSAGE_T> {
   public void error(String sensorType, Throwable e, Iterable<Tuple> tuples, MessageGetStrategy messageGetStrategy) {
     LOG.error(format("Failing %d tuple(s); sensorType=%s", Iterables.size(tuples), sensorType), e);
     MetronError error = new MetronError()
-            .withSensorType(sensorType)
+            .withSensorType(Collections.singleton(sensorType))
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
             .withThrowable(e);
     tuples.forEach(t -> error.addRawMessage(messageGetStrategy.get(t)));

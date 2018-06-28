@@ -93,6 +93,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
    *    "sensorTopic": "dummy",
    *    "outputTopic": "output",
    *    "errorTopic": "parser_error",
+   *    "readMetadata": true,
    *    "parserConfig": {
    *        "batchSize" : 1,
    *        "columns" : {
@@ -107,7 +108,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void parser_with_global_validations_writes_bad_records_to_error_topic() throws Exception {
-    final String sensorType = "dummy";
+   final String sensorType = "dummy";
     SensorParserConfig parserConfig = JSONUtils.INSTANCE.load(parserConfigJSON, SensorParserConfig.class);
     final List<byte[]> inputMessages = new ArrayList<byte[]>() {{
       add(Bytes.toBytes("valid,foo"));
