@@ -170,8 +170,7 @@ public class PcapJob implements Statusable {
   /**
    * Run query synchronously.
    */
-  public <T> SequenceFileIterable query(Optional<String> jobName
-                            ,Path basePath
+  public <T> SequenceFileIterable query(Path basePath
                             , Path baseOutputPath
                             , long beginNS
                             , long endNS
@@ -181,7 +180,7 @@ public class PcapJob implements Statusable {
                             , FileSystem fs
                             , PcapFilterConfigurator<T> filterImpl
                             ) throws IOException, ClassNotFoundException, InterruptedException {
-    Statusable statusable = query(jobName, basePath, baseOutputPath, beginNS, endNS, numReducers, fields,
+    Statusable statusable = query(Optional.empty(), basePath, baseOutputPath, beginNS, endNS, numReducers, fields,
         conf,
         fs, filterImpl, true);
     JobStatus jobStatus = statusable.getStatus();

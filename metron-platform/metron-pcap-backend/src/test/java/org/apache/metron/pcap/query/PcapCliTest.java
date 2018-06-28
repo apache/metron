@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -106,7 +105,7 @@ public class PcapCliTest {
       put(PcapHelper.PacketFields.PACKET_FILTER.getName(), "`casey`");
     }};
 
-    when(jobRunner.query(eq(Optional.empty()), eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
@@ -146,7 +145,7 @@ public class PcapCliTest {
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "true");
     }};
 
-    when(jobRunner.query(eq(Optional.empty()), eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
@@ -189,7 +188,7 @@ public class PcapCliTest {
 
     long startAsNanos = asNanos("2016-06-13-18:35.00", "yyyy-MM-dd-HH:mm.ss");
     long endAsNanos = asNanos("2016-06-15-18:35.00", "yyyy-MM-dd-HH:mm.ss");
-    when(jobRunner.query(eq(Optional.empty()), eq(base_path), eq(base_output_path), eq(startAsNanos), eq(endAsNanos), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), eq(startAsNanos), eq(endAsNanos), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
@@ -222,7 +221,7 @@ public class PcapCliTest {
     Path base_output_path = new Path(CliParser.BASE_OUTPUT_PATH_DEFAULT);
     String query = "some query string";
 
-    when(jobRunner.query(eq(Optional.empty()), eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(iterable);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(iterable);
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
@@ -250,7 +249,7 @@ public class PcapCliTest {
     Path base_output_path = new Path("/base/output/path");
     String query = "some query string";
 
-    when(jobRunner.query(eq(Optional.empty()), eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(iterable);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(iterable);
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));

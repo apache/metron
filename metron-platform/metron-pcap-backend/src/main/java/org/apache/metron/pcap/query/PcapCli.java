@@ -20,7 +20,6 @@ package org.apache.metron.pcap.query;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.tuple.Pair;
@@ -98,7 +97,7 @@ public class PcapCli {
       long endTime = time.getRight();
 
       try {
-        results = jobRunner.query(Optional.empty(),
+        results = jobRunner.query(
                 new Path(config.getBasePath()),
                 new Path(config.getBaseOutputPath()),
                 startTime,
@@ -132,7 +131,7 @@ public class PcapCli {
       long endTime = time.getRight();
 
       try {
-        results = jobRunner.query(Optional.empty(),
+        results = jobRunner.query(
                 new Path(config.getBasePath()),
                 new Path(config.getBaseOutputPath()),
                 startTime,
