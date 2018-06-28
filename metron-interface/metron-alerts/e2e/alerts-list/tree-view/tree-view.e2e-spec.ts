@@ -53,7 +53,7 @@ describe('Test spec for tree view', function () {
       'source:type': '1',
       'ip_dst_addr': '8',
       'enrichm...:country': '3',
-      'ip_src_addr': '2'
+      'ip_src_addr': '6'
     };
 
     expect(await listPage.getChangesAlertTableTitle('Alerts (0)')).toEqualBcoz('Alerts (169)', 'for alerts title');
@@ -156,7 +156,7 @@ describe('Test spec for tree view', function () {
     await page.selectGroup('enrichments:geo:ip_dst_addr:country');
     expect(await page.getActiveGroups()).toEqualBcoz(['source:type', 'ip_dst_addr', 'enrichm...:country'], '3 groups should be selected');
 
-    expect(await page.getDashGroupValues('alerts_ui_e2e')).toEqualBcoz(['0', 'alerts_ui_e2e', 'ALERTS', '169'],
+    expect(await page.getDashGroupValues('alerts_ui_e2e')).toEqualBcoz(['36', 'alerts_ui_e2e', 'ALERTS', '169'],
                                                               'Top Level Group Values should be present for alerts_ui_e2e');
 
     await page.expandDashGroup('alerts_ui_e2e');
