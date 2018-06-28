@@ -29,7 +29,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.metron.stellar.common.evaluators.ArithmeticEvaluator;
@@ -104,6 +107,52 @@ public class StellarCompiler extends StellarBaseListener {
       return tokenDeque;
     }
 
+    /**
+     * When treating empty or missing values as false, we need to ensure we ONLY do so in a conditional context.
+     * @param tokenValueType
+     * @return
+     */
+    private boolean isConditionalContext(Class<?> tokenValueType) {
+      return tokenValueType != null && (
+               tokenValueType == BooleanArg.class
+            || tokenValueType == IfExpr.class
+            || tokenValueType == MatchClauseCheckExpr.class
+      );
+    }
+
+    /**
+     * Determine if a token and value is an empty list in the appropriate conditional context
+     * @param token
+     * @param value
+     * @return
+     */
+    private boolean isEmptyList(Token<?> token, Object value) {
+      if(value != null && isConditionalContext(token.getUnderlyingType())) {
+        if (value instanceof Iterable) {
+          return Iterables.isEmpty((Iterable) value);
+        } else if (value instanceof Map) {
+          return ((Map) value).isEmpty();
+        }
+        else {
+          return false;
+        }
+      }else {
+        return false;
+      }
+    }
+
+    /**
+     * Determine if a token is missing in a conditional context.
+     * @param token
+     * @return
+     */
+    private boolean isBoolean(Token<?> token, Object value) {
+      if(token == null || token.getValue() == null) {
+        return false;
+      }
+      return value == null && isConditionalContext(token.getValue().getClass());
+    }
+
     public Object apply(ExpressionState state) {
       Deque<Token<?>> instanceDeque = new ArrayDeque<>();
       {
@@ -137,6 +186,17 @@ public class StellarCompiler extends StellarBaseListener {
           and with the current context.
            */
           Token<?> curr = instanceDeque.peek();
+          boolean isFalsey = curr != null &&
+                  (isBoolean(token, curr.getValue()) || isEmptyList(token, curr.getValue()));
+          if(isFalsey){
+            //If we're in a situation where the token is a boolean token and the current value is one of the implicitly falsey scenarios
+            //* null or missing variable
+            //* empty list
+            // then we want to treat it as explicitly false by replacing the current token.
+            curr = new Token<>(false, Boolean.class, curr.getMultiArgContext());
+            instanceDeque.removeFirst();
+            instanceDeque.addFirst(curr);
+          }
           if (curr != null && curr.getValue() != null && curr.getValue() instanceof Boolean
               && ShortCircuitOp.class.isAssignableFrom(token.getUnderlyingType())) {
             //if we have a boolean as the current value and the next non-contextual token is a short circuit op
@@ -211,6 +271,8 @@ public class StellarCompiler extends StellarBaseListener {
         throw new ParseException("Invalid parse, found " + token);
       }
     }
+
+
 
     public void shortCircuit(Iterator<Token<?>> it, FrameContext.Context context) {
       while (it.hasNext()) {
@@ -379,7 +441,8 @@ public class StellarCompiler extends StellarBaseListener {
     final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
     Token<Boolean> arg = (Token<Boolean>) popDeque(tokenDeque);
-    tokenDeque.push(new Token<>(!arg.getValue(), Boolean.class, context));
+    Boolean v = Optional.ofNullable(ConversionUtils.convert(arg.getValue(), Boolean.class)).orElse(false);
+    tokenDeque.push(new Token<>(!v, Boolean.class, context));
     }, DeferredFunction.class, context));
   }
 
@@ -393,7 +456,8 @@ public class StellarCompiler extends StellarBaseListener {
         // when parsing, missing variables are an error!
         throw new ParseException(String.format("variable: %s is not defined",varName));
       }
-      tokenDeque.push(new Token<>(state.variableResolver.resolve(varName), Object.class, context));
+      Object resolved = state.variableResolver.resolve(varName);
+      tokenDeque.push(new Token<>(resolved, Object.class, context));
     }, DeferredFunction.class, context));
     expression.variablesUsed.add(ctx.getText());
   }
@@ -492,11 +556,8 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   private boolean booleanOp(final Token<?> left, final Token<?> right, final BooleanOp op, final String opName) {
-    Boolean l = ConversionUtils.convert(left.getValue(), Boolean.class);
-    Boolean r = ConversionUtils.convert(right.getValue(), Boolean.class);
-    if (l == null || r == null) {
-      throw new ParseException("Unable to operate on " + left.getValue() + " " + opName + " " + right.getValue() + ", null value");
-    }
+    Boolean l = Optional.ofNullable(ConversionUtils.convert(left.getValue(), Boolean.class)).orElse(false);
+    Boolean r = Optional.ofNullable(ConversionUtils.convert(right.getValue(), Boolean.class)).orElse(false);
     return op.op(l, r);
   }
 
@@ -730,14 +791,11 @@ public class StellarCompiler extends StellarBaseListener {
     // a null and we need to protect against that
     if(ctx.getStart() == ctx.getStop()) {
       expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
-        if (state.context.getActivityType().equals(ActivityType.VALIDATION_ACTIVITY)) {
           if (tokenDeque.size() == 1 && (tokenDeque.peek().getValue() == null
-              || tokenDeque.peek().getUnderlyingType() == Boolean.class)) {
+                  || tokenDeque.peek().getUnderlyingType() == Boolean.class)) {
             tokenDeque.pop();
-            tokenDeque.add(new Token<>(true, Boolean.class, getArgContext()));
+            tokenDeque.add(new Token<>(false, Boolean.class, getArgContext()));
           }
-
-        }
       }, DeferredFunction.class, context));
     }
     expression.tokenDeque.push(new Token<>(new MatchClauseCheckExpr(), MatchClauseCheckExpr.class, getArgContext()));
