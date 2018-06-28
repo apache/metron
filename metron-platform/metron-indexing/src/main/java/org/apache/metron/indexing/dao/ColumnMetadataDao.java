@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.elasticsearch.dao;
+package org.apache.metron.indexing.dao;
 
 import org.apache.metron.indexing.dao.search.FieldType;
 
@@ -36,32 +36,4 @@ public interface ColumnMetadataDao {
    * @throws IOException
    */
   Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException;
-
-  /**
-   * Finds the latest version of a set of base indices.  This can be used to find
-   * the latest 'bro' index, for example.
-   *
-   * Assuming the following indices exist...
-   *
-   *    [
-   *      'bro_index_2017.10.03.19'
-   *      'bro_index_2017.10.03.20',
-   *      'bro_index_2017.10.03.21',
-   *      'snort_index_2017.10.03.19',
-   *      'snort_index_2017.10.03.20',
-   *      'snort_index_2017.10.03.21'
-   *    ]
-   *
-   *  And the include indices are given as...
-   *
-   *    ['bro', 'snort']
-   *
-   * Then the latest indices are...
-   *
-   *    ['bro_index_2017.10.03.21', 'snort_index_2017.10.03.21']
-   *
-   * @param includeIndices The base names of the indices to include
-   * @return The latest version of a set of indices.
-   */
-  String[] getLatestIndices(List<String> includeIndices);
 }

@@ -108,8 +108,9 @@
         <global_slf4j_version>1.7.7</global_slf4j_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_java_version>1.8</global_java_version>
-        <global_solr_version>5.2.1</global_solr_version>
+        <global_solr_version>6.6.2</global_solr_version>
         <global_mockito_version>1.10.19</global_mockito_version>
+        <global_powermock_version>1.7.0</global_powermock_version>
         <global_shade_version>2.4.3</global_shade_version>
         <global_jackson_version>2.7.4</global_jackson_version>
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
