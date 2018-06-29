@@ -18,13 +18,19 @@
 
 package org.apache.metron.job;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
  * Abstraction for getting status on running jobs. Also provides options for killing and validating.
  */
 public interface Statusable {
+
+  enum JobType {
+    MAP_REDUCE,
+    SPARK;
+  }
+
+  JobType getJobType();
 
   /**
    * Current job status.
@@ -43,7 +49,7 @@ public interface Statusable {
   /**
    * Kill job.
    */
-  void kill() throws IOException;
+  void kill() throws JobException;
 
   /**
    * Validate job after submitted.
@@ -53,4 +59,10 @@ public interface Statusable {
    */
   boolean validate(Map<String, Object> configuration);
 
+  /**
+   * Submit the job.
+   *
+   * @return self
+   */
+  Statusable submit() throws JobException;
 }

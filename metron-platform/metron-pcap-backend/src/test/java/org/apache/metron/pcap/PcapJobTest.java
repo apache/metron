@@ -59,7 +59,7 @@ public class PcapJobTest {
   private org.apache.hadoop.mapreduce.JobStatus mrStatus;
   @Mock
   private JobID jobId;
-  private static final String JOB_ID_VAL = "job_abc_123";
+  private String jobIdVal = "job_abc_123";
   private Path basePath;
   private Path baseOutPath;
   private long startTime;
@@ -79,7 +79,7 @@ public class PcapJobTest {
     fixedFields = new HashMap<>();
     fixedFields.put("ip_src_addr", "192.168.1.1");
     hadoopConfig = new Configuration();
-    when(jobId.toString()).thenReturn(JOB_ID_VAL);
+    when(jobId.toString()).thenReturn(jobIdVal);
     when(mrStatus.getJobID()).thenReturn(jobId);
   }
 
@@ -130,6 +130,7 @@ public class PcapJobTest {
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
+    Assert.assertThat(status.getJobId(), equalTo(jobIdVal));
     String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
     Assert.assertThat(status.getResultPath(), notNullValue());
     Assert.assertThat(status.getResultPath().toString(), startsWith(expectedOutPath));

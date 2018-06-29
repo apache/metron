@@ -51,6 +51,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
+import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.JobStatus.State;
 import org.apache.metron.job.Pageable;
@@ -74,6 +75,7 @@ public class PcapJob implements Statusable {
   public static final String WIDTH_CONF = "width";
   private Job job; // store a running MR job reference for async status check
   private Path outputPath;
+  private PcapMRJobConfig config;
 
   public static enum PCAP_COUNTER {
     MALFORMED_PACKET_COUNT
@@ -167,6 +169,13 @@ public class PcapJob implements Statusable {
     }
   }
 
+  public PcapJob() {
+  }
+
+  public <T> PcapJob(PcapMRJobConfig<T> config) {
+    this.config = config;
+  }
+
   /**
    * Run query synchronously.
    */
@@ -180,9 +189,8 @@ public class PcapJob implements Statusable {
                             , FileSystem fs
                             , PcapFilterConfigurator<T> filterImpl
                             ) throws IOException, ClassNotFoundException, InterruptedException {
-    Statusable statusable = query(Optional.empty(), basePath, baseOutputPath, beginNS, endNS, numReducers, fields,
-        conf,
-        fs, filterImpl, true);
+    Statusable statusable = query(Optional.empty(), basePath, baseOutputPath, beginNS, endNS,
+        numReducers, fields, conf, fs, filterImpl, true);
     JobStatus jobStatus = statusable.getStatus();
     if (jobStatus.getState() == State.SUCCEEDED) {
       Path resultPath = jobStatus.getResultPath();
@@ -258,6 +266,26 @@ public class PcapJob implements Statusable {
       Collections.sort(files, (o1, o2) -> o1.getName().compareTo(o2.getName()));
     }
     return new SequenceFileIterable(files, config);
+  }
+
+  @Override
+  public Statusable submit() throws JobException {
+    try {
+      return query(
+          config.getJobName(),
+          config.getBasePath(),
+          config.getBaseOutputPath(),
+          config.getBeginNS(),
+          config.getEndNS(),
+          config.getNumReducers(),
+          config.getFields(),
+          config.getConf(),
+          config.getFs(),
+          config.getFilterImpl(),
+          config.isSynchronous());
+    } catch (IOException | ClassNotFoundException | InterruptedException e) {
+      throw new JobException("Unable to run pcap query.", e);
+    }
   }
 
   public Pageable<Path> writeResults(SequenceFileIterable results, ResultsWriter resultsWriter,
@@ -343,6 +371,11 @@ public class PcapJob implements Statusable {
   }
 
   @Override
+  public JobType getJobType() {
+    return JobType.MAP_REDUCE;
+  }
+
+  @Override
   public JobStatus getStatus() {
     // Note: this method is only reading state from the underlying job, so locking not needed
     JobStatus status = new JobStatus().withResultPath(outputPath);
@@ -390,8 +423,12 @@ public class PcapJob implements Statusable {
   }
 
   @Override
-  public void kill() throws IOException {
-    job.killJob();
+  public void kill() throws JobException {
+    try {
+      job.killJob();
+    } catch (IOException e) {
+      throw new JobException("Unable to kill pcap job.", e);
+    }
   }
 
   @Override

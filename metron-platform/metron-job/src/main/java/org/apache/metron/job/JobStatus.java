@@ -64,6 +64,10 @@ public class JobStatus {
     return this;
   }
 
+  public String getJobId() {
+    return jobId;
+  }
+
   public State getState() {
     return state;
   }
