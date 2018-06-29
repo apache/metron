@@ -158,7 +158,7 @@ describe('Test spec for meta alerts workflow', function() {
       'source:type': '1',
       'ip_dst_addr': '7',
       'enrichm...:country': '3',
-      'ip_src_addr': '2'
+      'ip_src_addr': '4'
     };
     let alertsInMetaAlerts = [
       '82f8046d-d...03b17480dd',

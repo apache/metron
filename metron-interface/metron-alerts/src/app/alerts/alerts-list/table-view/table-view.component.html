@@ -12,7 +12,7 @@
   the specific language governing permissions and limitations under the License.
   -->
 <div class="table-wrapper">
-  <table class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="resize()" #table>
+  <table attr.data-qe-id="{{'alerts-table'}}" class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="resize()" #table>
     <thead>
     <tr>
       <th width="15" class="dropdown-cell"> </th>
@@ -27,15 +27,15 @@
     <ng-container *ngFor="let alert of alerts; let alertIndex = index;">
 
       <ng-container *ngIf="!alert.source.metron_alert || alert.source.metron_alert.length === 0">
-        <tr (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
+        <tr attr.data-qe-id="{{'row-' + alertIndex}}" (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
           <td width="15" class="icon-cell"></td>
           <td (click)="addFilter(threatScoreFieldName(), getScore(alert.source))">
             <div appAlertSeverity [severity]="getScore(alert.source)">
-              <a> {{ hasScore(alert.source) ? getScore(alert.source) : '-' }} </a>
+              <a attr.data-qe-id="{{'score'}}"> {{ hasScore(alert.source) ? getScore(alert.source) : '-' }} </a>
             </div>
           </td>
-          <td *ngFor="let column of alertsColumnsToDisplay" #cell>
-            <a (click)="addFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9">
+          <td *ngFor="let column of alertsColumnsToDisplay; let columnIndex = index;" #cell>
+            <a  attr.data-qe-id="{{'cell-' + columnIndex}}" (click)="addFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}"  style="color:#689AA9">
               {{ getValue(alert,column, true) | centerEllipses:20:cell }}
             </a>
           </td>
