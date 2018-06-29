@@ -76,3 +76,4 @@ user:
 pcap:
   input.path: /apps/metron/pcap
   output.path: /tmp
+  page.size: 100

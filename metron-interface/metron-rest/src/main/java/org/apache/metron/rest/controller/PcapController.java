@@ -21,9 +21,12 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.hadoop.fs.Path;
+import org.apache.metron.job.Pageable;
 import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.pcap.Pdml;
 import org.apache.metron.rest.service.PcapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/pcap")
@@ -45,9 +49,19 @@ public class PcapController {
   @ApiOperation(value = "Executes a Fixed Pcap Query.")
   @ApiResponses(value = { @ApiResponse(message = "Returns a PcapResponse containing an array of pcaps.", code = 200)})
   @RequestMapping(value = "/fixed", method = RequestMethod.POST)
-  ResponseEntity<PcapResponse> fixed(@ApiParam(name="fixedPcapRequest", value="A Fixed Pcap Request"
+  ResponseEntity<List<String>> fixed(@ApiParam(name="fixedPcapRequest", value="A Fixed Pcap Request"
           + " which includes fixed filter fields like ip source address and protocol.", required=true)@RequestBody FixedPcapRequest fixedPcapRequest) throws RestException {
-    PcapResponse pcapsResponse = pcapQueryService.fixed(fixedPcapRequest);
-    return new ResponseEntity<>(pcapsResponse, HttpStatus.OK);
+    List<String> paths = pcapQueryService.fixed(fixedPcapRequest);
+    return new ResponseEntity<>(paths, HttpStatus.OK);
+  }
+
+  @RequestMapping(value = "/pdml", method = RequestMethod.POST)
+  ResponseEntity<Pdml> pdml(@ApiParam(name="path", value="Path to pcap result page", required=true)@RequestBody String path) throws RestException {
+    Pdml pdml = pcapQueryService.getPdml(new Path(path));
+    if (pdml != null) {
+      return new ResponseEntity<>(pdml, HttpStatus.OK);
+    } else {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
   }
 }

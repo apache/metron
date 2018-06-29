@@ -77,4 +77,6 @@ public class MetronRestConstants {
 
   public static final String PCAP_INPUT_PATH_SPRING_PROPERTY = "pcap.input.path";
   public static final String PCAP_OUTPUT_PATH_SPRING_PROPERTY = "pcap.output.path";
+  public static final String PCAP_PAGE_SIZE_SPRING_PROPERTY = "pcap.page.size";
+  public static final String PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY = "pcap.pdml.script.path";
 }
