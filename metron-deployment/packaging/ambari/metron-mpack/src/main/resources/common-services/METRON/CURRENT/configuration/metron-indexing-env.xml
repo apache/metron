@@ -22,7 +22,7 @@
         <name>ra_indexing_kafka_start</name>
         <description>Indexing Topology Spout Offset</description>
         <value>UNCOMMITTED_EARLIEST</value>
-        <display-name>Elasticsearch Indexing Offset</display-name>
+        <display-name>Random Access Indexing Offset</display-name>
         <value-attributes>
             <type>value-list</type>
             <entries>
@@ -80,10 +80,22 @@
         <display-name>Indexing Error Topic</display-name>
     </property>
     <property>
-        <name>ra_indexing_writer_class_name</name>
-        <description>Indexing Writer Class Name</description>
-        <value>org.apache.metron.elasticsearch.writer.ElasticsearchWriter</value>
-        <display-name>Indexing Writer Class Name</display-name>
+        <name>ra_indexing_writer</name>
+        <description>Search Engine Used for Random Access</description>
+        <value>Elasticsearch</value>
+        <display-name>Random Access Search Engine</display-name>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>Elasticsearch</value>
+                </entry>
+                <entry>
+                    <value>Solr</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
     </property>
     <property>
         <name>update_hbase_table</name>
@@ -101,7 +113,7 @@
         <name>ra_indexing_workers</name>
         <description>Number of Indexing Topology Workers</description>
         <value>1</value>
-        <display-name>Indexing Workers for Elasticsearch</display-name>
+        <display-name>Indexing Workers for Random Access</display-name>
     </property>
     <property>
         <name>batch_indexing_workers</name>
@@ -113,7 +125,7 @@
         <name>ra_indexing_acker_executors</name>
         <description>Number of Indexing Topology Ackers</description>
         <value>1</value>
-        <display-name>Enrichment Ackers for Elasticsearch</display-name>
+        <display-name>Enrichment Ackers for Random Access</display-name>
     </property>
     <property>
         <name>batch_indexing_acker_executors</name>
@@ -135,7 +147,7 @@
         <name>ra_indexing_topology_max_spout_pending</name>
         <description>Indexing Topology Spout Max Pending Tuples</description>
         <value/>
-        <display-name>Indexing Max Pending for Elasticsearch</display-name>
+        <display-name>Indexing Max Pending for Random Access</display-name>
         <value-attributes>
             <empty-value-valid>true</empty-value-valid>
         </value-attributes>
@@ -152,7 +164,7 @@
 
     <property>
         <name>ra_indexing_kafka_spout_parallelism</name>
-        <description>Indexing Topology Kafka Spout Parallelism for Elasticsearch</description>
+        <description>Indexing Topology Kafka Spout Parallelism for Random Access</description>
         <value>1</value>
         <display-name>Indexing Spout Parallelism</display-name>
     </property>
@@ -164,7 +176,7 @@
     </property>
     <property>
         <name>ra_indexing_writer_parallelism</name>
-        <description>Indexing Topology Writer Bolt Parallelism for Elasticsearch</description>
+        <description>Indexing Topology Writer Bolt Parallelism for Random Access</description>
         <value>1</value>
         <display-name>Indexing Writer Parallelism</display-name>
     </property>

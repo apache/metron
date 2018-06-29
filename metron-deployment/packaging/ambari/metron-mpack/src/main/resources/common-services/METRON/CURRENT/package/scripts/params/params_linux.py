@@ -83,6 +83,7 @@ indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_fl
 indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
 elasticsearch_template_installed_flag_file = status_params.elasticsearch_template_installed_flag_file
+solr_schema_installed_flag_file = status_params.solr_schema_installed_flag_file
 rest_kafka_configured_flag_file = status_params.rest_kafka_configured_flag_file
 rest_kafka_acl_configured_flag_file = status_params.rest_kafka_acl_configured_flag_file
 rest_hbase_configured_flag_file = status_params.rest_hbase_configured_flag_file
@@ -122,6 +123,14 @@ if has_zk_host:
     zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(config['clusterHostInfo']['zookeeper_hosts'])
     # last port config
     zookeeper_quorum += ':' + zookeeper_clientPort
+
+# Solr params
+solr_version = '6.6.2'
+solr_home = '/var/solr/solr-' + solr_version
+solr_zookeeper_url = format(format(config['configurations']['metron-env']['solr_zookeeper_url']))
+solr_user = config['configurations']['solr-config-env']['solr_config_user']
+solr_principal_name = config['configurations']['solr-config-env']['solr_principal_name']
+solr_keytab_path = config['configurations']['solr-config-env']['solr_keytab_path']
 
 # Storm
 storm_rest_addr = status_params.storm_rest_addr
@@ -203,6 +212,13 @@ yaf_index_path = tmp_dir + "/yaf_index.template"
 error_index_path = tmp_dir + "/error_index.template"
 meta_index_path = tmp_dir + "/metaalert_index.template"
 
+# Solr Schemas
+bro_schema_path = metron_home + "/config/schema/bro"
+snort_schema_path = metron_home + "/config/schema/snort"
+yaf_schema_path = metron_home + "/config/schema/yaf"
+error_schema_path = metron_home + "/config/schema/error"
+meta_schema_path = metron_home + "/config/schema/metaalert"
+
 # Zeppelin Notebooks
 metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")
 zeppelin_shiro_ini_content = status_params.zeppelin_shiro_ini_content
@@ -242,6 +258,9 @@ if security_enabled:
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
 
     nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']
+    # Check wether Solr mpack is installed
+    if 'solr-config-env' in config['configurations']:
+        solr_principal_name = solr_principal_name.replace('_HOST', hostname_lowercase)
 
 # Management UI
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
@@ -340,7 +359,7 @@ indexing_input_topic = status_params.indexing_input_topic
 indexing_error_topic = config['configurations']['metron-indexing-env']['indexing_error_topic']
 metron_random_access_indexing_topology = status_params.metron_random_access_indexing_topology
 metron_batch_indexing_topology = status_params.metron_batch_indexing_topology
-ra_indexing_writer_class_name = config['configurations']['metron-indexing-env']['ra_indexing_writer_class_name']
+ra_indexing_writer = config['configurations']['metron-indexing-env']['ra_indexing_writer']
 batch_indexing_writer_class_name = config['configurations']['metron-indexing-env']['batch_indexing_writer_class_name']
 ra_indexing_workers = config['configurations']['metron-indexing-env']['ra_indexing_workers']
 batch_indexing_workers = config['configurations']['metron-indexing-env']['batch_indexing_workers']

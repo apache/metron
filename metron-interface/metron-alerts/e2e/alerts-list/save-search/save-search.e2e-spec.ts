@@ -21,19 +21,20 @@ import {MetronAlertsPage} from '../alerts-list.po';
 import {LoginPage} from '../../login/login.po';
 import {loadTestData, deleteTestData} from '../../utils/e2e_util';
 
-describe('metron-alerts Search', function() {
+describe('Test spec for search and save search', function() {
   let page: MetronAlertsPage;
   let loginPage: LoginPage;
 
-  beforeAll(() => {
-    loadTestData();
+  beforeAll(async function() : Promise<any> {
     loginPage = new LoginPage();
-    loginPage.login();
+
+    await loadTestData();
+    await loginPage.login();
   });
 
-  afterAll(() => {
-    loginPage.logout();
-    deleteTestData();
+  afterAll(async function() : Promise<any> {
+    await loginPage.logout();
+    await deleteTestData();
   });
 
   beforeEach(() => {
@@ -41,57 +42,57 @@ describe('metron-alerts Search', function() {
     jasmine.addMatchers(customMatchers);
   });
 
-  it('should display all the default values for saved searches', () => {
-    page.clearLocalStorage();
-    page.navigateTo();
+  it('should display all the default values for saved searches', async function() : Promise<any> {
+    await page.clearLocalStorage();
+    await page.navigateTo();
 
-    page.clickSavedSearch();
-    expect(page.getSavedSearchTitle()).toEqualBcoz('Searches', 'for saved searches title');
-    expect(page.getRecentSearchOptions()).toEqualBcoz([], 'for recent search options');
-    expect(page.getSavedSearchOptions()).toEqualBcoz([], 'for saved search options');
-    expect(page.getDefaultRecentSearchValue()).toEqualBcoz([ 'No Recent Searches' ], 'for recent search default value');
-    expect(page.getDefaultSavedSearchValue()).toEqualBcoz([ 'No Saved Searches' ], 'for saved search default value');
-    page.clickCloseSavedSearch();
+    await page.clickSavedSearch();
+    expect(await page.getSavedSearchTitle()).toEqualBcoz('Searches', 'for saved searches title');
+    expect(await page.getRecentSearchOptions()).toEqualBcoz([], 'for recent search options');
+    expect(await page.getSavedSearchOptions()).toEqualBcoz([], 'for saved search options');
+    expect(await page.getDefaultRecentSearchValue()).toEqualBcoz([ 'No Recent Searches' ], 'for recent search default value');
+    expect(await page.getDefaultSavedSearchValue()).toEqualBcoz([ 'No Saved Searches' ], 'for saved search default value');
+    await page.clickCloseSavedSearch();
 
   });
 
-  it('should have all save search controls and they save search should be working', () => {
-    page.saveSearch('e2e-1');
-    page.clickSavedSearch();
-    expect(page.getSavedSearchOptions()).toEqualBcoz([ 'e2e-1' ], 'for saved search options e2e-1');
-    page.clickCloseSavedSearch();
+  it('should have all save search controls and they save search should be working', async function() : Promise<any> {
+    await page.saveSearch('e2e-1');
+    await page.clickSavedSearch();
+    expect(await page.getSavedSearchOptions()).toEqualBcoz([ 'e2e-1' ], 'for saved search options e2e-1');
+    await page.clickCloseSavedSearch();
   });
 
-  it('should populate search items when selected on table', () => {
-    page.clickTableText('US');
-    expect(page.getSearchText()).toEqualBcoz('enrichments:geo:ip_dst_addr:country:US', 'for search text ip_dst_addr_country US');
-    page.clickClearSearch();
-    expect(page.getSearchText()).toEqualBcoz('*', 'for clear search');
+  it('should delete search items from search box', async function() : Promise<any> {
+    await page.clickClearSearch();
+    expect(await page.getSearchText()).toEqual('*');
+    expect(await page.getChangesAlertTableTitle('')).toEqual('Alerts (169)');
+
+    expect(await page.clickTableTextAndGetSearchText('FR', 'enrichments:geo:ip_dst_addr:country:FR')).toEqualBcoz('enrichments:geo:ip_dst_addr:country:FR', 'for search text ip_dst_addr_country FR');
+    expect(await page.clickRemoveSearchChipAndGetSearchText('*')).toEqualBcoz('*', 'for search chip remove');
   });
 
-  it('should delete search items from search box', () => {
-    page.clickTableText('US');
-    expect(page.getSearchText()).toEqualBcoz('enrichments:geo:ip_dst_addr:country:US', 'for search text ip_dst_addr_country US');
-    page.clickRemoveSearchChip();
-    expect(page.getSearchText()).toEqualBcoz('*', 'for search chip remove');
+  it('should delete first search items from search box having multiple search fields', async function() : Promise<any> {
+    await page.clickClearSearch();
+    expect(await page.getSearchText()).toEqual('*');
+    expect(await page.getChangesAlertTableTitle('')).toEqual('Alerts (169)');
+
+    expect(await page.clickTableTextAndGetSearchText('FR', 'enrichments:geo:ip_dst_addr:country:FR')).toEqual('enrichments:geo:ip_dst_addr:country:FR');
+    expect(await page.clickTableTextAndGetSearchText('alerts_ui_e2e', 'enrichments:geo:ip_dst_addr:country:FR AND source:type:alerts_ui_e2e')).toEqual('enrichments:geo:ip_dst_addr:country:FR AND source:type:alerts_ui_e2e');
+
+    expect(await page.clickRemoveSearchChipAndGetSearchText('source:type:alerts_ui_e2e')).toEqual('source:type:alerts_ui_e2e');
+    expect(await page.clickRemoveSearchChipAndGetSearchText('*')).toEqual('*');
   });
 
-  it('should delete first search items from search box having multiple search fields', () => {
-    page.clickTableText('US');
-    page.clickTableText('alerts_ui_e2e');
-    expect(page.getSearchText()).toEqual('enrichments:geo:ip_dst_addr:country:US AND source:type:alerts_ui_e2e', 'for search text US and alerts_ui_e2e');
-    page.clickRemoveSearchChip();
-    expect(page.getSearchText()).toEqual('source:type:alerts_ui_e2e', 'for search text alerts_ui_e2e after US is removed');
-    page.clickRemoveSearchChip();
-    expect(page.getSearchText()).toEqualBcoz('*', 'for search chip remove for two search texts');
-  });
-
-  it('manually entering search queries to search box and pressing enter key should search', () => {
-    page.setSearchText('enrichments:geo:ip_dst_addr:country:US');
-    expect(page.getPaginationText()).toEqualBcoz('1 - 22 of 22',
+  it('manually entering search queries to search box and pressing enter key should search', async function() : Promise<any> {
+    await page.setSearchText('enrichments:geo:ip_dst_addr:country:US');
+    expect(await page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (22)');
+    expect(await page.getPaginationText()).toEqualBcoz('1 - 22 of 22',
                                                 'for pagination text with search text enrichments:geo:ip_dst_addr:country:US');
-    page.setSearchText('enrichments:geo:ip_dst_addr:country:RU');
-    expect(page.getPaginationText()).toEqualBcoz('1 - 25 of 44',
+
+    await page.setSearchText('enrichments:geo:ip_dst_addr:country:RU');
+    expect(await page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (44)');
+    expect(await page.getPaginationText()).toEqualBcoz('1 - 25 of 44',
                                                   'for pagination text with search text enrichments:geo:ip_dst_addr:country:RU as text');
   });
 

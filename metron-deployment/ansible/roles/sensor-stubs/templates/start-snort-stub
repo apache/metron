@@ -21,13 +21,19 @@
 # simulates the behavior of a sensor by sending canned telemetry data
 # to a Kafka topic.
 #
-# a subset of the canned data is randomly selected and is sent in 
+# a subset of the canned data is randomly selected and is sent in
 # batches.  the timestamp of the message is altered to match current
-# system time.  the number of messages sent in each batch, along with 
+# system time.  the number of messages sent in each batch, along with
 # the time delay between batches can be configured.
 #
 # start-snort-stub <DELAY> <COUNT>
 #
+
+METRON_SYSCONFIG="/etc/default/metron"
+if [ -f "$METRON_SYSCONFIG" ]; then
+  set -a
+  . "$METRON_SYSCONFIG"
+fi
 
 #
 # how long to delay between each 'batch' in seconds.
@@ -36,20 +42,27 @@ DELAY=${1:-{{ sensor_stubs_delay }}}
 
 #
 # how many messages to send in each 'batch'.  the messages are drawn randomly
-# from the entire set of canned data. 
+# from the entire set of canned data.
 #
 COUNT=${2:-{{ sensor_stubs_count }}}
 
 INPUT="{{ sensor_stubs_data }}/snort.out"
 PRODUCER="{{ kafka_home }}/bin/kafka-console-producer.sh"
 TOPIC="snort"
+SECURITY_ENABLED=${SECURITY_ENABLED:-false}
+KAFKA_SECURITY_PROTOCOL=${KAFKA_SECURITY_PROTOCOL:-PLAINTEXT}
+
+if [ ${SECURITY_ENABLED,,} == 'true' ]; then
+  echo "Security enabled"
+  kinit -kt $METRON_SERVICE_KEYTAB $METRON_PRINCIPAL_NAME
+fi
 
 while true; do
-  
+
   # transform the timestamp and push to kafka
   SEARCH="[^,]\+ ,"
   REPLACE="`date +'%m\/%d\/%y-%H:%M:%S'`.000000 ,"
-  shuf -n $COUNT $INPUT | sed -e "s/$SEARCH/$REPLACE/g" | $PRODUCER --broker-list {{ kafka_broker_url }} --topic $TOPIC
-  
+  shuf -n $COUNT $INPUT | sed -e "s/$SEARCH/$REPLACE/g" | $PRODUCER --broker-list $BROKERLIST --topic $TOPIC --security-protocol $KAFKA_SECURITY_PROTOCOL
+
   sleep $DELAY
 done

@@ -23,13 +23,14 @@
 var SpecReporter = require('jasmine-spec-reporter').SpecReporter;
 
 exports.config = {
-  allScriptsTimeout: 25000,
+  allScriptsTimeout: 15000,
   specs: [
     './e2e/login/login.e2e-spec.ts',
     './e2e/alerts-list/alerts-list.e2e-spec.ts',
     './e2e/alerts-list/configure-table/configure-table.e2e-spec.ts',
     './e2e/alerts-list/save-search/save-search.e2e-spec.ts',
     './e2e/alerts-list/tree-view/tree-view.e2e-spec.ts',
+    './e2e/alerts-list/table-view/table-view.e2e-spec.ts',
     './e2e/alerts-list/alert-filters/alert-filters.e2e-spec.ts',
     './e2e/alerts-list/alert-status/alerts-list-status.e2e-spec.ts',
     './e2e/alert-details/alert-status/alert-details-status.e2e-spec.ts',
@@ -38,6 +39,7 @@ exports.config = {
   capabilities: {
     'browserName': 'chrome',
     'chromeOptions': {
+      args: ["--disable-gpu", "--window-size=1435,850", "--headless" ],
       'prefs': {
         'credentials_enable_service': false,
         'profile': { 'password_manager_enabled': false}
@@ -50,27 +52,27 @@ exports.config = {
   jasmineNodeOpts: {
     showColors: true,
     defaultTimeoutInterval: 50000,
-    print: function() {}
+    includeStackTrace: true
   },
-  useAllAngular2AppRoots: true,
-  rootElement: 'metron-alerts-root',
   beforeLaunch: function() {
     require('ts-node').register({
       project: 'e2e'
     });
   },
   onPrepare: function() {
-    var createMetaAlertsIndex =  require('./e2e/utils/e2e_util').createMetaAlertsIndex;
-    createMetaAlertsIndex();
-    jasmine.getEnv().addReporter(new SpecReporter());
-    setTimeout(function() {
-      browser.driver.executeScript(function() {
-        return {
-          width: window.screen.availWidth,
-          height: window.screen.availHeight
-        };
-      }).then(function(result) {
-        browser.driver.manage().window().setSize(result.width, result.height);
+
+    jasmine.getEnv().addReporter(new SpecReporter({spec: {displayStacktrace: true}}));
+
+    return new Promise(function(resolve, reject) {
+      var cleanMetronUpdateTable = require('./e2e/utils/clean_metron_update_table').cleanMetronUpdateTable;
+      var createMetaAlertsIndex = require('./e2e/utils/e2e_util').createMetaAlertsIndex;
+      cleanMetronUpdateTable()
+      .then(function() {
+        createMetaAlertsIndex();
+        resolve();
+      })
+      .catch(function (error) {
+        reject();
       });
     });
   },
