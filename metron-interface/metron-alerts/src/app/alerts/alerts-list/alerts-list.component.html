@@ -80,7 +80,7 @@
         </div>
         <div class="col-xs-12 px-0">
             <app-table-view #dataViewComponent
-                            [alerts]="alerts" *ngIf="getGroupRequest().groups.length === 0"
+                            [alerts]="alerts" *ngIf="groups.length === 0"
                             [queryBuilder]="queryBuilder"
                             [pagination]="pagination"
                             [alertsColumnsToDisplay]="alertsColumnsToDisplay"
@@ -90,11 +90,12 @@
                             (onRefreshData)="onRefreshData($event)"
                             (onShowDetails)="showDetails($event)"
                             (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-table-view>
-            <app-tree-view #dataViewComponent *ngIf="getGroupRequest().groups.length !== 0"
+            <app-tree-view #dataViewComponent *ngIf="groups.length !== 0"
                            [alerts]="alerts"
                            [queryBuilder]="queryBuilder"
                            [alertsColumnsToDisplay]="alertsColumnsToDisplay"
                            [selectedAlerts]="selectedAlerts"
+                           [globalConfig]="globalConfig"
                            (onResize)="onResize()"
                            (onAddFilter)="onAddFilter($event)"
                            (onRefreshData)="onRefreshData($event)"
