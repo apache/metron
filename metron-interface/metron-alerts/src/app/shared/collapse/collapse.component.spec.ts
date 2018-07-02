@@ -18,6 +18,8 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CollapseComponent } from './collapse.component';
+import { CenterEllipsesPipe } from '../pipes/center-ellipses.pipe';
+import { ColumnNameTranslatePipe } from '../pipes/column-name-translate.pipe';
 
 describe('CollapseComponent', () => {
   let component: CollapseComponent;
@@ -25,7 +27,11 @@ describe('CollapseComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ CollapseComponent ]
+      declarations: [ 
+        CollapseComponent,
+        CenterEllipsesPipe,
+        ColumnNameTranslatePipe
+      ]
     })
     .compileComponents();
   }));
@@ -34,6 +40,10 @@ describe('CollapseComponent', () => {
     fixture = TestBed.createComponent(CollapseComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  it('should be created', () => {
+    expect(component).toBeTruthy();
   });
 
 });

@@ -17,7 +17,6 @@
  */
 
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnInit, OnDestroy } from '@angular/core';
-import {Router} from '@angular/router';
 import { Subscription } from 'rxjs/Rx';
 
 import {Pagination} from '../../../model/pagination';
@@ -30,8 +29,6 @@ import {QueryBuilder} from '../query-builder';
 import {Sort} from '../../../utils/enums';
 import {Filter} from '../../../model/filter';
 import {AlertSource} from '../../../model/alert-source';
-import {PatchRequest} from '../../../model/patch-request';
-import {Patch} from '../../../model/patch';
 import {UpdateService} from '../../../service/update.service';
 import {MetaAlertService} from '../../../service/meta-alert.service';
 import {MetaAlertAddRemoveRequest} from '../../../model/meta-alert-add-remove-request';
@@ -50,7 +47,6 @@ export enum MetronAlertDisplayState {
 
 export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
-  router: Router;
   searchService: SearchService;
   updateService: UpdateService;
   isStatusFieldPresent = false;
@@ -75,13 +71,11 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   @Output() onShowConfigureTable = new EventEmitter<Alert>();
   @Output() onSelectedAlertsChange = new EventEmitter< Alert[]>();
 
-  constructor(router: Router,
-              searchService: SearchService,
+  constructor(searchService: SearchService,
               metronDialogBox: MetronDialogBox,
               updateService: UpdateService,
               metaAlertService: MetaAlertService,
               globalConfigService: GlobalConfigService) {
-    this.router = router;
     this.searchService = searchService;
     this.metronDialogBox = metronDialogBox;
     this.updateService = updateService;

@@ -17,7 +17,6 @@
  */
 
 import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy, Input } from '@angular/core';
-import {Router} from '@angular/router';
 import {Subscription, Observable} from 'rxjs/Rx';
 
 import {TableViewComponent} from '../table-view/table-view.component';
@@ -55,13 +54,12 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   alertsChangedSubscription: Subscription;
   configSubscription: Subscription;
 
-  constructor(router: Router,
-              searchService: SearchService,
+  constructor(searchService: SearchService,
               metronDialogBox: MetronDialogBox,
               updateService: UpdateService,
               metaAlertService: MetaAlertService,
               globalConfigService: GlobalConfigService) {
-    super(router, searchService, metronDialogBox, updateService, metaAlertService, globalConfigService);
+    super(searchService, metronDialogBox, updateService, metaAlertService, globalConfigService);
   }
 
   addAlertChangedListner() {
