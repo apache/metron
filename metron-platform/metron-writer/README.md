@@ -20,6 +20,30 @@ limitations under the License.
 ## Introduction
 The writer module provides some utilties for writing to outside components from within Storm.  This includes managing bulk writing.  An implemention is included for writing to HDFS in this module. Other writers can be found in their own modules.
 
+## Kafka Writer
+We have an implementation of a writer which will write batches of
+messages to Kafka.  An interesting aspect of this writer is that it can
+be configured to allow users to specify a message field which contains
+the topic for the message.
+
+The configuration for this writer is held in the individual Sensor
+Configurations:
+* [Enrichment](../metron-enrichment/README.md#sensor-enrichment-configuration) under the `config` element
+* [Parsers](../metron-parsers/README.md#parser-configuration) in the `parserConfig` element
+* Profiler - Unsupported currently
+
+In each of these, the kafka writer can be configured via a map which has
+the following elements:
+* `kafka.brokerUrl` : The broker URL
+* `kafka.keySerializer` : The key serializer (defaults to `StringSerializer`)
+* `kafka.valueSerializer` : The key serializer (defaults to `StringSerializer`)
+* `kafka.zkQuorum` : The zookeeper quorum
+* `kafka.requiredAcks` : Whether to require acks.
+* `kafka.topic` : The topic to write to
+* `kafka.topicField` : The field to pull the topic from.  If this is specified, then the producer will use this.  If it is unspecified, then it will default to the `kafka.topic` property.  If neither are specified, then an error will occur.
+* `kafka.producerConfigs` : A map of kafka producer configs for advanced customization.
+ 
+
 ## HDFS Writer
 The HDFS writer included here expands on what Storm has in several ways. There's customization in syncing to HDFS, rotation policy, etc. In addition, the writer allows for users to define output paths based on the fields in the provided JSON message.  This can be defined using Stellar.
 
