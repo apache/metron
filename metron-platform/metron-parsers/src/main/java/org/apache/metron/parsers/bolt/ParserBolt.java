@@ -33,6 +33,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
@@ -49,6 +50,7 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.topology.ParserComponents;
 import org.apache.metron.stellar.common.CachingStellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -70,11 +72,13 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private static final int KEY_INDEX = 1;
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private OutputCollector collector;
-  private Map<String, MessageParser<JSONObject>> sensorToParserMap;
+  private Map<String, ParserComponents> sensorToComponentMap;
   private Map<String, String> topicToSensorMap = new HashMap<>();
+  private Map<String, Supplier<SensorParserConfig>> sensorToConfigMap;
+
   //default filter is noop, so pass everything through.
-  private MessageFilter<JSONObject> filter;
-  private WriterHandler writer;
+//  private MessageFilter<JSONObject> filter;
+//  private WriterHandler writer;
   private Context stellarContext;
   private transient MessageGetStrategy messageGetStrategy;
   private transient Cache<CachingStellarProcessor.Key, Object> cache;
@@ -83,20 +87,21 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private int batchTimeoutDivisor = 1;
 
   public ParserBolt( String zookeeperUrl
-                   , Map<String, MessageParser<JSONObject>> sensorToParserMap
-                   , WriterHandler writer
+                   , Map<String, ParserComponents> sensorToComponentMap
+//                   , WriterHandler writer
   )
   {
     super(zookeeperUrl);
-    this.writer = writer;
-    this.sensorToParserMap = sensorToParserMap;
+    // TODO clean up writer and filter
+//    this.writer = writer;
+    this.sensorToComponentMap = sensorToComponentMap;
   }
 
 
-  public ParserBolt withMessageFilter(MessageFilter<JSONObject> filter) {
-    this.filter = filter;
-    return this;
-  }
+//  public ParserBolt withMessageFilter(MessageFilter<JSONObject> filter) {
+//    this.filter = filter;
+//    return this;
+//  }
 
   /**
    * If this ParserBolt is in a topology where it is daisy-chained with
@@ -138,8 +143,8 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     return defaultBatchTimeout;
   }
 
-  public Map<String, MessageParser<JSONObject>> getSensorToParserMap() {
-    return sensorToParserMap;
+  public Map<String, ParserComponents> getSensorToComponentMap() {
+    return sensorToComponentMap;
   }
 
   /**
@@ -170,7 +175,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
     Map<String, Object> conf = super.getComponentConfiguration();
     if (conf == null) {
-      conf = new HashMap<String, Object>();
+      conf = new HashMap<>();
     }
     conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, requestedTickFreqSecs);
     LOG.info("Requesting " + Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS + " set to " + Integer.toString(requestedTickFreqSecs));
@@ -185,21 +190,23 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     this.collector = collector;
 
     // Need to prep all sensors
-    for (Map.Entry<String, MessageParser<JSONObject>> entry: sensorToParserMap.entrySet()) {
+    for (Map.Entry<String, ParserComponents> entry: sensorToComponentMap.entrySet()) {
       String sensor = entry.getKey();
-      MessageParser<JSONObject> parser = entry.getValue();
+      MessageParser<JSONObject> parser = entry.getValue().getMessageParser();
 
-
+      // TODO adjust the cache to use a unified config
       if (getSensorParserConfig(sensor) != null) {
         cache = CachingStellarProcessor.createCache(getSensorParserConfig(sensor).getCacheConfig());
       }
       initializeStellar();
-      if (getSensorParserConfig(sensor) != null && filter == null) {
+      if (getSensorParserConfig(sensor) != null && sensorToComponentMap.get(sensor).getFilter() == null) {
         getSensorParserConfig(sensor).getParserConfig().putIfAbsent("stellarContext", stellarContext);
         if (!StringUtils.isEmpty(getSensorParserConfig(sensor).getFilterClassName())) {
-          filter = Filters.get(getSensorParserConfig(sensor).getFilterClassName()
-              , getSensorParserConfig(sensor).getParserConfig()
+          MessageFilter<JSONObject> filter = Filters.get(
+              getSensorParserConfig(sensor).getFilterClassName(),
+              getSensorParserConfig(sensor).getParserConfig()
           );
+          getSensorToComponentMap().get(sensor).setFilter(filter);
         }
       }
 
@@ -214,20 +221,22 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             "Unable to retrieve a parser config for " + sensor);
       }
       parser.configure(config.getParserConfig());
+
+      WriterHandler writer = sensorToComponentMap.get(sensor).getWriter();
+      writer.init(stormConf, context, collector, getConfigurations());
+      if (defaultBatchTimeout == 0) {
+        //This means getComponentConfiguration was never called to initialize defaultBatchTimeout,
+        //probably because we are in a unit test scenario.  So calculate it here.
+        WriterConfiguration writerConfig = getConfigurationStrategy()
+            .createWriterConfig(writer.getBulkMessageWriter(), getConfigurations());
+        BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(
+            writerConfig::getAllConfiguredTimeouts, batchTimeoutDivisor);
+        defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
+      }
+      writer.setDefaultBatchTimeout(defaultBatchTimeout);
     }
 
-    // TODO This would have originally been in loop. Make sure it can live outside.
-    writer.init(stormConf, context, collector, getConfigurations());
-    if (defaultBatchTimeout == 0) {
-      //This means getComponentConfiguration was never called to initialize defaultBatchTimeout,
-      //probably because we are in a unit test scenario.  So calculate it here.
-      WriterConfiguration writerConfig = getConfigurationStrategy()
-          .createWriterConfig(writer.getBulkMessageWriter(), getConfigurations());
-      BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(
-          writerConfig::getAllConfiguredTimeouts, batchTimeoutDivisor);
-      defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
-    }
-    writer.setDefaultBatchTimeout(defaultBatchTimeout);
+
   }
 
   protected void initializeStellar() {
@@ -280,7 +289,9 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   public void execute(Tuple tuple) {
     if (TupleUtils.isTick(tuple)) {
       try {
-        writer.flush(getConfigurations(), messageGetStrategy);
+        for (Entry<String, ParserComponents> entry : sensorToComponentMap.entrySet()) {
+          entry.getValue().getWriter().flush(getConfigurations(), messageGetStrategy);
+        }
       } catch (Exception e) {
         throw new RuntimeException(
             "This should have been caught in the writerHandler.  If you see this, file a JIRA", e);
@@ -291,20 +302,16 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     }
     byte[] originalMessage = (byte[]) messageGetStrategy.get(tuple);
     try {
-      //we want to ack the tuple in the situation where we have are not doing a bulk write
-      //otherwise we want to defer to the writerComponent who will ack on bulk commit.
-      boolean ackTuple = !writer.handleAck();
-      int numWritten = 0;
       SensorParserConfig sensorParserConfig;
       MessageParser<JSONObject> parser;
       String sensor;
       Map<String, Object> metadata;
-      if (sensorToParserMap.size() == 1) {
+      if (sensorToComponentMap.size() == 1) {
         // There's only one parser, so grab info directly
-        Entry<String, MessageParser<JSONObject>> sensorParser = sensorToParserMap.entrySet().iterator()
+        Entry<String, ParserComponents> sensorParser = sensorToComponentMap.entrySet().iterator()
             .next();
         sensor = sensorParser.getKey();
-        parser = sensorParser.getValue();
+        parser = sensorParser.getValue().getMessageParser();
         sensorParserConfig = getSensorParserConfig(sensor);
         metadata = getMetadata(tuple, sensorParserConfig.getReadMetadata());
       } else {
@@ -313,13 +320,19 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         // TODO unhardcode this
         String topic = (String) metadata.get("metron.metadata.topic");
         sensor = topicToSensorMap.get(topic);
-        parser = sensorToParserMap.get(sensor);
+        parser = sensorToComponentMap.get(sensor).getMessageParser();
         sensorParserConfig = getSensorParserConfig(sensor);
       }
 
       List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
       Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
       for (JSONObject message : messages.orElse(Collections.emptyList())) {
+        //we want to ack the tuple in the situation where we have are not doing a bulk write
+        //otherwise we want to defer to the writerComponent who will ack on bulk commit.
+        WriterHandler writer = sensorToComponentMap.get(sensor).getWriter();
+        boolean ackTuple = !writer.handleAck();
+        int numWritten = 0;
+
         message.put(Constants.SENSOR_TYPE, sensor);
         if (sensorParserConfig.getMergeMetadata()) {
           message.putAll(metadata);
@@ -341,6 +354,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
           message.put(Constants.GUID, UUID.randomUUID().toString());
         }
 
+        MessageFilter<JSONObject> filter = sensorToComponentMap.get(sensor).getFilter();
         if (filter == null || filter.emitTuple(message, stellarContext)) {
           boolean isInvalid = !parser.validate(message);
           List<FieldValidator> failedValidators = null;
@@ -362,16 +376,19 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             ErrorUtils.handleError(collector, error);
           } else {
             numWritten++;
+
             writer.write(sensor, tuple, message, getConfigurations(), messageGetStrategy);
           }
         }
+
+        //if we are supposed to ack the tuple OR if we've never passed this tuple to the bulk writer
+        //(meaning that none of the messages are valid either globally or locally)
+        //then we want to handle the ack ourselves.
+        if (ackTuple || numWritten == 0) {
+          collector.ack(tuple);
+        }
       }
-      //if we are supposed to ack the tuple OR if we've never passed this tuple to the bulk writer
-      //(meaning that none of the messages are valid either globally or locally)
-      //then we want to handle the ack ourselves.
-      if (ackTuple || numWritten == 0) {
-        collector.ack(tuple);
-      }
+
     } catch (Throwable ex) {
       handleError(originalMessage, tuple, ex, collector);
     }
@@ -381,7 +398,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     MetronError error = new MetronError()
             .withErrorType(Constants.ErrorType.PARSER_ERROR)
             .withThrowable(ex)
-            .withSensorType(sensorToParserMap.keySet())
+            .withSensorType(sensorToComponentMap.keySet())
             .addRawMessage(originalMessage);
     ErrorUtils.handleError(collector, error);
     collector.ack(tuple);

@@ -17,7 +17,10 @@
  */
 package org.apache.metron.parsers.topology;
 
+import org.apache.kafka.common.protocol.SecurityProtocol;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.parsers.topology.config.ValueSupplier;
 import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
 import org.apache.storm.Config;
@@ -307,7 +310,8 @@ public class ParserTopologyCLI {
   public ParserTopologyBuilder.ParserTopology createParserTopology(final CommandLine cmd) throws Exception {
     String zookeeperUrl = ParserOptions.ZK_QUORUM.get(cmd);
     Optional<String> brokerUrl = ParserOptions.BROKER_URL.has(cmd)?Optional.of(ParserOptions.BROKER_URL.get(cmd)):Optional.empty();
-    String sensorType= ParserOptions.SENSOR_TYPE.get(cmd);
+    String sensorTypeRaw= ParserOptions.SENSOR_TYPE.get(cmd);
+    List<String> sensorTypes = Arrays.asList(sensorTypeRaw.split(","));
 
     /*
      * It bears mentioning why we're creating this ValueSupplier indirection here.
@@ -328,116 +332,155 @@ public class ParserTopologyCLI {
      */
 
     // kafka spout parallelism
-    ValueSupplier<Integer> spoutParallelism = (parserConfig, clazz) -> {
+    ValueSupplier<Integer> spoutParallelism = (parserConfigs, clazz) -> {
       if(ParserOptions.SPOUT_PARALLELISM.has(cmd)) {
         return Integer.parseInt(ParserOptions.SPOUT_PARALLELISM.get(cmd, "1"));
       }
-      return Optional.ofNullable(parserConfig.getSpoutParallelism()).orElse(1);
+//      return Optional.ofNullable(parserConfig.getSpoutParallelism()).orElse(1);
+      // TODO adjust kafka spout to take configs appropriately.
     };
 
     // kafka spout number of tasks
-    ValueSupplier<Integer> spoutNumTasks = (parserConfig, clazz) -> {
+    ValueSupplier<Integer> spoutNumTasks = (parserConfigs, clazz) -> {
       if(ParserOptions.SPOUT_NUM_TASKS.has(cmd)) {
         return Integer.parseInt(ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1"));
       }
-      return Optional.ofNullable(parserConfig.getSpoutNumTasks()).orElse(1);
+//      return Optional.ofNullable(parserConfig.getSpoutNumTasks()).orElse(1);
+      // TODO adjust kafka spout to take configs appropriately.
     };
 
     // parser bolt parallelism
-    ValueSupplier<Integer> parserParallelism = (parserConfig, clazz) -> {
+    ValueSupplier<Integer> parserParallelism = (parserConfigs, clazz) -> {
       if(ParserOptions.PARSER_PARALLELISM.has(cmd)) {
         return Integer.parseInt(ParserOptions.PARSER_PARALLELISM.get(cmd, "1"));
       }
-      return Optional.ofNullable(parserConfig.getParserParallelism()).orElse(1);
+//      return Optional.ofNullable(parserConfig.getParserParallelism()).orElse(1);
+      int retValue = 1;
+      for (SensorParserConfig config : parserConfigs) {
+        Integer configValue = config.getParserParallelism();
+        retValue = configValue == null ? retValue : configValue;
+      }
+      return retValue;
     };
 
     // parser bolt number of tasks
-    ValueSupplier<Integer> parserNumTasks = (parserConfig, clazz) -> {
+    ValueSupplier<Integer> parserNumTasks = (parserConfigs, clazz) -> {
       if(ParserOptions.PARSER_NUM_TASKS.has(cmd)) {
         return Integer.parseInt(ParserOptions.PARSER_NUM_TASKS.get(cmd, "1"));
       }
-      return Optional.ofNullable(parserConfig.getParserNumTasks()).orElse(1);
+//      return Optional.ofNullable(parserConfig.getParserNumTasks()).orElse(1);
+      int retValue = 1;
+      for (SensorParserConfig config : parserConfigs) {
+        Integer configValue = config.getParserNumTasks();
+        retValue = configValue == null ? retValue : configValue;
+      }
+      return retValue;
     };
 
     // error bolt parallelism
-    ValueSupplier<Integer> errorParallelism = (parserConfig, clazz) -> {
+    ValueSupplier<Integer> errorParallelism = (parserConfigs, clazz) -> {
       if(ParserOptions.ERROR_WRITER_PARALLELISM.has(cmd)) {
         return Integer.parseInt(ParserOptions.ERROR_WRITER_PARALLELISM.get(cmd, "1"));
       }
-      return Optional.ofNullable(parserConfig.getErrorWriterParallelism()).orElse(1);
+//      return Optional.ofNullable(parserConfig.getErrorWriterParallelism()).orElse(1);
+      int retValue = 1;
+      for (SensorParserConfig config : parserConfigs) {
+        Integer configValue = config.getErrorWriterParallelism();
+        retValue = configValue == null ? retValue : configValue;
+      }
+      return retValue;
     };
 
     // error bolt number of tasks
-    ValueSupplier<Integer> errorNumTasks = (parserConfig, clazz) -> {
+    ValueSupplier<Integer> errorNumTasks = (parserConfigs, clazz) -> {
       if(ParserOptions.ERROR_WRITER_NUM_TASKS.has(cmd)) {
         return Integer.parseInt(ParserOptions.ERROR_WRITER_NUM_TASKS.get(cmd, "1"));
       }
-      return Optional.ofNullable(parserConfig.getErrorWriterNumTasks()).orElse(1);
+//      return Optional.ofNullable(parserConfig.getErrorWriterNumTasks()).orElse(1);
+      int retValue = 1;
+      for (SensorParserConfig config : parserConfigs) {
+        Integer configValue = config.getErrorWriterNumTasks();
+        retValue = configValue == null ? retValue : configValue;
+      }
+      return retValue;
     };
 
     // kafka spout config
-    ValueSupplier<Map> spoutConfig = (parserConfig, clazz) -> {
+    ValueSupplier<Map> spoutConfig = (parserConfigs, clazz) -> {
       if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
         return readJSONMapFromFile(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
       }
-      return Optional.ofNullable(parserConfig.getSpoutConfig()).orElse(new HashMap<>());
+//      return Optional.ofNullable(parserConfig.getSpoutConfig()).orElse(new HashMap<>());
+      // TODO adjust kafka spout to take configs appropriately.
+
     };
 
     // security protocol
-    ValueSupplier<String> securityProtocol = (parserConfig, clazz) -> {
+    ValueSupplier<String> securityProtocol = (parserConfigs, clazz) -> {
       Optional<String> sp = Optional.empty();
       if (ParserOptions.SECURITY_PROTOCOL.has(cmd)) {
         sp = Optional.of(ParserOptions.SECURITY_PROTOCOL.get(cmd));
       }
+      // Need to adjust to handle list of spoutConfigs. Any non-plaintext wins
       if (!sp.isPresent()) {
-        sp = getSecurityProtocol(sp, spoutConfig.get(parserConfig, Map.class));
+        sp = getSecurityProtocol(sp, spoutConfig.get(parserConfigs, Map.class));
       }
-      return sp.orElse(Optional.ofNullable(parserConfig.getSecurityProtocol()).orElse(null));
+      // Need to look through parserConfigs for any non-plaintext
+      String parserConfigSp = SecurityProtocol.PLAINTEXT.name;
+      for (SensorParserConfig config : parserConfigs) {
+        String configSp = config.getSecurityProtocol();
+        if (!configSp.equals(SecurityProtocol.PLAINTEXT.name)) {
+          // We have a winner
+          parserConfigSp = configSp;
+        }
+      }
+
+      return sp.orElse(Optional.ofNullable(parserConfigSp).orElse(null));
     };
 
     // storm configuration
-    ValueSupplier<Config> stormConf = (parserConfig, clazz) -> {
-      Map<String, Object> c = parserConfig.getStormConfig();
+    ValueSupplier<Config> stormConf = (parserConfigs, clazz) -> {
+      // Last one wins
       Config finalConfig = new Config();
-      if(c != null && !c.isEmpty()) {
-        finalConfig.putAll(c);
-      }
-      if(parserConfig.getNumAckers() != null) {
-        Config.setNumAckers(finalConfig, parserConfig.getNumAckers());
-      }
-      if(parserConfig.getNumWorkers() != null) {
-        Config.setNumWorkers(finalConfig, parserConfig.getNumWorkers());
+      for (SensorParserConfig parserConfig : parserConfigs) {
+        Map<String, Object> c = parserConfig.getStormConfig();
+        // TODO what about properties that are in earlier configs but not later configs?
+        if (c != null && !c.isEmpty()) {
+          finalConfig.putAll(c);
+        }
+        if (parserConfig.getNumAckers() != null) {
+          Config.setNumAckers(finalConfig, parserConfig.getNumAckers());
+        }
+        if (parserConfig.getNumWorkers() != null) {
+          Config.setNumWorkers(finalConfig, parserConfig.getNumWorkers());
+        }
       }
       return ParserOptions.getConfig(cmd, finalConfig).orElse(finalConfig);
     };
 
     // output topic
-    ValueSupplier<String> outputTopic = (parserConfig, clazz) -> {
-      String topic;
+    ValueSupplier<String> outputTopic = (parserConfigs, clazz) -> {
+      String topic = null;
 
+      // TODO Make sure KafkaWriter overrides correctly
       if(ParserOptions.OUTPUT_TOPIC.has(cmd)) {
         topic = ParserOptions.OUTPUT_TOPIC.get(cmd);
-
-      } else if(parserConfig.getOutputTopic() != null) {
-        topic = parserConfig.getOutputTopic();
-
-      } else {
-        topic = Constants.ENRICHMENT_TOPIC;
       }
 
       return topic;
     };
 
     // error topic
-    ValueSupplier<String> errorTopic = (parserConfig, clazz) -> {
-      String topic;
+    // TODO what to do here?  Enforce one for all?  Modify the ParserBolt to support an Error topic
+    // per sensor?
+    // There's already questionable stuff around ERROR stream anyway.
+    ValueSupplier<String> errorTopic = (parserConfigs, clazz) -> {
+      // topic will to set to the 'parser.error.topic' setting in globals when the error bolt is created
+      String topic = null;
 
-      if(parserConfig.getErrorTopic() != null) {
-        topic = parserConfig.getErrorTopic();
-
-      } else {
-        // topic will to set to the 'parser.error.topic' setting in globals when the error bolt is created
-        topic = null;
+      // TODO de-single this
+      if(parserConfigs.iterator().next().getErrorTopic() != null) {
+        topic = parserConfigs.iterator().next().getErrorTopic();
       }
 
       return topic;
@@ -446,7 +489,7 @@ public class ParserTopologyCLI {
     return getParserTopology(
             zookeeperUrl,
             brokerUrl,
-            sensorType,
+            sensorTypes,
             spoutParallelism,
             spoutNumTasks,
             parserParallelism,
@@ -462,7 +505,7 @@ public class ParserTopologyCLI {
 
   protected ParserTopologyBuilder.ParserTopology getParserTopology( String zookeeperUrl,
                                                                     Optional<String> brokerUrl,
-                                                                    String sensorType,
+                                                                    List<String> sensorTypes,
                                                                     ValueSupplier<Integer> spoutParallelism,
                                                                     ValueSupplier<Integer> spoutNumTasks,
                                                                     ValueSupplier<Integer> parserParallelism,
@@ -477,7 +520,7 @@ public class ParserTopologyCLI {
     return ParserTopologyBuilder.build(
             zookeeperUrl,
             brokerUrl,
-            sensorType,
+            sensorTypes,
             spoutParallelism,
             spoutNumTasks,
             parserParallelism,
@@ -523,13 +566,13 @@ public class ParserTopologyCLI {
 
   private static Optional<String> getSecurityProtocol(Optional<String> protocol, Map<String, Object> spoutConfig) {
     Optional<String> ret = protocol;
-    if(ret.isPresent() && protocol.get().equalsIgnoreCase("PLAINTEXT")) {
+    if(ret.isPresent() && protocol.get().equalsIgnoreCase(SecurityProtocol.PLAINTEXT.name)) {
       ret = Optional.empty();
     }
     if(!ret.isPresent()) {
-      ret = Optional.ofNullable((String) spoutConfig.get("security.protocol"));
+      ret = Optional.ofNullable((String) spoutConfig.get(KafkaUtils.SECURITY_PROTOCOL));
     }
-    if(ret.isPresent() && ret.get().equalsIgnoreCase("PLAINTEXT")) {
+    if(ret.isPresent() && ret.get().equalsIgnoreCase(SecurityProtocol.PLAINTEXT.name)) {
       ret = Optional.empty();
     }
     return ret;
