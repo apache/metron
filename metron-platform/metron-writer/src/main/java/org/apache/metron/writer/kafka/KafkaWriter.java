@@ -248,6 +248,9 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
         // we want to manage the batching
         results.add(new AbstractMap.SimpleEntry<>(tuple, future));
       }
+      else {
+        LOG.debug("Dropping {} because no topic is specified.", jsonMessage);
+      }
     }
 
     try {
