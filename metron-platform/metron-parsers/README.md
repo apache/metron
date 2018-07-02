@@ -166,15 +166,7 @@ then it is assumed to be a regex and will match any topic matching the pattern (
   * `batchTimeout` : The timeout after which a batch will be flushed even if batchSize has not been met.  Optional.
     If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm
     parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
-  * The kafka writer can be configured within the parser config as well.  (This is all configured a priori, but this is convenient for overriding the settings)  :
-    * `kafka.brokerUrl` : The broker URL
-    * `kafka.keySerializer` : The key serializer (defaults to `StringSerializer`)
-    * `kafka.valueSerializer` : The key serializer (defaults to `StringSerializer`)
-    * `kafka.zkQuorum` : The zookeeper quorum
-    * `kafka.requiredAcks` : Whether to require acks.
-    * `kafka.topic` : The topic to write to
-    * `kafka.topicField` : The field to pull the topic from.  If this is specified, then the producer will use this.  If it is unspecified, then it will default to the `kafka.topic` property.  If neither are specified, then an error will occur.
-    * `kafka.producerConfigs` : A map of kafka producer configs for advanced customization.
+  * The kafka writer can be configured within the parser config as well.  (This is all configured a priori, but this is convenient for overriding the settings).  See [here](../metron-writer/README.md#kafka-writer)
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
 * `spoutParallelism` : The kafka spout parallelism (default to `1`).  This can be overridden on the command line.
 * `spoutNumTasks` : The number of tasks for the spout (default to `1`). This can be overridden on the command line.
