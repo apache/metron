@@ -19,6 +19,7 @@ package org.apache.metron.writer.kafka;
 
 import com.google.common.base.Joiner;
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,8 +42,11 @@ import org.apache.metron.writer.AbstractWriter;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSONObject>, Serializable {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public enum Configurations {
      BROKER("kafka.brokerUrl")
     ,KEY_SERIALIZER("kafka.keySerializer")
@@ -210,12 +214,16 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
   }
 
   public Optional<String> getKafkaTopic(JSONObject message) {
+    String t = null;
     if(kafkaTopicField != null) {
-      return Optional.ofNullable((String)message.get(kafkaTopicField));
+      t = (String)message.get(kafkaTopicField);
+      LOG.debug("Sending to topic: {} based on the field {}", t, kafkaTopicField);
     }
     else {
-      return Optional.ofNullable(kafkaTopic);
+      t = kafkaTopic;
+      LOG.debug("Sending to topic: {}", t);
     }
+    return Optional.ofNullable(t);
   }
 
   @Override
