@@ -738,3 +738,48 @@ Here are instructions for enabling X-Pack with Elasticsearch and Kibana: https:/
     ```
 
 Once you've performed these steps, you should be able to start seeing data in your ES indexes.
+
+### X-Pack Common Problems
+
+#### java.io.FileNotFoundException: File /apps/metron/elasticsearch/xpack-password does not exist
+
+#### Problem
+
+The random access indexer topology fails with the following exception.  This exception might occur on only some of the Storm worker nodes.
+
+  ```
+  2018-07-02 10:24:08.267 o.a.s.util Thread-8-indexingBolt-executor[3 3] [ERROR] Async loop died!
+  java.lang.RuntimeException: java.lang.IllegalArgumentException: Unable to read XPack password file from HDFS location '/apps/metron/elasticsearch/xpack-password'
+  	at org.apache.metron.writer.bolt.BulkMessageWriterBolt.prepare(BulkMessageWriterBolt.java:201) ~[stormjar.jar:?]
+  	at org.apache.storm.daemon.executor$fn__10195$fn__10208.invoke(executor.clj:800) ~[storm-core-1.1.0.2.6.5.0-292.jar:1.1.0.2.6.5.0-292]
+  	at org.apache.storm.util$async_loop$fn__1221.invoke(util.clj:482) [storm-core-1.1.0.2.6.5.0-292.jar:1.1.0.2.6.5.0-292]
+  	at clojure.lang.AFn.run(AFn.java:22) [clojure-1.7.0.jar:?]
+  	at java.lang.Thread.run(Thread.java:748) [?:1.8.0_162]
+  Caused by: java.lang.IllegalArgumentException: Unable to read XPack password file from HDFS location '/apps/metron/elasticsearch/xpack-password'
+  	at org.apache.metron.elasticsearch.utils.ElasticsearchUtils.getPasswordFromFile(ElasticsearchUtils.java:201) ~[stormjar.jar:?]
+  	at org.apache.metron.elasticsearch.utils.ElasticsearchUtils.setXPackSecurityOrNone(ElasticsearchUtils.java:187) ~[stormjar.jar:?]
+  	at org.apache.metron.elasticsearch.utils.ElasticsearchUtils.getClient(ElasticsearchUtils.java:147) ~[stormjar.jar:?]
+  	at org.apache.metron.elasticsearch.writer.ElasticsearchWriter.init(ElasticsearchWriter.java:53) ~[stormjar.jar:?]
+  	at org.apache.metron.writer.bolt.BulkMessageWriterBolt.prepare(BulkMessageWriterBolt.java:199) ~[stormjar.jar:?]
+  	... 4 more
+  Caused by: java.io.FileNotFoundException: File /apps/metron/elasticsearch/xpack-password does not exist
+  	at org.apache.hadoop.fs.RawLocalFileSystem.deprecatedGetFileStatus(RawLocalFileSystem.java:606) ~[stormjar.jar:?]
+  	at org.apache.hadoop.fs.RawLocalFileSystem.getFileLinkStatusInternal(RawLocalFileSystem.java:819) ~[stormjar.jar:?]
+  	at org.apache.hadoop.fs.RawLocalFileSystem.getFileStatus(RawLocalFileSystem.java:596) ~[stormjar.jar:?]
+  	at org.apache.hadoop.fs.FilterFileSystem.getFileStatus(FilterFileSystem.java:421) ~[stormjar.jar:?]
+  	at org.apache.hadoop.fs.ChecksumFileSystem$ChecksumFSInputChecker.<init>(ChecksumFileSystem.java:140) ~[stormjar.jar:?]
+  	at org.apache.hadoop.fs.ChecksumFileSystem.open(ChecksumFileSystem.java:341) ~[stormjar.jar:?]
+  	at org.apache.hadoop.fs.FileSystem.open(FileSystem.java:767) ~[stormjar.jar:?]
+  	at org.apache.metron.common.utils.HDFSUtils.readFile(HDFSUtils.java:55) ~[stormjar.jar:?]
+  	at org.apache.metron.common.utils.HDFSUtils.readFile(HDFSUtils.java:40) ~[stormjar.jar:?]
+  	at org.apache.metron.elasticsearch.utils.ElasticsearchUtils.getPasswordFromFile(ElasticsearchUtils.java:198) ~[stormjar.jar:?]
+  	at org.apache.metron.elasticsearch.utils.ElasticsearchUtils.setXPackSecurityOrNone(ElasticsearchUtils.java:187) ~[stormjar.jar:?]
+  	at org.apache.metron.elasticsearch.utils.ElasticsearchUtils.getClient(ElasticsearchUtils.java:147) ~[stormjar.jar:?]
+  	at org.apache.metron.elasticsearch.writer.ElasticsearchWriter.init(ElasticsearchWriter.java:53) ~[stormjar.jar:?]
+  	at org.apache.metron.writer.bolt.BulkMessageWriterBolt.prepare(BulkMessageWriterBolt.java:199) ~[stormjar.jar:?]
+  	... 4 more
+  ```
+
+#### Solution
+
+This can occur when an HDFS Client is not installed on the Storm worker nodes.  This might occur on any Storm worker node where an HDFS Client is not installed.  Installing the HDFS Client on all Storm worker nodes should resolve the problem.
