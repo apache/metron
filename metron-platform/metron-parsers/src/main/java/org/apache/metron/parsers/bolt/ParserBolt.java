@@ -33,7 +33,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
@@ -74,7 +73,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private OutputCollector collector;
   private Map<String, ParserComponents> sensorToComponentMap;
   private Map<String, String> topicToSensorMap = new HashMap<>();
-  private Map<String, Supplier<SensorParserConfig>> sensorToConfigMap;
 
   //default filter is noop, so pass everything through.
 //  private MessageFilter<JSONObject> filter;
@@ -158,15 +156,28 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     // This is called long before prepare(), so do some of the same stuff as prepare() does,
     // to get the valid WriterConfiguration.  But don't store any non-serializable objects,
     // else Storm will throw a runtime error.
+    // TODO make this work in a more reasonable manner for multiple writers.  It's a little odd because
+    // the WriterHandler takes multiple parser configs?
+//    Function<WriterConfiguration, WriterConfiguration> configurationXform;
+//    if(writer.isWriterToBulkWriter()) {
+//      configurationXform = WriterToBulkWriter.TRANSFORMATION;
+//    }
+//    else {
+//      configurationXform = x -> x;
+//    }
+//    WriterConfiguration writerconf = configurationXform
+//        .apply(getConfigurationStrategy().createWriterConfig(writer.getBulkMessageWriter(), getConfigurations()));
+//    for( Entry<String, ParserComponents> entry : sensorToComponentMap.entrySet()) {
     Function<WriterConfiguration, WriterConfiguration> configurationXform;
-    if(writer.isWriterToBulkWriter()) {
+    WriterHandler writer = sensorToComponentMap.entrySet().iterator().next().getValue().getWriter();
+    if (writer.isWriterToBulkWriter()) {
       configurationXform = WriterToBulkWriter.TRANSFORMATION;
-    }
-    else {
+    } else {
       configurationXform = x -> x;
     }
     WriterConfiguration writerconf = configurationXform
-        .apply(getConfigurationStrategy().createWriterConfig(writer.getBulkMessageWriter(), getConfigurations()));
+        .apply(getConfigurationStrategy()
+            .createWriterConfig(writer.getBulkMessageWriter(), getConfigurations()));
 
     BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
     this.requestedTickFreqSecs = timeoutHelper.getRecommendedTickInterval();
@@ -235,8 +246,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       }
       writer.setDefaultBatchTimeout(defaultBatchTimeout);
     }
-
-
   }
 
   protected void initializeStellar() {
@@ -376,7 +385,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             ErrorUtils.handleError(collector, error);
           } else {
             numWritten++;
-
             writer.write(sensor, tuple, message, getConfigurations(), messageGetStrategy);
           }
         }

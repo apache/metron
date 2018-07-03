@@ -34,6 +34,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.Constants.ErrorType;
 import org.apache.metron.common.utils.HashUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 public class MetronError {
@@ -95,7 +96,13 @@ public class MetronError {
     JSONObject errorMessage = new JSONObject();
     errorMessage.put(Constants.GUID, UUID.randomUUID().toString());
     errorMessage.put(Constants.SENSOR_TYPE, "error");
-    errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), sensorTypes);
+    // TODO determine if we need/want to do this.  Could just do the else, but single sensor won't match previous
+    if (sensorTypes.size() == 1) {
+      errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), sensorTypes.iterator().next());
+    } else {
+      errorMessage
+          .put(ErrorFields.FAILED_SENSOR_TYPE.getName(), new JSONArray().addAll(sensorTypes));
+    }
     errorMessage.put(ErrorFields.ERROR_TYPE.getName(), errorType.getType());
 
     addMessageString(errorMessage);

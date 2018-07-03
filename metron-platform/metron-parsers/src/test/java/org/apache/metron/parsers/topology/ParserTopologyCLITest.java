@@ -18,30 +18,33 @@
 
 package org.apache.metron.parsers.topology;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.Parser;
+import org.apache.commons.cli.PosixParser;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Level;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.topology.config.ValueSupplier;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.Config;
-import com.google.common.collect.ImmutableMap;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.MissingOptionException;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
-import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.Reference;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public class ParserTopologyCLITest {
 
@@ -103,11 +106,11 @@ public class ParserTopologyCLITest {
   public void kafkaOffset(boolean longOpt) throws ParseException {
     CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
                                       .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
-                                      .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPE, "mysensor")
+                                      .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPES, "mysensor")
                                       .build(longOpt);
     Assert.assertEquals("myzk", ParserTopologyCLI.ParserOptions.ZK_QUORUM.get(cli));
     Assert.assertEquals("mybroker", ParserTopologyCLI.ParserOptions.BROKER_URL.get(cli));
-    Assert.assertEquals("mysensor", ParserTopologyCLI.ParserOptions.SENSOR_TYPE.get(cli));
+    Assert.assertEquals("mysensor", ParserTopologyCLI.ParserOptions.SENSOR_TYPES.get(cli));
   }
   @Test
   public void testCLI_happyPath() throws ParseException {
@@ -127,11 +130,11 @@ public class ParserTopologyCLITest {
   public void happyPath(boolean longOpt) throws ParseException {
     CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
                                       .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
-                                      .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPE, "mysensor")
+                                      .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPES, "mysensor")
                                       .build(longOpt);
     Assert.assertEquals("myzk", ParserTopologyCLI.ParserOptions.ZK_QUORUM.get(cli));
     Assert.assertEquals("mybroker", ParserTopologyCLI.ParserOptions.BROKER_URL.get(cli));
-    Assert.assertEquals("mysensor", ParserTopologyCLI.ParserOptions.SENSOR_TYPE.get(cli));
+    Assert.assertEquals("mysensor", ParserTopologyCLI.ParserOptions.SENSOR_TYPES.get(cli));
   }
 
   @Test
@@ -143,7 +146,7 @@ public class ParserTopologyCLITest {
   public void testConfig_noExtra(boolean longOpt) throws ParseException {
    CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
                                      .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
-                                     .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPE, "mysensor")
+                                     .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPES, "mysensor")
                                      .with(ParserTopologyCLI.ParserOptions.NUM_WORKERS, "1")
                                      .with(ParserTopologyCLI.ParserOptions.NUM_ACKERS, "2")
                                      .with(ParserTopologyCLI.ParserOptions.NUM_MAX_TASK_PARALLELISM, "3")
@@ -166,7 +169,7 @@ public class ParserTopologyCLITest {
   public void testOutputTopic(boolean longOpt) throws ParseException {
      CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
                                       .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
-                                      .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPE, "mysensor")
+                                      .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPES, "mysensor")
                                       .with(ParserTopologyCLI.ParserOptions.OUTPUT_TOPIC, "my_topic")
                                       .build(longOpt);
     Assert.assertEquals("my_topic", ParserTopologyCLI.ParserOptions.OUTPUT_TOPIC.get(cli));
@@ -193,7 +196,7 @@ public class ParserTopologyCLITest {
       FileUtils.write(extraFile, extraConfig);
       CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
               .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
-              .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPE, "mysensor")
+              .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPES, "mysensor")
               .with(ParserTopologyCLI.ParserOptions.MESSAGE_TIMEOUT, "4")
               .with(ParserTopologyCLI.ParserOptions.EXTRA_OPTIONS, extraFile.getAbsolutePath())
               .build(longOpt);
@@ -208,25 +211,25 @@ public class ParserTopologyCLITest {
   }
 
   private static class ParserInput {
-    private Integer spoutParallelism;
-    private Integer spoutNumTasks;
+    private List<Integer> spoutParallelism;
+    private List<Integer> spoutNumTasks;
     private Integer parserParallelism;
     private Integer parserNumTasks;
     private Integer errorParallelism;
     private Integer errorNumTasks;
-    private Map<String, Object> spoutConfig;
+    private List<Map<String, Object>> spoutConfig;
     private String securityProtocol;
     private Config stormConf;
     private String outputTopic;
     private String errorTopic;
 
-    public ParserInput(ValueSupplier<Integer> spoutParallelism,
-                       ValueSupplier<Integer> spoutNumTasks,
+    public ParserInput(ValueSupplier<List> spoutParallelism,
+                       ValueSupplier<List> spoutNumTasks,
                        ValueSupplier<Integer> parserParallelism,
                        ValueSupplier<Integer> parserNumTasks,
                        ValueSupplier<Integer> errorParallelism,
                        ValueSupplier<Integer> errorNumTasks,
-                       ValueSupplier<Map> spoutConfig,
+                       ValueSupplier<List> spoutConfig,
                        ValueSupplier<String> securityProtocol,
                        ValueSupplier<Config> stormConf,
                        ValueSupplier<String> outputTopic,
@@ -234,24 +237,24 @@ public class ParserTopologyCLITest {
                        SensorParserConfig config
                       )
     {
-      this.spoutParallelism = spoutParallelism.get(config, Integer.class);
-      this.spoutNumTasks = spoutNumTasks.get(config, Integer.class);
-      this.parserParallelism = parserParallelism.get(config, Integer.class);
-      this.parserNumTasks = parserNumTasks.get(config, Integer.class);
-      this.errorParallelism = errorParallelism.get(config, Integer.class);
-      this.errorNumTasks = errorNumTasks.get(config, Integer.class);
-      this.spoutConfig = spoutConfig.get(config, Map.class);
-      this.securityProtocol = securityProtocol.get(config, String.class);
-      this.stormConf = stormConf.get(config, Config.class);
-      this.outputTopic = outputTopic.get(config, String.class);
-      this.errorTopic = outputTopic.get(config, String.class);
+      this.spoutParallelism = spoutParallelism.get(Collections.singletonList(config), List.class);
+      this.spoutNumTasks = spoutNumTasks.get(Collections.singletonList(config), List.class);
+      this.parserParallelism = parserParallelism.get(Collections.singletonList(config), Integer.class);
+      this.parserNumTasks = parserNumTasks.get(Collections.singletonList(config), Integer.class);
+      this.errorParallelism = errorParallelism.get(Collections.singletonList(config), Integer.class);
+      this.errorNumTasks = errorNumTasks.get(Collections.singletonList(config), Integer.class);
+      this.spoutConfig = spoutConfig.get(Collections.singletonList(config), List.class);
+      this.securityProtocol = securityProtocol.get(Collections.singletonList(config), String.class);
+      this.stormConf = stormConf.get(Collections.singletonList(config), Config.class);
+      this.outputTopic = outputTopic.get(Collections.singletonList(config), String.class);
+      this.errorTopic = outputTopic.get(Collections.singletonList(config), String.class);
     }
 
-    public Integer getSpoutParallelism() {
+    public List<Integer> getSpoutParallelism() {
       return spoutParallelism;
     }
 
-    public Integer getSpoutNumTasks() {
+    public List<Integer> getSpoutNumTasks() {
       return spoutNumTasks;
     }
 
@@ -271,7 +274,7 @@ public class ParserTopologyCLITest {
       return errorNumTasks;
     }
 
-    public Map<String, Object> getSpoutConfig() {
+    public List<Map<String, Object>> getSpoutConfig() {
       return spoutConfig;
     }
 
@@ -331,13 +334,13 @@ public class ParserTopologyCLITest {
   public void testSpoutParallelism() throws Exception {
     testConfigOption(ParserTopologyCLI.ParserOptions.SPOUT_PARALLELISM
                     , "10"
-                    , input -> input.getSpoutParallelism().equals(10)
+                    , input -> input.getSpoutParallelism().equals(Collections.singletonList(10))
                     , () -> {
                       SensorParserConfig config = getBaseConfig();
                       config.setSpoutParallelism(20);
                       return config;
                     }
-                    , input -> input.getSpoutParallelism().equals(20)
+                    , input -> input.getSpoutParallelism().equals(Collections.singletonList(20))
                     );
   }
 
@@ -345,13 +348,13 @@ public class ParserTopologyCLITest {
   public void testSpoutNumTasks() throws Exception {
     testConfigOption(ParserTopologyCLI.ParserOptions.SPOUT_NUM_TASKS
                     , "10"
-                    , input -> input.getSpoutNumTasks().equals(10)
+                    , input -> input.getSpoutNumTasks().equals(Collections.singletonList(10))
                     , () -> {
                       SensorParserConfig config = getBaseConfig();
                       config.setSpoutNumTasks(20);
                       return config;
                     }
-                    , input -> input.getSpoutNumTasks().equals(20)
+                    , input -> input.getSpoutNumTasks().equals(Collections.singletonList(20))
                     );
   }
 
@@ -541,13 +544,13 @@ public class ParserTopologyCLITest {
                     {{
                       put(ParserTopologyCLI.ParserOptions.SPOUT_CONFIG, extraConfig.getAbsolutePath());
                     }};
+    // TODO handle list more properly than just grabbing first one
     Predicate<ParserInput> cliOverrideExpected = input -> {
-      return input.getSpoutConfig().get("extra_config").equals("from_file");
+      return input.getSpoutConfig().get(0).get("extra_config").equals("from_file");
     };
 
     Predicate<ParserInput> configOverrideExpected = input -> {
-      return input.getSpoutConfig().get("extra_config").equals("from_zk")
-                                  ;
+      return input.getSpoutConfig().get(0).get("extra_config").equals("from_zk");
     };
 
     Supplier<SensorParserConfig> configSupplier = () -> {
@@ -596,7 +599,7 @@ public class ParserTopologyCLITest {
     {
       CLIBuilder builder = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
               .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
-              .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPE, "mysensor");
+              .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPES, "mysensor");
       for(Map.Entry<ParserTopologyCLI.ParserOptions, String> entry : options.entrySet()) {
         builder.with(entry.getKey(), entry.getValue());
       }
@@ -608,7 +611,7 @@ public class ParserTopologyCLITest {
     {
       CLIBuilder builder = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
               .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
-              .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPE, "mysensor");
+              .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPES, "mysensor");
       CommandLine cmd = builder.build(true);
       ParserInput input = getInput(cmd, config);
       Assert.assertTrue(configOverrideCondition.test(input));
@@ -622,14 +625,14 @@ public class ParserTopologyCLITest {
       protected ParserTopologyBuilder.ParserTopology getParserTopology(
               String zookeeperUrl,
               Optional<String> brokerUrl,
-              String sensorType,
-              ValueSupplier<Integer> spoutParallelism,
-              ValueSupplier<Integer> spoutNumTasks,
+              List<String> sensorType,
+              ValueSupplier<List> spoutParallelism,
+              ValueSupplier<List> spoutNumTasks,
               ValueSupplier<Integer> parserParallelism,
               ValueSupplier<Integer> parserNumTasks,
               ValueSupplier<Integer> errorParallelism,
               ValueSupplier<Integer> errorNumTasks,
-              ValueSupplier<Map> spoutConfig,
+              ValueSupplier<List> spoutConfig,
               ValueSupplier<String> securityProtocol,
               ValueSupplier<Config> stormConf,
               ValueSupplier<String> outputTopic,

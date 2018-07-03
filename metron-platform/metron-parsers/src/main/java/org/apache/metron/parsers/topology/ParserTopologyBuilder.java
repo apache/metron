@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.topology;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -48,6 +49,7 @@ import org.apache.metron.writer.kafka.KafkaWriter;
 import org.apache.storm.Config;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
+import org.apache.storm.topology.BoltDeclarer;
 import org.apache.storm.topology.TopologyBuilder;
 import org.json.simple.JSONObject;
 
@@ -97,13 +99,13 @@ public class ParserTopologyBuilder {
   public static ParserTopology build(String zookeeperUrl,
                                       Optional<String> brokerUrl,
                                       List<String> sensorTypes,
-                                      ValueSupplier<Integer> spoutParallelismSupplier,
-                                      ValueSupplier<Integer> spoutNumTasksSupplier,
+                                      ValueSupplier<List> spoutParallelismSupplier,
+                                      ValueSupplier<List> spoutNumTasksSupplier,
                                       ValueSupplier<Integer> parserParallelismSupplier,
                                       ValueSupplier<Integer> parserNumTasksSupplier,
                                       ValueSupplier<Integer> errorWriterParallelismSupplier,
                                       ValueSupplier<Integer> errorWriterNumTasksSupplier,
-                                      ValueSupplier<Map> kafkaSpoutConfigSupplier,
+                                      ValueSupplier<List> kafkaSpoutConfigSupplier,
                                       ValueSupplier<String> securityProtocolSupplier,
                                       ValueSupplier<String> outputTopicSupplier,
                                       ValueSupplier<String> errorTopicSupplier,
@@ -115,30 +117,30 @@ public class ParserTopologyBuilder {
     Map<String, SensorParserConfig> sensorToParserConfigs = getSensorParserConfig(zookeeperUrl, sensorTypes, configs);
     Collection<SensorParserConfig> parserConfigs = sensorToParserConfigs.values();
 
-    int spoutParallelism = spoutParallelismSupplier.get(parserConfigs, Integer.class);
-    int spoutNumTasks = spoutNumTasksSupplier.get(parserConfigs, Integer.class);
+    List<Integer> spoutParallelism = (List<Integer>) spoutParallelismSupplier.get(parserConfigs, List.class);
+    List<Integer> spoutNumTasks = (List<Integer>) spoutNumTasksSupplier.get(parserConfigs, List.class);
     int parserParallelism = parserParallelismSupplier.get(parserConfigs, Integer.class);
     int parserNumTasks = parserNumTasksSupplier.get(parserConfigs, Integer.class);
     int errorWriterParallelism = errorWriterParallelismSupplier.get(parserConfigs, Integer.class);
     int errorWriterNumTasks = errorWriterNumTasksSupplier.get(parserConfigs, Integer.class);
     String outputTopic = outputTopicSupplier.get(parserConfigs, String.class);
 
-    Map<String, Object> kafkaSpoutConfig = kafkaSpoutConfigSupplier.get(parserConfigs, Map.class);
+    List<Map<String, Object>> kafkaSpoutConfig = kafkaSpoutConfigSupplier.get(parserConfigs, List.class);
     Optional<String> securityProtocol = Optional.ofNullable(securityProtocolSupplier.get(parserConfigs, String.class));
 
     // create the spout
     TopologyBuilder builder = new TopologyBuilder();
+    int i = 0;
+    List<String> spoutIds = new ArrayList<>();
     for (Entry<String, SensorParserConfig> entry: sensorToParserConfigs.entrySet()) {
       KafkaSpout kafkaSpout = createKafkaSpout(zookeeperUrl, entry.getKey(), securityProtocol,
-          Optional.ofNullable(kafkaSpoutConfig), entry.getValue());
+          Optional.ofNullable(kafkaSpoutConfig.get(i)), entry.getValue());
       // TODO figure out if we care if this is exact same in single sensor case
-      if(sensorToParserConfigs.size() > 1) {
-        builder.setSpout("kafkaSpout-" + entry.getKey(), kafkaSpout, spoutParallelism)
-            .setNumTasks(spoutNumTasks);
-      } else {
-        builder.setSpout("kafkaSpout", kafkaSpout, spoutParallelism)
-            .setNumTasks(spoutNumTasks);
-      }
+      String spoutId = sensorToParserConfigs.size() > 1 ? "kafkaSpout-" + entry.getKey() : "kafkaSpout";
+      builder.setSpout(spoutId, kafkaSpout, spoutParallelism.get(i))
+          .setNumTasks(spoutNumTasks.get(i));
+      spoutIds.add(spoutId);
+      ++i;
     }
 
     // create the parser bolt
@@ -150,9 +152,14 @@ public class ParserTopologyBuilder {
         configs,
         Optional.of(outputTopic)
     );
-    builder.setBolt("parserBolt", parserBolt, parserParallelism)
-            .setNumTasks(parserNumTasks)
-            .localOrShuffleGrouping("kafkaSpout");
+
+    BoltDeclarer boltDeclarer = builder
+        .setBolt("parserBolt", parserBolt, parserParallelism)
+        .setNumTasks(parserNumTasks);
+
+    for (String spoutId : spoutIds) {
+      boltDeclarer.localOrShuffleGrouping(spoutId);
+    }
 
     // create the error bolt, if needed
     // TODO right now assuming one, but we might need to group together
@@ -312,6 +319,8 @@ public class ParserTopologyBuilder {
    * @param parserConfig The sensor's parser configuration.
    * @return A Storm bolt that handles error messages.
    */
+  // TODO make this createErrorBolt, make this take multiple sensors.
+  // Leave this to the end, just use whatever config in order to get demo lined up.
   private static WriterBolt createErrorBolt( String zookeeperUrl,
                                              Optional<String> brokerUrl,
                                              String sensorType,
@@ -343,6 +352,7 @@ public class ParserTopologyBuilder {
     // create a writer handler
     WriterHandler writerHandler = createWriterHandler(writer);
 
+    // TODO modify WriterBolt to
     return new WriterBolt(writerHandler, configs, sensorType)
             .withErrorType(Constants.ErrorType.PARSER_ERROR);
   }

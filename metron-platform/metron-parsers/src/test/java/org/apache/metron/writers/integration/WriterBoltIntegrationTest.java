@@ -26,6 +26,7 @@ import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -61,6 +62,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   private KafkaComponent kafkaComponent;
   private ConfigUploadComponent configUploadComponent;
   private ParserTopologyComponent parserTopologyComponent;
+  // TODO spin up tests with multiple sensors, once it works move to full dev.
 
   public static class MockValidator implements FieldValidation {
 
@@ -117,7 +119,8 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     }};
 
     final Properties topologyProperties = new Properties();
-    ComponentRunner runner = setupTopologyComponents(topologyProperties, sensorType, parserConfig, globalConfigWithValidation);
+    ComponentRunner runner = setupTopologyComponents(topologyProperties, Collections.singletonList(sensorType),
+        Collections.singletonList(parserConfig), globalConfigWithValidation);
     try {
       runner.start();
       kafkaComponent.writeMessages(sensorType, inputMessages);
@@ -159,27 +162,38 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
    *
    * @return runner
    */
-  public ComponentRunner setupTopologyComponents(Properties topologyProperties, String sensorType,
-      SensorParserConfig parserConfig, String globalConfig) {
+  public ComponentRunner setupTopologyComponents(Properties topologyProperties, List<String> sensorTypes,
+      List<SensorParserConfig> parserConfigs, String globalConfig) {
     zkServerComponent = getZKServerComponent(topologyProperties);
-    kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
-      add(new KafkaComponent.Topic(sensorType, 1));
-      add(new KafkaComponent.Topic(parserConfig.getErrorTopic(), 1));
-      add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
-    }});
+    List<KafkaComponent.Topic> topics = new ArrayList<>();
+    for(String sensorType : sensorTypes) {
+      topics.add(new KafkaComponent.Topic(sensorType, 1));
+    }
+    topics.add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
+    kafkaComponent = getKafkaComponent(topologyProperties, topics);
+//    kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
+//      add(new KafkaComponent.Topic(sensorType, 1));
+//      add(new KafkaComponent.Topic(parserConfig.getErrorTopic(), 1));
+//      add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
+//    }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
     configUploadComponent = new ConfigUploadComponent()
         .withTopologyProperties(topologyProperties)
-        .withGlobalConfig(globalConfig)
-        .withParserSensorConfig(sensorType, parserConfig);
+        .withGlobalConfig(globalConfig);
+//        .withParserSensorConfig(sensorType, parserConfig);
 
+    for (int i = 0; i < sensorTypes.size(); ++i) {
+      configUploadComponent.withParserSensorConfig(sensorTypes.get(i), parserConfigs.get(i));
+    }
+
+    // TODO figure out if output topic works here
     parserTopologyComponent = new ParserTopologyComponent.Builder()
-        .withSensorType(sensorType)
+        .withSensorTypes(sensorTypes)
         .withTopologyProperties(topologyProperties)
         .withBrokerUrl(kafkaComponent.getBrokerList())
-        .withErrorTopic(parserConfig.getErrorTopic())
-        .withOutputTopic(parserConfig.getOutputTopic())
+        .withErrorTopic(parserConfigs.get(0).getErrorTopic())
+        .withOutputTopic(parserConfigs.get(0).getOutputTopic())
         .build();
 
     return new ComponentRunner.Builder()
@@ -257,8 +271,22 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   @Multiline
   public static String offsetParserConfigJSON;
 
+  /**
+   * {
+   *    "parserClassName":"org.apache.metron.writers.integration.WriterBoltIntegrationTest$DummyObjectParser",
+   *    "sensorTopic":"dummyobjectparser",
+   *    "outputTopic": "enrichments",
+   *    "errorTopic": "parser_error",
+   *    "parserConfig": {
+   *        "batchSize" : 1
+   *    }
+   * }
+   */
+  @Multiline
+  public static String dummyParserConfigJSON;
+
   @Test
-  public void commits_kafka_offsets_for_emtpy_objects() throws Exception {
+  public void commits_kafka_offsets_for_empty_objects() throws Exception {
     final String sensorType = "emptyobjectparser";
     SensorParserConfig parserConfig = JSONUtils.INSTANCE.load(offsetParserConfigJSON, SensorParserConfig.class);
     final List<byte[]> inputMessages = new ArrayList<byte[]>() {{
@@ -267,7 +295,11 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
       add(Bytes.toBytes("baz"));
     }};
     final Properties topologyProperties = new Properties();
-    ComponentRunner runner = setupTopologyComponents(topologyProperties, sensorType, parserConfig, globalConfigEmpty);
+    ComponentRunner runner = setupTopologyComponents(
+        topologyProperties,
+        Collections.singletonList(sensorType),
+        Collections.singletonList(parserConfig),
+        globalConfigEmpty);
     try {
       runner.start();
       kafkaComponent.writeMessages(sensorType, inputMessages);
@@ -288,6 +320,67 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  @Test
+  public void test_multiple_sensors() throws Exception {
+    // Setup first sensor
+    final String emptyObjectSensorType = "emptyobjectparser";
+    SensorParserConfig emptyObjectParserConfig = JSONUtils.INSTANCE.load(offsetParserConfigJSON, SensorParserConfig.class);
+    final List<byte[]> emptyObjectInputMessages = new ArrayList<byte[]>() {{
+      add(Bytes.toBytes("foo"));
+      add(Bytes.toBytes("bar"));
+      add(Bytes.toBytes("baz"));
+    }};
+
+    // Setup second sensor
+    final String dummySensorType = "dummyobjectparser";
+    SensorParserConfig dummyParserConfig = JSONUtils.INSTANCE.load(dummyParserConfigJSON, SensorParserConfig.class);
+    final List<byte[]> dummyInputMessages = new ArrayList<byte[]>() {{
+      add(Bytes.toBytes("dummy_foo"));
+      add(Bytes.toBytes("dummy_bar"));
+      add(Bytes.toBytes("dummy_baz"));
+    }};
+
+    final Properties topologyProperties = new Properties();
+
+    List<String> sensorTypes = new ArrayList<>();
+    sensorTypes.add(emptyObjectSensorType);
+    sensorTypes.add(dummySensorType);
+
+    List<SensorParserConfig> parserConfigs = new ArrayList<>();
+    parserConfigs.add(emptyObjectParserConfig);
+    parserConfigs.add(dummyParserConfig);
+
+    ComponentRunner runner = setupTopologyComponents(topologyProperties, sensorTypes, parserConfigs, globalConfigEmpty);
+    try {
+      runner.start();
+      kafkaComponent.writeMessages(emptyObjectSensorType, emptyObjectInputMessages);
+      kafkaComponent.writeMessages(dummySensorType, dummyInputMessages);
+
+      final List<byte[]> allInputMessages = new ArrayList<>();
+      allInputMessages.addAll(emptyObjectInputMessages);
+      allInputMessages.addAll(dummyInputMessages);
+      Processor allResultsProcessor = new AllResultsProcessor(allInputMessages, Constants.ENRICHMENT_TOPIC);
+      @SuppressWarnings("unchecked")
+      ProcessorResult<Set<JSONObject>> result = runner.process(allResultsProcessor);
+
+      // validate the output messages
+      assertThat(
+          "size should match",
+          result.getResult().size(),
+          equalTo(allInputMessages.size()));
+      for (JSONObject record : result.getResult()) {
+        assertThat("record should have a guid", record.containsKey("guid"), equalTo(true));
+        // TODO actually manage this properly
+//        assertThat("record should have correct source.type", record.get("source.type"),
+//            equalTo(sensorType));
+      }
+    } finally {
+      if (runner != null) {
+        runner.stop();
+      }
+    }
+  }
+
   /**
    * Goal is to check returning an empty JSONObject in our List returned by parse.
    */
@@ -300,6 +393,34 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     @Override
     public List<JSONObject> parse(byte[] bytes) {
       return ImmutableList.of(new JSONObject());
+    }
+
+    @Override
+    public boolean validate(JSONObject message) {
+      return true;
+    }
+
+    @Override
+    public void configure(Map<String, Object> map) {
+    }
+  }
+
+
+  /**
+   * Goal is to check returning an empty JSONObject in our List returned by parse.
+   */
+  public static class DummyObjectParser implements MessageParser<JSONObject>, Serializable {
+
+    @Override
+    public void init() {
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<JSONObject> parse(byte[] bytes) {
+      JSONObject dummy = new JSONObject();
+      dummy.put("dummy_key", "dummy_value");
+      return ImmutableList.of(dummy);
     }
 
     @Override
