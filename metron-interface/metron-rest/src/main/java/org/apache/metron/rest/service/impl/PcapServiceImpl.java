@@ -44,8 +44,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -96,7 +98,7 @@ public class PcapServiceImpl implements PcapService {
               new FixedPcapFilter.Configurator()
       );
       if (results != null) {
-        Path outputPath = new Path("file:///tmp");
+        Path outputPath = new Path("/tmp");
         int recPerFile = Integer.parseInt(environment.getProperty(MetronRestConstants.PCAP_PAGE_SIZE_SPRING_PROPERTY, "100"));
         String prefix = new SimpleDateFormat("yyyyMMddHHmm").format(Calendar.getInstance().getTime());
         Pageable<Path> pages = pcapJob.writeResults(results, new ResultsWriter(), outputPath, recPerFile, prefix);
@@ -111,24 +113,28 @@ public class PcapServiceImpl implements PcapService {
   @Override
   public Pdml getPdml(Path path) throws RestException {
     Pdml pdml = null;
-    if (new File(path.toString()).exists()) {
+    try {
+    if (FileSystem.newInstance(path.toUri(), configuration).exists(path)) {
       ProcessBuilder processBuilder = getProcessBuilder(environment.getProperty(MetronRestConstants.PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY), path.toUri().getPath());
-      Process process;
-      try {
-        process = processBuilder.start();
-        InputStream inputStream = process.getInputStream();
-        byte[] processOutput = IOUtils.toByteArray(inputStream);
-        inputStream.close();
-        process.waitFor(30, TimeUnit.SECONDS);
-        if (process.exitValue() == 0) {
-          pdml = pdmlXmlToJson(processOutput);
-        } else {
-          String errorMessage = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
-          throw new RestException(errorMessage);
-        }
-      } catch (IOException | InterruptedException e) {
-        throw new RestException(e);
+      Process process = processBuilder.start();
+      InputStream rawInputStream = FileSystem.newInstance(path.toUri(), configuration).open(path);
+      OutputStream processOutputStream = process.getOutputStream();
+      IOUtils.copy(rawInputStream, processOutputStream);
+      rawInputStream.close();
+      if (process.isAlive()) {
+        // need to close processOutputStream if script doesn't exit with an error
+        processOutputStream.close();
+        InputStream processInputStream = process.getInputStream();
+        pdml = new XmlMapper().readValue(processInputStream, Pdml.class);
+        processInputStream.close();
+      } else {
+        String errorMessage = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
+        throw new RestException(errorMessage);
       }
+    }
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new RestException(e);
     }
     return pdml;
   }
@@ -159,25 +165,11 @@ public class PcapServiceImpl implements PcapService {
     return fixedFields;
   }
 
-  protected Pdml pdmlXmlToJson(byte[] xml) throws IOException {
-    XmlMapper xmlMapper = new XmlMapper();
-    Pdml node = xmlMapper.readValue(xml, Pdml.class);
-    return node;
-//    ObjectMapper jsonMapper = new ObjectMapper();
-//    return JSONUtils.INSTANCE.load(jsonMapper.writeValueAsString(node), Pdml.class);
-  }
-
   protected FileSystem getFileSystem() throws IOException {
     return FileSystem.get(configuration);
   }
 
   protected ProcessBuilder getProcessBuilder(String... command) {
     return new ProcessBuilder(command);
-  }
-
-  public static void main(String[] args) throws RestException {
-    PcapService pcapService = new PcapServiceImpl();
-    Pdml pdml = pcapService.getPdml(new Path("/Users/rmerriman/Projects/Metron/code/forks/merrimanr/samplePcapData/pcap-data-201806272004-289365c53112438ca55ea047e13a12a5+0001.pcap"));
-    System.out.println(pdml);
   }
 }
