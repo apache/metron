@@ -69,6 +69,7 @@ configurations:
       yarn_heapsize: 512
       apptimelineserver_heapsize : 512
       resourcemanager_heapsize: 1024
+      min_user_id: 500
   - mapred-env:
       jobhistory_heapsize: 256
   - mapred-site:
