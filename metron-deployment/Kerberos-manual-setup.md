@@ -538,13 +538,13 @@ In order to correct this, you should:
 X-Pack
 ------
 
-Here are instructions for enabling X-Pack with Elasticsearch and Kibana: https://www.elastic.co/guide/en/x-pack/5.6/installing-xpack.html
-
-1. First, stop the random_access_indexing topology through the Storm UI or from the CLI, e.g.
+1. Stop the random_access_indexing topology through the Storm UI or from the CLI, e.g.
 
     ```
     storm kill random_access_indexing
     ```
+
+1. [Follow these instructions](https://www.elastic.co/guide/en/x-pack/5.6/installing-xpack.html) to enable the X-Pack with Elasticsearch and Kibana.  The X-Pack plugin will need installed on each of the nodes running Elasticsearch.
 
 1. You need to be sure to add the appropriate username and password for Elasticsearch and Kibana to enable external connections from Metron components. e.g. the following will create a user "transport_client_user" with password "changeme" and "superuser" credentials.
 
