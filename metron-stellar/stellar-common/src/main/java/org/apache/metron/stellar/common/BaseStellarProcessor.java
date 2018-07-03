@@ -26,6 +26,7 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 
+import java.lang.invoke.MethodHandles;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,8 @@ import org.apache.metron.stellar.common.evaluators.ComparisonExpressionWithOpera
 import org.apache.metron.stellar.common.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.stellar.common.generated.StellarLexer;
 import org.apache.metron.stellar.common.generated.StellarParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -61,6 +64,7 @@ public class BaseStellarProcessor<T> {
   public static final int DEFAULT_CACHE_SIZE = 500;
   public static final int DEFAULT_EXPIRY_TIME = 10;
   public static final TimeUnit DEFAULT_EXPIRY_TIME_UNITS = TimeUnit.MINUTES;
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * The default expression cache.  This is used when the expression cache is not otherwise specified.
@@ -160,6 +164,7 @@ public class BaseStellarProcessor<T> {
   }
 
   private ParseException createException(String rule, VariableResolver resolver, Throwable t) {
+    LOG.error("Encountered a nested exception when parsing expression.  What follows is the most specific exception I have.", t);
     String message = "Unable to parse: " + rule + " due to: " + t.getMessage();
     Set<String> variablesUsed = variablesUsed(rule);
     if(variablesUsed.isEmpty()) {
