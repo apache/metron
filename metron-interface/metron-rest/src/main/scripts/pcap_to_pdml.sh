@@ -16,4 +16,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-tshark2 -r $1 -T pdml
+tshark -r $1 -T pdml
