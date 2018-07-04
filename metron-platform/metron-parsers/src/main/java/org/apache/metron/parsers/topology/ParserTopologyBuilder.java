@@ -150,7 +150,8 @@ public class ParserTopologyBuilder {
         sensorToParserConfigs,
         securityProtocol,
         configs,
-        Optional.of(outputTopic)
+        Optional.ofNullable(outputTopic)
+        // TODO figure out why this is nullable now
     );
 
     BoltDeclarer boltDeclarer = builder
