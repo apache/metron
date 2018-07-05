@@ -245,6 +245,7 @@ describe('Test spec for meta alerts workflow', function() {
     await tablePage.removeAlert(5);
     await treePage.clickYesForConfirmation();
     // expect(await tablePage.getCellValue(0, 2, '(20')).toContain('(19)', 'alert count should be decremented');
+    await browser.sleep(1000);
     let guidValuesAfterDeleteOp = await tablePage.getTableCellValues(3, 1, 20);
     guidValuesAfterDeleteOp = guidValuesAfterDeleteOp.slice(1, 20).sort();
     expect(guidValuesAfterDeleteOp).toEqual(alertsAfterDeletedInMetaAlerts.sort());
