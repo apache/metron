@@ -68,9 +68,9 @@ describe('Test spec for meta alerts workflow', function() {
 
     /* Create Meta Alert */
     await treePage.selectGroup('ip_dst_addr');
-    // Test cannot pass until issue with missing dash score is resolved: https://issues.apache.org/jira/browse/METRON-1631
-    // expect(await treePage.getDashGroupValues('192.168.138.2')).toEqualBcoz(dashRowValues.firstDashRow, 'First Dashrow to be present');
+    expect(await treePage.getDashGroupValues('192.168.138.2')).toEqualBcoz(dashRowValues.firstDashRow, 'First Dashrow to be present');
 
+    await browser.sleep(1000);
     await treePage.clickOnMergeAlerts('192.168.138.2');
     expect(await treePage.getConfirmationText()).toEqualBcoz(confirmText, 'confirmation text to be present');
     await treePage.clickNoForConfirmation();
