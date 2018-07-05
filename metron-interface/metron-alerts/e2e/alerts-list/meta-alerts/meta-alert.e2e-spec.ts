@@ -183,14 +183,14 @@ describe('Test spec for meta alerts workflow', function() {
       'a5e95569-a...0e2613b29a'
     ];
 
-    let alertsAfterDeletedInMetaAlerts =  [ '3c346bf9-b...cb04b43210',
+    let alertsAfterDeletedInMetaAlerts =  [ 
+      '3c346bf9-b...cb04b43210',
       '42f4ce28-8...b3d575b507',
       '5c1825f6-7...da3abe3aec',
       '754b4f63-3...b39678207f',
       '82f8046d-d...03b17480dd',
       '9041285e-9...a04a885b53',
       '9a943c94-c...3b9046b782',
-      'a5e95569-a...0e2613b29a',
       'adca96e3-1...979bf0b5f1',
       'aed3d10f-b...8b8a139f25',
       'b71f085d-6...a4904d8fcf',
@@ -198,10 +198,12 @@ describe('Test spec for meta alerts workflow', function() {
       'd887fe69-c...2fdba06dbc',
       'd9430af3-e...9a18600ab2',
       'dcc483af-c...7bb802b652',
+      'e38be207-b...60a43e3378',
       'e63ff7ae-d...cddbe0c0b3',
       'eba8eccb-b...0005325a90',
       'ed906df7-2...91cc54c2f3',
-      'f39dc401-3...1f9cf02cd9' ];
+      'f39dc401-3...1f9cf02cd9'
+     ];
 
     // Create a meta alert from a group that is nested by more than 1 level
     await treePage.selectGroup('source:type');
