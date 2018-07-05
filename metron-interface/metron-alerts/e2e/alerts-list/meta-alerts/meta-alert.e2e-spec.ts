@@ -43,6 +43,8 @@ describe('Test spec for meta alerts workflow', function() {
     detailsPage = new MetronAlertDetailsPage();
     alertFacetsPage = new AlertFacetsPage();
 
+    jasmine.addMatchers(customMatchers);
+
     await createMetaAlertsIndex();
     await loadTestData();
     await loginPage.login();
@@ -53,11 +55,6 @@ describe('Test spec for meta alerts workflow', function() {
     await deleteTestData();
   });
 
-  beforeEach(() => {
-    jasmine.addMatchers(customMatchers);
-  });
-
-  // Test cannot pass until issue with missing dash score is resolved: https://issues.apache.org/jira/browse/METRON-1631
   it('should have all the steps for meta alerts workflow', async function() : Promise<any> {
     let comment1 = 'This is a sample comment';
     let userNameAndTimestamp = '- admin - a few seconds ago';
