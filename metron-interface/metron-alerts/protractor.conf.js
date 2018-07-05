@@ -30,6 +30,7 @@ exports.config = {
     './e2e/alerts-list/configure-table/configure-table.e2e-spec.ts',
     './e2e/alerts-list/save-search/save-search.e2e-spec.ts',
     './e2e/alerts-list/tree-view/tree-view.e2e-spec.ts',
+    './e2e/alerts-list/table-view/table-view.e2e-spec.ts',
     './e2e/alerts-list/alert-filters/alert-filters.e2e-spec.ts',
     './e2e/alerts-list/alert-status/alerts-list-status.e2e-spec.ts',
     './e2e/alert-details/alert-status/alert-details-status.e2e-spec.ts',

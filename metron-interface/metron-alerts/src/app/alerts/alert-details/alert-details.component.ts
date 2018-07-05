@@ -93,18 +93,18 @@ export class AlertDetailsComponent implements OnInit {
     return false;
   }
 
-  getData(fireToggleEditor = false) {
+  getData() {
     this.alertCommentStr = '';
     this.searchService.getAlert(this.alertSourceType, this.alertId).subscribe(alertSource => {
-      this.alertSource = alertSource;
-      this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
-      this.alertSources = (alertSource.metron_alert && alertSource.metron_alert.length > 0) ? alertSource.metron_alert : [alertSource];
+      this.setAlert(alertSource);
       this.setComments(alertSource['comments'] || []);
-
-      if (fireToggleEditor) {
-        this.toggleNameEditor();
-      }
     });
+  }
+
+  setAlert(alertSource) {
+    this.alertSource = alertSource;
+    this.alertSources = (alertSource.metron_alert && alertSource.metron_alert.length > 0) ? alertSource.metron_alert : [alertSource];
+    this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
   }
 
   setComments(alertComments) {
@@ -149,53 +149,39 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   processOpen() {
-    let tAlert = new Alert();
-    tAlert.source = this.alertSource;
-
-    this.selectedAlertState = AlertState.OPEN;
-    this.updateService.updateAlertState([tAlert], 'OPEN').subscribe(results => {
-      this.getData();
-    });
+    this.updateAlertState('OPEN');
   }
 
   processNew() {
-    let tAlert = new Alert();
-    tAlert.source = this.alertSource;
-
-    this.selectedAlertState = AlertState.NEW;
-    this.updateService.updateAlertState([tAlert], 'NEW').subscribe(results => {
-      this.getData();
-    });
+    this.updateAlertState('NEW');
   }
 
   processEscalate() {
+    this.updateAlertState('ESCALATE');
+
     let tAlert = new Alert();
     tAlert.source = this.alertSource;
-
-    this.selectedAlertState = AlertState.ESCALATE;
-    this.updateService.updateAlertState([tAlert], 'ESCALATE').subscribe(results => {
-      this.getData();
-    });
     this.alertsService.escalate([tAlert]).subscribe();
   }
 
   processDismiss() {
-    let tAlert = new Alert();
-    tAlert.source = this.alertSource;
-
-    this.selectedAlertState = AlertState.DISMISS;
-    this.updateService.updateAlertState([tAlert], 'DISMISS').subscribe(results => {
-      this.getData();
-    });
+    this.updateAlertState('DISMISS');
   }
 
   processResolve() {
+    this.updateAlertState('RESOLVE');
+  }
+
+  updateAlertState(state: string) {
     let tAlert = new Alert();
     tAlert.source = this.alertSource;
 
-    this.selectedAlertState = AlertState.RESOLVE;
-    this.updateService.updateAlertState([tAlert], 'RESOLVE').subscribe(results => {
-      this.getData();
+    let previousAlertStatus = this.alertSource['alert_status'];
+    this.alertSource['alert_status'] = state;
+    this.setAlert(this.alertSource);
+    this.updateService.updateAlertState([tAlert], state).subscribe(() => {}, () => {
+      this.alertSource['alert_status'] = previousAlertStatus;
+      this.setAlert(this.alertSource);
     });
   }
 
@@ -213,8 +199,14 @@ export class AlertDetailsComponent implements OnInit {
       patchRequest.sensorType = 'metaalert';
       patchRequest.patch = [new Patch('add', '/name', this.alertName)];
 
+      let previousName = this.alertSource['name'];
+      this.alertSource['name'] = this.alertName;
       this.updateService.patch(patchRequest).subscribe(rep => {
-        this.getData(true);
+        this.toggleNameEditor();
+      }, () => {
+        this.alertSource['name'] = previousName;
+        this.alertName = previousName;
+        this.toggleNameEditor();
       });
     }
   }

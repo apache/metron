@@ -30,6 +30,7 @@
 /connect.lock
 /coverage
 /libpeerconnection.log
+metron-alerts.iml
 npm-debug.log
 yarn-error.log
 testem.log
@@ -42,4 +43,3 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
-

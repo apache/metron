@@ -18,44 +18,24 @@
 /* tslint:disable:no-unused-variable */
 // directiveSelectorNameRule
 
-import {MetronSorterComponent} from './metron-sorter.component';
-import {MetronTableDirective} from '../metron-table.directive';
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import {Component, DebugElement} from '@angular/core';
+import { ElementRef } from '@angular/core';
 
-@Component({
-  template: `<table class="table table-sm" metron-config-table #table></table>`
-})
-class TestHoverFocusComponent {
-}
+import { MetronSorterComponent } from './metron-sorter.component';
+import { MetronTableDirective } from '../metron-table.directive';
 
-describe('Component: MetronSorter', () => {
-  let metronTable: ComponentFixture<MetronSorterComponent>;
-  let sorter1: MetronSorterComponent;
-  let sorter2: MetronSorterComponent;
-  let sorter3: MetronSorterComponent;
+describe('MetronSorterComponent', () => {
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      declarations: [MetronTableDirective]
-    });
-    metronTable = TestBed.createComponent(MetronSorterComponent);
-    sorter1 = metronTable.componentInstance;
-    sorter2 = metronTable.componentInstance;
-    sorter3 = metronTable.componentInstance;
+  it('should be created', () => {
+    let metronTable = new MetronTableDirective(new ElementRef({}));
+    let component = new MetronSorterComponent(metronTable);
+    expect(component).toBeTruthy();
   });
 
-  // it('should create an instance', () => {
-  //   let metronTable = new MetronTableDirective();
-  //   let component = new MetronSorterComponent(metronTable);
-  //   expect(component).toBeTruthy();
-  // });
-
   it('should set the variables according to sorter', () => {
-    // let metronTable = new MetronTableDirective();
-    // let sorter1 = new MetronSorterComponent(metronTable);
-    // let sorter2 = new MetronSorterComponent(metronTable);
-    // let sorter3 = new MetronSorterComponent(metronTable);
+    let metronTable = new MetronTableDirective(new ElementRef({}));
+    let sorter1 = new MetronSorterComponent(metronTable);
+    let sorter2 = new MetronSorterComponent(metronTable);
+    let sorter3 = new MetronSorterComponent(metronTable);
 
     sorter1.sortBy = 'col1';
     sorter2.sortBy = 'col2';

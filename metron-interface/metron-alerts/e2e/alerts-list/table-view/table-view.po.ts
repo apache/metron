@@ -16,6 +16,11 @@
  * limitations under the License.
  */
 
-describe('AlertSearchDirective', () => {
+import { browser, element, by, protractor, ElementArrayFinder } from 'protractor';
+import { waitForElementVisibility } from '../../utils/e2e_util';
 
-});
+export class TableViewPage {
+  sortTable(colName: string) {
+    return element.all(by.css('table thead th')).all(by.linkText(colName)).get(0).click();
+  }
+}
