@@ -313,7 +313,6 @@ public class ParserBoltTest extends BaseBoltTest {
     when(parser.validate(eq(messages.get(1)))).thenReturn(true);
     when(filter.emitTuple(eq(messages.get(0)), any())).thenReturn(false);
     when(filter.emitTuple(eq(messages.get(1)), any())).thenReturn(true);
-//    parserBolt.withMessageFilter(filter);
     parserBolt.execute(tuple);
     verify(writer, times(1)).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), eq(finalMessage2));
     verify(outputCollector, times(2)).ack(tuple);

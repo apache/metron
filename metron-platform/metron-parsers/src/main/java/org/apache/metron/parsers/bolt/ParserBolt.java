@@ -74,9 +74,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private Map<String, ParserComponents> sensorToComponentMap;
   private Map<String, String> topicToSensorMap = new HashMap<>();
 
-  //default filter is noop, so pass everything through.
-//  private MessageFilter<JSONObject> filter;
-//  private WriterHandler writer;
   private Context stellarContext;
   private transient MessageGetStrategy messageGetStrategy;
   private transient Cache<CachingStellarProcessor.Key, Object> cache;
@@ -86,13 +83,21 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
   public ParserBolt( String zookeeperUrl
                    , Map<String, ParserComponents> sensorToComponentMap
-//                   , WriterHandler writer
-  )
-  {
+  ) {
     super(zookeeperUrl);
-    // TODO clean up writer and filter
-//    this.writer = writer;
     this.sensorToComponentMap = sensorToComponentMap;
+
+    // TODO ensure this is a valid thing to enforce.
+    // Ensure that all sensors are either bulk sensors or not bulk sensors.  Can't mix and match.
+    Boolean handleAcks = null;
+    for (Map.Entry<String, ParserComponents> entry : sensorToComponentMap.entrySet()) {
+      boolean writerHandleAck = entry.getValue().getWriter().handleAck();
+      if (handleAcks == null) {
+        handleAcks = writerHandleAck;
+      } else if (!handleAcks.equals(writerHandleAck)) {
+        throw new IllegalArgumentException("All writers must match when calling handleAck()");
+      }
+    }
   }
 
 
@@ -335,12 +340,13 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
       List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
       Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
+      boolean ackTuple = false;
+      int numWritten = 0;
       for (JSONObject message : messages.orElse(Collections.emptyList())) {
         //we want to ack the tuple in the situation where we have are not doing a bulk write
         //otherwise we want to defer to the writerComponent who will ack on bulk commit.
         WriterHandler writer = sensorToComponentMap.get(sensor).getWriter();
-        boolean ackTuple = !writer.handleAck();
-        int numWritten = 0;
+        ackTuple = !writer.handleAck();
 
         message.put(Constants.SENSOR_TYPE, sensor);
         if (sensorParserConfig.getMergeMetadata()) {
@@ -388,13 +394,12 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             writer.write(sensor, tuple, message, getConfigurations(), messageGetStrategy);
           }
         }
-
-        //if we are supposed to ack the tuple OR if we've never passed this tuple to the bulk writer
-        //(meaning that none of the messages are valid either globally or locally)
-        //then we want to handle the ack ourselves.
-        if (ackTuple || numWritten == 0) {
-          collector.ack(tuple);
-        }
+      }
+      //if we are supposed to ack the tuple OR if we've never passed this tuple to the bulk writer
+      //(meaning that none of the messages are valid either globally or locally)
+      //then we want to handle the ack ourselves.
+      if (ackTuple || numWritten == 0) {
+        collector.ack(tuple);
       }
 
     } catch (Throwable ex) {

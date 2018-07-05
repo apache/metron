@@ -135,7 +135,6 @@ public class ParserTopologyBuilder {
     for (Entry<String, SensorParserConfig> entry: sensorToParserConfigs.entrySet()) {
       KafkaSpout kafkaSpout = createKafkaSpout(zookeeperUrl, entry.getKey(), securityProtocol,
           Optional.ofNullable(kafkaSpoutConfig.get(i)), entry.getValue());
-      // TODO figure out if we care if this is exact same in single sensor case
       String spoutId = sensorToParserConfigs.size() > 1 ? "kafkaSpout-" + entry.getKey() : "kafkaSpout";
       builder.setSpout(spoutId, kafkaSpout, spoutParallelism.get(i))
           .setNumTasks(spoutNumTasks.get(i));
