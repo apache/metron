@@ -104,8 +104,7 @@ public class StormCLIWrapper {
 
     // sensor type
     command.add( "-s");
-    // TODO replace separator with constant. See also ParserTopologyCLI.
-    command.add( names.replaceAll(",", "__"));
+    command.add( names);
 
     // zookeeper
     command.add( "-z");

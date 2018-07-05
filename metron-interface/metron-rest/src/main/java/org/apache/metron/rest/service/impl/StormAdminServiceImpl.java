@@ -58,12 +58,12 @@ public class StormAdminServiceImpl implements StormAdminService {
             if (sensorParserConfigService.findOne(sensorType) == null) {
                 topologyResponse
                     .setErrorMessage(TopologyStatusCode.SENSOR_PARSER_CONFIG_MISSING.toString());
+                return topologyResponse;
             }
-            return topologyResponse;
         }
 
         return createResponse(
-            stormCLIClientWrapper.startParserTopology(name.replaceAll(",", "_")),
+            stormCLIClientWrapper.startParserTopology(name),
                 TopologyStatusCode.STARTED,
                 TopologyStatusCode.START_ERROR
         );
@@ -71,10 +71,7 @@ public class StormAdminServiceImpl implements StormAdminService {
 
     @Override
     public TopologyResponse stopParserTopology(String name, boolean stopNow) throws RestException {
-        // TODO the catch here is that "name" would only be a single sensor in normal cases.
-        // In aggregate case, what happens if someone stops "bro", but the aggregate is "bro,snort"?
-        // Also, the name is used directly to kill the topology, which isn't viable in an aggregated topology.
-        return createResponse(stormCLIClientWrapper.stopParserTopology(name, stopNow), TopologyStatusCode.STOPPED, TopologyStatusCode.STOP_ERROR);
+        return createResponse(stormCLIClientWrapper.stopParserTopology(name.replaceAll(",", "__"), stopNow), TopologyStatusCode.STOPPED, TopologyStatusCode.STOP_ERROR);
     }
 
     @Override
