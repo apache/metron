@@ -132,8 +132,8 @@ public class PcapJobTest {
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
     Assert.assertThat(status.getJobId(), equalTo(jobIdVal));
     String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
-    Assert.assertThat(status.getResultPath(), notNullValue());
-    Assert.assertThat(status.getResultPath().toString(), startsWith(expectedOutPath));
+    Assert.assertThat(status.getInterimResultPath(), notNullValue());
+    Assert.assertThat(status.getInterimResultPath().toString(), startsWith(expectedOutPath));
   }
 
   @Test
@@ -158,8 +158,8 @@ public class PcapJobTest {
     Assert.assertThat(status.getState(), equalTo(State.FAILED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
     String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
-    Assert.assertThat(status.getResultPath(), notNullValue());
-    Assert.assertThat(status.getResultPath().toString(), startsWith(expectedOutPath));
+    Assert.assertThat(status.getInterimResultPath(), notNullValue());
+    Assert.assertThat(status.getInterimResultPath().toString(), startsWith(expectedOutPath));
   }
 
   @Test
@@ -184,8 +184,8 @@ public class PcapJobTest {
     Assert.assertThat(status.getState(), equalTo(State.KILLED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
     String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
-    Assert.assertThat(status.getResultPath(), notNullValue());
-    Assert.assertThat(status.getResultPath().toString(), startsWith(expectedOutPath));
+    Assert.assertThat(status.getInterimResultPath(), notNullValue());
+    Assert.assertThat(status.getInterimResultPath().toString(), startsWith(expectedOutPath));
   }
 
   @Test
@@ -210,8 +210,8 @@ public class PcapJobTest {
     Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
     String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
-    Assert.assertThat(status.getResultPath(), notNullValue());
-    Assert.assertThat(status.getResultPath().toString(), startsWith(expectedOutPath));
+    Assert.assertThat(status.getInterimResultPath(), notNullValue());
+    Assert.assertThat(status.getInterimResultPath().toString(), startsWith(expectedOutPath));
   }
 
   @Test

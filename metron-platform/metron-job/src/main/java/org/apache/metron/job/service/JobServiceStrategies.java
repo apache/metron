@@ -19,14 +19,15 @@
 package org.apache.metron.job.service;
 
 import java.util.Map;
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.job.Statusable;
 
-public enum JobServiceStrategies implements JobService {
+public enum JobServiceStrategies implements JobService<Path> {
   HDFS(new HdfsJobService());
 
-  private JobService jobService;
+  private JobService<Path> jobService;
 
-  JobServiceStrategies(JobService jobService) {
+  JobServiceStrategies(JobService<Path> jobService) {
     this.jobService = jobService;
   }
 
@@ -36,7 +37,7 @@ public enum JobServiceStrategies implements JobService {
   }
 
   @Override
-  public void add(Statusable job, String username, String jobId) {
+  public void add(Statusable<Path> job, String username, String jobId) {
     jobService.add(job, username, jobId);
   }
 
@@ -46,7 +47,7 @@ public enum JobServiceStrategies implements JobService {
   }
 
   @Override
-  public Statusable getJob(String username, String jobId) {
+  public Statusable<Path> getJob(String username, String jobId) {
     return jobService.getJob(username, jobId);
   }
 }

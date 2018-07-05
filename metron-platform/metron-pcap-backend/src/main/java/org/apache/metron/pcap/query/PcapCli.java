@@ -30,10 +30,11 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
+import org.apache.metron.job.JobException;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
-import org.apache.metron.pcap.writer.ResultsWriter;
+import org.apache.metron.pcap.writer.PcapResultsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,15 +46,15 @@ public class PcapCli {
     return String.format("%s-%s", timestamp, uuid);
   };
   private final PcapJob jobRunner;
-  private final ResultsWriter resultsWriter;
+  private final PcapResultsWriter resultsWriter;
   private final CliConfig.PrefixStrategy prefixStrategy;
 
   public static void main(String[] args) {
-    int status = new PcapCli(new PcapJob(), new ResultsWriter(), PREFIX_STRATEGY).run(args);
+    int status = new PcapCli(new PcapJob(), new PcapResultsWriter(), PREFIX_STRATEGY).run(args);
     System.exit(status);
   }
 
-  public PcapCli(PcapJob jobRunner, ResultsWriter resultsWriter, CliConfig.PrefixStrategy prefixStrategy) {
+  public PcapCli(PcapJob jobRunner, PcapResultsWriter resultsWriter, CliConfig.PrefixStrategy prefixStrategy) {
     this.jobRunner = jobRunner;
     this.resultsWriter = resultsWriter;
     this.prefixStrategy = prefixStrategy;
@@ -68,6 +69,7 @@ public class PcapCli {
     SequenceFileIterable results = null;
     String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
     Configuration hadoopConf = new Configuration();
+    resultsWriter.withConfiguration(hadoopConf);
     String[] otherArgs = null;
     try {
       otherArgs = new GenericOptionsParser(hadoopConf, commandArgs).getRemainingArgs();
@@ -107,7 +109,7 @@ public class PcapCli {
                 hadoopConf,
                 FileSystem.get(hadoopConf),
                 new FixedPcapFilter.Configurator());
-      } catch (IOException | ClassNotFoundException | InterruptedException e) {
+      } catch (IOException | ClassNotFoundException | InterruptedException | JobException e) {
         LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
         return -1;
       }
@@ -141,7 +143,7 @@ public class PcapCli {
                 hadoopConf,
                 FileSystem.get(hadoopConf),
                 new QueryPcapFilter.Configurator());
-      } catch (IOException | ClassNotFoundException | InterruptedException e) {
+      } catch (IOException | ClassNotFoundException | InterruptedException | JobException e) {
         LOGGER.error("Failed to execute query filter job: {}", e.getMessage(), e);
         return -1;
       }
@@ -153,7 +155,7 @@ public class PcapCli {
     try {
       // write to local FS in the executing directory
       String execDir = System.getProperty("user.dir");
-      jobRunner.writeResults(results, resultsWriter, new Path("file:///" + execDir),
+      jobRunner.writeFinalResults(results, resultsWriter, new Path("file:///" + execDir),
           commonConfig.getNumRecordsPerFile(),
           commonConfig.getPrefix());
     } catch (IOException e) {

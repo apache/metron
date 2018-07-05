@@ -16,19 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.metron.job.service;
+package org.apache.metron.job.writer;
 
-import java.util.Map;
-import org.apache.metron.job.Statusable;
+import java.util.function.Function;
+import org.apache.metron.common.system.Clock;
 
-public interface JobService<T> {
-
-  void configure(Map<String, Object> config);
-
-  void add(Statusable<T> job, String username, String jobId);
-
-  boolean jobExists(String username, String jobId);
-
-  Statusable<T> getJob(String username, String jobId);
+public interface PrefixStrategy extends Function<Clock, String> {
 
 }

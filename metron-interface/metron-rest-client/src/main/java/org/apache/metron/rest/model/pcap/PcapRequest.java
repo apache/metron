@@ -17,6 +17,8 @@
  */
 package org.apache.metron.rest.model.pcap;
 
+// TODO reconcile with pcapmrjob
+
 public class PcapRequest {
 
   private String baseOutputPath;

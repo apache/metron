@@ -23,6 +23,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.utils.HDFSUtils;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.job.Statusable.JobType;
@@ -32,10 +33,10 @@ import org.slf4j.LoggerFactory;
 /**
  * HDFS-backed implementation of a job service
  */
-public class HdfsJobService implements JobService {
+public class HdfsJobService implements JobService<Path> {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private Map<String, Map<String, Statusable>> jobs;
+  private Map<String, Map<String, Statusable<Path>>> jobs;
   private String basePath;
   private String jobsPath;
 
@@ -56,8 +57,8 @@ public class HdfsJobService implements JobService {
   }
 
   @Override
-  public void add(Statusable job, String username, String jobId) {
-    Map<String, Statusable> jobMapping = new HashMap<>();
+  public void add(Statusable<Path> job, String username, String jobId) {
+    Map<String, Statusable<Path>> jobMapping = getJobsByUser(username);
     jobMapping.put(jobId, job);
     jobs.put(username, jobMapping);
     try {
@@ -66,6 +67,10 @@ public class HdfsJobService implements JobService {
       LOG.error("Unable to save running job information to HDFS: {}, {}, {}", job.getJobType(),
           username, jobId, e);
     }
+  }
+
+  private Map<String, Statusable<Path>> getJobsByUser(String username) {
+    return jobs.getOrDefault(username, new HashMap<>());
   }
 
   private void writeToHdfs(String basePath, JobType jobType, String username, String jobId)
@@ -77,7 +82,7 @@ public class HdfsJobService implements JobService {
   @Override
   public boolean jobExists(String username, String jobId) {
     if (jobs.containsKey(username)) {
-      Map<String, Statusable> jobsByUser = jobs.get(username);
+      Map<String, Statusable<Path>> jobsByUser = jobs.get(username);
       return jobsByUser.containsKey(jobId);
     } else {
       return false;
@@ -87,7 +92,7 @@ public class HdfsJobService implements JobService {
   @Override
   public Statusable getJob(String username, String jobId) {
     if (jobs.containsKey(username)) {
-      Map<String, Statusable> jobsByUser = jobs.get(username);
+      Map<String, Statusable<Path>> jobsByUser = jobs.get(username);
       return jobsByUser.get(jobId);
     } else {
       return null;

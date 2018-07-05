@@ -22,6 +22,7 @@ import java.util.Optional;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.metron.job.writer.ResultsWriter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 
 public class PcapMRJobConfig<T> {
@@ -29,6 +30,10 @@ public class PcapMRJobConfig<T> {
   private Optional<String> jobName;
   private Path basePath;
   private Path baseOutputPath;
+  private Path finalOutputPath;
+  private ResultsWriter<byte[]> resultsWriter;
+  private int numRecordsPerFile;
+  private String outputFilePrefix;
   private long beginNS;
   private long endNS;
   private int numReducers;
@@ -42,7 +47,7 @@ public class PcapMRJobConfig<T> {
     return jobName;
   }
 
-  public PcapMRJobConfig setJobName(Optional<String> jobName) {
+  public PcapMRJobConfig<T> setJobName(Optional<String> jobName) {
     this.jobName = jobName;
     return this;
   }
@@ -51,7 +56,7 @@ public class PcapMRJobConfig<T> {
     return basePath;
   }
 
-  public PcapMRJobConfig setBasePath(Path basePath) {
+  public PcapMRJobConfig<T> setBasePath(Path basePath) {
     this.basePath = basePath;
     return this;
   }
@@ -60,7 +65,7 @@ public class PcapMRJobConfig<T> {
     return baseOutputPath;
   }
 
-  public PcapMRJobConfig setBaseOutputPath(Path baseOutputPath) {
+  public PcapMRJobConfig<T> setBaseOutputPath(Path baseOutputPath) {
     this.baseOutputPath = baseOutputPath;
     return this;
   }
@@ -69,7 +74,7 @@ public class PcapMRJobConfig<T> {
     return beginNS;
   }
 
-  public PcapMRJobConfig setBeginNS(long beginNS) {
+  public PcapMRJobConfig<T> setBeginNS(long beginNS) {
     this.beginNS = beginNS;
     return this;
   }
@@ -78,7 +83,7 @@ public class PcapMRJobConfig<T> {
     return endNS;
   }
 
-  public PcapMRJobConfig setEndNS(long endNS) {
+  public PcapMRJobConfig<T> setEndNS(long endNS) {
     this.endNS = endNS;
     return this;
   }
@@ -87,7 +92,7 @@ public class PcapMRJobConfig<T> {
     return numReducers;
   }
 
-  public PcapMRJobConfig setNumReducers(int numReducers) {
+  public PcapMRJobConfig<T> setNumReducers(int numReducers) {
     this.numReducers = numReducers;
     return this;
   }
@@ -96,7 +101,7 @@ public class PcapMRJobConfig<T> {
     return fields;
   }
 
-  public PcapMRJobConfig setFields(T fields) {
+  public PcapMRJobConfig<T> setFields(T fields) {
     this.fields = fields;
     return this;
   }
@@ -105,7 +110,7 @@ public class PcapMRJobConfig<T> {
     return conf;
   }
 
-  public PcapMRJobConfig setConf(Configuration conf) {
+  public PcapMRJobConfig<T> setConf(Configuration conf) {
     this.conf = conf;
     return this;
   }
@@ -114,7 +119,7 @@ public class PcapMRJobConfig<T> {
     return fs;
   }
 
-  public PcapMRJobConfig setFs(FileSystem fs) {
+  public PcapMRJobConfig<T> setFs(FileSystem fs) {
     this.fs = fs;
     return this;
   }
@@ -123,7 +128,7 @@ public class PcapMRJobConfig<T> {
     return filterImpl;
   }
 
-  public PcapMRJobConfig setFilterImpl(PcapFilterConfigurator<T> filterImpl) {
+  public PcapMRJobConfig<T> setFilterImpl(PcapFilterConfigurator<T> filterImpl) {
     this.filterImpl = filterImpl;
     return this;
   }
@@ -132,8 +137,45 @@ public class PcapMRJobConfig<T> {
     return synchronous;
   }
 
-  public PcapMRJobConfig setSynchronous(boolean synchronous) {
+  public PcapMRJobConfig<T> setSynchronous(boolean synchronous) {
     this.synchronous = synchronous;
     return this;
   }
+
+  public Path getFinalOutputPath() {
+    return finalOutputPath;
+  }
+
+  public PcapMRJobConfig<T> setFinalOutputPath(Path finalOutputPath) {
+    this.finalOutputPath = finalOutputPath;
+    return this;
+  }
+
+  public ResultsWriter<byte[]> getResultsWriter() {
+    return resultsWriter;
+  }
+
+  public PcapMRJobConfig<T> setResultsWriter(ResultsWriter<byte[]> resultsWriter) {
+    this.resultsWriter = resultsWriter;
+    return this;
+  }
+
+  public int getNumRecordsPerFile() {
+    return numRecordsPerFile;
+  }
+
+  public PcapMRJobConfig<T> setNumRecordsPerFile(int numRecordsPerFile) {
+    this.numRecordsPerFile = numRecordsPerFile;
+    return this;
+  }
+
+  public String getOutputFilePrefix() {
+    return outputFilePrefix;
+  }
+
+  public PcapMRJobConfig<T> setOutputFilePrefix(String outputFilePrefix) {
+    this.outputFilePrefix = outputFilePrefix;
+    return this;
+  }
+
 }

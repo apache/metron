@@ -40,9 +40,12 @@ public class HdfsJobServiceTest {
   public TemporaryFolder tempDir = new TemporaryFolder();
 
   @Mock
-  private Statusable job;
+  private Statusable job1;
+  @Mock
+  private Statusable job2;
   private String username;
-  private String jobId;
+  private String jobId1;
+  private String jobId2;
   private String basePath;
   private HdfsJobService js;
 
@@ -50,8 +53,10 @@ public class HdfsJobServiceTest {
   public void setup() {
     MockitoAnnotations.initMocks(this);
     username = "user123";
-    jobId = "job_abc_123";
-    when(job.getJobType()).thenReturn(JobType.MAP_REDUCE);
+    jobId1 = "job_abc_123";
+    jobId2 = "job_def_456";
+    when(job1.getJobType()).thenReturn(JobType.MAP_REDUCE);
+    when(job2.getJobType()).thenReturn(JobType.MAP_REDUCE);
     basePath = tempDir.getRoot().getAbsolutePath();
     Map<String, Object> config = new HashMap<>();
     config.put("basePath", basePath);
@@ -60,33 +65,41 @@ public class HdfsJobServiceTest {
   }
 
   @Test
-  public void adds_job() {
-    js.add(job, username, jobId);
-    Statusable actual = js.getJob(username, jobId);
-    assertThat(actual, equalTo(job));
+  public void adds_jobs() {
+    js.add(job1, username, jobId1);
+    Statusable actual = js.getJob(username, jobId1);
+    assertThat("Job 1 should exist", actual, equalTo(job1));
+    js.add(job2, username, jobId2);
+    actual = js.getJob(username, jobId1);
+    assertThat("Job 1 should still exist after adding job 2", actual, equalTo(job1));
+    actual = js.getJob(username, jobId2);
+    assertThat("Job 2 should exist", actual, equalTo(job2));
   }
 
   @Test
   public void job_exists_true_for_submitted_jobs() {
-    js.add(job, username, jobId);
-    boolean actual = js.jobExists(username, jobId);
-    assertThat(actual, equalTo(true));
+    js.add(job1, username, jobId1);
+    js.add(job2, username, jobId2);
+    boolean actual = js.jobExists(username, jobId1);
+    assertThat("Job 1 should exist", actual, equalTo(true));
+    actual = js.jobExists(username, jobId2);
+    assertThat("Job 2 should exist", actual, equalTo(true));
   }
 
   @Test
   public void job_exists_false_for_non_existent_jobs() {
-    boolean actual = js.jobExists(username, jobId);
+    boolean actual = js.jobExists(username, jobId1);
     assertThat(actual, equalTo(false));
-    js.add(job, username, jobId);
+    js.add(job1, username, jobId1);
     actual = js.jobExists(username, "this_job_id_does_not_exist");
     assertThat(actual, equalTo(false));
   }
 
   @Test
   public void returns_null_for_non_existent_job() {
-    Statusable actual = js.getJob(username, jobId);
+    Statusable actual = js.getJob(username, jobId1);
     assertThat(actual, equalTo(null));
-    js.add(job, username, jobId);
+    js.add(job1, username, jobId1);
     actual = js.getJob(username, "this_job_id_does_not_exist");
     assertThat(actual, equalTo(null));
   }
@@ -94,8 +107,9 @@ public class HdfsJobServiceTest {
   @Test
   public void writes_job_info_to_hdfs() {
     // /base/path/jobs/metron_user/MAP_REDUCE/job_abc_123
-    js.add(job, username, jobId);
-    File jobFile = new File(String.format("%s/jobs/%s/%s/%s", basePath, username, JobType.MAP_REDUCE.toString(), jobId));
+    js.add(job1, username, jobId1);
+    File jobFile = new File(String.format("%s/jobs/%s/%s/%s", basePath, username, JobType.MAP_REDUCE.toString(),
+        jobId1));
     assertThat("File should exist", jobFile.exists(), equalTo(true));
     assertThat("File should be a file", jobFile.isFile(), equalTo(true));
   }

@@ -7,11 +7,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.JobStatus.State;
 import org.apache.metron.job.Statusable;
-import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.job.service.JobService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,9 +40,9 @@ import org.mockito.MockitoAnnotations;
 
 public class JobManagerTest {
 
-  private JobManager jm;
+  private JobManager<Path> jm;
   @Mock
-  private JobService jobService;
+  private JobService<Path> jobService;
   @Mock
   private Statusable job;
   private String username;
@@ -51,7 +51,7 @@ public class JobManagerTest {
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
-    jm = new JobManager(jobService);
+    jm = new JobManager<Path>(jobService);
     username = "userabc";
     jobId = "job_abc";
   }
@@ -67,7 +67,7 @@ public class JobManagerTest {
   }
 
   @Test
-  public void returns_job_status() {
+  public void returns_job_status() throws JobException {
     JobStatus expected = new JobStatus().withState(State.SUCCEEDED).withJobId(jobId);
     when(job.getStatus()).thenReturn(expected);
     when(jobService.getJob(username, jobId)).thenReturn(job);
@@ -76,7 +76,7 @@ public class JobManagerTest {
   }
 
   @Test
-  public void returns_job_is_done() {
+  public void returns_job_is_done() throws JobException {
     JobStatus expected = new JobStatus().withState(State.SUCCEEDED).withJobId(jobId);
     when(job.isDone()).thenReturn(true);
     when(jobService.getJob(username, jobId)).thenReturn(job);
@@ -92,7 +92,7 @@ public class JobManagerTest {
   }
 
   @Test
-  public void returns_statusable_job() {
+  public void returns_statusable_job() throws JobException {
     when(job.isDone()).thenReturn(true);
     when(jobService.getJob(username, jobId)).thenReturn(job);
     Statusable done = jm.getJob(username, jobId);

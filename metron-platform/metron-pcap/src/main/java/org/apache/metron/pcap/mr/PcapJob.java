@@ -56,6 +56,7 @@ import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.JobStatus.State;
 import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
+import org.apache.metron.job.writer.ResultsWriter;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapFiles;
 import org.apache.metron.pcap.PcapHelper;
@@ -63,18 +64,21 @@ import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
 import org.apache.metron.pcap.utils.FileFilterUtil;
-import org.apache.metron.pcap.writer.ResultsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PcapJob implements Statusable {
+/**
+ * Encompasses MapReduce job and final writing of Pageable results to specified location.
+ * Cleans up MapReduce results from HDFS on completion.
+ */
+public class PcapJob implements Statusable<Path> {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String START_TS_CONF = "start_ts";
   public static final String END_TS_CONF = "end_ts";
   public static final String WIDTH_CONF = "width";
   private Job job; // store a running MR job reference for async status check
-  private Path outputPath;
+  private JobStatus jobStatus;
   private PcapMRJobConfig config;
 
   public static enum PCAP_COUNTER {
@@ -188,13 +192,14 @@ public class PcapJob implements Statusable {
                             , Configuration conf
                             , FileSystem fs
                             , PcapFilterConfigurator<T> filterImpl
-                            ) throws IOException, ClassNotFoundException, InterruptedException {
+                            )
+      throws IOException, ClassNotFoundException, InterruptedException, JobException {
     Statusable statusable = query(Optional.empty(), basePath, baseOutputPath, beginNS, endNS,
         numReducers, fields, conf, fs, filterImpl, true);
     JobStatus jobStatus = statusable.getStatus();
     if (jobStatus.getState() == State.SUCCEEDED) {
-      Path resultPath = jobStatus.getResultPath();
-      return readResults(resultPath, conf, fs);
+      Path resultPath = jobStatus.getInterimResultPath();
+      return readInterimResults(resultPath, conf, fs);
     } else {
       throw new RuntimeException(
           "Unable to complete query due to errors.  Please check logs for full errors.");
@@ -226,10 +231,10 @@ public class PcapJob implements Statusable {
       String to = format.format(new Date(Long.divideUnsigned(endNS, 1000000)));
       LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
     }
-    outputPath =  new Path(baseOutputPath, outputDirName);
+    Path interimOutputPath =  new Path(baseOutputPath, outputDirName);
     job = createJob(jobName
         , basePath
-        , outputPath
+        , interimOutputPath
         , beginNS
         , endNS
         , numReducers
@@ -238,6 +243,7 @@ public class PcapJob implements Statusable {
         , fs
         , filterImpl
     );
+    jobStatus = new JobStatus().withInterimResultPath(interimOutputPath);
     if (sync) {
       job.waitForCompletion(true);
     } else {
@@ -249,7 +255,7 @@ public class PcapJob implements Statusable {
   /**
    * Returns a lazily-read Iterable over a set of sequence files
    */
-  private SequenceFileIterable readResults(Path outputPath, Configuration config, FileSystem fs) throws IOException {
+  public SequenceFileIterable readInterimResults(Path outputPath, Configuration config, FileSystem fs) throws IOException {
     List<Path> files = new ArrayList<>();
     for (RemoteIterator<LocatedFileStatus> it = fs.listFiles(outputPath, false); it.hasNext(); ) {
       Path p = it.next().getPath();
@@ -286,33 +292,6 @@ public class PcapJob implements Statusable {
     } catch (IOException | ClassNotFoundException | InterruptedException e) {
       throw new JobException("Unable to run pcap query.", e);
     }
-  }
-
-  public Pageable<Path> writeResults(SequenceFileIterable results, ResultsWriter resultsWriter,
-      Path outPath, int recPerFile, String prefix) throws IOException {
-    List<Path> outFiles = new ArrayList<>();
-    try {
-      Iterable<List<byte[]>> partitions = Iterables.partition(results, recPerFile);
-      int part = 1;
-      if (partitions.iterator().hasNext()) {
-        for (List<byte[]> data : partitions) {
-          String outFileName = String.format("%s/pcap-data-%s+%04d.pcap", outPath, prefix, part++);
-          if (data.size() > 0) {
-            resultsWriter.write(new Configuration(), data, outFileName);
-            outFiles.add(new Path(outFileName));
-          }
-        }
-      } else {
-        LOG.info("No results returned.");
-      }
-    } finally {
-      try {
-        results.cleanup();
-      } catch (IOException e) {
-        LOG.warn("Unable to cleanup files in HDFS", e);
-      }
-    }
-    return new PcapFiles(outFiles);
   }
 
   /**
@@ -376,48 +355,94 @@ public class PcapJob implements Statusable {
   }
 
   @Override
-  public JobStatus getStatus() {
+  public JobStatus getStatus() throws JobException {
     // Note: this method is only reading state from the underlying job, so locking not needed
-    JobStatus status = new JobStatus().withResultPath(outputPath);
     if (job == null) {
-      status.withPercentComplete(100).withState(State.SUCCEEDED);
+      jobStatus.withPercentComplete(100).withState(State.SUCCEEDED);
     } else {
       try {
-        status.withJobId(job.getStatus().getJobID().toString());
+        jobStatus.withJobId(job.getStatus().getJobID().toString());
         if (job.isComplete()) {
-          status.withPercentComplete(100);
+          jobStatus.withPercentComplete(100);
           switch (job.getStatus().getState()) {
             case SUCCEEDED:
-              status.withState(State.SUCCEEDED).withDescription(State.SUCCEEDED.toString());
+              jobStatus.withState(State.SUCCEEDED).withDescription(State.SUCCEEDED.toString());
               break;
             case FAILED:
-              status.withState(State.FAILED);
+              jobStatus.withState(State.FAILED).withDescription(State.FAILED.toString());
               break;
             case KILLED:
-              status.withState(State.KILLED);
+              jobStatus.withState(State.KILLED).withDescription(State.KILLED.toString());
               break;
+            default:
+              throw new IllegalStateException(
+                  "Unknown job state reported as 'complete' by mapreduce framework: " + job
+                      .getStatus().getState());
+
           }
         } else {
           float mapProg = job.mapProgress();
           float reduceProg = job.reduceProgress();
           float totalProgress = ((mapProg / 2) + (reduceProg / 2)) * 100;
           String description = String.format("map: %s%%, reduce: %s%%", mapProg * 100, reduceProg * 100);
-          status.withPercentComplete(totalProgress).withState(State.RUNNING)
+          jobStatus.withPercentComplete(totalProgress).withState(State.RUNNING)
               .withDescription(description);
         }
       } catch (Exception e) {
         throw new RuntimeException("Error occurred while attempting to retrieve job status.", e);
       }
     }
-    return status;
+    return jobStatus;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public Pageable<Path> finalizeJob() throws JobException {
+    try {
+      SequenceFileIterable interimResults = readInterimResults(jobStatus.getInterimResultPath(),
+          config.getConf(), config.getFs());
+      return writeFinalResults(interimResults, config.getResultsWriter(),
+          config.getFinalOutputPath(),
+          config.getNumRecordsPerFile(),
+          config.getOutputFilePrefix());
+    } catch (IOException e) {
+      throw new JobException("Unable to read intermediate pcap MapReduce results.", e);
+    }
+  }
+
+  public Pageable<Path> writeFinalResults(SequenceFileIterable results, ResultsWriter<byte[]> resultsWriter,
+      Path outPath, int recPerFile, String prefix) throws IOException {
+    List<Path> outFiles = new ArrayList<>();
+    try {
+      Iterable<List<byte[]>> partitions = Iterables.partition(results, recPerFile);
+      int part = 1;
+      if (partitions.iterator().hasNext()) {
+        for (List<byte[]> data : partitions) {
+          String outFileName = String.format("%s/pcap-data-%s+%04d.pcap", outPath, prefix, part++);
+          if (data.size() > 0) {
+            resultsWriter.write(data, outFileName);
+            outFiles.add(new Path(outFileName));
+          }
+        }
+      } else {
+        LOG.info("No results returned.");
+      }
+    } finally {
+      try {
+        results.cleanup();
+      } catch (IOException e) {
+        LOG.warn("Unable to cleanup files in HDFS", e);
+      }
+    }
+    return new PcapFiles(outFiles);
   }
 
   @Override
-  public boolean isDone() {
-    // Note: this method is only reading state from the underlying job, so locking not needed
+  public boolean isDone() throws JobException {
+    getStatus();
     try {
       return job.isComplete();
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new RuntimeException("Error occurred while attempting to retrieve job status.", e);
     }
   }

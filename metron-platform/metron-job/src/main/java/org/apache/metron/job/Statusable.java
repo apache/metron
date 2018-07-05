@@ -23,13 +23,25 @@ import java.util.Map;
 /**
  * Abstraction for getting status on running jobs. Also provides options for killing and validating.
  */
-public interface Statusable {
+public interface Statusable<T> {
 
   enum JobType {
     MAP_REDUCE,
     SPARK;
   }
 
+  /**
+   * Submit the job.
+   *
+   * @return self
+   */
+  Statusable<T> submit() throws JobException;
+
+  /**
+   * Execution framework type of this job.
+   *
+   * @return type of job
+   */
   JobType getJobType();
 
   /**
@@ -37,14 +49,14 @@ public interface Statusable {
    *
    * @return status
    */
-  JobStatus getStatus();
+  JobStatus getStatus() throws JobException;
 
   /**
    * Completion flag.
    *
    * @return true if job is completed, whether KILLED, FAILED, SUCCEEDED. False otherwise.
    */
-  boolean isDone();
+  boolean isDone() throws JobException;
 
   /**
    * Kill job.
@@ -60,9 +72,10 @@ public interface Statusable {
   boolean validate(Map<String, Object> configuration);
 
   /**
-   * Submit the job.
+   * Finalize job results. Any post-processing is done here.
    *
-   * @return self
+   * @return Results in a pageable fashion.
    */
-  Statusable submit() throws JobException;
+  Pageable<T> finalizeJob() throws JobException;
+
 }

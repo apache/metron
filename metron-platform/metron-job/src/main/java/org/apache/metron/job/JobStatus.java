@@ -37,7 +37,7 @@ public class JobStatus {
   private State state = State.NOT_RUNNING;
   private double percentComplete = 0.0;
   private String description;
-  private Path resultPath;
+  private Path interimResultPath;
 
   public JobStatus withJobId(String jobId) {
     this.jobId = jobId;
@@ -59,8 +59,8 @@ public class JobStatus {
     return this;
   }
 
-  public JobStatus withResultPath(Path resultPath) {
-    this.resultPath = resultPath;
+  public JobStatus withInterimResultPath(Path interimResultPath) {
+    this.interimResultPath = interimResultPath;
     return this;
   }
 
@@ -80,8 +80,8 @@ public class JobStatus {
     return description;
   }
 
-  public Path getResultPath() {
-    return resultPath;
+  public Path getInterimResultPath() {
+    return interimResultPath;
   }
 
 }

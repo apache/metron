@@ -16,19 +16,20 @@
  * limitations under the License.
  */
 
-package org.apache.metron.job.service;
+package org.apache.metron.job.writer;
 
-import java.util.Map;
-import org.apache.metron.job.Statusable;
+import java.io.IOException;
+import java.util.List;
 
-public interface JobService<T> {
+public interface ResultsWriter<T> {
 
-  void configure(Map<String, Object> config);
-
-  void add(Statusable<T> job, String username, String jobId);
-
-  boolean jobExists(String username, String jobId);
-
-  Statusable<T> getJob(String username, String jobId);
+  /**
+   * Write out results.
+   *
+   * @param data data to write.
+   * @param outPath where to write the data to.
+   * @throws IOException I/O issue encountered.
+   */
+  void write(List<T> data, String outPath) throws IOException;
 
 }

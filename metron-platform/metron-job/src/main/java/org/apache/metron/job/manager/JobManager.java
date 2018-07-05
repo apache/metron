@@ -23,21 +23,16 @@ import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.job.service.JobService;
-import org.apache.metron.job.service.JobServiceStrategies;
 
-public class JobManager {
+public class JobManager<T> {
 
-  private JobService jobs;
+  private JobService<T> jobs;
 
-  public JobManager() {
-    jobs = JobServiceStrategies.HDFS;
-  }
-
-  public JobManager(JobService jobs) {
+  public JobManager(JobService<T> jobs) {
     this.jobs = jobs;
   }
 
-  public JobStatus submit(Statusable job, Map<String, Object> configuration, String username)
+  public JobStatus submit(Statusable<T> job, Map<String, Object> configuration, String username)
       throws JobException {
     JobStatus status = new JobStatus();
     if (job.validate(configuration)) {
@@ -47,11 +42,11 @@ public class JobManager {
     return status;
   }
 
-  public JobStatus getStatus(String username, String jobId) {
+  public JobStatus getStatus(String username, String jobId) throws JobException {
     return jobs.getJob(username, jobId).getStatus();
   }
 
-  public boolean done(String username, String jobId) {
+  public boolean done(String username, String jobId) throws JobException {
     return jobs.getJob(username, jobId).isDone();
   }
 
@@ -59,7 +54,7 @@ public class JobManager {
     jobs.getJob(username, jobId).kill();
   }
 
-  public Statusable getJob(String username, String jobId) {
+  public Statusable<T> getJob(String username, String jobId) {
     return jobs.getJob(username, jobId);
   }
 

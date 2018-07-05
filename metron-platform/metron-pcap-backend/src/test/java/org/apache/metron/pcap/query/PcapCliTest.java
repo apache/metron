@@ -52,7 +52,7 @@ import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
-import org.apache.metron.pcap.writer.ResultsWriter;
+import org.apache.metron.pcap.writer.PcapResultsWriter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -64,7 +64,7 @@ public class PcapCliTest {
   @Mock
   private PcapJob jobRunner;
   @Mock
-  private ResultsWriter resultsWriter;
+  private PcapResultsWriter resultsWriter;
   @Mock
   private Clock clock;
   private String execDir;
@@ -72,7 +72,7 @@ public class PcapCliTest {
   @Before
   public void setup() throws IOException {
     MockitoAnnotations.initMocks(this);
-    doCallRealMethod().when(jobRunner).writeResults(anyObject(), anyObject(), anyObject(), anyInt(), anyObject());
+    doCallRealMethod().when(jobRunner).writeFinalResults(anyObject(), anyObject(), anyObject(), anyInt(), anyObject());
     execDir = System.getProperty("user.dir");
   }
 
@@ -109,7 +109,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
+    Mockito.verify(resultsWriter).write(eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
   }
 
   @Test
@@ -149,7 +149,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
+    Mockito.verify(resultsWriter).write(eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
   }
 
   @Test
@@ -192,7 +192,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
+    Mockito.verify(resultsWriter).write(eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
   }
 
   private long asNanos(String inDate, String format) throws ParseException {
@@ -225,7 +225,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
+    Mockito.verify(resultsWriter).write(eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
   }
 
   @Test
@@ -253,7 +253,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
+    Mockito.verify(resultsWriter).write(eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
   }
 
   // INVALID OPTION CHECKS
