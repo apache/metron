@@ -7,8 +7,7 @@
     "types": [
       "jquery",
       "bootstrap"
-    ],
-    "preserveWhitespaces": false
+    ]
   },
   "exclude": [
     "test.ts",
