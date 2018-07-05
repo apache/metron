@@ -545,10 +545,12 @@ public class ParserTopologyCLI {
       for (SensorParserConfig parserConfig : parserConfigs) {
         String currentTopic = parserConfig.getErrorTopic();
         if(topic != null && !topic.equals(currentTopic)) {
-          throw new IllegalArgumentException("Parser Aggregation specified with differing error topics");
-        } else if (currentTopic == null) {
-          throw new IllegalArgumentException("Parser Aggregation specified with missing error topic");
+          throw new IllegalArgumentException(
+              "Parser Aggregation specified with differing error topics");
         }
+//        } else if (currentTopic == null) {
+//          throw new IllegalArgumentException("Parser Aggregation specified with missing error topic");
+//        }
         topic = currentTopic;
       }
 
