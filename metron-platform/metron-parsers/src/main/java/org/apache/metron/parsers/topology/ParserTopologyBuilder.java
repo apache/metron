@@ -150,7 +150,6 @@ public class ParserTopologyBuilder {
         securityProtocol,
         configs,
         Optional.ofNullable(outputTopic)
-        // TODO figure out why this is nullable now
     );
 
     BoltDeclarer boltDeclarer = builder
@@ -251,7 +250,6 @@ public class ParserTopologyBuilder {
     return writer;
   }
 
-  // TODO update javadoc
   /**
    * Create a bolt that parses input from a sensor.
    *
@@ -268,7 +266,6 @@ public class ParserTopologyBuilder {
                                               ParserConfigurations configs,
                                               Optional<String> outputTopic) {
 
-    // TODO can probably setup configurations here for all parsers, and pass appropriately.
     Map<String, ParserComponents> parserBoltConfigs = new HashMap<>();
     for( Entry<String, SensorParserConfig> entry : sensorTypeToParserConfig.entrySet()) {
       String sensorType = entry.getKey();

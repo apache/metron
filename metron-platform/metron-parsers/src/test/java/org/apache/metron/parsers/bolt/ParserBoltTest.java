@@ -347,20 +347,7 @@ public class ParserBoltTest extends BaseBoltTest {
             new WriterHandler(batchWriter)
         )
     );
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserMap) {
-      @Override
-      protected SensorParserConfig getSensorParserConfig(String sensorType) {
-        try {
-          return SensorParserConfig.fromBytes(Bytes.toBytes(sensorParserConfig));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-      @Override
-      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
-        return ParserBoltTest.createUpdater(Optional.of(1));
-      }
-    };
+    ParserBolt parserBolt = buildParserBolt(parserMap, sensorParserConfig);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setZKCache(cache);
@@ -477,21 +464,7 @@ public class ParserBoltTest extends BaseBoltTest {
             new WriterHandler(recordingWriter)
         )
     );
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserMap) {
-      @Override
-      protected SensorParserConfig getSensorParserConfig(String sensorType) {
-        try {
-          return SensorParserConfig.fromBytes(Bytes.toBytes(csvWithFieldTransformations));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-
-      @Override
-      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
-        return ParserBoltTest.createUpdater(Optional.of(1));
-      }
-    };
+    ParserBolt parserBolt = buildParserBolt(parserMap, csvWithFieldTransformations);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setZKCache(cache);
@@ -722,6 +695,25 @@ public class ParserBoltTest extends BaseBoltTest {
     fieldValidation.put("config", new HashMap<String, String>(){{ put("condition", "field != 'invalidValue'"); }});
     globalConfig.put("fieldValidations", Arrays.asList(fieldValidation));
     parserBolt.getConfigurations().updateGlobalConfig(globalConfig);
+  }
+
+  private ParserBolt buildParserBolt(Map<String, ParserComponents> parserMap,
+      String csvWithFieldTransformations) {
+    return new ParserBolt("zookeeperUrl", parserMap) {
+      @Override
+      protected SensorParserConfig getSensorParserConfig(String sensorType) {
+        try {
+          return SensorParserConfig.fromBytes(Bytes.toBytes(csvWithFieldTransformations));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      @Override
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        return ParserBoltTest.createUpdater(Optional.of(1));
+      }
+    };
   }
 
   private static void writeNonBatch(OutputCollector collector, ParserBolt bolt, Tuple t) {

@@ -100,12 +100,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     }
   }
 
-
-//  public ParserBolt withMessageFilter(MessageFilter<JSONObject> filter) {
-//    this.filter = filter;
-//    return this;
-//  }
-
   /**
    * If this ParserBolt is in a topology where it is daisy-chained with
    * other queuing Writers, then the max amount of time it takes for a tuple
@@ -161,18 +155,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     // This is called long before prepare(), so do some of the same stuff as prepare() does,
     // to get the valid WriterConfiguration.  But don't store any non-serializable objects,
     // else Storm will throw a runtime error.
-    // TODO make this work in a more reasonable manner for multiple writers.  It's a little odd because
-    // the WriterHandler takes multiple parser configs?
-//    Function<WriterConfiguration, WriterConfiguration> configurationXform;
-//    if(writer.isWriterToBulkWriter()) {
-//      configurationXform = WriterToBulkWriter.TRANSFORMATION;
-//    }
-//    else {
-//      configurationXform = x -> x;
-//    }
-//    WriterConfiguration writerconf = configurationXform
-//        .apply(getConfigurationStrategy().createWriterConfig(writer.getBulkMessageWriter(), getConfigurations()));
-//    for( Entry<String, ParserComponents> entry : sensorToComponentMap.entrySet()) {
     Function<WriterConfiguration, WriterConfiguration> configurationXform;
     WriterHandler writer = sensorToComponentMap.entrySet().iterator().next().getValue().getWriter();
     if (writer.isWriterToBulkWriter()) {
@@ -331,8 +313,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       } else {
         // There's multiple parsers, so derive it from the metadata
         metadata = getMetadata(tuple, true);
-        // TODO unhardcode this
-        String topic = (String) metadata.get("metron.metadata.topic");
+        String topic = (String) metadata.get(METADATA_PREFIX + "topic");
         sensor = topicToSensorMap.get(topic);
         parser = sensorToComponentMap.get(sensor).getMessageParser();
         sensorParserConfig = getSensorParserConfig(sensor);

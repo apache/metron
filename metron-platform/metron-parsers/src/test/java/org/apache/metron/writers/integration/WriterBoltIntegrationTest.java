@@ -171,23 +171,16 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     }
     topics.add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
     kafkaComponent = getKafkaComponent(topologyProperties, topics);
-//    kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
-//      add(new KafkaComponent.Topic(sensorType, 1));
-//      add(new KafkaComponent.Topic(parserConfig.getErrorTopic(), 1));
-//      add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
-//    }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
     configUploadComponent = new ConfigUploadComponent()
         .withTopologyProperties(topologyProperties)
         .withGlobalConfig(globalConfig);
-//        .withParserSensorConfig(sensorType, parserConfig);
 
     for (int i = 0; i < sensorTypes.size(); ++i) {
       configUploadComponent.withParserSensorConfig(sensorTypes.get(i), parserConfigs.get(i));
     }
 
-    // TODO figure out if output topic works here
     parserTopologyComponent = new ParserTopologyComponent.Builder()
         .withSensorTypes(sensorTypes)
         .withTopologyProperties(topologyProperties)
