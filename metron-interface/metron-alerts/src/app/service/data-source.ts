@@ -17,7 +17,7 @@
  */
 import {Observable} from 'rxjs/Rx';
 import {Injectable} from '@angular/core';
-import {Http} from '@angular/http';
+import { HttpClient } from '@angular/common/http';
 import {ColumnMetadata} from '../model/column-metadata';
 import {ColumnNames} from '../model/column-names';
 import {TableMetadata} from '../model/table-metadata';
@@ -25,9 +25,8 @@ import {SaveSearch} from '../model/save-search';
 
 @Injectable()
 export abstract class DataSource {
-  defaultHeaders: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
-  constructor(protected http: Http) {}
+  constructor(protected http: HttpClient) {}
 
   // Calls to fetch default alert table column names and all the field names across all indexes
   abstract getDefaultAlertTableColumnNames(): Observable<ColumnMetadata[]>

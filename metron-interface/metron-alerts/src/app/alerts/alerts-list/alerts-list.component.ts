@@ -1,3 +1,5 @@
+
+import {forkJoin as observableForkJoin} from 'rxjs';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -156,7 +158,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   getAlertColumnNames(resetPaginationForSearch: boolean) {
-    Observable.forkJoin(
+    observableForkJoin(
         this.configureTableService.getTableMetadata(),
         this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {

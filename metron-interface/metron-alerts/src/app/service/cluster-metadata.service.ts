@@ -17,19 +17,14 @@
  */
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Rx';
-import {Http} from '@angular/http';
-
 
 import {ColumnMetadata} from '../model/column-metadata';
 import {DataSource} from './data-source';
 
 @Injectable()
 export class ClusterMetaDataService {
-  defaultHeaders: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
-  constructor(private http: Http,
-              private dataSource: DataSource) {
-  }
+  constructor(private dataSource: DataSource) {}
 
   getDefaultColumns(): Observable<ColumnMetadata[]> {
     return this.dataSource.getDefaultAlertTableColumnNames();

@@ -1,3 +1,5 @@
+
+import {throwError as observableThrowError, Observable} from 'rxjs';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,7 +18,6 @@
  * limitations under the License.
  */
 import {Response} from '@angular/http';
-import {Observable}     from 'rxjs/Observable';
 import {RestError} from '../model/rest-error';
 
 export class HttpUtil {
@@ -27,7 +28,7 @@ export class HttpUtil {
   }
 
   public static extractData(res: Response): any {
-    let body = res.json();
+    let body = res;
     return body || {};
   }
 
@@ -43,6 +44,6 @@ export class HttpUtil {
       restError = new RestError();
       restError.responseCode = 404;
     }
-    return Observable.throw(restError);
+    return observableThrowError(restError);
   }
 }
