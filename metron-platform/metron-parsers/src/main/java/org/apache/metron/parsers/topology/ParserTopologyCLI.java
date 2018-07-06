@@ -363,11 +363,6 @@ public class ParserTopologyCLI {
         }
         return spoutParallelisms;
       }
-//      return Optional.ofNullable(parserConfig.getSpoutParallelism()).orElse(1);
-      // TODO adjust kafka spout to take configs appropriately.
-      // TODO Assume the order of parser configs is the same as the order of sensors
-      // TODO Ensure the single case works for everything
-      // TODO throw exception if lengths differ from sensors
 
       List<Integer> spoutParallelisms = new ArrayList<>();
       for (SensorParserConfig parserConfig : parserConfigs) {
@@ -396,8 +391,6 @@ public class ParserTopologyCLI {
         }
         return spoutTasksList;
       }
-      // TODO adjust kafka spout to take configs appropriately.
-      // See spout parallelism
 
       List<Integer> numTasks = new ArrayList<>();
       for (SensorParserConfig parserConfig : parserConfigs) {
@@ -411,7 +404,6 @@ public class ParserTopologyCLI {
       if(ParserOptions.PARSER_PARALLELISM.has(cmd)) {
         return Integer.parseInt(ParserOptions.PARSER_PARALLELISM.get(cmd, "1"));
       }
-//      return Optional.ofNullable(parserConfig.getParserParallelism()).orElse(1);
       int retValue = 1;
       for (SensorParserConfig config : parserConfigs) {
         Integer configValue = config.getParserParallelism();
@@ -425,7 +417,6 @@ public class ParserTopologyCLI {
       if(ParserOptions.PARSER_NUM_TASKS.has(cmd)) {
         return Integer.parseInt(ParserOptions.PARSER_NUM_TASKS.get(cmd, "1"));
       }
-//      return Optional.ofNullable(parserConfig.getParserNumTasks()).orElse(1);
       int retValue = 1;
       for (SensorParserConfig config : parserConfigs) {
         Integer configValue = config.getParserNumTasks();
@@ -439,7 +430,6 @@ public class ParserTopologyCLI {
       if(ParserOptions.ERROR_WRITER_PARALLELISM.has(cmd)) {
         return Integer.parseInt(ParserOptions.ERROR_WRITER_PARALLELISM.get(cmd, "1"));
       }
-//      return Optional.ofNullable(parserConfig.getErrorWriterParallelism()).orElse(1);
       int retValue = 1;
       for (SensorParserConfig config : parserConfigs) {
         Integer configValue = config.getErrorWriterParallelism();
@@ -453,7 +443,6 @@ public class ParserTopologyCLI {
       if(ParserOptions.ERROR_WRITER_NUM_TASKS.has(cmd)) {
         return Integer.parseInt(ParserOptions.ERROR_WRITER_NUM_TASKS.get(cmd, "1"));
       }
-//      return Optional.ofNullable(parserConfig.getErrorWriterNumTasks()).orElse(1);
       int retValue = 1;
       for (SensorParserConfig config : parserConfigs) {
         Integer configValue = config.getErrorWriterNumTasks();
@@ -467,13 +456,9 @@ public class ParserTopologyCLI {
       if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
         return Collections.singletonList(readJSONMapFromFile(new File(ParserOptions.SPOUT_CONFIG.get(cmd))));
       }
-//      return Optional.ofNullable(parserConfig.getSpoutConfig()).orElse(new HashMap<>());
-      // TODO adjust kafka spout to take configs appropriately.
       List<Map<String, Object>> retValue = new ArrayList<>();
       for (SensorParserConfig config : parserConfigs) {
         retValue.add(config.getSpoutConfig());
-//        Integer configValue = config.getErrorWriterNumTasks();
-//        retValue = configValue == null ? retValue : configValue;
       }
       return retValue;
     };
@@ -548,9 +533,6 @@ public class ParserTopologyCLI {
           throw new IllegalArgumentException(
               "Parser Aggregation specified with differing error topics");
         }
-//        } else if (currentTopic == null) {
-//          throw new IllegalArgumentException("Parser Aggregation specified with missing error topic");
-//        }
         topic = currentTopic;
       }
 

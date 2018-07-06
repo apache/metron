@@ -117,7 +117,9 @@ public class ParserTopologyBuilder {
     Map<String, SensorParserConfig> sensorToParserConfigs = getSensorParserConfig(zookeeperUrl, sensorTypes, configs);
     Collection<SensorParserConfig> parserConfigs = sensorToParserConfigs.values();
 
+    @SuppressWarnings("unchecked")
     List<Integer> spoutParallelism = (List<Integer>) spoutParallelismSupplier.get(parserConfigs, List.class);
+    @SuppressWarnings("unchecked")
     List<Integer> spoutNumTasks = (List<Integer>) spoutNumTasksSupplier.get(parserConfigs, List.class);
     int parserParallelism = parserParallelismSupplier.get(parserConfigs, Integer.class);
     int parserNumTasks = parserNumTasksSupplier.get(parserConfigs, Integer.class);
