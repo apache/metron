@@ -25,6 +25,7 @@ metron-interface/metron-alerts/node/
 repodata/
 
 # IDE - VSCode
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
