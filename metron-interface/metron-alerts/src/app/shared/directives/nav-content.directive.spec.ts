@@ -15,11 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ElementRef } from '@angular/core';
+
 import { NavContentDirective } from './nav-content.directive';
 
 describe('NavContentDirective', () => {
-  it('should create an instance', () => {
-    const directive = new NavContentDirective();
+  it('should be created', () => {
+    const directive = new NavContentDirective(new ElementRef({}));
     expect(directive).toBeTruthy();
   });
 });

@@ -22,6 +22,7 @@ import static org.junit.Assert.assertThat;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.io.Serializable;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -66,7 +68,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
 
     @Override
     public boolean isValid(Map<String, Object> input, Map<String, Object> validationConfig, Map<String, Object> globalConfig, Context context) {
-      if (input.get("action").equals("invalid")) {
+      if (input.get("action") != null && input.get("action").equals("invalid")) {
         return false;
       }
       return true;
@@ -104,6 +106,69 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
    */
   @Multiline
   public static String parserConfigJSON;
+
+  /**
+   * {
+   *    "parserClassName" : "org.apache.metron.parsers.csv.CSVParser",
+   *    "sensorTopic": "dummy",
+   *    "outputTopic": "output",
+   *    "errorTopic": "parser_error",
+   *    "parserConfig": {
+   *        "batchSize" : 1,
+   *        "columns" : {
+   *            "name" : 0,
+   *            "dummy" : 1
+   *        },
+   *      "kafka.topicField" : "route_field"
+   *    }
+   *    ,"fieldTransformations" : [
+   *    {
+   *      "transformation" : "STELLAR"
+   *     ,"input" :  ["name"]
+   *     ,"output" :  ["route_field"]
+   *     ,"config" : {
+   *        "route_field" : "match{ name == 'metron' => 'output', default => NULL}"
+   *      }
+   *    }
+   *    ]
+   * }
+   */
+  @Multiline
+  public static String parserConfigJSONKafkaRedirection;
+
+  @Test
+  public void test_topic_redirection() throws Exception {
+    final String sensorType = "dummy";
+    SensorParserConfig parserConfig = JSONUtils.INSTANCE.load(parserConfigJSONKafkaRedirection, SensorParserConfig.class);
+    final List<byte[]> inputMessages = new ArrayList<byte[]>() {{
+      add(Bytes.toBytes("metron,foo"));
+      add(Bytes.toBytes("notmetron,foo"));
+      add(Bytes.toBytes("metron,bar"));
+      add(Bytes.toBytes("metron,baz"));
+    }};
+
+    final Properties topologyProperties = new Properties();
+    ComponentRunner runner = setupTopologyComponents(topologyProperties, sensorType, parserConfig, globalConfigWithValidation);
+    try {
+      runner.start();
+      kafkaComponent.writeMessages(sensorType, inputMessages);
+      KafkaProcessor<Map<String, List<JSONObject>>> kafkaProcessor = getKafkaProcessor(
+          parserConfig.getOutputTopic(), parserConfig.getErrorTopic(), kafkaMessageSet -> kafkaMessageSet.getMessages().size() == 3 && kafkaMessageSet.getErrors().isEmpty());
+      ProcessorResult<Map<String, List<JSONObject>>> result = runner.process(kafkaProcessor);
+
+      // validate the output messages
+      Map<String,List<JSONObject>> outputMessages = result.getResult();
+      for(JSONObject j : outputMessages.get(Constants.ENRICHMENT_TOPIC)) {
+        Assert.assertEquals("metron", j.get("name"));
+        Assert.assertEquals("output", j.get("route_field"));
+        Assert.assertTrue(ImmutableSet.of("foo", "bar", "baz").contains(j.get("dummy")));
+      }
+    } finally {
+      if(runner != null) {
+        runner.stop();
+      }
+    }
+  }
 
   @Test
   public void parser_with_global_validations_writes_bad_records_to_error_topic() throws Exception {
@@ -192,9 +257,13 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
         .build();
   }
 
-  @SuppressWarnings("unchecked")
   private KafkaProcessor<Map<String, List<JSONObject>>> getKafkaProcessor(String outputTopic,
       String errorTopic) {
+    return getKafkaProcessor(outputTopic, errorTopic, messageSet -> (messageSet.getMessages().size() == 1) && (messageSet.getErrors().size() == 2));
+  }
+  @SuppressWarnings("unchecked")
+  private KafkaProcessor<Map<String, List<JSONObject>>> getKafkaProcessor(String outputTopic,
+      String errorTopic, Predicate<KafkaMessageSet> predicate) {
 
     return new KafkaProcessor<>()
         .withKafkaComponentName("kafka")
@@ -204,7 +273,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
           @Nullable
           @Override
           public Boolean apply(@Nullable KafkaMessageSet messageSet) {
-            return (messageSet.getMessages().size() == 1) && (messageSet.getErrors().size() == 2);
+            return predicate.test(messageSet);
           }
         })
         .withProvideResult(new Function<KafkaMessageSet, Map<String, List<JSONObject>>>() {

@@ -168,6 +168,7 @@ then it is assumed to be a regex and will match any topic matching the pattern (
   * `batchTimeout` : The timeout after which a batch will be flushed even if batchSize has not been met.  Optional.
     If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm
     parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
+  * The kafka writer can be configured within the parser config as well.  (This is all configured a priori, but this is convenient for overriding the settings).  See [here](../metron-writer/README.md#kafka-writer)
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
 * `spoutParallelism` : The kafka spout parallelism (default to `1`).  This can be overridden on the command line.
 * `spoutNumTasks` : The number of tasks for the spout (default to `1`). This can be overridden on the command line.
@@ -358,24 +359,25 @@ The following config will rename the fields `old_field` and `different_old_field
 ```
 * `REGEX_SELECT` : This transformation lets users set an output field to one of a set of possibilities based on matching regexes. This transformation is useful when the number or conditions are large enough to make a stellar language match statement unwieldy.
  
-The following config will set the field `my_output` to one of the
-following, dependent upon the value of the `my_input` field:
-* `awesome` if `my_input` starts with `metron` or `mortron`
-* `boo` if `my_input` starts with `scary`
+The following config will set the field `logical_source_type` to one of the
+following, dependent upon the value of the `pix_type` field:
+* `cisco-6-302` if `pix_type` starts with either `6-302` or `06-302`
+* `cisco-5-304` if `pix_type` starts with `5-304`
 ```
 {
 ...
-    "fieldTransformations" : [
-          {
-            "transformation" : "REGEX_SELECT"
-          , "input" : "my_input"
-          , "output" : "my_output"
-          , "config" : {
-            "awesome" : [ "^metron.*", "^mortron.*" ],
-            "boo" : "^scary.*"
-                       }
-          }
-                      ]
+  "fieldTransformations" : [
+    {
+     "transformation" : "REGEX_ROUTING"
+    ,"input" :  "pix_type"
+    ,"output" :  "logical_source_type"
+    ,"config" : {
+      "cisco-6-302" : [ "^6-302.*", "^06-302.*"]
+      "cisco-5-304" : "^5-304.*"
+                }
+    }
+                           ]
+...  
 }
 ```
 

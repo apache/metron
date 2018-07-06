@@ -258,8 +258,9 @@ if security_enabled:
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
 
     nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']
-
-    solr_principal_name = solr_principal_name.replace('_HOST', hostname_lowercase)
+    # Check wether Solr mpack is installed
+    if 'solr-config-env' in config['configurations']:
+        solr_principal_name = solr_principal_name.replace('_HOST', hostname_lowercase)
 
 # Management UI
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
