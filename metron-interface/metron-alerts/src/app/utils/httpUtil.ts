@@ -1,5 +1,4 @@
 
-import {throwError as observableThrowError, Observable} from 'rxjs';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,6 +18,7 @@ import {throwError as observableThrowError, Observable} from 'rxjs';
  */
 import {Response} from '@angular/http';
 import {RestError} from '../model/rest-error';
+import {throwError as observableThrowError, Observable} from 'rxjs';
 
 export class HttpUtil {
 
