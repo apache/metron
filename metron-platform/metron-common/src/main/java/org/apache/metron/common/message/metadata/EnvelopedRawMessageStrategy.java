@@ -17,10 +17,8 @@
  */
 package org.apache.metron.common.message.metadata;
 
-import com.google.common.base.Joiner;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +28,37 @@ import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * An alternative strategy whereby
+ * <ul>
+ *  <li>The raw data is presumed to be a JSON Map</li>
+ *  <li>The data to be parsed is the contents of one of the fields.</li>
+ *  <li>The non-data fields are considered metadata</li>
+ * </ul>
+ *
+ * Additionally, the defaults around merging and reading metadata are adjusted to be on by default.
+ * Note, this strategy allows for parser chaining and for a fully worked example, check the parser chaining use-case.
+ */
 public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  /**
+   * The field from the rawMessageStrategyConfig in the SensorParserConfig that defines the field to use to
+   * define the data to be parsed.
+   */
   public static final String MESSAGE_FIELD_CONFIG = "messageField";
 
+  /**
+   * Retrieve the raw message by parsing the JSON Map in the kafka value and pulling the appropriate field.
+   * Also, augment the default metadata with the non-data fields in the JSON Map.
+   *
+   * Note: The data field in the JSON Map is not considered metadata.
+   *
+   * @param rawMetadata The metadata read from kafka Key (e.g. the topic, index, etc.)
+   * @param rawMessage The raw message from the kafka value
+   * @param readMetadata True if we want to read read the metadata
+   * @param config The config for the RawMessageStrategy (See the rawMessageStrategyConfig in the SensorParserConfig)
+   * @return
+   */
   @Override
   public RawMessage get(Map<String, Object> rawMetadata, byte[] rawMessage, boolean readMetadata, Map<String, Object> config) {
     String messageField = (String)config.get(MESSAGE_FIELD_CONFIG);
@@ -73,6 +98,17 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
     return null;
   }
 
+  /**
+   * Merge the metadata into the original message.  The strategy around duplicate keys is as follows:
+   * <ul>
+   *   <li>If the string is the "original_string" field, then we choose the oldest original string</li>
+   *   <li>For all other fields, the fields from the message hold precidence against metadata fields on collision.</li>
+   * </ul>
+   * @param message The parsed message (note: prior to the field transformations)
+   * @param metadata The metadata passed along
+   * @param mergeMetadata Whether to merge the metadata or not
+   * @param config The config for the message strategy.
+   */
   @Override
   public void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata, Map<String, Object> config) {
     //we want to ensure the original string from the metadata, if provided is used
@@ -89,11 +125,20 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
     }
   }
 
+  /**
+   * By default merge metadata.
+   *
+   * @return
+   */
   @Override
   public boolean mergeMetadataDefault() {
     return true;
   }
 
+  /**
+   * By default read metadata.
+   * @return
+   */
   @Override
   public boolean readMetadataDefault() {
     return true;

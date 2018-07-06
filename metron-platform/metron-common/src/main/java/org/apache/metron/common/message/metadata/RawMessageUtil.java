@@ -37,6 +37,15 @@ public enum RawMessageUtil {
   INSTANCE;
 
 
+  /**
+   * Extract the raw message given the strategy, the tuple and the metadata configs.
+   * @param strategy
+   * @param t
+   * @param rawMessage
+   * @param readMetadata
+   * @param config
+   * @return
+   */
   public RawMessage getRawMessage(RawMessageStrategy strategy, Tuple t, byte[] rawMessage, boolean readMetadata, Map<String, Object> config) {
     Map<String, Object> metadata = new HashMap<>();
     if(readMetadata) {

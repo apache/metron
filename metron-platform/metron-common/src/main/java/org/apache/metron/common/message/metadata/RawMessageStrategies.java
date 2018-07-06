@@ -21,8 +21,18 @@ import org.json.simple.JSONObject;
 
 import java.util.Map;
 
+/**
+ * The strategies which we can use to interpret data and metadata.  This fits the normal enum pattern
+ * that we use elsewhere for strategy pattern.
+ */
 public enum RawMessageStrategies implements RawMessageStrategy {
+  /**
+   * The default strategy
+   */
   DEFAULT(new DefaultRawMessageStrategy()),
+  /**
+   * Enveloping strategy, used for parser chaining.
+   */
   ENVELOPE(new EnvelopedRawMessageStrategy())
   ;
   RawMessageStrategy supplier;
@@ -30,11 +40,28 @@ public enum RawMessageStrategies implements RawMessageStrategy {
     this.supplier = supplier;
   }
 
+  /**
+   * Retrieve the raw message given the strategy specified. Note the javadocs for the individual strategy for more info.
+   *
+   * @param rawMetadata The metadata read from kafka Key (e.g. the topic, index, etc.)
+   * @param originalMessage
+   * @param readMetadata True if we want to read read the metadata
+   * @param config The config for the RawMessageStrategy (See the rawMessageStrategyConfig in the SensorParserConfig)
+   * @return
+   */
   @Override
   public RawMessage get(Map<String, Object> rawMetadata, byte[] originalMessage, boolean readMetadata, Map<String, Object> config) {
     return this.supplier.get(rawMetadata, originalMessage, readMetadata, config);
   }
 
+  /**
+   * Merge metadata given the strategy specified. Note the javadocs for the individual strategy for more info.
+   *
+   * @param message The parsed message (note: prior to the field transformations)
+   * @param metadata The metadata passed along
+   * @param mergeMetadata Whether to merge the metadata or not
+   * @param config The config for the message strategy.
+   */
   @Override
   public void mergeMetadata(JSONObject message, Map<String, Object> metadata, boolean mergeMetadata, Map<String, Object> config) {
     this.supplier.mergeMetadata(message, metadata, mergeMetadata, config);

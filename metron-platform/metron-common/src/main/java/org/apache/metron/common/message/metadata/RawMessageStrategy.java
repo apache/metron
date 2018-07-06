@@ -17,24 +17,61 @@
  */
 package org.apache.metron.common.message.metadata;
 
-import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
 import java.util.Map;
 
+/**
+ * This is a strategy which defines how parsers:
+ * <ul>
+ *   <li>Define what data constitutes the parseable message</li>
+ *   <li>Define what data constitutes the metadata</li>
+ * </ul>
+ * Also, each strategy has the ability to define its own defaults around whether
+ * metadata is read or merged.
+ */
 public interface RawMessageStrategy extends Serializable {
+  /**
+   * Retrieve the RawMessage (e.g. the data and metadata) given raw data and raw metadata read from kafka.
+   * Note that the base metadata from kafka key and tuples, etc. along with prefixing is handled in the MetadataUtil.
+   * This is intended for individual strategies to append OTHER metadata.
+   *
+   * @param rawMetadata The metadata read from kafka Key (e.g. the topic, index, etc.)
+   * @param rawMessage The raw message from the kafka value
+   * @param readMetadata True if we want to read read the metadata
+   * @param config The config for the RawMessageStrategy (See the rawMessageStrategyConfig in the SensorParserConfig)
+   * @return The RawMessage, which defines the data and metadata
+   */
   RawMessage get( Map<String, Object> rawMetadata
                 , byte[] rawMessage
                 , boolean readMetadata
                 , Map<String, Object> config
                 );
 
+  /**
+   * Merge the metadata into the message. Note: Each strategy may merge differently based on their own config.
+   *
+   * @param message The parsed message (note: prior to the field transformations)
+   * @param metadata The metadata passed along
+   * @param mergeMetadata Whether to merge the metadata or not
+   * @param config The config for the message strategy.
+   */
   void mergeMetadata( JSONObject message
                     , Map<String, Object> metadata
                     , boolean mergeMetadata
                     , Map<String, Object> config
                     );
+
+  /**
+   * The default value for merging metadata.
+   * @return
+   */
   boolean mergeMetadataDefault();
+
+  /**
+   * The default value for reading metadata.
+   * @return
+   */
   boolean readMetadataDefault();
 }

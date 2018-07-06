@@ -169,7 +169,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
     Map<String, Object> conf = super.getComponentConfiguration();
     if (conf == null) {
-      conf = new HashMap<String, Object>();
+      conf = new HashMap<>();
     }
     conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, requestedTickFreqSecs);
     LOG.info("Requesting " + Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS + " set to " + Integer.toString(requestedTickFreqSecs));

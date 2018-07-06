@@ -20,6 +20,9 @@ package org.apache.metron.common.message.metadata;
 import java.util.Arrays;
 import java.util.Map;
 
+/**
+ * A holder class for the message and metadata
+ */
 public class RawMessage {
   byte[] message;
   Map<String, Object> metadata;
@@ -29,6 +32,10 @@ public class RawMessage {
     this.metadata = metadata;
   }
 
+  /**
+   * Get the data to be parsed.
+   * @return
+   */
   public byte[] getMessage() {
     return message;
   }
@@ -37,6 +44,10 @@ public class RawMessage {
     this.message = message;
   }
 
+  /**
+   * Get the metadata to use based on the RawMessageStrategy.
+   * @return
+   */
   public Map<String, Object> getMetadata() {
     return metadata;
   }
