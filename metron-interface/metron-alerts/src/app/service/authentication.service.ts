@@ -20,6 +20,7 @@ import {Injectable, EventEmitter}     from '@angular/core';
 import { Response } from '@angular/http';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {Router} from '@angular/router';
+import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { GlobalConfigService } from './global-config.service';
 import { DataSource } from './data-source';
 
@@ -30,7 +31,8 @@ export class AuthenticationService {
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
   loginUrl = '/api/v1/user';
   logoutUrl = '/logout';
-  onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
+  onLoginEvent: ReplaySubject<boolean> = new ReplaySubject<boolean>();
+  $onLoginEvent = this.onLoginEvent.asObservable();
 
   constructor(private http: HttpClient,
               private router: Router,
@@ -43,11 +45,11 @@ export class AuthenticationService {
       this.getCurrentUser({responseType: 'text'}).subscribe((response: Response) => {
         this.currentUser = response.toString();
         if (this.currentUser) {
-          this.onLoginEvent.emit(true);
+          this.onLoginEvent.next(true);
           this.dataSource.getDefaultAlertTableColumnNames();
         }
       }, error => {
-        this.onLoginEvent.emit(false);
+        this.onLoginEvent.next(false);
       });
   }
 
@@ -57,7 +59,7 @@ export class AuthenticationService {
         .subscribe((response: Response) => {
           this.currentUser = response.toString();
           this.router.navigateByUrl('/alerts-list');
-          this.onLoginEvent.emit(true);
+          this.onLoginEvent.next(true);
           this.globalConfigService.get();
           this.dataSource.getDefaultAlertTableColumnNames();
       },
@@ -69,7 +71,7 @@ export class AuthenticationService {
   public logout(): void {
     this.http.post(this.logoutUrl, {}).subscribe(response => {
         this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
-        this.onLoginEvent.emit(false);
+        this.onLoginEvent.next(false);
         this.router.navigateByUrl('/login');
       },
       error => {
