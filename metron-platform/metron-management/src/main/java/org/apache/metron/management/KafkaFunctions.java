@@ -784,14 +784,14 @@ public class KafkaFunctions {
   @Stellar(
           namespace = "KAFKA",
           name = "SEEK",
-          description = "Seeks to a specific offset and returns the message.",
+          description = "Seeks to an offset within a topic and returns the message.",
           params = {
                   "topic - The name of the Kafka topic",
-                  "partition - The partition identifier.  The first partition is partition 0.",
-                  "offset - The offset within the partition.",
+                  "partition - The partition identifier; starts at 0.",
+                  "offset - The offset within the partition; starts at 0.",
                   "config - Optional map of key/values that override any global properties."
           },
-          returns = "The messages as a list of strings"
+          returns = "The message at the given offset, if the offset exists. Otherwise, returns null."
   )
   public static class KafkaSeek implements StellarFunction {
 
