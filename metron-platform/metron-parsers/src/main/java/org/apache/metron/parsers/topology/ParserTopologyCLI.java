@@ -18,10 +18,10 @@
 package org.apache.metron.parsers.topology;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
@@ -52,6 +52,8 @@ import org.apache.storm.utils.Utils;
 
 public class ParserTopologyCLI {
 
+  private static final String STORM_JOB_SEPARATOR = "__";
+
   public enum ParserOptions {
     HELP("h", code -> {
       Option o = new Option(code, "help", false, "This screen");
@@ -71,7 +73,6 @@ public class ParserTopologyCLI {
       return o;
     }),
     SENSOR_TYPES("s", code -> {
-      // TODO note that ambari may need to handle quotes, e.g. ""bro, snort"" different then "bro,snort"
       Option o = new Option(code, "sensor", true, "Sensor Types as comma-separated list");
       o.setArgName("SENSOR_TYPES");
       o.setRequired(true);
@@ -323,7 +324,7 @@ public class ParserTopologyCLI {
     String zookeeperUrl = ParserOptions.ZK_QUORUM.get(cmd);
     Optional<String> brokerUrl = ParserOptions.BROKER_URL.has(cmd)?Optional.of(ParserOptions.BROKER_URL.get(cmd)):Optional.empty();
     String sensorTypeRaw= ParserOptions.SENSOR_TYPES.get(cmd);
-    List<String> sensorTypes = Arrays.asList(sensorTypeRaw.split(","));
+    List<String> sensorTypes = Splitter.on(',').trimResults().splitToList(sensorTypeRaw);
 
     /*
      * It bears mentioning why we're creating this ValueSupplier indirection here.
@@ -353,12 +354,12 @@ public class ParserTopologyCLI {
 
         // Handle the multiple explicitly passed spout parallelism's case.
         String parallelismRaw = ParserOptions.SPOUT_PARALLELISM.get(cmd, "1");
-        String[] parallelism = parallelismRaw.split(",");
-        if (parallelism.length != parserConfigs.size()) {
+        List<String> parallelisms = Splitter.on(',').trimResults().splitToList(parallelismRaw);
+        if (parallelisms.size() != parserConfigs.size()) {
           throw new IllegalArgumentException("Spout parallelism should match number of sensors 1:1");
         }
         List<Integer> spoutParallelisms = new ArrayList<>();
-        for (String s : parallelism) {
+        for (String s : parallelisms) {
           spoutParallelisms.add(Integer.parseInt(s));
         }
         return spoutParallelisms;
@@ -381,8 +382,8 @@ public class ParserTopologyCLI {
 
         // Handle the multiple explicitly passed spout parallelism's case.
         String numTasksRaw = ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1");
-        String[] numTasks = numTasksRaw.split(",");
-        if (numTasks.length != parserConfigs.size()) {
+        List<String> numTasks = Splitter.on(',').trimResults().splitToList(numTasksRaw);
+        if (numTasks.size() != parserConfigs.size()) {
           throw new IllegalArgumentException("Spout num tasks should match number of sensors 1:1");
         }
         List<Integer> spoutTasksList = new ArrayList<>();
@@ -492,9 +493,6 @@ public class ParserTopologyCLI {
       Config finalConfig = new Config();
       for (SensorParserConfig parserConfig : parserConfigs) {
         Map<String, Object> c = parserConfig.getStormConfig();
-        // TODO what about properties that are in earlier configs but not later configs?
-        // Right now they stay, but if we don't want them, need to store the temporary winner
-        // and at after the loop
         if (c != null && !c.isEmpty()) {
           finalConfig.putAll(c);
         }
@@ -512,7 +510,6 @@ public class ParserTopologyCLI {
     ValueSupplier<String> outputTopic = (parserConfigs, clazz) -> {
       String topic = null;
 
-      // TODO Make sure KafkaWriter overrides correctly
       if(ParserOptions.OUTPUT_TOPIC.has(cmd)) {
         topic = ParserOptions.OUTPUT_TOPIC.get(cmd);
       }
@@ -520,10 +517,7 @@ public class ParserTopologyCLI {
       return topic;
     };
 
-    // error topic
-    // TODO what to do here?  Enforce one for all?  Modify the ParserBolt to support an Error topic
-    // per sensor?
-    // TODO throw an exception if the topics aren't all the same.
+    // Error topic will throw an exception if the topics aren't all the same.
     ValueSupplier<String> errorTopic = (parserConfigs, clazz) -> {
       // topic will to set to the 'parser.error.topic' setting in globals when the error bolt is created
       String topic = null;
@@ -605,12 +599,11 @@ public class ParserTopologyCLI {
       if (ParserOptions.TEST.has(cmd)) {
         topology.getTopologyConfig().put(Config.TOPOLOGY_DEBUG, true);
         LocalCluster cluster = new LocalCluster();
-        // TODO replace separator with constant. See also StormCLIWrapper.
-        cluster.submitTopology(sensorTypes.replaceAll(",", "__"), topology.getTopologyConfig(), topology.getBuilder().createTopology());
+        cluster.submitTopology(sensorTypes.replaceAll(",", STORM_JOB_SEPARATOR), topology.getTopologyConfig(), topology.getBuilder().createTopology());
         Utils.sleep(300000);
         cluster.shutdown();
       } else {
-        StormSubmitter.submitTopology(sensorTypes.replaceAll(",", "__"), topology.getTopologyConfig(), topology.getBuilder().createTopology());
+        StormSubmitter.submitTopology(sensorTypes.replaceAll(",", STORM_JOB_SEPARATOR), topology.getTopologyConfig(), topology.getBuilder().createTopology());
       }
     } catch (Exception e) {
       e.printStackTrace();

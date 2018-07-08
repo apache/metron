@@ -122,6 +122,7 @@ public class SensorParserConfig implements Serializable {
 
   /**
    * The number of tasks for the Kafka spout.
+   * If multiple sensors are specified, each sensor will use it's own configured value.
    *
    * <p>This property can be overridden on the CLI.
    */
@@ -129,17 +130,17 @@ public class SensorParserConfig implements Serializable {
 
   /**
    * The parallelism of the parser bolt.
+   * If multiple sensors are defined, the last one's config will win.
    *
    * <p>This property can be overridden on the CLI.
-   * GONNA BE A PROBLEM: last one wins
    */
   private Integer parserParallelism = 1;
 
   /**
    * The number of tasks for the parser bolt.
+   * If multiple sensors are defined, the last one's config will win.
    *
    * <p>This property can be overridden on the CLI.
-   * GONNA BE A PROBLEM: last one wins
    */
   private Integer parserNumTasks = 1;
 
@@ -147,7 +148,6 @@ public class SensorParserConfig implements Serializable {
    * The parallelism of the error writer bolt.
    *
    * <p>This property can be overridden on the CLI.
-   * GONNA BE A PROBLEM: last one wins
    */
   private Integer errorWriterParallelism = 1;
 
@@ -155,7 +155,6 @@ public class SensorParserConfig implements Serializable {
    * The number of tasks for the error writer bolt.
    *
    * <p>This property can be overridden on the CLI.
-   * GONNA BE A PROBLEM: last non-default one wins
    */
   private Integer errorWriterNumTasks = 1;
 
@@ -168,9 +167,9 @@ public class SensorParserConfig implements Serializable {
 
   /**
    * The Kafka security protocol.
+   * If multiple sensors are defined, any non PLAINTEXT configuration will be used.
    *
    * <p>This property can be overridden on the CLI.  This property can also be overridden by the spout config.
-   * GONNA BE A PROBLEM: non-plaintext wins
    */
   private String securityProtocol = null;
 
@@ -178,7 +177,6 @@ public class SensorParserConfig implements Serializable {
    * Configuration properties passed to the storm topology.
    *
    * <p>This property can be overridden on the CLI.
-   * GONNA BE A PROBLEM: merge, last one wins
    */
   private Map<String, Object> stormConfig = new HashMap<>();
 
@@ -195,10 +193,10 @@ public class SensorParserConfig implements Serializable {
 
   /**
    * Configures the cache that backs stellar field transformations.
+   * If there are multiple sensors, the configs are merged, and the last non-empty config wins.
    *
    * <li>stellar.cache.maxSize - The maximum number of elements in the cache.
    * <li>stellar.cache.maxTimeRetain - The maximum amount of time an element is kept in the cache (in minutes).
-   * GONNA BE A PROBLEM: merge, last one nonempty wins
    */
   private Map<String, Object> cacheConfig = new HashMap<>();
 

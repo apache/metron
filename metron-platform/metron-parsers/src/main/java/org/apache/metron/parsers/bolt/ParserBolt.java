@@ -187,15 +187,23 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     messageGetStrategy = MessageGetters.DEFAULT_BYTES_FROM_POSITION.get();
     this.collector = collector;
 
+    // Build the Stellar cache
+    Map<String, Object> cacheConfig = new HashMap<>();
+    for (Map.Entry<String, ParserComponents> entry: sensorToComponentMap.entrySet()) {
+      String sensor = entry.getKey();
+      SensorParserConfig config = getSensorParserConfig(sensor);
+
+      if (config != null) {
+        cacheConfig.putAll(config.getCacheConfig());
+      }
+    }
+    cache = CachingStellarProcessor.createCache(cacheConfig);
+
     // Need to prep all sensors
     for (Map.Entry<String, ParserComponents> entry: sensorToComponentMap.entrySet()) {
       String sensor = entry.getKey();
       MessageParser<JSONObject> parser = entry.getValue().getMessageParser();
 
-      // TODO adjust the cache to use a unified config
-      if (getSensorParserConfig(sensor) != null) {
-        cache = CachingStellarProcessor.createCache(getSensorParserConfig(sensor).getCacheConfig());
-      }
       initializeStellar();
       if (getSensorParserConfig(sensor) != null && sensorToComponentMap.get(sensor).getFilter() == null) {
         getSensorParserConfig(sensor).getParserConfig().putIfAbsent("stellarContext", stellarContext);

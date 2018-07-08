@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.metron.common.Constants;
@@ -39,6 +40,8 @@ import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
+import org.apache.metron.parsers.filters.Filters;
+import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.topology.config.ValueSupplier;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
@@ -163,8 +166,6 @@ public class ParserTopologyBuilder {
     }
 
     // create the error bolt, if needed
-    // TODO right now assuming one, but we might need to group together
-    // In particular, one sensor type and one parserConfig
     if (errorWriterNumTasks > 0) {
       String errorTopic = errorTopicSupplier.get(parserConfigs, String.class);
       WriterBolt errorBolt = createErrorBolt(
@@ -277,6 +278,15 @@ public class ParserTopologyBuilder {
           .createInstance(parserConfig.getParserClassName());
       parser.configure(parserConfig.getParserConfig());
 
+      // create message filter
+      MessageFilter<JSONObject> filter = null;
+      if (!StringUtils.isEmpty(parserConfig.getFilterClassName())) {
+        filter = Filters.get(
+            parserConfig.getFilterClassName(),
+            parserConfig.getParserConfig()
+        );
+      }
+
       // create a writer
       AbstractWriter writer;
       if (parserConfig.getWriterClassName() == null) {
@@ -297,13 +307,12 @@ public class ParserTopologyBuilder {
 
       ParserComponents components = new ParserComponents(
          parser,
-         null, // TODO get and pass filter appropriately
+         filter,
          writerHandler
       );
       parserBoltConfigs.put(sensorType, components);
     }
 
-    // TODO handle this properly for multiple sensors
     return new ParserBolt(zookeeperUrl, parserBoltConfigs);
   }
 
@@ -318,8 +327,6 @@ public class ParserTopologyBuilder {
    * @param parserConfig The sensor's parser configuration.
    * @return A Storm bolt that handles error messages.
    */
-  // TODO make this createErrorBolt, make this take multiple sensors.
-  // Leave this to the end, just use whatever config in order to get demo lined up.
   private static WriterBolt createErrorBolt( String zookeeperUrl,
                                              Optional<String> brokerUrl,
                                              String sensorType,
@@ -351,7 +358,6 @@ public class ParserTopologyBuilder {
     // create a writer handler
     WriterHandler writerHandler = createWriterHandler(writer);
 
-    // TODO modify WriterBolt to
     return new WriterBolt(writerHandler, configs, sensorType)
             .withErrorType(Constants.ErrorType.PARSER_ERROR);
   }
