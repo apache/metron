@@ -150,7 +150,12 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     }};
 
     final Properties topologyProperties = new Properties();
-    ComponentRunner runner = setupTopologyComponents(topologyProperties, sensorType, parserConfig, globalConfigWithValidation);
+    ComponentRunner runner = setupTopologyComponents(
+        topologyProperties,
+        Collections.singletonList(sensorType),
+        Collections.singletonList(parserConfig),
+        globalConfigWithValidation
+    );
     try {
       runner.start();
       kafkaComponent.writeMessages(sensorType, inputMessages);
