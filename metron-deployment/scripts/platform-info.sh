@@ -51,6 +51,10 @@ ansible --version
 echo "--"
 vagrant --version
 
+# vagrant hostmanager plugin
+echo "--"
+vagrant plugin list | grep vagrant-hostmanager || echo "The Vagrant Hostmanager Plugin is NOT installed"
+
 # python
 echo "--"
 python --version 2>&1
