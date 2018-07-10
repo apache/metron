@@ -22,6 +22,9 @@ package org.apache.metron.profiler;
 
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
+import org.apache.metron.profiler.clock.Clock;
+import org.apache.metron.profiler.clock.ClockFactory;
+import org.apache.metron.profiler.clock.DefaultClockFactory;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
@@ -53,10 +56,16 @@ public class DefaultMessageRouter implements MessageRouter {
    */
   private StellarStatefulExecutor executor;
 
+  /**
+   * Responsible for creating the {@link Clock}.
+   */
+  private ClockFactory clockFactory;
+
   public DefaultMessageRouter(Context context) {
     this.executor = new DefaultStellarStatefulExecutor();
     StellarFunctions.initialize(context);
     executor.setContext(context);
+    clockFactory = new DefaultClockFactory();
   }
 
   /**
@@ -73,7 +82,8 @@ public class DefaultMessageRouter implements MessageRouter {
 
     // attempt to route the message to each of the profiles
     for (ProfileConfig profile: config.getProfiles()) {
-      Optional<MessageRoute> route = routeToProfile(message, profile);
+      Clock clock = clockFactory.createClock(config);
+      Optional<MessageRoute> route = routeToProfile(message, profile, clock);
       route.ifPresent(routes::add);
     }
 
@@ -86,20 +96,24 @@ public class DefaultMessageRouter implements MessageRouter {
    * @param profile The profile that may need the message.
    * @return A MessageRoute if the message is needed by the profile.
    */
-  private Optional<MessageRoute> routeToProfile(JSONObject message, ProfileConfig profile) {
+  private Optional<MessageRoute> routeToProfile(JSONObject message, ProfileConfig profile, Clock clock) {
     Optional<MessageRoute> route = Optional.empty();
 
     // allow the profile to access the fields defined within the message
     @SuppressWarnings("unchecked")
     final Map<String, Object> state = (Map<String, Object>) message;
-
     try {
       // is this message needed by this profile?
       if (executor.execute(profile.getOnlyif(), state, Boolean.class)) {
 
-        // what is the name of the entity in this message?
-        String entity = executor.execute(profile.getForeach(), state, String.class);
-        route = Optional.of(new MessageRoute(profile, entity));
+        // what time is is? could be either system or event time
+        Optional<Long> timestamp = clock.currentTimeMillis(message);
+        if(timestamp.isPresent()) {
+
+          // what is the name of the entity in this message?
+          String entity = executor.execute(profile.getForeach(), state, String.class);
+          route = Optional.of(new MessageRoute(profile, entity, message, timestamp.get()));
+        }
       }
 
     } catch(Throwable e) {
@@ -109,5 +123,13 @@ public class DefaultMessageRouter implements MessageRouter {
     }
 
     return route;
+  }
+
+  public void setExecutor(StellarStatefulExecutor executor) {
+    this.executor = executor;
+  }
+
+  public void setClockFactory(ClockFactory clockFactory) {
+    this.clockFactory = clockFactory;
   }
 }

@@ -112,26 +112,14 @@ public class StandAloneProfiler {
    * @param message The message to apply.
    */
   public void apply(JSONObject message) {
-
-    // what time is it?
-    Clock clock = clockFactory.createClock(config);
-    Optional<Long> timestamp = clock.currentTimeMillis(message);
-
-    // can only route the message, if we have a timestamp
-    if(timestamp.isPresent()) {
-
-      // route the message to the correct profile builders
-      List<MessageRoute> routes = router.route(message, config, context);
-      for (MessageRoute route : routes) {
-        distributor.distribute(message, timestamp.get(), route, context);
-      }
-
-      routeCount += routes.size();
-      messageCount += 1;
-
-    } else {
-      LOG.warn("No timestamp available for the message. The message will be ignored.");
+    // route the message to the correct profile builders
+    List<MessageRoute> routes = router.route(message, config, context);
+    for (MessageRoute route : routes) {
+      distributor.distribute(route, context);
     }
+
+    routeCount += routes.size();
+    messageCount += 1;
   }
 
   /**
