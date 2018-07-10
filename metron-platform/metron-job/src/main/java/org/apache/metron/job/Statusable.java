@@ -78,4 +78,11 @@ public interface Statusable<T> {
    */
   Pageable<T> finalizeJob() throws JobException;
 
+  /**
+   * Gets final results of this job as a Pageable.
+   *
+   * @return pageable results
+   */
+  Pageable<T> getFinalResults() throws JobException;
+
 }

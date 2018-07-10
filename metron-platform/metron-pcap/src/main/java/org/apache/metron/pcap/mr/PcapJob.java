@@ -80,6 +80,8 @@ public class PcapJob implements Statusable<Path> {
   private Job job; // store a running MR job reference for async status check
   private JobStatus jobStatus;
   private PcapMRJobConfig config;
+  private boolean finalized; // job results have been finalized
+  private Pageable jobResults;
 
   public static enum PCAP_COUNTER {
     MALFORMED_PACKET_COUNT
@@ -398,16 +400,27 @@ public class PcapJob implements Statusable<Path> {
   @SuppressWarnings("unchecked")
   @Override
   public Pageable<Path> finalizeJob() throws JobException {
-    try {
-      SequenceFileIterable interimResults = readInterimResults(jobStatus.getInterimResultPath(),
-          config.getConf(), config.getFs());
-      return writeFinalResults(interimResults, config.getResultsWriter(),
-          config.getFinalOutputPath(),
-          config.getNumRecordsPerFile(),
-          config.getOutputFilePrefix());
-    } catch (IOException e) {
-      throw new JobException("Unable to read intermediate pcap MapReduce results.", e);
+    if (this.isDone()) {
+      try {
+        SequenceFileIterable interimResults = readInterimResults(jobStatus.getInterimResultPath(),
+            config.getConf(), config.getFs());
+        Pageable jobResults = writeFinalResults(interimResults, config.getResultsWriter(),
+            config.getFinalOutputPath(),
+            config.getNumRecordsPerFile(),
+            config.getOutputFilePrefix());
+        finalized = true;
+        return jobResults;
+      } catch (IOException e) {
+        throw new JobException("Unable to read intermediate pcap MapReduce results.", e);
+      }
+    } else {
+      return null;
     }
+  }
+
+  @Override
+  public Pageable<Path> getFinalResults() throws JobException {
+    return jobResults;
   }
 
   public Pageable<Path> writeFinalResults(SequenceFileIterable results, ResultsWriter<byte[]> resultsWriter,

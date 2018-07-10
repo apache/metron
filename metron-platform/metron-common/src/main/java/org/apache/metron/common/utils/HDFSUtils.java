@@ -29,6 +29,13 @@ import org.apache.hadoop.fs.Path;
 
 public class HDFSUtils {
 
+  public static byte[] readBytes(String path) throws IOException {
+    Path inPath = new Path(path);
+    FileSystem fs = FileSystem.newInstance(inPath.toUri(), new Configuration());
+    FSDataInputStream inputStream = fs.open(inPath);
+    return IOUtils.toByteArray(inputStream);
+  }
+
   /**
    * Reads full file contents into a List of Strings. Reads from local FS if file:/// used as the
    * scheme. Initializes file system with default configuration.
