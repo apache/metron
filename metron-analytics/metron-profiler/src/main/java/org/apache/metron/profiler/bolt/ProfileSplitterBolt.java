@@ -97,11 +97,6 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   private transient MessageRouter router;
 
   /**
-   * Responsible for creating the {@link Clock}.
-   */
-  private transient ClockFactory clockFactory;
-
-  /**
    * @param zookeeperUrl The Zookeeper URL that contains the configuration for this bolt.
    */
   public ProfileSplitterBolt(String zookeeperUrl) {
@@ -114,10 +109,9 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     this.collector = collector;
     this.parser = new JSONParser();
     this.router = new DefaultMessageRouter(getStellarContext());
-    this.clockFactory = new DefaultClockFactory();
   }
 
-  private Context getStellarContext() {
+  public Context getStellarContext() {
     Map<String, Object> global = getConfigurations().getGlobalConfig();
     return new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
@@ -162,15 +156,9 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     // ensure there is a valid profiler configuration
     ProfilerConfig config = getProfilerConfig();
     if(config != null && config.getProfiles().size() > 0) {
+      routeMessage(input, message, config);
 
-      // what time is it?
-      Clock clock = clockFactory.createClock(config);
-      Optional<Long> timestamp = clock.currentTimeMillis(message);
-
-      // route the message.  if a message does not contain the timestamp field, it cannot be routed.
-      timestamp.ifPresent(ts -> routeMessage(input, message, config, ts));
-
-    } else {
+    } else if(LOG.isDebugEnabled()) {
       LOG.debug("No Profiler configuration found.  Nothing to do.");
     }
   }
@@ -180,24 +168,23 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
    * @param input The input tuple on which to anchor.
    * @param message The telemetry message.
    * @param config The Profiler configuration.
-   * @param timestamp The timestamp of the telemetry message.
    */
-  private void routeMessage(Tuple input, JSONObject message, ProfilerConfig config, Long timestamp) {
+  private void routeMessage(Tuple input, JSONObject message, ProfilerConfig config) {
 
     // emit a tuple for each 'route'
     List<MessageRoute> routes = router.route(message, config, getStellarContext());
     for (MessageRoute route : routes) {
 
-      Values values = createValues(message, timestamp, route);
+      Values values = createValues(route);
       collector.emit(input, values);
 
       LOG.debug("Found route for message; profile={}, entity={}, timestamp={}",
               route.getProfileDefinition().getProfile(),
               route.getEntity(),
-              timestamp);
+              route.getTimestamp());
     }
 
-    LOG.debug("Found {} route(s) for message with timestamp={}", routes.size(), timestamp);
+    LOG.debug("Found {} route(s) for message", routes.size());
   }
 
   /**
@@ -222,22 +209,20 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   /**
    * Creates the {@link Values} attached to the outgoing tuple.
    *
-   * @param message The telemetry message.
-   * @param timestamp The timestamp of the message.
    * @param route The route the message must take.
    * @return
    */
-  private Values createValues(JSONObject message, Long timestamp, MessageRoute route) {
+  private Values createValues(MessageRoute route) {
 
     // the order here must match `declareOutputFields`
-    return new Values(message, timestamp, route.getEntity(), route.getProfileDefinition());
+    return new Values(route.getMessage(), route.getTimestamp(), route.getEntity(), route.getProfileDefinition());
   }
 
   protected MessageRouter getMessageRouter() {
     return router;
   }
 
-  public void setClockFactory(ClockFactory clockFactory) {
-    this.clockFactory = clockFactory;
+  public void setRouter(MessageRouter router) {
+    this.router = router;
   }
 }

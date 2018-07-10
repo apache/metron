@@ -148,16 +148,14 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
   /**
    * Distribute a message along a MessageRoute.
    *
-   * @param message The message that needs distributed.
-   * @param timestamp The timestamp of the message.
    * @param route The message route.
    * @param context The Stellar execution context.
    */
   @Override
-  public void distribute(JSONObject message, long timestamp, MessageRoute route, Context context) {
+  public void distribute(MessageRoute route, Context context) {
     try {
       ProfileBuilder builder = getBuilder(route, context);
-      builder.apply(message, timestamp);
+      builder.apply(route.getMessage(), route.getTimestamp());
 
     } catch(ExecutionException e) {
       LOG.error("Unexpected error", e);
