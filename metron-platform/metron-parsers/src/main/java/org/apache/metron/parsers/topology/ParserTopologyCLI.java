@@ -79,7 +79,7 @@ public class ParserTopologyCLI {
       return o;
     }),
     SPOUT_PARALLELISM("sp", code -> {
-      Option o = new Option(code, "spout_p", true, "Spout Parallelism Hint");
+      Option o = new Option(code, "spout_p", true, "Spout Parallelism Hint. If multiple sensors are specified, this should be a comma separated list in the same order.");
       o.setArgName("SPOUT_PARALLELISM_HINT");
       o.setRequired(false);
       o.setType(Number.class);
@@ -107,7 +107,7 @@ public class ParserTopologyCLI {
       return o;
     }),
     SPOUT_NUM_TASKS("snt", code -> {
-      Option o = new Option(code, "spout_num_tasks", true, "Spout Num Tasks");
+      Option o = new Option(code, "spout_num_tasks", true, "Spout Num Tasks. If multiple sensors are specified, this should be a comma separated list in the same order.");
       o.setArgName("NUM_TASKS");
       o.setRequired(false);
       o.setType(Number.class);

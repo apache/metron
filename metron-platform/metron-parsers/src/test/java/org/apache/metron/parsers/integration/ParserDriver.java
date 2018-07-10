@@ -83,13 +83,6 @@ public class ParserDriver implements Serializable {
     List<byte[]> errors = new ArrayList<>();
 
     public ShimParserBolt(List<byte[]> output) {
-      // TODO Might need to make this be a bit more flexible to handle aggregated parser
-//      super(null
-//          , Collections.singletonMap(
-//              sensorType == null ? config.getSensorTopic() : sensorType,
-//              ReflectionUtils.createInstance(config.getParserClassName())),
-//          new WriterHandler(new CollectingWriter(output))
-//      );
       super(null
           , Collections.singletonMap(
               sensorType == null ? config.getSensorTopic() : sensorType,
@@ -105,10 +98,6 @@ public class ParserDriver implements Serializable {
       for(Entry<String, ParserComponents> sensorToComponents : sensorToComponentMap.entrySet()) {
         sensorToComponents.getValue().getMessageParser().configure(config.getParserConfig());
       }
-//      Map<String, MessageParser<JSONObject>> sensorToParserMap = getSensorToParserMap();
-//      for(Entry<String, MessageParser<JSONObject>> sensorToParser : sensorToParserMap.entrySet()) {
-//        sensorToParser.getValue().configure(config.getParserConfig());
-//      }
     }
 
     @Override

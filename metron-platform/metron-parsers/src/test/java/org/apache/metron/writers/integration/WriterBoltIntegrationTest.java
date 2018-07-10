@@ -62,7 +62,6 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   private KafkaComponent kafkaComponent;
   private ConfigUploadComponent configUploadComponent;
   private ParserTopologyComponent parserTopologyComponent;
-  // TODO spin up tests with multiple sensors, once it works move to full dev.
 
   public static class MockValidator implements FieldValidation {
 
@@ -363,9 +362,6 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
           equalTo(allInputMessages.size()));
       for (JSONObject record : result.getResult()) {
         assertThat("record should have a guid", record.containsKey("guid"), equalTo(true));
-        // TODO actually manage this properly
-//        assertThat("record should have correct source.type", record.get("source.type"),
-//            equalTo(sensorType));
       }
     } finally {
       if (runner != null) {

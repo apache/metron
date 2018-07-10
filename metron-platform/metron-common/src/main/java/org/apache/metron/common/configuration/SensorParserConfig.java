@@ -115,6 +115,7 @@ public class SensorParserConfig implements Serializable {
 
   /**
    * The parallelism of the Kafka spout.
+   * If multiple sensors are specified, each sensor will use it's own configured value.
    *
    * <p>This property can be overridden on the CLI.
    */

@@ -82,6 +82,12 @@ topology in kafka.  Errors are collected with the context of the error
 (e.g. stacktrace) and original message causing the error and sent to an
 `error` queue.  Invalid messages as determined by global validation
 functions are also treated as errors and sent to an `error` queue. 
+
+Multiple sensors can be aggregated into a single Storm topology. When this is done, there will be
+multiple Kafka spouts, but only a single parser bolt which will handle delegating to the correct 
+parser as needed. There are some constraints around this, in particular regarding some configuration.
+Additionally, all sensors must flow to the same error topic. Finally, metadata must be enabled in
+order for the aggregated bolt to properly know which Kafka topic a message comes to delegate properly.
  
 ## Message Format
 
@@ -101,7 +107,7 @@ Where appropriate there is also a standardization around the 5-tuple JSON fields
 * timestamp (epoch)
 * original_string: A human friendly string representation of the message
 
-The timestamp and original_string fields are madatory. The remaining standard fields are optional.  If any of the optional fields are not applicable then the field should be left out of the JSON.
+The timestamp and original_string fields are mandatory. The remaining standard fields are optional.  If any of the optional fields are not applicable then the field should be left out of the JSON.
 
 So putting it all together a typical Metron message with all 5-tuple fields present would look like the following:
 
@@ -138,6 +144,8 @@ the following fields:
 * `raw_message_bytes` : The raw message bytes
 * `error_hash` : A hash of the error message
 
+When aggregating multiple sensors, all sensors must be using the same error topic.
+
 ## Parser Configuration
 
 The configuration for the various parser topologies is defined by JSON
@@ -167,16 +175,16 @@ then it is assumed to be a regex and will match any topic matching the pattern (
     If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm
     parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
-* `spoutParallelism` : The kafka spout parallelism (default to `1`).  This can be overridden on the command line.
-* `spoutNumTasks` : The number of tasks for the spout (default to `1`). This can be overridden on the command line.
-* `parserParallelism` : The parser bolt parallelism (default to `1`). This can be overridden on the command line.
-* `parserNumTasks` : The number of tasks for the parser bolt (default to `1`). This can be overridden on the command line.
+* `spoutParallelism` : The kafka spout parallelism (default to `1`).  This can be overridden on the command line, and if there are multiple sensors should be in a comma separated list in the same order as the sensors.
+* `spoutNumTasks` : The number of tasks for the spout (default to `1`). This can be overridden on the command line, and if there are multiple sensors should be in a comma separated list in the same order as the sensors.
+* `parserParallelism` : The parser bolt parallelism (default to `1`). If there are multiple sensors, the last one's configuration will be used. This can be overridden on the command line.
+* `parserNumTasks` : The number of tasks for the parser bolt (default to `1`). If there are multiple sensors, the last one's configuration will be used. This can be overridden on the command line.
 * `errorWriterParallelism` : The error writer bolt parallelism (default to `1`). This can be overridden on the command line.
 * `errorWriterNumTasks` : The number of tasks for the error writer bolt (default to `1`). This can be overridden on the command line.
 * `numWorkers` : The number of workers to use in the topology (default is the storm default of `1`).
 * `numAckers` : The number of acker executors to use in the topology (default is the storm default of `1`).
-* `spoutConfig` : A map representing a custom spout config (this is a map). This can be overridden on the command line.
-* `securityProtocol` : The security protocol to use for reading from kafka (this is a string).  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence.
+* `spoutConfig` : A map representing a custom spout config (this is a map). If there are multiple sensors, the configs will be merged with the last specified taking precedence. This can be overridden on the command line.
+* `securityProtocol` : The security protocol to use for reading from kafka (this is a string).  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence. If multiple sensors are used, any non "PLAINTEXT" value will be used.
 * `stormConfig` : The storm config to use (this is a map).  This can be overridden on the command line.  If both are specified, they are merged with CLI properties taking precedence.
 * `cacheConfig` : Cache config for stellar field transformations.   This configures a least frequently used cache.  This is a map with the following keys.  If not explicitly configured (the default), then no cache will be used.
   * `stellar.cache.maxSize` - The maximum number of elements in the cache. Default is to not use a cache.
@@ -211,6 +219,8 @@ As such, there are two types of metadata that we seek to support in Metron:
    * Consider the possibility that you have multiple kafka topics being processed by one parser and you want to tag the messages with the kafka topic
    * At the moment, only the kafka topic is kept as the field name.
 * Custom metadata: Custom metadata from an individual telemetry source that one might want to use within Metron. 
+
+Additionally, metadata is used when aggregating parsers and must be enabled. This is to allow the parser bolt to know the source topic to be able to delegate to a topic appropriately
 
 Metadata is controlled by two fields in the parser:
 * `readMetadata` : This is a boolean indicating whether metadata will be read and made available to Field 

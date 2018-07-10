@@ -96,7 +96,6 @@ public class MetronError {
     JSONObject errorMessage = new JSONObject();
     errorMessage.put(Constants.GUID, UUID.randomUUID().toString());
     errorMessage.put(Constants.SENSOR_TYPE, "error");
-    // TODO determine if we need/want to do this.  Could just do the else, but single sensor won't match previous
     if (sensorTypes.size() == 1) {
       errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), sensorTypes.iterator().next());
     } else {

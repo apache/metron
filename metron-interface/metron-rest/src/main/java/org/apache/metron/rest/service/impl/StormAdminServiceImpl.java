@@ -55,7 +55,7 @@ public class StormAdminServiceImpl implements StormAdminService {
 
         String[] sensorTypes = name.split(",");
         for (String sensorType : sensorTypes) {
-            if (sensorParserConfigService.findOne(sensorType) == null) {
+            if (sensorParserConfigService.findOne(sensorType.trim()) == null) {
                 topologyResponse
                     .setErrorMessage(TopologyStatusCode.SENSOR_PARSER_CONFIG_MISSING.toString());
                 return topologyResponse;
