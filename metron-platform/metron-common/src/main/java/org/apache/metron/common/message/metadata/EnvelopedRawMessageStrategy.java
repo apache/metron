@@ -64,7 +64,7 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
     String messageField = (String)config.get(MESSAGE_FIELD_CONFIG);
     if(messageField == null) {
       throw new IllegalStateException("You must specify a message field in the message supplier config.  " +
-              "I expected to find a \"messageField\" field in the config.");
+              "\"messageField\" field was expected but wasn't in the config.");
     }
     byte[] envelope = rawMessage;
 
