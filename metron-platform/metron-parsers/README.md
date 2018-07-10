@@ -338,6 +338,29 @@ The following config will rename the fields `old_field` and `different_old_field
                       ]
 }
 ```
+* `REGEX_SELECT` : This transformation lets users set an output field to one of a set of possibilities based on matching regexes. This transformation is useful when the number or conditions are large enough to make a stellar language match statement unwieldy.
+ 
+The following config will set the field `logical_source_type` to one of the
+following, dependent upon the value of the `pix_type` field:
+* `cisco-6-302` if `pix_type` starts with either `6-302` or `06-302`
+* `cisco-5-304` if `pix_type` starts with `5-304`
+```
+{
+...
+  "fieldTransformations" : [
+    {
+     "transformation" : "REGEX_ROUTING"
+    ,"input" :  "pix_type"
+    ,"output" :  "logical_source_type"
+    ,"config" : {
+      "cisco-6-302" : [ "^6-302.*", "^06-302.*"]
+      "cisco-5-304" : "^5-304.*"
+                }
+    }
+                           ]
+...  
+}
+```
 
 
 ### Assignment to `null`
