@@ -30,6 +30,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +45,7 @@ import static java.lang.String.format;
  * A single telemetry message may need to take multiple routes.  This is the case
  * when a message is needed by more than one profile.
  */
-public class DefaultMessageRouter implements MessageRouter {
+public class DefaultMessageRouter implements MessageRouter, Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Optional;
+import java.io.Serializable;
 
 /**
  * A {@link Clock} that advances based on event time.
@@ -33,7 +34,7 @@ import java.util.Optional;
  * Event time is advanced by the timestamps contained within telemetry messages, rather
  * than the system clock.
  */
-public class EventTimeClock implements Clock {
+public class EventTimeClock implements Clock, Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
