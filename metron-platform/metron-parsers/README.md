@@ -565,6 +565,8 @@ and pass `--extra_topology_options custom_config.json` to `start_parser_topology
 Default installed Metron is untuned for production deployment.  There
 are a few knobs to tune to get the most out of your system.
 
+When using aggregated parsers, it's highly recommended to aggregate parsers with similar velocity and parser complexity together.
+
 # Notes on Adding a New Sensor
 In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
 it is necessary to add an additional field to the templates and mapping for existing sensors.
