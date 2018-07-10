@@ -244,6 +244,7 @@ describe('Test spec for meta alerts workflow', function() {
     expect(guidValues).toEqual(alertsInMetaAlerts.sort());
     await tablePage.removeAlert(5);
     await treePage.clickYesForConfirmation();
+    // FIXME: line below will fail because the following: https://hortonworks.jira.com/browse/BUG-106815
     // expect(await tablePage.getCellValue(0, 2, '(20')).toContain('(19)', 'alert count should be decremented');
     await browser.sleep(1000);
     let guidValuesAfterDeleteOp = await tablePage.getTableCellValues(3, 1, 20);
