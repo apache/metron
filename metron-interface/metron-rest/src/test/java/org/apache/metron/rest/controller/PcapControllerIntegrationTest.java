@@ -22,6 +22,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
+import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.rest.mock.MockPcapJob;
 import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.service.PcapService;
@@ -74,6 +75,19 @@ public class PcapControllerIntegrationTest {
   @Multiline
   public static String fixedJson;
 
+  /**
+   {
+   "basePath": "/apps/metron/pcap",
+   "baseOutputPath": "/tmp",
+   "endTime": 10,
+   "numReducers": 2,
+   "startTime": 1,
+   "query": "query"
+   }
+   */
+  @Multiline
+  public static String queryJson;
+
   @Autowired
   private PcapService pcapService;
 
@@ -94,6 +108,9 @@ public class PcapControllerIntegrationTest {
   @Test
   public void testSecurity() throws Exception {
     this.mockMvc.perform(post(pcapUrl + "/fixed").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+            .andExpect(status().isUnauthorized());
+
+    this.mockMvc.perform(post(pcapUrl + "/query").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(queryJson))
             .andExpect(status().isUnauthorized());
   }
 
@@ -125,5 +142,27 @@ public class PcapControllerIntegrationTest {
     Assert.assertEquals("TCP", actualFixedFields.get(Constants.Fields.PROTOCOL.getName()));
     Assert.assertEquals("filter", actualFixedFields.get(PcapHelper.PacketFields.PACKET_FILTER.getName()));
 
+  }
+
+  @Test
+  public void testQuery() throws Exception {
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+    List<byte[]> results = Arrays.asList("pcap1".getBytes(), "pcap2".getBytes());
+    mockPcapJob.setResults(results);
+
+    PcapResponse expectedReponse = new PcapResponse();
+    expectedReponse.setPcaps(results);
+    this.mockMvc.perform(post(pcapUrl + "/query").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(queryJson))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(content().json(JSONUtils.INSTANCE.toJSON(expectedReponse, false)));
+
+    Assert.assertEquals("/apps/metron/pcap", mockPcapJob.getBasePath());
+    Assert.assertEquals("/tmp", mockPcapJob.getBaseOutputPath());
+    Assert.assertEquals(1, mockPcapJob.getStartTime());
+    Assert.assertEquals(10, mockPcapJob.getEndTime());
+    Assert.assertEquals(2, mockPcapJob.getNumReducers());
+    Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof QueryPcapFilter.Configurator);
+    Assert.assertEquals("query", mockPcapJob.getQuery());
   }
 }

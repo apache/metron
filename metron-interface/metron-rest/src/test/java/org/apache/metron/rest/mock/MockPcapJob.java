@@ -25,11 +25,9 @@ import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.mr.PcapJob;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +40,7 @@ public class MockPcapJob extends PcapJob {
   private int numReducers;
   private Map<String, String> fixedFields;
   private PcapFilterConfigurator filterImpl;
+  private String query;
   private SequenceFileIterable sequenceFileIterable;
 
   public MockPcapJob() {
@@ -58,6 +57,8 @@ public class MockPcapJob extends PcapJob {
     this.numReducers = numReducers;
     if (fields instanceof Map) {
       this.fixedFields = (Map<String, String>) fields;
+    } else {
+      this.query = (String) fields;
     }
     this.filterImpl = filterImpl;
     return sequenceFileIterable;
@@ -89,6 +90,10 @@ public class MockPcapJob extends PcapJob {
 
   public Map<String, String> getFixedFields() {
     return fixedFields;
+  }
+
+  public String getQuery() {
+    return query;
   }
 
   public PcapFilterConfigurator getFilterImpl() {

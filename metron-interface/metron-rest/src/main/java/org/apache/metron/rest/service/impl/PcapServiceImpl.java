@@ -25,11 +25,14 @@ import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
+import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
+import org.apache.metron.rest.model.pcap.PcapRequest;
+import org.apache.metron.rest.model.pcap.QueryPcapRequest;
 import org.apache.metron.rest.service.PcapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -57,12 +60,7 @@ public class PcapServiceImpl implements PcapService {
 
   @Override
   public PcapResponse fixed(FixedPcapRequest fixedPcapRequest) throws RestException {
-    if (fixedPcapRequest.getBasePath() == null) {
-      fixedPcapRequest.setBasePath(environment.getProperty(MetronRestConstants.PCAP_INPUT_PATH_SPRING_PROPERTY));
-    }
-    if (fixedPcapRequest.getBaseOutputPath() == null) {
-      fixedPcapRequest.setBaseOutputPath(environment.getProperty(MetronRestConstants.PCAP_OUTPUT_PATH_SPRING_PROPERTY));
-    }
+    setDefaultPaths(fixedPcapRequest);
     PcapResponse response = new PcapResponse();
     SequenceFileIterable results;
     try {
@@ -86,6 +84,43 @@ public class PcapServiceImpl implements PcapService {
       throw new RestException(e);
     }
     return response;
+  }
+
+  @Override
+  public PcapResponse query(QueryPcapRequest queryPcapRequest) throws RestException {
+    setDefaultPaths(queryPcapRequest);
+    PcapResponse response = new PcapResponse();
+    SequenceFileIterable results;
+    try {
+      results = pcapJob.query(
+              new Path(queryPcapRequest.getBasePath()),
+              new Path(queryPcapRequest.getBaseOutputPath()),
+              TimestampConverters.MILLISECONDS.toNanoseconds(queryPcapRequest.getStartTime()),
+              TimestampConverters.MILLISECONDS.toNanoseconds(queryPcapRequest.getEndTime()),
+              queryPcapRequest.getNumReducers(),
+              queryPcapRequest.getQuery(),
+              configuration,
+              getFileSystem(),
+              new QueryPcapFilter.Configurator()
+      );
+      if (results != null) {
+        List<byte[]> pcaps = new ArrayList<>();
+        results.iterator().forEachRemaining(pcaps::add);
+        response.setPcaps(pcaps);
+      }
+    } catch (IOException | ClassNotFoundException | InterruptedException e) {
+      throw new RestException(e);
+    }
+    return response;
+  }
+
+  protected void setDefaultPaths(PcapRequest pcapRequest) {
+    if (pcapRequest.getBasePath() == null) {
+      pcapRequest.setBasePath(environment.getProperty(MetronRestConstants.PCAP_INPUT_PATH_SPRING_PROPERTY));
+    }
+    if (pcapRequest.getBaseOutputPath() == null) {
+      pcapRequest.setBaseOutputPath(environment.getProperty(MetronRestConstants.PCAP_OUTPUT_PATH_SPRING_PROPERTY));
+    }
   }
 
   protected Map<String, String> getFixedFields(FixedPcapRequest fixedPcapRequest) {

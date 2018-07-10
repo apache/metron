@@ -24,11 +24,13 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
+import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
+import org.apache.metron.rest.model.pcap.QueryPcapRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -163,5 +165,59 @@ public class PcapServiceImplTest {
             any(FixedPcapFilter.Configurator.class))).thenThrow(new IOException("some exception"));
 
     pcapService.fixed(fixedPcapRequest);
+  }
+
+  @Test
+  public void queryShouldProperlyCallPcapJobQuery() throws Exception {
+    QueryPcapRequest queryPcapRequest = new QueryPcapRequest();
+    queryPcapRequest.setBaseOutputPath("baseOutputPath");
+    queryPcapRequest.setBasePath("basePath");
+    queryPcapRequest.setStartTime(1L);
+    queryPcapRequest.setEndTime(2L);
+    queryPcapRequest.setNumReducers(2);
+    queryPcapRequest.setQuery("query");
+
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, pcapJob));
+    FileSystem fileSystem = mock(FileSystem.class);
+    doReturn(fileSystem).when(pcapService).getFileSystem();
+    List<byte[]> expectedPcaps = Arrays.asList("pcap1".getBytes(), "pcap2".getBytes());
+    SequenceFileIterable results = mock(SequenceFileIterable.class);
+    when(results.iterator()).thenReturn(expectedPcaps.iterator());
+    when(pcapJob.query(eq(new Path("basePath")),
+            eq(new Path("baseOutputPath")),
+            eq(1000000L),
+            eq(2000000L),
+            eq(2),
+            eq("query"),
+            eq(configuration),
+            any(FileSystem.class),
+            any(QueryPcapFilter.Configurator.class))).thenReturn(results);
+
+    PcapResponse pcapsResponse = pcapService.query(queryPcapRequest);
+    Assert.assertEquals(expectedPcaps, pcapsResponse.getPcaps());
+  }
+
+  @Test
+  public void queryShouldThrowRestException() throws Exception {
+    exception.expect(RestException.class);
+    exception.expectMessage("some exception");
+
+    QueryPcapRequest queryPcapRequest = new QueryPcapRequest();
+
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, pcapJob));
+    FileSystem fileSystem = mock(FileSystem.class);
+    doReturn(fileSystem).when(pcapService).getFileSystem();
+
+    when(pcapJob.query(any(),
+            any(),
+            eq(0L),
+            eq(queryPcapRequest.getEndTime() * 1000000),
+            eq(1),
+            any(),
+            any(),
+            any(FileSystem.class),
+            any(QueryPcapFilter.Configurator.class))).thenThrow(new IOException("some exception"));
+
+    pcapService.query(queryPcapRequest);
   }
 }

@@ -15,16 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.rest.model.pcap;
 
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.PcapResponse;
-import org.apache.metron.rest.model.pcap.FixedPcapRequest;
-import org.apache.metron.rest.model.pcap.QueryPcapRequest;
+public class QueryPcapRequest extends PcapRequest {
 
-public interface PcapService {
+  private String query;
 
-  PcapResponse fixed(FixedPcapRequest fixedPcapRequest) throws RestException;
+  public String getQuery() {
+    return query;
+  }
 
-  PcapResponse query(QueryPcapRequest queryPcapRequest) throws RestException;
+  public void setQuery(String query) {
+    this.query = query;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    QueryPcapRequest queryPcapRequest = (QueryPcapRequest) o;
+
+    return (super.equals(o)) &&
+            (getQuery() != null ? getQuery().equals(queryPcapRequest.getQuery()) : queryPcapRequest.getQuery() != null);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (getQuery() != null ? getQuery().hashCode() : 0);
+    return result;
+  }
 }
