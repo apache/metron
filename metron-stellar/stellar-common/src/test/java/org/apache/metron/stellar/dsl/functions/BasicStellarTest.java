@@ -975,4 +975,29 @@ public class BasicStellarTest {
     Assert.assertEquals("val1", ret.get("field1"));
     Assert.assertEquals("val2", ret.get("field2"));
   }
+
+  @Test
+  public void nullAsFalse() {
+    checkFalsey("is_alert");
+  }
+
+  private void checkFalsey(String falseyExpr) {
+    VariableResolver resolver = new MapVariableResolver(new HashMap<>());
+    Assert.assertTrue(runPredicate(String.format(" %s || true", falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("%s && EXCEPTION('blah')", falseyExpr), resolver));
+    Assert.assertTrue(runPredicate(String.format("NOT(%s)", falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true else false", falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true || %s else false", falseyExpr, falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true || %s else false && %s", falseyExpr, falseyExpr, falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true || %s else false && (%s || true)", falseyExpr, falseyExpr, falseyExpr), resolver));
+    //make sure that nulls aren't replaced by false everywhere, only in boolean expressions.
+    Assert.assertNull(run(String.format("MAP_GET(%s, {false : 'blah'})", falseyExpr), resolver));
+  }
+
+  @Test
+  public void emptyAsFalse() {
+    checkFalsey("[]");
+    checkFalsey("{}");
+    checkFalsey("LIST_ADD([])");
+  }
 }

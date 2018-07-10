@@ -16,8 +16,16 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component, Input } from '@angular/core';
 
 import { SavedSearchesComponent } from './saved-searches.component';
+import { CollapseComponent } from '../../shared/collapse/collapse.component';
+import { CenterEllipsesPipe } from '../../shared/pipes/center-ellipses.pipe';
+import { ColumnNameTranslatePipe } from '../../shared/pipes/column-name-translate.pipe';
+import { Router } from '@angular/router';
+import { SaveSearchService } from '../../service/save-search.service';
+import { MetronDialogBox } from '../../shared/metron-dialog-box';
+import { Observable } from 'rxjs';
 
 describe('SavedSearchesComponent', () => {
   let component: SavedSearchesComponent;
@@ -25,7 +33,20 @@ describe('SavedSearchesComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ SavedSearchesComponent ]
+      providers: [
+        { provide: Router, useValue: {} },
+        { provide: SaveSearchService, useValue: {
+          listSavedSearches: jasmine.createSpy('listSavedSearches').and.returnValue(Observable.of([])),
+          listRecentSearches: jasmine.createSpy('listRecentSearches').and.returnValue(Observable.of([])),
+        } },
+        MetronDialogBox
+      ],
+      declarations: [ 
+        SavedSearchesComponent,
+        CollapseComponent,
+        CenterEllipsesPipe,
+        ColumnNameTranslatePipe
+       ]
     })
     .compileComponents();
   }));
@@ -34,5 +55,9 @@ describe('SavedSearchesComponent', () => {
     fixture = TestBed.createComponent(SavedSearchesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  it('should be created', () => {
+    expect(component).toBeTruthy();
   });
 });

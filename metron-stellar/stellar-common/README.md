@@ -54,6 +54,20 @@ The Stellar language supports the following:
 * The ability to have parenthesis to make order of operations explicit
 * User defined functions, including Lambda expressions 
 
+### Boolean Expressions
+
+Variables may be used in boolean expressions and variables which are not
+explicitly boolean may be interpreted as booleans subject to the
+following rules:
+* Similar to python and javascript, empty collections (e.g. `[]`) will be
+  interpreted as `false`
+* Similar to python and javascript, missing variables will be
+  interpreted as `false`
+* Variables set to `null` will be interpreted as `false`
+
+Otherwise, boolean variables will be interpreted as their values
+reflect. 
+
 ### Stellar Language Keywords
 The following keywords need to be single quote escaped in order to be used in Stellar expressions:
 

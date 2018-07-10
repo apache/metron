@@ -47,7 +47,7 @@ describe('Test spec for facet filters', function() {
   });
 
   it('should display facets data', async function() : Promise<any> {
-    let facetValues = [ 'enrichm...:country 3', 'ip_dst_addr 8', 'ip_src_addr 2', 'source:type 1' ];
+    let facetValues = [ 'enrichm...:country 3', 'ip_dst_addr 8', 'ip_src_addr 6', 'source:type 1' ];
 
     await page.navgateToAlertList();
     expect(await page.getFacetsTitle()).toEqualBcoz('Filters', 'for Title as Filters');

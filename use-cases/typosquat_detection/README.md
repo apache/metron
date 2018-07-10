@@ -295,7 +295,7 @@ We can do this by creating `$METRON_HOME/config/zookeeper/enrichments/squid.json
     "fieldMap": {
       "stellar" : {
         "config" : [
-          "is_alert := (exists(is_alert) && is_alert) || is_potential_typosquat"
+          "is_alert := is_alert || is_potential_typosquat"
         ]
       }
 

@@ -177,7 +177,7 @@ public class Runner {
     String hostname = RunnerOptions.HOSTNAME.get(cli);
     CuratorFramework client = null;
 
-    LOG.error("Running script " + script);
+    LOG.info("Running script " + script);
     LOG.info("Local Directory Contents");
     for(File f : new File(".").listFiles()) {
       LOG.info("  " + f.getName());
