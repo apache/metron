@@ -188,7 +188,6 @@ public class ParserTopologyComponent implements InMemoryComponent {
     }
   }
 
-  // TODO Figure out what to do here, "," might not work
   protected String getTopologyName() {
     return StringUtils.join(sensorTypes, "__");
   }
