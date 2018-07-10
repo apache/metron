@@ -18,16 +18,17 @@
 package org.apache.metron.parsers.topology;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -324,7 +325,8 @@ public class ParserTopologyCLI {
     String zookeeperUrl = ParserOptions.ZK_QUORUM.get(cmd);
     Optional<String> brokerUrl = ParserOptions.BROKER_URL.has(cmd)?Optional.of(ParserOptions.BROKER_URL.get(cmd)):Optional.empty();
     String sensorTypeRaw= ParserOptions.SENSOR_TYPES.get(cmd);
-    List<String> sensorTypes = Splitter.on(',').trimResults().splitToList(sensorTypeRaw);
+    List<String> sensorTypes = Arrays.stream(sensorTypeRaw.split(",")).map(String::trim).collect(
+        Collectors.toList());
 
     /*
      * It bears mentioning why we're creating this ValueSupplier indirection here.
@@ -354,7 +356,8 @@ public class ParserTopologyCLI {
 
         // Handle the multiple explicitly passed spout parallelism's case.
         String parallelismRaw = ParserOptions.SPOUT_PARALLELISM.get(cmd, "1");
-        List<String> parallelisms = Splitter.on(',').trimResults().splitToList(parallelismRaw);
+        List<String> parallelisms = Arrays.stream(parallelismRaw.split(",")).map(String::trim).collect(
+            Collectors.toList());
         if (parallelisms.size() != parserConfigs.size()) {
           throw new IllegalArgumentException("Spout parallelism should match number of sensors 1:1");
         }
@@ -382,7 +385,8 @@ public class ParserTopologyCLI {
 
         // Handle the multiple explicitly passed spout parallelism's case.
         String numTasksRaw = ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1");
-        List<String> numTasks = Splitter.on(',').trimResults().splitToList(numTasksRaw);
+        List<String> numTasks = Arrays.stream(numTasksRaw.split(",")).map(String::trim).collect(
+            Collectors.toList());
         if (numTasks.size() != parserConfigs.size()) {
           throw new IllegalArgumentException("Spout num tasks should match number of sensors 1:1");
         }
