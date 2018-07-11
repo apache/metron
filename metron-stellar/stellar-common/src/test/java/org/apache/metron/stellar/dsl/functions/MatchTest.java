@@ -36,6 +36,41 @@ public class MatchTest {
 
   @Test
   @SuppressWarnings("unchecked")
+  public void testMissingVariableFalsey() {
+    Assert.assertTrue(runPredicate(
+        "match{NOT(is_alert) => true, foo > 5 => false, foo > 10 => false, default => false}",
+        new HashMap() {{
+          put("foo", 100);
+        }}));
+    Assert.assertFalse(runPredicate(
+        "match{is_alert => true, foo > 5 => false, foo > 10 => false, default => false}",
+        new HashMap() {{
+          put("foo", 100);
+        }}));
+    Assert.assertFalse(runPredicate(
+        "match{foo > 5 => false, is_alert => true, foo > 10 => false, default => false}",
+        new HashMap() {{
+          put("foo", 100);
+        }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testEmptyListFalsey() {
+    Assert.assertTrue(runPredicate(
+        "match{NOT([]) => true, foo > 5 => false, foo > 10 => false, default => false}",
+        new HashMap() {{
+          put("foo", 100);
+        }}));
+    Assert.assertFalse(runPredicate(
+        "match{[] => true, foo > 5 => false, foo > 10 => false, default => false}",
+        new HashMap() {{
+          put("foo", 100);
+        }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
   public void testThreeTrueClausesFirstOnlyFires() {
     Assert.assertTrue(runPredicate(
         "match{foo > 0 => true, foo > 5 => false, foo > 10 => false, default => false}",

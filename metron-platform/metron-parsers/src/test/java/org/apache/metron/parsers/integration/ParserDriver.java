@@ -151,7 +151,7 @@ public class ParserDriver implements Serializable {
     this.globalConfig = JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER);
   }
 
-  public ProcessorResult<List<byte[]>> run(List<byte[]> in) {
+  public ProcessorResult<List<byte[]>> run(Iterable<byte[]> in) {
     ShimParserBolt bolt = new ShimParserBolt(new ArrayList<>());
     byte[] b = SerializationUtils.serialize(bolt);
     ShimParserBolt b2 = (ShimParserBolt) SerializationUtils.deserialize(b);

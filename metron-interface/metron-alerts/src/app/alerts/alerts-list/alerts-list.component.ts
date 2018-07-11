@@ -39,7 +39,7 @@ import {Filter} from '../../model/filter';
 import { TIMESTAMP_FIELD_NAME, ALL_TIME, POLLING_DEFAULT_STATE } from '../../utils/constants';
 import {TableViewComponent} from './table-view/table-view.component';
 import {Pagination} from '../../model/pagination';
-import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
+import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {MetaAlertService} from '../../service/meta-alert.service';
 import {Facets} from '../../model/facets';
 import { GlobalConfigService } from '../../service/global-config.service';
@@ -77,6 +77,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   groupFacets: Facets;
   globalConfig: {} = {};
   configSubscription: Subscription;
+  groups = [];
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -239,6 +240,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onGroupsChange(groups) {
+    this.groups = groups;
     this.queryBuilder.setGroupby(groups);
     this.search();
   }
@@ -399,8 +401,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
     this.saveRefreshState();
-    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source[this.globalConfig['source.type.field']])
-        ? META_ALERTS_SENSOR_TYPE : alert.source[this.globalConfig['source.type.field']];
+    let sourceType = alert.source[this.globalConfig['source.type.field']];
     let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
     this.router.navigateByUrl(url);
   }

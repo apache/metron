@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {browser, element, by, protractor} from 'protractor';
+import {browser, element, by, protractor, ElementArrayFinder} from 'protractor';
 import * as moment from 'moment/moment';
 import {
   waitForElementVisibility, waitForElementPresence, waitForElementInVisibility,
@@ -444,10 +444,6 @@ export class MetronAlertsPage {
   getAlertStatusById(id: string) {
     return element(by.css('a[title="' + id + '"]'))
           .element(by.xpath('../..')).all(by.css('td a')).get(8).getText();
-  }
-
-  sortTable(colName: string) {
-    element.all(by.css('table thead th')).all(by.linkText(colName)).get(0).click();
   }
 
   getCellValue(rowIndex: number, colIndex: number, previousText: string) {

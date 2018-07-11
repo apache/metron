@@ -248,8 +248,23 @@ This package installs the Metron Solr files
 %dir %{metron_home}/bin
 %dir %{metron_home}/config
 %dir %{metron_home}/lib
+%{metron_home}/bin/create_collection.sh
+%{metron_home}/bin/delete_collection.sh
+%{metron_home}/bin/install_solr.sh
+%{metron_home}/bin/start_solr.sh
 %{metron_home}/bin/start_solr_topology.sh
+%{metron_home}/bin/stop_solr.sh
 %{metron_home}/config/solr.properties
+%{metron_home}/config/schema/bro/schema.xml
+%{metron_home}/config/schema/bro/solrconfig.xml
+%{metron_home}/config/schema/error/schema.xml
+%{metron_home}/config/schema/error/solrconfig.xml
+%{metron_home}/config/schema/metaalert/schema.xml
+%{metron_home}/config/schema/metaalert/solrconfig.xml
+%{metron_home}/config/schema/snort/schema.xml
+%{metron_home}/config/schema/snort/solrconfig.xml
+%{metron_home}/config/schema/yaf/schema.xml
+%{metron_home}/config/schema/yaf/solrconfig.xml
 %attr(0644,root,root) %{metron_home}/lib/metron-solr-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -529,6 +544,8 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Thu Feb 1 2018 Apache Metron <dev@metron.apache.org> - 0.4.3
+- Add Solr install script to Solr RPM
 * Tue Sep 25 2017 Apache Metron <dev@metron.apache.org> - 0.4.2
 - Add Alerts UI
 * Tue Sep 19 2017 Apache Metron <dev@metron.apache.org> - 0.4.2

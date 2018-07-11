@@ -64,6 +64,7 @@ import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
 import org.apache.metron.pcap.utils.FileFilterUtil;
+import org.apache.metron.pcap.writer.ResultsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

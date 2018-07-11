@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,6 +16,10 @@
  * limitations under the License.
  */
 
-describe('AlertSearchDirective', () => {
+package org.apache.metron.indexing.dao.metaalert;
 
-});
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
+
+public interface MetaAlertRetrieveLatestDao extends RetrieveLatestDao {
+
+}

@@ -19,7 +19,6 @@
 package org.apache.metron.indexing.dao;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +39,6 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -48,11 +46,11 @@ import org.junit.rules.ExpectedException;
 public abstract class SearchIntegrationTest {
   /**
    * [
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "duplicate_name_field": "data 1", "guid":"bro_1"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "score": 50.0, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "duplicate_name_field": "data 2", "guid":"bro_2"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "score": 20.0, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "duplicate_name_field": "data 3", "guid":"bro_3"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "duplicate_name_field": "data 4", "guid":"bro_4"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "score": 98.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "duplicate_name_field": "data 5", "guid":"bro_5"}
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "ttl": "data 1", "guid":"bro_1"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "score": 50.0, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "ttl": "data 2", "guid":"bro_2"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "score": 20.0, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "ttl": "data 3", "guid":"bro_3"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "ttl": "data 4", "guid":"bro_4"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "score": 98.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "ttl": "data 5", "guid":"bro_5"}
    * ]
    */
   @Multiline
@@ -60,11 +58,11 @@ public abstract class SearchIntegrationTest {
 
   /**
    * [
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "duplicate_name_field": 1, "guid":"snort_1", "threat:triage:score":"10"},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "duplicate_name_field": 2, "guid":"snort_2", "threat:triage:score":"20"},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "duplicate_name_field": 3, "guid":"snort_3"},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "duplicate_name_field": 4, "guid":"snort_4"},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "duplicate_name_field": 5, "guid":"snort_5"}
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "ttl": 1, "guid":"snort_1", "threat:triage:score":10.0},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "ttl": 2, "guid":"snort_2", "threat:triage:score":20.0},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "ttl": 3, "guid":"snort_3"},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "ttl": 4, "guid":"snort_4"},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "ttl": 5, "guid":"snort_5"}
    * ]
    */
   @Multiline
@@ -72,7 +70,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "indices": ["bro", "snort"],
+   * "indices": ["bro", "snort", "some_collection"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -235,7 +233,7 @@ public abstract class SearchIntegrationTest {
    * }
    */
   @Multiline
-  public static String facetQuery;
+  public static String facetQueryRaw;
 
   /**
    * {
@@ -271,6 +269,42 @@ public abstract class SearchIntegrationTest {
    */
   @Multiline
   public static String disabledFacetQuery;
+
+  /**
+   * {
+   * "facetFields": ["snort_field"],
+   * "indices": ["bro", "snort"],
+   * "query": "*:*",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String missingTypeFacetQuery;
+
+  /**
+   * {
+   * "facetFields": ["ttl"],
+   * "indices": ["bro", "snort"],
+   * "query": "*:*",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String differentTypeFacetQuery;
 
   /**
    * {
@@ -419,17 +453,24 @@ public abstract class SearchIntegrationTest {
   @Multiline
   public static String groupByIpQuery;
 
-  protected static IndexDao dao;
-  protected static InMemoryComponent indexComponent;
+  /**
+   * {
+   * "indices": ["bro", "snort"],
+   * "query": "ttl:\"data 1\"",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String differentTypeFilterQuery;
 
-  @Before
-  public synchronized void setup() throws Exception {
-    if(dao == null && indexComponent == null) {
-      indexComponent = startIndex();
-      loadTestData();
-      dao = createDao();
-    }
-  }
+  protected static InMemoryComponent indexComponent;
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -437,28 +478,30 @@ public abstract class SearchIntegrationTest {
   @Test
   public void all_query_returns_all_results() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(10, results.size());
     for(int i = 0;i < 5;++i) {
-      Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
-      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+      Assert.assertEquals("snort", results.get(i).getSource().get(getSourceTypeField()));
+      Assert.assertEquals(getIndexName("snort"), results.get(i).getIndex());
+      Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
     for (int i = 5; i < 10; ++i) {
-      Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
-      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+      Assert.assertEquals("bro", results.get(i).getSource().get(getSourceTypeField()));
+      Assert.assertEquals(getIndexName("bro"), results.get(i).getIndex());
+      Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
   }
 
   @Test
   public void find_one_guid() throws Exception {
     GetRequest request = JSONUtils.INSTANCE.load(findOneGuidQuery, GetRequest.class);
-    Optional<Map<String, Object>> response = dao.getLatestResult(request);
+    Optional<Map<String, Object>> response = getIndexDao().getLatestResult(request);
     Assert.assertTrue(response.isPresent());
     Map<String, Object> doc = response.get();
-    Assert.assertEquals("bro", doc.get("source:type"));
-    Assert.assertEquals(3, doc.get("timestamp"));
+    Assert.assertEquals("bro", doc.get(getSourceTypeField()));
+    Assert.assertEquals("3", doc.get("timestamp").toString());
   }
 
   @Test
@@ -466,34 +509,34 @@ public abstract class SearchIntegrationTest {
     List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new JSONUtils.ReferenceSupplier<List<GetRequest>>(){});
     Map<String, Document> docs = new HashMap<>();
 
-    for(Document doc : dao.getAllLatest(request)) {
+    for(Document doc : getIndexDao().getAllLatest(request)) {
       docs.put(doc.getGuid(), doc);
     }
     Assert.assertEquals(2, docs.size());
     Assert.assertTrue(docs.keySet().contains("bro_1"));
     Assert.assertTrue(docs.keySet().contains("snort_2"));
-    Assert.assertEquals("bro", docs.get("bro_1").getDocument().get("source:type"));
-    Assert.assertEquals("snort", docs.get("snort_2").getDocument().get("source:type"));
+    Assert.assertEquals("bro", docs.get("bro_1").getDocument().get(getSourceTypeField()));
+    Assert.assertEquals("snort", docs.get("snort_2").getDocument().get(getSourceTypeField()));
   }
 
   @Test
   public void filter_query_filters_results() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(filterQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(3, response.getTotal());
     List<SearchResult> results = response.getResults();
-    Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
-    Assert.assertEquals(9, results.get(0).getSource().get("timestamp"));
-    Assert.assertEquals("snort", results.get(1).getSource().get("source:type"));
-    Assert.assertEquals(7, results.get(1).getSource().get("timestamp"));
-    Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
-    Assert.assertEquals(1, results.get(2).getSource().get("timestamp"));
+    Assert.assertEquals("snort", results.get(0).getSource().get(getSourceTypeField()));
+    Assert.assertEquals("9", results.get(0).getSource().get("timestamp").toString());
+    Assert.assertEquals("snort", results.get(1).getSource().get(getSourceTypeField()));
+    Assert.assertEquals("7", results.get(1).getSource().get("timestamp").toString());
+    Assert.assertEquals("bro", results.get(2).getSource().get(getSourceTypeField()));
+    Assert.assertEquals("1", results.get(2).getSource().get("timestamp").toString());
   }
 
   @Test
   public void sort_query_sorts_results_ascending() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 8001; i < 8011; ++i) {
@@ -504,7 +547,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void sort_ascending_with_missing_fields() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortAscendingWithMissingFields, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(10, results.size());
@@ -515,21 +558,21 @@ public abstract class SearchIntegrationTest {
     }
 
     // validate sorted order - there are only 2 with a 'threat:triage:score'
-    Assert.assertEquals("10", results.get(8).getSource().get("threat:triage:score"));
-    Assert.assertEquals("20", results.get(9).getSource().get("threat:triage:score"));
+    Assert.assertEquals("10.0", results.get(8).getSource().get("threat:triage:score").toString());
+    Assert.assertEquals("20.0", results.get(9).getSource().get("threat:triage:score").toString());
   }
 
   @Test
   public void sort_descending_with_missing_fields() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortDescendingWithMissingFields, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(10, results.size());
 
     // validate sorted order - there are only 2 with a 'threat:triage:score'
-    Assert.assertEquals("20", results.get(0).getSource().get("threat:triage:score"));
-    Assert.assertEquals("10", results.get(1).getSource().get("threat:triage:score"));
+    Assert.assertEquals("20.0", results.get(0).getSource().get("threat:triage:score").toString());
+    Assert.assertEquals("10.0", results.get(1).getSource().get("threat:triage:score").toString());
 
     // the remaining are missing the 'threat:triage:score' and should be sorted last
     for (int i = 2; i < 10; i++) {
@@ -540,38 +583,39 @@ public abstract class SearchIntegrationTest {
   @Test
   public void results_are_paginated() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(paginationQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(3, results.size());
-    Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
-    Assert.assertEquals(6, results.get(0).getSource().get("timestamp"));
-    Assert.assertEquals("bro", results.get(1).getSource().get("source:type"));
-    Assert.assertEquals(5, results.get(1).getSource().get("timestamp"));
-    Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
-    Assert.assertEquals(4, results.get(2).getSource().get("timestamp"));
+    Assert.assertEquals("snort", results.get(0).getSource().get(getSourceTypeField()));
+    Assert.assertEquals("6", results.get(0).getSource().get("timestamp").toString());
+    Assert.assertEquals("bro", results.get(1).getSource().get(getSourceTypeField()));
+    Assert.assertEquals("5", results.get(1).getSource().get("timestamp").toString());
+    Assert.assertEquals("bro", results.get(2).getSource().get(getSourceTypeField()));
+    Assert.assertEquals("4", results.get(2).getSource().get("timestamp").toString());
   }
 
   @Test
   public void returns_results_only_for_specified_indices() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(indexQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(5, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 5, j = 0; i > 0; i--, j++) {
-      Assert.assertEquals("bro", results.get(j).getSource().get("source:type"));
-      Assert.assertEquals(i, results.get(j).getSource().get("timestamp"));
+      Assert.assertEquals("bro", results.get(j).getSource().get(getSourceTypeField()));
+      Assert.assertEquals(i + "", results.get(j).getSource().get("timestamp").toString());
     }
   }
 
   @Test
   public void facet_query_yields_field_types() throws Exception {
+    String facetQuery = facetQueryRaw.replace("source:type", getSourceTypeField());
     SearchRequest request = JSONUtils.INSTANCE.load(facetQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
     Assert.assertEquals(8, facetCounts.size());
-    Map<String, Long> sourceTypeCounts = facetCounts.get("source:type");
+    Map<String, Long> sourceTypeCounts = facetCounts.get(getSourceTypeField());
     Assert.assertEquals(2, sourceTypeCounts.size());
     Assert.assertEquals(new Long(5), sourceTypeCounts.get("bro"));
     Assert.assertEquals(new Long(5), sourceTypeCounts.get("snort"));
@@ -640,103 +684,67 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void bad_facet_query_throws_exception() throws Exception {
-    thrown.expect(InvalidSearchException.class);
-    thrown.expectMessage("Failed to execute search");
-    SearchRequest request = JSONUtils.INSTANCE.load(badFacetQuery, SearchRequest.class);
-    dao.search(request);
-  }
-
-  @Test
   public void disabled_facet_query_returns_null_count() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(disabledFacetQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertNull(response.getFacetCounts());
   }
 
   @Test
-  public void exceeding_max_resulsts_throws_exception() throws Exception {
+  public void missing_type_facet_query() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(missingTypeFacetQuery, SearchRequest.class);
+    SearchResponse response = getIndexDao().search(request);
+    Assert.assertEquals(10, response.getTotal());
+
+    Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
+    Assert.assertEquals(1, facetCounts.size());
+    Map<String, Long> snortFieldCounts = facetCounts.get("snort_field");
+    Assert.assertEquals(5, snortFieldCounts.size());
+
+    Assert.assertEquals(1L, snortFieldCounts.get("50").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("40").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("30").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("20").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("10").longValue());
+    response.getFacetCounts();
+  }
+
+  @Test
+  public void different_type_facet_query() throws Exception {
+    thrown.expect(Exception.class);
+    SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFacetQuery, SearchRequest.class);
+    SearchResponse response = getIndexDao().search(request);
+    Assert.assertEquals(3, response.getTotal());
+  }
+
+  @Test
+  public void exceeding_max_results_throws_exception() throws Exception {
     thrown.expect(InvalidSearchException.class);
     thrown.expectMessage("Search result size must be less than 100");
     SearchRequest request = JSONUtils.INSTANCE.load(exceededMaxResultsQuery, SearchRequest.class);
-    dao.search(request);
+    getIndexDao().search(request);
   }
 
   @Test
-  public void returns_column_data_for_multiple_indices() throws Exception {
-    Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
-    Assert.assertEquals(15, fieldTypes.size());
-    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
-    Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
-    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-    Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-    Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
-    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-    Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
-    Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-    //NOTE: This is because the field is in both bro and snort and they have different types.
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("duplicate_name_field"));
-    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
-  }
-
-  @Test
-  public void returns_column_metadata_for_specified_indices() throws Exception {
-    // getColumnMetadata with only bro
-    {
-      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
-      Assert.assertEquals(13, fieldTypes.size());
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
-      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-      Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
-      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
-      Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
-    }
-    // getColumnMetadata with only snort
-    {
-      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(14, fieldTypes.size());
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
-      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-      Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
-      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
-      Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
-    }
+  public void column_metadata_for_missing_index() throws Exception {
     // getColumnMetadata with an index that doesn't exist
     {
-      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("someindex"));
+      Map<String, FieldType> fieldTypes = getIndexDao().getColumnMetadata(Collections.singletonList("someindex"));
       Assert.assertEquals(0, fieldTypes.size());
     }
   }
 
+  @Test
+  public void no_results_returned_when_query_does_not_match() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(noResultsFieldsQuery, SearchRequest.class);
+    SearchResponse response = getIndexDao().search(request);
+    Assert.assertEquals(0, response.getTotal());
+  }
 
   @Test
   public void group_by_ip_query() throws Exception {
     GroupRequest request = JSONUtils.INSTANCE.load(groupByIpQuery, GroupRequest.class);
-    GroupResponse response = dao.group(request);
+    GroupResponse response = getIndexDao().group(request);
 
     // expect only 1 group for 'ip_src_addr'
     Assert.assertEquals("ip_src_addr", response.getGroupedBy());
@@ -757,17 +765,10 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void no_results_returned_when_query_does_not_match() throws Exception {
-    SearchRequest request = JSONUtils.INSTANCE.load(noResultsFieldsQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
-    Assert.assertEquals(0, response.getTotal());
-  }
-
-  @Test
   public void group_by_returns_results_in_groups() throws Exception {
     // Group by test case, default order is count descending
     GroupRequest request = JSONUtils.INSTANCE.load(groupByQuery, GroupRequest.class);
-    GroupResponse response = dao.group(request);
+    GroupResponse response = getIndexDao().group(request);
     Assert.assertEquals("is_alert", response.getGroupedBy());
     List<GroupResult> isAlertGroups = response.getGroupResults();
     Assert.assertEquals(2, isAlertGroups.size());
@@ -819,7 +820,7 @@ public abstract class SearchIntegrationTest {
   public void group_by_returns_results_in_sorted_groups() throws Exception {
     // Group by with sorting test case where is_alert is sorted by count ascending and ip_src_addr is sorted by term descending
     GroupRequest request = JSONUtils.INSTANCE.load(sortedGroupByQuery, GroupRequest.class);
-    GroupResponse response = dao.group(request);
+    GroupResponse response = getIndexDao().group(request);
     Assert.assertEquals("is_alert", response.getGroupedBy());
     List<GroupResult> isAlertGroups = response.getGroupResults();
     Assert.assertEquals(2, isAlertGroups.size());
@@ -896,18 +897,9 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void throws_exception_on_aggregation_queries_on_non_string_non_numeric_fields()
-          throws Exception {
-    thrown.expect(InvalidSearchException.class);
-    thrown.expectMessage("Failed to execute search");
-    GroupRequest request = JSONUtils.INSTANCE.load(badGroupQuery, GroupRequest.class);
-    dao.group(request);
-  }
-
-  @Test
   public void queries_fields() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 0; i < 5; ++i) {
@@ -925,7 +917,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void sort_by_guid() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortByGuidQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(5, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 0; i < 5; ++i) {
@@ -936,11 +928,20 @@ public abstract class SearchIntegrationTest {
   }
 
   @AfterClass
-  public static void stop() throws Exception {
+  public static void stop() {
     indexComponent.stop();
   }
 
-  protected abstract IndexDao createDao() throws Exception;
-  protected abstract InMemoryComponent startIndex() throws Exception;
-  protected abstract void loadTestData() throws Exception;
+  @Test
+  public abstract void returns_column_data_for_multiple_indices() throws Exception;
+  @Test
+  public abstract void returns_column_metadata_for_specified_indices() throws Exception;
+  @Test
+  public abstract void different_type_filter_query() throws Exception;
+
+  protected abstract IndexDao getIndexDao();
+
+  protected abstract String getSourceTypeField();
+
+  protected abstract String getIndexName(String sensorType);
 }
