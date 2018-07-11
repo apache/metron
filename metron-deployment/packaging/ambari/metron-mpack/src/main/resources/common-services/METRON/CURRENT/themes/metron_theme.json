@@ -221,7 +221,7 @@
                   "subsections": [
                     {
                       "name": "subsection-indexing-storm",
-                      "display-name": "Index Writer - Elasticsearch",
+                      "display-name": "Index Writer - Random Access",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
@@ -448,6 +448,10 @@
           "subsection-name": "subsection-index-settings"
         },
         {
+          "config": "metron-env/solr_zookeeper_url",
+          "subsection-name": "subsection-index-settings"
+        },
+        {
           "config": "metron-parsers-env/parsers",
           "subsection-name": "subsection-parsers"
         },
@@ -608,7 +612,7 @@
           "subsection-name": "subsection-indexing-update"
         },
         {
-          "config": "metron-indexing-env/ra_indexing_writer_class_name",
+          "config": "metron-indexing-env/ra_indexing_writer",
           "subsection-name": "subsection-indexing-storm"
         },
         {
@@ -852,6 +856,12 @@
       },
       {
         "config": "metron-env/es_date_format",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/solr_zookeeper_url",
         "widget": {
           "type": "text-field"
         }
@@ -1110,9 +1120,9 @@
         }
       },
       {
-        "config": "metron-indexing-env/ra_indexing_writer_class_name",
+        "config": "metron-indexing-env/ra_indexing_writer",
         "widget": {
-          "type": "text-field"
+          "type": "combo"
         }
       },
       {

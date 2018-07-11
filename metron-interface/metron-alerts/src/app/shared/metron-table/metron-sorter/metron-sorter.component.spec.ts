@@ -18,19 +18,21 @@
 /* tslint:disable:no-unused-variable */
 // directiveSelectorNameRule
 
-import {MetronSorterComponent} from './metron-sorter.component';
-import {MetronTableDirective} from '../metron-table.directive';
+import { ElementRef } from '@angular/core';
 
-describe('Component: MetronSorter', () => {
+import { MetronSorterComponent } from './metron-sorter.component';
+import { MetronTableDirective } from '../metron-table.directive';
 
-  it('should create an instance', () => {
-    let metronTable = new MetronTableDirective();
+describe('MetronSorterComponent', () => {
+
+  it('should be created', () => {
+    let metronTable = new MetronTableDirective(new ElementRef({}));
     let component = new MetronSorterComponent(metronTable);
     expect(component).toBeTruthy();
   });
 
   it('should set the variables according to sorter', () => {
-    let metronTable = new MetronTableDirective();
+    let metronTable = new MetronTableDirective(new ElementRef({}));
     let sorter1 = new MetronSorterComponent(metronTable);
     let sorter2 = new MetronSorterComponent(metronTable);
     let sorter3 = new MetronSorterComponent(metronTable);

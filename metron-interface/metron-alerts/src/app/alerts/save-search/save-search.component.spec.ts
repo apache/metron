@@ -18,6 +18,10 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SaveSearchComponent } from './save-search.component';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { SaveSearchService } from '../../service/save-search.service';
+import { MetronDialogBox } from '../../shared/metron-dialog-box';
 
 describe('SaveSearchComponent', () => {
   let component: SaveSearchComponent;
@@ -25,6 +29,14 @@ describe('SaveSearchComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [
+        FormsModule
+      ],
+      providers: [
+        MetronDialogBox,
+        { provide: Router, useValue: {} },
+        { provide: SaveSearchService, useValue: {} }
+      ],
       declarations: [ SaveSearchComponent ]
     })
     .compileComponents();
@@ -34,5 +46,9 @@ describe('SaveSearchComponent', () => {
     fixture = TestBed.createComponent(SaveSearchComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  it('should be created', () => {
+    expect(component).toBeTruthy();
   });
 });

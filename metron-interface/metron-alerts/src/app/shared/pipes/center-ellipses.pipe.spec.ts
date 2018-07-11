@@ -18,7 +18,7 @@
 import { CenterEllipsesPipe } from './center-ellipses.pipe';
 
 describe('CenterEllipsesPipe', () => {
-  it('create an instance', () => {
+  it('should be created', () => {
     const pipe = new CenterEllipsesPipe();
     expect(pipe).toBeTruthy();
   });

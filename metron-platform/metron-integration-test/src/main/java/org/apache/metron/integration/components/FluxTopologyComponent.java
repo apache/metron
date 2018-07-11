@@ -45,6 +45,7 @@ import org.apache.storm.flux.parser.FluxParser;
 import org.apache.storm.generated.KillOptions;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.thrift.TException;
+import org.apache.storm.thrift.protocol.TProtocolException;
 import org.apache.zookeeper.data.Stat;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -183,6 +184,14 @@ public class FluxTopologyComponent implements InMemoryComponent {
                       "I gave them the old one-two-skadoo and killed the slots with prejudice.  " +
                       "If tests fail, we'll have to find a better way of killing them.", ise);
             }
+        }
+        catch(RuntimeException re) {
+          if(re.getCause() instanceof TProtocolException) {
+            //let this go, it's some intermittent weirdness.
+          }
+          else {
+            throw re;
+          }
         }
       }
       catch(Throwable t) {

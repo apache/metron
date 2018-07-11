@@ -17,16 +17,29 @@
  */
 package org.apache.metron.rest.controller;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.google.common.collect.ImmutableMap;
+import java.util.NavigableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.HBaseDao;
-import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
+import org.apache.metron.indexing.dao.search.AlertComment;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.rest.service.UpdateService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,28 +51,17 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.util.NavigableMap;
-
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(TEST_PROFILE)
 public class UpdateControllerIntegrationTest extends DaoControllerTest {
   @Autowired
-  private UpdateService searchService;
+  private UpdateService updateService;
   @Autowired
   public CuratorFramework client;
 
@@ -72,6 +74,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
   private String searchUrl = "/api/v1/search";
   private String user = "user";
   private String password = "password";
+  private String metaAlertIndex = "metaalert_index";
 
   /**
    {
@@ -115,13 +118,37 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
   @Multiline
   public static String replace;
 
+  /**
+   {
+     "guid" : "bro_2",
+     "sensorType" : "bro",
+     "comment": "test_comment",
+     "username" : "test_username",
+     "timestamp":0
+   }
+   */
+  @Multiline
+  public static String addComment;
+
+  /**
+   {
+   "guid" : "bro_2",
+   "sensorType" : "bro",
+   "comment": "test_comment",
+   "username" : "test_username",
+   "timestamp":0
+   }
+   */
+  @Multiline
+  public static String removeComment;
+
   @Before
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     ImmutableMap<String, String> testData = ImmutableMap.of(
         "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
         "snort_index_2017.01.01.01", SearchIntegrationTest.snortData,
-        MetaAlertDao.METAALERTS_INDEX, MetaAlertControllerIntegrationTest.metaAlertData
+        metaAlertIndex, MetaAlertControllerIntegrationTest.metaAlertData
     );
     loadTestData(testData);
   }
@@ -191,4 +218,41 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
     }
   }
 
+  @Test
+  public void shouldAddComment() throws Exception {
+    CommentAddRemoveRequest commentAddRemoveRequest = new CommentAddRemoveRequest();
+    commentAddRemoveRequest.setGuid("bro_1");
+    commentAddRemoveRequest.setSensorType("bro");
+    commentAddRemoveRequest.setComment("test_comment");
+    commentAddRemoveRequest.setUsername("test_username");
+    commentAddRemoveRequest.setTimestamp(0L);
+
+    updateService.addComment(commentAddRemoveRequest);
+
+    ResultActions result = this.mockMvc.perform(
+        post(updateUrl + "/add/comment")
+            .with(httpBasic(user, password)).with(csrf())
+            .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
+            .content(addComment));
+    result.andExpect(status().isOk());
+  }
+
+  @Test
+  public void shouldRemoveComment() throws Exception {
+    CommentAddRemoveRequest commentAddRemoveRequest = new CommentAddRemoveRequest();
+    commentAddRemoveRequest.setGuid("bro_1");
+    commentAddRemoveRequest.setSensorType("bro");
+    commentAddRemoveRequest.setComment("test_comment");
+    commentAddRemoveRequest.setUsername("test_username");
+    commentAddRemoveRequest.setTimestamp(0L);
+
+    updateService.removeComment(commentAddRemoveRequest);
+
+    ResultActions result = this.mockMvc.perform(
+        post(updateUrl + "/remove/comment")
+            .with(httpBasic(user, password)).with(csrf())
+            .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
+            .content(removeComment));
+    result.andExpect(status().isOk());
+  }
 }
