@@ -159,13 +159,16 @@ Example Stellar Filter which includes messages which contain a the `field1` fiel
 ```
 * `sensorTopic` : The kafka topic to send the parsed messages to.  If the topic is prefixed and suffixed by `/` 
 then it is assumed to be a regex and will match any topic matching the pattern (e.g. `/bro.*/` would match `bro_cust0`, `bro_cust1` and `bro_cust2`)
-* `readMetadata` : Boolean indicating whether to read metadata or not (`false` by default).  See below for a discussion about metadata.
-* `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (`false` by default).  See below for a discussion about metadata.
+* `readMetadata` : Boolean indicating whether to read metadata or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
+* `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
+* `rawMessageStrategy` : The strategy to use when reading the raw data and metadata.  See below for a discussion about message reading strategies.
+* `rawMessageStrategyConfig` : The raw message strategy configuration map.  See below for a discussion about message reading strategies.
 * `parserConfig` : A JSON Map representing the parser implementation specific configuration. Also include batch sizing and timeout for writer configuration here.
   * `batchSize` : Integer indicating number of records to batch together before sending to the writer. (default to `15`)
   * `batchTimeout` : The timeout after which a batch will be flushed even if batchSize has not been met.  Optional.
     If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm
     parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
+  * The kafka writer can be configured within the parser config as well.  (This is all configured a priori, but this is convenient for overriding the settings).  See [here](../metron-writer/README.md#kafka-writer)
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
 * `spoutParallelism` : The kafka spout parallelism (default to `1`).  This can be overridden on the command line.
 * `spoutNumTasks` : The number of tasks for the spout (default to `1`). This can be overridden on the command line.
@@ -212,16 +215,33 @@ As such, there are two types of metadata that we seek to support in Metron:
    * At the moment, only the kafka topic is kept as the field name.
 * Custom metadata: Custom metadata from an individual telemetry source that one might want to use within Metron. 
 
-Metadata is controlled by two fields in the parser:
+Metadata is controlled by the following parser configs:
+* `rawMessageStrategy` : This is a strategy which indicates how to read
+  data and metadata.  The strategies supported are:
+  * `DEFAULT` : Data is read directly from the kafka record value and metadata, if any, is read from the kafka record key.  This strategy defaults to not reading metadata and not merging metadata.  This is the default strategy.
+  * `ENVELOPE` : Data from kafka record value is presumed to be a JSON blob. One of
+    these fields must contain the raw data to pass to the parser.  All other fields should be considered metadata.  The field containing the raw data is specified in the `rawMessageStrategyConfig`.  Data held in the kafka key as well as the non-data fields in the JSON blob passed into the kafka value are considered metadata. Note that the exception to this is that any `original_string` field is inherited from the envelope data so that the original string contains the envelope data.  If you do not prefer this behavior, remove this field from the envelope data.
+* `rawMessageStrategyConfig` : The configuration (a map) for the `rawMessageStrategy`.  Available configurations are strategy dependent:
+  * `DEFAULT` 
+    * `metadataPrefix` defines the key prefix for metadata (default is `metron.metadata`).
+  * `ENVELOPE` 
+    * `metadataPrefix` defines the key prefix for metadata (default is `metron.metadata`) 
+    * `messageField` defines the field from the envelope to use as the data.  All other fields are considered metadata.
 * `readMetadata` : This is a boolean indicating whether metadata will be read and made available to Field 
-transformations (i.e. Stellar field transformations).  The default is `false`.
-* `mergeMetadata` : This is a boolean indicating whether metadata fields will be merged with the message automatically.  
-That is to say, if this property is set to `true` then every metadata field will become part of the messages and, 
-consequently, also available for use in field transformations.
+transformations (i.e. Stellar field transformations).  The default is
+dependent upon the `rawMessageStrategy`:
+  * `DEFAULT` : default to `false`.
+  * `ENVELOPE` : default to `true`.
+* `mergeMetadata` : This is a boolean indicating whether metadata fields will be merged with the message automatically.  That is to say, if this property is set to `true` then every metadata field will become part of the messages and, consequently, also available for use in field transformations.  The default is dependent upon the `rawMessageStrategy`:
+  * `DEFAULT` : default to `false`.
+  * `ENVELOPE` : default to `true`.
+
+
 #### Field Naming
 
-In order to avoid collisions from metadata fields, metadata fields will be prefixed with `metron.metadata.`.  
-So, for instance the kafka topic would be in the field `metron.metadata.topic`.
+In order to avoid collisions from metadata fields, metadata fields will
+be prefixed (the default is `metron.metadata.`, but this is configurable
+in the `rawMessageStrategyConfig`).  So, for instance the kafka topic would be in the field `metron.metadata.topic`.
 
 #### Specifying Custom Metadata
 Custom metadata is specified by sending a JSON Map in the key.  If no key is sent, then, obviously, no metadata will be parsed.
@@ -335,6 +355,29 @@ The following config will rename the fields `old_field` and `different_old_field
                        }
           }
                       ]
+}
+```
+* `REGEX_SELECT` : This transformation lets users set an output field to one of a set of possibilities based on matching regexes. This transformation is useful when the number or conditions are large enough to make a stellar language match statement unwieldy.
+ 
+The following config will set the field `logical_source_type` to one of the
+following, dependent upon the value of the `pix_type` field:
+* `cisco-6-302` if `pix_type` starts with either `6-302` or `06-302`
+* `cisco-5-304` if `pix_type` starts with `5-304`
+```
+{
+...
+  "fieldTransformations" : [
+    {
+     "transformation" : "REGEX_ROUTING"
+    ,"input" :  "pix_type"
+    ,"output" :  "logical_source_type"
+    ,"config" : {
+      "cisco-6-302" : [ "^6-302.*", "^06-302.*"]
+      "cisco-5-304" : "^5-304.*"
+                }
+    }
+                           ]
+...  
 }
 ```
 
