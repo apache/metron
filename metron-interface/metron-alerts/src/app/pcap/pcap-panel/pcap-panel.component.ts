@@ -5,31 +5,33 @@ import { PcapRequest } from '../model/pcap.request'
 import { Pdml } from '../model/pdml'
 import {Subscription} from "rxjs/Rx";
 
+class Query {
+  id: String
+}
+
 @Component({
   selector: 'app-pcap-panel',
   templateUrl: './pcap-panel.component.html',
   styleUrls: ['./pcap-panel.component.scss']
 })
-export class PcapPanelComponent implements OnInit {
+export class PcapPanelComponent {
 
   @Input() pdml: Pdml = null;
-  
   @Input() pcapRequest: PcapRequest;
 
   statusSubscription: Subscription;
   queryRunning: boolean = false;
+  queryId: string;
   progressWidth: number = 0;
   
-  constructor(private pcapService: PcapService ) { }
-
-  ngOnInit() {
-  }
+  constructor(private pcapService: PcapService ) {}
 
   onSearch(pcapRequest) {
     console.log(pcapRequest);
     this.pdml = null;
     this.progressWidth = 0;
     this.pcapService.submitRequest(pcapRequest).subscribe(id => {
+      this.queryId = id;
       this.queryRunning = true;
       this.statusSubscription = this.pcapService.pollStatus(id).subscribe(status => {
         //console.log(this.statusSubscription.closed);
@@ -48,18 +50,9 @@ export class PcapPanelComponent implements OnInit {
         }
       });
     });
-
-    // this.pcapService.getTestPackets(this.pcapRequest).subscribe(response => {
-    //   this.pdml = response
-    // });
   }
-  
-  test(pcapRequest) {
-    console.log(pcapRequest);
-    this.pcapService.getTestPackets(this.pcapRequest).subscribe(response => {
-      this.pdml = response
-    })
-  }
-  
 
+  getDownloadUrl() {
+    return this.pcapService.getDownloadUrl(this.queryId);
+  }
 }
