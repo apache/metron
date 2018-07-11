@@ -87,7 +87,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     super(zookeeperUrl);
     this.sensorToComponentMap = sensorToComponentMap;
 
-    // TODO ensure this is a valid thing to enforce.
     // Ensure that all sensors are either bulk sensors or not bulk sensors.  Can't mix and match.
     Boolean handleAcks = null;
     for (Map.Entry<String, ParserComponents> entry : sensorToComponentMap.entrySet()) {
@@ -322,9 +321,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
           );
           message.put(Constants.SENSOR_TYPE, sensor);
 
-          if (sensorParserConfig.getMergeMetadata()) {
-            message.putAll(metadata);
-          }
           for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
             if (handler != null) {
               if (!sensorParserConfig.getMergeMetadata()) {
