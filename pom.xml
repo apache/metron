@@ -321,6 +321,7 @@
                         <exclude>**/*.rpm</exclude>
                         <exclude>site/**</exclude>
                         <exclude>**/src/main/resources/patterns/**</exclude>
+                        <exclude>**/src/test/resources/patterns/**</exclude>
                         <exclude>**/src/main/sample/patterns/**</exclude>
                         <exclude>**/src/test/resources/**</exclude>
                         <exclude>**/src/main/sample/data/**</exclude>

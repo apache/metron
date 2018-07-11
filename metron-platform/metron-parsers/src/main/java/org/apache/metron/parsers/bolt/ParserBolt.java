@@ -17,10 +17,8 @@
  */
 package org.apache.metron.parsers.bolt;
 
-import static org.apache.metron.common.Constants.METADATA_PREFIX;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
@@ -44,8 +42,9 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.common.message.metadata.RawMessage;
+import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
@@ -53,6 +52,7 @@ import org.apache.metron.parsers.topology.ParserComponents;
 import org.apache.metron.stellar.common.CachingStellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration;
 import org.apache.metron.writer.WriterToBulkWriter;
 import org.apache.metron.writer.bolt.BatchTimeoutHelper;
 import org.apache.storm.Config;
@@ -68,7 +68,7 @@ import org.slf4j.LoggerFactory;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
-  private static final int KEY_INDEX = 1;
+
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private OutputCollector collector;
   private Map<String, ParserComponents> sensorToComponentMap;
@@ -256,37 +256,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     StellarFunctions.initialize(stellarContext);
   }
 
-  private Map<String, Object> getMetadata(Tuple t, boolean readMetadata) {
-    Map<String, Object> ret = new HashMap<>();
-    if(!readMetadata) {
-      return ret;
-    }
-    Fields tupleFields = t.getFields();
-    for(int i = 2;i < tupleFields.size();++i) {
-      String envMetadataFieldName = tupleFields.get(i);
-      Object envMetadataFieldValue = t.getValue(i);
-      if(!StringUtils.isEmpty(envMetadataFieldName) && envMetadataFieldValue != null) {
-        ret.put(METADATA_PREFIX + envMetadataFieldName, envMetadataFieldValue);
-      }
-    }
-    byte[] keyObj = t.getBinary(KEY_INDEX);
-    String keyStr = null;
-    try {
-      keyStr = keyObj == null?null:new String(keyObj);
-      if(!StringUtils.isEmpty(keyStr)) {
-        Map<String, Object> metadata = JSONUtils.INSTANCE.load(keyStr,JSONUtils.MAP_SUPPLIER);
-        for(Map.Entry<String, Object> kv : metadata.entrySet()) {
-          ret.put(METADATA_PREFIX + kv.getKey(), kv.getValue());
-        }
-
-      }
-    } catch (IOException e) {
-        String reason = "Unable to parse metadata; expected JSON Map: " + (keyStr == null?"NON-STRING!":keyStr);
-        LOG.error(reason, e);
-        throw new IllegalStateException(reason, e);
-      }
-    return ret;
-  }
 
   @SuppressWarnings("unchecked")
   @Override
@@ -304,6 +273,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       }
       return;
     }
+
     byte[] originalMessage = (byte[]) messageGetStrategy.get(tuple);
     try {
       SensorParserConfig sensorParserConfig;
@@ -317,70 +287,91 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         sensor = sensorParser.getKey();
         parser = sensorParser.getValue().getMessageParser();
         sensorParserConfig = getSensorParserConfig(sensor);
-        metadata = getMetadata(tuple, sensorParserConfig.getReadMetadata());
       } else {
-        // There's multiple parsers, so derive it from the metadata
-        metadata = getMetadata(tuple, true);
-        String topic = (String) metadata.get(METADATA_PREFIX + "topic");
+        // There's multiple parsers, so pull the topic from the Tuple and look up the sensor
+        String topic = tuple.getStringByField(FieldsConfiguration.TOPIC.getFieldName());
         sensor = topicToSensorMap.get(topic);
         parser = sensorToComponentMap.get(sensor).getMessageParser();
         sensorParserConfig = getSensorParserConfig(sensor);
       }
 
       List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
-      Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
       boolean ackTuple = false;
       int numWritten = 0;
-      for (JSONObject message : messages.orElse(Collections.emptyList())) {
-        //we want to ack the tuple in the situation where we have are not doing a bulk write
-        //otherwise we want to defer to the writerComponent who will ack on bulk commit.
-        WriterHandler writer = sensorToComponentMap.get(sensor).getWriter();
-        ackTuple = !writer.handleAck();
+      if (sensorParserConfig != null) {
+        RawMessage rawMessage = RawMessageUtil.INSTANCE.getRawMessage( sensorParserConfig.getRawMessageStrategy()
+            , tuple
+            , originalMessage
+            , sensorParserConfig.getReadMetadata()
+            , sensorParserConfig.getRawMessageStrategyConfig()
+        );
+        metadata = rawMessage.getMetadata();
 
-        message.put(Constants.SENSOR_TYPE, sensor);
-        if (sensorParserConfig.getMergeMetadata()) {
-          message.putAll(metadata);
-        }
-        for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
-          if (handler != null) {
-            if (!sensorParserConfig.getMergeMetadata()) {
-              //if we haven't merged metadata, then we need to pass them along as configuration params.
-              handler
-                  .transformAndUpdate(message, stellarContext, sensorParserConfig.getParserConfig(),
-                      metadata);
+        Optional<List<JSONObject>> messages = parser.parseOptional(rawMessage.getMessage());
+        for (JSONObject message : messages.orElse(Collections.emptyList())) {
+          //we want to ack the tuple in the situation where we have are not doing a bulk write
+          //otherwise we want to defer to the writerComponent who will ack on bulk commit.
+          WriterHandler writer = sensorToComponentMap.get(sensor).getWriter();
+          ackTuple = !writer.handleAck();
+
+          sensorParserConfig.getRawMessageStrategy().mergeMetadata(
+              message,
+              metadata,
+              sensorParserConfig.getMergeMetadata(),
+              sensorParserConfig.getRawMessageStrategyConfig()
+          );
+          message.put(Constants.SENSOR_TYPE, sensor);
+
+          if (sensorParserConfig.getMergeMetadata()) {
+            message.putAll(metadata);
+          }
+          for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
+            if (handler != null) {
+              if (!sensorParserConfig.getMergeMetadata()) {
+                //if we haven't merged metadata, then we need to pass them along as configuration params.
+                handler.transformAndUpdate(
+                    message,
+                    stellarContext,
+                    sensorParserConfig.getParserConfig(),
+                    metadata
+                );
+              } else {
+                handler.transformAndUpdate(
+                    message,
+                    stellarContext,
+                    sensorParserConfig.getParserConfig()
+                );
+              }
+            }
+          }
+          if (!message.containsKey(Constants.GUID)) {
+            message.put(Constants.GUID, UUID.randomUUID().toString());
+          }
+
+          MessageFilter<JSONObject> filter = sensorToComponentMap.get(sensor).getFilter();
+          if (filter == null || filter.emitTuple(message, stellarContext)) {
+            boolean isInvalid = !parser.validate(message);
+            List<FieldValidator> failedValidators = null;
+            if (!isInvalid) {
+              failedValidators = getFailedValidators(message, fieldValidations);
+              isInvalid = !failedValidators.isEmpty();
+            }
+            if (isInvalid) {
+              MetronError error = new MetronError()
+                  .withErrorType(Constants.ErrorType.PARSER_INVALID)
+                  .withSensorType(Collections.singleton(sensor))
+                  .addRawMessage(message);
+              Set<String> errorFields = failedValidators == null ? null : failedValidators.stream()
+                  .flatMap(fieldValidator -> fieldValidator.getInput().stream())
+                  .collect(Collectors.toSet());
+              if (errorFields != null && !errorFields.isEmpty()) {
+                error.withErrorFields(errorFields);
+              }
+              ErrorUtils.handleError(collector, error);
             } else {
-              handler.transformAndUpdate(message, stellarContext,
-                  sensorParserConfig.getParserConfig());
+              numWritten++;
+              writer.write(sensor, tuple, message, getConfigurations(), messageGetStrategy);
             }
-          }
-        }
-        if (!message.containsKey(Constants.GUID)) {
-          message.put(Constants.GUID, UUID.randomUUID().toString());
-        }
-
-        MessageFilter<JSONObject> filter = sensorToComponentMap.get(sensor).getFilter();
-        if (filter == null || filter.emitTuple(message, stellarContext)) {
-          boolean isInvalid = !parser.validate(message);
-          List<FieldValidator> failedValidators = null;
-          if (!isInvalid) {
-            failedValidators = getFailedValidators(message, fieldValidations);
-            isInvalid = !failedValidators.isEmpty();
-          }
-          if (isInvalid) {
-            MetronError error = new MetronError()
-                .withErrorType(Constants.ErrorType.PARSER_INVALID)
-                .withSensorType(Collections.singleton(sensor))
-                .addRawMessage(message);
-            Set<String> errorFields = failedValidators == null ? null : failedValidators.stream()
-                .flatMap(fieldValidator -> fieldValidator.getInput().stream())
-                .collect(Collectors.toSet());
-            if (errorFields != null && !errorFields.isEmpty()) {
-              error.withErrorFields(errorFields);
-            }
-            ErrorUtils.handleError(collector, error);
-          } else {
-            numWritten++;
-            writer.write(sensor, tuple, message, getConfigurations(), messageGetStrategy);
           }
         }
       }

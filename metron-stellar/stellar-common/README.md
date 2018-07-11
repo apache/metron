@@ -886,10 +886,10 @@ Where:
   * Returns: The reduction of the list.
   
 ### `REGEXP_MATCH`
-  * Description: Determines whether a regex matches a string
+  * Description: Determines whether a regex matches a string.  If a list of patterns is passed, then the matching is an OR operation
   * Input:
     * string - The string to test
-    * pattern - The proposed regex pattern
+    * pattern - The proposed regex pattern or a list of patterns
   * Returns: True if the regex pattern matches the string and false if otherwise.
   
 ### `REGEXP_GROUP_VAL`
