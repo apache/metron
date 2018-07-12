@@ -19,52 +19,55 @@ package org.apache.metron.rest.model.pcap;
 
 // TODO reconcile with pcapmrjob
 
-public class PcapRequest {
+import org.apache.commons.collections4.map.AbstractMapDecorator;
+import org.apache.metron.pcap.ConfigOptions;
 
-  private String baseOutputPath;
-  private String basePath;
-  private Long startTime = 0L;
-  private Long endTime = System.currentTimeMillis();
-  private Integer numReducers = 1;
+public class PcapRequest extends AbstractMapDecorator<String, Object> {
+
+  public PcapRequest() {
+    setStartTime(0L);
+    setEndTime(System.currentTimeMillis());
+    setNumReducers(1);
+  }
 
   public String getBaseOutputPath() {
-    return baseOutputPath;
+    return ConfigOptions.INTERRIM_RESULT_PATH.get(this, String.class);
   }
 
   public void setBaseOutputPath(String baseOutputPath) {
-    this.baseOutputPath = baseOutputPath;
+    ConfigOptions.INTERRIM_RESULT_PATH.put(this, baseOutputPath);
   }
 
   public String getBasePath() {
-    return basePath;
+    return ConfigOptions.BASE_PATH.get(this, String.class);
   }
 
   public void setBasePath(String basePath) {
-    this.basePath = basePath;
+    ConfigOptions.BASE_PATH.put(this, basePath);
   }
 
   public Long getStartTime() {
-    return startTime;
+    return ConfigOptions.START_TIME.get(this, Long.class);
   }
 
   public void setStartTime(Long startTime) {
-    this.startTime = startTime;
+    ConfigOptions.START_TIME.put(this, startTime);
   }
 
   public Long getEndTime() {
-    return endTime;
+    return ConfigOptions.END_TIME.get(this, Long.class);
   }
 
   public void setEndTime(Long endTime) {
-    this.endTime = endTime;
+    ConfigOptions.END_TIME.put(this, endTime);
   }
 
   public Integer getNumReducers() {
-    return numReducers;
+    return ConfigOptions.NUM_REDUCERS.get(this, Integer.class);
   }
 
   public void setNumReducers(Integer numReducers) {
-    this.numReducers = numReducers;
+    ConfigOptions.NUM_REDUCERS.put(this, numReducers);
   }
 
   @Override

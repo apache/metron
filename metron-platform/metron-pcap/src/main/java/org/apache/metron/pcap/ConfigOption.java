@@ -16,22 +16,30 @@
  * limitations under the License.
  */
 
-package org.apache.metron.pcap.finalizer;
+package org.apache.metron.pcap;
 
 import java.util.Map;
-import org.apache.hadoop.fs.Path;
-import org.apache.metron.pcap.ConfigOptions;
+import java.util.function.BiFunction;
 
-/**
- * Write to local FS.
- */
-public class PcapCliFinalizer extends PcapFinalizer {
-
-  @Override
-  protected String getOutputFileName(Map<String, Object> config, int partition) {
-    Path finalOutputPath = ConfigOptions.FINAL_OUTPUT_PATH.getTransformed(config, Path.class);
-    String prefix = ConfigOptions.FINAL_FILENAME_PREFIX.get(config, String.class);
-    return String.format("%s/pcap-data-%s+%04d.pcap", finalOutputPath, prefix, partition);
+public interface ConfigOption {
+  String getKey();
+  default BiFunction<String, Object, Object> transform() {
+    return (s,o) -> o;
   }
 
+  default void put(Map<String, Object> map, Object value) {
+    map.put(getKey(), value);
+  }
+
+  default <T> T get(Map<String, Object> map, Class<T> clazz) {
+    return clazz.cast(map.get(getKey()));
+  }
+
+  default <T> T get(Map<String, Object> map, BiFunction<String, Object, T> transform, Class<T> clazz) {
+    return clazz.cast(map.get(getKey()));
+  }
+
+  default <T> T getTransformed(Map<String, Object> map, Class<T> clazz) {
+    return clazz.cast(transform().apply(getKey(), map.get(getKey())));
+  }
 }

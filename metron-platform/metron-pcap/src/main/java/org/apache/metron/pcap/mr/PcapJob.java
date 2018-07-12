@@ -56,6 +56,7 @@ import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.JobStatus.State;
 import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
+import org.apache.metron.pcap.ConfigOptions;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
@@ -198,7 +199,7 @@ public class PcapJob<T> implements Statusable<Path> {
   /**
    * Primarily for testing.
    *
-   * @param interval time in milllis
+   * @param interval time in millis
    */
   public void setCompleteCheckInterval(long interval) {
     completeCheckInterval = interval;
@@ -209,18 +210,16 @@ public class PcapJob<T> implements Statusable<Path> {
       throws JobException {
     this.finalizer = finalizer;
     this.configuration = configuration;
-    Optional<String> jobName = Optional.ofNullable((String) configuration.get("jobName"));
-    Configuration hadoopConf = (Configuration) configuration.get("hadoopConf");
-    FileSystem fileSystem = (FileSystem) configuration.get("fileSystem");
-    Path basePath = (Path) configuration.get("basePath");
-    Path baseInterimResultPath = (Path) configuration.get("baseInterimResultPath");
-    long startTime = (long) configuration.get("beginNS");
-    long endTime = (long) configuration.get("endNS");
-    int numReducers = (int) configuration.get("numReducers");
-    T fields = (T) configuration.get("fields");
-    PcapFilterConfigurator<T> filterImpl = (PcapFilterConfigurator<T>) configuration.get("filterImpl");
-    int numRecordsPerFile = (int) configuration.get("numRecordsPerFile");
-    String finalFilenamePrefix = (String) configuration.get("finalFilenamePrefix");
+    Optional<String> jobName = Optional.ofNullable(ConfigOptions.JOB_NAME.get(configuration, String.class));
+    Configuration hadoopConf = ConfigOptions.HADOOP_CONF.get(configuration, Configuration.class);
+    FileSystem fileSystem = ConfigOptions.FILESYSTEM.get(configuration, FileSystem.class);
+    Path basePath = ConfigOptions.BASE_PATH.getTransformed(configuration, Path.class);
+    Path baseInterimResultPath = ConfigOptions.INTERRIM_RESULT_PATH.getTransformed(configuration, Path.class);
+    long startTime = ConfigOptions.START_TIME_NS.get(configuration, Long.class);
+    long endTime = ConfigOptions.END_TIME_NS.get(configuration, Long.class);
+    int numReducers = ConfigOptions.NUM_REDUCERS.get(configuration, Integer.class);
+    T fields = (T) ConfigOptions.FIELDS.get(configuration, Object.class);
+    PcapFilterConfigurator<T> filterImpl = ConfigOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
 
     try {
       return query(jobName,
