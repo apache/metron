@@ -27,8 +27,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <node.version>v9.11.1</node.version>
         <npm.version>5.8.0</npm.version>
-        <maven.test.skip>false</maven.test.skip>
-        <skipTests>${maven.test.skip}</skipTests>
     </properties>
     <dependencies>
     </dependencies>
@@ -80,7 +78,6 @@
                         </goals>
                         <configuration>
                             <arguments>test</arguments>
-                            <skip>${skipTests}</skip>
                         </configuration>
                     </execution>
                 </executions>
