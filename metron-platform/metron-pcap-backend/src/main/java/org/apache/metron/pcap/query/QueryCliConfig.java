@@ -17,18 +17,19 @@
  */
 package org.apache.metron.pcap.query;
 
+import org.apache.metron.pcap.ConfigOptions;
+
 public class QueryCliConfig extends CliConfig {
-  private String query;
 
   public QueryCliConfig(PrefixStrategy prefixStrategy) {
     super(prefixStrategy);
   }
 
   public String getQuery() {
-    return query;
+    return ConfigOptions.FIELDS.get(this, String.class);
   }
 
   public void setQuery(String query) {
-    this.query = query;
+    ConfigOptions.FIELDS.put(this, query);
   }
 }
