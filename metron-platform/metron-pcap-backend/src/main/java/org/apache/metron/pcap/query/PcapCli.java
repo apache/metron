@@ -134,6 +134,9 @@ public class PcapCli {
       long startTime = time.getLeft();
       long endTime = time.getRight();
 
+      //TODO: Figure out how to do jobname here..it's missing.
+      //TODO: Figure out how to do final prefix filename here, it's missing, I think.
+
       ConfigOptions.START_TIME_NS.put(commonConfig, startTime);
       ConfigOptions.END_TIME_NS.put(commonConfig, endTime);
       ConfigOptions.FILTER_IMPL.put(commonConfig, new FixedPcapFilter.Configurator());
