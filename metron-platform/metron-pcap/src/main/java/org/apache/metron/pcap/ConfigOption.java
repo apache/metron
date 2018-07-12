@@ -2,7 +2,6 @@ package org.apache.metron.pcap;
 
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public interface ConfigOption {
   String getKey();
@@ -15,6 +14,10 @@ public interface ConfigOption {
   }
 
   default <T> T get(Map<String, Object> map, Class<T> clazz) {
+    return clazz.cast(map.get(getKey()));
+  }
+
+  default <T> T get(Map<String, Object> map, BiFunction<String, Object, T> transform, Class<T> clazz) {
     return clazz.cast(map.get(getKey()));
   }
 

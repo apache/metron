@@ -20,6 +20,7 @@ package org.apache.metron.pcap.finalizer;
 
 import java.util.Map;
 import org.apache.hadoop.fs.Path;
+import org.apache.metron.pcap.ConfigOptions;
 
 /**
  * Write to local FS.
@@ -28,8 +29,8 @@ public class PcapCliFinalizer extends PcapFinalizer {
 
   @Override
   protected String getOutputFileName(Map<String, Object> config, int partition) {
-    Path finalOutputPath = (Path) PcapFinalizerOptions.FINAL_OUTPUT_PATH.get(config);
-    String prefix = (String) config.get("finalFilenamePrefix");
+    Path finalOutputPath = ConfigOptions.FINAL_OUTPUT_PATH.getTransformed(config, Path.class);
+    String prefix = ConfigOptions.FINAL_FILENAME_PREFIX.get(config, String.class);
     return String.format("%s/pcap-data-%s+%04d.pcap", finalOutputPath, prefix, partition);
   }
 

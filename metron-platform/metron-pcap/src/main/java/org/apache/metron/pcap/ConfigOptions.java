@@ -22,6 +22,8 @@ public enum ConfigOptions implements ConfigOption {
   HADOOP_CONF("hadoopConf"),
   FILESYSTEM("fileSystem")
   ;
+
+  public static final BiFunction<String, Object, Path> STRING_TO_PATH = (s,o) ->  o == null?null:new Path(o.toString());
   String key;
   BiFunction<String, Object, Object> transform = (s, o) -> o;
 

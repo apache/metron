@@ -199,7 +199,7 @@ public class PcapJob<T> implements Statusable<Path> {
   /**
    * Primarily for testing.
    *
-   * @param interval time in milllis
+   * @param interval time in millis
    */
   public void setCompleteCheckInterval(long interval) {
     completeCheckInterval = interval;
@@ -220,8 +220,6 @@ public class PcapJob<T> implements Statusable<Path> {
     int numReducers = ConfigOptions.NUM_REDUCERS.get(configuration, Integer.class);
     T fields = (T) ConfigOptions.FIELDS.get(configuration, Object.class);
     PcapFilterConfigurator<T> filterImpl = ConfigOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
-    int numRecordsPerFile = ConfigOptions.NUM_RECORDS_PER_FILE.get(configuration, Integer.class);
-    String finalFilenamePrefix = ConfigOptions.FINAL_FILENAME_PREFIX.get(configuration, String.class);
 
     try {
       return query(jobName,

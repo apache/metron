@@ -18,12 +18,6 @@
 
 package org.apache.metron.pcap.finalizer;
 
-import static org.apache.metron.pcap.finalizer.PcapFinalizer.PcapFinalizerOptions.FILE_SYSTEM;
-import static org.apache.metron.pcap.finalizer.PcapFinalizer.PcapFinalizerOptions.FINAL_OUTPUT_PATH;
-import static org.apache.metron.pcap.finalizer.PcapFinalizer.PcapFinalizerOptions.HADOOP_CONF;
-import static org.apache.metron.pcap.finalizer.PcapFinalizer.PcapFinalizerOptions.INTERIM_RESULTS_PATH;
-import static org.apache.metron.pcap.finalizer.PcapFinalizer.PcapFinalizerOptions.NUM_RECORDS_PER_FILE;
-
 import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -48,29 +42,6 @@ import org.slf4j.LoggerFactory;
 
 public abstract class PcapFinalizer implements Finalizer<Path> {
 
-  //TODO: Move this into the config object
-  public enum PcapFinalizerOptions {
-    HADOOP_CONF("hadoopConf"),
-    NUM_RECORDS_PER_FILE("numRecordsPerFile"),
-    INTERIM_RESULTS_PATH("interimResultsPath"),
-    FINAL_OUTPUT_PATH("finalOutputPath"),
-    FILE_SYSTEM("fileSystem");
-
-    private String optionName;
-
-    PcapFinalizerOptions(String optionName) {
-      this.optionName = optionName;
-    }
-
-    public boolean has(Map<String, Object> config) {
-      return config.containsKey(optionName);
-    }
-
-    public Object get(Map<String, Object> config) {
-      return config.get(optionName);
-    }
-  }
-
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private PcapResultsWriter resultsWriter;
 
@@ -86,8 +57,8 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
   public Pageable<Path> finalizeJob(Map<String, Object> config) throws JobException {
     Configuration hadoopConfig = ConfigOptions.HADOOP_CONF.get(config, Configuration.class);
     int recPerFile = ConfigOptions.NUM_RECORDS_PER_FILE.get(config, Integer.class);
-    Path interimResultPath = ConfigOptions.INTERRIM_RESULT_PATH.getTransformed(config, Path.class);
-    Path finalOutputPath = ConfigOptions.FINAL_OUTPUT_PATH.getTransformed(config, Path.class);
+    Path interimResultPath = ConfigOptions.INTERRIM_RESULT_PATH.get(config, ConfigOptions.STRING_TO_PATH, Path.class);
+    Path finalOutputPath = ConfigOptions.FINAL_OUTPUT_PATH.get(config, ConfigOptions.STRING_TO_PATH, Path.class);
     FileSystem fs = ConfigOptions.FILESYSTEM.get(config, FileSystem.class);
 
     SequenceFileIterable interimResults = null;
