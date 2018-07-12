@@ -37,7 +37,6 @@ install:
 
 script:
   - time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests && time mvn -q test --projects metron-interface/metron-config && time dev-utilities/build-utils/verify_licenses.sh
-  - cat /home/travis/build/apache/metron/metron-interface/metron-alerts/target/rat.txt
 
 before_cache:
   - rm -rf $HOME/.m2/repository/org/apache/metron
