@@ -30,7 +30,10 @@ import org.apache.hadoop.fs.Path;
 public class HDFSUtils {
 
   public static byte[] readBytes(String path) throws IOException {
-    Path inPath = new Path(path);
+    return readBytes(new Path(path));
+  }
+
+  public static byte[] readBytes(Path inPath) throws IOException {
     FileSystem fs = FileSystem.get(inPath.toUri(), new Configuration());
     FSDataInputStream inputStream = fs.open(inPath);
     return IOUtils.toByteArray(inputStream);
