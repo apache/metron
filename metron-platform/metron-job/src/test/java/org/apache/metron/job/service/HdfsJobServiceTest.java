@@ -18,18 +18,14 @@
 
 package org.apache.metron.job.service;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.job.Statusable.JobType;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -47,7 +43,6 @@ public class HdfsJobServiceTest {
   private String jobId1;
   private String jobId2;
   private String basePath;
-  private HdfsJobService js;
 
   @Before
   public void setup() {
@@ -60,10 +55,8 @@ public class HdfsJobServiceTest {
     basePath = tempDir.getRoot().getAbsolutePath();
     Map<String, Object> config = new HashMap<>();
     config.put("basePath", basePath);
-    js = new HdfsJobService();
-    js.configure(config);
   }
-
+/*
   @Test
   public void adds_jobs() {
     js.add(job1, username, jobId1);
@@ -113,5 +106,5 @@ public class HdfsJobServiceTest {
     assertThat("File should exist", jobFile.exists(), equalTo(true));
     assertThat("File should be a file", jobFile.isFile(), equalTo(true));
   }
-
+*/
 }

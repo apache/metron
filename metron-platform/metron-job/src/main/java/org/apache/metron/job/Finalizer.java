@@ -16,11 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.metron.job.writer;
+package org.apache.metron.job;
 
-import java.util.function.Function;
-import org.apache.metron.common.system.Clock;
+import java.util.Map;
 
-public interface PrefixStrategy extends Function<Clock, String> {
+/**
+ * Finalize a job.
+ *
+ * @param <PAGE_T> Type for the Pageable.
+ */
+public interface Finalizer<PAGE_T> {
+
+  /**
+   * Run any routines for finalizing a job.
+   *
+   * @param config options to be used by the finalization process.
+   * @return Pageable results.
+   */
+  Pageable<PAGE_T> finalizeJob(Map<String, Object> config) throws JobException;
 
 }

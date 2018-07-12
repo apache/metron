@@ -35,4 +35,11 @@ public interface Pageable<T> {
    */
   T getPage(int num);
 
+  /**
+   * Number of pages i this Pageable.
+   *
+   * @return number of pages
+   */
+  int getSize();
+
 }

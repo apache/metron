@@ -16,38 +16,27 @@
  * limitations under the License.
  */
 
-package org.apache.metron.job.service;
+package org.apache.metron.pcap.finalizer;
 
 import java.util.Map;
 import org.apache.hadoop.fs.Path;
-import org.apache.metron.job.Statusable;
+import org.apache.metron.job.Finalizer;
+import org.apache.metron.job.JobException;
+import org.apache.metron.job.Pageable;
 
-public enum JobServiceStrategies implements JobService<Path> {
-  HDFS(new HdfsJobService());
+public enum PcapFinalizerStrategies implements Finalizer<Path> {
+  CLI(new PcapCliFinalizer()),
+  REST(new PcapRestFinalizer());
 
-  private JobService<Path> jobService;
+  private Finalizer<Path> finalizer;
 
-  JobServiceStrategies(JobService<Path> jobService) {
-    this.jobService = jobService;
+  PcapFinalizerStrategies(Finalizer<Path> finalizer) {
+    this.finalizer = finalizer;
   }
 
   @Override
-  public void configure(Map<String, Object> config) {
-    jobService.configure(config);
+  public Pageable<Path> finalizeJob(Map<String, Object> config) throws JobException {
+    return finalizer.finalizeJob(config);
   }
 
-  @Override
-  public void add(Statusable<Path> job, String username, String jobId) {
-    jobService.add(job, username, jobId);
-  }
-
-  @Override
-  public boolean jobExists(String username, String jobId) {
-    return jobService.jobExists(username, jobId);
-  }
-
-  @Override
-  public Statusable<Path> getJob(String username, String jobId) {
-    return jobService.getJob(username, jobId);
-  }
 }

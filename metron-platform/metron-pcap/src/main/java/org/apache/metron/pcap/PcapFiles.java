@@ -39,4 +39,9 @@ public class PcapFiles implements Pageable<Path> {
   public Path getPage(int num) {
     return files.get(num);
   }
+
+  @Override
+  public int getSize() {
+    return files.size();
+  }
 }

@@ -29,6 +29,7 @@ public class JobStatus {
     NOT_RUNNING,
     RUNNING,
     SUCCEEDED,
+    FINALIZING,
     FAILED,
     KILLED
   }

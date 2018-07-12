@@ -19,12 +19,8 @@
 package org.apache.metron.pcap;
 
 import static java.lang.Long.toUnsignedString;
-import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -39,8 +35,10 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
+import org.apache.metron.job.Finalizer;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.JobStatus.State;
+import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
@@ -59,28 +57,59 @@ public class PcapJobTest {
   private org.apache.hadoop.mapreduce.JobStatus mrStatus;
   @Mock
   private JobID jobId;
+  @Mock
+  private Finalizer<Path> finalizer;
+  @Mock
+  private Pageable<Path> pageableResult;
+  private Map<String, Object> config;
+  private Configuration hadoopConfig;
+  private FileSystem fileSystem;
   private String jobIdVal = "job_abc_123";
   private Path basePath;
   private Path baseOutPath;
   private long startTime;
   private long endTime;
   private int numReducers;
+  private int numRecordsPerFile;
+  private Path finalOutputPath;
+  private String prefix;
   private Map<String, String> fixedFields;
-  private Configuration hadoopConfig;
+  private PcapJob<Map<String, String>> testJob;
+
 
   @Before
-  public void setup() {
+  public void setup() throws IOException {
     MockitoAnnotations.initMocks(this);
     basePath = new Path("basepath");
     baseOutPath = new Path("outpath");
     startTime = 100;
     endTime = 200;
     numReducers = 5;
+    numRecordsPerFile = 5;
     fixedFields = new HashMap<>();
     fixedFields.put("ip_src_addr", "192.168.1.1");
     hadoopConfig = new Configuration();
+    fileSystem = FileSystem.get(hadoopConfig);
+    finalOutputPath = new Path("finaloutpath");
+    prefix = "someprefix";
     when(jobId.toString()).thenReturn(jobIdVal);
     when(mrStatus.getJobID()).thenReturn(jobId);
+    config = new HashMap<>();
+    config.put("hadoopConf", hadoopConfig);
+    config.put("fileSystem", FileSystem.get(hadoopConfig));
+    config.put("basePath", basePath);
+    config.put("baseInterimResultPath", baseOutPath);
+    config.put("beginNS", startTime);
+    config.put("endNS", endTime);
+    config.put("numReducers", numReducers);
+    config.put("fields", fixedFields);
+    config.put("filterImpl", new FixedPcapFilter.Configurator());
+    config.put("numRecordsPerFile", numRecordsPerFile);
+    config.put("finalOutputPath", finalOutputPath);
+    config.put("finalFilenamePrefix", prefix);
+    testJob = new TestJob<>();
+    testJob.setStatusInterval(10);
+    testJob.setCompleteCheckInterval(10);
   }
 
   @Test
@@ -98,11 +127,18 @@ public class PcapJobTest {
         equalTo(8));
   }
 
-  private class TestJob extends PcapJob {
+  private class TestJob<T> extends PcapJob<T> {
 
     @Override
-    public <T> Job createJob(Optional<String> jobName, Path basePath, Path outputPath, long beginNS, long endNS,
-        int numReducers, T fields, Configuration conf, FileSystem fs,
+    public Job createJob(Optional<String> jobName,
+        Path basePath,
+        Path outputPath,
+        long beginNS,
+        long endNS,
+        int numReducers,
+        T fields,
+        Configuration conf,
+        FileSystem fs,
         PcapFilterConfigurator<T> filterImpl) throws IOException {
       return job;
     }
@@ -110,30 +146,18 @@ public class PcapJobTest {
 
   @Test
   public void job_succeeds_synchronously() throws Exception {
+    when(pageableResult.getSize()).thenReturn(3);
+    when(finalizer.finalizeJob(any())).thenReturn(pageableResult);
     when(job.isComplete()).thenReturn(true);
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
     when(job.getStatus()).thenReturn(mrStatus);
-    TestJob testJob = new TestJob();
-    Statusable statusable = testJob.query(
-        Optional.empty(),
-        basePath,
-        baseOutPath,
-        startTime,
-        endTime,
-        numReducers,
-        fixedFields,
-        hadoopConfig,
-        FileSystem.get(hadoopConfig),
-        new FixedPcapFilter.Configurator(),
-        true);
-    verify(job, times(1)).waitForCompletion(true);
+    Statusable<Path> statusable = testJob.submit(finalizer, config);
+    Pageable<Path> results = statusable.get();
+    Assert.assertThat(results.getSize(), equalTo(3));
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
     Assert.assertThat(status.getJobId(), equalTo(jobIdVal));
-    String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
-    Assert.assertThat(status.getInterimResultPath(), notNullValue());
-    Assert.assertThat(status.getInterimResultPath().toString(), startsWith(expectedOutPath));
   }
 
   @Test
@@ -141,25 +165,12 @@ public class PcapJobTest {
     when(job.isComplete()).thenReturn(true);
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.FAILED);
     when(job.getStatus()).thenReturn(mrStatus);
-    TestJob testJob = new TestJob();
-    Statusable statusable = testJob.query(
-        Optional.empty(),
-        basePath,
-        baseOutPath,
-        startTime,
-        endTime,
-        numReducers,
-        fixedFields,
-        hadoopConfig,
-        FileSystem.get(hadoopConfig),
-        new FixedPcapFilter.Configurator(),
-        true);
+    Statusable<Path> statusable = testJob.submit(finalizer, config);
+    Pageable<Path> results = statusable.get();
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.FAILED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
-    String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
-    Assert.assertThat(status.getInterimResultPath(), notNullValue());
-    Assert.assertThat(status.getInterimResultPath().toString(), startsWith(expectedOutPath));
+    Assert.assertThat(results, equalTo(null));
   }
 
   @Test
@@ -167,25 +178,12 @@ public class PcapJobTest {
     when(job.isComplete()).thenReturn(true);
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.KILLED);
     when(job.getStatus()).thenReturn(mrStatus);
-    TestJob testJob = new TestJob();
-    Statusable statusable = testJob.query(
-        Optional.empty(),
-        basePath,
-        baseOutPath,
-        startTime,
-        endTime,
-        numReducers,
-        fixedFields,
-        hadoopConfig,
-        FileSystem.get(hadoopConfig),
-        new FixedPcapFilter.Configurator(),
-        true);
+    Statusable<Path> statusable = testJob.submit(finalizer, config);
+    Pageable<Path> results = statusable.get();
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.KILLED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
-    String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
-    Assert.assertThat(status.getInterimResultPath(), notNullValue());
-    Assert.assertThat(status.getInterimResultPath().toString(), startsWith(expectedOutPath));
+    Assert.assertThat(results, equalTo(null));
   }
 
   @Test
@@ -193,25 +191,11 @@ public class PcapJobTest {
     when(job.isComplete()).thenReturn(true);
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
     when(job.getStatus()).thenReturn(mrStatus);
-    TestJob testJob = new TestJob();
-    Statusable statusable = testJob.query(
-        Optional.empty(),
-        basePath,
-        baseOutPath,
-        startTime,
-        endTime,
-        numReducers,
-        fixedFields,
-        hadoopConfig,
-        FileSystem.get(hadoopConfig),
-        new FixedPcapFilter.Configurator(),
-        false);
+    Statusable<Path> statusable = testJob.submit(finalizer, config);
+    while(!statusable.isDone()) {}
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
-    String expectedOutPath = new Path(baseOutPath, format("%s_%s_%s", startTime, endTime, "192.168.1.1")).toString();
-    Assert.assertThat(status.getInterimResultPath(), notNullValue());
-    Assert.assertThat(status.getInterimResultPath().toString(), startsWith(expectedOutPath));
   }
 
   @Test
@@ -219,19 +203,7 @@ public class PcapJobTest {
     when(job.isComplete()).thenReturn(false);
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.RUNNING);
     when(job.getStatus()).thenReturn(mrStatus);
-    TestJob testJob = new TestJob();
-    Statusable statusable = testJob.query(
-        Optional.empty(),
-        basePath,
-        baseOutPath,
-        startTime,
-        endTime,
-        numReducers,
-        fixedFields,
-        hadoopConfig,
-        FileSystem.get(hadoopConfig),
-        new FixedPcapFilter.Configurator(),
-        false);
+    Statusable<Path> statusable = testJob.submit(finalizer, config);
     when(job.mapProgress()).thenReturn(0.5f);
     when(job.reduceProgress()).thenReturn(0f);
     JobStatus status = statusable.getStatus();

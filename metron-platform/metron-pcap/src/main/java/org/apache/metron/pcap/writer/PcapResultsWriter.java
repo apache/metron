@@ -22,42 +22,19 @@ import java.io.IOException;
 import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.common.utils.HDFSUtils;
-import org.apache.metron.job.writer.ResultsWriter;
 import org.apache.metron.pcap.PcapMerger;
 
-public class PcapResultsWriter implements ResultsWriter<byte[]> {
-
-  private Configuration config;
-
-  /**
-   * Creates default hadoop configuration.
-   */
-  public PcapResultsWriter() {
-    this.config = new Configuration();
-  }
-
-  /**
-   * Pass in hadoop config
-   *
-   * @param config Standard hadoop filesystem config.
-   */
-  public PcapResultsWriter(Configuration config) {
-    this.config = config;
-  }
-
-  public void withConfiguration(Configuration config) {
-    this.config = config;
-  }
+public class PcapResultsWriter {
 
   /**
    * Write out pcaps. Configuration offers ability to configure for HDFS or local FS, if desired.
    *
+   * @param config Standard hadoop filesystem config.
    * @param pcaps pcap data to write. Pre-merged format as a list of pcaps as byte arrays.
    * @param outPath where to write the pcap data to.
    * @throws IOException I/O issue encountered.
    */
-  @Override
-  public void write(List<byte[]> pcaps, String outPath) throws IOException {
+  public void write(Configuration config, List<byte[]> pcaps, String outPath) throws IOException {
     HDFSUtils.write(config, mergePcaps(pcaps), outPath);
   }
 
@@ -68,7 +45,7 @@ public class PcapResultsWriter implements ResultsWriter<byte[]> {
    * @return merged result.
    * @throws IOException I/O issue encountered.
    */
-  protected byte[] mergePcaps(List<byte[]> pcaps) throws IOException {
+  public byte[] mergePcaps(List<byte[]> pcaps) throws IOException {
     if (pcaps == null) {
       return new byte[]{};
     }
@@ -79,5 +56,4 @@ public class PcapResultsWriter implements ResultsWriter<byte[]> {
     PcapMerger.merge(baos, pcaps);
     return baos.toByteArray();
   }
-
 }

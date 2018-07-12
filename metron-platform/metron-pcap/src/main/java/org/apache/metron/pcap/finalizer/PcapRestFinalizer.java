@@ -16,20 +16,20 @@
  * limitations under the License.
  */
 
-package org.apache.metron.job.writer;
+package org.apache.metron.pcap.finalizer;
 
-import java.io.IOException;
-import java.util.List;
+import java.util.Map;
+import org.apache.hadoop.fs.Path;
 
-public interface ResultsWriter<T> {
+/**
+ * Write to HDFS.
+ */
+public class PcapRestFinalizer extends PcapFinalizer {
 
-  /**
-   * Write out results.
-   *
-   * @param data data to write.
-   * @param outPath where to write the data to.
-   * @throws IOException I/O issue encountered.
-   */
-  void write(List<T> data, String outPath) throws IOException;
+  @Override
+  protected String getOutputFileName(Map<String, Object> config, int partition) {
+    Path finalOutputPath = (Path) config.get("finalOutputPath");
+    return String.format("%s/page-%s", finalOutputPath, partition);
+  }
 
 }

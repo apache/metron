@@ -18,44 +18,21 @@
 
 package org.apache.metron.job.manager;
 
-import java.util.Map;
+import java.util.function.Supplier;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Statusable;
-import org.apache.metron.job.service.JobService;
 
-public class JobManager<T> {
+public interface JobManager<PAGE_T> {
 
-  private JobService<T> jobs;
+  JobStatus submit(Supplier<Statusable<PAGE_T>> jobSupplier, String username) throws JobException;
 
-  public JobManager(JobService<T> jobs) {
-    this.jobs = jobs;
-  }
+  JobStatus getStatus(String username, String jobId) throws JobException;
 
-  public JobStatus submit(Statusable<T> job, Map<String, Object> configuration, String username)
-      throws JobException {
-    JobStatus status = new JobStatus();
-    if (job.validate(configuration)) {
-      status = job.submit().getStatus();
-    }
-    jobs.add(job, status.getJobId(), username);
-    return status;
-  }
+  boolean done(String username, String jobId) throws JobException;
 
-  public JobStatus getStatus(String username, String jobId) throws JobException {
-    return jobs.getJob(username, jobId).getStatus();
-  }
+  void killJob(String username, String jobId) throws JobException;
 
-  public boolean done(String username, String jobId) throws JobException {
-    return jobs.getJob(username, jobId).isDone();
-  }
-
-  public void killJob(String username, String jobId) throws JobException {
-    jobs.getJob(username, jobId).kill();
-  }
-
-  public Statusable<T> getJob(String username, String jobId) {
-    return jobs.getJob(username, jobId);
-  }
+  Statusable<PAGE_T> getJob(String username, String jobId) throws JobException;
 
 }

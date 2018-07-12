@@ -16,19 +16,21 @@
  * limitations under the License.
  */
 
-package org.apache.metron.job.service;
+package org.apache.metron.pcap.finalizer;
 
 import java.util.Map;
-import org.apache.metron.job.Statusable;
+import org.apache.hadoop.fs.Path;
 
-public interface JobService<T> {
+/**
+ * Write to local FS.
+ */
+public class PcapCliFinalizer extends PcapFinalizer {
 
-  void configure(Map<String, Object> config);
-
-  void add(Statusable<T> job, String username, String jobId);
-
-  boolean jobExists(String username, String jobId);
-
-  Statusable<T> getJob(String username, String jobId);
+  @Override
+  protected String getOutputFileName(Map<String, Object> config, int partition) {
+    Path finalOutputPath = (Path) PcapFinalizerOptions.FINAL_OUTPUT_PATH.get(config);
+    String prefix = (String) config.get("finalFilenamePrefix");
+    return String.format("%s/pcap-data-%s+%04d.pcap", finalOutputPath, prefix, partition);
+  }
 
 }
