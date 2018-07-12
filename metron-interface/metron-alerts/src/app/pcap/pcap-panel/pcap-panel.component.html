@@ -29,7 +29,7 @@
         <!--<div class="progress-bar progress-bar-striped progress-bar-animated pcap-progress" role="progressbar" attr.aria-valuenow="{{progressWidth}}" aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'max-width': progressWidth + '%'}"></div>-->
     <!--</div>-->
 
-    <a class="btn btn-primary" [attr.href]="pdml ? getDownloadUrl() : '#'" [class.disabled]="!pdml">Download PDML</a>
+    <a class="btn btn-primary" [attr.href]="pdml ? getDownloadUrl() : '#'" [class.disabled]="!pdml">Download PCAP</a>
 
     <div *ngIf="queryRunning" class="progress pcap-progress-background">
         <div class="progress-bar progress-bar-animated pcap-progress" role="progressbar" attr.aria-valuenow="{{progressWidth}}" aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'max-width': progressWidth + '%', 'transition-duration':'1000ms'}">{{progressWidth}}%</div>
