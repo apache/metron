@@ -51,10 +51,4 @@ export class PcapService {
     public getDownloadUrl(id: string) {
       return `/api/v1/pcap/pcapqueryfilterasync/download?idQuery=${id}`;
     }
-
-    public downloadPDML(id: string) {
-      return this.http.get(`/api/v1/pcap/pcapqueryfilterasync/download?idQuery=${id}`, {
-        responseType: ResponseContentType.Blob
-      }).catch(HttpUtil.handleError)
-    }
 }
