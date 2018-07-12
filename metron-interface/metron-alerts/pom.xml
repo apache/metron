@@ -74,7 +74,7 @@
                     </execution>
                     <execution>
                         <phase>test</phase>
-                        <id>ng test</id>
+                        <id>npm test</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
