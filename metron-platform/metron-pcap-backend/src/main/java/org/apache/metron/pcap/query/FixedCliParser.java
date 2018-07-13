@@ -22,11 +22,13 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.metron.common.Constants;
 import org.apache.metron.pcap.PcapHelper;
+import org.apache.metron.pcap.config.FixedPcapConfig;
+import org.apache.metron.pcap.config.PcapConfig;
 
 public class FixedCliParser extends CliParser {
   private Options fixedOptions;
 
-  public FixedCliParser(CliConfig.PrefixStrategy prefixStrategy) {
+  public FixedCliParser(PcapConfig.PrefixStrategy prefixStrategy) {
     super(prefixStrategy);
     fixedOptions = buildFixedOptions();
   }
@@ -51,9 +53,9 @@ public class FixedCliParser extends CliParser {
    * @return Configuration tailored to fixed pcap queries
    * @throws ParseException
    */
-  public FixedCliConfig parse(String[] args) throws ParseException, java.text.ParseException {
+  public FixedPcapConfig parse(String[] args) throws ParseException, java.text.ParseException {
     CommandLine commandLine = getParser().parse(fixedOptions, args);
-    FixedCliConfig config = new FixedCliConfig(prefixStrategy);
+    FixedPcapConfig config = new FixedPcapConfig(prefixStrategy);
     super.parse(commandLine, config);
     config.putFixedField(Constants.Fields.SRC_ADDR.getName(), commandLine.getOptionValue("ip_src_addr"));
     config.putFixedField(Constants.Fields.DST_ADDR.getName(), commandLine.getOptionValue("ip_dst_addr"));
@@ -63,7 +65,7 @@ public class FixedCliParser extends CliParser {
     config.putFixedField(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), Boolean.toString(commandLine.hasOption("include_reverse")));
     config.putFixedField(PcapHelper.PacketFields.PACKET_FILTER.getName(), commandLine.getOptionValue("packet_filter"));
     if(commandLine.hasOption("prefix")) {
-      config.setPrefix(commandLine.getOptionValue("prefix"));
+      config.setFinalFilenamePrefix(commandLine.getOptionValue("prefix"));
     }
     return config;
   }

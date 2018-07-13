@@ -24,7 +24,7 @@ import org.apache.metron.job.Pageable;
 
 public class PcapFiles implements Pageable<Path> {
 
-  private List<Path> files;
+  private final List<Path> files;
 
   public PcapFiles(List<Path> files) {
     this.files = files;

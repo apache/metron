@@ -15,38 +15,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.pcap.query;
+package org.apache.metron.pcap.config;
 
 import org.apache.commons.collections4.map.AbstractMapDecorator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.system.Clock;
-import org.apache.metron.pcap.ConfigOption;
-import org.apache.metron.pcap.ConfigOptions;
+import org.apache.metron.common.configuration.ConfigOption;
+import org.apache.metron.pcap.PcapOptions;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.function.Function;
 
-public class CliConfig extends AbstractMapDecorator<String, Object>{
+public class PcapConfig extends AbstractMapDecorator<String, Object>{
   public interface PrefixStrategy extends Function<Clock, String>{}
 
   private boolean showHelp;
   private DateFormat dateFormat;
 
-  public CliConfig() {
+  public PcapConfig() {
     super(new HashMap<>());
   }
 
-  public CliConfig(PrefixStrategy prefixStrategy) {
+  public PcapConfig(PrefixStrategy prefixStrategy) {
     this();
     setShowHelp(false);
     setBasePath("");
-    setBaseOutputPath("");
-    setStartTime(-1L);
-    setEndTime(-1L);
+    setInterimResultPath("");
+    setStartTimeMs(-1L);
+    setEndTimeMs(-1L);
     setNumReducers(0);
-    setPrefix(prefixStrategy.apply(new Clock()));
+    setFinalFilenamePrefix(prefixStrategy.apply(new Clock()));
   }
 
   public Object getOption(ConfigOption option) {
@@ -54,16 +54,16 @@ public class CliConfig extends AbstractMapDecorator<String, Object>{
     return option.transform().apply(option.getKey(), o);
   }
 
-  public String getPrefix() {
-    return ConfigOptions.PREFIX.get(this, String.class);
+  public String getFinalFilenamePrefix() {
+    return PcapOptions.FINAL_FILENAME_PREFIX.get(this, String.class);
   }
 
-  public void setPrefix(String prefix) {
-    ConfigOptions.PREFIX.put(this, prefix);
+  public void setFinalFilenamePrefix(String prefix) {
+    PcapOptions.FINAL_FILENAME_PREFIX.put(this, prefix);
   }
 
   public int getNumReducers() {
-    return ConfigOptions.NUM_REDUCERS.get(this, Integer.class);
+    return PcapOptions.NUM_REDUCERS.get(this, Integer.class);
   }
 
   public boolean showHelp() {
@@ -75,35 +75,35 @@ public class CliConfig extends AbstractMapDecorator<String, Object>{
   }
 
   public String getBasePath() {
-    return ConfigOptions.BASE_PATH.get(this, String.class);
+    return PcapOptions.BASE_PATH.get(this, String.class);
   }
 
-  public String getBaseOutputPath() {
-    return ConfigOptions.INTERRIM_RESULT_PATH.get(this, String.class);
+  public String getInterimResultPath() {
+    return PcapOptions.INTERIM_RESULT_PATH.get(this, String.class);
   }
 
-  public long getStartTime() {
-    return ConfigOptions.START_TIME.get(this, Long.class);
+  public long getStartTimeMs() {
+    return PcapOptions.START_TIME_MS.get(this, Long.class);
   }
 
-  public long getEndTime() {
-    return ConfigOptions.END_TIME.get(this, Long.class);
+  public long getEndTimeMs() {
+    return PcapOptions.END_TIME_MS.get(this, Long.class);
   }
 
   public void setBasePath(String basePath) {
-    ConfigOptions.BASE_PATH.put(this, basePath);
+    PcapOptions.BASE_PATH.put(this, basePath);
   }
 
-  public void setBaseOutputPath(String baseOutputPath) {
-    ConfigOptions.INTERRIM_RESULT_PATH.put(this, baseOutputPath);
+  public void setInterimResultPath(String baseOutputPath) {
+    PcapOptions.INTERIM_RESULT_PATH.put(this, baseOutputPath);
   }
 
-  public void setStartTime(long startTime) {
-    ConfigOptions.START_TIME.put(this, startTime);
+  public void setStartTimeMs(long startTime) {
+    PcapOptions.START_TIME_MS.put(this, startTime);
   }
 
-  public void setEndTime(long endTime) {
-    ConfigOptions.END_TIME.put(this, endTime);
+  public void setEndTimeMs(long endTime) {
+    PcapOptions.END_TIME_MS.put(this, endTime);
   }
 
   public boolean isNullOrEmpty(String val) {
@@ -119,14 +119,14 @@ public class CliConfig extends AbstractMapDecorator<String, Object>{
   }
 
   public void setNumReducers(int numReducers) {
-    ConfigOptions.NUM_REDUCERS.put(this, numReducers);
+    PcapOptions.NUM_REDUCERS.put(this, numReducers);
   }
 
   public int getNumRecordsPerFile() {
-    return ConfigOptions.NUM_RECORDS_PER_FILE.get(this, Integer.class);
+    return PcapOptions.NUM_RECORDS_PER_FILE.get(this, Integer.class);
   }
 
   public void setNumRecordsPerFile(int numRecordsPerFile) {
-    ConfigOptions.NUM_RECORDS_PER_FILE.put(this, numRecordsPerFile);
+    PcapOptions.NUM_RECORDS_PER_FILE.put(this, numRecordsPerFile);
   }
 }

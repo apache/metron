@@ -20,7 +20,6 @@ package org.apache.metron.pcap.query;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.UUID;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.tuple.Pair;
@@ -28,11 +27,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.GenericOptionsParser;
-import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.Pageable;
-import org.apache.metron.pcap.ConfigOptions;
+import org.apache.metron.pcap.PcapOptions;
+import org.apache.metron.pcap.config.FixedPcapConfig;
+import org.apache.metron.pcap.config.PcapConfig;
+import org.apache.metron.pcap.config.QueryPcapConfig;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.finalizer.PcapFinalizerStrategies;
 import org.apache.metron.pcap.mr.PcapJob;
@@ -41,20 +42,20 @@ import org.slf4j.LoggerFactory;
 
 public class PcapCli {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final CliConfig.PrefixStrategy PREFIX_STRATEGY = clock -> {
-    String timestamp = new Clock().currentTimeFormatted("yyyyMMddHHmm");
+  public static final PcapConfig.PrefixStrategy PREFIX_STRATEGY = clock -> {
+    String timestamp = clock.currentTimeFormatted("yyyyMMddHHmm");
     String uuid = UUID.randomUUID().toString().replaceAll("-", "");
     return String.format("%s-%s", timestamp, uuid);
   };
   private final PcapJob jobRunner;
-  private final CliConfig.PrefixStrategy prefixStrategy;
+  private final PcapConfig.PrefixStrategy prefixStrategy;
 
   public static void main(String[] args) {
     int status = new PcapCli(new PcapJob(), PREFIX_STRATEGY).run(args);
     System.exit(status);
   }
 
-  public PcapCli(PcapJob jobRunner, CliConfig.PrefixStrategy prefixStrategy) {
+  public PcapCli(PcapJob jobRunner, PcapConfig.PrefixStrategy prefixStrategy) {
     this.jobRunner = jobRunner;
     this.prefixStrategy = prefixStrategy;
   }
@@ -75,18 +76,18 @@ public class PcapCli {
       LOGGER.error("Failed to configure hadoop with provided options: {}", e.getMessage(), e);
       return -1;
     }
-    CliConfig commonConfig = null;
+    PcapConfig commonConfig = null;
     Pageable<Path> results;
     // write to local FS in the executing directory
     String execDir = System.getProperty("user.dir");
 
     if ("fixed".equals(jobType)) {
       FixedCliParser fixedParser = new FixedCliParser(prefixStrategy);
-      FixedCliConfig config = null;
+      FixedPcapConfig config = null;
       try {
         config = fixedParser.parse(otherArgs);
         commonConfig = config;
-        ConfigOptions.FINAL_OUTPUT_PATH.put(commonConfig, new Path("file:///" + execDir));
+        PcapOptions.FINAL_OUTPUT_PATH.put(commonConfig, new Path("file:///" + execDir));
       } catch (ParseException | java.text.ParseException e) {
         System.err.println(e.getMessage());
         System.err.flush();
@@ -97,19 +98,16 @@ public class PcapCli {
         fixedParser.printHelp();
         return 0;
       }
-      Pair<Long, Long> time = timeAsNanosecondsSinceEpoch(config.getStartTime(), config.getEndTime());
+      Pair<Long, Long> time = timeAsNanosecondsSinceEpoch(config.getStartTimeMs(), config.getEndTimeMs());
       long startTime = time.getLeft();
       long endTime = time.getRight();
 
-      //TODO: Figure out how to do jobname here..it's missing.
-      //TODO: Figure out how to do final prefix filename here, it's missing, I think.
-
-      ConfigOptions.START_TIME_NS.put(commonConfig, startTime);
-      ConfigOptions.END_TIME_NS.put(commonConfig, endTime);
-      ConfigOptions.FILTER_IMPL.put(commonConfig, new FixedPcapFilter.Configurator());
-      ConfigOptions.HADOOP_CONF.put(commonConfig, hadoopConf);
+      PcapOptions.START_TIME_NS.put(commonConfig, startTime);
+      PcapOptions.END_TIME_NS.put(commonConfig, endTime);
+      PcapOptions.FILTER_IMPL.put(commonConfig, new FixedPcapFilter.Configurator());
+      PcapOptions.HADOOP_CONF.put(commonConfig, hadoopConf);
       try {
-        ConfigOptions.FILESYSTEM.put(commonConfig, FileSystem.get(hadoopConf));
+        PcapOptions.FILESYSTEM.put(commonConfig, FileSystem.get(hadoopConf));
         results = jobRunner.submit(PcapFinalizerStrategies.CLI, commonConfig).get();
       } catch (IOException|InterruptedException | JobException e) {
         LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
@@ -117,7 +115,7 @@ public class PcapCli {
       }
     } else if ("query".equals(jobType)) {
       QueryCliParser queryParser = new QueryCliParser(prefixStrategy);
-      QueryCliConfig config = null;
+      QueryPcapConfig config = null;
       try {
         config = queryParser.parse(otherArgs);
         commonConfig = config;
@@ -130,19 +128,16 @@ public class PcapCli {
         queryParser.printHelp();
         return 0;
       }
-      Pair<Long, Long> time = timeAsNanosecondsSinceEpoch(config.getStartTime(), config.getEndTime());
+      Pair<Long, Long> time = timeAsNanosecondsSinceEpoch(config.getStartTimeMs(), config.getEndTimeMs());
       long startTime = time.getLeft();
       long endTime = time.getRight();
 
-      //TODO: Figure out how to do jobname here..it's missing.
-      //TODO: Figure out how to do final prefix filename here, it's missing, I think.
-
-      ConfigOptions.START_TIME_NS.put(commonConfig, startTime);
-      ConfigOptions.END_TIME_NS.put(commonConfig, endTime);
-      ConfigOptions.FILTER_IMPL.put(commonConfig, new FixedPcapFilter.Configurator());
-      ConfigOptions.HADOOP_CONF.put(commonConfig, hadoopConf);
+      PcapOptions.START_TIME_NS.put(commonConfig, startTime);
+      PcapOptions.END_TIME_NS.put(commonConfig, endTime);
+      PcapOptions.FILTER_IMPL.put(commonConfig, new FixedPcapFilter.Configurator());
+      PcapOptions.HADOOP_CONF.put(commonConfig, hadoopConf);
       try {
-        ConfigOptions.FILESYSTEM.put(commonConfig, FileSystem.get(hadoopConf));
+        PcapOptions.FILESYSTEM.put(commonConfig, FileSystem.get(hadoopConf));
         results = jobRunner.submit(PcapFinalizerStrategies.CLI, commonConfig).get();
       } catch (IOException| InterruptedException | JobException e) {
         LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);

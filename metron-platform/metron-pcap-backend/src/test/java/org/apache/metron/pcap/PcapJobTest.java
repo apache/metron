@@ -43,6 +43,7 @@ import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
+import org.apache.metron.pcap.config.FixedPcapConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,7 +62,7 @@ public class PcapJobTest {
   private Finalizer<Path> finalizer;
   @Mock
   private Pageable<Path> pageableResult;
-  private Map<String, Object> config;
+  private FixedPcapConfig config;
   private Configuration hadoopConfig;
   private FileSystem fileSystem;
   private String jobIdVal = "job_abc_123";
@@ -72,7 +73,6 @@ public class PcapJobTest {
   private int numReducers;
   private int numRecordsPerFile;
   private Path finalOutputPath;
-  private String prefix;
   private Map<String, String> fixedFields;
   private PcapJob<Map<String, String>> testJob;
 
@@ -91,22 +91,21 @@ public class PcapJobTest {
     hadoopConfig = new Configuration();
     fileSystem = FileSystem.get(hadoopConfig);
     finalOutputPath = new Path("finaloutpath");
-    prefix = "someprefix";
     when(jobId.toString()).thenReturn(jobIdVal);
     when(mrStatus.getJobID()).thenReturn(jobId);
-    config = new HashMap<>();
-    config.put("hadoopConf", hadoopConfig);
-    config.put("fileSystem", FileSystem.get(hadoopConfig));
-    config.put("basePath", basePath);
-    config.put("baseInterimResultPath", baseOutPath);
-    config.put("beginNS", startTime);
-    config.put("endNS", endTime);
-    config.put("numReducers", numReducers);
-    config.put("fields", fixedFields);
-    config.put("filterImpl", new FixedPcapFilter.Configurator());
-    config.put("numRecordsPerFile", numRecordsPerFile);
-    config.put("finalOutputPath", finalOutputPath);
-    config.put("finalFilenamePrefix", prefix);
+    // handles setting the file name prefix under the hood
+    config = new FixedPcapConfig(clock -> "clockprefix");
+    PcapOptions.HADOOP_CONF.put(config, hadoopConfig);
+    PcapOptions.FILESYSTEM.put(config, FileSystem.get(hadoopConfig));
+    PcapOptions.BASE_PATH.put(config, basePath);
+    PcapOptions.INTERIM_RESULT_PATH.put(config, baseOutPath);
+    PcapOptions.START_TIME_NS.put(config, startTime);
+    PcapOptions.END_TIME_NS.put(config, endTime);
+    PcapOptions.NUM_REDUCERS.put(config, numReducers);
+    PcapOptions.FIELDS.put(config, fixedFields);
+    PcapOptions.FILTER_IMPL.put(config, new FixedPcapFilter.Configurator());
+    PcapOptions.NUM_RECORDS_PER_FILE.put(config, numRecordsPerFile);
+    PcapOptions.FINAL_OUTPUT_PATH.put(config, finalOutputPath);
     testJob = new TestJob<>();
     testJob.setStatusInterval(10);
     testJob.setCompleteCheckInterval(10);

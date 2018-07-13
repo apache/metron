@@ -34,8 +34,8 @@ import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.job.Finalizer;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.Pageable;
-import org.apache.metron.pcap.ConfigOptions;
 import org.apache.metron.pcap.PcapFiles;
+import org.apache.metron.pcap.PcapOptions;
 import org.apache.metron.pcap.writer.PcapResultsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,11 +55,11 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
 
   @Override
   public Pageable<Path> finalizeJob(Map<String, Object> config) throws JobException {
-    Configuration hadoopConfig = ConfigOptions.HADOOP_CONF.get(config, Configuration.class);
-    int recPerFile = ConfigOptions.NUM_RECORDS_PER_FILE.get(config, Integer.class);
-    Path interimResultPath = ConfigOptions.INTERRIM_RESULT_PATH.get(config, ConfigOptions.STRING_TO_PATH, Path.class);
-    Path finalOutputPath = ConfigOptions.FINAL_OUTPUT_PATH.get(config, ConfigOptions.STRING_TO_PATH, Path.class);
-    FileSystem fs = ConfigOptions.FILESYSTEM.get(config, FileSystem.class);
+    Configuration hadoopConfig = PcapOptions.HADOOP_CONF.get(config, Configuration.class);
+    int recPerFile = PcapOptions.NUM_RECORDS_PER_FILE.get(config, Integer.class);
+    Path interimResultPath = PcapOptions.INTERIM_RESULT_PATH
+        .get(config, PcapOptions.STRING_TO_PATH, Path.class);
+    FileSystem fs = PcapOptions.FILESYSTEM.get(config, FileSystem.class);
 
     SequenceFileIterable interimResults = null;
     try {

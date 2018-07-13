@@ -56,9 +56,9 @@ import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.JobStatus.State;
 import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
-import org.apache.metron.pcap.ConfigOptions;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
+import org.apache.metron.pcap.PcapOptions;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
@@ -76,15 +76,13 @@ public class PcapJob<T> implements Statusable<Path> {
   public static final String START_TS_CONF = "start_ts";
   public static final String END_TS_CONF = "end_ts";
   public static final String WIDTH_CONF = "width";
-  public static final long THREE_SECONDS = 3000;
-  public static final long ONE_SECOND = 1000;
-  private Job job; // store a running MR job reference for async status check
-  private JobStatus jobStatus;
-  private boolean finalized; // job results have been finalized
-  private Pageable jobResults;
+  private static final long THREE_SECONDS = 3000;
+  private static final long ONE_SECOND = 1000;
+  private Job mrJob; // store a running MR job reference for async status check
+  private volatile State jobState; // overall job state, including finalization step
   private Finalizer<Path> finalizer;
   private Map<String, Object> configuration;
-  private Pageable<Path> results;
+  private Pageable<Path> finalResults;
   private Timer timer;
   private long statusInterval; // how often timer thread checks job status.
   private long completeCheckInterval; // how long we sleep between isDone checks in get()
@@ -182,7 +180,6 @@ public class PcapJob<T> implements Statusable<Path> {
   }
 
   public PcapJob() {
-    jobStatus = new JobStatus();
     statusInterval = THREE_SECONDS;
     completeCheckInterval = ONE_SECOND;
   }
@@ -210,16 +207,16 @@ public class PcapJob<T> implements Statusable<Path> {
       throws JobException {
     this.finalizer = finalizer;
     this.configuration = configuration;
-    Optional<String> jobName = Optional.ofNullable(ConfigOptions.JOB_NAME.get(configuration, String.class));
-    Configuration hadoopConf = ConfigOptions.HADOOP_CONF.get(configuration, Configuration.class);
-    FileSystem fileSystem = ConfigOptions.FILESYSTEM.get(configuration, FileSystem.class);
-    Path basePath = ConfigOptions.BASE_PATH.getTransformed(configuration, Path.class);
-    Path baseInterimResultPath = ConfigOptions.INTERRIM_RESULT_PATH.getTransformed(configuration, Path.class);
-    long startTime = ConfigOptions.START_TIME_NS.get(configuration, Long.class);
-    long endTime = ConfigOptions.END_TIME_NS.get(configuration, Long.class);
-    int numReducers = ConfigOptions.NUM_REDUCERS.get(configuration, Integer.class);
-    T fields = (T) ConfigOptions.FIELDS.get(configuration, Object.class);
-    PcapFilterConfigurator<T> filterImpl = ConfigOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
+    Optional<String> jobName = Optional.ofNullable(PcapOptions.JOB_NAME.get(configuration, String.class));
+    Configuration hadoopConf = PcapOptions.HADOOP_CONF.get(configuration, Configuration.class);
+    FileSystem fileSystem = PcapOptions.FILESYSTEM.get(configuration, FileSystem.class);
+    Path basePath = PcapOptions.BASE_PATH.getTransformed(configuration, Path.class);
+    Path baseInterimResultPath = PcapOptions.INTERIM_RESULT_PATH.getTransformed(configuration, Path.class);
+    long startTime = PcapOptions.START_TIME_NS.get(configuration, Long.class);
+    long endTime = PcapOptions.END_TIME_NS.get(configuration, Long.class);
+    int numReducers = PcapOptions.NUM_REDUCERS.get(configuration, Integer.class);
+    T fields = (T) PcapOptions.FIELDS.get(configuration, Object.class);
+    PcapFilterConfigurator<T> filterImpl = PcapOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
 
     try {
       return query(jobName,
@@ -261,7 +258,7 @@ public class PcapJob<T> implements Statusable<Path> {
       LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
     }
     Path interimResultPath =  new Path(baseInterimResultPath, outputDirName);
-    job = createJob(jobName
+    mrJob = createJob(jobName
         , basePath
         , interimResultPath
         , beginNS
@@ -272,7 +269,7 @@ public class PcapJob<T> implements Statusable<Path> {
         , fs
         , filterImpl
     );
-    job.submit();
+    mrJob.submit();
     startJobStatusTimerThread(statusInterval);
     return this;
   }
@@ -283,23 +280,40 @@ public class PcapJob<T> implements Statusable<Path> {
       @Override
       public void run() {
         try {
-          getStatus();
-          if (job.isComplete() && !finalized) {
-            results = finalizer.finalizeJob(configuration);
-            finalized = true;
-            jobStatus.withState(State.SUCCEEDED);
-            cancel(); // be gone, ye!
+          synchronized (this) {
+            if (jobState == State.RUNNING) {
+              if (mrJob.isComplete()) {
+                switch (mrJob.getStatus().getState()) {
+                  case SUCCEEDED:
+                    jobState = State.FINALIZING;
+                    setFinalResults(finalizer.finalizeJob(configuration));
+                    jobState = State.SUCCEEDED;
+                    break;
+                  case FAILED:
+                    jobState = State.FAILED;
+                    break;
+                  case KILLED:
+                    jobState = State.KILLED;
+                    break;
+                }
+              }
+              cancel(); // be gone, ye!
+            }
           }
-        } catch (IOException | JobException e) {
+        } catch (InterruptedException | IOException | JobException e) {
+          jobState = State.FAILED;
           throw new RuntimeException("Error getting job status.", e);
         }
-
       }
     }, interval, interval);
   }
 
+  private synchronized void setFinalResults(Pageable<Path> results) {
+    finalResults = results;
+  }
+
   /**
-   * Creates, but does not submit the job. This is the core MapReduce job.
+   * Creates, but does not submit the job. This is the core MapReduce mrJob.
    */
   public Job createJob(Optional<String> jobName
                       ,Path basePath
@@ -360,71 +374,82 @@ public class PcapJob<T> implements Statusable<Path> {
 
   @Override
   public JobStatus getStatus() throws JobException {
-    // Note: this method is only reading state from the underlying job, so locking not needed
-    if (job == null) {
-      jobStatus.withPercentComplete(100).withState(State.SUCCEEDED);
+    JobStatus status = new JobStatus();
+    if (mrJob == null) {
+      status.withPercentComplete(100).withState(State.SUCCEEDED);
     } else {
       try {
-        jobStatus.withJobId(job.getStatus().getJobID().toString());
-        if (!finalized) {
-          if (job.isComplete()) {
-            jobStatus.withPercentComplete(100);
-            switch (job.getStatus().getState()) {
-              case SUCCEEDED:
-                jobStatus.withState(State.FINALIZING).withDescription(State.FINALIZING.toString());
-                break;
-              case FAILED:
-                jobStatus.withState(State.FAILED).withDescription(State.FAILED.toString());
-                break;
-              case KILLED:
-                jobStatus.withState(State.KILLED).withDescription(State.KILLED.toString());
-                break;
-              default:
-                throw new IllegalStateException(
-                    "Unknown job state reported as 'complete' by mapreduce framework: " + job
-                        .getStatus().getState());
-            }
+        synchronized (this) {
+          org.apache.hadoop.mapreduce.JobStatus mrJobStatus = mrJob.getStatus();
+          status.withJobId(mrJobStatus.getJobID().toString());
+          if (jobState == State.SUCCEEDED) {
+            status.withPercentComplete(100).withState(State.SUCCEEDED)
+                .withDescription("Job complete");
           } else {
-            float mapProg = job.mapProgress();
-            float reduceProg = job.reduceProgress();
-            float totalProgress = ((mapProg / 2) + (reduceProg / 2)) * 100;
-            String description = String
-                .format("map: %s%%, reduce: %s%%", mapProg * 100, reduceProg * 100);
-            jobStatus.withPercentComplete(totalProgress).withState(State.RUNNING)
-                .withDescription(description);
+            if (mrJob.isComplete()) {
+              status.withPercentComplete(100);
+              switch (mrJobStatus.getState()) {
+                case SUCCEEDED:
+                  status.withState(State.FINALIZING).withDescription(State.FINALIZING.toString());
+                  break;
+                case FAILED:
+                  status.withState(State.FAILED).withDescription(State.FAILED.toString());
+                  break;
+                case KILLED:
+                  status.withState(State.KILLED).withDescription(State.KILLED.toString());
+                  break;
+                default:
+                  throw new IllegalStateException(
+                      "Unknown job state reported as 'complete' by mapreduce framework: " + mrJobStatus.getState());
+              }
+            } else {
+              float mapProg = mrJob.mapProgress();
+              float reduceProg = mrJob.reduceProgress();
+              float totalProgress = ((mapProg / 2) + (reduceProg / 2)) * 100;
+              String description = String
+                  .format("map: %s%%, reduce: %s%%", mapProg * 100, reduceProg * 100);
+              status.withPercentComplete(totalProgress).withState(State.RUNNING)
+                  .withDescription(description);
+            }
           }
         }
       } catch (Exception e) {
-        throw new RuntimeException("Error occurred while attempting to retrieve job status.", e);
+        throw new JobException("Error occurred while attempting to retrieve job status.", e);
       }
     }
-    return jobStatus;
+    return status;
   }
 
+  /**
+   * Synchronous call blocks until completion.
+   */
   @Override
   public Pageable<Path> get() throws JobException, InterruptedException {
     for (; ; ) {
-      getStatus();
-      if (jobStatus.getState() == State.SUCCEEDED) {
-        return results;
-      } else if (jobStatus.getState() == State.KILLED
-              || jobStatus.getState() == State.FAILED) {
+      JobStatus status = getStatus();
+      if (status.getState() == State.SUCCEEDED) {
+        return getFinalResults();
+      } else if (status.getState() == State.KILLED
+          || status.getState() == State.FAILED) {
         return null;
       }
       Thread.sleep(completeCheckInterval);
     }
   }
 
+  private synchronized Pageable<Path> getFinalResults() {
+    return finalResults;
+  }
+
   @Override
-  public boolean isDone() throws JobException {
-    getStatus();
+  public boolean isDone() {
     return finalized;
   }
 
   @Override
   public void kill() throws JobException {
     try {
-      job.killJob();
+      mrJob.killJob();
     } catch (IOException e) {
       throw new JobException("Unable to kill pcap job.", e);
     }

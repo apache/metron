@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -44,6 +45,8 @@ import org.mockito.MockitoAnnotations;
 
 public class InMemoryJobManagerTest {
 
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
   @Mock
   private Statusable<Path> job1;
   @Mock
@@ -58,6 +61,7 @@ public class InMemoryJobManagerTest {
   private String username2;
   private String jobId1;
   private String jobId2;
+  private String basePath;
 
   @Before
   public void setup() throws JobException {
@@ -68,6 +72,7 @@ public class InMemoryJobManagerTest {
     username2 = "user456";
     jobId1 = "job_abc_123";
     jobId2 = "job_def_456";
+    basePath = tempDir.getRoot().getAbsolutePath();
     when(job1.getJobType()).thenReturn(JobType.MAP_REDUCE);
     when(job2.getJobType()).thenReturn(JobType.MAP_REDUCE);
     when(finalizer.finalizeJob(any())).thenReturn(results);
@@ -97,6 +102,13 @@ public class InMemoryJobManagerTest {
   public void returns_job_status() throws JobException {
     JobStatus expected = new JobStatus().withState(State.SUCCEEDED).withJobId(jobId1);
     when(job1.getStatus()).thenReturn(expected);
+    jm.submit(() -> {
+      try {
+        return job1.submit(finalizer, config);
+      } catch (JobException e) {
+        throw new RuntimeException("Something went wrong", e);
+      }
+    }, username1);
     JobStatus status = jm.getStatus(username1, jobId1);
     assertThat(status, equalTo(expected));
   }
@@ -104,13 +116,29 @@ public class InMemoryJobManagerTest {
   @Test
   public void returns_job_is_done() throws JobException {
     JobStatus expected = new JobStatus().withState(State.SUCCEEDED).withJobId(jobId1);
+    when(job1.getStatus()).thenReturn(expected);
     when(job1.isDone()).thenReturn(true);
+    jm.submit(() -> {
+      try {
+        return job1.submit(finalizer, config);
+      } catch (JobException e) {
+        throw new RuntimeException("Something went wrong", e);
+      }
+    }, username1);
     boolean done = jm.done(username1, jobId1);
     assertThat(done, equalTo(true));
   }
 
   @Test
   public void kills_job() throws JobException {
+    JobStatus expected = new JobStatus().withState(State.SUCCEEDED).withJobId(jobId1);
+    jm.submit(() -> {
+      try {
+        return job1.submit(finalizer, config);
+      } catch (JobException e) {
+        throw new RuntimeException("Something went wrong", e);
+      }
+    }, username1);
     jm.killJob(username1, jobId1);
     verify(job1).kill();
   }

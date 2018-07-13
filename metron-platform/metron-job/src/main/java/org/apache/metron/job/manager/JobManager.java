@@ -18,6 +18,7 @@
 
 package org.apache.metron.job.manager;
 
+import java.util.List;
 import java.util.function.Supplier;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobStatus;
@@ -34,5 +35,7 @@ public interface JobManager<PAGE_T> {
   void killJob(String username, String jobId) throws JobException;
 
   Statusable<PAGE_T> getJob(String username, String jobId) throws JobException;
+
+  List<Statusable<PAGE_T>> getJobs(String username, String jobId) throws JobException;
 
 }

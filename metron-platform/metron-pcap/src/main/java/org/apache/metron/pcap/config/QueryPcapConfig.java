@@ -15,34 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.pcap.query;
+package org.apache.metron.pcap.config;
 
-import org.apache.metron.pcap.ConfigOptions;
+import org.apache.metron.pcap.PcapOptions;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+public class QueryPcapConfig extends PcapConfig {
 
-public class FixedCliConfig extends CliConfig {
-
-  public FixedCliConfig(PrefixStrategy prefixStrategy) {
+  public QueryPcapConfig(PrefixStrategy prefixStrategy) {
     super(prefixStrategy);
-    setFixedFields(new LinkedHashMap<>());
   }
 
-  public Map<String, String> getFixedFields() {
-    return ConfigOptions.FIELDS.get(this, Map.class);
+  public String getQuery() {
+    return PcapOptions.FIELDS.get(this, String.class);
   }
 
-  public void setFixedFields(Map<String, String> fixedFields) {
-    ConfigOptions.FIELDS.put(this, fixedFields);
+  public void setQuery(String query) {
+    PcapOptions.FIELDS.put(this, query);
   }
-
-  public void putFixedField(String key, String value) {
-    Map<String, String> fixedFields = ConfigOptions.FIELDS.get(this, Map.class);
-    String trimmedVal = value != null ? value.trim() : null;
-    if (!isNullOrEmpty(trimmedVal)) {
-      fixedFields.put(key, value);
-    }
-  }
-
 }
