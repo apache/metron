@@ -20,7 +20,7 @@ package org.apache.metron.rest.model.pcap;
 // TODO reconcile with pcapmrjob
 
 import org.apache.commons.collections4.map.AbstractMapDecorator;
-import org.apache.metron.pcap.PcapOptions;
+import org.apache.metron.pcap.config.PcapOptions;
 
 public class PcapRequest extends AbstractMapDecorator<String, Object> {
 

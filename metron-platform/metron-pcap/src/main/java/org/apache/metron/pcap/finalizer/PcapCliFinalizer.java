@@ -20,7 +20,7 @@ package org.apache.metron.pcap.finalizer;
 
 import java.util.Map;
 import org.apache.hadoop.fs.Path;
-import org.apache.metron.pcap.PcapOptions;
+import org.apache.metron.pcap.config.PcapOptions;
 
 /**
  * Write to local FS.

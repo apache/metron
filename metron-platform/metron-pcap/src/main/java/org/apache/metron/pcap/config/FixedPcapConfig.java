@@ -17,8 +17,6 @@
  */
 package org.apache.metron.pcap.config;
 
-import org.apache.metron.pcap.PcapOptions;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 

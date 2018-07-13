@@ -40,6 +40,7 @@ import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.JobStatus.State;
 import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
+import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;

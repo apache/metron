@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.pcap;
+package org.apache.metron.pcap.config;
 
 import java.util.function.BiFunction;
 import org.apache.hadoop.fs.Path;

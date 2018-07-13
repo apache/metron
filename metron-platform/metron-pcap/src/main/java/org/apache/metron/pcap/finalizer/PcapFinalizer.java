@@ -34,8 +34,8 @@ import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.job.Finalizer;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.Pageable;
-import org.apache.metron.pcap.PcapFiles;
-import org.apache.metron.pcap.PcapOptions;
+import org.apache.metron.pcap.PcapPages;
+import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.writer.PcapResultsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +91,7 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
         LOG.warn("Unable to cleanup files in HDFS", e);
       }
     }
-    return new PcapFiles(outFiles);
+    return new PcapPages(outFiles);
   }
 
   protected abstract String getOutputFileName(Map<String, Object> config, int partition);

@@ -21,7 +21,6 @@ import org.apache.commons.collections4.map.AbstractMapDecorator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.configuration.ConfigOption;
-import org.apache.metron.pcap.PcapOptions;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

@@ -19,7 +19,9 @@
 package org.apache.metron.job.manager;
 
 import java.lang.invoke.MethodHandles;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import org.apache.metron.job.JobException;
@@ -33,13 +35,13 @@ public class InMemoryJobManager<PAGE_T> implements JobManager<PAGE_T> {
   private Map<String, Map<String, Statusable<PAGE_T>>> jobs;
 
   public InMemoryJobManager() {
-    this.jobs = new HashMap<>();
+    this.jobs = Collections.synchronizedMap(new HashMap<>());
   }
 
   @Override
   public JobStatus submit(Supplier<Statusable<PAGE_T>> jobSupplier, String username) throws  JobException {
     Statusable<PAGE_T> job = jobSupplier.get();
-    Map<String, Statusable<PAGE_T>> userJobs = new HashMap<>();
+    Map<String, Statusable<PAGE_T>> userJobs = Collections.synchronizedMap(new HashMap<>());
     userJobs.put(job.getStatus().getJobId(), job);
     jobs.put(username, userJobs);
     return job.getStatus();
@@ -62,6 +64,11 @@ public class InMemoryJobManager<PAGE_T> implements JobManager<PAGE_T> {
 
   @Override
   public Statusable<PAGE_T> getJob(String username, String jobId) throws JobException {
+    return null;
+  }
+
+  @Override
+  public List<Statusable<PAGE_T>> getJobs(String username, String jobId) throws JobException {
     return null;
   }
 

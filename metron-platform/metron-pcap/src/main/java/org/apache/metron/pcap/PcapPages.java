@@ -22,11 +22,11 @@ import java.util.List;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.job.Pageable;
 
-public class PcapFiles implements Pageable<Path> {
+public class PcapPages implements Pageable<Path> {
 
   private final List<Path> files;
 
-  public PcapFiles(List<Path> files) {
+  public PcapPages(List<Path> files) {
     this.files = files;
   }
 

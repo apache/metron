@@ -17,8 +17,6 @@
  */
 package org.apache.metron.pcap.config;
 
-import org.apache.metron.pcap.PcapOptions;
-
 public class QueryPcapConfig extends PcapConfig {
 
   public QueryPcapConfig(PrefixStrategy prefixStrategy) {
