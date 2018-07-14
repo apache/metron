@@ -111,7 +111,12 @@ public class JSONMapParser extends BasicParser {
       jsonpQuery = (String) config.get(JSONP_QUERY);
 
       if (!StringUtils.isBlank(jsonpQuery) && config.containsKey(WRAP_JSON)) {
-        wrapJson = (Boolean)config.get(WRAP_JSON);
+        Object wrapObject = config.get(WRAP_JSON);
+        if (wrapObject instanceof String) {
+          wrapJson = Boolean.valueOf((String)wrapObject);
+        } else if (wrapObject instanceof Boolean) {
+          wrapJson = (Boolean) config.get(WRAP_JSON);
+        }
         String entityName = (String)config.get(WRAP_ENTITY_NAME);
         if (!StringUtils.isBlank(entityName)) {
           wrapEntityName = entityName;
