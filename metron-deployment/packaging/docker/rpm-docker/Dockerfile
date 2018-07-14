@@ -38,7 +38,8 @@ RUN yum install -y \
         zip \
         rpmlint \
     # install node so that the node dependencies can be packaged into the RPMs \
-    && cd /rootcurl --silent --location https://rpm.nodesource.com/setup_6.x | bash - \
+    && cd /root \
+    && curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - \
     && yum install -y \
         gcc-c++ \
         make \
