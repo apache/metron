@@ -58,6 +58,7 @@ import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
+import org.apache.metron.pcap.PcapPages;
 import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
@@ -79,7 +80,7 @@ public class PcapJob<T> implements Statusable<Path> {
   private static final long THREE_SECONDS = 3000;
   private static final long ONE_SECOND = 1000;
   private Job mrJob; // store a running MR job reference for async status check
-  private volatile State jobState; // overall job state, including finalization step
+  private State jobState; // overall job state, including finalization step
   private Finalizer<Path> finalizer;
   private Map<String, Object> configuration;
   private Pageable<Path> finalResults;
@@ -180,6 +181,8 @@ public class PcapJob<T> implements Statusable<Path> {
   }
 
   public PcapJob() {
+    jobState = State.NOT_RUNNING;
+    finalResults = new PcapPages();
     statusInterval = THREE_SECONDS;
     completeCheckInterval = ONE_SECOND;
   }
@@ -270,6 +273,7 @@ public class PcapJob<T> implements Statusable<Path> {
         , filterImpl
     );
     mrJob.submit();
+    jobState = State.RUNNING;
     startJobStatusTimerThread(statusInterval);
     return this;
   }
@@ -280,14 +284,17 @@ public class PcapJob<T> implements Statusable<Path> {
       @Override
       public void run() {
         try {
-          synchronized (this) {
+          synchronized (jobState) {
             if (jobState == State.RUNNING) {
               if (mrJob.isComplete()) {
                 switch (mrJob.getStatus().getState()) {
                   case SUCCEEDED:
                     jobState = State.FINALIZING;
-                    setFinalResults(finalizer.finalizeJob(configuration));
-                    jobState = State.SUCCEEDED;
+                    if (setFinalResults(finalizer, configuration)) {
+                      jobState = State.SUCCEEDED;
+                    } else {
+                      jobState = State.FAILED;
+                    }
                     break;
                   case FAILED:
                     jobState = State.FAILED;
@@ -300,16 +307,34 @@ public class PcapJob<T> implements Statusable<Path> {
               cancel(); // be gone, ye!
             }
           }
-        } catch (InterruptedException | IOException | JobException e) {
+        } catch (InterruptedException | IOException e) {
           jobState = State.FAILED;
-          throw new RuntimeException("Error getting job status.", e);
+          cancel();
         }
       }
     }, interval, interval);
   }
 
-  private synchronized void setFinalResults(Pageable<Path> results) {
-    finalResults = results;
+  /**
+   * Writes results using finalizer. Returns true on success, false otherwise.
+   *
+   * @param finalizer Writes results.
+   * @param configuration Configure the finalizer.
+   * @return Returns true on success, false otherwise.
+   */
+  private boolean setFinalResults(Finalizer<Path> finalizer, Map<String, Object> configuration) {
+    boolean success = true;
+    Pageable<Path> results = new PcapPages();
+    try {
+      results = finalizer.finalizeJob(configuration);
+    } catch (JobException e) {
+      LOG.error("Failed to finalize job.", e);
+      success = false;
+    }
+    synchronized (this) {
+      finalResults = results;
+    }
+    return success;
   }
 
   /**
@@ -427,22 +452,21 @@ public class PcapJob<T> implements Statusable<Path> {
   public Pageable<Path> get() throws JobException, InterruptedException {
     for (; ; ) {
       JobStatus status = getStatus();
-      if (status.getState() == State.SUCCEEDED) {
-        return getFinalResults();
-      } else if (status.getState() == State.KILLED
+      if (status.getState() == State.SUCCEEDED
+          || status.getState() == State.KILLED
           || status.getState() == State.FAILED) {
-        return new EmptyResults();
+        return getFinalResults();
       }
       Thread.sleep(completeCheckInterval);
     }
   }
 
   private synchronized Pageable<Path> getFinalResults() {
-    return finalResults;
+    return new PcapPages(finalResults);
   }
 
   @Override
-  public boolean isDone() {
+  public synchronized boolean isDone() {
     return (jobState == State.SUCCEEDED
         || jobState == State.KILLED
         || jobState == State.FAILED);

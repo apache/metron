@@ -36,6 +36,6 @@ public interface JobManager<PAGE_T> {
 
   Statusable<PAGE_T> getJob(String username, String jobId) throws JobException;
 
-  List<Statusable<PAGE_T>> getJobs(String username, String jobId) throws JobException;
+  List<Statusable<PAGE_T>> getJobs(String username) throws JobException;
 
 }

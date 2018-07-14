@@ -17,16 +17,11 @@
  */
 package org.apache.metron.rest.service;
 
-import org.apache.metron.job.JobStatus;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 
 public interface PcapService {
 
-  JobStatus fixed(FixedPcapRequest fixedPcapRequest) throws RestException;
-
-  JobStatus getJobStatus(String username, String jobId) throws RestException;
-
-  PcapResponse getPage(String username, String jobId, int pageNum) throws RestException;
+  PcapResponse fixed(FixedPcapRequest fixedPcapRequest) throws RestException;
 }
