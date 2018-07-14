@@ -348,16 +348,6 @@
                              metron-interface/metron-config README and NOTICE files -->
                         <exclude>dist/*.svg</exclude>
                         <exclude>dist/styles.*.bundle.css</exclude>
-                        <!-- Generated assets in the dist folder have licenses present in their source files -->
-                        <exclude>dist/0.*.js</exclude>
-                        <exclude>dist/1.*.js</exclude>
-                        <exclude>dist/2.*.js</exclude>
-                        <exclude>dist/3.*.js</exclude>
-                        <exclude>dist/runtime.*.js</exclude>
-                        <exclude>dist/polyfills.*.js</exclude>
-                        <exclude>dist/scripts.*.js</exclude>
-                        <exclude>dist/main.*.js</exclude>
-                        <exclude>dist/styles.*.css</exclude>
                         <!-- 3rdpartylicenses.txt is an empty file carried along by imported libraries -->
                         <exclude>dist/3rdpartylicenses.txt</exclude>
                         <exclude>e2e/*.js.map</exclude>
