@@ -16,6 +16,8 @@
 
 dist: trusty
 sudo: required
+addons:
+  chrome: stable
 
 env:
   - TEST_TYPE=default
