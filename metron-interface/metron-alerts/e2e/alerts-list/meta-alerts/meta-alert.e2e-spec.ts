@@ -135,7 +135,7 @@ describe('Test spec for meta alerts workflow', function() {
     expect(await metaAlertPage.getAvailableMetaAlerts()).toEqualBcoz('e2e-meta-alert (22)', 'Meta alert should be present');
     await metaAlertPage.selectRadio();
     await metaAlertPage.addToMetaAlert();
-    // FIXME: line below will fail because the following: https://hortonworks.jira.com/browse/BUG-106815
+    // FIXME: line below will fail because the following: https://issues.apache.org/jira/browse/METRON-1654
     // expect(await tablePage.getCellValue(0, 2, '(22')).toContain('(23)', 'alert count should be incremented');
 
     // /* Remove from alert */
@@ -143,7 +143,7 @@ describe('Test spec for meta alerts workflow', function() {
     await tablePage.removeAlert(2);
     expect(await treePage.getConfirmationText()).toEqualBcoz(removAlertConfirmText, 'confirmation text to remove alert from meta alert');
     await treePage.clickYesForConfirmation();
-    // FIXME: line below will fail because the following: https://hortonworks.jira.com/browse/BUG-106815
+    // FIXME: line below will fail because the following: https://issues.apache.org/jira/browse/METRON-1654
     // expect(await tablePage.getCellValue(0, 2, '(23')).toContain('(22)', 'alert count should be decremented');
 
     // /* Delete Meta Alert */
@@ -244,7 +244,7 @@ describe('Test spec for meta alerts workflow', function() {
     expect(guidValues).toEqual(alertsInMetaAlerts.sort());
     await tablePage.removeAlert(5);
     await treePage.clickYesForConfirmation();
-    // FIXME: line below will fail because the following: https://hortonworks.jira.com/browse/BUG-106815
+    // FIXME: line below will fail because the following: https://issues.apache.org/jira/browse/METRON-1654
     // expect(await tablePage.getCellValue(0, 2, '(20')).toContain('(19)', 'alert count should be decremented');
     await browser.sleep(1000);
     let guidValuesAfterDeleteOp = await tablePage.getTableCellValues(3, 1, 20);
