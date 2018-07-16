@@ -215,8 +215,18 @@ public class PcapJob<T> implements Statusable<Path> {
     FileSystem fileSystem = PcapOptions.FILESYSTEM.get(configuration, FileSystem.class);
     Path basePath = PcapOptions.BASE_PATH.getTransformed(configuration, Path.class);
     Path baseInterimResultPath = PcapOptions.BASE_INTERRIM_RESULT_PATH.getTransformed(configuration, Path.class);
-    long startTime = PcapOptions.START_TIME_NS.get(configuration, Long.class);
-    long endTime = PcapOptions.END_TIME_NS.get(configuration, Long.class);
+    long startTime;
+    if (configuration.containsKey(PcapOptions.START_TIME_NS.getKey())) {
+      startTime = PcapOptions.START_TIME_NS.get(configuration, Long.class);
+    } else {
+      startTime = PcapOptions.START_TIME_MS.get(configuration, Long.class) * 1000000;
+    }
+    long endTime;
+    if (configuration.containsKey(PcapOptions.END_TIME_NS.getKey())) {
+      endTime = PcapOptions.END_TIME_NS.get(configuration, Long.class);
+    } else {
+      endTime = PcapOptions.END_TIME_MS.get(configuration, Long.class) * 1000000;
+    }
     int numReducers = PcapOptions.NUM_REDUCERS.get(configuration, Integer.class);
     T fields = (T) PcapOptions.FIELDS.get(configuration, Object.class);
     PcapFilterConfigurator<T> filterImpl = PcapOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
@@ -281,12 +291,14 @@ public class PcapJob<T> implements Statusable<Path> {
   }
 
   private void startJobStatusTimerThread(long interval) {
+    System.out.println("startJobStatusTimerThread");
     timer = new Timer();
     timer.scheduleAtFixedRate(new TimerTask() {
       @Override
       public void run() {
         try {
           synchronized (jobState) {
+            System.out.println("Checking job state for finalizer "+ jobState);
             if (jobState == State.RUNNING) {
               if (mrJob.isComplete()) {
                 switch (mrJob.getStatus().getState()) {
@@ -327,6 +339,7 @@ public class PcapJob<T> implements Statusable<Path> {
   private boolean setFinalResults(Finalizer<Path> finalizer, Map<String, Object> configuration) {
     boolean success = true;
     Pageable<Path> results = new PcapPages();
+    System.out.println("Setting final results");
     try {
       results = finalizer.finalizeJob(configuration);
     } catch (JobException e) {
@@ -369,8 +382,15 @@ public class PcapJob<T> implements Statusable<Path> {
     job.setPartitionerClass(PcapPartitioner.class);
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(BytesWritable.class);
+    System.out.println("beginNs = " + beginNS);
+    System.out.println("endNS = " + endNS);
+    System.out.println("basePath = " + basePath);
+    for(Path path: listFiles(fs, basePath)) {
+      System.out.println(path.toUri().toString());
+    }
     Iterable<String> filteredPaths = FileFilterUtil.getPathsInTimeRange(beginNS, endNS, listFiles(fs, basePath));
     String inputPaths = Joiner.on(',').join(filteredPaths);
+    System.out.println(inputPaths);
     if (StringUtils.isEmpty(inputPaths)) {
       return null;
     }

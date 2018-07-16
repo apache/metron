@@ -37,9 +37,12 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.job.manager.InMemoryJobManager;
+import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.pcap.mr.PcapJob;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.mock.MockPcapJob;
+import org.apache.metron.rest.mock.MockPcapJobSupplier;
 import org.apache.metron.rest.mock.MockStormCLIClientWrapper;
 import org.apache.metron.rest.mock.MockStormRestTemplate;
 import org.apache.metron.rest.service.impl.StormCLIWrapper;
@@ -189,7 +192,19 @@ public class TestConfig {
   }
 
   @Bean
-  public PcapJob mockPcapJob() {
+  public JobManager jobManager() {
+    return new InMemoryJobManager();
+  }
+
+  @Bean
+  public MockPcapJob mockPcapJob() {
     return new MockPcapJob();
+  }
+
+  @Bean
+  public PcapJobSupplier pcapJobSupplier(MockPcapJob mockPcapJob) {
+    MockPcapJobSupplier mockPcapJobSupplier = new MockPcapJobSupplier();
+    mockPcapJobSupplier.setMockPcapJob(mockPcapJob);
+    return mockPcapJobSupplier;
   }
 }

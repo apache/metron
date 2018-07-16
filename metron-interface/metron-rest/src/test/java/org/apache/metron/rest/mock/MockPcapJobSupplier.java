@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,15 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
 
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.pcap.FixedPcapRequest;
-import org.apache.metron.rest.model.pcap.PcapStatus;
+package org.apache.metron.rest.mock;
 
-public interface PcapService {
+import org.apache.metron.pcap.mr.PcapJob;
+import org.apache.metron.rest.config.PcapJobSupplier;
 
-  PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException;
+public class MockPcapJobSupplier extends PcapJobSupplier {
 
-  PcapStatus getJobStatus(String username, String jobId) throws RestException;
+  private MockPcapJob mockPcapJob = new MockPcapJob();
+
+  @Override
+  protected PcapJob createPcapJob() {
+    return mockPcapJob;
+  }
+
+  public void setMockPcapJob(MockPcapJob mockPcapJob) {
+    this.mockPcapJob = mockPcapJob;
+  }
 }

@@ -17,25 +17,18 @@
  */
 package org.apache.metron.rest.model.pcap;
 
-// TODO reconcile with pcapmrjob
-
 import org.apache.commons.collections4.map.AbstractMapDecorator;
 import org.apache.metron.pcap.config.PcapOptions;
+
+import java.util.HashMap;
 
 public class PcapRequest extends AbstractMapDecorator<String, Object> {
 
   public PcapRequest() {
-    setStartTime(0L);
-    setEndTime(System.currentTimeMillis());
+    super(new HashMap<>());
+    setStartTimeMs(0L);
+    setEndTimeMs(System.currentTimeMillis());
     setNumReducers(1);
-  }
-
-  public String getBaseOutputPath() {
-    return PcapOptions.INTERIM_RESULT_PATH.get(this, String.class);
-  }
-
-  public void setBaseOutputPath(String baseOutputPath) {
-    PcapOptions.INTERIM_RESULT_PATH.put(this, baseOutputPath);
   }
 
   public String getBasePath() {
@@ -46,19 +39,35 @@ public class PcapRequest extends AbstractMapDecorator<String, Object> {
     PcapOptions.BASE_PATH.put(this, basePath);
   }
 
-  public Long getStartTime() {
+  public String getBaseInterimResultPath() {
+    return PcapOptions.BASE_INTERRIM_RESULT_PATH.get(this, String.class);
+  }
+
+  public void setBaseInterimResultPath(String baseInterimResultPath) {
+    PcapOptions.BASE_INTERRIM_RESULT_PATH.put(this, baseInterimResultPath);
+  }
+
+  public String getFinalOutputPath() {
+    return PcapOptions.FINAL_OUTPUT_PATH.get(this, String.class);
+  }
+
+  public void setFinalOutputPath(String finalOutputPath) {
+    PcapOptions.FINAL_OUTPUT_PATH.put(this, finalOutputPath);
+  }
+
+  public Long getStartTimeMs() {
     return PcapOptions.START_TIME_MS.get(this, Long.class);
   }
 
-  public void setStartTime(Long startTime) {
+  public void setStartTimeMs(Long startTime) {
     PcapOptions.START_TIME_MS.put(this, startTime);
   }
 
-  public Long getEndTime() {
+  public Long getEndTimeMs() {
     return PcapOptions.END_TIME_MS.get(this, Long.class);
   }
 
-  public void setEndTime(Long endTime) {
+  public void setEndTimeMs(Long endTime) {
     PcapOptions.END_TIME_MS.put(this, endTime);
   }
 
@@ -68,29 +77,5 @@ public class PcapRequest extends AbstractMapDecorator<String, Object> {
 
   public void setNumReducers(Integer numReducers) {
     PcapOptions.NUM_REDUCERS.put(this, numReducers);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    PcapRequest pcapRequest = (PcapRequest) o;
-
-    return (getBaseOutputPath() != null ? getBaseOutputPath().equals(pcapRequest.getBaseOutputPath()) : pcapRequest.getBaseOutputPath() != null) &&
-            (getBasePath() != null ? getBasePath().equals(pcapRequest.getBasePath()) : pcapRequest.getBasePath() == null) &&
-            (getStartTime() != null ? getStartTime().equals(pcapRequest.getStartTime()) : pcapRequest.getStartTime() == null) &&
-            (getEndTime() != null ? getEndTime().equals(pcapRequest.getEndTime()) : pcapRequest.getEndTime() == null) &&
-            (getNumReducers() != null ? getNumReducers().equals(pcapRequest.getNumReducers()) : pcapRequest.getNumReducers() == null);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = getBaseOutputPath() != null ? getBaseOutputPath().hashCode() : 0;
-    result = 31 * result + (getBasePath() != null ? getBasePath().hashCode() : 0);
-    result = 31 * result + (getStartTime() != null ? getStartTime().hashCode() : 0);
-    result = 31 * result + (getEndTime() != null ? getEndTime().hashCode() : 0);
-    result = 31 * result + (getNumReducers() != null ? getNumReducers().hashCode() : 0);
-    return result;
   }
 }
