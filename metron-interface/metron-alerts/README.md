@@ -45,7 +45,7 @@ Alerts that are contained in a a meta alert are generally excluded from search r
 * The Management UI should be installed (which includes [Express](https://expressjs.com/))
 * The alerts can be populated using Full Dev or any other setup
 * UI is developed using angular4 and uses angular-cli
-* node.JS >= 7.8.0
+* nvm (or a similar node verison manager) should be installed. The node version required for this project is listed in the [.nvmrc](https://github.com/creationix/nvm#nvmrc) file.
 
 ## Installation
 
@@ -122,9 +122,10 @@ The application will be available at http://host:4201 assuming the port is set t
 
 ## Development Setup
 
-1. Install all the dependent node_modules using the following command
+1. Switch to the correct node version and install all the dependent node_modules using the following commands
     ```
     cd metron/metron-interface/metron-alerts
+    nvm use
     npm install
     ```
 1. UI can be run by using the following command
