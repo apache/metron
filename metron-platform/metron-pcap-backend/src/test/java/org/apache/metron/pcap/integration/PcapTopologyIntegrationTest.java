@@ -62,10 +62,10 @@ import org.apache.metron.integration.utils.KafkaUtil;
 import org.apache.metron.job.Finalizer;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Statusable;
-import org.apache.metron.pcap.ConfigOptions;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.PcapMerger;
+import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.finalizer.PcapFinalizer;
@@ -256,20 +256,20 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
 
       Map<String, Object> configuration = new HashMap<>();
       Configuration hadoopConf = new Configuration();
-      ConfigOptions.JOB_NAME.put(configuration, "jobName");
-      ConfigOptions.HADOOP_CONF.put(configuration, hadoopConf);
-      ConfigOptions.FILESYSTEM.put(configuration, FileSystem.get(hadoopConf));
-      ConfigOptions.BASE_PATH.put(configuration, new Path(inputDir.getAbsolutePath()));
-      ConfigOptions.BASE_INTERRIM_RESULT_PATH.put(configuration, new Path(interimResultDir.getAbsolutePath()));
-      ConfigOptions.START_TIME_NS.put(configuration, getTimestamp(4, pcapEntries));
-      ConfigOptions.END_TIME_NS.put(configuration, getTimestamp(5, pcapEntries));
-      ConfigOptions.NUM_REDUCERS.put(configuration, 10);
-      ConfigOptions.NUM_RECORDS_PER_FILE.put(configuration, 2);
-      ConfigOptions.FINAL_OUTPUT_PATH.put(configuration, new Path(outputDir.getAbsolutePath()));
+      PcapOptions.JOB_NAME.put(configuration, "jobName");
+      PcapOptions.HADOOP_CONF.put(configuration, hadoopConf);
+      PcapOptions.FILESYSTEM.put(configuration, FileSystem.get(hadoopConf));
+      PcapOptions.BASE_PATH.put(configuration, new Path(inputDir.getAbsolutePath()));
+      PcapOptions.BASE_INTERRIM_RESULT_PATH.put(configuration, new Path(interimResultDir.getAbsolutePath()));
+      PcapOptions.START_TIME_NS.put(configuration, getTimestamp(4, pcapEntries));
+      PcapOptions.END_TIME_NS.put(configuration, getTimestamp(5, pcapEntries));
+      PcapOptions.NUM_REDUCERS.put(configuration, 10);
+      PcapOptions.NUM_RECORDS_PER_FILE.put(configuration, 2);
+      PcapOptions.FINAL_OUTPUT_PATH.put(configuration, new Path(outputDir.getAbsolutePath()));
       {
         //Ensure that only two pcaps are returned when we look at 4 and 5
-        ConfigOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, new HashMap());
+        PcapOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, new HashMap());
         PcapJob<Map<String, String>> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
@@ -277,7 +277,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -290,8 +290,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         // Ensure that only two pcaps are returned when we look at 4 and 5
         // test with empty query filter
-        ConfigOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, "");
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "");
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
@@ -299,7 +299,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -311,8 +311,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
       {
         //ensure that none get returned since that destination IP address isn't in the dataset
-        ConfigOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, new HashMap<String, String>() {{
+        PcapOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, new HashMap<String, String>() {{
           put(Constants.Fields.DST_ADDR.getName(), "207.28.210.1");
         }});
         PcapJob<Map<String, String>> job = new PcapJob<>();
@@ -322,7 +322,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -335,8 +335,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         // ensure that none get returned since that destination IP address isn't in the dataset
         // test with query filter
-        ConfigOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, "ip_dst_addr == '207.28.210.1'");
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "ip_dst_addr == '207.28.210.1'");
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
@@ -344,7 +344,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -356,8 +356,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
       {
         //same with protocol as before with the destination addr
-        ConfigOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, new HashMap<String, String>() {{
+        PcapOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, new HashMap<String, String>() {{
           put(Constants.Fields.PROTOCOL.getName(), "foo");
         }});
         PcapJob<Map<String, String>> job = new PcapJob<>();
@@ -367,7 +367,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -380,8 +380,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         //same with protocol as before with the destination addr
         //test with query filter
-        ConfigOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, "protocol == 'foo'");
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "protocol == 'foo'");
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
@@ -389,7 +389,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -401,10 +401,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
       {
         //make sure I get them all.
-        ConfigOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, new HashMap<>());
-        ConfigOptions.START_TIME_NS.put(configuration, getTimestamp(0, pcapEntries));
-        ConfigOptions.END_TIME_NS.put(configuration, getTimestamp(pcapEntries.size()-1, pcapEntries) + 1);
+        PcapOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, new HashMap<>());
+        PcapOptions.START_TIME_NS.put(configuration, getTimestamp(0, pcapEntries));
+        PcapOptions.END_TIME_NS.put(configuration, getTimestamp(pcapEntries.size()-1, pcapEntries) + 1);
         PcapJob<Map<String, String>> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
@@ -412,7 +412,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -425,10 +425,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         //make sure I get them all.
         //with query filter
-        ConfigOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, "");
-        ConfigOptions.START_TIME_NS.put(configuration, getTimestamp(0, pcapEntries));
-        ConfigOptions.END_TIME_NS.put(configuration, getTimestamp(pcapEntries.size()-1, pcapEntries) + 1);
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "");
+        PcapOptions.START_TIME_NS.put(configuration, getTimestamp(0, pcapEntries));
+        PcapOptions.END_TIME_NS.put(configuration, getTimestamp(pcapEntries.size()-1, pcapEntries) + 1);
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
@@ -436,7 +436,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -447,11 +447,11 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         Assert.assertEquals(10, results.get().getSize());
       }
       {
-        ConfigOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, new HashMap<String, String>() {{
+        PcapOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, new HashMap<String, String>() {{
           put(Constants.Fields.DST_PORT.getName(), "22");
         }});
-        ConfigOptions.NUM_RECORDS_PER_FILE.put(configuration, 1);
+        PcapOptions.NUM_RECORDS_PER_FILE.put(configuration, 1);
         PcapJob<Map<String, String>> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
@@ -459,7 +459,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -485,8 +485,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         //same with protocol as before with the destination addr
         //test with query filter
-        ConfigOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, "ip_dst_port == 22");
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "ip_dst_port == 22");
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
@@ -494,7 +494,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -518,8 +518,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
       {
         // test with query filter ip_dst_port > 20 and ip_dst_port < 55792
-        ConfigOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, "ip_dst_port > 20 and ip_dst_port < 55792");
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "ip_dst_port > 20 and ip_dst_port < 55792");
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
@@ -527,7 +527,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -551,8 +551,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
       {
         //test with query filter ip_dst_port > 55790
-        ConfigOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, "ip_dst_port > 55790");
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "ip_dst_port > 55790");
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
@@ -560,7 +560,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
@@ -584,10 +584,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
       {
         //test with query filter and byte array matching
-        ConfigOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
-        ConfigOptions.FIELDS.put(configuration, "BYTEARRAY_MATCHER('2f56abd814bc56420489ca38e7faf8cec3d4', packet)");
-        ConfigOptions.START_TIME_NS.put(configuration, getTimestamp(0, pcapEntries));
-        ConfigOptions.END_TIME_NS.put(configuration, getTimestamp(pcapEntries.size()-1, pcapEntries) + 1);
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "BYTEARRAY_MATCHER('2f56abd814bc56420489ca38e7faf8cec3d4', packet)");
+        PcapOptions.START_TIME_NS.put(configuration, getTimestamp(0, pcapEntries));
+        PcapOptions.END_TIME_NS.put(configuration, getTimestamp(pcapEntries.size()-1, pcapEntries) + 1);
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
@@ -595,7 +595,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-        Iterable<byte[]> bytes = Iterables.transform(results.get().asIterable(), path -> {
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
           try {
             return HDFSUtils.readBytes(path);
           } catch (IOException e) {
