@@ -1,6 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PcapFiltersComponent } from './pcap-filters.component';
+import { FormsModule } from '../../../../node_modules/@angular/forms';
 
 describe('PcapFiltersComponent', () => {
   let component: PcapFiltersComponent;
@@ -8,6 +9,9 @@ describe('PcapFiltersComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [
+        FormsModule
+      ],
       declarations: [ PcapFiltersComponent ]
     })
     .compileComponents();

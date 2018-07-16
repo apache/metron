@@ -35,15 +35,16 @@ describe('PcapService', () => {
       inject([PcapService, MockBackend], (pcapService, mockBackend) => {
         
         let request: PcapRequest = {
-          from: 0,
-          to: 0,
-          ip_src_addr: '0.0.0.0',
-          ip_src_port: 80,
-          ip_dest_addr: '0.0.0.0',
-          ip_dest_port: 80,
+          startTime: 0,
+          endTime: 0,
+          srcIp: '0.0.0.0',
+          srcPort: '80',
+          dstIp: '0.0.0.0',
+          dstPort: '80',
           protocol: '*',
-          filter: '*'
-        }
+          packetFilter: '*',
+          includeReverseTraffic: false,
+        };
         
         mockBackend.connections.subscribe((connection) => {
           connection.mockRespond(new Response(new ResponseOptions({body: pdml_json()})));
