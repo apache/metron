@@ -214,7 +214,7 @@ public class PcapJob<T> implements Statusable<Path> {
     Configuration hadoopConf = PcapOptions.HADOOP_CONF.get(configuration, Configuration.class);
     FileSystem fileSystem = PcapOptions.FILESYSTEM.get(configuration, FileSystem.class);
     Path basePath = PcapOptions.BASE_PATH.getTransformed(configuration, Path.class);
-    Path baseInterimResultPath = PcapOptions.INTERIM_RESULT_PATH.getTransformed(configuration, Path.class);
+    Path baseInterimResultPath = PcapOptions.BASE_INTERRIM_RESULT_PATH.getTransformed(configuration, Path.class);
     long startTime = PcapOptions.START_TIME_NS.get(configuration, Long.class);
     long endTime = PcapOptions.END_TIME_NS.get(configuration, Long.class);
     int numReducers = PcapOptions.NUM_REDUCERS.get(configuration, Integer.class);
@@ -229,7 +229,8 @@ public class PcapJob<T> implements Statusable<Path> {
           endTime,
           numReducers,
           fields,
-          hadoopConf,
+          // create a new copy for each job, bad things happen when hadoop config is reused
+          new Configuration(hadoopConf),
           fileSystem,
           filterImpl);
     } catch (IOException | InterruptedException | ClassNotFoundException e) {
@@ -261,6 +262,7 @@ public class PcapJob<T> implements Statusable<Path> {
       LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
     }
     Path interimResultPath =  new Path(baseInterimResultPath, outputDirName);
+    PcapOptions.INTERIM_RESULT_PATH.put(configuration, interimResultPath);
     mrJob = createJob(jobName
         , basePath
         , interimResultPath
