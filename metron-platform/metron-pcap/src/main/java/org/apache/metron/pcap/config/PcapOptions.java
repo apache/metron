@@ -16,44 +16,43 @@
  * limitations under the License.
  */
 
-package org.apache.metron.pcap;
-
-import org.apache.hadoop.fs.Path;
+package org.apache.metron.pcap.config;
 
 import java.util.function.BiFunction;
+import org.apache.hadoop.fs.Path;
+import org.apache.metron.common.configuration.ConfigOption;
 
-public enum ConfigOptions implements ConfigOption {
-  PREFIX("prefix"),
-  FINAL_FILENAME_PREFIX("finalFilenamePrefix"),
+public enum PcapOptions implements ConfigOption {
   JOB_NAME("jobName"),
-  FINAL_OUTPUT_PATH("finalOutputPath"),
-  BASE_PATH("basePath", (s,o) ->  o == null?null:new Path(o.toString())),
+  FINAL_FILENAME_PREFIX("finalFilenamePrefix"),
+  BASE_PATH("basePath", (s, o) -> o == null ? null : new Path(o.toString())),
   BASE_INTERRIM_RESULT_PATH("baseInterimResultPath", (s,o) ->  o == null?null:new Path(o.toString())),
-  INTERRIM_RESULT_PATH("interimResultPath", (s,o) ->  o == null?null:new Path(o.toString())),
+  INTERIM_RESULT_PATH("interimResultPath", (s, o) -> o == null ? null : new Path(o.toString())),
+  FINAL_OUTPUT_PATH("finalOutputPath", (s, o) -> o == null ? null : new Path(o.toString())),
   NUM_REDUCERS("numReducers"),
-  START_TIME("startTime"),
-  END_TIME("endTime"),
-  START_TIME_NS("startNs"),
-  END_TIME_NS("endNs"),
+  START_TIME_MS("startTimeMs"),
+  END_TIME_MS("endTimeMs"),
+  START_TIME_NS("startTimeNs"),
+  END_TIME_NS("endTimeNs"),
   NUM_RECORDS_PER_FILE("numRecordsPerFile"),
   FIELDS("fields"),
   FILTER_IMPL("filterImpl"),
   HADOOP_CONF("hadoopConf"),
-  FILESYSTEM("fileSystem")
-  ;
+  FILESYSTEM("fileSystem");
 
-  public static final BiFunction<String, Object, Path> STRING_TO_PATH = (s,o) ->  o == null?null:new Path(o.toString());
-  String key;
-  BiFunction<String, Object, Object> transform = (s, o) -> o;
+  public static final BiFunction<String, Object, Path> STRING_TO_PATH =
+      (s, o) -> o == null ? null : new Path(o.toString());
+  private String key;
+  private BiFunction<String, Object, Object> transform = (s, o) -> o;
 
-  ConfigOptions(String key) {
+  PcapOptions(String key) {
     this.key = key;
   }
-  ConfigOptions(String key, BiFunction<String, Object, Object> transform ) {
+
+  PcapOptions(String key, BiFunction<String, Object, Object> transform) {
     this.key = key;
     this.transform = transform;
   }
-
 
   @Override
   public String getKey() {

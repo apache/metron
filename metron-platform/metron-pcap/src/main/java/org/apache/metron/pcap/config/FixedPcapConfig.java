@@ -15,29 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.pcapservice;
+package org.apache.metron.pcap.config;
 
-import org.junit.Assert;
-import org.junit.Test;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+public class FixedPcapConfig extends PcapConfig {
 
-
-public class ConfigurationUtilTest {
-
-
-  @Test
-  public void test_getPcapOutputPath() {
-    ConfigurationUtil.setPcapOutputPath("/foo");
-    Assert.assertEquals(ConfigurationUtil.getPcapOutputPath(), "/foo");
+  public FixedPcapConfig(PrefixStrategy prefixStrategy) {
+    super(prefixStrategy);
+    setFixedFields(new LinkedHashMap<>());
   }
 
-  /**
-   * Test_get max allowable results size unit.
-   */
-  @Test
-  public void test_getTempQueryDir() {
-    ConfigurationUtil.setTempQueryOutputPath("/tmp");
-    Assert.assertEquals(ConfigurationUtil.getTempQueryOutputPath(), "/tmp");
+  public Map<String, String> getFixedFields() {
+    return PcapOptions.FIELDS.get(this, Map.class);
+  }
+
+  public void setFixedFields(Map<String, String> fixedFields) {
+    PcapOptions.FIELDS.put(this, fixedFields);
+  }
+
+  public void putFixedField(String key, String value) {
+    Map<String, String> fixedFields = PcapOptions.FIELDS.get(this, Map.class);
+    String trimmedVal = value != null ? value.trim() : null;
+    if (!isNullOrEmpty(trimmedVal)) {
+      fixedFields.put(key, value);
+    }
   }
 
 }

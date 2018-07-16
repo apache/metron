@@ -18,21 +18,35 @@
 
 package org.apache.metron.pcap;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.job.Pageable;
 
-public class PcapFiles implements Pageable<Path> {
+public class PcapPages implements Pageable<Path> {
 
-  private List<Path> files;
+  private final List<Path> files;
 
-  public PcapFiles(List<Path> files) {
-    this.files = files;
+  /**
+   * Copy constructor.
+   */
+  public PcapPages(Pageable<Path> pages) {
+    this.files = new ArrayList<>();
+    for (Path path : pages) {
+      files.add(new Path(path.toString()));
+    }
   }
 
-  @Override
-  public Iterable<Path> asIterable() {
-    return files;
+  /**
+   * Defaults with empty list.
+   */
+  public PcapPages() {
+    this.files = new ArrayList<>();
+  }
+
+  public PcapPages(List<Path> paths) {
+    files = new ArrayList<>(paths);
   }
 
   @Override
@@ -44,4 +58,29 @@ public class PcapFiles implements Pageable<Path> {
   public int getSize() {
     return files.size();
   }
+
+  @Override
+  public Iterator<Path> iterator() {
+    return new PcapIterator(files.iterator());
+  }
+
+  private class PcapIterator implements Iterator<Path> {
+
+    private Iterator<Path> delegateIt;
+
+    public PcapIterator(Iterator<Path> iterator) {
+      this.delegateIt = iterator;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return delegateIt.hasNext();
+    }
+
+    @Override
+    public Path next() {
+      return delegateIt.next();
+    }
+  }
+
 }

@@ -20,7 +20,7 @@ package org.apache.metron.pcap.finalizer;
 
 import java.util.Map;
 import org.apache.hadoop.fs.Path;
-import org.apache.metron.pcap.ConfigOptions;
+import org.apache.metron.pcap.config.PcapOptions;
 
 /**
  * Write to HDFS.
@@ -29,7 +29,7 @@ public class PcapRestFinalizer extends PcapFinalizer {
 
   @Override
   protected String getOutputFileName(Map<String, Object> config, int partition) {
-    Path finalOutputPath = ConfigOptions.FINAL_OUTPUT_PATH.getTransformed(config, Path.class);
+    Path finalOutputPath = PcapOptions.FINAL_OUTPUT_PATH.getTransformed(config, Path.class);
     return String.format("%s/page-%s", finalOutputPath, partition);
   }
 

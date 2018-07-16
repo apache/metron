@@ -63,7 +63,7 @@ public interface Statusable<PAGE_T> {
    *
    * @return true if job is completed, whether KILLED, FAILED, SUCCEEDED. False otherwise.
    */
-  boolean isDone() throws JobException;
+  boolean isDone();
 
   /**
    * Kill job.

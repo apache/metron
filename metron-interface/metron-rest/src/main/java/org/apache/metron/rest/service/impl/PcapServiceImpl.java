@@ -17,31 +17,15 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.system.Clock;
-import org.apache.metron.common.utils.HDFSUtils;
+import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
-import org.apache.metron.job.JobException;
-import org.apache.metron.job.JobStatus;
-import org.apache.metron.job.Pageable;
-import org.apache.metron.job.Statusable;
-import org.apache.metron.job.manager.JobManager;
-import org.apache.metron.job.service.JobServiceStrategies;
-import org.apache.metron.job.writer.PrefixStrategy;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
-import org.apache.metron.pcap.mr.PcapMRJobConfig;
-import org.apache.metron.pcap.writer.PcapResultsWriter;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.PcapResponse;
@@ -51,84 +35,55 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Service
 public class PcapServiceImpl implements PcapService {
 
   private Environment environment;
   private Configuration configuration;
-  private JobManager<Path> jobManager;
+  private PcapJob pcapJob;
 
   @Autowired
-  public PcapServiceImpl(Environment environment, Configuration configuration) {
+  public PcapServiceImpl(Environment environment, Configuration configuration, PcapJob pcapJob) {
     this.environment = environment;
     this.configuration = configuration;
-    this.jobManager = new JobManager<>(JobServiceStrategies.HDFS);
+    this.pcapJob = pcapJob;
   }
 
   @Override
-  public JobStatus fixed(FixedPcapRequest fixedPcapRequest) throws RestException {
+  public PcapResponse fixed(FixedPcapRequest fixedPcapRequest) throws RestException {
     if (fixedPcapRequest.getBasePath() == null) {
       fixedPcapRequest.setBasePath(environment.getProperty(MetronRestConstants.PCAP_INPUT_PATH_SPRING_PROPERTY));
     }
     if (fixedPcapRequest.getBaseOutputPath() == null) {
       fixedPcapRequest.setBaseOutputPath(environment.getProperty(MetronRestConstants.PCAP_OUTPUT_PATH_SPRING_PROPERTY));
     }
-
-    PrefixStrategy prefixStrategy = clock -> {
-      String timestamp = new Clock().currentTimeFormatted("yyyyMMddHHmm");
-      String uuid = UUID.randomUUID().toString().replaceAll("-", "");
-      return String.format("%s-%s", timestamp, uuid);
-    };
-
-    PcapMRJobConfig<Map<String, String>> config = new PcapMRJobConfig();
-    try {
-      config.setBasePath(new Path(fixedPcapRequest.getBasePath()))
-          .setBaseOutputPath(new Path(fixedPcapRequest.getBaseOutputPath()))
-          .setBeginNS(TimestampConverters.MILLISECONDS.toNanoseconds(fixedPcapRequest.getStartTime()))
-          .setEndNS(TimestampConverters.MILLISECONDS.toNanoseconds(fixedPcapRequest.getEndTime()))
-          .setNumReducers(fixedPcapRequest.getNumReducers())
-          .setFields(getFixedFields(fixedPcapRequest))
-          .setConf(configuration)
-          .setFs(getFileSystem())
-          .setFilterImpl(new FixedPcapFilter.Configurator())
-          .setResultsWriter(new PcapResultsWriter())
-          .setFinalOutputPath(new Path("/apps/metron/pcap/final"))
-          .setNumRecordsPerFile(10)
-          .setOutputFilePrefix(prefixStrategy.apply(new Clock()));
-
-      Statusable<Path> pcapJob = new PcapJob(config);
-      return jobManager.submit(pcapJob, new HashMap<>(), "metron");
-    } catch (IOException | JobException e) {
-      throw new RestException(e);
-    }
-  }
-
-  @Override
-  public JobStatus getJobStatus(String username, String jobId) throws RestException {
-    try {
-      return jobManager.getStatus(username, jobId);
-    } catch (JobException e) {
-      throw new RestException("Unable to get job status", e);
-    }
-  }
-
-  @Override
-  public PcapResponse getPage(String username, String jobId, int pageNum) throws RestException {
     PcapResponse response = new PcapResponse();
-    Statusable<Path> job = jobManager.getJob(username, jobId);
+    SequenceFileIterable results;
     try {
-      if (job.isDone()) {
-        Pageable<Path> results = job.getFinalResults();
-        Path resultsPage = results.getPage(pageNum);
-        if (resultsPage != null) {
-          List<byte[]> pcaps = new ArrayList<>();
-          byte[] pcap = HDFSUtils.readBytes(resultsPage.toString());
-          pcaps.add(pcap);
-          response.setPcaps(pcaps);
-        }
+      results = pcapJob.query(
+              new Path(fixedPcapRequest.getBasePath()),
+              new Path(fixedPcapRequest.getBaseOutputPath()),
+              TimestampConverters.MILLISECONDS.toNanoseconds(fixedPcapRequest.getStartTime()),
+              TimestampConverters.MILLISECONDS.toNanoseconds(fixedPcapRequest.getEndTime()),
+              fixedPcapRequest.getNumReducers(),
+              getFixedFields(fixedPcapRequest),
+              configuration,
+              getFileSystem(),
+              new FixedPcapFilter.Configurator()
+      );
+      if (results != null) {
+        List<byte[]> pcaps = new ArrayList<>();
+        results.iterator().forEachRemaining(pcaps::add);
+        response.setPcaps(pcaps);
       }
-    } catch (JobException | IOException e) {
-      throw new RestException("Unable to get results", e);
+    } catch (IOException | ClassNotFoundException | InterruptedException e) {
+      throw new RestException(e);
     }
     return response;
   }

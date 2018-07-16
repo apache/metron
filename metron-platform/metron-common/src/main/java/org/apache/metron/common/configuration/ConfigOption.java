@@ -15,30 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.pcapservice.rest;
 
-import org.apache.metron.pcapservice.PcapReceiverImplRestEasy;
+package org.apache.metron.common.configuration;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
+import java.util.function.BiFunction;
 
-import javax.ws.rs.core.Application;
+public interface ConfigOption {
+  String getKey();
+  default BiFunction<String, Object, Object> transform() {
+    return (s,o) -> o;
+  }
 
+  default void put(Map<String, Object> map, Object value) {
+    map.put(getKey(), value);
+  }
 
-public class JettyServiceRunner extends Application  {
-	
+  default <T> T get(Map<String, Object> map, Class<T> clazz) {
+    return clazz.cast(map.get(getKey()));
+  }
 
-	private static Set services = new HashSet(); 
-		
-	public  JettyServiceRunner() {     
-		// initialize restful services   
-		services.add(new PcapReceiverImplRestEasy());
-	}
-	@Override
-	public  Set getSingletons() {
-		return services;
-	}  
-	public  static Set getServices() {  
-		return services;
-	} 
+  default <T> T get(Map<String, Object> map, BiFunction<String, Object, T> transform, Class<T> clazz) {
+    return clazz.cast(map.get(getKey()));
+  }
+
+  default <T> T getTransformed(Map<String, Object> map, Class<T> clazz) {
+    return clazz.cast(transform().apply(getKey(), map.get(getKey())));
+  }
 }

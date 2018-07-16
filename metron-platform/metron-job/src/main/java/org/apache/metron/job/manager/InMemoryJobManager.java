@@ -19,7 +19,10 @@
 package org.apache.metron.job.manager;
 
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import org.apache.metron.job.JobException;
@@ -29,17 +32,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class InMemoryJobManager<PAGE_T> implements JobManager<PAGE_T> {
+
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Map<String, Map<String, Statusable<PAGE_T>>> jobs;
 
   public InMemoryJobManager() {
-    this.jobs = new HashMap<>();
+    this.jobs = Collections.synchronizedMap(new HashMap<>());
   }
 
   @Override
-  public JobStatus submit(Supplier<Statusable<PAGE_T>> jobSupplier, String username) throws  JobException {
+  public JobStatus submit(Supplier<Statusable<PAGE_T>> jobSupplier, String username)
+      throws JobException {
+    Map<String, Statusable<PAGE_T>> userJobs = getUserJobs(username);
     Statusable<PAGE_T> job = jobSupplier.get();
-    Map<String, Statusable<PAGE_T>> userJobs = new HashMap<>();
     userJobs.put(job.getStatus().getJobId(), job);
     jobs.put(username, userJobs);
     return job.getStatus();
@@ -52,17 +57,26 @@ public class InMemoryJobManager<PAGE_T> implements JobManager<PAGE_T> {
 
   @Override
   public boolean done(String username, String jobId) throws JobException {
-    return false;
+    return getJob(username, jobId).isDone();
   }
 
   @Override
   public void killJob(String username, String jobId) throws JobException {
-
+    getJob(username, jobId).kill();
   }
 
   @Override
   public Statusable<PAGE_T> getJob(String username, String jobId) throws JobException {
-    return null;
+    return getUserJobs(username).get(jobId);
+  }
+
+  private Map<String, Statusable<PAGE_T>> getUserJobs(String username) {
+    return jobs.getOrDefault(username, Collections.synchronizedMap(new HashMap<>()));
+  }
+
+  @Override
+  public List<Statusable<PAGE_T>> getJobs(String username) throws JobException {
+    return new ArrayList<Statusable<PAGE_T>>(getUserJobs(username).values());
   }
 
 }
