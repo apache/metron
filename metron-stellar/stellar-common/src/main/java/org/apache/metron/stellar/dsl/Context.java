@@ -63,7 +63,7 @@ public class Context implements Serializable {
     SHELL_VARIABLES
     ,
     /**
-     * This capability indicates that the StellarProcessor should use a Caffeine cache to cache expression -> results.  If an expression
+     * This capability indicates that the StellarProcessor should use a Caffeine cache to cache expression -{@literal >} results.  If an expression
      * is in the cache, then the cached result will be returned instead of recomputing.
      */
     CACHE

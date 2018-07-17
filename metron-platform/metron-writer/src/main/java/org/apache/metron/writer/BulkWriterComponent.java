@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
  *   modified by batchTimeoutDivisor, in case multiple batching writers are daisy-chained in one topology.
  *   - If some sensors configure their own batchTimeouts, they are compared with the default.  Batch
  *   timeouts greater than the default will be ignored, because they can cause message recycling in Storm.
- *   Batch timeouts configured to <= zero, or undefined, mean use the default.
+ *   Batch timeouts configured to {@literal <}= zero, or undefined, mean use the default.
  *   - The *smallest* configured batchTimeout among all sensor types, greater than zero and less than
  *   the default, will be used to configure the 'topology.tick.tuple.freq.secs' for the Bolt.  If there are no
  *   valid configured batchTimeouts, the defaultBatchTimeout will be used.
