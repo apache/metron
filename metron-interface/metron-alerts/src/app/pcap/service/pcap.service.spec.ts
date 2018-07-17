@@ -33,7 +33,7 @@ describe('PcapService', () => {
   describe('getPackets()', () => {
     it('should return an Observable<Response>',
       inject([PcapService, MockBackend], (pcapService, mockBackend) => {
-        
+
         let request: PcapRequest = {
           startTimeMs: 0,
           endTimeMs: 0,
@@ -45,7 +45,7 @@ describe('PcapService', () => {
           packetFilter: '*',
           includeReverse: false,
         };
-        
+
         mockBackend.connections.subscribe((connection) => {
           connection.mockRespond(new Response(new ResponseOptions({body: pdml_json()})));
         });
@@ -55,17 +55,11 @@ describe('PcapService', () => {
         expect(packets.pdml).toBeTruthy()
         expect(packets.pdml.packet.length).toBe(1)
         expect(packets.pdml.packet[0].proto.length).toBeGreaterThan(3)
-        
-        console.log(packets)
-      }))
-      
 
-    it('should ...', inject([PcapService], (service: PcapService) => {
-      expect(service).toBeTruthy();
-    }));
-    
-  })
-    
+        console.log(packets)
+      }));
+
+
 });
 
 
