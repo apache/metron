@@ -272,7 +272,7 @@ public class PcapJob<T> implements Statusable<Path> {
       LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
     }
     Path interimResultPath =  new Path(baseInterimResultPath, outputDirName);
-    PcapOptions.INTERIM_RESULT_PATH.put(configuration, interimResultPath);
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(configuration, interimResultPath);
     mrJob = createJob(jobName
         , basePath
         , interimResultPath
@@ -296,7 +296,7 @@ public class PcapJob<T> implements Statusable<Path> {
       @Override
       public void run() {
         try {
-          synchronized (jobState) {
+          synchronized (this) {
             if (jobState == State.RUNNING) {
               if (mrJob.isComplete()) {
                 switch (mrJob.getStatus().getState()) {
@@ -315,8 +315,8 @@ public class PcapJob<T> implements Statusable<Path> {
                     jobState = State.KILLED;
                     break;
                 }
+                cancel(); // be gone, ye!
               }
-              cancel(); // be gone, ye!
             }
           }
         } catch (InterruptedException | IOException e) {
@@ -409,45 +409,47 @@ public class PcapJob<T> implements Statusable<Path> {
     return JobType.MAP_REDUCE;
   }
 
+  /**
+   * Synchronized for mrJob and jobState
+   */
   @Override
-  public JobStatus getStatus() throws JobException {
+  public synchronized JobStatus getStatus() throws JobException {
     JobStatus status = new JobStatus();
     if (mrJob == null) {
       status.withPercentComplete(100).withState(State.SUCCEEDED);
     } else {
       try {
-        synchronized (this) {
-          org.apache.hadoop.mapreduce.JobStatus mrJobStatus = mrJob.getStatus();
-          status.withJobId(mrJobStatus.getJobID().toString());
-          if (jobState == State.SUCCEEDED) {
-            status.withPercentComplete(100).withState(State.SUCCEEDED)
-                .withDescription("Job complete");
-          } else {
-            if (mrJob.isComplete()) {
-              status.withPercentComplete(100);
-              switch (mrJobStatus.getState()) {
-                case SUCCEEDED:
-                  status.withState(State.FINALIZING).withDescription(State.FINALIZING.toString());
-                  break;
-                case FAILED:
-                  status.withState(State.FAILED).withDescription(State.FAILED.toString());
-                  break;
-                case KILLED:
-                  status.withState(State.KILLED).withDescription(State.KILLED.toString());
-                  break;
-                default:
-                  throw new IllegalStateException(
-                      "Unknown job state reported as 'complete' by mapreduce framework: " + mrJobStatus.getState());
-              }
-            } else {
-              float mapProg = mrJob.mapProgress();
-              float reduceProg = mrJob.reduceProgress();
-              float totalProgress = ((mapProg / 2) + (reduceProg / 2)) * 100;
-              String description = String
-                  .format("map: %s%%, reduce: %s%%", mapProg * 100, reduceProg * 100);
-              status.withPercentComplete(totalProgress).withState(State.RUNNING)
-                  .withDescription(description);
+        org.apache.hadoop.mapreduce.JobStatus mrJobStatus = mrJob.getStatus();
+        status.withJobId(mrJobStatus.getJobID().toString());
+        if (jobState == State.SUCCEEDED) {
+          status.withPercentComplete(100).withState(State.SUCCEEDED)
+              .withDescription("Job complete");
+        } else {
+          if (mrJob.isComplete()) {
+            status.withPercentComplete(100);
+            switch (mrJobStatus.getState()) {
+              case SUCCEEDED:
+                status.withState(State.FINALIZING).withDescription(State.FINALIZING.toString());
+                break;
+              case FAILED:
+                status.withState(State.FAILED).withDescription(State.FAILED.toString());
+                break;
+              case KILLED:
+                status.withState(State.KILLED).withDescription(State.KILLED.toString());
+                break;
+              default:
+                throw new IllegalStateException(
+                    "Unknown job state reported as 'complete' by mapreduce framework: "
+                        + mrJobStatus.getState());
             }
+          } else {
+            float mapProg = mrJob.mapProgress();
+            float reduceProg = mrJob.reduceProgress();
+            float totalProgress = ((mapProg / 2) + (reduceProg / 2)) * 100;
+            String description = String
+                .format("map: %s%%, reduce: %s%%", mapProg * 100, reduceProg * 100);
+            status.withPercentComplete(totalProgress).withState(State.RUNNING)
+                .withDescription(description);
           }
         }
       } catch (Exception e) {

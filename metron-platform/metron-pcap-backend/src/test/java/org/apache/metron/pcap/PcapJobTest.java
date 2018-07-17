@@ -190,7 +190,8 @@ public class PcapJobTest {
 
   @Test
   public void job_succeeds_asynchronously() throws Exception {
-    when(mrJob.isComplete()).thenReturn(true);
+    // not complete a few times to make sure cancel works as expected
+    when(mrJob.isComplete()).thenReturn(false, false, false, true);
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
     when(mrJob.getStatus()).thenReturn(mrStatus);
     Statusable<Path> statusable = testJob.submit(finalizer, config);

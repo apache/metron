@@ -57,7 +57,7 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
   public Pageable<Path> finalizeJob(Map<String, Object> config) throws JobException {
     Configuration hadoopConfig = PcapOptions.HADOOP_CONF.get(config, Configuration.class);
     int recPerFile = PcapOptions.NUM_RECORDS_PER_FILE.get(config, Integer.class);
-    Path interimResultPath = PcapOptions.INTERIM_RESULT_PATH
+    Path interimResultPath = PcapOptions.BASE_INTERIM_RESULT_PATH
         .get(config, PcapOptions.STRING_TO_PATH, Path.class);
     FileSystem fs = PcapOptions.FILESYSTEM.get(config, FileSystem.class);
 

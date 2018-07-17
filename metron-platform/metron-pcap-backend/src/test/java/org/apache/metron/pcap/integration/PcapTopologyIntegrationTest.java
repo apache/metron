@@ -23,7 +23,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FilenameFilter;
