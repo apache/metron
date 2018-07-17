@@ -200,8 +200,10 @@ public class SensorParserConfig implements Serializable {
   /**
    * Configures the cache that backs stellar field transformations.
    *
-   * <li>stellar.cache.maxSize - The maximum number of elements in the cache.
-   * <li>stellar.cache.maxTimeRetain - The maximum amount of time an element is kept in the cache (in minutes).
+   * <ul>
+   *   <li>stellar.cache.maxSize - The maximum number of elements in the cache.
+   *   <li>stellar.cache.maxTimeRetain - The maximum amount of time an element is kept in the cache (in minutes).
+   * </ul>
    */
   private Map<String, Object> cacheConfig = new HashMap<>();
 
