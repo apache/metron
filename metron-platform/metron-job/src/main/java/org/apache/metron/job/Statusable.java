@@ -26,8 +26,7 @@ import java.util.Map;
 public interface Statusable<PAGE_T> {
 
   enum JobType {
-    MAP_REDUCE,
-    SPARK;
+    MAP_REDUCE;
   }
 
   /**
