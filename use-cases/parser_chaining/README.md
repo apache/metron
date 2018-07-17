@@ -239,6 +239,11 @@ Chained parsers can be run as aggregated parsers. These parsers continue to use 
 
 Instead of creating a topology per sensor, all 3 (`pix-syslog-parser`, `cisco-5-304`, and `cisco-6-302`) can be run in a single aggregated parser. It's also possible to aggregate a subset of these parsers (e.g. run `cisco-6-302` as it's own topology, and aggregate the other 2).
 
+The step to start parsers then becomes
+```
+$METRON_HOME/bin/start_parser_topology.sh -k $BROKERLIST -z $ZOOKEEPER -s cisco-6-302,cisco-5-304,pix_syslog_router
+```
+
 The flow through the Storm topology and Kafka topics:
 
 ![Aggregated Flow](aggregated_parser_chaining_flow.svg)
