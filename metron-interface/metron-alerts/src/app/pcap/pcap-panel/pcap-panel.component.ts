@@ -34,12 +34,6 @@ export class PcapPanelComponent {
       this.queryId = id;
       this.queryRunning = true;
       this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusRespons) => {
-        //console.log(this.statusSubscription.closed);
-        if (this.progressWidth == 100) {
-          //this.progressWidth = 0;
-        } else {
-          this.progressWidth += 5;
-        }
         if ('Finished' === statusResponse.status) {
           this.statusSubscription.unsubscribe();
           console.log(this.statusSubscription.closed);
@@ -47,6 +41,8 @@ export class PcapPanelComponent {
           this.pcapService.getPackets(id).subscribe(pdml => {
             this.pdml = pdml;
           })
+        } else if (this.progressWidth < 100) {
+          this.progressWidth += 5;
         }
       });
     });
