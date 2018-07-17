@@ -237,6 +237,8 @@ You should see indices created for the `cisco-5-304` and `cisco-6-302` data with
 # Aggregated Parsers with Parser Chaining
 Chained parsers can be run as aggregated parsers. These parsers continue to use the sensor specific Kafka topics, and do not do internal routing to the appropriate sensor.
 
+Instead of creating a topology per sensor, all 3 (`pix-syslog-parser`, `cisco-5-304`, and `cisco-6-302`) can be run in a single aggregated parser. It's also possible to aggregate a subset of these parsers (e.g. run `cisco-6-302` as it's own topology, and aggregate the other 2).
+
 The flow through the Storm topology and Kafka topics:
 
 ![Aggregated Flow](aggregated_parser_chaining_flow.svg)
