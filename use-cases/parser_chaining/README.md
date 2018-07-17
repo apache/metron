@@ -233,3 +233,10 @@ cat ~/data.log | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --b
 ```
 
 You should see indices created for the `cisco-5-304` and `cisco-6-302` data with appropriate fields created for each type.
+
+# Aggregated Parsers with Parser Chaining
+Chained parsers can be run as aggregated parsers. These parsers continue to use the sensor specific Kafka topics, and do not do internal routing to the appropriate sensor.
+
+The flow through the Storm topology and Kafka topics:
+
+![Aggregated Flow](aggregated_parser_chaining_flow.svg)

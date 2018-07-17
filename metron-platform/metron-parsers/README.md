@@ -86,8 +86,9 @@ functions are also treated as errors and sent to an `error` queue.
 Multiple sensors can be aggregated into a single Storm topology. When this is done, there will be
 multiple Kafka spouts, but only a single parser bolt which will handle delegating to the correct 
 parser as needed. There are some constraints around this, in particular regarding some configuration.
-Additionally, all sensors must flow to the same error topic. Finally, metadata must be enabled in
-order for the aggregated bolt to properly know which Kafka topic a message comes to delegate properly.
+Additionally, all sensors must flow to the same error topic. The Kafka topic is retrieved from the input Tuple itself.
+
+A worked example of this can be found in the [Parser Chaining use case](../../use-cases/parser_chaining/README.md#aggregated-parsers-with-parser-chaining).
  
 ## Message Format
 
