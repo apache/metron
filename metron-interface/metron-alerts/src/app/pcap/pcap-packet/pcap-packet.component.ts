@@ -7,13 +7,8 @@ import { PdmlPacket } from '../model/pdml'
   templateUrl: './pcap-packet.component.html',
   styleUrls: ['./pcap-packet.component.scss']
 })
-export class PcapPacketComponent implements OnInit {
+export class PcapPacketComponent {
   @Input() packet: PdmlPacket 
-
-  constructor() { }
-
-  ngOnInit() {
-  }
 
   toggle() {
     this.packet.expanded = !this.packet.expanded
