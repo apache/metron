@@ -58,6 +58,7 @@ import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
 import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.topology.ParserComponents;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
@@ -185,7 +186,15 @@ public class ParserBoltTest extends BaseBoltTest {
   @Test
   public void testEmpty() throws Exception {
     String sensorType = "yaf";
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(writer)) {
+    Map<String, ParserComponents> parserMap = Collections.singletonMap(
+        sensorType,
+        new ParserComponents(
+            parser,
+            null,
+            new WriterHandler(writer)
+        )
+    );
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserMap) {
       @Override
       protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
         return ParserBoltTest.createUpdater();
@@ -209,7 +218,7 @@ public class ParserBoltTest extends BaseBoltTest {
     MetronError error = new MetronError()
             .withErrorType(Constants.ErrorType.PARSER_ERROR)
             .withThrowable(new NullPointerException())
-            .withSensorType(sensorType)
+            .withSensorType(Collections.singleton(sensorType))
             .addRawMessage(sampleBinary);
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
   }
@@ -217,7 +226,15 @@ public class ParserBoltTest extends BaseBoltTest {
   @Test
   public void testInvalid() throws Exception {
     String sensorType = "yaf";
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(writer)) {
+    Map<String, ParserComponents> parserMap = Collections.singletonMap(
+        sensorType,
+        new ParserComponents(
+            parser,
+            null,
+            new WriterHandler(writer)
+        )
+    );
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserMap) {
       @Override
       protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
         return ParserBoltTest.createUpdater();
@@ -243,7 +260,7 @@ public class ParserBoltTest extends BaseBoltTest {
 
     MetronError error = new MetronError()
             .withErrorType(Constants.ErrorType.PARSER_INVALID)
-            .withSensorType(sensorType)
+            .withSensorType(Collections.singleton(sensorType))
             .withErrorFields(new HashSet<String>() {{ add("field"); }})
             .addRawMessage(new JSONObject(){{
               put("field", "invalidValue");
@@ -255,14 +272,20 @@ public class ParserBoltTest extends BaseBoltTest {
 
   @Test
   public void test() throws Exception {
-
     String sensorType = "yaf";
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(writer)) {
+    Map<String, ParserComponents> parserMap = Collections.singletonMap(
+        sensorType,
+        new ParserComponents(
+            parser,
+            null,
+            new WriterHandler(writer)
+        )
+    );
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserMap) {
       @Override
       protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
         return ParserBoltTest.createUpdater();
       }
-
     };
     parserBolt.setCuratorFramework(client);
     parserBolt.setZKCache(cache);
@@ -290,7 +313,6 @@ public class ParserBoltTest extends BaseBoltTest {
     when(parser.validate(eq(messages.get(1)))).thenReturn(true);
     when(filter.emitTuple(eq(messages.get(0)), any())).thenReturn(false);
     when(filter.emitTuple(eq(messages.get(1)), any())).thenReturn(true);
-    parserBolt.withMessageFilter(filter);
     parserBolt.execute(tuple);
     verify(writer, times(1)).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), eq(finalMessage2));
     verify(outputCollector, times(2)).ack(tuple);
@@ -317,21 +339,15 @@ public class ParserBoltTest extends BaseBoltTest {
   @Test
   public void testFilterSuccess() throws Exception {
     String sensorType = "yaf";
-
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
-      @Override
-      protected SensorParserConfig getSensorParserConfig() {
-        try {
-          return SensorParserConfig.fromBytes(Bytes.toBytes(sensorParserConfig));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-      @Override
-      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
-        return ParserBoltTest.createUpdater(Optional.of(1));
-      }
-    };
+    Map<String, ParserComponents> parserMap = Collections.singletonMap(
+        sensorType,
+        new ParserComponents(
+            parser,
+            null,
+            new WriterHandler(batchWriter)
+        )
+    );
+    ParserBolt parserBolt = buildParserBolt(parserMap, sensorParserConfig);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setZKCache(cache);
@@ -358,10 +374,17 @@ public class ParserBoltTest extends BaseBoltTest {
   @Test
   public void testFilterFailure() throws Exception {
     String sensorType = "yaf";
-
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
+    Map<String, ParserComponents> parserMap = Collections.singletonMap(
+        sensorType,
+        new ParserComponents(
+            parser,
+            null,
+            new WriterHandler(batchWriter)
+        )
+    );
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserMap) {
       @Override
-      protected SensorParserConfig getSensorParserConfig() {
+      protected SensorParserConfig getSensorParserConfig(String sensorType) {
         try {
           return SensorParserConfig.fromBytes(Bytes.toBytes(sensorParserConfig));
         } catch (IOException e) {
@@ -433,21 +456,15 @@ public class ParserBoltTest extends BaseBoltTest {
 
       }
     };
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, dummyParser, new WriterHandler(recordingWriter)) {
-      @Override
-      protected SensorParserConfig getSensorParserConfig() {
-        try {
-          return SensorParserConfig.fromBytes(Bytes.toBytes(csvWithFieldTransformations));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-
-      @Override
-      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
-        return ParserBoltTest.createUpdater(Optional.of(1));
-      }
-    };
+    Map<String, ParserComponents> parserMap = Collections.singletonMap(
+        sensorType,
+        new ParserComponents(
+            dummyParser,
+            null,
+            new WriterHandler(recordingWriter)
+        )
+    );
+    ParserBolt parserBolt = buildParserBolt(parserMap, csvWithFieldTransformations);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setZKCache(cache);
@@ -461,10 +478,16 @@ public class ParserBoltTest extends BaseBoltTest {
 
   @Test
   public void testDefaultBatchSize() throws Exception {
-
     String sensorType = "yaf";
-
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
+    Map<String, ParserComponents> parserMap = Collections.singletonMap(
+        sensorType,
+        new ParserComponents(
+            parser,
+            filter,
+            new WriterHandler(batchWriter)
+        )
+    );
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserMap) {
       @Override
       protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
         // this uses default batch size
@@ -487,7 +510,6 @@ public class ParserBoltTest extends BaseBoltTest {
       response.addSuccess(uniqueTuples[i]);
     }
     when(batchWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(new HashSet<>(Arrays.asList(uniqueTuples))), any())).thenReturn(response);
-    parserBolt.withMessageFilter(filter);
     for (Tuple tuple : uniqueTuples) {
       parserBolt.execute(tuple);
     }
@@ -498,10 +520,16 @@ public class ParserBoltTest extends BaseBoltTest {
 
   @Test
   public void testLessRecordsThanDefaultBatchSize() throws Exception {
-
     String sensorType = "yaf";
-
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
+    Map<String, ParserComponents> parserMap = Collections.singletonMap(
+        sensorType,
+        new ParserComponents(
+            parser,
+            filter,
+            new WriterHandler(batchWriter)
+        )
+    );
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserMap) {
       @Override
       protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
         // this uses default batch size
@@ -524,7 +552,6 @@ public class ParserBoltTest extends BaseBoltTest {
       uniqueTuples[i] = mock(Tuple.class);
       response.addSuccess(uniqueTuples[i]);
     }
-    parserBolt.withMessageFilter(filter);
     for (Tuple tuple : uniqueTuples) {
       parserBolt.execute(tuple);
     }
@@ -542,10 +569,16 @@ public class ParserBoltTest extends BaseBoltTest {
 
   @Test
   public void testBatchOfOne() throws Exception {
-
     String sensorType = "yaf";
-
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
+    Map<String, ParserComponents> parserMap = Collections.singletonMap(
+        sensorType,
+        new ParserComponents(
+            parser,
+            filter,
+            new WriterHandler(batchWriter)
+        )
+    );
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserMap) {
       @Override
       protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
         return ParserBoltTest.createUpdater(Optional.of(1));
@@ -563,17 +596,22 @@ public class ParserBoltTest extends BaseBoltTest {
     BulkWriterResponse response = new BulkWriterResponse();
     response.addSuccess(t1);
     when(batchWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(Collections.singleton(t1)), any())).thenReturn(response);
-    parserBolt.withMessageFilter(filter);
     parserBolt.execute(t1);
     verify(outputCollector, times(1)).ack(t1);
   }
 
   @Test
   public void testBatchOfFive() throws Exception {
-
     String sensorType = "yaf";
-
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
+    Map<String, ParserComponents> parserMap = Collections.singletonMap(
+        sensorType,
+        new ParserComponents(
+            parser,
+            filter,
+            new WriterHandler(batchWriter)
+        )
+    );
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserMap) {
       @Override
       protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
         return ParserBoltTest.createUpdater(Optional.of(5));
@@ -592,7 +630,6 @@ public class ParserBoltTest extends BaseBoltTest {
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllSuccesses(tuples);
     when(batchWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(tuples), any())).thenReturn(response);
-    parserBolt.withMessageFilter(filter);
     writeNonBatch(outputCollector, parserBolt, t1);
     writeNonBatch(outputCollector, parserBolt, t2);
     writeNonBatch(outputCollector, parserBolt, t3);
@@ -610,9 +647,16 @@ public class ParserBoltTest extends BaseBoltTest {
 
   @Test
   public void testBatchOfFiveWithError() throws Exception {
-
     String sensorType = "yaf";
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
+    Map<String, ParserComponents> parserMap = Collections.singletonMap(
+        sensorType,
+        new ParserComponents(
+            parser,
+            filter,
+            new WriterHandler(batchWriter)
+        )
+    );
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserMap) {
       @Override
       protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
         return ParserBoltTest.createUpdater(Optional.of(5));
@@ -629,7 +673,6 @@ public class ParserBoltTest extends BaseBoltTest {
     when(parser.validate(any())).thenReturn(true);
     when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
-    parserBolt.withMessageFilter(filter);
     parserBolt.execute(t1);
     parserBolt.execute(t2);
     parserBolt.execute(t3);
@@ -652,6 +695,25 @@ public class ParserBoltTest extends BaseBoltTest {
     fieldValidation.put("config", new HashMap<String, String>(){{ put("condition", "field != 'invalidValue'"); }});
     globalConfig.put("fieldValidations", Arrays.asList(fieldValidation));
     parserBolt.getConfigurations().updateGlobalConfig(globalConfig);
+  }
+
+  private ParserBolt buildParserBolt(Map<String, ParserComponents> parserMap,
+      String csvWithFieldTransformations) {
+    return new ParserBolt("zookeeperUrl", parserMap) {
+      @Override
+      protected SensorParserConfig getSensorParserConfig(String sensorType) {
+        try {
+          return SensorParserConfig.fromBytes(Bytes.toBytes(csvWithFieldTransformations));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      @Override
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        return ParserBoltTest.createUpdater(Optional.of(1));
+      }
+    };
   }
 
   private static void writeNonBatch(OutputCollector collector, ParserBolt bolt, Tuple t) {
