@@ -31,11 +31,11 @@ public class PcapRequest extends AbstractMapDecorator<String, Object> {
   }
 
   public String getBaseOutputPath() {
-    return PcapOptions.INTERIM_RESULT_PATH.get(this, String.class);
+    return PcapOptions.BASE_INTERIM_RESULT_PATH.get(this, String.class);
   }
 
   public void setBaseOutputPath(String baseOutputPath) {
-    PcapOptions.INTERIM_RESULT_PATH.put(this, baseOutputPath);
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(this, baseOutputPath);
   }
 
   public String getBasePath() {

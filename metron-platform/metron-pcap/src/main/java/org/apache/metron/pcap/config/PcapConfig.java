@@ -78,7 +78,7 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
   }
 
   public String getInterimResultPath() {
-    return PcapOptions.INTERIM_RESULT_PATH.get(this, String.class);
+    return PcapOptions.BASE_INTERIM_RESULT_PATH.get(this, String.class);
   }
 
   public long getStartTimeMs() {
@@ -94,7 +94,7 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
   }
 
   public void setInterimResultPath(String baseOutputPath) {
-    PcapOptions.INTERIM_RESULT_PATH.put(this, baseOutputPath);
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(this, baseOutputPath);
   }
 
   public void setStartTimeMs(long startTime) {

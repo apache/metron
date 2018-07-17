@@ -92,7 +92,7 @@ public class PcapCliTest {
     }};
     FixedPcapConfig config = new FixedPcapConfig(prefixStrategy);
     PcapOptions.BASE_PATH.put(config, CliParser.BASE_PATH_DEFAULT);
-    PcapOptions.INTERIM_RESULT_PATH.put(config, CliParser.BASE_OUTPUT_PATH_DEFAULT);
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(config, CliParser.BASE_OUTPUT_PATH_DEFAULT);
     PcapOptions.FIELDS.put(config, query);
     PcapOptions.NUM_REDUCERS.put(config, 10);
     PcapOptions.START_TIME_MS.put(config, 500L);
@@ -158,7 +158,7 @@ public class PcapCliTest {
     }};
     FixedPcapConfig config = new FixedPcapConfig(prefixStrategy);
     PcapOptions.BASE_PATH.put(config, "/base/path");
-    PcapOptions.INTERIM_RESULT_PATH.put(config, "/base/output/path");
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(config, "/base/output/path");
     PcapOptions.FIELDS.put(config, query);
     PcapOptions.NUM_REDUCERS.put(config, 10);
     PcapOptions.START_TIME_MS.put(config, 500L);
@@ -204,7 +204,7 @@ public class PcapCliTest {
 
     FixedPcapConfig config = new FixedPcapConfig(prefixStrategy);
     PcapOptions.BASE_PATH.put(config, "/base/path");
-    PcapOptions.INTERIM_RESULT_PATH.put(config, "/base/output/path");
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(config, "/base/output/path");
     PcapOptions.FIELDS.put(config, query);
     PcapOptions.NUM_REDUCERS.put(config, 10);
     PcapOptions.START_TIME_MS.put(config, startAsNanos / 1000000L); // needed bc defaults in config
@@ -241,7 +241,7 @@ public class PcapCliTest {
     String query = "some query string";
     FixedPcapConfig config = new FixedPcapConfig(prefixStrategy);
     PcapOptions.BASE_PATH.put(config, CliParser.BASE_PATH_DEFAULT);
-    PcapOptions.INTERIM_RESULT_PATH.put(config, CliParser.BASE_OUTPUT_PATH_DEFAULT);
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(config, CliParser.BASE_OUTPUT_PATH_DEFAULT);
     PcapOptions.FIELDS.put(config, query);
     PcapOptions.NUM_REDUCERS.put(config, 10);
     PcapOptions.START_TIME_MS.put(config, 500L);
@@ -269,7 +269,7 @@ public class PcapCliTest {
     String query = "some query string";
     FixedPcapConfig config = new FixedPcapConfig(prefixStrategy);
     PcapOptions.BASE_PATH.put(config, "/base/path");
-    PcapOptions.INTERIM_RESULT_PATH.put(config, "/base/output/path");
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(config, "/base/output/path");
     PcapOptions.FIELDS.put(config, query);
     PcapOptions.NUM_REDUCERS.put(config, 10);
     PcapOptions.START_TIME_MS.put(config, 500L); // needed bc defaults in config
