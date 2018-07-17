@@ -35,8 +35,9 @@ public class HDFSUtils {
 
   public static byte[] readBytes(Path inPath) throws IOException {
     FileSystem fs = FileSystem.get(inPath.toUri(), new Configuration());
-    FSDataInputStream inputStream = fs.open(inPath);
-    return IOUtils.toByteArray(inputStream);
+    try (FSDataInputStream inputStream = fs.open(inPath)) {
+      return IOUtils.toByteArray(inputStream);
+    }
   }
 
   /**
@@ -68,8 +69,9 @@ public class HDFSUtils {
   public static List<String> readFile(Configuration config, String path) throws IOException {
     Path inPath = new Path(path);
     FileSystem fs = FileSystem.get(inPath.toUri(), config);
-    FSDataInputStream inputStream = fs.open(inPath);
-    return IOUtils.readLines(inputStream, "UTF-8");
+    try (FSDataInputStream inputStream = fs.open(inPath)) {
+      return IOUtils.readLines(inputStream, "UTF-8");
+    }
   }
 
   /**
