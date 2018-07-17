@@ -10,6 +10,7 @@ import {Pdml} from '../model/pdml'
 
 export class PcapStatusRespons {
     status: string;
+    processPercentage: number;
     totalPages: number;
 }
 
