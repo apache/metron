@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import javax.annotation.Nullable;
 import kafka.consumer.ConsumerIterator;
@@ -59,7 +58,6 @@ import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.MRComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.KafkaUtil;
-import org.apache.metron.job.Finalizer;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.PacketInfo;
@@ -68,7 +66,6 @@ import org.apache.metron.pcap.PcapMerger;
 import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
-import org.apache.metron.pcap.finalizer.PcapFinalizer;
 import org.apache.metron.pcap.finalizer.PcapFinalizerStrategies;
 import org.apache.metron.pcap.mr.PcapJob;
 import org.apache.metron.spout.pcap.Endianness;
@@ -260,7 +257,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       PcapOptions.HADOOP_CONF.put(configuration, hadoopConf);
       PcapOptions.FILESYSTEM.put(configuration, FileSystem.get(hadoopConf));
       PcapOptions.BASE_PATH.put(configuration, new Path(inputDir.getAbsolutePath()));
-      PcapOptions.BASE_INTERRIM_RESULT_PATH.put(configuration, new Path(interimResultDir.getAbsolutePath()));
+      PcapOptions.BASE_INTERIM_RESULT_PATH.put(configuration, new Path(interimResultDir.getAbsolutePath()));
       PcapOptions.START_TIME_NS.put(configuration, getTimestamp(4, pcapEntries));
       PcapOptions.END_TIME_NS.put(configuration, getTimestamp(5, pcapEntries));
       PcapOptions.NUM_REDUCERS.put(configuration, 10);
@@ -618,8 +615,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
 
   private void waitForJob(Statusable statusable) throws Exception {
     for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
-      if (statusable.isDone()) {
-        return;
+      if (!statusable.getStatus().getState().equals(JobStatus.State.RUNNING)) {
+        if (statusable.isDone()) {
+          return;
+        }
       }
     }
     throw new Exception("Job did not complete within " + (MAX_RETRIES * SLEEP_MS) + " seconds");

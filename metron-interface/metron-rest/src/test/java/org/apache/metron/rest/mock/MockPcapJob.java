@@ -56,7 +56,7 @@ public class MockPcapJob extends PcapJob<Path> {
   @Override
   public Statusable<Path> submit(Finalizer<Path> finalizer, Map<String, Object> configuration) throws JobException {
     this.basePath = PcapOptions.BASE_PATH.get(configuration, String.class);
-    this.baseInterrimResultPath = PcapOptions.BASE_INTERRIM_RESULT_PATH.get(configuration, String.class);
+    this.baseInterrimResultPath = PcapOptions.BASE_INTERIM_RESULT_PATH.get(configuration, String.class);
     this.finalOutputPath = PcapOptions.FINAL_OUTPUT_PATH.get(configuration, String.class);
     this.startTimeNs = PcapOptions.START_TIME_MS.get(configuration, Long.class) * 1000000;
     this.endTimeNs = PcapOptions.END_TIME_MS.get(configuration, Long.class) * 1000000;

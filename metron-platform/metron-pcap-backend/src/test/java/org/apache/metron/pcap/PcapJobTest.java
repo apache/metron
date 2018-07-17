@@ -100,7 +100,7 @@ public class PcapJobTest {
     PcapOptions.HADOOP_CONF.put(config, hadoopConfig);
     PcapOptions.FILESYSTEM.put(config, FileSystem.get(hadoopConfig));
     PcapOptions.BASE_PATH.put(config, basePath);
-    PcapOptions.INTERIM_RESULT_PATH.put(config, baseOutPath);
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(config, baseOutPath);
     PcapOptions.START_TIME_NS.put(config, startTime);
     PcapOptions.END_TIME_NS.put(config, endTime);
     PcapOptions.NUM_REDUCERS.put(config, numReducers);

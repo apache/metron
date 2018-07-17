@@ -26,7 +26,7 @@ public enum PcapOptions implements ConfigOption {
   JOB_NAME("jobName"),
   FINAL_FILENAME_PREFIX("finalFilenamePrefix"),
   BASE_PATH("basePath", (s, o) -> o == null ? null : new Path(o.toString())),
-  BASE_INTERRIM_RESULT_PATH("baseInterimResultPath", (s,o) ->  o == null?null:new Path(o.toString())),
+  BASE_INTERIM_RESULT_PATH("baseInterimResultPath", (s, o) ->  o == null?null:new Path(o.toString())),
   INTERIM_RESULT_PATH("interimResultPath", (s, o) -> o == null ? null : new Path(o.toString())),
   FINAL_OUTPUT_PATH("finalOutputPath", (s, o) -> o == null ? null : new Path(o.toString())),
   NUM_REDUCERS("numReducers"),

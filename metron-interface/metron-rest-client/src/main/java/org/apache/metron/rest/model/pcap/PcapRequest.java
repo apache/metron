@@ -40,11 +40,11 @@ public class PcapRequest extends AbstractMapDecorator<String, Object> {
   }
 
   public String getBaseInterimResultPath() {
-    return PcapOptions.BASE_INTERRIM_RESULT_PATH.get(this, String.class);
+    return PcapOptions.BASE_INTERIM_RESULT_PATH.get(this, String.class);
   }
 
   public void setBaseInterimResultPath(String baseInterimResultPath) {
-    PcapOptions.BASE_INTERRIM_RESULT_PATH.put(this, baseInterimResultPath);
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(this, baseInterimResultPath);
   }
 
   public String getFinalOutputPath() {
