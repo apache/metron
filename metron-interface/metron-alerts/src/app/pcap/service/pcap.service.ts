@@ -55,7 +55,7 @@ export class PcapService {
             .onErrorResumeNext();
     }
 
-    public getDownloadUrl(id: string) {
-      return `/api/v1/pcap/pcapqueryfilterasync/download?idQuery=${id}`;
+    public getDownloadUrl(id: string, pageNo: number) {
+      return `/api/v1/pcap/raw/${id}/${pageNo}`;
     }
 }

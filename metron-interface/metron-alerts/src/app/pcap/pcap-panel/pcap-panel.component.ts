@@ -23,6 +23,8 @@ export class PcapPanelComponent {
   queryRunning: boolean = false;
   queryId: string;
   progressWidth: number = 0;
+
+  selectedPage: number = 0;
   
   constructor(private pcapService: PcapService ) {}
 
@@ -49,6 +51,6 @@ export class PcapPanelComponent {
   }
 
   getDownloadUrl() {
-    return this.pcapService.getDownloadUrl(this.queryId);
+    return this.pcapService.getDownloadUrl(this.queryId, this.selectedPage);
   }
 }
