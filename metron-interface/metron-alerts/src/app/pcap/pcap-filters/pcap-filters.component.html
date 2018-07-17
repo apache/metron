@@ -12,6 +12,16 @@
   the specific language governing permissions and limitations under the License.
   -->
 <form (ngSubmit)="onSubmit()" #f="ngForm" class="form-inline pcap-search">
+
+  <div class="form-group">
+    <label>From</label>
+    <app-date-picker [(date)]="model.startTime"> </app-date-picker>
+  </div>
+  <div class="form-group">
+    <label>To</label>
+    <app-date-picker [(date)]="model.endTime"> </app-date-picker>
+  </div>
+
   <div class="form-group">
     <label for="ip_src_addr">IP Source Address</label>
     <input name="ip_src_addr" #ip_src_addr="ngModel" class="form-control" pattern="^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$" [(ngModel)]="model.srcIp">
