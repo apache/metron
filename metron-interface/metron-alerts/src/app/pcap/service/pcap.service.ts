@@ -1,13 +1,12 @@
 import {Injectable, NgZone} from '@angular/core';
-import {Observable, Subject} from 'rxjs/Rx';
-import {Http, Headers, RequestOptions, ResponseContentType} from '@angular/http';
+import {Observable} from 'rxjs/Rx';
+import {Http, Headers, RequestOptions} from '@angular/http';
 import {HttpUtil} from '../../utils/httpUtil';
 
 import 'rxjs/add/operator/map';
 
 import {PcapRequest} from '../model/pcap.request';
 import {Pdml} from '../model/pdml'
-import { RestError } from '../../model/rest-error';
 
 export class PcapStatusRespons {
     status: string;
