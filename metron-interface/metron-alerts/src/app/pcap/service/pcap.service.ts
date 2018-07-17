@@ -7,6 +7,12 @@ import 'rxjs/add/operator/map';
 
 import {PcapRequest} from '../model/pcap.request';
 import {Pdml} from '../model/pdml'
+import { RestError } from '../../model/rest-error';
+
+export class PcapStatusRespons {
+    status: string;
+    totalPages: number;
+}
 
 @Injectable()
 export class PcapService {
@@ -17,7 +23,7 @@ export class PcapService {
     constructor(private http: Http, private ngZone: NgZone) {
     }
 
-    public pollStatus(id: string): Observable<string> {
+    public pollStatus(id: string): Observable<{}> {
         return this.ngZone.runOutsideAngular(() => {
             return this.ngZone.run(() => {
                 return Observable.interval(this.statusInterval * 1000).switchMap(() => {
@@ -34,11 +40,12 @@ export class PcapService {
             .onErrorResumeNext();
     }
 
-    public getStatus(id: string): Observable<string> {
+    public getStatus(id: string): Observable<PcapStatusRespons> {
         return this.http.get('/api/v1/pcap/pcapqueryfilterasync/status?idQuery=' + id,
             new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-            .map(HttpUtil.extractString)
+            .map(HttpUtil.extractData)
             .catch(HttpUtil.handleError)
+            .onErrorResumeNext();
     }
 
     public getPackets(id: string): Observable<Pdml> {
