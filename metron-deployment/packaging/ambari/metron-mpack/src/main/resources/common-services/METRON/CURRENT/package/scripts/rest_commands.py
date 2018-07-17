@@ -162,6 +162,7 @@ class RestCommands:
           "export METRON_LOG_DIR={metron_log_dir};"
           "export METRON_PID_FILE={pid_file};"
           "export HDP_VERSION={hdp_version};"
+          "export METRON_RA_INDEXING_WRITER={ra_indexing_writer};"
           "{metron_home}/bin/metron-rest.sh;"
           "unset METRON_JDBC_PASSWORD;"
         ))

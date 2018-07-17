@@ -17,121 +17,101 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.hadoop.SequenceFileIterable;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.common.utils.timestamp.TimestampConverters;
-import org.apache.metron.job.Pageable;
-import org.apache.metron.pcap.PcapFiles;
-import org.apache.metron.pcap.PcapHelper;
-import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
-import org.apache.metron.pcap.mr.PcapJob;
-import org.apache.metron.pcap.writer.ResultsWriter;
+import org.apache.metron.job.JobException;
+import org.apache.metron.job.JobNotFoundException;
+import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.Statusable;
+import org.apache.metron.job.manager.JobManager;
+import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.config.PcapJobSupplier;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
+import org.apache.metron.rest.model.pcap.PcapRequest;
+import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
 import org.apache.metron.rest.service.PcapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class PcapServiceImpl implements PcapService {
 
   private Environment environment;
   private Configuration configuration;
-  private PcapJob pcapJob;
-
-  public PcapServiceImpl() {
-
-  }
+  private PcapJobSupplier pcapJobSupplier;
+  private JobManager<Path> jobManager;
 
   @Autowired
-  public PcapServiceImpl(Environment environment, Configuration configuration, PcapJob pcapJob) {
+  public PcapServiceImpl(Environment environment, Configuration configuration, PcapJobSupplier pcapJobSupplier, JobManager<Path> jobManager) {
     this.environment = environment;
     this.configuration = configuration;
-    this.pcapJob = pcapJob;
+    this.pcapJobSupplier = pcapJobSupplier;
+    this.jobManager = jobManager;
   }
 
   @Override
-  public List<String> fixed(FixedPcapRequest fixedPcapRequest) throws RestException {
-    if (fixedPcapRequest.getBasePath() == null) {
-      fixedPcapRequest.setBasePath(environment.getProperty(MetronRestConstants.PCAP_INPUT_PATH_SPRING_PROPERTY));
-    }
-    if (fixedPcapRequest.getBaseOutputPath() == null) {
-      fixedPcapRequest.setBaseOutputPath(environment.getProperty(MetronRestConstants.PCAP_OUTPUT_PATH_SPRING_PROPERTY));
-    }
-    List<String> paths = new ArrayList<>();
-    SequenceFileIterable results;
+  public PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException {
     try {
-      results = pcapJob.query(
-              new Path(fixedPcapRequest.getBasePath()),
-              new Path(fixedPcapRequest.getBaseOutputPath()),
-              TimestampConverters.MILLISECONDS.toNanoseconds(fixedPcapRequest.getStartTime()),
-              TimestampConverters.MILLISECONDS.toNanoseconds(fixedPcapRequest.getEndTime()),
-              fixedPcapRequest.getNumReducers(),
-              getFixedFields(fixedPcapRequest),
-              configuration,
-              getFileSystem(),
-              new FixedPcapFilter.Configurator()
-      );
-      if (results != null) {
-        Path outputPath = new Path("/tmp");
-        int recPerFile = Integer.parseInt(environment.getProperty(MetronRestConstants.PCAP_PAGE_SIZE_SPRING_PROPERTY, "100"));
-        String prefix = new SimpleDateFormat("yyyyMMddHHmm").format(Calendar.getInstance().getTime());
-        Pageable<Path> pages = pcapJob.writeResults(results, new ResultsWriter(), outputPath, recPerFile, prefix);
-        pages.asIterable().iterator().forEachRemaining(path -> paths.add(path.toUri().getPath()));
-      }
-    } catch (IOException | ClassNotFoundException | InterruptedException e) {
+      setPcapOptions(fixedPcapRequest);
+      fixedPcapRequest.setFields();
+      pcapJobSupplier.setPcapRequest(fixedPcapRequest);
+      JobStatus jobStatus = jobManager.submit(pcapJobSupplier, username);
+      return jobStatusToPcapStatus(jobStatus);
+    } catch (IOException | JobException e) {
       throw new RestException(e);
     }
-    return paths;
+  }
+
+  @Override
+  public PcapStatus getJobStatus(String username, String jobId) throws RestException {
+    PcapStatus pcapStatus = null;
+    try {
+      Statusable<Path> statusable = jobManager.getJob(username, jobId);
+      if (statusable != null) {
+        pcapStatus = jobStatusToPcapStatus(statusable.getStatus());
+      }
+    } catch (JobNotFoundException e) {
+      // do nothing and return null pcapStatus
+    } catch (JobException e) {
+      throw new RestException(e);
+    }
+    return pcapStatus;
   }
 
   @Override
   public Pdml getPdml(Path path) throws RestException {
     Pdml pdml = null;
     try {
-    if (FileSystem.newInstance(path.toUri(), configuration).exists(path)) {
-      ProcessBuilder processBuilder = getProcessBuilder(environment.getProperty(MetronRestConstants.PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY), path.toUri().getPath());
-      Process process = processBuilder.start();
-      InputStream rawInputStream = FileSystem.newInstance(path.toUri(), configuration).open(path);
-      OutputStream processOutputStream = process.getOutputStream();
-      IOUtils.copy(rawInputStream, processOutputStream);
-      rawInputStream.close();
-      if (process.isAlive()) {
-        // need to close processOutputStream if script doesn't exit with an error
-        processOutputStream.close();
-        InputStream processInputStream = process.getInputStream();
-        pdml = new XmlMapper().readValue(processInputStream, Pdml.class);
-        processInputStream.close();
-      } else {
-        String errorMessage = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
-        throw new RestException(errorMessage);
+      if (FileSystem.newInstance(path.toUri(), configuration).exists(path)) {
+        ProcessBuilder processBuilder = getProcessBuilder(environment.getProperty(MetronRestConstants.PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY), path.toUri().getPath());
+        Process process = processBuilder.start();
+        InputStream rawInputStream = FileSystem.newInstance(path.toUri(), configuration).open(path);
+        OutputStream processOutputStream = process.getOutputStream();
+        IOUtils.copy(rawInputStream, processOutputStream);
+        rawInputStream.close();
+        if (process.isAlive()) {
+          // need to close processOutputStream if script doesn't exit with an error
+          processOutputStream.close();
+          InputStream processInputStream = process.getInputStream();
+          pdml = new XmlMapper().readValue(processInputStream, Pdml.class);
+          processInputStream.close();
+        } else {
+          String errorMessage = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
+          throw new RestException(errorMessage);
+        }
       }
-    }
     } catch (IOException e) {
       e.printStackTrace();
       throw new RestException(e);
@@ -139,30 +119,22 @@ public class PcapServiceImpl implements PcapService {
     return pdml;
   }
 
-  protected Map<String, String> getFixedFields(FixedPcapRequest fixedPcapRequest) {
-    Map<String, String> fixedFields = new HashMap<>();
-    if (fixedPcapRequest.getIpSrcAddr() != null) {
-      fixedFields.put(Constants.Fields.SRC_ADDR.getName(), fixedPcapRequest.getIpSrcAddr());
+  protected void setPcapOptions(PcapRequest pcapRequest) throws IOException {
+    PcapOptions.JOB_NAME.put(pcapRequest, "jobName");
+    PcapOptions.HADOOP_CONF.put(pcapRequest, configuration);
+    PcapOptions.FILESYSTEM.put(pcapRequest, getFileSystem());
+
+    if (pcapRequest.getBasePath() == null) {
+      pcapRequest.setBasePath(environment.getProperty(MetronRestConstants.PCAP_BASE_PATH_SPRING_PROPERTY));
     }
-    if (fixedPcapRequest.getIpDstAddr() != null) {
-      fixedFields.put(Constants.Fields.DST_ADDR.getName(), fixedPcapRequest.getIpDstAddr());
+    if (pcapRequest.getBaseInterimResultPath() == null) {
+      pcapRequest.setBaseInterimResultPath(environment.getProperty(MetronRestConstants.PCAP_BASE_INTERIM_RESULT_PATH_SPRING_PROPERTY));
     }
-    if (fixedPcapRequest.getIpSrcPort() != null) {
-      fixedFields.put(Constants.Fields.SRC_PORT.getName(), fixedPcapRequest.getIpSrcPort().toString());
+    if (pcapRequest.getFinalOutputPath() == null) {
+      pcapRequest.setFinalOutputPath(environment.getProperty(MetronRestConstants.PCAP_FINAL_OUTPUT_PATH_SPRING_PROPERTY));
     }
-    if (fixedPcapRequest.getIpDstPort() != null) {
-      fixedFields.put(Constants.Fields.DST_PORT.getName(), fixedPcapRequest.getIpDstPort().toString());
-    }
-    if (fixedPcapRequest.getProtocol() != null) {
-      fixedFields.put(Constants.Fields.PROTOCOL.getName(), fixedPcapRequest.getProtocol());
-    }
-    if (fixedPcapRequest.getIncludeReverse() != null) {
-      fixedFields.put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), fixedPcapRequest.getIncludeReverse().toString());
-    }
-    if (fixedPcapRequest.getPacketFilter() != null) {
-      fixedFields.put(PcapHelper.PacketFields.PACKET_FILTER.getName(), fixedPcapRequest.getPacketFilter());
-    }
-    return fixedFields;
+
+    PcapOptions.NUM_RECORDS_PER_FILE.put(pcapRequest, Integer.parseInt(environment.getProperty(MetronRestConstants.PCAP_PAGE_SIZE_SPRING_PROPERTY)));
   }
 
   protected FileSystem getFileSystem() throws IOException {
@@ -171,5 +143,14 @@ public class PcapServiceImpl implements PcapService {
 
   protected ProcessBuilder getProcessBuilder(String... command) {
     return new ProcessBuilder(command);
+  }
+
+  protected PcapStatus jobStatusToPcapStatus(JobStatus jobStatus) {
+    PcapStatus pcapStatus = new PcapStatus();
+    pcapStatus.setJobId(jobStatus.getJobId());
+    pcapStatus.setJobStatus(jobStatus.getState().toString());
+    pcapStatus.setDescription(jobStatus.getDescription());
+    pcapStatus.setPercentComplete(jobStatus.getPercentComplete());
+    return pcapStatus;
   }
 }

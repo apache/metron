@@ -18,7 +18,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
 import 'bootstrap';
-import {CollapseComponentData} from './collapse-component-data';
+import { CollapseComponentData } from './collapse-component-data';
 
 @Component({
   selector: 'metron-collapse',

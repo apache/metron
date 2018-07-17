@@ -36,18 +36,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.HDFSUtils;
 import org.apache.metron.common.utils.ReflectionUtils;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.netty.utils.NettyRuntimeWrapper;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -320,5 +326,63 @@ public class ElasticsearchUtils {
     }
 
     return json;
+  }
+
+  /**
+   * Elasticsearch queries default to 10 records returned.  Some internal queries require that all
+   * results are returned.  Rather than setting an arbitrarily high size, this method pages through results
+   * and returns them all in a single SearchResponse.
+   * @param qb A QueryBuilder that provides the query to be run.
+   * @return A SearchResponse containing the appropriate results.
+   */
+  public static  SearchResponse queryAllResults(TransportClient transportClient,
+      QueryBuilder qb,
+      String index,
+      int pageSize
+  ) {
+    SearchRequestBuilder searchRequestBuilder = transportClient
+        .prepareSearch(index)
+        .addStoredField("*")
+        .setFetchSource(true)
+        .setQuery(qb)
+        .setSize(pageSize);
+    org.elasticsearch.action.search.SearchResponse esResponse = searchRequestBuilder
+        .execute()
+        .actionGet();
+    List<SearchResult> allResults = getSearchResults(esResponse);
+    long total = esResponse.getHits().getTotalHits();
+    if (total > pageSize) {
+      int pages = (int) (total / pageSize) + 1;
+      for (int i = 1; i < pages; i++) {
+        int from = i * pageSize;
+        searchRequestBuilder.setFrom(from);
+        esResponse = searchRequestBuilder
+            .execute()
+            .actionGet();
+        allResults.addAll(getSearchResults(esResponse));
+      }
+    }
+    SearchResponse searchResponse = new SearchResponse();
+    searchResponse.setTotal(total);
+    searchResponse.setResults(allResults);
+    return searchResponse;
+  }
+
+  /**
+   * Transforms a list of Elasticsearch SearchHits to a list of SearchResults
+   * @param searchResponse An Elasticsearch SearchHit to be converted.
+   * @return The list of SearchResults for the SearchHit
+   */
+  protected static List<SearchResult> getSearchResults(
+      org.elasticsearch.action.search.SearchResponse searchResponse) {
+    return Arrays.stream(searchResponse.getHits().getHits()).map(searchHit -> {
+          SearchResult searchResult = new SearchResult();
+          searchResult.setId(searchHit.getId());
+          searchResult.setSource(searchHit.getSource());
+          searchResult.setScore(searchHit.getScore());
+          searchResult.setIndex(searchHit.getIndex());
+          return searchResult;
+        }
+    ).collect(Collectors.toList());
   }
 }

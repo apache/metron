@@ -22,6 +22,7 @@ This module provides a RESTful API for interacting with Metron.
 ## Prerequisites
 
 * A running Metron cluster
+* A running real-time store, either Elasticsearch or Solr depending on which one is enabled
 * Java 8 installed
 * Storm CLI and Metron topology scripts (start_parser_topology.sh, start_enrichment_topology.sh, start_elasticsearch_topology.sh) installed
 * A relational database

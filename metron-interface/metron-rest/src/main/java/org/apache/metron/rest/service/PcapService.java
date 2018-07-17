@@ -18,16 +18,16 @@
 package org.apache.metron.rest.service;
 
 import org.apache.hadoop.fs.Path;
-import org.apache.metron.job.Pageable;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
+import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
-
-import java.util.List;
 
 public interface PcapService {
 
-  List<String> fixed(FixedPcapRequest fixedPcapRequest) throws RestException;
+  PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException;
+
+  PcapStatus getJobStatus(String username, String jobId) throws RestException;
+
   Pdml getPdml(Path path) throws RestException;
 }

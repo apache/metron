@@ -19,13 +19,9 @@ package org.apache.metron.pcap.query;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedOutputStream;
@@ -35,28 +31,25 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import java.util.Map.Entry;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
+import org.apache.metron.job.Finalizer;
 import org.apache.metron.pcap.PcapHelper;
-import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
-import org.apache.metron.pcap.filter.query.QueryPcapFilter;
+import org.apache.metron.pcap.config.FixedPcapConfig;
+import org.apache.metron.pcap.config.PcapConfig.PrefixStrategy;
+import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.mr.PcapJob;
-import org.apache.metron.pcap.writer.ResultsWriter;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 public class PcapCliTest {
@@ -64,16 +57,15 @@ public class PcapCliTest {
   @Mock
   private PcapJob jobRunner;
   @Mock
-  private ResultsWriter resultsWriter;
-  @Mock
   private Clock clock;
   private String execDir;
+  private PrefixStrategy prefixStrategy;
 
   @Before
   public void setup() throws IOException {
     MockitoAnnotations.initMocks(this);
-    doCallRealMethod().when(jobRunner).writeResults(anyObject(), anyObject(), anyObject(), anyInt(), anyObject());
     execDir = System.getProperty("user.dir");
+    prefixStrategy = clock -> "random_prefix";
   }
 
   @Test
@@ -88,13 +80,7 @@ public class PcapCliTest {
             "-protocol", "6",
             "-packet_filter", "`casey`"
     };
-    List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
-    Iterator iterator = pcaps.iterator();
-    SequenceFileIterable iterable = mock(SequenceFileIterable.class);
-    when(iterable.iterator()).thenReturn(iterator);
 
-    Path base_path = new Path(CliParser.BASE_PATH_DEFAULT);
-    Path base_output_path = new Path(CliParser.BASE_OUTPUT_PATH_DEFAULT);
     HashMap<String, String> query = new HashMap<String, String>() {{
       put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
       put(Constants.Fields.DST_ADDR.getName(), "192.168.1.2");
@@ -104,13 +90,46 @@ public class PcapCliTest {
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "false");
       put(PcapHelper.PacketFields.PACKET_FILTER.getName(), "`casey`");
     }};
+    FixedPcapConfig config = new FixedPcapConfig(prefixStrategy);
+    PcapOptions.BASE_PATH.put(config, CliParser.BASE_PATH_DEFAULT);
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(config, CliParser.BASE_OUTPUT_PATH_DEFAULT);
+    PcapOptions.FIELDS.put(config, query);
+    PcapOptions.NUM_REDUCERS.put(config, 10);
+    PcapOptions.START_TIME_MS.put(config, 500L);
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
+    when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
 
-    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
+    PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
+    verify(jobRunner).get();
   }
+
+  /**
+   * Check that "map" entries exist in the tested map "item". Note, will not work for complex
+   * Objects where equals() does not compare contents favorably. e.g. Configurator() did not work.
+   */
+  private <K, V> Matcher<Map<K, V>> mapContaining(Map<K, V> map) {
+    return new TypeSafeMatcher<Map<K, V>>() {
+      @Override
+      protected boolean matchesSafely(Map<K, V> item) {
+        return item.entrySet().containsAll(map.entrySet());
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("Should contain items: ");
+        for (Entry<K, V> entry : map.entrySet()) {
+          StringBuilder sb = new StringBuilder();
+          sb.append("key=");
+          sb.append(entry.getKey());
+          sb.append(",value=");
+          sb.append(entry.getValue());
+          description.appendText(sb.toString());
+        }
+      }
+    };
+  }
+
 
   @Test
   public void runs_fixed_pcap_filter_job_with_full_argument_list_and_default_dateformat() throws Exception {
@@ -129,13 +148,6 @@ public class PcapCliTest {
             "-num_reducers", "10",
             "-records_per_file", "1000"
     };
-    List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
-    Iterator iterator = pcaps.iterator();
-    SequenceFileIterable iterable = mock(SequenceFileIterable.class);
-    when(iterable.iterator()).thenReturn(iterator);
-
-    Path base_path = new Path("/base/path");
-    Path base_output_path = new Path("/base/output/path");
     Map<String, String> query = new HashMap<String, String>() {{
       put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
       put(Constants.Fields.DST_ADDR.getName(), "192.168.1.2");
@@ -144,12 +156,20 @@ public class PcapCliTest {
       put(Constants.Fields.PROTOCOL.getName(), "6");
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "true");
     }};
+    FixedPcapConfig config = new FixedPcapConfig(prefixStrategy);
+    PcapOptions.BASE_PATH.put(config, "/base/path");
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(config, "/base/output/path");
+    PcapOptions.FIELDS.put(config, query);
+    PcapOptions.NUM_REDUCERS.put(config, 10);
+    PcapOptions.START_TIME_MS.put(config, 500L);
+    PcapOptions.END_TIME_MS.put(config, 1000L);
+    PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
+    when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
 
-    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
+    PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
+    verify(jobRunner).get();
   }
 
   @Test
@@ -170,13 +190,6 @@ public class PcapCliTest {
             "-num_reducers", "10",
             "-records_per_file", "1000"
     };
-    List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
-    Iterator iterator = pcaps.iterator();
-    SequenceFileIterable iterable = mock(SequenceFileIterable.class);
-    when(iterable.iterator()).thenReturn(iterator);
-
-    Path base_path = new Path("/base/path");
-    Path base_output_path = new Path("/base/output/path");
     Map<String, String> query = new HashMap<String, String>() {{
       put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
       put(Constants.Fields.DST_ADDR.getName(), "192.168.1.2");
@@ -188,11 +201,23 @@ public class PcapCliTest {
 
     long startAsNanos = asNanos("2016-06-13-18:35.00", "yyyy-MM-dd-HH:mm.ss");
     long endAsNanos = asNanos("2016-06-15-18:35.00", "yyyy-MM-dd-HH:mm.ss");
-    when(jobRunner.query(eq(base_path), eq(base_output_path), eq(startAsNanos), eq(endAsNanos), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
 
-    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
+    FixedPcapConfig config = new FixedPcapConfig(prefixStrategy);
+    PcapOptions.BASE_PATH.put(config, "/base/path");
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(config, "/base/output/path");
+    PcapOptions.FIELDS.put(config, query);
+    PcapOptions.NUM_REDUCERS.put(config, 10);
+    PcapOptions.START_TIME_MS.put(config, startAsNanos / 1000000L); // needed bc defaults in config
+    PcapOptions.END_TIME_MS.put(config, endAsNanos / 1000000L);  // needed bc defaults in config
+    PcapOptions.START_TIME_NS.put(config, startAsNanos);
+    PcapOptions.END_TIME_NS.put(config, endAsNanos);
+    PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
+
+    when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
+
+    PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
+    verify(jobRunner).get();
   }
 
   private long asNanos(String inDate, String format) throws ParseException {
@@ -212,20 +237,20 @@ public class PcapCliTest {
             "-start_time", "500",
             "-query", "some query string"
     };
-    List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
-    Iterator iterator = pcaps.iterator();
-    SequenceFileIterable iterable = mock(SequenceFileIterable.class);
-    when(iterable.iterator()).thenReturn(iterator);
 
-    Path base_path = new Path(CliParser.BASE_PATH_DEFAULT);
-    Path base_output_path = new Path(CliParser.BASE_OUTPUT_PATH_DEFAULT);
     String query = "some query string";
+    FixedPcapConfig config = new FixedPcapConfig(prefixStrategy);
+    PcapOptions.BASE_PATH.put(config, CliParser.BASE_PATH_DEFAULT);
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(config, CliParser.BASE_OUTPUT_PATH_DEFAULT);
+    PcapOptions.FIELDS.put(config, query);
+    PcapOptions.NUM_REDUCERS.put(config, 10);
+    PcapOptions.START_TIME_MS.put(config, 500L);
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(iterable);
+    when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
 
-    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
+    PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
+    verify(jobRunner).get();
   }
 
   @Test
@@ -240,20 +265,22 @@ public class PcapCliTest {
             "-query", "some query string",
             "-records_per_file", "1000"
     };
-    List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
-    Iterator iterator = pcaps.iterator();
-    SequenceFileIterable iterable = mock(SequenceFileIterable.class);
-    when(iterable.iterator()).thenReturn(iterator);
 
-    Path base_path = new Path("/base/path");
-    Path base_output_path = new Path("/base/output/path");
     String query = "some query string";
+    FixedPcapConfig config = new FixedPcapConfig(prefixStrategy);
+    PcapOptions.BASE_PATH.put(config, "/base/path");
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(config, "/base/output/path");
+    PcapOptions.FIELDS.put(config, query);
+    PcapOptions.NUM_REDUCERS.put(config, 10);
+    PcapOptions.START_TIME_MS.put(config, 500L); // needed bc defaults in config
+    PcapOptions.END_TIME_MS.put(config, 1000L);  // needed bc defaults in config
+    PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(iterable);
+    when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
 
-    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
+    PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(isA(Configuration.class), eq(pcaps), eq("file:" + execDir + "/pcap-data-random_prefix+0001.pcap"));
+    verify(jobRunner).get();
   }
 
   // INVALID OPTION CHECKS
@@ -290,7 +317,7 @@ public class PcapCliTest {
       PrintStream errOutStream = new PrintStream(new BufferedOutputStream(ebos));
       System.setErr(errOutStream);
 
-      PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
+      PcapCli cli = new PcapCli(jobRunner, clock -> "random_prefix");
       assertThat("Expect errors on run", cli.run(args), equalTo(-1));
       assertThat("Expect missing required option error: " + ebos.toString(), ebos.toString().contains(optMsg), equalTo(true));
       assertThat("Expect usage to be printed: " + bos.toString(), bos.toString().contains("usage: " + type + " filter options"), equalTo(true));

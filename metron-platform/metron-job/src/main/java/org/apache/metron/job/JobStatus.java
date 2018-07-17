@@ -18,8 +18,6 @@
 
 package org.apache.metron.job;
 
-import org.apache.hadoop.fs.Path;
-
 /**
  * Capture metadata about a batch job.
  */
@@ -29,6 +27,7 @@ public class JobStatus {
     NOT_RUNNING,
     RUNNING,
     SUCCEEDED,
+    FINALIZING,
     FAILED,
     KILLED
   }
@@ -37,7 +36,7 @@ public class JobStatus {
   private State state = State.NOT_RUNNING;
   private double percentComplete = 0.0;
   private String description;
-  private Path resultPath;
+  private long completionTime;
 
   public JobStatus withJobId(String jobId) {
     this.jobId = jobId;
@@ -59,9 +58,13 @@ public class JobStatus {
     return this;
   }
 
-  public JobStatus withResultPath(Path resultPath) {
-    this.resultPath = resultPath;
+  public JobStatus withCompletionTime(long completionTime) {
+    this.completionTime = completionTime;
     return this;
+  }
+
+  public String getJobId() {
+    return jobId;
   }
 
   public State getState() {
@@ -76,8 +79,8 @@ public class JobStatus {
     return description;
   }
 
-  public Path getResultPath() {
-    return resultPath;
+  public long getCompletionTime() {
+    return completionTime;
   }
 
 }

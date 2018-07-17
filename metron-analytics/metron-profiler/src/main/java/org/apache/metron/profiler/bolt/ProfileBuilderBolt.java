@@ -423,8 +423,10 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
    */
   private void startFlushingExpiredProfiles() {
 
+    long initialDelay = profileTimeToLiveMillis;
+    long period = profileTimeToLiveMillis;
     flushExpiredExecutor = Executors.newSingleThreadScheduledExecutor();
-    flushExpiredExecutor.scheduleAtFixedRate(() -> flushExpired(), 0, profileTimeToLiveMillis, TimeUnit.MILLISECONDS);
+    flushExpiredExecutor.scheduleAtFixedRate(() -> flushExpired(), initialDelay, period, TimeUnit.MILLISECONDS);
   }
 
   @Override

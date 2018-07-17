@@ -74,6 +74,7 @@ user:
     cf: cf
 
 pcap:
-  input.path: /apps/metron/pcap
-  output.path: /tmp
-  page.size: 100
+  base.path: /apps/metron/pcap/input
+  base.interim.result.path: /apps/metron/pcap/interim
+  final.output.path: /apps/metron/pcap/output
+  page.size: 10

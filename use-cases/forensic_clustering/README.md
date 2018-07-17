@@ -371,7 +371,7 @@ Now, we can create the enrichments thusly by creating `$METRON_HOME/config/zooke
       "stellar" : {
         "config" : [
           "blacklisted := ENRICHMENT_EXISTS( 'blacklist', src_ip, 'threatintel', 't')",
-          "is_alert := (exists(is_alert) && is_alert) || blacklisted"
+          "is_alert := is_alert || blacklisted"
         ]
       }
 

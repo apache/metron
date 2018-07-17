@@ -15,17 +15,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed, async } from '@angular/core/testing';
+import { TestBed, async, ComponentFixture } from '@angular/core/testing';
 
 import { AppComponent } from './app.component';
+import { Component } from '@angular/core';
+import { AuthenticationService } from './service/authentication.service';
+import { Observable } from 'rxjs';
+
+@Component({ selector: 'router-outlet', template: '' })
+class RouterOutletStubComponent {}
 
 describe('AppComponent', () => {
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      providers: [
+        { provide: AuthenticationService, useValue: { onLoginEvent: Observable.of(true) } }
+      ],
       declarations: [
-        AppComponent
+        AppComponent,
+        RouterOutletStubComponent,
       ],
     }).compileComponents();
   }));
 
+  beforeEach(() => {
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should be created', () => {
+    expect(component).toBeTruthy();
+  });
 });
