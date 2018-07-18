@@ -23,10 +23,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobNotFoundException;
 import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.pcap.config.PcapOptions;
-import org.apache.metron.pcap.finalizer.PcapFinalizerStrategies;
 import org.apache.metron.pcap.finalizer.PcapRestFinalizer;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
@@ -80,8 +80,14 @@ public class PcapServiceImpl implements PcapService {
       Statusable<Path> statusable = jobManager.getJob(username, jobId);
       if (statusable != null) {
         pcapStatus = jobStatusToPcapStatus(statusable.getStatus());
+        if (statusable.isDone()) {
+          Pageable<Path> pageable = statusable.get();
+          if (pageable != null) {
+            pcapStatus.setPageTotal(pageable.getSize());
+          }
+        }
       }
-    } catch (JobNotFoundException e) {
+    } catch (JobNotFoundException | InterruptedException e) {
       // do nothing and return null pcapStatus
     } catch (JobException e) {
       throw new RestException(e);

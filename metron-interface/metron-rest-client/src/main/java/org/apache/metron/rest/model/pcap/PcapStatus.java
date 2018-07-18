@@ -23,7 +23,7 @@ public class PcapStatus {
   private String jobStatus;
   private String description;
   private Double percentComplete = 0.0;
-  private Integer size = 0;
+  private Integer pageTotal = 0;
 
   public String getJobId() {
     return jobId;
@@ -57,12 +57,12 @@ public class PcapStatus {
     this.percentComplete = percentComplete;
   }
 
-  public Integer getSize() {
-    return size;
+  public Integer getPageTotal() {
+    return pageTotal;
   }
 
-  public void setSize(Integer size) {
-    this.size = size;
+  public void setPageTotal(Integer size) {
+    this.pageTotal = size;
   }
 
   @Override
@@ -76,7 +76,7 @@ public class PcapStatus {
             (getJobStatus() != null ? getJobStatus().equals(pcapStatus.getJobStatus()) : pcapStatus.getJobStatus() != null) &&
             (getDescription() != null ? getDescription().equals(pcapStatus.getDescription()) : pcapStatus.getDescription() != null) &&
             (getPercentComplete() != null ? getPercentComplete().equals(pcapStatus.getPercentComplete()) : pcapStatus.getPercentComplete() != null) &&
-            (getSize() != null ? getSize().equals(pcapStatus.getSize()) : pcapStatus.getSize() != null);
+            (getPageTotal() != null ? getPageTotal().equals(pcapStatus.getPageTotal()) : pcapStatus.getPageTotal() != null);
   }
 
   @Override
@@ -85,7 +85,7 @@ public class PcapStatus {
     result = 31 * result + (getJobStatus() != null ? getJobStatus().hashCode() : 0);
     result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
     result = 31 * result + (getPercentComplete() != null ? getPercentComplete().hashCode() : 0);
-    result = 31 * result + (getSize() != null ? getSize().hashCode() : 0);
+    result = 31 * result + (getPageTotal() != null ? getPageTotal().hashCode() : 0);
     return result;
   }
 }
