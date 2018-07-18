@@ -17,52 +17,57 @@
  */
 package org.apache.metron.rest.model.pcap;
 
-public class PcapRequest {
+// TODO reconcile with pcapmrjob
 
-  private String baseOutputPath;
-  private String basePath;
-  private Long startTime = 0L;
-  private Long endTime = System.currentTimeMillis();
-  private Integer numReducers = 1;
+import org.apache.commons.collections4.map.AbstractMapDecorator;
+import org.apache.metron.pcap.config.PcapOptions;
+
+public class PcapRequest extends AbstractMapDecorator<String, Object> {
+
+  public PcapRequest() {
+    setStartTime(0L);
+    setEndTime(System.currentTimeMillis());
+    setNumReducers(1);
+  }
 
   public String getBaseOutputPath() {
-    return baseOutputPath;
+    return PcapOptions.BASE_INTERIM_RESULT_PATH.get(this, String.class);
   }
 
   public void setBaseOutputPath(String baseOutputPath) {
-    this.baseOutputPath = baseOutputPath;
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(this, baseOutputPath);
   }
 
   public String getBasePath() {
-    return basePath;
+    return PcapOptions.BASE_PATH.get(this, String.class);
   }
 
   public void setBasePath(String basePath) {
-    this.basePath = basePath;
+    PcapOptions.BASE_PATH.put(this, basePath);
   }
 
   public Long getStartTime() {
-    return startTime;
+    return PcapOptions.START_TIME_MS.get(this, Long.class);
   }
 
   public void setStartTime(Long startTime) {
-    this.startTime = startTime;
+    PcapOptions.START_TIME_MS.put(this, startTime);
   }
 
   public Long getEndTime() {
-    return endTime;
+    return PcapOptions.END_TIME_MS.get(this, Long.class);
   }
 
   public void setEndTime(Long endTime) {
-    this.endTime = endTime;
+    PcapOptions.END_TIME_MS.put(this, endTime);
   }
 
   public Integer getNumReducers() {
-    return numReducers;
+    return PcapOptions.NUM_REDUCERS.get(this, Integer.class);
   }
 
   public void setNumReducers(Integer numReducers) {
-    this.numReducers = numReducers;
+    PcapOptions.NUM_REDUCERS.put(this, numReducers);
   }
 
   @Override

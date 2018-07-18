@@ -16,23 +16,26 @@
  * limitations under the License.
  */
 
-package org.apache.metron.job;
+package org.apache.metron.job.manager;
 
-public interface Pageable<T> extends Iterable<T> {
+import java.util.List;
+import java.util.function.Supplier;
+import org.apache.metron.job.JobException;
+import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.Statusable;
 
-  /**
-   * Provides access to a specific page of results in the result set.
-   *
-   * @param num page number to access.
-   * @return value at the specified page.
-   */
-  T getPage(int num);
+public interface JobManager<PAGE_T> {
 
-  /**
-   * Number of pages i this Pageable.
-   *
-   * @return number of pages
-   */
-  int getSize();
+  JobStatus submit(Supplier<Statusable<PAGE_T>> jobSupplier, String username) throws JobException;
+
+  JobStatus getStatus(String username, String jobId) throws JobException;
+
+  boolean done(String username, String jobId) throws JobException;
+
+  void killJob(String username, String jobId) throws JobException;
+
+  Statusable<PAGE_T> getJob(String username, String jobId) throws JobException;
+
+  List<Statusable<PAGE_T>> getJobs(String username) throws JobException;
 
 }

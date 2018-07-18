@@ -18,21 +18,14 @@
 
 package org.apache.metron.job;
 
-public interface Pageable<T> extends Iterable<T> {
+public class JobException extends Exception {
 
-  /**
-   * Provides access to a specific page of results in the result set.
-   *
-   * @param num page number to access.
-   * @return value at the specified page.
-   */
-  T getPage(int num);
+  public JobException(String message) {
+    super(message);
+  }
 
-  /**
-   * Number of pages i this Pageable.
-   *
-   * @return number of pages
-   */
-  int getSize();
+  public JobException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
 }

@@ -15,24 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.pcap.config;
 
-package org.apache.metron.job;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-public interface Pageable<T> extends Iterable<T> {
+public class FixedPcapConfig extends PcapConfig {
 
-  /**
-   * Provides access to a specific page of results in the result set.
-   *
-   * @param num page number to access.
-   * @return value at the specified page.
-   */
-  T getPage(int num);
+  public FixedPcapConfig(PrefixStrategy prefixStrategy) {
+    super(prefixStrategy);
+    setFixedFields(new LinkedHashMap<>());
+  }
 
-  /**
-   * Number of pages i this Pageable.
-   *
-   * @return number of pages
-   */
-  int getSize();
+  public Map<String, String> getFixedFields() {
+    return PcapOptions.FIELDS.get(this, Map.class);
+  }
+
+  public void setFixedFields(Map<String, String> fixedFields) {
+    PcapOptions.FIELDS.put(this, fixedFields);
+  }
+
+  public void putFixedField(String key, String value) {
+    Map<String, String> fixedFields = PcapOptions.FIELDS.get(this, Map.class);
+    String trimmedVal = value != null ? value.trim() : null;
+    if (!isNullOrEmpty(trimmedVal)) {
+      fixedFields.put(key, value);
+    }
+  }
 
 }

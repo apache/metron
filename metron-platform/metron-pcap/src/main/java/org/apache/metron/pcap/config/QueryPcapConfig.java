@@ -15,24 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.pcap.config;
 
-package org.apache.metron.job;
+public class QueryPcapConfig extends PcapConfig {
 
-public interface Pageable<T> extends Iterable<T> {
+  public QueryPcapConfig(PrefixStrategy prefixStrategy) {
+    super(prefixStrategy);
+  }
 
-  /**
-   * Provides access to a specific page of results in the result set.
-   *
-   * @param num page number to access.
-   * @return value at the specified page.
-   */
-  T getPage(int num);
+  public String getQuery() {
+    return PcapOptions.FIELDS.get(this, String.class);
+  }
 
-  /**
-   * Number of pages i this Pageable.
-   *
-   * @return number of pages
-   */
-  int getSize();
-
+  public void setQuery(String query) {
+    PcapOptions.FIELDS.put(this, query);
+  }
 }

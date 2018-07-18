@@ -18,21 +18,21 @@
 
 package org.apache.metron.job;
 
-public interface Pageable<T> extends Iterable<T> {
+import java.util.Map;
+
+/**
+ * Finalize a job.
+ *
+ * @param <PAGE_T> Type for the Pageable.
+ */
+public interface Finalizer<PAGE_T> {
 
   /**
-   * Provides access to a specific page of results in the result set.
+   * Run any routines for finalizing a job.
    *
-   * @param num page number to access.
-   * @return value at the specified page.
+   * @param config options to be used by the finalization process.
+   * @return Pageable results.
    */
-  T getPage(int num);
-
-  /**
-   * Number of pages i this Pageable.
-   *
-   * @return number of pages
-   */
-  int getSize();
+  Pageable<PAGE_T> finalizeJob(Map<String, Object> config) throws JobException;
 
 }

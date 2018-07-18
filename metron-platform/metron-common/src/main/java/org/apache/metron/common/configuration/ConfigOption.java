@@ -16,23 +16,30 @@
  * limitations under the License.
  */
 
-package org.apache.metron.job;
+package org.apache.metron.common.configuration;
 
-public interface Pageable<T> extends Iterable<T> {
+import java.util.Map;
+import java.util.function.BiFunction;
 
-  /**
-   * Provides access to a specific page of results in the result set.
-   *
-   * @param num page number to access.
-   * @return value at the specified page.
-   */
-  T getPage(int num);
+public interface ConfigOption {
+  String getKey();
+  default BiFunction<String, Object, Object> transform() {
+    return (s,o) -> o;
+  }
 
-  /**
-   * Number of pages i this Pageable.
-   *
-   * @return number of pages
-   */
-  int getSize();
+  default void put(Map<String, Object> map, Object value) {
+    map.put(getKey(), value);
+  }
 
+  default <T> T get(Map<String, Object> map, Class<T> clazz) {
+    return clazz.cast(map.get(getKey()));
+  }
+
+  default <T> T get(Map<String, Object> map, BiFunction<String, Object, T> transform, Class<T> clazz) {
+    return clazz.cast(map.get(getKey()));
+  }
+
+  default <T> T getTransformed(Map<String, Object> map, Class<T> clazz) {
+    return clazz.cast(transform().apply(getKey(), map.get(getKey())));
+  }
 }
