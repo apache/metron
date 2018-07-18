@@ -25,6 +25,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.Pageable;
 import org.apache.metron.job.manager.InMemoryJobManager;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.pcap.PcapHelper;
@@ -67,10 +68,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
-import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @SuppressWarnings("ALL")
@@ -311,7 +308,11 @@ public class PcapServiceImplTest {
             .withState(JobStatus.State.SUCCEEDED)
             .withDescription("description")
             .withPercentComplete(100.0);
+    Pageable pageable = mock(Pageable.class);
+    when(pageable.getSize()).thenReturn(2);
     when(mockPcapJob.getStatus()).thenReturn(actualJobStatus);
+    when(mockPcapJob.isDone()).thenReturn(true);
+    when(mockPcapJob.get()).thenReturn(pageable);
     when(jobManager.getJob("user", "jobId")).thenReturn(mockPcapJob);
 
     PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager);
@@ -320,6 +321,7 @@ public class PcapServiceImplTest {
     expectedPcapStatus.setJobStatus(JobStatus.State.SUCCEEDED.name());
     expectedPcapStatus.setDescription("description");
     expectedPcapStatus.setPercentComplete(100.0);
+    expectedPcapStatus.setPageTotal(2);
 
     Assert.assertEquals(expectedPcapStatus, pcapService.getJobStatus("user", "jobId"));
   }

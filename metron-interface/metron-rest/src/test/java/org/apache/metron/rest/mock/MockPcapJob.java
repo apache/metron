@@ -88,6 +88,10 @@ public class MockPcapJob extends PcapJob<Path> {
     when(statusable.get()).thenReturn(pageable);
   }
 
+  public void setIsDone(boolean isDone) {
+    when(statusable.isDone()).thenReturn(isDone);
+  }
+
   public void setResults(List<byte[]> pcaps) {
     when(sequenceFileIterable.iterator()).thenReturn(pcaps.iterator());
   }

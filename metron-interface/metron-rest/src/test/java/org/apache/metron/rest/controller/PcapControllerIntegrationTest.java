@@ -18,10 +18,13 @@
 package org.apache.metron.rest.controller;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.Pageable;
 import org.apache.metron.pcap.PcapHelper;
+import org.apache.metron.pcap.PcapPages;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.rest.mock.MockPcapJob;
 import org.apache.metron.rest.model.PcapResponse;
@@ -195,10 +198,15 @@ public class PcapControllerIntegrationTest {
 
     mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.SUCCEEDED));
 
+    Pageable<Path> pageable = new PcapPages(Arrays.asList(new Path("path1"), new Path("path1")));
+    mockPcapJob.setIsDone(true);
+    mockPcapJob.setPageable(pageable);
+
     this.mockMvc.perform(get(pcapUrl + "/jobId").with(httpBasic(user, password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.jobStatus").value("SUCCEEDED"));
+            .andExpect(jsonPath("$.jobStatus").value("SUCCEEDED"))
+            .andExpect(jsonPath("$.pageTotal").value(2));
 
     mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.FINALIZING));
 
