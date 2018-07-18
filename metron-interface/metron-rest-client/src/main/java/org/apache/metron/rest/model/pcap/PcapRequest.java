@@ -28,7 +28,7 @@ public class PcapRequest extends AbstractMapDecorator<String, Object> {
     super(new HashMap<>());
     setStartTimeMs(0L);
     setEndTimeMs(System.currentTimeMillis());
-    setNumReducers(1);
+    setNumReducers(10);
   }
 
   public String getBasePath() {

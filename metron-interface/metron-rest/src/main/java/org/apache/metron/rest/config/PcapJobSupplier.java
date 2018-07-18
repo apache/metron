@@ -18,10 +18,11 @@
 package org.apache.metron.rest.config;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.metron.job.Finalizer;
 import org.apache.metron.job.JobException;
-import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.RuntimeJobException;
 import org.apache.metron.job.Statusable;
-import org.apache.metron.pcap.finalizer.PcapFinalizerStrategies;
+import org.apache.metron.pcap.finalizer.PcapRestFinalizer;
 import org.apache.metron.pcap.mr.PcapJob;
 import org.apache.metron.rest.model.pcap.PcapRequest;
 
@@ -30,20 +31,24 @@ import java.util.function.Supplier;
 public class PcapJobSupplier implements Supplier<Statusable<Path>> {
 
   private PcapRequest pcapRequest;
+  private Finalizer<Path> finalizer;
 
   @Override
   public Statusable<Path> get() {
     try {
       PcapJob<Path> pcapJob = createPcapJob();
-      return pcapJob.submit(PcapFinalizerStrategies.REST, pcapRequest);
+      return pcapJob.submit(finalizer, pcapRequest);
     } catch (JobException e) {
-      return null;
-      //return new JobStatus().withState(JobStatus.State.FAILED).withDescription(JobStatus.State.FAILED.toString());
+      throw new RuntimeJobException(e.getMessage());
     }
   }
 
   public void setPcapRequest(PcapRequest pcapRequest) {
     this.pcapRequest = pcapRequest;
+  }
+
+  public void setFinalizer(PcapRestFinalizer pcapRestFinalizer) {
+    this.finalizer = pcapRestFinalizer;
   }
 
   protected PcapJob createPcapJob() {

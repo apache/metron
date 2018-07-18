@@ -24,6 +24,7 @@ import org.apache.metron.common.configuration.ConfigOption;
 
 public enum PcapOptions implements ConfigOption {
   JOB_NAME("jobName"),
+  JOB_ID("jobId"),
   FINAL_FILENAME_PREFIX("finalFilenamePrefix"),
   BASE_PATH("basePath", (s, o) -> o == null ? null : new Path(o.toString())),
   BASE_INTERIM_RESULT_PATH("baseInterimResultPath", (s, o) ->  o == null?null:new Path(o.toString())),
