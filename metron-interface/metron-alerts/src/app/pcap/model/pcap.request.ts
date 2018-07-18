@@ -17,8 +17,8 @@
  */
  
 export class PcapRequest {
-  startTime: number = 1;
-  endTime: number = 150000000000000000;
+  startTime: number;
+  endTime: number;
   srcIp: string = '';
   srcPort: string = '';
   dstIp: string = '';
