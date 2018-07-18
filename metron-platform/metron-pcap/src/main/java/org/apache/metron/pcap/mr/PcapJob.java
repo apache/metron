@@ -232,7 +232,7 @@ public class PcapJob<T> implements Statusable<Path> {
     PcapFilterConfigurator<T> filterImpl = PcapOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
 
     try {
-      return query(jobName,
+      Statusable<Path> statusable = query(jobName,
           basePath,
           baseInterimResultPath,
           startTime,
@@ -243,6 +243,8 @@ public class PcapJob<T> implements Statusable<Path> {
           new Configuration(hadoopConf),
           fileSystem,
           filterImpl);
+      PcapOptions.JOB_ID.put(configuration, statusable.getStatus().getJobId());
+      return statusable;
     } catch (IOException | InterruptedException | ClassNotFoundException e) {
       throw new JobException("Failed to run pcap query.", e);
     }
@@ -272,7 +274,7 @@ public class PcapJob<T> implements Statusable<Path> {
       LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
     }
     Path interimResultPath =  new Path(baseInterimResultPath, outputDirName);
-    PcapOptions.BASE_INTERIM_RESULT_PATH.put(configuration, interimResultPath);
+    PcapOptions.INTERIM_RESULT_PATH.put(configuration, interimResultPath);
     mrJob = createJob(jobName
         , basePath
         , interimResultPath

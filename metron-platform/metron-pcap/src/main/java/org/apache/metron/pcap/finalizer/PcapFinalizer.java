@@ -57,7 +57,7 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
   public Pageable<Path> finalizeJob(Map<String, Object> config) throws JobException {
     Configuration hadoopConfig = PcapOptions.HADOOP_CONF.get(config, Configuration.class);
     int recPerFile = PcapOptions.NUM_RECORDS_PER_FILE.get(config, Integer.class);
-    Path interimResultPath = PcapOptions.BASE_INTERIM_RESULT_PATH
+    Path interimResultPath = PcapOptions.INTERIM_RESULT_PATH
         .get(config, PcapOptions.STRING_TO_PATH, Path.class);
     FileSystem fs = PcapOptions.FILESYSTEM.get(config, FileSystem.class);
 
@@ -73,10 +73,10 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
       int part = 1;
       if (partitions.iterator().hasNext()) {
         for (List<byte[]> data : partitions) {
-          String outFileName = getOutputFileName(config, part++);
+          Path outputPath = getOutputPath(config, part++);
           if (data.size() > 0) {
-            getResultsWriter().write(hadoopConfig, data, outFileName);
-            outFiles.add(new Path(outFileName));
+            getResultsWriter().write(hadoopConfig, data, outputPath.toUri().getPath());
+            outFiles.add(outputPath);
           }
         }
       } else {
@@ -94,7 +94,7 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
     return new PcapPages(outFiles);
   }
 
-  protected abstract String getOutputFileName(Map<String, Object> config, int partition);
+  protected abstract Path getOutputPath(Map<String, Object> config, int partition);
 
   /**
    * Returns a lazily-read Iterable over a set of sequence files.

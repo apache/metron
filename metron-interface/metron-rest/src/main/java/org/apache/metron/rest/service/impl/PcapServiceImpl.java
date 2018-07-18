@@ -28,6 +28,8 @@ import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.pcap.config.PcapOptions;
+import org.apache.metron.pcap.finalizer.PcapFinalizerStrategies;
+import org.apache.metron.pcap.finalizer.PcapRestFinalizer;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.config.PcapJobSupplier;
@@ -67,6 +69,9 @@ public class PcapServiceImpl implements PcapService {
       setPcapOptions(fixedPcapRequest);
       fixedPcapRequest.setFields();
       pcapJobSupplier.setPcapRequest(fixedPcapRequest);
+      PcapRestFinalizer pcapRestFinalizer = new PcapRestFinalizer();
+      pcapRestFinalizer.setUser(username);
+      pcapJobSupplier.setFinalizer(pcapRestFinalizer);
       JobStatus jobStatus = jobManager.submit(pcapJobSupplier, username);
       return jobStatusToPcapStatus(jobStatus);
     } catch (IOException | JobException e) {

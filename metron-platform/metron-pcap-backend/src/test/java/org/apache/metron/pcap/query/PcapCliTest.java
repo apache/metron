@@ -209,8 +209,6 @@ public class PcapCliTest {
     PcapOptions.NUM_REDUCERS.put(config, 10);
     PcapOptions.START_TIME_MS.put(config, startAsNanos / 1000000L); // needed bc defaults in config
     PcapOptions.END_TIME_MS.put(config, endAsNanos / 1000000L);  // needed bc defaults in config
-    PcapOptions.START_TIME_NS.put(config, startAsNanos);
-    PcapOptions.END_TIME_NS.put(config, endAsNanos);
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);

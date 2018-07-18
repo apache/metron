@@ -98,12 +98,6 @@ public class PcapCli {
         fixedParser.printHelp();
         return 0;
       }
-      Pair<Long, Long> time = timeAsNanosecondsSinceEpoch(config.getStartTimeMs(), config.getEndTimeMs());
-      long startTime = time.getLeft();
-      long endTime = time.getRight();
-
-      PcapOptions.START_TIME_NS.put(commonConfig, startTime);
-      PcapOptions.END_TIME_NS.put(commonConfig, endTime);
       PcapOptions.FILTER_IMPL.put(commonConfig, new FixedPcapFilter.Configurator());
       PcapOptions.HADOOP_CONF.put(commonConfig, hadoopConf);
       try {
@@ -128,12 +122,6 @@ public class PcapCli {
         queryParser.printHelp();
         return 0;
       }
-      Pair<Long, Long> time = timeAsNanosecondsSinceEpoch(config.getStartTimeMs(), config.getEndTimeMs());
-      long startTime = time.getLeft();
-      long endTime = time.getRight();
-
-      PcapOptions.START_TIME_NS.put(commonConfig, startTime);
-      PcapOptions.END_TIME_NS.put(commonConfig, endTime);
       PcapOptions.FILTER_IMPL.put(commonConfig, new FixedPcapFilter.Configurator());
       PcapOptions.HADOOP_CONF.put(commonConfig, hadoopConf);
       try {

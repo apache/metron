@@ -16,31 +16,15 @@
  * limitations under the License.
  */
 
-package org.apache.metron.pcap.finalizer;
+package org.apache.metron.job;
 
-import java.nio.file.Paths;
-import java.util.Map;
-import org.apache.hadoop.fs.Path;
-import org.apache.metron.job.Statusable;
-import org.apache.metron.pcap.config.PcapOptions;
+public class RuntimeJobException extends RuntimeException {
 
-/**
- * Write to HDFS.
- */
-public class PcapRestFinalizer extends PcapFinalizer {
-
-  private String user;
-  private String jobType = Statusable.JobType.MAP_REDUCE.name();
-
-  public void setUser(String user) {
-    this.user = user;
+  public RuntimeJobException(String message) {
+    super(message);
   }
 
-  @Override
-  protected Path getOutputPath(Map<String, Object> config, int partition) {
-    String jobId = PcapOptions.JOB_ID.get(config, String.class);
-    String finalOutputPath = PcapOptions.FINAL_OUTPUT_PATH.get(config, String.class);
-    return new Path(String.format("%s/%s/%s/%s/page-%s", finalOutputPath, user, jobType, jobId, partition));
+  public RuntimeJobException(String message, Throwable cause) {
+    super(message, cause);
   }
-
 }
