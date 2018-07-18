@@ -18,16 +18,18 @@
 
 package org.apache.metron.pcap.finalizer;
 
-import java.nio.file.Paths;
-import java.util.Map;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.config.PcapOptions;
+
+import java.util.Map;
 
 /**
  * Write to HDFS.
  */
 public class PcapRestFinalizer extends PcapFinalizer {
+
+  private static final String PCAP_REST_FILEPATH_FORMAT = "%s/%s/%s/%s/page-%s.pcap";
 
   private String user;
   private String jobType = Statusable.JobType.MAP_REDUCE.name();
@@ -40,7 +42,7 @@ public class PcapRestFinalizer extends PcapFinalizer {
   protected Path getOutputPath(Map<String, Object> config, int partition) {
     String jobId = PcapOptions.JOB_ID.get(config, String.class);
     String finalOutputPath = PcapOptions.FINAL_OUTPUT_PATH.get(config, String.class);
-    return new Path(String.format("%s/%s/%s/%s/page-%s", finalOutputPath, user, jobType, jobId, partition));
+    return new Path(String.format(PCAP_REST_FILEPATH_FORMAT, finalOutputPath, user, jobType, jobId, partition));
   }
 
 }

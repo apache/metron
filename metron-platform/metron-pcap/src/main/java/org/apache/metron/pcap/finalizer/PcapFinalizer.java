@@ -40,6 +40,12 @@ import org.apache.metron.pcap.writer.PcapResultsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Takes Pcap results from a specified path - for PCAP, it is assumed that these results are SequenceFileIterables.
+ * The results are then processed by partitioning the results based on a num records per file option
+ * into a final output file with a PCAP header for each partition, and written to a final output location.
+ * The MapReduce results are cleaned up after successfully writing out the final results.
+ */
 public abstract class PcapFinalizer implements Finalizer<Path> {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

@@ -24,6 +24,11 @@ import org.apache.metron.job.Finalizer;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.Pageable;
 
+/**
+ * PcapJob runs a MapReduce job that outputs Sequence Files to HDFS. This Strategy/Factory class
+ * provides options for doing final processing on this raw MapReduce output for the CLI and REST
+ * API's.
+ */
 public enum PcapFinalizerStrategies implements Finalizer<Path> {
   CLI(new PcapCliFinalizer()),
   REST(new PcapRestFinalizer());

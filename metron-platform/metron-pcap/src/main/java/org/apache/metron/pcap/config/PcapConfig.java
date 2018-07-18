@@ -41,7 +41,7 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
     this();
     setShowHelp(false);
     setBasePath("");
-    setInterimResultPath("");
+    setBaseInterimResultPath("");
     setStartTimeMs(-1L);
     setEndTimeMs(-1L);
     setNumReducers(0);
@@ -77,7 +77,7 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
     return PcapOptions.BASE_PATH.get(this, String.class);
   }
 
-  public String getInterimResultPath() {
+  public String getBaseInterimResultPath() {
     return PcapOptions.BASE_INTERIM_RESULT_PATH.get(this, String.class);
   }
 
@@ -93,7 +93,7 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
     PcapOptions.BASE_PATH.put(this, basePath);
   }
 
-  public void setInterimResultPath(String baseOutputPath) {
+  public void setBaseInterimResultPath(String baseOutputPath) {
     PcapOptions.BASE_INTERIM_RESULT_PATH.put(this, baseOutputPath);
   }
 
