@@ -166,7 +166,7 @@ public class PcapControllerIntegrationTest {
     Assert.assertEquals(0, mockPcapJob.getStartTimeNs());
     Assert.assertTrue(beforeJobTime < mockPcapJob.getEndTimeNs() / 1000000);
     Assert.assertTrue(System.currentTimeMillis() > mockPcapJob.getEndTimeNs() / 1000000);
-    Assert.assertEquals(1, mockPcapJob.getNumReducers());
+    Assert.assertEquals(10, mockPcapJob.getNumReducers());
     Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
     Map<String, String> actualFixedFields = mockPcapJob.getFixedFields();
     Assert.assertEquals("192.168.1.2", actualFixedFields.get(Constants.Fields.SRC_ADDR.getName()));
