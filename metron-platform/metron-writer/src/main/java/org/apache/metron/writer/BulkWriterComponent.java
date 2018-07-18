@@ -23,6 +23,7 @@ import static java.lang.String.format;
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -118,7 +119,7 @@ public class BulkWriterComponent<MESSAGE_T> {
   public void error(String sensorType, Throwable e, Iterable<Tuple> tuples, MessageGetStrategy messageGetStrategy) {
     LOG.error(format("Failing %d tuple(s); sensorType=%s", Iterables.size(tuples), sensorType), e);
     MetronError error = new MetronError()
-            .withSensorType(sensorType)
+            .withSensorType(Collections.singleton(sensorType))
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
             .withThrowable(e);
     tuples.forEach(t -> error.addRawMessage(messageGetStrategy.get(t)));

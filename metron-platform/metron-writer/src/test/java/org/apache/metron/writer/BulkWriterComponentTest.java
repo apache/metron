@@ -17,11 +17,22 @@
  */
 package org.apache.metron.writer;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
-import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
@@ -37,19 +48,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BulkWriterComponent.class, ErrorUtils.class})
@@ -130,7 +128,7 @@ public class BulkWriterComponentTest {
   public void writeShouldProperlyHandleWriterErrors() throws Exception {
     Throwable e = new Exception("test exception");
     MetronError error = new MetronError()
-            .withSensorType(sensorType)
+            .withSensorType(Collections.singleton(sensorType))
             .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Arrays.asList(message1, message2));
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllErrors(e, tupleList);
@@ -164,7 +162,7 @@ public class BulkWriterComponentTest {
   public void writeShouldProperlyHandleWriterException() throws Exception {
     Throwable e = new Exception("test exception");
     MetronError error = new MetronError()
-            .withSensorType(sensorType)
+            .withSensorType(Collections.singleton(sensorType))
             .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Arrays.asList(message1, message2));
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllErrors(e, tupleList);
@@ -183,10 +181,10 @@ public class BulkWriterComponentTest {
   public void errorAllShouldClearMapsAndHandleErrors() throws Exception {
     Throwable e = new Exception("test exception");
     MetronError error1 = new MetronError()
-            .withSensorType("sensor1")
+            .withSensorType(Collections.singleton("sensor1"))
             .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Collections.singletonList(message1));
     MetronError error2 = new MetronError()
-            .withSensorType("sensor2")
+            .withSensorType(Collections.singleton("sensor2"))
             .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Collections.singletonList(message2));
 
     BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(collector);
