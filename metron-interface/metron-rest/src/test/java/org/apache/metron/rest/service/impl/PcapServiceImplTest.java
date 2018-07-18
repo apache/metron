@@ -162,7 +162,7 @@ public class PcapServiceImplTest {
     Assert.assertEquals(0, mockPcapJob.getStartTimeNs());
     Assert.assertTrue(beforeJobTime <= mockPcapJob.getEndTimeNs() / 1000000);
     Assert.assertTrue(System.currentTimeMillis() >= mockPcapJob.getEndTimeNs() / 1000000);
-    Assert.assertEquals(1, mockPcapJob.getNumReducers());
+    Assert.assertEquals(10, mockPcapJob.getNumReducers());
     Assert.assertEquals(100, mockPcapJob.getRecPerFile());
     Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
     Assert.assertEquals(new HashMap<>(), mockPcapJob.getFixedFields());
