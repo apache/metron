@@ -31,17 +31,13 @@ public class PcapRestFinalizer extends PcapFinalizer {
 
   private static final String PCAP_REST_FILEPATH_FORMAT = "%s/%s/%s/%s/page-%s.pcap";
 
-  private String user;
   private String jobType = Statusable.JobType.MAP_REDUCE.name();
-
-  public void setUser(String user) {
-    this.user = user;
-  }
 
   @Override
   protected Path getOutputPath(Map<String, Object> config, int partition) {
-    String jobId = PcapOptions.JOB_ID.get(config, String.class);
     String finalOutputPath = PcapOptions.FINAL_OUTPUT_PATH.get(config, String.class);
+    String user = PcapOptions.USERNAME.get(config, String.class);
+    String jobId = PcapOptions.JOB_ID.get(config, String.class);
     return new Path(String.format(PCAP_REST_FILEPATH_FORMAT, finalOutputPath, user, jobType, jobId, partition));
   }
 

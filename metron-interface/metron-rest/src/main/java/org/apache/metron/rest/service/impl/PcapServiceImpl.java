@@ -60,12 +60,9 @@ public class PcapServiceImpl implements PcapService {
   @Override
   public PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException {
     try {
-      setPcapOptions(fixedPcapRequest);
+      setPcapOptions(username, fixedPcapRequest);
       fixedPcapRequest.setFields();
       pcapJobSupplier.setPcapRequest(fixedPcapRequest);
-      PcapRestFinalizer pcapRestFinalizer = new PcapRestFinalizer();
-      pcapRestFinalizer.setUser(username);
-      pcapJobSupplier.setFinalizer(pcapRestFinalizer);
       JobStatus jobStatus = jobManager.submit(pcapJobSupplier, username);
       return jobStatusToPcapStatus(jobStatus);
     } catch (IOException | JobException e) {
@@ -95,8 +92,9 @@ public class PcapServiceImpl implements PcapService {
     return pcapStatus;
   }
 
-  protected void setPcapOptions(PcapRequest pcapRequest) throws IOException {
+  protected void setPcapOptions(String username, PcapRequest pcapRequest) throws IOException {
     PcapOptions.JOB_NAME.put(pcapRequest, "jobName");
+    PcapOptions.USERNAME.put(pcapRequest, username);
     PcapOptions.HADOOP_CONF.put(pcapRequest, configuration);
     PcapOptions.FILESYSTEM.put(pcapRequest, getFileSystem());
 
