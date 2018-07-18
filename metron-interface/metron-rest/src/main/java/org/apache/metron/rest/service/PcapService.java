@@ -29,5 +29,7 @@ public interface PcapService {
 
   PcapStatus getJobStatus(String username, String jobId) throws RestException;
 
-  Pdml getPdml(Path path) throws RestException;
+  Path getPath(String username, String jobId, Integer page) throws RestException;
+
+  Pdml getPdml(String username, String jobId, Integer page) throws RestException;
 }

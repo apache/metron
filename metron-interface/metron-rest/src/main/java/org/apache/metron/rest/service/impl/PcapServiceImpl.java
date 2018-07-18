@@ -54,13 +54,15 @@ public class PcapServiceImpl implements PcapService {
   private Configuration configuration;
   private PcapJobSupplier pcapJobSupplier;
   private JobManager<Path> jobManager;
+  private PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper;
 
   @Autowired
-  public PcapServiceImpl(Environment environment, Configuration configuration, PcapJobSupplier pcapJobSupplier, JobManager<Path> jobManager) {
+  public PcapServiceImpl(Environment environment, Configuration configuration, PcapJobSupplier pcapJobSupplier, JobManager<Path> jobManager, PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper) {
     this.environment = environment;
     this.configuration = configuration;
     this.pcapJobSupplier = pcapJobSupplier;
     this.jobManager = jobManager;
+    this.pcapToPdmlScriptWrapper = pcapToPdmlScriptWrapper;
   }
 
   @Override
@@ -102,29 +104,37 @@ public class PcapServiceImpl implements PcapService {
   }
 
   @Override
-  public Pdml getPdml(Path path) throws RestException {
-    Pdml pdml = null;
+  public Path getPath(String username, String jobId, Integer page) throws RestException {
+    Path path = null;
     try {
-      if (FileSystem.newInstance(path.toUri(), configuration).exists(path)) {
-        ProcessBuilder processBuilder = getProcessBuilder(environment.getProperty(MetronRestConstants.PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY), path.toUri().getPath());
-        Process process = processBuilder.start();
-        InputStream rawInputStream = FileSystem.newInstance(path.toUri(), configuration).open(path);
-        OutputStream processOutputStream = process.getOutputStream();
-        IOUtils.copy(rawInputStream, processOutputStream);
-        rawInputStream.close();
-        if (process.isAlive()) {
-          // need to close processOutputStream if script doesn't exit with an error
-          processOutputStream.close();
-          InputStream processInputStream = process.getInputStream();
-          pdml = new XmlMapper().readValue(processInputStream, Pdml.class);
-          processInputStream.close();
-        } else {
-          String errorMessage = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
-          throw new RestException(errorMessage);
+      Statusable<Path> statusable = jobManager.getJob(username, jobId);
+      if (statusable != null && statusable.isDone()) {
+        Pageable<Path> pageable = statusable.get();
+        if (pageable != null && page <= pageable.getSize() && page > 0) {
+          path = pageable.getPage(page - 1);
         }
       }
+    } catch (JobNotFoundException e) {
+      // do nothing and return null pcapStatus
+    } catch (JobException | InterruptedException e) {
+      throw new RestException(e);
+    }
+    return path;
+  }
+
+  @Override
+  public Pdml getPdml(String username, String jobId, Integer page) throws RestException {
+    Pdml pdml = null;
+    Path path = getPath(username, jobId, page);
+    try {
+      FileSystem fileSystem = getFileSystem();
+      if (path!= null && fileSystem.exists(path)) {
+        String scriptPath = environment.getProperty(MetronRestConstants.PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY);
+        InputStream processInputStream = pcapToPdmlScriptWrapper.execute(scriptPath, fileSystem, path);
+        pdml = new XmlMapper().readValue(processInputStream, Pdml.class);
+        processInputStream.close();
+      }
     } catch (IOException e) {
-      e.printStackTrace();
       throw new RestException(e);
     }
     return pdml;
@@ -152,9 +162,13 @@ public class PcapServiceImpl implements PcapService {
     return FileSystem.get(configuration);
   }
 
-  protected ProcessBuilder getProcessBuilder(String... command) {
-    return new ProcessBuilder(command);
-  }
+//  protected InputStream getRawInputStream(FileSystem fileSystem, Path path) throws IOException {
+//    return fileSystem.open(path);
+//  }
+//
+//  protected ProcessBuilder getProcessBuilder(String... command) {
+//    return new ProcessBuilder(command);
+//  }
 
   protected PcapStatus jobStatusToPcapStatus(JobStatus jobStatus) {
     PcapStatus pcapStatus = new PcapStatus();

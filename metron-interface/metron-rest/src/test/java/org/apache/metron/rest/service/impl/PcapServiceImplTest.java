@@ -19,6 +19,9 @@ package org.apache.metron.rest.service.impl;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.BufferedFSInputStream;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
@@ -52,19 +55,21 @@ import org.powermock.api.mockito.PowerMockito;
 import org.springframework.core.env.Environment;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Mockito.mock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
@@ -72,7 +77,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @SuppressWarnings("ALL")
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({PcapServiceImpl.class, ProcessBuilder.class})
+@PrepareForTest({PcapToPdmlScriptWrapper.class, ProcessBuilder.class})
 public class PcapServiceImplTest {
   @Rule
   public final ExpectedException exception = ExpectedException.none();
@@ -171,17 +176,20 @@ public class PcapServiceImplTest {
   Environment environment;
   Configuration configuration;
   MockPcapJobSupplier mockPcapJobSupplier;
+  PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper;
 
   @Before
   public void setUp() throws Exception {
     environment = mock(Environment.class);
     configuration = mock(Configuration.class);
     mockPcapJobSupplier = new MockPcapJobSupplier();
+    pcapToPdmlScriptWrapper = new PcapToPdmlScriptWrapper();
 
     when(environment.getProperty(MetronRestConstants.PCAP_BASE_PATH_SPRING_PROPERTY)).thenReturn("/base/path");
     when(environment.getProperty(MetronRestConstants.PCAP_BASE_INTERIM_RESULT_PATH_SPRING_PROPERTY)).thenReturn("/base/interim/result/path");
     when(environment.getProperty(MetronRestConstants.PCAP_FINAL_OUTPUT_PATH_SPRING_PROPERTY)).thenReturn("/final/output/path");
     when(environment.getProperty(MetronRestConstants.PCAP_PAGE_SIZE_SPRING_PROPERTY)).thenReturn("100");
+    when(environment.getProperty(MetronRestConstants.PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/path/to/pdml/script");
   }
 
   @Test
@@ -204,7 +212,7 @@ public class PcapServiceImplTest {
     mockPcapJobSupplier.setMockPcapJob(mockPcapJob);
     JobManager jobManager = new InMemoryJobManager<>();
 
-    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager));
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager, pcapToPdmlScriptWrapper));
     FileSystem fileSystem = mock(FileSystem.class);
     doReturn(fileSystem).when(pcapService).getFileSystem();
     mockPcapJob.setStatus(new JobStatus()
@@ -256,7 +264,7 @@ public class PcapServiceImplTest {
     mockPcapJobSupplier.setMockPcapJob(mockPcapJob);
     JobManager jobManager = new InMemoryJobManager<>();
 
-    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager));
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager, pcapToPdmlScriptWrapper));
     FileSystem fileSystem = mock(FileSystem.class);
     doReturn(fileSystem).when(pcapService).getFileSystem();
     mockPcapJob.setStatus(new JobStatus()
@@ -291,7 +299,7 @@ public class PcapServiceImplTest {
     FixedPcapRequest fixedPcapRequest = new FixedPcapRequest();
     JobManager jobManager = mock(JobManager.class);
     PcapJobSupplier pcapJobSupplier = new PcapJobSupplier();
-    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, pcapJobSupplier, jobManager));
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, pcapJobSupplier, jobManager, pcapToPdmlScriptWrapper));
     FileSystem fileSystem = mock(FileSystem.class);
     doReturn(fileSystem).when(pcapService).getFileSystem();
     when(jobManager.submit(pcapJobSupplier, "user")).thenThrow(new JobException("some job exception"));
@@ -315,7 +323,7 @@ public class PcapServiceImplTest {
     when(mockPcapJob.get()).thenReturn(pageable);
     when(jobManager.getJob("user", "jobId")).thenReturn(mockPcapJob);
 
-    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager);
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager, pcapToPdmlScriptWrapper);
     PcapStatus expectedPcapStatus = new PcapStatus();
     expectedPcapStatus.setJobId("jobId");
     expectedPcapStatus.setJobStatus(JobStatus.State.SUCCEEDED.name());
@@ -329,7 +337,7 @@ public class PcapServiceImplTest {
   @Test
   public void getStatusShouldReturnNullOnMissingStatus() throws Exception {
     JobManager jobManager = new InMemoryJobManager();
-    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager);
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager, pcapToPdmlScriptWrapper);
 
     Assert.assertNull(pcapService.getJobStatus("user", "jobId"));
   }
@@ -342,30 +350,76 @@ public class PcapServiceImplTest {
     JobManager jobManager = mock(JobManager.class);
     when(jobManager.getJob("user", "jobId")).thenThrow(new JobException("some job exception"));
 
-    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager);
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager, pcapToPdmlScriptWrapper);
     pcapService.getJobStatus("user", "jobId");
+  }
+
+  @Test
+  public void getPathShouldProperlyReturnPath() throws Exception {
+    Path actualPath = new Path("/path");
+    MockPcapJob mockPcapJob = mock(MockPcapJob.class);
+    JobManager jobManager = mock(JobManager.class);
+    Pageable pageable = mock(Pageable.class);
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager, pcapToPdmlScriptWrapper);
+
+    when(pageable.getSize()).thenReturn(2);
+    when(mockPcapJob.isDone()).thenReturn(true);
+    when(mockPcapJob.get()).thenReturn(pageable);
+    when(pageable.getPage(0)).thenReturn(actualPath);
+    when(jobManager.getJob("user", "jobId")).thenReturn(mockPcapJob);
+
+    Assert.assertEquals("/path", pcapService.getPath("user", "jobId", 1).toUri().getPath());
+  }
+
+  @Test
+  public void getPathShouldReturnNullOnInvalidPageSize() throws Exception {
+    MockPcapJob mockPcapJob = mock(MockPcapJob.class);
+    JobManager jobManager = mock(JobManager.class);
+    Pageable pageable = mock(Pageable.class);
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager, pcapToPdmlScriptWrapper);
+
+    when(pageable.getSize()).thenReturn(2);
+    when(mockPcapJob.isDone()).thenReturn(true);
+    when(mockPcapJob.get()).thenReturn(pageable);
+    when(jobManager.getJob("user", "jobId")).thenReturn(mockPcapJob);
+
+    Assert.assertNull(pcapService.getPath("user", "jobId", 0));
+    Assert.assertNull(pcapService.getPath("user", "jobId", 3));
   }
 
   @Test
   public void getPdmlShouldGetPdml() throws Exception {
     Path path = new Path("./target");
-    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, pcapJob);
+    PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper = spy(new PcapToPdmlScriptWrapper());
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), new InMemoryJobManager<>(), pcapToPdmlScriptWrapper));
+    FileSystem fileSystem = mock(FileSystem.class);
+    doReturn(fileSystem).when(pcapService).getFileSystem();
+    when(fileSystem.exists(path)).thenReturn(true);
+    doReturn(path).when(pcapService).getPath("user", "jobId", 1);
+    doReturn(new ByteArrayInputStream(pdmlXml.getBytes())).when(pcapToPdmlScriptWrapper).getRawInputStream(fileSystem, path);
     ProcessBuilder pb = PowerMockito.mock(ProcessBuilder.class);
     Process p = PowerMockito.mock(Process.class);
+    OutputStream outputStream = new ByteArrayOutputStream();
+    when(p.getOutputStream()).thenReturn(outputStream);
+    when(p.isAlive()).thenReturn(true);
+    when(p.getInputStream()).thenReturn(new ByteArrayInputStream(pdmlXml.getBytes()));
     whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(pb);
     PowerMockito.when(pb.start()).thenReturn(p);
-    PowerMockito.when(p.getInputStream()).thenReturn(new ByteArrayInputStream(pdmlXml.getBytes()));
 
-    assertEquals(JSONUtils.INSTANCE.load(expectedPdml, Pdml.class), pcapService.getPdml(path));
+    assertEquals(JSONUtils.INSTANCE.load(expectedPdml, Pdml.class), pcapService.getPdml("user", "jobId", 1));
   }
 
   @Test
   public void getPdmlShouldReturnNullOnNonexistentPath() throws Exception {
     Path path = new Path("/some/path");
 
-    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, pcapJob);
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), new InMemoryJobManager<>(), pcapToPdmlScriptWrapper));
+    FileSystem fileSystem = mock(FileSystem.class);
+    doReturn(fileSystem).when(pcapService).getFileSystem();
+    when(fileSystem.exists(path)).thenReturn(false);
+    doReturn(path).when(pcapService).getPath("user", "jobId", 1);
 
-    assertNull(pcapService.getPdml(path));
+    assertNull(pcapService.getPdml("user", "jobId", 1));
   }
 
   @Test
@@ -374,12 +428,17 @@ public class PcapServiceImplTest {
     exception.expectMessage("some exception");
 
     Path path = new Path("./target");
-    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, pcapJob);
+    PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper = spy(new PcapToPdmlScriptWrapper());
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), new InMemoryJobManager<>(), pcapToPdmlScriptWrapper));
+    FileSystem fileSystem = mock(FileSystem.class);
+    doReturn(fileSystem).when(pcapService).getFileSystem();
+    when(fileSystem.exists(path)).thenReturn(true);
+    doReturn(path).when(pcapService).getPath("user", "jobId", 1);
     ProcessBuilder pb = PowerMockito.mock(ProcessBuilder.class);
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(pb);
+    doReturn(pb).when(pcapToPdmlScriptWrapper).getProcessBuilder("/path/to/pdml/script", "target");
     PowerMockito.when(pb.start()).thenThrow(new IOException("some exception"));
 
-    pcapService.getPdml(path);
+    pcapService.getPdml("user", "jobId", 1);
   }
 
 }

@@ -71,12 +71,11 @@ public class PcapController {
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-
   }
 
-  @RequestMapping(value = "/pdml", method = RequestMethod.POST)
-  ResponseEntity<Pdml> pdml(@ApiParam(name="path", value="Path to pcap result page", required=true)@RequestBody String path) throws RestException {
-    Pdml pdml = pcapQueryService.getPdml(new Path(path));
+  @RequestMapping(value = "/{jobId}/pdml", method = RequestMethod.GET)
+  ResponseEntity<Pdml> pdml(@PathVariable String jobId, @ApiParam(name="page", value="Path to pcap result page", required=true)@RequestParam Integer page) throws RestException {
+    Pdml pdml = pcapQueryService.getPdml(SecurityUtils.getCurrentUser(), jobId, page);
     if (pdml != null) {
       return new ResponseEntity<>(pdml, HttpStatus.OK);
     } else {
