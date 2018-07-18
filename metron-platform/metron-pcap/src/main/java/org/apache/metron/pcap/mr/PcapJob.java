@@ -272,7 +272,7 @@ public class PcapJob<T> implements Statusable<Path> {
       LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
     }
     Path interimResultPath =  new Path(baseInterimResultPath, outputDirName);
-    PcapOptions.BASE_INTERIM_RESULT_PATH.put(configuration, interimResultPath);
+    PcapOptions.INTERIM_RESULT_PATH.put(configuration, interimResultPath);
     mrJob = createJob(jobName
         , basePath
         , interimResultPath
