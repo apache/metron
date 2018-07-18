@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -140,6 +141,21 @@ public class PcapServiceImpl implements PcapService {
     return pdml;
   }
 
+  public InputStream getRawPcap(String username, String jobId, Integer page) throws RestException {
+    InputStream inputStream = null;
+    Path path = getPath(username, jobId, page);
+    try {
+      FileSystem fileSystem = getFileSystem();
+      if (path!= null && fileSystem.exists(path)) {
+        inputStream = fileSystem.open(path);
+      }
+    } catch (IOException e) {
+      throw new RestException(e);
+    }
+    return inputStream;
+  }
+
+
   protected void setPcapOptions(PcapRequest pcapRequest) throws IOException {
     PcapOptions.JOB_NAME.put(pcapRequest, "jobName");
     PcapOptions.HADOOP_CONF.put(pcapRequest, configuration);
@@ -161,14 +177,6 @@ public class PcapServiceImpl implements PcapService {
   protected FileSystem getFileSystem() throws IOException {
     return FileSystem.get(configuration);
   }
-
-//  protected InputStream getRawInputStream(FileSystem fileSystem, Path path) throws IOException {
-//    return fileSystem.open(path);
-//  }
-//
-//  protected ProcessBuilder getProcessBuilder(String... command) {
-//    return new ProcessBuilder(command);
-//  }
 
   protected PcapStatus jobStatusToPcapStatus(JobStatus jobStatus) {
     PcapStatus pcapStatus = new PcapStatus();

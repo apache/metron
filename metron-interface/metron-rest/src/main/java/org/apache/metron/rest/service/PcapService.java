@@ -23,6 +23,8 @@ import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
 
+import java.io.InputStream;
+
 public interface PcapService {
 
   PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException;
@@ -32,4 +34,6 @@ public interface PcapService {
   Path getPath(String username, String jobId, Integer page) throws RestException;
 
   Pdml getPdml(String username, String jobId, Integer page) throws RestException;
+
+  InputStream getRawPcap(String username, String jobId, Integer page) throws RestException;
 }

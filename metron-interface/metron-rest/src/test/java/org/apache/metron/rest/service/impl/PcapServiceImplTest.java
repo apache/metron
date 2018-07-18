@@ -57,6 +57,7 @@ import org.springframework.core.env.Environment;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -410,6 +411,17 @@ public class PcapServiceImplTest {
   }
 
   @Test
+  public void getPdmlShouldReturnNullOnInvalidPage() throws Exception {
+    Path path = new Path("/some/path");
+
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), new InMemoryJobManager<>(), pcapToPdmlScriptWrapper));
+    FileSystem fileSystem = mock(FileSystem.class);
+    doReturn(fileSystem).when(pcapService).getFileSystem();
+
+    assertNull(pcapService.getPdml("user", "jobId", 1));
+  }
+
+  @Test
   public void getPdmlShouldReturnNullOnNonexistentPath() throws Exception {
     Path path = new Path("/some/path");
 
@@ -439,6 +451,60 @@ public class PcapServiceImplTest {
     PowerMockito.when(pb.start()).thenThrow(new IOException("some exception"));
 
     pcapService.getPdml("user", "jobId", 1);
+  }
+
+  @Test
+  public void getRawShouldProperlyReturnInputStream() throws Exception {
+    FSDataInputStream inputStream = mock(FSDataInputStream.class);
+    Path path = new Path("./target");
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), new InMemoryJobManager<>(), new PcapToPdmlScriptWrapper()));
+    FileSystem fileSystem = mock(FileSystem.class);
+    doReturn(fileSystem).when(pcapService).getFileSystem();
+    when(fileSystem.exists(path)).thenReturn(true);
+    doReturn(path).when(pcapService).getPath("user", "jobId", 1);
+    when(fileSystem.open(path)).thenReturn(inputStream);
+
+    Assert.assertEquals(inputStream, pcapService.getRawPcap("user", "jobId", 1));
+  }
+
+  @Test
+  public void getRawShouldReturnNullOnInvalidPage() throws Exception {
+    Path path = new Path("/some/path");
+
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), new InMemoryJobManager<>(), pcapToPdmlScriptWrapper));
+    FileSystem fileSystem = mock(FileSystem.class);
+    doReturn(fileSystem).when(pcapService).getFileSystem();
+
+    assertNull(pcapService.getRawPcap("user", "jobId", 1));
+  }
+
+  @Test
+  public void getRawShouldReturnNullOnNonexistentPath() throws Exception {
+    Path path = new Path("/some/path");
+
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), new InMemoryJobManager<>(), pcapToPdmlScriptWrapper));
+    FileSystem fileSystem = mock(FileSystem.class);
+    doReturn(fileSystem).when(pcapService).getFileSystem();
+    when(fileSystem.exists(path)).thenReturn(false);
+    doReturn(path).when(pcapService).getPath("user", "jobId", 1);
+
+    assertNull(pcapService.getRawPcap("user", "jobId", 1));
+  }
+
+  @Test
+  public void getRawShouldThrowException() throws Exception {
+    exception.expect(RestException.class);
+    exception.expectMessage("some exception");
+
+    Path path = new Path("./target");
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), new InMemoryJobManager<>(), pcapToPdmlScriptWrapper));
+    FileSystem fileSystem = mock(FileSystem.class);
+    doReturn(fileSystem).when(pcapService).getFileSystem();
+    when(fileSystem.exists(path)).thenReturn(true);
+    doReturn(path).when(pcapService).getPath("user", "jobId", 1);
+    when(fileSystem.open(path)).thenThrow(new IOException("some exception"));
+
+    pcapService.getRawPcap("user", "jobId", 1);
   }
 
 }
