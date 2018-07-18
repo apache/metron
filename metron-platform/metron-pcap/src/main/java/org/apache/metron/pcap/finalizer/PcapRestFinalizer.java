@@ -27,10 +27,18 @@ import org.apache.metron.pcap.config.PcapOptions;
  */
 public class PcapRestFinalizer extends PcapFinalizer {
 
+  /**
+   * Format will have the format &lt;output-path&gt;/page-&lt;page-num&gt;.pcap
+   * The filename prefix is pluggable, but in most cases it will be provided via the PcapConfig
+   * as a formatted timestamp + uuid. A final sample format will look as follows:
+   * /base/output/path/pcap-data-201807181911-09855b4ae3204dee8b63760d65198da3+0001.pcap
+   */
+  private static final String PCAP_CLI_FILENAME_FORMAT = "%s/page-%s.pcap";
+
   @Override
   protected String getOutputFileName(Map<String, Object> config, int partition) {
     Path finalOutputPath = PcapOptions.FINAL_OUTPUT_PATH.getTransformed(config, Path.class);
-    return String.format("%s/page-%s", finalOutputPath, partition);
+    return String.format(PCAP_CLI_FILENAME_FORMAT, finalOutputPath, partition);
   }
 
 }

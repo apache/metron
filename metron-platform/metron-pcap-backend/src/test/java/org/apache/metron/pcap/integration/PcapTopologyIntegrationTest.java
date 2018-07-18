@@ -62,11 +62,13 @@ import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.PcapMerger;
+import org.apache.metron.pcap.config.FixedPcapConfig;
 import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.finalizer.PcapFinalizerStrategies;
 import org.apache.metron.pcap.mr.PcapJob;
+import org.apache.metron.pcap.query.PcapCli;
 import org.apache.metron.spout.pcap.Endianness;
 import org.apache.metron.spout.pcap.deserializer.Deserializers;
 import org.apache.metron.test.utils.UnitTestHelper;
@@ -249,8 +251,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         }
       });
 
-
-      Map<String, Object> configuration = new HashMap<>();
+      FixedPcapConfig configuration = new FixedPcapConfig(PcapCli.PREFIX_STRATEGY);
       Configuration hadoopConf = new Configuration();
       PcapOptions.JOB_NAME.put(configuration, "jobName");
       PcapOptions.HADOOP_CONF.put(configuration, hadoopConf);
