@@ -18,7 +18,7 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.apache.commons.io.IOUtils;
+import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -29,7 +29,6 @@ import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.pcap.config.PcapOptions;
-import org.apache.metron.pcap.finalizer.PcapRestFinalizer;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.config.PcapJobSupplier;
@@ -98,6 +97,19 @@ public class PcapServiceImpl implements PcapService {
       throw new RestException(e);
     }
     return pcapStatus;
+  }
+
+  @Override
+  public PcapStatus killJob(String username, String jobId) throws RestException {
+    try {
+      jobManager.killJob(username, jobId);
+    } catch (JobNotFoundException e) {
+      // do nothing and return null pcapStatus
+      return null;
+    } catch (JobException e) {
+      throw new RestException(e);
+    }
+    return getJobStatus(username, jobId);
   }
 
   @Override

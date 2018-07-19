@@ -22,12 +22,15 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
+import org.apache.metron.rest.model.pcap.Pdml;
 
 public interface PcapService {
 
   PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException;
 
   PcapStatus getJobStatus(String username, String jobId) throws RestException;
+
+  PcapStatus killJob(String username, String jobId) throws RestException;
 
   Path getPath(String username, String jobId, Integer page) throws RestException;
 

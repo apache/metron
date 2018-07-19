@@ -221,4 +221,17 @@ public class PcapJobTest {
     Assert.assertThat(status.getDescription(), equalTo("map: 100.0%, reduce: 50.0%"));
   }
 
+  @Test
+  public void killing_job_causes_status_to_return_KILLED_state() throws Exception {
+    when(mrJob.isComplete()).thenReturn(false);
+    when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.RUNNING);
+    when(mrJob.getStatus()).thenReturn(mrStatus);
+    Statusable<Path> statusable = testJob.submit(finalizer, config);
+    statusable.kill();
+    when(mrJob.isComplete()).thenReturn(true);
+    when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.KILLED);
+    JobStatus status = statusable.getStatus();
+    Assert.assertThat(status.getState(), equalTo(State.KILLED));
+  }
+
 }
