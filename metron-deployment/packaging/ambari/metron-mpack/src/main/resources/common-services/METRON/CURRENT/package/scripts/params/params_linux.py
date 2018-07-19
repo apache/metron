@@ -35,6 +35,8 @@ from resource_management.libraries.functions import StackFeature
 
 import status_params
 
+import re
+
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -256,8 +258,24 @@ if security_enabled:
     if 'solr-config-env' in config['configurations']:
         solr_principal_name = solr_principal_name.replace('_HOST', hostname_lowercase)
 
-# Management UI
-metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
+# SSO and LDAP
+ldap_url = config['configurations']['metron-security-env']['metron.ldap.url']
+ldap_userdn = config['configurations']['metron-security-env']['metron.ldap.bind.dn']
+ldap_password = config['configurations']['metron-security-env']['metron.ldap.bind.password']
+ldap_user_pattern = config['configurations']['metron-security-env']['metron.ldap.user.dnpattern']
+ldap_user_password = config['configurations']['metron-security-env']['metron.ldap.user.password']
+ldap_user_dnbase = config['configurations']['metron-security-env']['metron.ldap.user.basedn']
+ldap_user_searchbase = config['configurations']['metron-security-env']['metron.ldap.user.searchbase']
+ldap_user_searchfilter = config['configurations']['metron-security-env']['metron.ldap.user.searchfilter']
+ldap_group_searchbase = config['configurations']['metron-security-env']['metron.ldap.group.searchbase']
+ldap_group_searchfilter = config['configurations']['metron-security-env']['metron.ldap.group.searchfilter']
+ldap_group_role = config['configurations']['metron-security-env']['metron.ldap.group.roleattribute']
+
+knox_sso_enabled = config['configurations']['metron-security-env']['metron.sso.enabled']
+knox_sso_url = config['configurations']['metron-security-env']['metron.sso.providerurl']
+knox_sso_cookie = config['configurations']['metron-security-env']['metron.sso.cookiename']
+knox_sso_pubkey = re.sub(r'\s+', '', config['configurations']['metron-security-env']['metron.sso.publickey'])
+knox_sso_originalurl = config['configurations']['metron-security-env']['metron.sso.query.param.originalurl']
 
 # SSL
 
@@ -284,6 +302,16 @@ metron_config_ssl_keystoretype = config['configurations']['metron-management-ui-
 metron_config_ssl_keyalias = config['configurations']['metron-management-ui-env']['server.ssl.keyAlias']
 
 metron_config_ssl = metron_config_ssl_keystore != ""
+
+# Alerts UI
+metron_alerts_pid_dir = config['configurations']['metron-alerts-ui-env']['metron_alerts_pid_dir']
+metron_alerts_jvmopts = config['configurations']['metron-alerts-ui-env']['metron_alerts_jvmopts']
+
+# Management UI
+metron_config_pid_dir = config['configurations']['metron-management-ui-env']['metron_config_pid_dir']
+metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
+metron_management_ui_port = config['configurations']['metron-management-ui-env'] ['metron_management_ui_port']
+metron_config_jvmopts = config['configurations']['metron-management-ui-env']['metron_config_jvmopts']
 
 # REST
 metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']

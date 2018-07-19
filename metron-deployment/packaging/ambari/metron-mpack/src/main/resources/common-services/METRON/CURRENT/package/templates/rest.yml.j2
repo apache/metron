@@ -14,6 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+spring:
+  application:
+    name: metron-rest
+
 {% if metron_alerts_ssl %}
 server:
   ssl:
@@ -23,4 +27,28 @@ server:
     key-alias: {{metron_alerts_ssl_keyalias}}
 security:
     require-ssl: true
+{% endif %}
+
+ldap:
+  provider:
+    url: {{ldap_url}}
+    userdn: {{ldap_userdn}}
+    password: {{ldap_password}}
+  user:
+    dn.patterns: {{ldap_user_pattern}}
+    passwordAttribute: {{ldap_user_password}}
+    searchBase: {{ldap_user_searchbase}}
+    searchFilter: {{ldap_user_searchfilter}}
+  group:
+    searchBase: {{ldap_group_searchbase}}
+    searchFilter: {{ldap_group_searchfilter}}
+    roleAttribute: {{ldap_group_role}}
+
+{% if knox_sso_enabled %}
+knox:
+  sso:
+    url: {{knox_sso_url}}
+    cookie: {{knox_sso_cookie}}
+    originalurl: {{knox_sso_originalurl}}
+    pubkey: {{knox_sso_pubkey}}
 {% endif %}

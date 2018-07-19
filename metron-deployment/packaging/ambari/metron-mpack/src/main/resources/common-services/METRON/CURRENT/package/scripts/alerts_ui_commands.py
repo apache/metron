@@ -19,7 +19,8 @@ limitations under the License.
 """
 
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.libraries.functions.format import format
 
 import metron_service
 
@@ -31,14 +32,35 @@ class AlertsUICommands:
         if params is None:
             raise ValueError("params argument is required for initialization")
         self.__params = params
+        Directory(params.metron_alerts_pid_dir,
+                  mode=0755,
+                  owner=params.metron_user,
+                  group=params.metron_group,
+                  create_parents=True
+                  )
+        Directory(params.metron_log_dir,
+                  mode=0755,
+                  owner=params.metron_user,
+                  group=params.metron_group,
+                  create_parents=True
+                  )
+
+    def script(self, action): 
+        password = self.__params.metron_alerts_ssl_password
+        metron_home = self.__params.metron_home
+        pid_dir = self.__params.metron_alerts_pid_dir
+        return format(("export METRON_SSL_PASSWORD={password!p};"
+                       "export MODE=service;"
+                       "export PID_FOLDER={pid_dir};"
+                       "export JAVA_OPTS={metron_alerts_jvmopts};"
+                       "{metron_home}/bin/metron-alerts.sh {action}"))
 
     def start_alerts_ui(self):
         """
         Start the Alerts UI
-        :param env: Environment
         """
         Logger.info('Starting Alerts UI')
-        Execute("service metron-alerts-ui start")
+        Execute(self.script("start"), user=self.__params.metron_user)
         Logger.info('Done starting Alerts UI')
 
     def stop_alerts_ui(self):
@@ -47,7 +69,7 @@ class AlertsUICommands:
         :param env: Environment
         """
         Logger.info('Stopping Alerts UI')
-        Execute("service metron-alerts-ui stop")
+        Execute(self.script("stop"), user=self.__params.metron_user)
         Logger.info('Done stopping Alerts UI')
 
     def restart_alerts_ui(self, env):
@@ -56,7 +78,7 @@ class AlertsUICommands:
         :param env: Environment
         """
         Logger.info('Restarting the Alerts UI')
-        Execute('service metron-alerts-ui restart')
+        Execute(self.script("restart"), user=self.__params.metron_user)
         Logger.info('Done restarting the Alerts UI')
 
     def status_alerts_ui(self, env):
