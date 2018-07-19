@@ -37,10 +37,8 @@ import {SwitchModule} from './shared/switch/switch.module';
 import {ColumnNamesService} from './service/column-names.service';
 import {DataSource} from './service/data-source';
 import {ElasticSearchLocalstorageImpl} from './service/elasticsearch-localstorage-impl';
-import {LoginModule} from './login/login.module';
 import {AuthGuard} from './shared/auth-guard';
 import {AuthenticationService} from './service/authentication.service';
-import {LoginGuard} from './shared/login-guard';
 import {UpdateService} from './service/update.service';
 import {MetaAlertService} from './service/meta-alert.service';
 import {MetaAlertsModule} from './alerts/meta-alerts/meta-alerts.module';
@@ -62,7 +60,6 @@ export function initConfig(config: ColumnNamesService) {
     FormsModule,
     HttpModule,
     MetronAlertsRoutingModule,
-    LoginModule,
     AlertsListModule,
     AlertDetailsModule,
     MetaAlertsModule,
@@ -76,7 +73,6 @@ export function initConfig(config: ColumnNamesService) {
               { provide: DataSource, useClass: ElasticSearchLocalstorageImpl },
               AuthenticationService,
               AuthGuard,
-              LoginGuard,
               ConfigureTableService,
               SearchService,
               SaveSearchService,

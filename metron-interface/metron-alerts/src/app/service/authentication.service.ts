@@ -25,10 +25,8 @@ import { DataSource } from './data-source';
 @Injectable()
 export class AuthenticationService {
 
-  private static USER_NOT_VERIFIED = 'USER-NOT-VERIFIED';
-  private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
-  loginUrl = '/api/v1/user';
-  logoutUrl = '/logout';
+  private currentUser: string;
+  userUrl = '/api/v1/user';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
@@ -48,56 +46,19 @@ export class AuthenticationService {
         }
       }, error => {
         this.onLoginEvent.emit(false);
+        this.currentUser = null;
       });
-  }
-
-  public login(username: string, password: string, onError): void {
-    let loginHeaders: Headers = new Headers(this.defaultHeaders);
-    loginHeaders.append('authorization', 'Basic ' + btoa(username + ':' + password));
-    let loginOptions: RequestOptions = new RequestOptions({headers: loginHeaders});
-    this.getCurrentUser(loginOptions).subscribe((response: Response) => {
-        this.currentUser = response.text();
-        this.router.navigateByUrl('/alerts-list');
-        this.onLoginEvent.emit(true);
-        this.globalConfigService.get();
-        this.dataSource.getDefaultAlertTableColumnNames();
-      },
-      error => {
-        onError(error);
-      });
-  }
-
-  public logout(): void {
-    this.http.post(this.logoutUrl, {}, new RequestOptions({headers: new Headers(this.defaultHeaders)})).subscribe(response => {
-        this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
-        this.onLoginEvent.emit(false);
-        this.router.navigateByUrl('/login');
-      },
-      error => {
-        console.log('Logout failed:', error);
-        this.router.navigateByUrl('/login');
-      });
-  }
-
-  public checkAuthentication() {
-    if (!this.isAuthenticated()) {
-      this.router.navigateByUrl('/login');
-    }
   }
 
   public getCurrentUser(options: RequestOptions): Observable<Response> {
-    return this.http.get(this.loginUrl, options);
+    return this.http.get(this.userUrl, options);
   }
 
   public getCurrentUserName(): string {
     return this.currentUser;
   }
 
-  public isAuthenticationChecked(): boolean {
-    return this.currentUser !== AuthenticationService.USER_NOT_VERIFIED;
-  }
-
   public isAuthenticated(): boolean {
-    return this.currentUser !== AuthenticationService.USER_NOT_VERIFIED && this.currentUser != null;
+    return this.currentUser != null;
   }
 }

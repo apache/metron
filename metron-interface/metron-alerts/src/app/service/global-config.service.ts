@@ -22,7 +22,7 @@ import {HttpUtil} from '../utils/httpUtil';
 
 @Injectable()
 export class GlobalConfigService {
-  url = 'api/v1/global/config';
+  url = '/api/v1/global/config';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
   private globalConfig = {};
