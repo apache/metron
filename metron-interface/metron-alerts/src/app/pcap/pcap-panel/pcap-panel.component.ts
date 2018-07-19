@@ -31,8 +31,8 @@ export class PcapPanelComponent {
 
   constructor(private pcapService: PcapService ) { }
 
-  logMe(arg) {
-    this.onSearch(this.savedPcapRequest, false, arg);
+  changePage(page) {
+    this.onSearch(this.savedPcapRequest, false, page);
   }
 
   onSearch(pcapRequest, resetPaginationForSearch = true, from = 0) {
