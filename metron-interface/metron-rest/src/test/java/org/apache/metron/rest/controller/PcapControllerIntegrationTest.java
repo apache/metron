@@ -251,38 +251,6 @@ public class PcapControllerIntegrationTest {
         .andExpect(jsonPath("$.jobStatus").value("KILLED"));
 
     mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.KILLED));
-
-
-
-
-
-
-/*    this.mockMvc.perform(get(pcapUrl + "/jobId").with(httpBasic(user, password)))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-        .andExpect(jsonPath("$.jobStatus").value("SUCCEEDED"))
-        .andExpect(jsonPath("$.pageTotal").value(2));
-
-    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.FINALIZING));
-
-    this.mockMvc.perform(get(pcapUrl + "/jobId").with(httpBasic(user, password)))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-        .andExpect(jsonPath("$.jobStatus").value("FINALIZING"));
-
-    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.FAILED));
-
-    this.mockMvc.perform(get(pcapUrl + "/jobId").with(httpBasic(user, password)))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-        .andExpect(jsonPath("$.jobStatus").value("FAILED"));
-
-    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.KILLED));
-
-    this.mockMvc.perform(get(pcapUrl + "/jobId").with(httpBasic(user, password)))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-        .andExpect(jsonPath("$.jobStatus").value("KILLED"));*/
   }
 
 }
