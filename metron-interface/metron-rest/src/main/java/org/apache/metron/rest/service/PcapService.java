@@ -26,4 +26,7 @@ public interface PcapService {
   PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException;
 
   PcapStatus getJobStatus(String username, String jobId) throws RestException;
+
+  PcapStatus killJob(String username, String jobId) throws RestException;
+
 }

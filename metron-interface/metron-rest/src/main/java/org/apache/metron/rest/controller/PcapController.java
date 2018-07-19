@@ -21,11 +21,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.apache.hadoop.fs.Path;
-import org.apache.metron.job.JobStatus;
-import org.apache.metron.job.Statusable;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.security.SecurityUtils;
@@ -37,11 +33,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/pcap")
@@ -70,6 +62,20 @@ public class PcapController {
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-
   }
+
+  @ApiOperation(value = "Kills running job.")
+  @ApiResponses(value = { @ApiResponse(message = "Kills passed job.", code = 200)})
+  @RequestMapping(value = "/kill/{jobId}", method = RequestMethod.DELETE)
+  ResponseEntity<PcapStatus> killJob(
+      @ApiParam(name = "jobId", value = "Job ID of submitted job", required = true) @PathVariable String jobId)
+      throws RestException {
+    PcapStatus jobStatus = pcapQueryService.killJob(SecurityUtils.getCurrentUser(), jobId);
+    if (jobStatus != null) {
+      return new ResponseEntity<>(jobStatus, HttpStatus.OK);
+    } else {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+  }
+
 }
