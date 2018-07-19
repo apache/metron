@@ -34,6 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -103,7 +105,7 @@ public class AlertsUIController {
     return responseEntity;
   }
 
-  @Secured({"ROLE_" + SECURITY_ROLE_ADMIN})
+  @PreAuthorize("hasRole('ROLE_" + SECURITY_ROLE_ADMIN + "') or #user == authentication.principal.username")
   @ApiOperation(value = "Deletes a user's settings.  Only users that are part of "
           + "the \"ROLE_ADMIN\" role are allowed to delete user settings.")
   @ApiResponses(value = {@ApiResponse(message = "User settings were deleted", code = 200),
@@ -113,7 +115,7 @@ public class AlertsUIController {
   @RequestMapping(value = "/settings/{user}", method = RequestMethod.DELETE)
   ResponseEntity<Void> delete(
           @ApiParam(name = "user", value = "The user whose settings will be deleted", required = true)
-          @PathVariable String user)
+          @P("user") @PathVariable String user)
           throws RestException {
     if (alertsUIService.deleteAlertsUIUserSettings(user)) {
       return new ResponseEntity<>(HttpStatus.OK);

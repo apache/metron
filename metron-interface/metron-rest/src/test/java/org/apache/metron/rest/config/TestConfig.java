@@ -183,7 +183,6 @@ public class TestConfig {
     return AdminUtils$.MODULE$;
   }
 
-
   @Bean()
   public UserSettingsClient userSettingsClient() throws RestException, IOException {
     return new UserSettingsClient(new MockHBaseTableProvider().addToCache("user_settings", "cf"), Bytes.toBytes("cf"));
@@ -202,5 +201,4 @@ public class TestConfig {
       propertyPlaceholderConfigurer.setProperties(yaml.getObject());
       return propertyPlaceholderConfigurer;
   }
-
 }
