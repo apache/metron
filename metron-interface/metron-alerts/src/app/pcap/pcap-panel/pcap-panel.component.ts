@@ -31,11 +31,12 @@ export class PcapPanelComponent {
 
   constructor(private pcapService: PcapService ) { }
 
-  changePage(page) {
-    this.onSearch(this.savedPcapRequest, false, page);
+  changePage(arg) {
+    this.onSearch(this.savedPcapRequest, false, arg);
+    this.selectedPage = arg;
   }
 
-  onSearch(pcapRequest, resetPaginationForSearch = true, from = 0) {
+  onSearch(pcapRequest, resetPaginationForSearch = true, from = 1) {
     this.savedPcapRequest = pcapRequest;
     if (resetPaginationForSearch === true) {
       pcapRequest.from = 1;
