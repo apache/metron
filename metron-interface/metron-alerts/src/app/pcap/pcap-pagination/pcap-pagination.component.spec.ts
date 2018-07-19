@@ -20,8 +20,9 @@ import { By } from '@angular/platform-browser';
 
 import { PcapPagination } from '../model/pcap-pagination';
 import { PcapPaginationComponent } from './pcap-pagination.component';
+import { Pagination } from '../../model/pagination';
 
-describe('PcapPaginationComponent', () => {
+fdescribe('PcapPaginationComponent', () => {
   let component: PcapPaginationComponent;
   let fixture: ComponentFixture<PcapPaginationComponent>;
 
@@ -30,20 +31,49 @@ describe('PcapPaginationComponent', () => {
       declarations: [ PcapPaginationComponent ]
     })
     .compileComponents();
+    fixture = TestBed.createComponent(PcapPaginationComponent);
+    component = fixture.componentInstance;
+    component.pagination = new PcapPagination();
+    component.pagination.total = 10;
+    fixture.detectChanges();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(PcapPaginationComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
-  it('should increment up in value when the right arrow is clicked', () => {
-    component.pagination = new PcapPagination();
-    const incrementSpy = spyOn(component.pageChange, 'emit');
-    const nextButton = fixture.debugElement.query(By.css('.fa-chevron-right'));
-    nextButton.triggerEventHandler('click', null);
-    expect(incrementSpy).toHaveBeenCalled();
-    expect(component.onNext).toHaveBeenCalled();
+  it('should disable the back button if on the first page result', () => {
+    const nextButton = fixture.debugElement.query(By.css('[data-qe-id="pcap-pagination-back"]')).nativeElement;
+    expect(nextButton.disabled).toBe(true);
   });
+
+  it('should disable the next button if on the last page result', () => {
+    component.pagination.from = 10;
+    fixture.detectChanges();
+    const nextButton = fixture.debugElement.query(By.css('[data-qe-id="pcap-pagination-next"]')).nativeElement;
+    expect(nextButton.disabled).toBe(true);
+  });
+
+  it('should increment the current page by 1 with onNext()', () => {
+    component.onNext();
+    expect(component.pagination.from).toBe(2);
+  });
+
+  it('should emit an event with onNext()', () => {
+    const incrementSpy = spyOn(component.pageChange, 'emit');
+    component.onNext();
+    expect(incrementSpy).toHaveBeenCalled();
+  });
+
+  it('should decrement the current page by 1 with OnPrevious()', () => {
+    component.pagination.from += 1;
+    component.onPrevious();
+    expect(component.pagination.from).toBe(1);
+  });
+
+  it('should emit an event with OnPrevious()', () => {
+    const incrementSpy = spyOn(component.pageChange, 'emit');
+    component.onPrevious();
+    expect(incrementSpy).toHaveBeenCalled();
+  });
+
 });

@@ -20,7 +20,7 @@
   </div> -->
 
   <div class="pcap-pagination" *ngIf="pagination.total > 0">
-    <button class="pcap-pagination-button fa fa-chevron-left" (click)="onPrevious()" [disabled]="pagination.from <= 1"></button>
+    <button class="pcap-pagination-button fa fa-chevron-left" data-qe-id="pcap-pagination-back" (click)="onPrevious()" [disabled]="pagination.from <= 1"></button>
     <span>Page {{ pagination.from }} of {{ pagination.total }}</span>
-    <button class="pcap-pagination-button fa fa-chevron-right" (click)="onNext()" [disabled]="pagination.total === pagination.from"></button>
+    <button class="pcap-pagination-button fa fa-chevron-right" data-qe-id="pcap-pagination-next" (click)="onNext()" [disabled]="pagination.total === pagination.from"></button>
 </div>
