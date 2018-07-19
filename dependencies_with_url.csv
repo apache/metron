@@ -213,6 +213,7 @@ io.confluent:kafka-avro-serializer:jar:1.0:compile,ASLv2,https://github.com/conf
 io.confluent:kafka-schema-registry-client:jar:1.0:compile,ASLv2,https://github.com/confluentinc/schema-registry/
 io.netty:netty-all:jar:4.0.23.Final:compile,ASLv2,
 io.netty:netty-all:jar:4.0.23.Final:provided,ASLv2,
+io.netty:netty-all:jar:4.1.23.Final:compile,ASLv2,
 io.netty:netty:jar:3.10.5.Final:compile,Apache License, Version 2.0,http://netty.io/
 io.netty:netty:jar:3.6.2.Final:compile,Apache License, Version 2.0,http://netty.io/
 io.netty:netty:jar:3.7.0.Final:compile,Apache License, Version 2.0,http://netty.io/

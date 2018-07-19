@@ -39,6 +39,8 @@ import status_params
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+hdp_version = default("/commandParams/version", None)
+
 hostname = config['hostname']
 metron_home = status_params.metron_home
 
@@ -382,3 +384,11 @@ metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-in
 bolt_hdfs_rotation_policy = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy']
 bolt_hdfs_rotation_policy_units = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_units']
 bolt_hdfs_rotation_policy_count = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_count']
+
+# Pcap
+pcap_hdfs_dir = format("{metron_apps_hdfs_dir}/pcap")
+pcap_configured_flag_file = status_params.pcap_configured_flag_file
+
+# MapReduce
+metron_user_hdfs_dir = '/user/' + metron_user
+metron_user_hdfs_dir_configured_flag_file = status_params.metron_user_hdfs_dir_configured_flag_file

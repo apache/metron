@@ -51,6 +51,10 @@ class RestMaster(Script):
             commands.init_kafka_topics()
         if not commands.is_hbase_configured():
             commands.create_hbase_tables()
+        if not commands.is_pcap_configured():
+            commands.init_pcap()
+        if not commands.is_metron_user_hdfs_dir_configured():
+            commands.create_metron_user_hdfs_dir()
         if params.security_enabled and not commands.is_hbase_acl_configured():
             commands.set_hbase_acls()
         if params.security_enabled and not commands.is_kafka_acl_configured():

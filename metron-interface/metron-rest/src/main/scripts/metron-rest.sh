@@ -126,7 +126,7 @@ if [[ ${METRON_RA_INDEXING_WRITER} == "Solr" ]]; then
 fi
 
 echo "Starting application"
-${JAVA_HOME}/bin/java ${METRON_JVMFLAGS} \
+${JAVA_HOME}/bin/java -Dhdp.version=${HDP_VERSION} ${METRON_JVMFLAGS} \
 -cp ${METRON_REST_CLASSPATH} \
 org.apache.metron.rest.MetronRestApplication \
 ${METRON_SPRING_OPTIONS} >> ${METRON_LOG_DIR}/metron-rest.log 2>&1 & echo $! > ${METRON_PID_FILE};

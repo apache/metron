@@ -117,3 +117,9 @@ metron_user = config['configurations']['metron-env']['metron_user']
 
 metron_principal_name = config['configurations']['metron-env']['metron_principal_name']
 metron_keytab_path = config['configurations']['metron-env']['metron_service_keytab']
+
+# Pcap
+pcap_configured_flag_file = metron_zookeeper_config_path + '/../metron_pcap_configured'
+
+# MapReduce
+metron_user_hdfs_dir_configured_flag_file = metron_zookeeper_config_path + '/../metron_user_hdfs_dir_configured'

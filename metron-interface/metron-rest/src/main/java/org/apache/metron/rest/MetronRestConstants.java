@@ -74,4 +74,7 @@ public class MetronRestConstants {
   public static final String USER_SETTINGS_HBASE_CF_SPRING_PROPERTY = "user.settings.cf";
 
   public static final String LOGGING_SYSTEM_PROPERTY = "org.springframework.boot.logging.LoggingSystem";
+
+  public static final String PCAP_INPUT_PATH_SPRING_PROPERTY = "pcap.input.path";
+  public static final String PCAP_OUTPUT_PATH_SPRING_PROPERTY = "pcap.output.path";
 }

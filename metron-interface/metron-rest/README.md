@@ -242,6 +242,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/metaalert/add/alert`](#get-apiv1metaalertaddalert)|
 | [ `GET /api/v1/metaalert/remove/alert`](#get-apiv1metaalertremovealert)|
 | [ `GET /api/v1/metaalert/update/status/{guid}/{status}`](#get-apiv1metaalertupdatestatusguidstatus)|
+| [ `GET /api/v1/pcap/fixed`](#get-apiv1pcapfixed)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
@@ -485,6 +486,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * status - Meta alert status with a value of either 'ACTIVE' or 'INACTIVE'
   * Returns:
     * 200 - Returns 'true' if the status changed and 'false' if it did not.
+
+### `POST /api/v1/pcap/fixed`
+  * Description: Executes a Fixed Pcap Query.
+  * Input:
+    * fixedPcapRequest - A Fixed Pcap Request which includes fixed filter fields like ip source address and protocol.
+  * Returns:
+    * 200 - Returns a PcapResponse containing an array of pcaps.
 
 ### `POST /api/v1/search/search`
   * Description: Searches the indexing store. GUIDs must be quoted to ensure correct results.

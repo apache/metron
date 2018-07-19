@@ -17,11 +17,9 @@
  */
 package org.apache.metron.pcap.query;
 
-import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.tuple.Pair;
@@ -35,6 +33,7 @@ import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
+import org.apache.metron.pcap.writer.ResultsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,10 +107,7 @@ public class PcapCli {
                 hadoopConf,
                 FileSystem.get(hadoopConf),
                 new FixedPcapFilter.Configurator());
-      } catch (IOException | ClassNotFoundException e) {
-        LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
-        return -1;
-      } catch (InterruptedException e) {
+      } catch (IOException | ClassNotFoundException | InterruptedException e) {
         LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
         return -1;
       }
@@ -145,10 +141,7 @@ public class PcapCli {
                 hadoopConf,
                 FileSystem.get(hadoopConf),
                 new QueryPcapFilter.Configurator());
-      } catch (IOException | ClassNotFoundException e) {
-        LOGGER.error("Failed to execute query filter job: {}", e.getMessage(), e);
-        return -1;
-      } catch (InterruptedException e) {
+      } catch (IOException | ClassNotFoundException | InterruptedException e) {
         LOGGER.error("Failed to execute query filter job: {}", e.getMessage(), e);
         return -1;
       }
@@ -156,30 +149,18 @@ public class PcapCli {
       printBasicHelp();
       return -1;
     }
-    try {
 
-      Iterable<List<byte[]>> partitions = Iterables.partition(results, commonConfig.getNumRecordsPerFile());
-      int part = 1;
-      if (partitions.iterator().hasNext()) {
-        for (List<byte[]> data : partitions) {
-          String outFileName = String.format("pcap-data-%s+%04d.pcap", commonConfig.getPrefix(), part++);
-          if(data.size() > 0) {
-            resultsWriter.write(data, outFileName);
-          }
-        }
-      } else {
-        System.out.println("No results returned.");
-      }
+    try {
+      // write to local FS in the executing directory
+      String execDir = System.getProperty("user.dir");
+      jobRunner.writeResults(results, resultsWriter, new Path("file:///" + execDir),
+          commonConfig.getNumRecordsPerFile(),
+          commonConfig.getPrefix());
     } catch (IOException e) {
       LOGGER.error("Unable to write file", e);
       return -1;
-    } finally {
-      try {
-        results.cleanup();
-      } catch(IOException e) {
-        LOGGER.warn("Unable to cleanup files in HDFS", e);
-      }
     }
+
     return 0;
   }
 
