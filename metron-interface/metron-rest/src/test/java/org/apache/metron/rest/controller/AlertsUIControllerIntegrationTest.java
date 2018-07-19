@@ -157,7 +157,7 @@ public class AlertsUIControllerIntegrationTest {
             .andExpect(status().isUnauthorized());
     this.mockMvc.perform(get(alertUrl + "/settings/all").with(httpBasic(user1, password)).with(csrf()))
             .andExpect(status().isForbidden());
-    this.mockMvc.perform(delete(alertUrl + "/settings/user1").with(httpBasic(user1, password)).with(csrf()))
+    this.mockMvc.perform(delete(alertUrl + "/settings/user1").with(httpBasic(user2, password)).with(csrf()))
             .andExpect(status().isForbidden());
   }
 
@@ -275,13 +275,16 @@ public class AlertsUIControllerIntegrationTest {
    * @throws Exception
    */
   private void alertsProfilesShouldBeProperlyDeleted() throws Exception {
-
     // user1 deletes their profile
-    this.mockMvc.perform(delete(alertUrl + "/settings/user1").with(httpBasic(admin, password)))
+    this.mockMvc.perform(delete(alertUrl + "/settings/user1")
+        .with(httpBasic(admin, password))
+        .with(csrf()))
             .andExpect(status().isOk());
 
     // user1 should get a 404 when trying to delete an alerts profile that doesn't exist
-    this.mockMvc.perform(delete(alertUrl + "/settings/user1").with(httpBasic(admin, password)))
+    this.mockMvc.perform(delete(alertUrl + "/settings/user1")
+        .with(httpBasic(admin, password))
+        .with(csrf()))
             .andExpect(status().isNotFound());
 
     // user1 should get a 404 when trying to retrieve their alerts profile
@@ -289,7 +292,8 @@ public class AlertsUIControllerIntegrationTest {
             .andExpect(status().isNotFound());
 
     // user2's alerts profile should still exist
-    this.mockMvc.perform(get(alertUrl + "/settings").with(httpBasic(user2, password)))
+    this.mockMvc.perform(get(alertUrl + "/settings")
+        .with(httpBasic(user2, password)))
             .andExpect(status().isOk())
             .andExpect(
                     content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
@@ -303,7 +307,9 @@ public class AlertsUIControllerIntegrationTest {
             .andExpect(content().json("{\"" + user2 + "\": " + user2AlertUserSettingsJson + "}"));
 
     // user2 deletes their profile
-    this.mockMvc.perform(delete(alertUrl + "/settings/user2").with(httpBasic(admin, password)))
+    this.mockMvc.perform(delete(alertUrl + "/settings/user2")
+        .with(httpBasic(admin, password))
+        .with(csrf()))
             .andExpect(status().isOk());
 
     // user2 should get a 404 when trying to delete an alerts profile that doesn't exist
