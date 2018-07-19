@@ -15,41 +15,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../variables";
+@import "../../../vendor.scss";
+@import "../../../styles.scss";
+@import "../../../variables.scss";
 
-.navbar
-{
-  flex-direction: row;
-  background: $nav-bar-bg;
-  padding: 0rem 1rem;
-  height: 50px;
-  line-height: 50px;
-  max-height: 50px;
+.pcap-progress-background {
+  background-color: #2E2E2E;
 }
 
-.nav-link
-{
-  padding-bottom: 0;
-  padding-top: 0;
-  color: inherit;
+.pcap-progress {
+  background-color: #0F6F9E;
+  transition-duration:2s;
+  animation-duration: 2s;
 }
 
-.nav-item.active
-{
-  border-bottom: 3px solid #32abe2;
-  margin-bottom: 5px;
+.progress-bar {
+  width: 0;
+  animation: progress 1.5s ease-in-out forwards;
 }
 
-.nav-link.active
-{
-  color: #ffffff;
+@keyframes progress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
 }
-
-.logout {
-  padding-left: 10px;
-}
-
-.logout-link{
-  color: $all-ports;
-  cursor: pointer;
+@keyframes show  {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

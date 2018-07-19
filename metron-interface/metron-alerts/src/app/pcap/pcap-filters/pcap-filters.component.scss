@@ -15,41 +15,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../variables";
+@import "../../../vendor.scss";
+@import "../../../styles.scss";
+@import "../../../variables.scss";
 
-.navbar
-{
-  flex-direction: row;
-  background: $nav-bar-bg;
-  padding: 0rem 1rem;
-  height: 50px;
-  line-height: 50px;
-  max-height: 50px;
+.ng-valid[required], .ng-valid.required  {
+  
 }
 
-.nav-link
-{
-  padding-bottom: 0;
-  padding-top: 0;
-  color: inherit;
+.ng-invalid:not(form)  {
+  border-left: 5px solid #a94442; /* red */
 }
 
-.nav-item.active
-{
-  border-bottom: 3px solid #32abe2;
-  margin-bottom: 5px;
+.form-group {
+  padding-right: 0.75em;
+  label {
+    margin-right: 1em;
+  }
 }
 
-.nav-link.active
-{
-  color: #ffffff;
-}
+.btn-search {
 
-.logout {
-  padding-left: 10px;
-}
-
-.logout-link{
-  color: $all-ports;
+  min-width: 42px;
+  padding-left: 0;
+  padding-right: 0;
+  border: 1px solid $blue-chill !important;
   cursor: pointer;
+
+  &:focus {
+    box-shadow: none;
+  }
+
+  &::before {
+    font-family: "FontAwesome";
+    content: '\f002';
+    color: $piction-blue;
+  }
+}
+
+.pcap-search {
+
+  padding-bottom: 15px;
+
+  label {
+    font-size: 15px;
+  }
+
+  button {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    background: $icon-button-background;
+  }
 }

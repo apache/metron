@@ -15,41 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../variables";
+import { Routes, RouterModule } from '@angular/router';
+import { ModuleWithProviders }  from '@angular/core';
 
-.navbar
-{
-  flex-direction: row;
-  background: $nav-bar-bg;
-  padding: 0rem 1rem;
-  height: 50px;
-  line-height: 50px;
-  max-height: 50px;
-}
+import {PcapPanelComponent} from './pcap-panel/pcap-panel.component';
 
-.nav-link
-{
-  padding-bottom: 0;
-  padding-top: 0;
-  color: inherit;
-}
+export const routes: Routes = [
+    {path: '', component: PcapPanelComponent},
+];
 
-.nav-item.active
-{
-  border-bottom: 3px solid #32abe2;
-  margin-bottom: 5px;
-}
-
-.nav-link.active
-{
-  color: #ffffff;
-}
-
-.logout {
-  padding-left: 10px;
-}
-
-.logout-link{
-  color: $all-ports;
-  cursor: pointer;
-}
+export const routing: ModuleWithProviders = RouterModule.forChild(routes);
