@@ -20,9 +20,8 @@ import { By } from '@angular/platform-browser';
 
 import { PcapPagination } from '../model/pcap-pagination';
 import { PcapPaginationComponent } from './pcap-pagination.component';
-import { Pagination } from '../../model/pagination';
 
-fdescribe('PcapPaginationComponent', () => {
+describe('PcapPaginationComponent', () => {
   let component: PcapPaginationComponent;
   let fixture: ComponentFixture<PcapPaginationComponent>;
 
