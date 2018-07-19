@@ -57,8 +57,14 @@ describe('PcapService', () => {
         expect(packets.pdml.packet[0].proto.length).toBeGreaterThan(3)
 
         console.log(packets)
-      }));
+      }))
 
+
+    it('should ...', inject([PcapService], (service: PcapService) => {
+      expect(service).toBeTruthy();
+    }));
+
+  })
 
 });
 
