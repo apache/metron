@@ -53,10 +53,10 @@ Source6:        metron-indexing-%{full_version}-archive.tar.gz
 Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
 Source8:        metron-profiler-%{full_version}-archive.tar.gz
 Source9:        metron-rest-%{full_version}-archive.tar.gz
-Source10:       metron-config-%{full_version}-archive.tar.gz
+Source10:       metron-config-host-%{full_version}-archive.tar.gz
 Source11:       metron-management-%{full_version}-archive.tar.gz
 Source12:       metron-maas-service-%{full_version}-archive.tar.gz
-Source13:       metron-alerts-%{full_version}-archive.tar.gz
+Source13:       metron-alerts-host-%{full_version}-archive.tar.gz
 Source14:       metron-performance-%{full_version}-archive.tar.gz
 
 %description
@@ -77,7 +77,11 @@ rm -rf %{_builddir}/*
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{metron_home}
-mkdir -p %{buildroot}/etc/init.d
+
+# make PID locations for metron uis
+mkdir -p %{buildroot}/var/run/metron-alerts
+mkdir -p %{buildroot}/var/run/metron-config
+mkdir -p %{buildroot}/var/run/metron-rest
 
 # copy source files and untar
 tar -xzf %{SOURCE0} -C %{buildroot}%{metron_home}
@@ -95,12 +99,6 @@ tar -xzf %{SOURCE11} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE12} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE13} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE14} -C %{buildroot}%{metron_home}
-
-install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
-install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
-
-# allows node dependencies to be packaged in the RPMs
-npm install --prefix="%{buildroot}%{metron_home}/web/expressjs" --only=production
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -435,41 +433,12 @@ This package installs the Metron Management UI %{metron_home}
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
+%dir %{metron_home}/config
 %dir %{metron_home}/bin
-%dir %{metron_home}/web
-%dir %{metron_home}/web/expressjs
-%dir %{metron_home}/web/expressjs/node_modules
-%dir %{metron_home}/web/expressjs/node_modules/.bin
-%dir %{metron_home}/web/management-ui
-%dir %{metron_home}/web/management-ui/assets
-%dir %{metron_home}/web/management-ui/assets/ace
-%dir %{metron_home}/web/management-ui/assets/ace/snippets
-%dir %{metron_home}/web/management-ui/assets/fonts
-%dir %{metron_home}/web/management-ui/assets/fonts/Roboto
-%dir %{metron_home}/web/management-ui/assets/images
-%dir %{metron_home}/web/management-ui/license
-%{metron_home}/bin/metron-management-ui
-/etc/init.d/metron-management-ui
-%attr(0755,root,root) %{metron_home}/web/expressjs/node_modules/*
-%attr(0755,root,root) %{metron_home}/web/expressjs/node_modules/.bin/*
-%attr(0755,root,root) %{metron_home}/web/expressjs/server.js
-%attr(0644,root,root) %{metron_home}/web/expressjs/package.json
-%attr(0644,root,root) %{metron_home}/web/management-ui/favicon.ico
-%attr(0644,root,root) %{metron_home}/web/management-ui/index.html
-%attr(0644,root,root) %{metron_home}/web/management-ui/*.js
-%attr(0644,root,root) %{metron_home}/web/management-ui/*.js.gz
-%attr(0644,root,root) %{metron_home}/web/management-ui/*.ttf
-%attr(0644,root,root) %{metron_home}/web/management-ui/*.svg
-%attr(0644,root,root) %{metron_home}/web/management-ui/*.eot
-%attr(0644,root,root) %{metron_home}/web/management-ui/*.woff
-%attr(0644,root,root) %{metron_home}/web/management-ui/*.woff2
-%attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/*.js
-%attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/LICENSE
-%attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/snippets/*.js
-%attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/LICENSE.txt
-%attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/*.ttf
-%attr(0644,root,root) %{metron_home}/web/management-ui/assets/images/*
-%attr(0644,root,root) %{metron_home}/web/management-ui/license/*
+%dir %{metron_home}/lib
+%attr(0755,root,root) %{metron_home}/lib/metron-config-host-%{full_version}.jar
+%attr(0755,root,root) %{metron_home}/bin/metron-config.sh
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -504,46 +473,18 @@ This package installs the Metron Alerts UI %{metron_home}
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
+%dir %{metron_home}/config
 %dir %{metron_home}/bin
-%dir %{metron_home}/web
-%dir %{metron_home}/web/alerts-ui
-%dir %{metron_home}/web/alerts-ui/assets
-%dir %{metron_home}/web/alerts-ui/assets/ace
-%dir %{metron_home}/web/alerts-ui/assets/fonts
-%dir %{metron_home}/web/alerts-ui/assets/fonts/Roboto
-%dir %{metron_home}/web/alerts-ui/assets/images
-%{metron_home}/bin/metron-alerts-ui
-/etc/init.d/metron-alerts-ui
-%attr(0755,root,root) %{metron_home}/web/expressjs/alerts-server.js
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/favicon.ico
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/index.html
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.bundle.css
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.js
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.ttf
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.svg
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.jpg
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.eot
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.woff
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.woff2
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/3rdpartylicenses.txt
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/ace/*.js
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/ace/LICENSE
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/font.css
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/Roboto/LICENSE.txt
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/Roboto/*.ttf
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/images/*
+%dir %{metron_home}/lib
+%attr(0755,root,root) %{metron_home}/lib/metron-alerts-host-%{full_version}.jar
+%attr(0755,root,root) %{metron_home}/bin/metron-alerts.sh
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-%post config
-chkconfig --add metron-management-ui
-chkconfig --add metron-alerts-ui
-
-%preun config
-chkconfig --del metron-management-ui
-chkconfig --del metron-alerts-ui
-
 %changelog
+* Thu Jul 19 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
+- Added new UI hosting methods 
 * Thu Feb 1 2018 Apache Metron <dev@metron.apache.org> - 0.4.3
 - Add Solr install script to Solr RPM
 * Tue Sep 25 2017 Apache Metron <dev@metron.apache.org> - 0.4.2
