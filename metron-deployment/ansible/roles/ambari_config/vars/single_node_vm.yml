@@ -209,12 +209,6 @@ required_configurations:
       es_hosts: "{{ groups.search | join(',') }}"
       zeppelin_server_url: "{{ groups.zeppelin[0] }}:9995"
       solr_zookeeper_url: "{{ groups.search[0] }}:9983"
-  - metron-rest-env:
-      metron_jdbc_driver: "org.h2.Driver"
-      metron_jdbc_url: "jdbc:h2:file:~/metrondb"
-      metron_jdbc_username: "root"
-      metron_jdbc_password: "root"
-      metron_jdbc_platform: "h2"
   - kibana-env:
       kibana_pid_dir: /var/run/kibana
       kibana_es_url: http://{{ groups.search[0] }}:9200

@@ -764,30 +764,6 @@
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-rest-env/metron_jdbc_url",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/metron_jdbc_driver",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/metron_jdbc_username",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/metron_jdbc_password",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/metron_jdbc_platform",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/metron_jdbc_client_path",
-          "subsection-name": "subsection-rest"
-        },
-        {
           "config": "metron-rest-env/metron_default_grok_path",
           "subsection-name": "subsection-rest"
         },
@@ -1344,42 +1320,6 @@
       },
       {
         "config": "metron-rest-env/metron_rest_port",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-rest-env/metron_jdbc_url",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-rest-env/metron_jdbc_driver",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-rest-env/metron_jdbc_username",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-rest-env/metron_jdbc_password",
-        "widget": {
-          "type": "password"
-        }
-      },
-      {
-        "config": "metron-rest-env/metron_jdbc_platform",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-rest-env/metron_jdbc_client_path",
         "widget": {
           "type": "text-field"
         }

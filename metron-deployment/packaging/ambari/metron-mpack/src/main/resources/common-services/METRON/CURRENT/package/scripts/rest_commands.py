@@ -119,7 +119,6 @@ class RestCommands:
 
         # Set the password with env variable instead of param to avoid it showing in ps
         cmd = format((
-          "export METRON_JDBC_PASSWORD={metron_jdbc_password!p};"
           "export JAVA_HOME={java_home};"
           "export METRON_REST_CLASSPATH={metron_rest_classpath};"
           "export METRON_INDEX_CP={metron_indexing_classpath};"
@@ -127,7 +126,6 @@ class RestCommands:
           "export METRON_PID_FILE={pid_file};"
           "export METRON_RA_INDEXING_WRITER={ra_indexing_writer};"
           "{metron_home}/bin/metron-rest.sh;"
-          "unset METRON_JDBC_PASSWORD;"
         ))
 
         Execute(cmd,
