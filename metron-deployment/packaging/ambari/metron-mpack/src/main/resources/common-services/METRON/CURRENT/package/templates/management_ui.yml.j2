@@ -16,7 +16,17 @@
 # limitations under the License.
 #}
 
-port: {{metron_management_ui_port}}
+server:
+  port: {{metron_management_ui_port}}
+{% if metron_alerts_ssl %}
+  ssl:
+    key-store: {{metron_config_ssl_keystore}}
+    key-store-password: ${METRON_KEYSTORE_PASSWORD} 
+    key-store-type: {{metron_config_ssl_keystoretype}}
+    key-alias: {{metron_config_ssl_keyalias}}
+security:
+  require-ssl: true
+{% endif %}
 
 rest:
   host: {{metron_rest_host}}

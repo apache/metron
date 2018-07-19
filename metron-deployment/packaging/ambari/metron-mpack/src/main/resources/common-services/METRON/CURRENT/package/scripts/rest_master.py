@@ -43,6 +43,16 @@ class RestMaster(Script):
              content=Template("metron.j2")
              )
 
+        from params import params
+        env.set_params(params)
+
+        File(format("{metron_config_path}/rest_security.yml"),
+             mode=0755,
+             content=Template("rest.yml.j2"),
+             owner=params.metron_user,
+             group=params.metron_group
+             )
+
         metron_service.refresh_configs(params)
 
         commands = RestCommands(params)

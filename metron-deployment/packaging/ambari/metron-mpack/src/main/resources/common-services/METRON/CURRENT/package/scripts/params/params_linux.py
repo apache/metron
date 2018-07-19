@@ -259,6 +259,32 @@ if security_enabled:
 # Management UI
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
 
+# SSL
+
+metron_rest_ssl_keystore = config['configurations']['metron-rest-env']['server.ssl.key-store']
+# Password will be passed in environment
+metron_rest_ssl_password = config['configurations']['metron-rest-env']['server.ssl.key-store-password']
+metron_rest_ssl_keystoretype = config['configurations']['metron-rest-env']['server.ssl.keyStoreType']
+metron_rest_ssl_keyalias = config['configurations']['metron-rest-env']['server.ssl.keyAlias']
+
+metron_rest_ssl = metron_rest_ssl_keystore != ""
+
+metron_alerts_ssl_keystore = config['configurations']['metron-alerts-ui-env']['server.ssl.key-store']
+# Password will be passed in environment
+metron_alerts_ssl_password = config['configurations']['metron-alerts-ui-env']['server.ssl.key-store-password']
+metron_alerts_ssl_keystoretype = config['configurations']['metron-alerts-ui-env']['server.ssl.keyStoreType']
+metron_alerts_ssl_keyalias = config['configurations']['metron-alerts-ui-env']['server.ssl.keyAlias']
+
+metron_alerts_ssl = metron_alerts_ssl_keystore != ""
+
+metron_config_ssl_keystore = config['configurations']['metron-management-ui-env']['server.ssl.key-store']
+# Password will be passed in environment 
+metron_config_ssl_password = config['configurations']['metron-management-ui-env']['server.ssl.key-store-password']
+metron_config_ssl_keystoretype = config['configurations']['metron-management-ui-env']['server.ssl.keyStoreType']
+metron_config_ssl_keyalias = config['configurations']['metron-management-ui-env']['server.ssl.keyAlias']
+
+metron_config_ssl = metron_config_ssl_keystore != ""
+
 # REST
 metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']
 metron_rest_pid = 'metron-rest.pid'

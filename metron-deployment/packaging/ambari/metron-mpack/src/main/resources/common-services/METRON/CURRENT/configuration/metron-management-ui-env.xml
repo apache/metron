@@ -24,4 +24,58 @@
         <description>Port the Management UI runs on</description>
         <display-name>Management UI port</display-name>
     </property>
+    <!-- SSL settings -->
+    <property>
+        <name>server.ssl.key-store</name>
+        <value></value>
+        <display-name>Keystore File</display-name>
+        <description>Keystore file location</description>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+
+    <property>
+        <name>server.ssl.key-store-password</name>
+        <value></value>
+        <display-name>Keystore password</display-name>
+        <property-type>PASSWORD</property-type>
+        <description>Keystore password</description>
+        <value-attributes>
+            <type>password</type>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+        <on-ambari-upgrade add="true" />
+    </property>
+
+    <property>
+        <name>server.ssl.keyStoreType</name>
+        <value>JKS</value>
+        <display-name>Keystore Type</display-name>
+        <description>Keystore file format (JKS, PKCS12)</description>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>JKS</value>
+                </entry>
+                <entry>
+                    <value>PKCS12</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+
+    <property>
+        <name>server.ssl.keyAlias</name>
+        <value></value>
+        <display-name>Key alias</display-name>
+        <description>Alias name for server certificate in keystore</description>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+
+
 </configuration>
