@@ -36,11 +36,11 @@ export class PcapPanelComponent {
       this.queryId = id;
       this.queryRunning = true;
       this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusRespons) => {
-        if ('Finished' === statusResponse.status) {
+        if ('SUCCEEDED' === statusResponse.jobStatus) {
           this.statusSubscription.unsubscribe();
           console.log(this.statusSubscription.closed);
           this.queryRunning = false;
-          this.pcapService.getPackets(id).subscribe(pdml => {
+          this.pcapService.getPackets(id, this.selectedPage).subscribe(pdml => {
             this.pdml = pdml;
           })
         } else if (this.progressWidth < 100) {

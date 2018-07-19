@@ -9,8 +9,8 @@ import {PcapRequest} from '../model/pcap.request';
 import {Pdml} from '../model/pdml'
 
 export class PcapStatusRespons {
-    status: string;
-    processPercentage: number;
+    jobStatus: string;
+    percentComplete: number;
     totalPages: number;
 }
 
@@ -34,28 +34,28 @@ export class PcapService {
     }
 
     public submitRequest(pcapRequest: PcapRequest): Observable<string> {
-        return this.http.post('/api/v1/pcap/pcapqueryfilterasync/submit', pcapRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-            .map(result => JSON.parse(result.text()).id)
+        return this.http.post('/api/v1/pcap/fixed', pcapRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+            .map(result => JSON.parse(result.text()).jobId)
             .catch(HttpUtil.handleError)
             .onErrorResumeNext();
     }
 
     public getStatus(id: string): Observable<PcapStatusRespons> {
-        return this.http.get('/api/v1/pcap/pcapqueryfilterasync/status?idQuery=' + id,
+        return this.http.get(`/api/v1/pcap/${id}`,
             new RequestOptions({headers: new Headers(this.defaultHeaders)}))
             .map(HttpUtil.extractData)
             .catch(HttpUtil.handleError)
             .onErrorResumeNext();
     }
 
-    public getPackets(id: string): Observable<Pdml> {
-        return this.http.get('/api/v1/pcap/pcapqueryfilterasync/resultJson?idQuery=' + id, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    public getPackets(id: string, pageId: number): Observable<Pdml> {
+        return this.http.get(`/api/v1/pcap/output/${id}/${pageId}`, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
             .map(HttpUtil.extractData)
             .catch(HttpUtil.handleError)
             .onErrorResumeNext();
     }
 
-    public getDownloadUrl(id: string, pageNo: number) {
-      return `/api/v1/pcap/raw/${id}/${pageNo}`;
+    public getDownloadUrl(id: string, pageId: number) {
+      return `/api/v1/pcap/raw/${id}/${pageId}`;
     }
 }
