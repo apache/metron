@@ -29,7 +29,7 @@
         <!--<div class="progress-bar progress-bar-striped progress-bar-animated pcap-progress" role="progressbar" attr.aria-valuenow="{{progressWidth}}" aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'max-width': progressWidth + '%'}"></div>-->
     <!--</div>-->
     <div *ngIf="queryRunning" class="progress pcap-progress-background">
-        <div class="progress-bar progress-bar-animated pcap-progress" role="progressbar" attr.aria-valuenow="{{progressWidth}}" aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'max-width': progressWidth + '%', 'transition-duration':'1000ms'}">{{progressWidth}}%</div>
+        <div class="progress-bar progress-bar-animated pcap-progress" role="progressbar" attr.aria-valuenow="{{progressWidth}}" aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'width': progressWidth + '%'}">{{progressWidth}}%</div>
     </div>
   <div class="panel-body" *ngIf="pdml">
     <app-pcap-list [packets]="pdml.packets"></app-pcap-list>
