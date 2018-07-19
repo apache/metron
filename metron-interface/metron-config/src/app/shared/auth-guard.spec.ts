@@ -86,7 +86,5 @@ describe('AuthGuard', () => {
         expect(isUserValid).toBe(false);
       });
       authenticationService.onLoginEvent.emit(false);
-      expect(router.navigateByUrl).toHaveBeenCalledWith('/login');
-
     }));
 });

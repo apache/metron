@@ -26,14 +26,11 @@ import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
 import {IAppConfig} from '../app.config.interface';
 
 class MockRouter {
-
     navigateByUrl(url: string) {
-
     }
 }
 
 describe('AuthenticationService', () => {
-
     beforeEach(async(() => {
         TestBed.configureTestingModule({
             imports: [HttpModule],
@@ -70,92 +67,6 @@ describe('AuthenticationService', () => {
             userResponse = new Response(new ResponseOptions({status: 200, body: userName}));
         }));
 
-        it('init', async(inject([], () => {
-            let userResponsesuccess = true;
-            spyOn(authenticationService.onLoginEvent, 'emit');
-            spyOn(authenticationService, 'getCurrentUser').and.callFake(function() {
-                if (userResponsesuccess) {
-                    return Observable.create(observer => {
-                        observer.next(userResponse);
-                        observer.complete();
-                    });
-                }
-
-                return Observable.throw('Error');
-            });
-
-            authenticationService.init();
-            expect(authenticationService.onLoginEvent.emit).toHaveBeenCalledWith(true);
-
-            userResponsesuccess = false;
-            authenticationService.init();
-            expect(authenticationService.onLoginEvent.emit['calls'].count()).toEqual(2);
-
-        })));
-
-        it('login', async(inject([], () => {
-            let responseMessageSuccess = true;
-            mockBackend.connections.subscribe((c: MockConnection) => {
-                if (responseMessageSuccess) {
-                    c.mockRespond(userResponse);
-                } else {
-                    c.mockError(new Error('login failed'));
-                }
-            });
-
-            spyOn(router, 'navigateByUrl');
-            spyOn(authenticationService.onLoginEvent, 'emit');
-            authenticationService.login('test', 'test', error => {
-            });
-
-            expect(router.navigateByUrl).toHaveBeenCalledWith('/sensors');
-            expect(authenticationService.onLoginEvent.emit).toHaveBeenCalled();
-
-            responseMessageSuccess = false;
-            let errorSpy = jasmine.createSpy('error');
-            authenticationService.login('test', 'test', errorSpy);
-            expect(errorSpy).toHaveBeenCalledWith(new Error('login failed'));
-
-        })));
-
-        it('logout', async(inject([], () => {
-            let responseMessageSuccess = true;
-            mockBackend.connections.subscribe((c: MockConnection) => {
-                if (responseMessageSuccess) {
-                    c.mockRespond(userResponse);
-                } else {
-                    c.mockError(new Error('login failed'));
-                }
-            });
-
-            spyOn(router, 'navigateByUrl');
-            spyOn(authenticationService.onLoginEvent, 'emit');
-            authenticationService.logout();
-
-            expect(router.navigateByUrl).toHaveBeenCalledWith('/login');
-            expect(authenticationService.onLoginEvent.emit).toHaveBeenCalled();
-
-            responseMessageSuccess = false;
-            spyOn(console, 'log');
-            authenticationService.logout();
-            expect(console.log).toHaveBeenCalled();
-
-        })));
-
-        it('checkAuthentication', async(inject([], () => {
-            let isAuthenticated = false;
-            spyOn(router, 'navigateByUrl');
-            spyOn(authenticationService, 'isAuthenticated').and.callFake(function() {
-                return isAuthenticated;
-            });
-
-            authenticationService.checkAuthentication();
-            expect(router.navigateByUrl).toHaveBeenCalledWith('/login');
-
-            isAuthenticated = true;
-            authenticationService.checkAuthentication();
-            expect(router.navigateByUrl['calls'].count()).toEqual(1);
-        })));
 
         it('getCurrentUser', async(inject([], () => {
             mockBackend.connections.subscribe((c: MockConnection) => userResponse);
@@ -165,26 +76,5 @@ describe('AuthenticationService', () => {
                 }, error => console.log(error));
         })));
 
-        it('isAuthenticationChecked', async(inject([], () => {
-            mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(userResponse));
-
-            expect(authenticationService.isAuthenticationChecked()).toEqual(false);
-
-            authenticationService.login('test', 'test', null);
-            expect(authenticationService.isAuthenticationChecked()).toEqual(true);
-
-        })));
-
-        it('isAuthenticated', async(inject([], () => {
-            mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(userResponse));
-
-            expect(authenticationService.isAuthenticated()).toEqual(false);
-
-            authenticationService.login('test', 'test', null);
-            expect(authenticationService.isAuthenticated()).toEqual(true);
-
-        })));
     });
-
-
 });

@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Injectable } from '@angular/core';
 import {
   CanActivate,
@@ -22,7 +23,6 @@ import {
   ActivatedRouteSnapshot,
   RouterStateSnapshot
 } from '@angular/router';
-import { Observable } from 'rxjs/Observable';
 import { AuthenticationService } from '../service/authentication.service';
 
 @Injectable()
@@ -31,20 +31,6 @@ export class AuthGuard implements CanActivate {
   constructor(private authService: AuthenticationService, private router: Router) {}
 
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    if (!this.authService.isAuthenticationChecked()) {
-      return Observable.create(observer => {
-        this.authService.onLoginEvent.subscribe(isLoggedIn => {
-          if (isLoggedIn) {
-            observer.next(true);
-            observer.complete();
-          } else {
-            observer.next(false);
-            observer.complete();
-            this.router.navigateByUrl('/login');
-          }
-        });
-      });
-    }
     return this.authService.isAuthenticated();
   }
 }

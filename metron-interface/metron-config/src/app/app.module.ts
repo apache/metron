@@ -30,7 +30,6 @@ import {VerticalNavbarComponent} from './verticalnavbar/verticalnavbar.component
 import {routing, appRoutingProviders} from './app.routes';
 import {AuthenticationService} from './service/authentication.service';
 import {AuthGuard} from './shared/auth-guard';
-import {LoginGuard} from './shared/login-guard';
 import {SensorParserConfigModule} from './sensors/sensor-parser-config/sensor-parser-config.module';
 import {SensorParserConfigReadonlyModule} from './sensors/sensor-parser-config-readonly/sensor-parser-config-readonly.module';
 import {SensorParserListModule} from './sensors/sensor-parser-list/sensor-parser-list.module';
@@ -49,7 +48,7 @@ import {HdfsService} from './service/hdfs.service';
   imports: [ BrowserModule, routing, FormsModule, ReactiveFormsModule, HttpModule, SensorParserListModule,
     SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
-  providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
+  providers: [  AuthenticationService, AuthGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
     StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
     GlobalConfigService, MetronAlerts, MetronDialogBox, appRoutingProviders, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }],

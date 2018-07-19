@@ -25,15 +25,15 @@ import {APP_CONFIG} from '../app.config';
 @Injectable()
 export class AuthenticationService {
 
-  private static USER_NOT_VERIFIED: string = 'USER-NOT-VERIFIED';
-  private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
-  loginUrl: string = this.config.apiEndpoint + '/user';
-  logoutUrl: string = '/logout';
+  private currentUser: string;
+  userUrl: string = this.config.apiEndpoint + '/user';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  constructor(private http: Http, private router: Router, @Inject(APP_CONFIG) private config: IAppConfig) {
-    this.init();
+  constructor(private http: Http,
+              private router: Router,
+              @Inject(APP_CONFIG) private config: IAppConfig) {
+     this.init();
   }
 
   public init() {
@@ -44,49 +44,19 @@ export class AuthenticationService {
         }
       }, error => {
         this.onLoginEvent.emit(false);
+        this.currentUser = null;
       });
-  }
-
-  public login(username: string, password: string, onError): void {
-    let loginHeaders: Headers = new Headers(this.defaultHeaders);
-    loginHeaders.append('authorization', 'Basic ' + btoa(username + ':' + password));
-    let loginOptions: RequestOptions = new RequestOptions({headers: loginHeaders});
-    this.getCurrentUser(loginOptions).subscribe((response: Response) => {
-        this.currentUser = response.text();
-        this.router.navigateByUrl('/sensors');
-        this.onLoginEvent.emit(true);
-      },
-      error => {
-        onError(error);
-      });
-  }
-
-  public logout(): void {
-    this.http.post(this.logoutUrl, {}, new RequestOptions({headers: new Headers(this.defaultHeaders)})).subscribe(response => {
-        this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
-        this.onLoginEvent.emit(false);
-        this.router.navigateByUrl('/login');
-      },
-      error => {
-        console.log(error);
-      });
-  }
-
-  public checkAuthentication() {
-    if (!this.isAuthenticated()) {
-      this.router.navigateByUrl('/login');
-    }
   }
 
   public getCurrentUser(options: RequestOptions): Observable<Response> {
-    return this.http.get(this.loginUrl, options);
+    return this.http.get(this.userUrl, options);
   }
 
-  public isAuthenticationChecked(): boolean {
-    return this.currentUser !== AuthenticationService.USER_NOT_VERIFIED;
+  public getCurrentUserName(): string {
+    return this.currentUser;
   }
 
   public isAuthenticated(): boolean {
-    return this.currentUser !== AuthenticationService.USER_NOT_VERIFIED && this.currentUser != null;
+    return this.currentUser != null;
   }
 }
