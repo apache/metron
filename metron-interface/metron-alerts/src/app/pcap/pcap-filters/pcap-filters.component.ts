@@ -28,8 +28,8 @@ export class PcapFiltersComponent implements OnInit {
   }
 
   onSubmit() {
-    this.model.startTime = new Date(this.startTimeStr).getTime();
-    this.model.endTime = new Date(this.endTimeStr).getTime();
+    this.model.startTimeMs = new Date(this.startTimeStr).getTime();
+    this.model.endTimeMs = new Date(this.endTimeStr).getTime();
     this.search.emit(this.model);
   }
 }

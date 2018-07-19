@@ -17,13 +17,13 @@
  */
  
 export class PcapRequest {
-  startTime: number;
-  endTime: number;
-  srcIp: string = '';
-  srcPort: string = '';
-  dstIp: string = '';
-  dstPort: string = '';
+  startTimeMs: number = 0;
+  endTimeMs: number = 0;
+  ipSrcAddr: string = '';
+  ipSrcPort: string = '';
+  ipDstAddr: string = '';
+  ipDstPort: string = '';
   protocol: string = '';
   packetFilter: string = '';
-  includeReverseTraffic: boolean = false;
+  includeReverse: boolean = false;
 }

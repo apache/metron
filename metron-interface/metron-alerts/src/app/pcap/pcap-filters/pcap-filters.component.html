@@ -15,40 +15,40 @@
 
   <div class="form-group">
     <label>From</label>
-    <app-date-picker [(date)]="startTimeStr"> </app-date-picker>
+    <app-date-picker id="startTime" [(date)]="startTimeStr"> </app-date-picker>
   </div>
   <div class="form-group">
     <label>To</label>
-    <app-date-picker [(date)]="endTimeStr"> </app-date-picker>
+    <app-date-picker id="endTime" [(date)]="endTimeStr"> </app-date-picker>
   </div>
 
   <div class="form-group">
-    <label for="ip_src_addr">IP Source Address</label>
-    <input name="ip_src_addr" #ip_src_addr="ngModel" class="form-control" pattern="^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$" [(ngModel)]="model.srcIp">
+    <label for="ipSrcAddr">IP Source Address</label>
+    <input name="ipSrcAddr" #ipSrcAddr="ngModel" class="form-control" pattern="^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$" [(ngModel)]="model.ipSrcAddr">
   </div>
   
   <div class="form-group">
-    <label for="ip_src_port">IP Source Port</label>
-    <input name="ip_src_port" #ip_src_port="ngModel" class="form-control" type="number" [(ngModel)]="model.srcPort">
+    <label for="ipSrcPort">IP Source Port</label>
+    <input name="ipSrcPort" #ipSrcPort="ngModel" class="form-control" type="number" [(ngModel)]="model.ipSrcPort">
   </div>
 
-  <div class="form-group"><label for="ip_dest_addr">IP Dest Address</label>
-    <input name="ip_dest_addr" #ip_dest_addr="ngModel" class="form-control" pattern="^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$" [(ngModel)]="model.dstIp">
+  <div class="form-group"><label for="ipDstAddr">IP Dest Address</label>
+    <input name="ipDstAddr" #ipDstAddr="ngModel" class="form-control" pattern="^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$" [(ngModel)]="model.ipDstAddr">
   </div>
 
   <div class="form-group">
-    <label for="ip_dest_port">IP Dest Port</label>
-    <input id="ip_dest_port" name="ip_dest_port" #ip_dest_port="ngModel" class="form-control" type="number" [(ngModel)]="model.dstPort">
+    <label for="ipDstPort">IP Dest Port</label>
+    <input id="ipDstPort" name="ipDstPort" #ipDstPort="ngModel" class="form-control" type="number" [(ngModel)]="model.ipDstPort">
   </div>
 
     <div class="form-group">
         <label for="protocol">Protocol</label>
-        <input id="protocol" name="protocol" #protocol="ngModel" class="form-control" type="number" [(ngModel)]="model.protocol">
+        <input id="protocol" name="protocol" #protocol="ngModel" class="form-control" [(ngModel)]="model.protocol">
     </div>
 
     <div class="form-group">
-        <label for="includeReverseTraffic">Include Reverse Traffic</label>
-        <input id="includeReverseTraffic" name="includeReverseTraffic" #includeReverseTraffic="ngModel" class="form-control" type="checkbox" [(ngModel)]="model.includeReverseTraffic">
+        <label for="includeReverse">Include Reverse Traffic</label>
+        <input id="includeReverse" name="includeReverse" #includeReverse="ngModel" class="form-control" type="checkbox" [(ngModel)]="model.includeReverse">
     </div>
 
   <div class="form-group">
