@@ -17,10 +17,22 @@
  */
 package org.apache.metron.rest.controller;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Pageable;
 import org.apache.metron.pcap.PcapHelper;
@@ -41,21 +53,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -229,4 +226,63 @@ public class PcapControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.jobStatus").value("KILLED"));
   }
+
+  @Test
+  public void testKillJob() throws Exception {
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId123").with(httpBasic(user, password)))
+        .andExpect(status().isNotFound());
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId123").withState(JobStatus.State.RUNNING));
+
+    this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.jobId").value("jobId123"))
+        .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId123").withState(JobStatus.State.KILLED));
+
+    this.mockMvc.perform(post(pcapUrl + "/kill/{id}", "jobId123").with(httpBasic(user, password)))//.with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.jobId").value("jobId123"))
+        .andExpect(jsonPath("$.jobStatus").value("KILLED"));
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.KILLED));
+
+
+
+
+
+
+/*    this.mockMvc.perform(get(pcapUrl + "/jobId").with(httpBasic(user, password)))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.jobStatus").value("SUCCEEDED"))
+        .andExpect(jsonPath("$.pageTotal").value(2));
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.FINALIZING));
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId").with(httpBasic(user, password)))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.jobStatus").value("FINALIZING"));
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.FAILED));
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId").with(httpBasic(user, password)))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.jobStatus").value("FAILED"));
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.KILLED));
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId").with(httpBasic(user, password)))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.jobStatus").value("KILLED"));*/
+  }
+
 }

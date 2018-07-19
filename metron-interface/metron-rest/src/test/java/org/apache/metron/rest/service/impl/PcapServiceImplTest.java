@@ -17,11 +17,22 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.metron.common.Constants;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.JobStatus.State;
 import org.apache.metron.job.Pageable;
 import org.apache.metron.job.manager.InMemoryJobManager;
 import org.apache.metron.job.manager.JobManager;
@@ -34,21 +45,13 @@ import org.apache.metron.rest.mock.MockPcapJob;
 import org.apache.metron.rest.mock.MockPcapJobSupplier;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.env.Environment;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @SuppressWarnings("ALL")
 public class PcapServiceImplTest {
@@ -231,6 +234,28 @@ public class PcapServiceImplTest {
 
     PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager);
     pcapService.getJobStatus("user", "jobId");
+  }
+
+  @Test
+  public void killJobShouldKillJobAndReportStatus() throws Exception {
+    MockPcapJob mockPcapJob = mock(MockPcapJob.class);
+    JobManager jobManager = mock(JobManager.class);
+    JobStatus actualJobStatus = new JobStatus()
+        .withJobId("jobId")
+        .withState(State.KILLED)
+        .withDescription("description")
+        .withPercentComplete(100.0);
+    Pageable pageable = mock(Pageable.class);
+    when(pageable.getSize()).thenReturn(0);
+    when(mockPcapJob.getStatus()).thenReturn(actualJobStatus);
+    when(mockPcapJob.isDone()).thenReturn(true);
+    when(mockPcapJob.get()).thenReturn(pageable);
+    when(jobManager.getJob("user", "jobId")).thenReturn(mockPcapJob);
+
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager);
+    PcapStatus status = pcapService.killJob("user", "jobId");
+    verify(jobManager, times(1)).killJob("user", "jobId");
+    assertThat(status.getJobStatus(), CoreMatchers.equalTo(State.KILLED.toString()));
   }
 
 }
