@@ -57,6 +57,7 @@
   roles:
     - role: certificates
     - role: ambari_config
+    - role: metron-post
   tags:
     - hdp-install
     - hdp-deploy
