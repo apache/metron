@@ -386,7 +386,11 @@ bolt_hdfs_rotation_policy_units = config['configurations']['metron-indexing-env'
 bolt_hdfs_rotation_policy_count = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_count']
 
 # Pcap
-pcap_hdfs_dir = format("{metron_apps_hdfs_dir}/pcap")
+#pcap_hdfs_dir = format("{metron_apps_hdfs_dir}/pcap")
+pcap_base_path = config['configurations']['metron-rest-env']['pcap_base_path']
+pcap_base_interim_result_path = config['configurations']['metron-rest-env']['pcap_base_interim_result_path']
+pcap_final_output_path = config['configurations']['metron-rest-env']['pcap_final_output_path']
+pcap_page_size = config['configurations']['metron-rest-env']['pcap_page_size']
 pcap_configured_flag_file = status_params.pcap_configured_flag_file
 
 # MapReduce
