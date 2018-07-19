@@ -39,6 +39,8 @@
         </license>
     </licenses>
     <modules>
+        <module>metron-ui-security</module>
+        <module>metron-ui-host</module>
         <module>metron-config</module>
         <module>metron-alerts</module>
         <module>metron-rest</module>

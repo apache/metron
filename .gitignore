@@ -23,3 +23,9 @@ temp/**
 temp/**/*
 metron-interface/metron-alerts/node/
 repodata/
+
+# Ignores for eclipse IDE
+.springBeans
+.factorypath
+.vscode
+.pydevproject
