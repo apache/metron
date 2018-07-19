@@ -21,6 +21,7 @@ import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -244,13 +245,24 @@ public class PcapControllerIntegrationTest {
 
     mockPcapJob.setStatus(new JobStatus().withJobId("jobId123").withState(JobStatus.State.KILLED));
 
-    this.mockMvc.perform(post(pcapUrl + "/kill/{id}", "jobId123").with(httpBasic(user, password)))//.with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+    this.mockMvc.perform(delete(pcapUrl + "/kill/{id}", "jobId123").with(httpBasic(user, password)))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(jsonPath("$.jobId").value("jobId123"))
         .andExpect(jsonPath("$.jobStatus").value("KILLED"));
 
     mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.KILLED));
+  }
+
+  @Test
+  public void testKillNonExistentJobReturns404() throws Exception {
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId123").with(httpBasic(user, password)))
+        .andExpect(status().isNotFound());
+
+    this.mockMvc.perform(delete(pcapUrl + "/kill/{id}", "jobId123").with(httpBasic(user, password)))
+        .andExpect(status().isNotFound());
   }
 
 }

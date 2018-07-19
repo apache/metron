@@ -66,7 +66,7 @@ public class PcapController {
 
   @ApiOperation(value = "Kills running job.")
   @ApiResponses(value = { @ApiResponse(message = "Kills passed job.", code = 200)})
-  @RequestMapping(value = "/kill/{jobId}", method = RequestMethod.POST)
+  @RequestMapping(value = "/kill/{jobId}", method = RequestMethod.DELETE)
   ResponseEntity<PcapStatus> killJob(
       @ApiParam(name = "jobId", value = "Job ID of submitted job", required = true) @PathVariable String jobId)
       throws RestException {
