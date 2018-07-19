@@ -51,8 +51,10 @@ import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.mock.MockPcapJob;
 import org.apache.metron.rest.mock.MockPcapJobSupplier;
+import org.apache.metron.rest.mock.MockPcapToPdmlScriptWrapper;
 import org.apache.metron.rest.mock.MockStormCLIClientWrapper;
 import org.apache.metron.rest.mock.MockStormRestTemplate;
+import org.apache.metron.rest.service.impl.PcapToPdmlScriptWrapper;
 import org.apache.metron.rest.service.impl.StormCLIWrapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -204,5 +206,10 @@ public class TestConfig {
     MockPcapJobSupplier mockPcapJobSupplier = new MockPcapJobSupplier();
     mockPcapJobSupplier.setMockPcapJob(mockPcapJob);
     return mockPcapJobSupplier;
+  }
+
+  @Bean
+  public PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper() {
+    return new MockPcapToPdmlScriptWrapper();
   }
 }

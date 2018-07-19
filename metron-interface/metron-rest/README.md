@@ -210,6 +210,17 @@ Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 ```
 
+## Pcap Query
+
+The REST application exposes endpoints for querying Pcap data.  For more information about filtering options see [Query Filter Utility](/metron-platform/metron-pcap-backend#query-filter-utility).
+
+There is an endpoint available that will return Pcap data in [PDML](https://wiki.wireshark.org/PDML) format.  [Wireshark](https://www.wireshark.org/) must be installed for this feature to work.
+Installing wireshark in CentOS can be done with `yum -y install wireshark`.
+
+The REST application uses a Java Process object to call out to the `pcap_to_pdml.sh` script.  This script is installed at `$METRON_HOME/bin/pcap_to_pdml.sh` by default.
+Out of the box it is a simple wrapper around the tshark command to transform raw pcap data to PDML.  However it can be extended to do additional processing as long as the expected input/output is maintained.
+REST will supply the script with raw pcap data through standard in and expects PDML data serialized as XML.
+
 ## API
 
 Request and Response objects are JSON formatted.  The JSON schemas are available in the Swagger UI.
@@ -243,6 +254,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/metaalert/remove/alert`](#get-apiv1metaalertremovealert)|
 | [ `GET /api/v1/metaalert/update/status/{guid}/{status}`](#get-apiv1metaalertupdatestatusguidstatus)|
 | [ `GET /api/v1/pcap/fixed`](#get-apiv1pcapfixed)|
+| [ `GET /api/v1/pcap/{jobId}`](#get-apiv1pcapjobid)|
+| [ `GET /api/v1/pcap/{jobId}/pdml`](#get-apiv1pcapjobidpdml)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
@@ -490,9 +503,26 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 ### `POST /api/v1/pcap/fixed`
   * Description: Executes a Fixed Pcap Query.
   * Input:
-    * fixedPcapRequest - A Fixed Pcap Request which includes fixed filter fields like ip source address and protocol.
+    * fixedPcapRequest - A Fixed Pcap Request which includes fixed filter fields like ip source address and protocol
   * Returns:
-    * 200 - Returns a PcapResponse containing an array of pcaps.
+    * 200 - Returns a job status with job ID.
+    
+### `POST /api/v1/pcap/{jobId}`
+  * Description: Gets job status for Pcap query job.
+  * Input:
+    * jobId - Job ID of submitted job
+  * Returns:
+    * 200 - Returns a job status for the Job ID.
+    * 404 - Job is missing.
+    
+### `POST /api/v1/pcap/{jobId}/pdml`
+  * Description: Gets Pcap Results for a page in PDML format.
+  * Input:
+    * jobId - Job ID of submitted job
+    * page - Page number
+  * Returns:
+    * 200 - Returns PDML in json format.
+    * 404 - Job or page is missing.
 
 ### `POST /api/v1/search/search`
   * Description: Searches the indexing store. GUIDs must be quoted to ensure correct results.
