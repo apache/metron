@@ -615,8 +615,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
 
   private void waitForJob(Statusable statusable) throws Exception {
     for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
-      if (statusable.isDone()) {
-        return;
+      if (!statusable.getStatus().getState().equals(JobStatus.State.RUNNING)) {
+        if (statusable.isDone()) {
+          return;
+        }
       }
     }
     throw new Exception("Job did not complete within " + (MAX_RETRIES * SLEEP_MS) + " seconds");

@@ -15,15 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
 
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.pcap.FixedPcapRequest;
-import org.apache.metron.rest.model.pcap.PcapStatus;
+package org.apache.metron.job;
 
-public interface PcapService {
+public class RuntimeJobException extends RuntimeException {
 
-  PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException;
+  public RuntimeJobException(String message) {
+    super(message);
+  }
 
-  PcapStatus getJobStatus(String username, String jobId) throws RestException;
+  public RuntimeJobException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

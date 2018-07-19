@@ -15,15 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.rest.model.pcap;
 
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.pcap.FixedPcapRequest;
-import org.apache.metron.rest.model.pcap.PcapStatus;
+import org.apache.metron.common.configuration.ConfigOption;
 
-public interface PcapService {
+public enum FixedPcapOptions implements ConfigOption {
+  IP_SRC_ADDR("ipSrcAddr"),
+  IP_DST_ADDR("ipDstAddr"),
+  IP_SRC_PORT("ipSrcPort"),
+  IP_DST_PORT("ipDstPort"),
+  PROTOCOL("protocol"),
+  PACKET_FILTER("packetFilter"),
+  INCLUDE_REVERSE("includeReverse")
+  ;
 
-  PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException;
+  String key;
 
-  PcapStatus getJobStatus(String username, String jobId) throws RestException;
+  FixedPcapOptions(String key) {
+    this.key = key;
+  }
+
+  @Override
+  public String getKey() {
+    return key;
+  }
 }

@@ -36,10 +36,10 @@ public class PcapCliFinalizer extends PcapFinalizer {
   private static final String PCAP_CLI_FILENAME_FORMAT = "%s/pcap-data-%s+%04d.pcap";
 
   @Override
-  protected String getOutputFileName(Map<String, Object> config, int partition) {
+  protected Path getOutputPath(Map<String, Object> config, int partition) {
     Path finalOutputPath = PcapOptions.FINAL_OUTPUT_PATH.get(config, PcapOptions.STRING_TO_PATH, Path.class);
     String prefix = PcapOptions.FINAL_FILENAME_PREFIX.get(config, String.class);
-    return String.format(PCAP_CLI_FILENAME_FORMAT, finalOutputPath, prefix, partition);
+    return new Path(String.format(PCAP_CLI_FILENAME_FORMAT, finalOutputPath, prefix, partition));
   }
 
 }

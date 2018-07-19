@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import org.apache.metron.job.JobException;
+import org.apache.metron.job.JobNotFoundException;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Statusable;
 import org.slf4j.Logger;
@@ -52,7 +53,7 @@ public class InMemoryJobManager<PAGE_T> implements JobManager<PAGE_T> {
 
   @Override
   public JobStatus getStatus(String username, String jobId) throws JobException {
-    return jobs.get(username).get(jobId).getStatus();
+    return getJob(username, jobId).getStatus();
   }
 
   @Override
@@ -67,7 +68,11 @@ public class InMemoryJobManager<PAGE_T> implements JobManager<PAGE_T> {
 
   @Override
   public Statusable<PAGE_T> getJob(String username, String jobId) throws JobException {
-    return getUserJobs(username).get(jobId);
+    Map<String, Statusable<PAGE_T>> jobStatusables = getUserJobs(username);
+    if (jobStatusables.size() > 0 && jobStatusables.containsKey(jobId)) {
+      return jobStatusables.get(jobId);
+    }
+    throw new JobNotFoundException("Could not find job " + jobId + " for user " + username);
   }
 
   private Map<String, Statusable<PAGE_T>> getUserJobs(String username) {
@@ -76,7 +81,7 @@ public class InMemoryJobManager<PAGE_T> implements JobManager<PAGE_T> {
 
   @Override
   public List<Statusable<PAGE_T>> getJobs(String username) throws JobException {
-    return new ArrayList<Statusable<PAGE_T>>(getUserJobs(username).values());
+    return new ArrayList<>(getUserJobs(username).values());
   }
 
 }

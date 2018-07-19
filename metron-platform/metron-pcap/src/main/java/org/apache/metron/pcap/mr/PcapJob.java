@@ -215,14 +215,24 @@ public class PcapJob<T> implements Statusable<Path> {
     FileSystem fileSystem = PcapOptions.FILESYSTEM.get(configuration, FileSystem.class);
     Path basePath = PcapOptions.BASE_PATH.getTransformed(configuration, Path.class);
     Path baseInterimResultPath = PcapOptions.BASE_INTERIM_RESULT_PATH.getTransformed(configuration, Path.class);
-    long startTime = PcapOptions.START_TIME_NS.get(configuration, Long.class);
-    long endTime = PcapOptions.END_TIME_NS.get(configuration, Long.class);
+    long startTime;
+    if (configuration.containsKey(PcapOptions.START_TIME_NS.getKey())) {
+      startTime = PcapOptions.START_TIME_NS.get(configuration, Long.class);
+    } else {
+      startTime = PcapOptions.START_TIME_MS.get(configuration, Long.class) * 1000000;
+    }
+    long endTime;
+    if (configuration.containsKey(PcapOptions.END_TIME_NS.getKey())) {
+      endTime = PcapOptions.END_TIME_NS.get(configuration, Long.class);
+    } else {
+      endTime = PcapOptions.END_TIME_MS.get(configuration, Long.class) * 1000000;
+    }
     int numReducers = PcapOptions.NUM_REDUCERS.get(configuration, Integer.class);
     T fields = (T) PcapOptions.FIELDS.get(configuration, Object.class);
     PcapFilterConfigurator<T> filterImpl = PcapOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
 
     try {
-      return query(jobName,
+      Statusable<Path> statusable = query(jobName,
           basePath,
           baseInterimResultPath,
           startTime,
@@ -233,6 +243,8 @@ public class PcapJob<T> implements Statusable<Path> {
           new Configuration(hadoopConf),
           fileSystem,
           filterImpl);
+      PcapOptions.JOB_ID.put(configuration, statusable.getStatus().getJobId());
+      return statusable;
     } catch (IOException | InterruptedException | ClassNotFoundException e) {
       throw new JobException("Failed to run pcap query.", e);
     }

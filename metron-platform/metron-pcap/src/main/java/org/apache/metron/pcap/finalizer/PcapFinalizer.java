@@ -79,10 +79,10 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
       int part = 1;
       if (partitions.iterator().hasNext()) {
         for (List<byte[]> data : partitions) {
-          String outFileName = getOutputFileName(config, part++);
+          Path outputPath = getOutputPath(config, part++);
           if (data.size() > 0) {
-            getResultsWriter().write(hadoopConfig, data, outFileName);
-            outFiles.add(new Path(outFileName));
+            getResultsWriter().write(hadoopConfig, data, outputPath.toUri().getPath());
+            outFiles.add(outputPath);
           }
         }
       } else {
@@ -100,7 +100,7 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
     return new PcapPages(outFiles);
   }
 
-  protected abstract String getOutputFileName(Map<String, Object> config, int partition);
+  protected abstract Path getOutputPath(Map<String, Object> config, int partition);
 
   /**
    * Returns a lazily-read Iterable over a set of sequence files.

@@ -18,27 +18,27 @@
 
 package org.apache.metron.pcap.finalizer;
 
-import java.util.Map;
 import org.apache.hadoop.fs.Path;
+import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.config.PcapOptions;
+
+import java.util.Map;
 
 /**
  * Write to HDFS.
  */
 public class PcapRestFinalizer extends PcapFinalizer {
 
-  /**
-   * Format will have the format &lt;output-path&gt;/page-&lt;page-num&gt;.pcap
-   * The filename prefix is pluggable, but in most cases it will be provided via the PcapConfig
-   * as a formatted timestamp + uuid. A final sample format will look as follows:
-   * /base/output/path/pcap-data-201807181911-09855b4ae3204dee8b63760d65198da3+0001.pcap
-   */
-  private static final String PCAP_CLI_FILENAME_FORMAT = "%s/page-%s.pcap";
+  private static final String PCAP_REST_FILEPATH_FORMAT = "%s/%s/%s/%s/page-%s.pcap";
+
+  private String jobType = Statusable.JobType.MAP_REDUCE.name();
 
   @Override
-  protected String getOutputFileName(Map<String, Object> config, int partition) {
-    Path finalOutputPath = PcapOptions.FINAL_OUTPUT_PATH.getTransformed(config, Path.class);
-    return String.format(PCAP_CLI_FILENAME_FORMAT, finalOutputPath, partition);
+  protected Path getOutputPath(Map<String, Object> config, int partition) {
+    String finalOutputPath = PcapOptions.FINAL_OUTPUT_PATH.get(config, String.class);
+    String user = PcapOptions.USERNAME.get(config, String.class);
+    String jobId = PcapOptions.JOB_ID.get(config, String.class);
+    return new Path(String.format(PCAP_REST_FILEPATH_FORMAT, finalOutputPath, user, jobType, jobId, partition));
   }
 
 }

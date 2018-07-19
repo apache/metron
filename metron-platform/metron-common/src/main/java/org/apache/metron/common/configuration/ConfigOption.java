@@ -18,6 +18,8 @@
 
 package org.apache.metron.common.configuration;
 
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+
 import java.util.Map;
 import java.util.function.BiFunction;
 
@@ -32,11 +34,17 @@ public interface ConfigOption {
   }
 
   default <T> T get(Map<String, Object> map, Class<T> clazz) {
-    return clazz.cast(map.get(getKey()));
+    Object obj = map.get(getKey());
+    if(clazz.isInstance(obj)) {
+      return clazz.cast(obj);
+    }
+    else {
+      return ConversionUtils.convert(obj, clazz);
+    }
   }
 
   default <T> T get(Map<String, Object> map, BiFunction<String, Object, T> transform, Class<T> clazz) {
-    return clazz.cast(map.get(getKey()));
+    return clazz.cast(transform.apply(getKey(), map.get(getKey())));
   }
 
   default <T> T getTransformed(Map<String, Object> map, Class<T> clazz) {
