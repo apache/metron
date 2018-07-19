@@ -18,7 +18,6 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -43,8 +42,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
 @Service
 public class PcapServiceImpl implements PcapService {
