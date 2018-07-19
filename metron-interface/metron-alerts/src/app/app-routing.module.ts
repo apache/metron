@@ -26,7 +26,8 @@ const routes: Routes = [
   { path: 'alerts-list', loadChildren: 'app/alerts/alerts-list/alerts-list.module#AlertsListModule', canActivate: [AuthGuard]},
   { path: 'save-search', loadChildren: 'app/alerts/save-search/save-search.module#SaveSearchModule', canActivate: [AuthGuard]},
   { path: 'saved-searches', loadChildren: 'app/alerts/saved-searches/saved-searches.module.ts#SavedSearchesModule',
-      canActivate: [AuthGuard]}
+      canActivate: [AuthGuard]},
+  { path: 'pcap', loadChildren: 'app/pcap/pcap.module#PcapModule', canActivate: [AuthGuard] }
 ];
 
 @NgModule({
