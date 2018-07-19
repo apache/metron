@@ -17,7 +17,9 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -31,6 +33,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.metron.common.Constants;
 import org.apache.metron.job.JobException;
+import org.apache.metron.job.JobNotFoundException;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.JobStatus.State;
 import org.apache.metron.job.Pageable;
@@ -256,6 +259,18 @@ public class PcapServiceImplTest {
     PcapStatus status = pcapService.killJob("user", "jobId");
     verify(jobManager, times(1)).killJob("user", "jobId");
     assertThat(status.getJobStatus(), CoreMatchers.equalTo(State.KILLED.toString()));
+  }
+
+  @Test
+  public void killNonExistentJobShouldReturnNull() throws Exception {
+    MockPcapJob mockPcapJob = mock(MockPcapJob.class);
+    JobManager jobManager = mock(JobManager.class);
+    doThrow(new JobNotFoundException("Not found test exception.")).when(jobManager).killJob("user", "jobId");
+
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager);
+    PcapStatus status = pcapService.killJob("user", "jobId");
+    verify(jobManager, times(1)).killJob("user", "jobId");
+    assertNull(status);
   }
 
 }

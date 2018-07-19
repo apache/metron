@@ -94,6 +94,9 @@ public class PcapServiceImpl implements PcapService {
   public PcapStatus killJob(String username, String jobId) throws RestException {
     try {
       jobManager.killJob(username, jobId);
+    } catch (JobNotFoundException e) {
+      // do nothing and return null pcapStatus
+      return null;
     } catch (JobException e) {
       throw new RestException(e);
     }
