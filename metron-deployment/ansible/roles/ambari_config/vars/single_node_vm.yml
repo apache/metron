@@ -113,6 +113,23 @@ configurations:
       gateway_recover_after_data_nodes: 1
       network_host: "[ _local_, {{ elasticsearch_network_interface }} ]"
       masters_also_are_datanodes: "1"
+  - metron-management-ui-env:
+      metron_config_jvmopts: -Xms32m -Xmx128g
+  - metron-alerts-ui-env:
+      metron_alerts_jvmopts: -Xms32m -Xmx128g
+  - metron-security-env:
+      metron.sso.providerurl: https://{{ ambari_host }}:8443/gateway/knoxsso/api/v1/websso
+      metron.sso.enabled: true
+      metron.sso.publickey: "{{ knox_public_key.stdout }}"
+      metron.ldap.url: ldap://{{ ambari_host }}:33389
+      metron.ldap.bind.dn: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
+      metron.ldap.bind.password: admin-password
+      metron.ldap.user.dnpattern: uid={0},ou=people,dc=hadoop,dc=apache,dc=org
+      metron.ldap.user.searchbase: ou=people,dc=hadoop,dc=apache,dc=org
+      metron.ldap.user.password: userPassword
+      metron.ldap.group.searchbase: ou=groups,dc=hadoop,dc=apache,dc=org
+      metron.ldap.group.searchfilter: member={0}
+      metron.ldap.group.roleattribute: cn
   - knox-env:
       knox_master_secret: "{{ knox_master_pasword }}"
   - knoxsso-topology:
