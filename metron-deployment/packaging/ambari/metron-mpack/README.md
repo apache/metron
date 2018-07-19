@@ -26,8 +26,6 @@ This allows you to easily install Metron using a simple, guided process.  This a
 
 * Installable Metron packages (either RPMs or DEBs) located in a repository on each host at `/localrepo`.
 
-* A [Node.js](https://nodejs.org/en/download/package-manager/) repository installed on the host running the Management and Alarm UI.
-
 ### Quick Start
 
 1. Build the Metron MPack. Execute the following command from the project's root directory.
