@@ -61,6 +61,9 @@ public class InMemoryJobManager<PAGE_T> implements JobManager<PAGE_T> {
     return getJob(username, jobId).isDone();
   }
 
+  /**
+   * Note: throws JobNotFoundException for non-existent jobs.
+   */
   @Override
   public void killJob(String username, String jobId) throws JobException {
     getJob(username, jobId).kill();

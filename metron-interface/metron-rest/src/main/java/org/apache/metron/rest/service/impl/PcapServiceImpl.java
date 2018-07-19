@@ -29,7 +29,6 @@ import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.pcap.config.PcapOptions;
-import org.apache.metron.pcap.finalizer.PcapRestFinalizer;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.config.PcapJobSupplier;
@@ -101,6 +100,19 @@ public class PcapServiceImpl implements PcapService {
   }
 
   @Override
+  public PcapStatus killJob(String username, String jobId) throws RestException {
+    try {
+      jobManager.killJob(username, jobId);
+    } catch (JobNotFoundException e) {
+      // do nothing and return null pcapStatus
+      return null;
+    } catch (JobException e) {
+      throw new RestException(e);
+    }
+    return getJobStatus(username, jobId);
+  }
+
+  @Override
   public Path getPath(String username, String jobId, Integer page) throws RestException {
     Path path = null;
     try {
@@ -150,7 +162,6 @@ public class PcapServiceImpl implements PcapService {
     }
     return inputStream;
   }
-
 
   protected void setPcapOptions(String username, PcapRequest pcapRequest) throws IOException {
     PcapOptions.JOB_NAME.put(pcapRequest, "jobName");
