@@ -1,0 +1,80 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: Install certificate utils
+  copy: 
+    src: "{{ item }}"
+    dest: /root/
+    owner: root
+    group: root 
+    mode: 0700
+  with_fileglob:
+    - "{{ role_path }}/files/*.sh"
+
+- name: Configure certificate utils 
+  copy: 
+    src: "{{ item }}"
+    dest: /root/
+    owner: root
+    group: root 
+    mode: 0400
+  with_fileglob:
+    - "{{ role_path }}/files/*.cnf"
+
+- name: Generate CA
+  command: /root/create-ca.sh
+  become: true
+  args:
+    creates: /root/ca
+    chdir: /root
+  environment:
+    SUBJ_BASE: /C=US/ST=CA/O=Apache/
+  
+- name: Generate Certificates
+  command: /root/create-certs.sh {{ item }}
+  become: true
+  args:
+    creates: /root/ca/intermediate/certs/{{ item }}.cert.pem
+    chdir: /root
+  environment:
+    SUBJ_BASE: /C=US/ST=CA/O=Apache/
+  with_items: 
+    - "{{ groups.ambari_master[0] }}"
+
+- name: Certificates to Keystores
+  command: /root/create-keystore.sh {{ item }}
+  become: true
+  args:
+    creates: /root/{{ item }}/{{ item }}.jks
+    chdir: /root
+  with_items: 
+    - "{{ groups.ambari_master[0] }}"
+
+    
+- name: Create Knox Keystore
+  command: /root/create-knoxstore.sh {{ groups.ambari_master[0] }}
+  become: true
+  args:
+    creates: /root/gateway.jks
+    chdir: /root
+  environment:
+    KNOX_PASSWORD: "{{ knox_master_password }}"
+    
+- name: Extract KnoxSSO public key
+  command: /root/extract-knox-pubkey.sh {{ groups.ambari_master[0] }}
+  become: true
+  register: knox_public_key
