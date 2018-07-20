@@ -38,6 +38,22 @@ public class JobStatus {
   private String description;
   private long completionTime;
 
+  public JobStatus() {
+  }
+
+  /**
+   * Copy constructor instead of clone. Effective for thread safety, per Goetz JCIP.
+   *
+   * @param jobStatus Existing JobStatus object to copy state from.
+   */
+  public JobStatus(JobStatus jobStatus) {
+    this.jobId = jobStatus.jobId;
+    this.state = jobStatus.state;
+    this.percentComplete = jobStatus.percentComplete;
+    this.description = jobStatus.description;
+    this.completionTime = jobStatus.completionTime;
+  }
+
   public JobStatus withJobId(String jobId) {
     this.jobId = jobId;
     return this;
