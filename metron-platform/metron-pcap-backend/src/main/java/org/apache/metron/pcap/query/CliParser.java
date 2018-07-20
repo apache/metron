@@ -19,19 +19,20 @@
 package org.apache.metron.pcap.query;
 
 import org.apache.commons.cli.*;
+import org.apache.metron.pcap.config.PcapConfig;
 
 /**
  * Provides commmon required fields for the PCAP filter jobs
  */
 public class CliParser {
   public static final String BASE_PATH_DEFAULT = "/apps/metron/pcap";
-  public static final String BASE_OUTPUT_PATH_DEFAULT = "/tmp";
+  public static final String BASE_INTERIM_OUTPUT_PATH_DEFAULT = "/tmp";
   public static final int NUM_REDUCERS_DEFAULT = 10;
   public static final int NUM_RECORDS_PER_FILE_DEFAULT = 10000;
   private CommandLineParser parser;
-  protected CliConfig.PrefixStrategy prefixStrategy;
+  protected PcapConfig.PrefixStrategy prefixStrategy;
 
-  public CliParser(CliConfig.PrefixStrategy prefixStrategy) {
+  public CliParser(PcapConfig.PrefixStrategy prefixStrategy) {
     this.prefixStrategy = prefixStrategy;
     parser = new PosixParser();
   }
@@ -40,7 +41,8 @@ public class CliParser {
     Options options = new Options();
     options.addOption(newOption("h", "help", false, "Display help"));
     options.addOption(newOption("bp", "base_path", true, String.format("Base PCAP data path. Default is '%s'", BASE_PATH_DEFAULT)));
-    options.addOption(newOption("bop", "base_output_path", true, String.format("Query result output path. Default is '%s'", BASE_OUTPUT_PATH_DEFAULT)));
+    options.addOption(newOption("bop", "base_output_path", true, String.format("Query result output path. Default is '%s'",
+        BASE_INTERIM_OUTPUT_PATH_DEFAULT)));
     options.addOption(newOption("st", "start_time", true, "(required) Packet start time range.", true));
     options.addOption(newOption("nr", "num_reducers", true, String.format("Number of reducers to use (defaults to %s)", NUM_REDUCERS_DEFAULT)));
     options.addOption(newOption("rpf", "records_per_file", true, String.format("Number of records to include in each output pcap file (defaults to %s)", NUM_RECORDS_PER_FILE_DEFAULT)));
@@ -59,7 +61,7 @@ public class CliParser {
     return option;
   }
 
-  public void parse(CommandLine commandLine, CliConfig config) throws java.text.ParseException {
+  public void parse(CommandLine commandLine, PcapConfig config) throws java.text.ParseException {
     if (commandLine.hasOption("help")) {
       config.setShowHelp(true);
     }
@@ -72,18 +74,18 @@ public class CliParser {
       config.setBasePath(BASE_PATH_DEFAULT);
     }
     if (commandLine.hasOption("base_output_path")) {
-      config.setBaseOutputPath(commandLine.getOptionValue("base_output_path"));
+      config.setBaseInterimResultPath(commandLine.getOptionValue("base_output_path"));
     } else {
-      config.setBaseOutputPath(BASE_OUTPUT_PATH_DEFAULT);
+      config.setBaseInterimResultPath(BASE_INTERIM_OUTPUT_PATH_DEFAULT);
     }
     if (commandLine.hasOption("start_time")) {
       try {
         if (commandLine.hasOption("date_format")) {
           long startTime = config.getDateFormat().parse(commandLine.getOptionValue("start_time")).getTime();
-          config.setStartTime(startTime);
+          config.setStartTimeMs(startTime);
         } else {
           long startTime = Long.parseLong(commandLine.getOptionValue("start_time"));
-          config.setStartTime(startTime);
+          config.setStartTimeMs(startTime);
         }
       } catch (NumberFormatException nfe) {
         //no-op
@@ -107,10 +109,10 @@ public class CliParser {
       try {
         if (commandLine.hasOption("date_format")) {
           long endTime = config.getDateFormat().parse(commandLine.getOptionValue("end_time")).getTime();
-          config.setEndTime(endTime);
+          config.setEndTimeMs(endTime);
         } else {
           long endTime = Long.parseLong(commandLine.getOptionValue("end_time"));
-          config.setEndTime(endTime);
+          config.setEndTimeMs(endTime);
         }
       } catch (NumberFormatException nfe) {
         //no-op

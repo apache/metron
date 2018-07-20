@@ -46,7 +46,7 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
   public static class StandAloneConfiguredParserBolt extends ConfiguredParserBolt {
 
     public StandAloneConfiguredParserBolt(String zookeeperUrl) {
-      super(zookeeperUrl, null);
+      super(zookeeperUrl);
     }
 
     @Override

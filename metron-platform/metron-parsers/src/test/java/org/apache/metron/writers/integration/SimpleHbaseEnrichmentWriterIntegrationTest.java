@@ -19,6 +19,7 @@
 package org.apache.metron.writers.integration;
 
 import com.google.common.collect.ImmutableList;
+import java.util.Collections;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -107,7 +108,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
             .withParserSensorConfig(sensorType, parserConfig);
 
     ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
-            .withSensorType(sensorType)
+            .withSensorTypes(Collections.singletonList(sensorType))
             .withTopologyProperties(topologyProperties)
             .withBrokerUrl(kafkaComponent.getBrokerList())
             .withOutputTopic(parserConfig.getOutputTopic())

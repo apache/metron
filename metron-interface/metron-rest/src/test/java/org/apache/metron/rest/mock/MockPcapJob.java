@@ -17,47 +17,79 @@
  */
 package org.apache.metron.rest.mock;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
+import org.apache.metron.job.Finalizer;
+import org.apache.metron.job.JobException;
+import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.Pageable;
+import org.apache.metron.job.Statusable;
+import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.mr.PcapJob;
 
-public class MockPcapJob extends PcapJob {
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class MockPcapJob extends PcapJob<Path> {
 
   private String basePath;
-  private String baseOutputPath;
-  private long beginNS;
-  private long endNS;
+  private String baseInterrimResultPath;
+  private String finalOutputPath;
+  private long startTimeNs;
+  private long endTimeNs;
   private int numReducers;
   private Map<String, String> fixedFields;
   private PcapFilterConfigurator filterImpl;
+  private int recPerFile;
   private SequenceFileIterable sequenceFileIterable;
+  private Statusable<Path> statusable;
 
   public MockPcapJob() {
     sequenceFileIterable = mock(SequenceFileIterable.class);
+    statusable = mock(Statusable.class);
   }
 
-  @SuppressWarnings(value = "unchecked")
   @Override
-  public <T> SequenceFileIterable query(Path basePath, Path baseOutputPath, long beginNS, long endNS, int numReducers, T fields, Configuration conf, FileSystem fs, PcapFilterConfigurator<T> filterImpl) throws IOException, ClassNotFoundException, InterruptedException {
-    this.basePath = basePath.toString();
-    this.baseOutputPath = baseOutputPath.toString();
-    this.beginNS = beginNS;
-    this.endNS = endNS;
-    this.numReducers = numReducers;
+  public Statusable<Path> submit(Finalizer<Path> finalizer, Map<String, Object> configuration) throws JobException {
+    this.basePath = PcapOptions.BASE_PATH.get(configuration, String.class);
+    this.baseInterrimResultPath = PcapOptions.BASE_INTERIM_RESULT_PATH.get(configuration, String.class);
+    this.finalOutputPath = PcapOptions.FINAL_OUTPUT_PATH.get(configuration, String.class);
+    this.startTimeNs = PcapOptions.START_TIME_MS.get(configuration, Long.class) * 1000000;
+    this.endTimeNs = PcapOptions.END_TIME_MS.get(configuration, Long.class) * 1000000;
+    this.numReducers = PcapOptions.NUM_REDUCERS.get(configuration, Integer.class);
+    Object fields = PcapOptions.FIELDS.get(configuration, Object.class);
     if (fields instanceof Map) {
       this.fixedFields = (Map<String, String>) fields;
     }
-    this.filterImpl = filterImpl;
-    return sequenceFileIterable;
+    this.filterImpl = PcapOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
+    this.recPerFile = PcapOptions.NUM_RECORDS_PER_FILE.get(configuration, Integer.class);
+    return statusable;
+  }
+
+  @Override
+  public JobStatus getStatus() throws JobException {
+    return statusable.getStatus();
+  }
+
+  @Override
+  public Pageable<Path> get() throws JobException, InterruptedException {
+    return statusable.get();
+  }
+
+  public void setStatus(JobStatus jobStatus) throws JobException {
+    when(statusable.getStatus()).thenReturn(jobStatus);
+  }
+
+  public void setPageable(Pageable<Path> pageable) throws JobException, InterruptedException {
+    when(statusable.get()).thenReturn(pageable);
+  }
+
+  public void setIsDone(boolean isDone) {
+    when(statusable.isDone()).thenReturn(isDone);
   }
 
   public void setResults(List<byte[]> pcaps) {
@@ -68,16 +100,32 @@ public class MockPcapJob extends PcapJob {
     return basePath;
   }
 
-  public String getBaseOutputPath() {
-    return baseOutputPath;
+  public void setBasePath(String basePath) {
+    this.basePath = basePath;
   }
 
-  public long getStartTime() {
-    return beginNS / 1000000;
+  public String getBaseInterrimResultPath() {
+    return baseInterrimResultPath;
   }
 
-  public long getEndTime() {
-    return endNS / 1000000;
+  public void setBaseInterrimResultPath(String baseInterrimResultPath) {
+    this.baseInterrimResultPath = baseInterrimResultPath;
+  }
+
+  public String getFinalOutputPath() {
+    return finalOutputPath;
+  }
+
+  public void setFinalOutputPath(String finalOutputPath) {
+    this.finalOutputPath = finalOutputPath;
+  }
+
+  public long getStartTimeNs() {
+    return startTimeNs;
+  }
+
+  public long getEndTimeNs() {
+    return endTimeNs;
   }
 
   public int getNumReducers() {
@@ -90,5 +138,9 @@ public class MockPcapJob extends PcapJob {
 
   public PcapFilterConfigurator getFilterImpl() {
     return filterImpl;
+  }
+
+  public int getRecPerFile() {
+    return recPerFile;
   }
 }

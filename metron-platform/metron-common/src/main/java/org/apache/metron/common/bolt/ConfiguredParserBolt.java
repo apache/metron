@@ -28,18 +28,12 @@ public abstract class ConfiguredParserBolt extends ConfiguredBolt<ParserConfigur
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected final ParserConfigurations configurations = new ParserConfigurations();
-  private String sensorType;
-  public ConfiguredParserBolt(String zookeeperUrl, String sensorType) {
+  public ConfiguredParserBolt(String zookeeperUrl) {
     super(zookeeperUrl, "PARSERS");
-    this.sensorType = sensorType;
   }
 
-  protected SensorParserConfig getSensorParserConfig() {
+  protected SensorParserConfig getSensorParserConfig(String sensorType) {
     return getConfigurations().getSensorParserConfig(sensorType);
-  }
-
-  public String getSensorType() {
-    return sensorType;
   }
 
 }

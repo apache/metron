@@ -18,14 +18,7 @@
 
 package org.apache.metron.job;
 
-public interface Pageable<T> {
-
-  /**
-   * Transform into an Iterable.
-   *
-   * @return Iterable version of this Pageable.
-   */
-  Iterable<T> asIterable();
+public interface Pageable<T> extends Iterable<T> {
 
   /**
    * Provides access to a specific page of results in the result set.
@@ -34,5 +27,12 @@ public interface Pageable<T> {
    * @return value at the specified page.
    */
   T getPage(int num);
+
+  /**
+   * Number of pages i this Pageable.
+   *
+   * @return number of pages
+   */
+  int getSize();
 
 }
