@@ -17,19 +17,19 @@
  */
 package org.apache.metron.common.error;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.google.common.collect.Sets;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.Collections;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class MetronErrorTest {
 
@@ -47,7 +47,7 @@ public class MetronErrorTest {
     MetronError error = new MetronError()
             .withMessage("test message")
             .withErrorType(Constants.ErrorType.PARSER_ERROR)
-            .withSensorType("sensorType");
+            .withSensorType(Collections.singleton("sensorType"));
 
     JSONObject errorJSON = error.getJSONObject();
     assertEquals("test message", errorJSON.get(Constants.ErrorFields.MESSAGE.getName()));

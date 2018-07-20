@@ -18,20 +18,44 @@
 
 package org.apache.metron.job;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
  * Abstraction for getting status on running jobs. Also provides options for killing and validating.
  */
-public interface Statusable {
+public interface Statusable<PAGE_T> {
+
+  enum JobType {
+    MAP_REDUCE;
+  }
+
+  /**
+   * Submit the job asynchronously.
+   *
+   * @return self
+   */
+  Statusable<PAGE_T> submit(Finalizer<PAGE_T> finalizer, Map<String, Object> configuration) throws JobException;
+
+  /**
+   * Synchronous call.
+   *
+   * @return pages of results
+   */
+  Pageable<PAGE_T> get() throws JobException, InterruptedException;
+
+  /**
+   * Execution framework type of this job.
+   *
+   * @return type of job
+   */
+  JobType getJobType();
 
   /**
    * Current job status.
    *
    * @return status
    */
-  JobStatus getStatus();
+  JobStatus getStatus() throws JobException;
 
   /**
    * Completion flag.
@@ -43,7 +67,7 @@ public interface Statusable {
   /**
    * Kill job.
    */
-  void kill() throws IOException;
+  void kill() throws JobException;
 
   /**
    * Validate job after submitted.

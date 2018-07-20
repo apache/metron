@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Properties;
 import javax.annotation.Nullable;
 import kafka.consumer.ConsumerIterator;
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -45,6 +46,7 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.utils.HDFSUtils;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.Processor;
@@ -55,12 +57,18 @@ import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.MRComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.KafkaUtil;
+import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.PcapMerger;
+import org.apache.metron.pcap.config.FixedPcapConfig;
+import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
+import org.apache.metron.pcap.finalizer.PcapFinalizerStrategies;
 import org.apache.metron.pcap.mr.PcapJob;
+import org.apache.metron.pcap.query.PcapCli;
 import org.apache.metron.spout.pcap.Endianness;
 import org.apache.metron.spout.pcap.deserializer.Deserializers;
 import org.apache.metron.test.utils.UnitTestHelper;
@@ -73,13 +81,22 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
   final static String KAFKA_TOPIC = "pcap";
   private static String BASE_DIR = "pcap";
   private static String DATA_DIR = BASE_DIR + "/data_dir";
-  private static String QUERY_DIR = BASE_DIR + "/query";
+  private static String INTERIM_RESULT = BASE_DIR + "/query";
+  private static String OUTPUT_DIR = BASE_DIR + "/output";
+  private static final int MAX_RETRIES = 30;
+  private static final int SLEEP_MS = 500;
   private String topologiesDir = "src/main/flux";
   private String targetDir = "target";
 
-  private static void clearOutDir(File outDir) {
-    for(File f : outDir.listFiles()) {
-      f.delete();
+  private static void clearOutDirs(File... dirs) throws IOException {
+    for(File dir: dirs) {
+      for(File f : dir.listFiles()) {
+        if (f.isDirectory()) {
+          FileUtils.deleteDirectory(f);
+        } else {
+          f.delete();
+        }
+      }
     }
   }
   private static int numFiles(File outDir, Configuration config) {
@@ -158,10 +175,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       topologiesDir = UnitTestHelper.findDir("topologies");
     }
     targetDir = UnitTestHelper.findDir("target");
-    final File outDir = getOutDir(targetDir);
-    final File queryDir = getQueryDir(targetDir);
-    clearOutDir(outDir);
-    clearOutDir(queryDir);
+    final File inputDir = getDir(targetDir, DATA_DIR);
+    final File interimResultDir = getDir(targetDir, INTERIM_RESULT);
+    final File outputDir = getDir(targetDir, OUTPUT_DIR);
+    clearOutDirs(inputDir, interimResultDir, outputDir);
 
     File baseDir = new File(new File(targetDir), BASE_DIR);
     //Assert.assertEquals(0, numFiles(outDir));
@@ -175,7 +192,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       setProperty("topology.worker.childopts", "");
       setProperty("spout.kafka.topic.pcap", KAFKA_TOPIC);
       setProperty("kafka.pcap.start", "EARLIEST");
-      setProperty("kafka.pcap.out", outDir.getAbsolutePath());
+      setProperty("kafka.pcap.out", inputDir.getAbsolutePath());
       setProperty("kafka.pcap.numPackets", "2");
       setProperty("kafka.pcap.maxTimeMS", "200000000");
       setProperty("kafka.pcap.ts_granularity", "NANOSECONDS");
@@ -219,7 +236,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       runner.process(new Processor<Void>() {
         @Override
         public ReadinessState process(ComponentRunner runner) {
-          int numFiles = numFiles(outDir, mr.getConfiguration());
+          int numFiles = numFiles(inputDir, mr.getConfiguration());
           int expectedNumFiles = pcapEntries.size() / 2;
           if (numFiles == expectedNumFiles) {
             return ReadinessState.READY;
@@ -233,160 +250,222 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
           return null;
         }
       });
-      PcapJob job = new PcapJob();
+
+      FixedPcapConfig configuration = new FixedPcapConfig(PcapCli.PREFIX_STRATEGY);
+      Configuration hadoopConf = new Configuration();
+      PcapOptions.JOB_NAME.put(configuration, "jobName");
+      PcapOptions.HADOOP_CONF.put(configuration, hadoopConf);
+      PcapOptions.FILESYSTEM.put(configuration, FileSystem.get(hadoopConf));
+      PcapOptions.BASE_PATH.put(configuration, new Path(inputDir.getAbsolutePath()));
+      PcapOptions.BASE_INTERIM_RESULT_PATH.put(configuration, new Path(interimResultDir.getAbsolutePath()));
+      PcapOptions.START_TIME_NS.put(configuration, getTimestamp(4, pcapEntries));
+      PcapOptions.END_TIME_NS.put(configuration, getTimestamp(5, pcapEntries));
+      PcapOptions.NUM_REDUCERS.put(configuration, 10);
+      PcapOptions.NUM_RECORDS_PER_FILE.put(configuration, 2);
+      PcapOptions.FINAL_OUTPUT_PATH.put(configuration, new Path(outputDir.getAbsolutePath()));
       {
         //Ensure that only two pcaps are returned when we look at 4 and 5
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(4, pcapEntries)
-                        , getTimestamp(5, pcapEntries)
-                        , 10
-                        , new HashMap<>()
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new FixedPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertEquals(Iterables.size(results), 2);
+        PcapOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, new HashMap());
+        PcapJob<Map<String, String>> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(results.get().getSize(), 1);
       }
       {
         // Ensure that only two pcaps are returned when we look at 4 and 5
         // test with empty query filter
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(4, pcapEntries)
-                        , getTimestamp(5, pcapEntries)
-                        , 10
-                        , ""
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new QueryPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertEquals(Iterables.size(results), 2);
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "");
+        PcapJob<String> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(results.get().getSize(), 1);
       }
       {
         //ensure that none get returned since that destination IP address isn't in the dataset
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(0, pcapEntries)
-                        , getTimestamp(1, pcapEntries)
-                        , 10
-                        , new HashMap<String, String>() {{
-                          put(Constants.Fields.DST_ADDR.getName(), "207.28.210.1");
-                        }}
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new FixedPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertEquals(Iterables.size(results), 0);
+        PcapOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, new HashMap<String, String>() {{
+          put(Constants.Fields.DST_ADDR.getName(), "207.28.210.1");
+        }});
+        PcapJob<Map<String, String>> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(results.get().getSize(), 0);
       }
       {
         // ensure that none get returned since that destination IP address isn't in the dataset
         // test with query filter
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(0, pcapEntries)
-                        , getTimestamp(1, pcapEntries)
-                        , 10
-                        , "ip_dst_addr == '207.28.210.1'"
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new QueryPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertEquals(Iterables.size(results), 0);
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "ip_dst_addr == '207.28.210.1'");
+        PcapJob<String> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(results.get().getSize(), 0);
       }
       {
         //same with protocol as before with the destination addr
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(0, pcapEntries)
-                        , getTimestamp(1, pcapEntries)
-                        , 10
-                        , new HashMap<String, String>() {{
-                          put(Constants.Fields.PROTOCOL.getName(), "foo");
-                        }}
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new FixedPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertEquals(Iterables.size(results), 0);
+        PcapOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, new HashMap<String, String>() {{
+          put(Constants.Fields.PROTOCOL.getName(), "foo");
+        }});
+        PcapJob<Map<String, String>> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(results.get().getSize(), 0);
       }
       {
         //same with protocol as before with the destination addr
         //test with query filter
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(0, pcapEntries)
-                        , getTimestamp(1, pcapEntries)
-                        , 10
-                        , "protocol == 'foo'"
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new QueryPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertEquals(Iterables.size(results), 0);
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "protocol == 'foo'");
+        PcapJob<String> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(results.get().getSize(), 0);
       }
       {
         //make sure I get them all.
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(0, pcapEntries)
-                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
-                        , 10
-                        , new HashMap<>()
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new FixedPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertEquals(Iterables.size(results), pcapEntries.size());
+        PcapOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, new HashMap<>());
+        PcapOptions.START_TIME_NS.put(configuration, getTimestamp(0, pcapEntries));
+        PcapOptions.END_TIME_NS.put(configuration, getTimestamp(pcapEntries.size()-1, pcapEntries) + 1);
+        PcapJob<Map<String, String>> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(10, results.get().getSize());
       }
       {
         //make sure I get them all.
         //with query filter
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(0, pcapEntries)
-                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
-                        , 10
-                        , ""
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new QueryPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertEquals(Iterables.size(results), pcapEntries.size());
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "");
+        PcapOptions.START_TIME_NS.put(configuration, getTimestamp(0, pcapEntries));
+        PcapOptions.END_TIME_NS.put(configuration, getTimestamp(pcapEntries.size()-1, pcapEntries) + 1);
+        PcapJob<String> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(10, results.get().getSize());
       }
       {
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(0, pcapEntries)
-                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
-                        , 10
-                        , new HashMap<String, String>() {{
-                          put(Constants.Fields.DST_PORT.getName(), "22");
-                        }}
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new FixedPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertTrue(Iterables.size(results) > 0);
-        Assert.assertEquals(Iterables.size(results)
+        PcapOptions.FILTER_IMPL.put(configuration, new FixedPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, new HashMap<String, String>() {{
+          put(Constants.Fields.DST_PORT.getName(), "22");
+        }});
+        PcapOptions.NUM_RECORDS_PER_FILE.put(configuration, 1);
+        PcapJob<Map<String, String>> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertTrue(results.get().getSize() > 0);
+        Assert.assertEquals(Iterables.size(bytes)
                 , Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
                           @Override
                           public boolean apply(@Nullable JSONObject input) {
@@ -397,74 +476,63 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
                 )
         );
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PcapMerger.merge(baos, Iterables.partition(results, 1).iterator().next());
+        PcapMerger.merge(baos, HDFSUtils.readBytes(results.get().getPage(0)));
         Assert.assertTrue(baos.toByteArray().length > 0);
       }
       {
-        //test with query filter and byte array matching
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(0, pcapEntries)
-                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
-                        , 10
-                        , "BYTEARRAY_MATCHER('2f56abd814bc56420489ca38e7faf8cec3d4', packet)"
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new QueryPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertEquals(1, Iterables.size(results));
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PcapMerger.merge(baos, Iterables.partition(results, 1).iterator().next());
-        Assert.assertTrue(baos.toByteArray().length > 0);
-      }
-      {
+        //same with protocol as before with the destination addr
         //test with query filter
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(0, pcapEntries)
-                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
-                        , 10
-                        , "ip_dst_port == 22"
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new QueryPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertTrue(Iterables.size(results) > 0);
-        Assert.assertEquals(Iterables.size(results)
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "ip_dst_port == 22");
+        PcapJob<String> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(Iterables.size(bytes)
                 , Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
                           @Override
                           public boolean apply(@Nullable JSONObject input) {
                             Object prt = input.get(Constants.Fields.DST_PORT.getName());
-                            return prt != null && (Long) prt == 22;
+                            return prt != null && prt.toString().equals("22");
                           }
                         }, withHeaders)
                 )
         );
-        assertInOrder(results);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PcapMerger.merge(baos, Iterables.partition(results, 1).iterator().next());
+        PcapMerger.merge(baos, HDFSUtils.readBytes(results.get().getPage(0)));
         Assert.assertTrue(baos.toByteArray().length > 0);
       }
       {
-        //test with query filter
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(0, pcapEntries)
-                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
-                        , 10
-                        , "ip_dst_port > 20 and ip_dst_port < 55792"
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new QueryPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertTrue(Iterables.size(results) > 0);
-        Assert.assertEquals(Iterables.size(results)
+        // test with query filter ip_dst_port > 20 and ip_dst_port < 55792
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "ip_dst_port > 20 and ip_dst_port < 55792");
+        PcapJob<String> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(Iterables.size(bytes)
                 , Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
                           @Override
                           public boolean apply(@Nullable JSONObject input) {
@@ -474,63 +542,94 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
                         }, withHeaders)
                 )
         );
-        assertInOrder(results);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PcapMerger.merge(baos, Iterables.partition(results, 1).iterator().next());
+        PcapMerger.merge(baos, HDFSUtils.readBytes(results.get().getPage(0)));
         Assert.assertTrue(baos.toByteArray().length > 0);
       }
       {
-        //test with query filter
-        Iterable<byte[]> results =
-                job.query(new Path(outDir.getAbsolutePath())
-                        , new Path(queryDir.getAbsolutePath())
-                        , getTimestamp(0, pcapEntries)
-                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
-                        , 10
-                        , "ip_dst_port > 55790"
-                        , new Configuration()
-                        , FileSystem.get(new Configuration())
-                        , new QueryPcapFilter.Configurator()
-                );
-        assertInOrder(results);
-        Assert.assertTrue(Iterables.size(results) > 0);
-        Assert.assertEquals(Iterables.size(results)
+        //test with query filter ip_dst_port > 55790
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "ip_dst_port > 55790");
+        PcapJob<String> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(Iterables.size(bytes)
                 , Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
-                  @Override
-                  public boolean apply(@Nullable JSONObject input) {
-                    Object prt = input.get(Constants.Fields.DST_PORT.getName());
-                    return prt != null && (Long) prt > 55790;
-                  }
-                }, withHeaders)
+                          @Override
+                          public boolean apply(@Nullable JSONObject input) {
+                            Object prt = input.get(Constants.Fields.DST_PORT.getName());
+                            return prt != null && (Long) prt > 55790;
+                          }
+                        }, withHeaders)
                 )
         );
-        assertInOrder(results);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PcapMerger.merge(baos, Iterables.partition(results, 1).iterator().next());
+        PcapMerger.merge(baos, HDFSUtils.readBytes(results.get().getPage(0)));
         Assert.assertTrue(baos.toByteArray().length > 0);
       }
+      {
+        //test with query filter and byte array matching
+        PcapOptions.FILTER_IMPL.put(configuration, new QueryPcapFilter.Configurator());
+        PcapOptions.FIELDS.put(configuration, "BYTEARRAY_MATCHER('2f56abd814bc56420489ca38e7faf8cec3d4', packet)");
+        PcapOptions.START_TIME_NS.put(configuration, getTimestamp(0, pcapEntries));
+        PcapOptions.END_TIME_NS.put(configuration, getTimestamp(pcapEntries.size()-1, pcapEntries) + 1);
+        PcapJob<String> job = new PcapJob<>();
+        Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
+        Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
+        waitForJob(results);
+
+        Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+        Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
+          try {
+            return HDFSUtils.readBytes(path);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+        assertInOrder(bytes);
+        Assert.assertEquals(1, results.get().getSize());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PcapMerger.merge(baos, HDFSUtils.readBytes(results.get().getPage(0)));
+        Assert.assertTrue(baos.toByteArray().length > 0);
+      }
+
       System.out.println("Ended");
     } finally {
       runner.stop();
-      clearOutDir(outDir);
-      clearOutDir(queryDir);
+      clearOutDirs(inputDir, interimResultDir, outputDir);
     }
   }
 
-  private File getOutDir(String targetDir) {
-    File outDir = new File(new File(targetDir), DATA_DIR);
-    if (!outDir.exists()) {
-      outDir.mkdirs();
+  private void waitForJob(Statusable statusable) throws Exception {
+    for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
+      if (!statusable.getStatus().getState().equals(JobStatus.State.RUNNING)) {
+        if (statusable.isDone()) {
+          return;
+        }
+      }
     }
-    return outDir;
+    throw new Exception("Job did not complete within " + (MAX_RETRIES * SLEEP_MS) + " seconds");
   }
 
-  private File getQueryDir(String targetDir) {
-    File outDir = new File(new File(targetDir), QUERY_DIR);
-    if (!outDir.exists()) {
-      outDir.mkdirs();
+  private File getDir(String targetDir, String childDir) {
+    File directory = new File(new File(targetDir), childDir);
+    if (!directory.exists()) {
+      directory.mkdirs();
     }
-    return outDir;
+    return directory;
   }
 
   private static Iterable<Map.Entry<byte[], byte[]>> readPcaps(Path pcapFile, boolean withHeaders) throws IOException {

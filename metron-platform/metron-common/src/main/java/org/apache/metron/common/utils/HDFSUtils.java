@@ -29,6 +29,17 @@ import org.apache.hadoop.fs.Path;
 
 public class HDFSUtils {
 
+  public static byte[] readBytes(String path) throws IOException {
+    return readBytes(new Path(path));
+  }
+
+  public static byte[] readBytes(Path inPath) throws IOException {
+    FileSystem fs = FileSystem.get(inPath.toUri(), new Configuration());
+    try (FSDataInputStream inputStream = fs.open(inPath)) {
+      return IOUtils.toByteArray(inputStream);
+    }
+  }
+
   /**
    * Reads full file contents into a List of Strings. Reads from local FS if file:/// used as the
    * scheme. Initializes file system with default configuration.
@@ -57,9 +68,10 @@ public class HDFSUtils {
    */
   public static List<String> readFile(Configuration config, String path) throws IOException {
     Path inPath = new Path(path);
-    FileSystem fs = FileSystem.newInstance(inPath.toUri(), config);
-    FSDataInputStream inputStream = fs.open(inPath);
-    return IOUtils.readLines(inputStream, "UTF-8");
+    FileSystem fs = FileSystem.get(inPath.toUri(), config);
+    try (FSDataInputStream inputStream = fs.open(inPath)) {
+      return IOUtils.readLines(inputStream, "UTF-8");
+    }
   }
 
   /**
@@ -74,7 +86,7 @@ public class HDFSUtils {
    */
   public static void write(Configuration config, byte[] bytes, String path) throws IOException {
     Path outPath = new Path(path);
-    FileSystem fs = FileSystem.newInstance(outPath.toUri(), config);
+    FileSystem fs = FileSystem.get(outPath.toUri(), config);
     fs.mkdirs(outPath.getParent());
     try (FSDataOutputStream outputStream = fs.create(outPath)) {
       outputStream.write(bytes);

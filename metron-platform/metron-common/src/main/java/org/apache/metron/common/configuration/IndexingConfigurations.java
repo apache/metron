@@ -112,7 +112,7 @@ public class IndexingConfigurations extends Configurations {
 
   /**
    * Returns all configured values of batchTimeout, for all configured sensors,
-   * but only for the specific writer identified by {@param writerName}.  So, if it is
+   * but only for the specific writer identified by {@code writerName}.  So, if it is
    * an hdfs writer, it will return the batchTimeouts for hdfs writers for all the sensors.
    * The goal is to return to a {@link org.apache.metron.common.bolt.ConfiguredBolt}
    * the set of all and only batchTimeouts relevant to that ConfiguredBolt.

@@ -29,7 +29,7 @@ import org.apache.metron.indexing.dao.IndexDao;
  * status field that controls it's inclusion in search results and a groups field that can be used to track
  * the groups a meta alert was created from.
  *
- * </p>
+ * <p>
  * The structure of a meta alert is as follows:
  * {
  *   "guid": "meta alert guid",
@@ -47,13 +47,13 @@ import org.apache.metron.indexing.dao.IndexDao;
  *   "median": 10
  * }
  *
- * </p>
+ * <p>
  * A child alert that has been added to a meta alert will store the meta alert GUID in a "metaalerts" field.
  * This field is an array of meta alert GUIDs, meaning a child alert can be contained in multiple meta alerts.
  * Any update to a child alert will trigger an update to the meta alert so that the alert inside a meta alert
  * and the original alert will be kept in sync.
  *
- * </p>
+ * <p>
  * Other fields can be added to a meta alert through the patch method on the IndexDao interface.  However, attempts
  * to directly change the "alerts" or "status" field will result in an exception.
  */

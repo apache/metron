@@ -52,7 +52,6 @@
 		<module>metron-pcap</module>
 		<module>metron-integration-test</module>
 		<module>metron-test-utilities</module>
-		<module>metron-api</module>
 		<module>metron-indexing</module>
 		<module>metron-management</module>
 		<module>metron-writer</module>

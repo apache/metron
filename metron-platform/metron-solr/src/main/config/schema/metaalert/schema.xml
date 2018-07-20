@@ -28,7 +28,6 @@
   <field name="timestamp" type="plong" indexed="true" stored="true"/>
   <field name="score" type="pdouble" indexed="true" stored="true"/>
   <field name="status" type="string" indexed="true" stored="true"/>
-  <field name="threat:triage:score" type="pdouble" indexed="true" stored="true"/>
   <field name="average" type="pdouble" indexed="true" stored="true"/>
   <field name="min" type="pdouble" indexed="true" stored="true"/>
   <field name="median" type="pdouble" indexed="true" stored="true"/>
@@ -40,6 +39,11 @@
   <!-- Ensure that metaalerts child field is multivalued -->
   <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>
 
+  <!-- Threat Intel Scoring Field -->
+  <!-- This is a double from the method of calculation. It'll still sort alongside pfloat -->
+  <dynamicField name="*score" type="pdouble" multiValued="false" docValues="true"/>
+
+  <!-- Catch all, if we don't know about it, it gets dropped. -->
   <dynamicField name="*" type="ignored" indexed="true" stored="true" multiValued="false" docValues="true"/>
 
   <uniqueKey>guid</uniqueKey>
