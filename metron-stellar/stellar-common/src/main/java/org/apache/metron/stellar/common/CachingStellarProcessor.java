@@ -184,7 +184,7 @@ public class CachingStellarProcessor extends StellarProcessor {
   }
 
   /**
-   * Create a cache given a config.  Note that if the cache size is <= 0, then no cache will be returned.
+   * Create a cache given a config.  Note that if the cache size is {@literal <}= 0, then no cache will be returned.
    * @param config
    * @return A cache.
    */

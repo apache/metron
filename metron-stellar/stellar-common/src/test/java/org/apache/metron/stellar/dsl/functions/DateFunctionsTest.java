@@ -182,7 +182,8 @@ public class DateFunctionsTest {
   @Test
   public void testWeekOfYear() {
     Object result = run("WEEK_OF_YEAR(epoch)");
-    assertEquals(35, result);
+    calendar.setTimeInMillis(AUG2016);
+    assertEquals(calendar.get(Calendar.WEEK_OF_YEAR), result);
   }
 
   /**

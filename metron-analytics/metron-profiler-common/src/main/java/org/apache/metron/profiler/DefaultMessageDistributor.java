@@ -20,26 +20,25 @@
 
 package org.apache.metron.profiler;
 
+import static java.lang.String.format;
+
 import com.google.common.base.Ticker;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.stellar.dsl.Context;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import static java.lang.String.format;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.metron.common.configuration.profiler.ProfileConfig;
+import org.apache.metron.stellar.dsl.Context;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The default implementation of a {@link MessageDistributor}.
@@ -151,7 +150,6 @@ public class DefaultMessageDistributor implements MessageDistributor {
    * @param timestamp The timestamp of the message.
    * @param route The message route.
    * @param context The Stellar execution context.
-   * @throws ExecutionException
    */
   @Override
   public void distribute(JSONObject message, long timestamp, MessageRoute route, Context context) {

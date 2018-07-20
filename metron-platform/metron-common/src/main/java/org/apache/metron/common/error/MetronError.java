@@ -17,26 +17,31 @@
  */
 package org.apache.metron.common.error;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.metron.common.Constants.ERROR_TYPE;
+import static org.apache.metron.common.Constants.ErrorFields;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.Constants.ErrorType;
 import org.apache.metron.common.utils.HashUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.*;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.metron.common.Constants.ERROR_TYPE;
-import static org.apache.metron.common.Constants.ErrorFields;
 
 public class MetronError {
 
   private String message;
   private Throwable throwable;
-  private String sensorType = ERROR_TYPE;
+  private Set<String> sensorTypes = Collections.singleton(ERROR_TYPE);
   private ErrorType errorType = ErrorType.DEFAULT_ERROR;
   private Set<String> errorFields;
   private List<Object> rawMessages;
@@ -51,8 +56,8 @@ public class MetronError {
     return this;
   }
 
-  public MetronError withSensorType(String sensorType) {
-    this.sensorType = sensorType;
+  public MetronError withSensorType(Set<String> sensorTypes) {
+    this.sensorTypes = sensorTypes;
     return this;
   }
 
@@ -91,7 +96,12 @@ public class MetronError {
     JSONObject errorMessage = new JSONObject();
     errorMessage.put(Constants.GUID, UUID.randomUUID().toString());
     errorMessage.put(Constants.SENSOR_TYPE, "error");
-    errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), sensorType);
+    if (sensorTypes.size() == 1) {
+      errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), sensorTypes.iterator().next());
+    } else {
+      errorMessage
+          .put(ErrorFields.FAILED_SENSOR_TYPE.getName(), new JSONArray().addAll(sensorTypes));
+    }
     errorMessage.put(ErrorFields.ERROR_TYPE.getName(), errorType.getType());
 
     addMessageString(errorMessage);
@@ -184,34 +194,42 @@ public class MetronError {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     MetronError that = (MetronError) o;
 
-    if (message != null ? !message.equals(that.message) : that.message != null)
+    if (message != null ? !message.equals(that.message) : that.message != null) {
       return false;
-    if (throwable != null ? !throwable.equals(that.throwable) : that.throwable != null)
+    }
+    if (getThrowable() != null ? !getThrowable().equals(that.getThrowable())
+        : that.getThrowable() != null) {
       return false;
-    if (sensorType != null ? !sensorType.equals(that.sensorType) : that.sensorType != null)
+    }
+    if (sensorTypes != null ? !sensorTypes.equals(that.sensorTypes) : that.sensorTypes != null) {
       return false;
-    if (errorType != null ? !errorType.equals(that.errorType) : that.errorType != null)
+    }
+    if (errorType != that.errorType) {
       return false;
-    if (errorFields != null ? !errorFields.equals(that.errorFields) : that.errorFields != null)
+    }
+    if (errorFields != null ? !errorFields.equals(that.errorFields) : that.errorFields != null) {
       return false;
+    }
     return rawMessages != null ? rawMessages.equals(that.rawMessages) : that.rawMessages == null;
-
   }
 
   @Override
   public int hashCode() {
     int result = message != null ? message.hashCode() : 0;
-    result = 31 * result + (throwable != null ? throwable.hashCode() : 0);
-    result = 31 * result + (sensorType != null ? sensorType.hashCode() : 0);
+    result = 31 * result + (getThrowable() != null ? getThrowable().hashCode() : 0);
+    result = 31 * result + (sensorTypes != null ? sensorTypes.hashCode() : 0);
     result = 31 * result + (errorType != null ? errorType.hashCode() : 0);
     result = 31 * result + (errorFields != null ? errorFields.hashCode() : 0);
     result = 31 * result + (rawMessages != null ? rawMessages.hashCode() : 0);
     return result;
   }
-
 }

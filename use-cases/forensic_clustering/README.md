@@ -157,28 +157,138 @@ we have valid data.
 
 ```
 
-Before we start, we will want to install ES mappings so ES knows how to interpret our fields:
+Before we start, we will want to install ES template mappings so ES knows how to interpret our fields:
 ```
-curl -XPUT 'http://$ES_HOST/cowrie*/_mapping/cowrie_doc' -d '
+curl -XPUT $ES_HOST'/_template/cowrie_index' -d '
 {
+  "template": "cowrie_index*",
+  "mappings": {
+    "cowrie_doc": {
+        "dynamic_templates": [
+        {
+          "geo_location_point": {
+            "match": "enrichments:geo:*:location_point",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "geo_point"
+            }
+          }
+        },
+        {
+          "geo_country": {
+            "match": "enrichments:geo:*:country",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "keyword"
+            }
+          }
+        },
+        {
+          "geo_city": {
+            "match": "enrichments:geo:*:city",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "keyword"
+            }
+          }
+        },
+        {
+          "geo_location_id": {
+            "match": "enrichments:geo:*:locID",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "keyword"
+            }
+          }
+        },
+        {
+          "geo_dma_code": {
+            "match": "enrichments:geo:*:dmaCode",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "keyword"
+            }
+          }
+        },
+        {
+          "geo_postal_code": {
+            "match": "enrichments:geo:*:postalCode",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "keyword"
+            }
+          }
+        },
+        {
+          "geo_latitude": {
+            "match": "enrichments:geo:*:latitude",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "float"
+            }
+          }
+        },
+        {
+          "geo_longitude": {
+            "match": "enrichments:geo:*:longitude",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "float"
+            }
+          }
+        },
+        {
+          "timestamps": {
+            "match": "*:ts",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "date",
+              "format": "epoch_millis"
+            }
+          }
+        },
+        {
+          "threat_triage_score": {
+            "mapping": {
+              "type": "float"
+            },
+            "match": "threat:triage:*score",
+            "match_mapping_type": "*"
+          }
+        },
+        {
+          "threat_triage_reason": {
+            "mapping": {
+              "type": "text",
+              "fielddata": "true"
+            },
+            "match": "threat:triage:rules:*:reason",
+            "match_mapping_type": "*"
+          }
+        },
+        {
+          "threat_triage_name": {
+            "mapping": {
+              "type": "text",
+              "fielddata": "true"
+            },
+            "match": "threat:triage:rules:*:name",
+            "match_mapping_type": "*"
+          }
+        }
+        ],
         "properties" : {
-          "adapter:stellaradapter:begin:ts" : {
-            "type" : "string"
-          },
-          "adapter:stellaradapter:end:ts" : {
-            "type" : "string"
-          },
           "blacklisted" : {
             "type" : "boolean"
           },
           "compCS" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "data" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "dst_ip" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "dst_port" : {
             "type" : "long"
@@ -187,117 +297,87 @@ curl -XPUT 'http://$ES_HOST/cowrie*/_mapping/cowrie_doc' -d '
             "type" : "double"
           },
           "encCS" : {
-            "type" : "string"
-          },
-          "enrichmentjoinbolt:joiner:ts" : {
-            "type" : "string"
-          },
-          "enrichmentsplitterbolt:splitter:begin:ts" : {
-            "type" : "string"
-          },
-          "enrichmentsplitterbolt:splitter:end:ts" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "eventid" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "guid" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "input" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "isError" : {
             "type" : "long"
           },
           "is_alert" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "kexAlgs" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "keyAlgs" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "macCS" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "message" : {
-            "type" : "string"
+            "type" : "keyword"
           },
-          "original_string" : {
-            "type" : "string"
+          "original_keyword" : {
+            "type" : "keyword"
           },
           "password" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "sensor" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "session" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "similarity_bin" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "size" : {
             "type" : "long"
           },
           "source:type" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "src_ip" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "src_port" : {
             "type" : "long"
           },
           "system" : {
-            "type" : "string"
+            "type" : "keyword"
           },
-          "threat:triage:rules:0:comment" : {
-            "type" : "string"
-          },
-          "threat:triage:rules:0:name" : {
-            "type" : "string"
-          },
-          "threat:triage:rules:0:reason" : {
-            "type" : "string"
-          },
-          "threat:triage:rules:0:score" : {
-            "type" : "long"
-          },
-          "threat:triage:score" : {
-            "type" : "double"
-          },
-          "threatinteljoinbolt:joiner:ts" : {
-            "type" : "string"
-          },
-          "threatintelsplitterbolt:splitter:begin:ts" : {
-            "type" : "string"
-          },
-          "threatintelsplitterbolt:splitter:end:ts" : {
-            "type" : "string"
-          },
-          "timestamp" : {
-            "type" : "long"
+          "timestamp": {
+            "type": "date",
+            "format": "epoch_millis"
           },
           "tlsh" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "ttylog" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "username" : {
-            "type" : "string"
+            "type" : "keyword"
           },
           "version" : {
-            "type" : "string"
+            "type" : "keyword"
           },
-          "alert" : {
+          "metron_alert" : {
             "type" : "nested"
           }
         }
+     }
+  }
 }
 '
 ```
@@ -408,7 +488,7 @@ We want to pull a snapshot of the cowrie logs, so create `~/load_data.sh` with t
 COWRIE_HOME=~/cowrie
 for i in cowrie.1626302-1636522.json cowrie.16879981-16892488.json cowrie.21312194-21331475.json cowrie.698260-710913.json cowrie.762933-772239.json cowrie.929866-939552.json cowrie.1246880-1248235.json cowrie.19285959-19295444.json cowrie.16542668-16581213.json cowrie.5849832-5871517.json cowrie.6607473-6609163.json;do
   echo $i
-  cat $COWRIE_HOME/$i | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --topic cowrie
+  cat $COWRIE_HOME/$i | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list $BROKERLIST --topic cowrie
   sleep 2
 done
 ```
@@ -448,3 +528,11 @@ As you can see, we have found a few more malicious actors:
 * 94.78.80.45
 
 Now we can look at *other* things that they're doing to build and refine our definition of what an alert is without resorting to hard-coding of rules.  Note that nothing in our enrichments actually used the string `busybox`, so this is a more general purpose way of navigating similar things.
+
+### Version Info
+
+Verified against:
+
+- METRON_VERSION=0.5.0
+- ELASTIC_VERSION=5.6.2
+
