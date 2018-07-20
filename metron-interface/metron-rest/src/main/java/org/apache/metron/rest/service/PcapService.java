@@ -20,8 +20,9 @@ package org.apache.metron.rest.service;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
+
+import java.io.InputStream;
 import org.apache.metron.rest.model.pcap.PcapStatus;
-import org.apache.metron.rest.model.pcap.Pdml;
 import org.apache.metron.rest.model.pcap.Pdml;
 
 public interface PcapService {
@@ -35,4 +36,6 @@ public interface PcapService {
   Path getPath(String username, String jobId, Integer page) throws RestException;
 
   Pdml getPdml(String username, String jobId, Integer page) throws RestException;
+
+  InputStream getRawPcap(String username, String jobId, Integer page) throws RestException;
 }

@@ -25,21 +25,28 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.fs.Path;
+import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.Constants;
+import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.Pageable;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Pageable;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.PcapPages;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.rest.mock.MockPcapJob;
+import org.apache.metron.rest.mock.MockPcapToPdmlScriptWrapper;
 import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.service.PcapService;
 import org.junit.Assert;
@@ -298,6 +305,43 @@ public class PcapControllerIntegrationTest {
             .andExpect(status().isNotFound());
 
     this.mockMvc.perform(get(pcapUrl + "/jobId/pdml?page=2").with(httpBasic(user, password)))
+            .andExpect(status().isNotFound());
+  }
+
+  @Test
+  public void testRawDownload() throws Exception {
+    String pcapFileContents = "pcap file contents";
+    FileUtils.write(new File("./target/pcapFile"), pcapFileContents, "UTF8");
+
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.RUNNING));
+
+    this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.jobId").value("jobId"))
+            .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
+
+    Pageable<Path> pageable = new PcapPages(Arrays.asList(new Path("./target/pcapFile")));
+    mockPcapJob.setIsDone(true);
+    mockPcapJob.setPageable(pageable);
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId/raw?page=1").with(httpBasic(user, password)))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"pcap_jobId_1.pcap\""))
+            .andExpect(header().string("Content-Length", Integer.toString(pcapFileContents.length())))
+            .andExpect(content().contentType(MediaType.parseMediaType("application/octet-stream")))
+            .andExpect(content().bytes(pcapFileContents.getBytes()));
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId/raw?page=1&fileName=pcapFile.pcap").with(httpBasic(user, password)))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"pcapFile.pcap\""))
+            .andExpect(header().string("Content-Length", Integer.toString(pcapFileContents.length())))
+            .andExpect(content().contentType(MediaType.parseMediaType("application/octet-stream")))
+            .andExpect(content().bytes(pcapFileContents.getBytes()));
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId/raw?page=2").with(httpBasic(user, password)))
             .andExpect(status().isNotFound());
   }
 

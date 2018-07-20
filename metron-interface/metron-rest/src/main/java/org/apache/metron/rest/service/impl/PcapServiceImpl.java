@@ -18,6 +18,7 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -42,6 +43,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class PcapServiceImpl implements PcapService {
@@ -144,6 +147,20 @@ public class PcapServiceImpl implements PcapService {
       throw new RestException(e);
     }
     return pdml;
+  }
+
+  public InputStream getRawPcap(String username, String jobId, Integer page) throws RestException {
+    InputStream inputStream = null;
+    Path path = getPath(username, jobId, page);
+    try {
+      FileSystem fileSystem = getFileSystem();
+      if (path!= null && fileSystem.exists(path)) {
+        inputStream = fileSystem.open(path);
+      }
+    } catch (IOException e) {
+      throw new RestException(e);
+    }
+    return inputStream;
   }
 
   protected void setPcapOptions(String username, PcapRequest pcapRequest) throws IOException {

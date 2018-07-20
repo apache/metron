@@ -21,6 +21,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
@@ -37,9 +39,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 @RestController
 @RequestMapping("/api/v1/pcap")
 public class PcapController {
+
+  private static final String PCAP_FILENAME_FORMAT = "pcap_%s_%s.pcap";
 
   @Autowired
   private PcapService pcapQueryService;
@@ -96,6 +106,36 @@ public class PcapController {
       return new ResponseEntity<>(jobStatus, HttpStatus.OK);
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @ApiOperation(value = "Download Pcap Results for a page.")
+  @ApiResponses(value = {
+          @ApiResponse(message = "Returns Pcap as a file download.", code = 200),
+          @ApiResponse(message = "Job or page is missing.", code = 404)
+  })
+  @RequestMapping(value = "/{jobId}/raw", method = RequestMethod.GET)
+  void raw(@ApiParam(name="jobId", value="Job ID of submitted job", required=true)@PathVariable String jobId,
+           @ApiParam(name="page", value="Page number", required=true)@RequestParam Integer page,
+           @RequestParam(defaultValue = "", required = false) String fileName,
+           final HttpServletRequest request, final HttpServletResponse response) throws RestException {
+    try (InputStream inputStream = pcapQueryService.getRawPcap(SecurityUtils.getCurrentUser(), jobId, page);
+         OutputStream output = response.getOutputStream()) {
+      response.reset();
+      if (inputStream == null) {
+        response.setStatus(HttpStatus.NOT_FOUND.value());
+      } else {
+        response.setContentType("application/octet-stream");
+        if (fileName.isEmpty()) {
+          fileName = String.format(PCAP_FILENAME_FORMAT, jobId, page);
+        }
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+        int size = IOUtils.copy(inputStream, output);
+        response.setContentLength(size);
+        output.flush();
+      }
+    } catch (IOException e) {
+      throw new RestException(e);
     }
   }
 

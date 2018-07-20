@@ -256,6 +256,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/pcap/fixed`](#get-apiv1pcapfixed)|
 | [ `GET /api/v1/pcap/{jobId}`](#get-apiv1pcapjobid)|
 | [ `GET /api/v1/pcap/{jobId}/pdml`](#get-apiv1pcapjobidpdml)|
+| [ `GET /api/v1/pcap/{jobId}/raw`](#get-apiv1pcapjobidraw)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
@@ -522,6 +523,15 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * page - Page number
   * Returns:
     * 200 - Returns PDML in json format.
+    * 404 - Job or page is missing.
+    
+### `POST /api/v1/pcap/{jobId}/raw`
+  * Description: Download Pcap Results for a page.
+  * Input:
+    * jobId - Job ID of submitted job
+    * page - Page number
+  * Returns:
+    * 200 - Returns Pcap as a file download.
     * 404 - Job or page is missing.
 
 ### `POST /api/v1/search/search`
