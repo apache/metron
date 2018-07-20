@@ -7,7 +7,7 @@
     "build": "./node_modules/@angular/cli/bin/ng build -prod",
     "start": "ng serve",
     "lint": "tslint \"src/**/*.ts\"",
-    "test": "./node_modules/@angular/cli/bin/ng test --watch=false",
+    "test": "karma start --single-run --browsers ChromeHeadless karma.conf.js",
     "pree2e": "webdriver-manager update",
     "e2e": "protractor-flake --protractor-path=./node_modules/.bin/protractor --max-attempts=3 -- ./protractor.conf.js"
   },
@@ -58,6 +58,7 @@
     "optimist": "0.6.1",
     "protractor": "5.3.0",
     "protractor-flake": "^3.3.0",
+    "puppeteer": "^1.6.0",
     "serve-favicon": "2.4.2",
     "serve-static": "1.12.1",
     "ssh2": "^0.5.5",

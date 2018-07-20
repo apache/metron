@@ -24,11 +24,11 @@ import java.util.concurrent.TimeUnit;
  * never advances itself, but allows you to increment it by any desired amount.
  *
  * Note that the base class is not the Java 8 Clock, but rather the Clock we
- * defined in {@org.apache.metron.common.system.Clock}.  Fundamental units of time
+ * defined in {@link org.apache.metron.common.system.Clock}.  Fundamental units of time
  * are milliseconds.
  *
- * Three exceptions are also defined: {@IllegalArgumentClockNegative},
- * {@IllegalArgumentClockZero}, and {@IllegalArgumentClockOverflow}.
+ * Three exceptions are also defined: {@link IllegalArgumentClockNegative},
+ * {@link IllegalArgumentClockZero}, and {@link IllegalArgumentClockOverflow}.
  * These are thrown in various circumstances that imply the FakeClock is
  * being used outside of its design intent. They are subclasses of IllegalArgumentException,
  * hence unchecked.
@@ -52,7 +52,7 @@ public class FakeClock extends Clock {
    * If we really get a demand for this capability, we'll add methods that don't
    * check for this.
    * @throws IllegalArgumentClockOverflow (unchecked) if you try to add a duration
-   * that would overflow the Long value of {@currentTimeMillis}
+   * that would overflow the Long value of {@code currentTimeMillis}
    */
   public void elapseMillis(long duration_ms) {
     long instant_ms = now_ms + duration_ms;
@@ -71,7 +71,7 @@ public class FakeClock extends Clock {
 
   /**
    * Advance the fake clock by a number of seconds.
-   * See {@elapseMillis} for details.
+   * See {@code elapseMillis} for details.
    *
    * @param duration_secs
    */
@@ -93,7 +93,7 @@ public class FakeClock extends Clock {
    * Why?  Because it implies your test code has lost track of previous increments,
    * which might be problematic, so we do this in the spirit of "fail fast".
    * If you *meant* to lose track, for instance if you were using random numbers of events,
-   * or whatever, you can always orient yourself in time by reading {@currentTimeMillis}.
+   * or whatever, you can always orient yourself in time by reading {@code currentTimeMillis}.
    */
   public void advanceToMillis(long instant_ms) {
     if (instant_ms < now_ms) {
@@ -111,7 +111,7 @@ public class FakeClock extends Clock {
 
   /**
    * Advance the fake clock to a point in time specified as seconds after 0.
-   * See {@advanceToMillis} for details.
+   * See {@code advanceToMillis} for details.
    *
    * @param instant_secs - epoch time in seconds
    */
@@ -138,7 +138,7 @@ public class FakeClock extends Clock {
    * Why?  Because it implies your test code has lost track of previous increments,
    * which might be problematic, so we do this in the spirit of "fail fast".
    * If you *meant* to lose track, for instance if you were using random numbers of events,
-   * or whatever, you can always orient yourself in time by reading {@currentTimeMillis}.
+   * or whatever, you can always orient yourself in time by reading {@code currentTimeMillis}.
    *
    * Note that argument does not apply to ellapseMillis(0), so it does not throw
    * this exception.
@@ -151,7 +151,7 @@ public class FakeClock extends Clock {
 
   /**
    * IllegalArgumentClockOverflow (unchecked) is thrown if you try to add a duration
-   * that would overflow the Long value of {@currentTimeMillis}
+   * that would overflow the Long value of {@code currentTimeMillis}
    */
   public static class IllegalArgumentClockOverflow extends IllegalArgumentException {
     public IllegalArgumentClockOverflow(String s) {

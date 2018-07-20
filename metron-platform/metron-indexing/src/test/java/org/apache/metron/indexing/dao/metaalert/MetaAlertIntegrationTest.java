@@ -51,6 +51,7 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.search.SortField;
+import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
@@ -191,6 +192,60 @@ public abstract class MetaAlertIntegrationTest {
       Assert.assertEquals(1, searchResults2.size());
       Assert.assertEquals(metaAlerts.get(12), searchResults2.get(0).getSource());
     }
+  }
+
+  @Test
+  public void shouldSortByThreatTriageScore() throws Exception {
+    // Load alerts
+    List<Map<String, Object>> alerts = buildAlerts(2);
+    alerts.get(0).put(METAALERT_FIELD, "meta_active_0");
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+
+    // Load metaAlerts
+    List<Map<String, Object>> metaAlerts = buildMetaAlerts(1, MetaAlertStatus.ACTIVE,
+        Optional.of(Collections.singletonList(alerts.get(0))));
+    // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
+    addRecords(metaAlerts, getMetaAlertIndex(), METAALERT_TYPE);
+
+    // Verify load was successful
+    List<GetRequest> createdDocs = metaAlerts.stream().map(metaAlert ->
+        new GetRequest((String) metaAlert.get(Constants.GUID), METAALERT_TYPE))
+        .collect(Collectors.toList());
+    createdDocs.addAll(alerts.stream().map(alert ->
+        new GetRequest((String) alert.get(Constants.GUID), SENSOR_NAME))
+        .collect(Collectors.toList()));
+    findCreatedDocs(createdDocs);
+
+    // Test descending
+    SortField sf = new SortField();
+    sf.setField(getThreatTriageField());
+    sf.setSortOrder(SortOrder.DESC.getSortOrder());
+    SearchRequest sr = new SearchRequest();
+    sr.setQuery("*:*");
+    sr.setSize(5);
+    sr.setIndices(Arrays.asList(getTestIndexName(), METAALERT_TYPE));
+    sr.setSort(Collections.singletonList(sf));
+
+    SearchResponse result = metaDao.search(sr);
+    List<SearchResult> results = result.getResults();
+    Assert.assertEquals(2, results.size());
+    Assert.assertEquals("meta_active_0", results.get((0)).getId());
+    Assert.assertEquals("message_1", results.get((1)).getId());
+
+    // Test ascending
+    SortField sfAsc = new SortField();
+    sfAsc.setField(getThreatTriageField());
+    sfAsc.setSortOrder(SortOrder.ASC.getSortOrder());
+    SearchRequest srAsc = new SearchRequest();
+    srAsc.setQuery("*:*");
+    srAsc.setSize(2);
+    srAsc.setIndices(Arrays.asList(getTestIndexName(), METAALERT_TYPE));
+    srAsc.setSort(Collections.singletonList(sfAsc));
+    result = metaDao.search(srAsc);
+    results = result.getResults();
+    Assert.assertEquals("message_1", results.get((0)).getId());
+    Assert.assertEquals("meta_active_0", results.get((1)).getId());
+    Assert.assertEquals(2, results.size());
   }
 
   @Test
@@ -960,6 +1015,7 @@ public abstract class MetaAlertIntegrationTest {
     metaAlert.put(Constants.GUID, guid);
     metaAlert.put(getSourceTypeField(), METAALERT_TYPE);
     metaAlert.put(STATUS_FIELD, status.getStatusString());
+    metaAlert.put(getThreatTriageField(), 100.0d);
     if (alerts.isPresent()) {
       List<Map<String, Object>> alertsList = alerts.get();
       metaAlert.put(ALERT_FIELD, alertsList);
