@@ -185,17 +185,4 @@ public class TestConfig {
     return new UserSettingsClient(new MockHBaseTableProvider().addToCache("user_settings", "cf"), Bytes.toBytes("cf"));
   }
 
-  /**
-   * PropertyPlaceholderConfigurer bean required to make SPEL Values injectable in
-   * Tests from YAML config.
-   * 
-   */
-  @Bean
-  public static PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
-      YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
-      yaml.setResources(new ClassPathResource("application-test.yml"));
-      PropertyPlaceholderConfigurer propertyPlaceholderConfigurer = new PropertyPlaceholderConfigurer();
-      propertyPlaceholderConfigurer.setProperties(yaml.getObject());
-      return propertyPlaceholderConfigurer;
-  }
 }
