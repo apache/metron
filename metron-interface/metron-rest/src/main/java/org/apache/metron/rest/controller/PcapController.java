@@ -22,12 +22,11 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
-import org.apache.metron.rest.model.pcap.QueryPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
+import org.apache.metron.rest.model.pcap.QueryPcapRequest;
 import org.apache.metron.rest.security.SecurityUtils;
 import org.apache.metron.rest.service.PcapService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,12 +54,21 @@ public class PcapController {
   @Autowired
   private PcapService pcapQueryService;
 
-  @ApiOperation(value = "Executes a Fixed Pcap Query.")
+  @ApiOperation(value = "Executes a Fixed Filter Pcap Query.")
   @ApiResponses(value = { @ApiResponse(message = "Returns a job status with job ID.", code = 200)})
   @RequestMapping(value = "/fixed", method = RequestMethod.POST)
   ResponseEntity<PcapStatus> fixed(@ApiParam(name="fixedPcapRequest", value="A Fixed Pcap Request"
           + " which includes fixed filter fields like ip source address and protocol", required=true)@RequestBody FixedPcapRequest fixedPcapRequest) throws RestException {
-    PcapStatus pcapStatus = pcapQueryService.fixed(SecurityUtils.getCurrentUser(), fixedPcapRequest);
+    PcapStatus pcapStatus = pcapQueryService.submit(SecurityUtils.getCurrentUser(), fixedPcapRequest);
+    return new ResponseEntity<>(pcapStatus, HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Executes a Query Filter Pcap Query.")
+  @ApiResponses(value = { @ApiResponse(message = "Returns a job status with job ID.", code = 200)})
+  @RequestMapping(value = "/query", method = RequestMethod.POST)
+  ResponseEntity<PcapStatus> query(@ApiParam(name="queryPcapRequest", value="A Query Pcap Request"
+          + " which includes Stellar query field", required=true)@RequestBody QueryPcapRequest queryPcapRequest) throws RestException {
+    PcapStatus pcapStatus = pcapQueryService.submit(SecurityUtils.getCurrentUser(), queryPcapRequest);
     return new ResponseEntity<>(pcapStatus, HttpStatus.OK);
   }
 
@@ -138,15 +146,6 @@ public class PcapController {
     } catch (IOException e) {
       throw new RestException(e);
     }
-  }
-
-  @ApiOperation(value = "Executes a Fixed Pcap Query.")
-  @ApiResponses(value = { @ApiResponse(message = "Returns a PcapResponse containing an array of pcaps.", code = 200)})
-  @RequestMapping(value = "/query", method = RequestMethod.POST)
-  ResponseEntity<PcapStatus> query(@ApiParam(name="queryPcapRequest", value="A Fixed Pcap Request"
-          + " which includes fixed filter fields like ip source address and protocol.", required=true)@RequestBody QueryPcapRequest queryPcapRequest) throws RestException {
-    PcapStatus pcapStatus = pcapQueryService.query(queryPcapRequest);
-    return new ResponseEntity<>(pcapStatus, HttpStatus.OK);
   }
 
 }

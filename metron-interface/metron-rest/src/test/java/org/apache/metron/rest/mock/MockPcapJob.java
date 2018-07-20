@@ -46,11 +46,9 @@ public class MockPcapJob extends PcapJob<Path> {
   private PcapFilterConfigurator filterImpl;
   private int recPerFile;
   private String query;
-  private SequenceFileIterable sequenceFileIterable;
   private Statusable<Path> statusable;
 
   public MockPcapJob() {
-    sequenceFileIterable = mock(SequenceFileIterable.class);
     statusable = mock(Statusable.class);
   }
 
@@ -93,10 +91,6 @@ public class MockPcapJob extends PcapJob<Path> {
 
   public void setIsDone(boolean isDone) {
     when(statusable.isDone()).thenReturn(isDone);
-  }
-
-  public void setResults(List<byte[]> pcaps) {
-    when(sequenceFileIterable.iterator()).thenReturn(pcaps.iterator());
   }
 
   public String getBasePath() {

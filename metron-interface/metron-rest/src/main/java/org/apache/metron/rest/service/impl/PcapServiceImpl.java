@@ -18,7 +18,6 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -32,9 +31,7 @@ import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.config.PcapJobSupplier;
-import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapRequest;
-import org.apache.metron.rest.model.pcap.QueryPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
 import org.apache.metron.rest.service.PcapService;
@@ -44,8 +41,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
 @Service
 public class PcapServiceImpl implements PcapService {
@@ -66,24 +61,13 @@ public class PcapServiceImpl implements PcapService {
   }
 
   @Override
-  public PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException {
+  public PcapStatus submit(String username, PcapRequest pcapRequest) throws RestException {
     try {
-      setPcapOptions(username, fixedPcapRequest);
-      fixedPcapRequest.setFields();
-      pcapJobSupplier.setPcapRequest(fixedPcapRequest);
+      setPcapOptions(username, pcapRequest);
+      pcapRequest.setFields();
+      pcapJobSupplier.setPcapRequest(pcapRequest);
       JobStatus jobStatus = jobManager.submit(pcapJobSupplier, username);
       return jobStatusToPcapStatus(jobStatus);
-    } catch (IOException | JobException e) {
-      throw new RestException(e);
-    }
-  }
-
-  @Override
-  public PcapStatus query(String username, QueryPcapRequest queryPcapRequest) throws RestException {
-    try {
-      setPcapOptions(username, queryPcapRequest);
-      pcapJobSupplier.setPcapRequest(fixedPcapRequest);
-      JobStatus jobStatus = jobManager.submit(pcapJobSupplier, username);
     } catch (IOException | JobException e) {
       throw new RestException(e);
     }
@@ -161,6 +145,7 @@ public class PcapServiceImpl implements PcapService {
     return pdml;
   }
 
+  @Override
   public InputStream getRawPcap(String username, String jobId, Integer page) throws RestException {
     InputStream inputStream = null;
     Path path = getPath(username, jobId, page);

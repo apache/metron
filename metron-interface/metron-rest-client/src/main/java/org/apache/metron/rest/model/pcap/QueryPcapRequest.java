@@ -17,16 +17,26 @@
  */
 package org.apache.metron.rest.model.pcap;
 
+import org.apache.metron.pcap.config.PcapOptions;
+import org.apache.metron.pcap.filter.query.QueryPcapFilter;
+
 public class QueryPcapRequest extends PcapRequest {
 
-  private String query;
+  public QueryPcapRequest() {
+    PcapOptions.FILTER_IMPL.put(this, new QueryPcapFilter.Configurator());
+  }
 
   public String getQuery() {
-    return query;
+    return QueryPcapOptions.QUERY.get(this, String.class);
   }
 
   public void setQuery(String query) {
-    this.query = query;
+    QueryPcapOptions.QUERY.put(this, query);
+  }
+
+  @Override
+  public void setFields() {
+    PcapOptions.FIELDS.put(this, getQuery());
   }
 
   @Override
