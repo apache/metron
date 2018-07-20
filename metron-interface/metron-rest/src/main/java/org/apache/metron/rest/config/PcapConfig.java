@@ -17,7 +17,9 @@
  */
 package org.apache.metron.rest.config;
 
-import org.apache.metron.pcap.mr.PcapJob;
+import org.apache.metron.job.manager.InMemoryJobManager;
+import org.apache.metron.job.manager.JobManager;
+import org.apache.metron.rest.service.impl.PcapToPdmlScriptWrapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -29,7 +31,19 @@ import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 public class PcapConfig {
 
   @Bean
-  public PcapJob pcapJob() {
-    return new PcapJob();
+  public JobManager jobManager() {
+    return new InMemoryJobManager();
   }
+
+  @Bean
+  public PcapJobSupplier pcapJobSupplier() {
+    return new PcapJobSupplier();
+  }
+
+  @Bean
+  public PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper() {
+    return new PcapToPdmlScriptWrapper();
+  }
+
+
 }

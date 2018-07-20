@@ -17,70 +17,100 @@
  */
 package org.apache.metron.rest.model.pcap;
 
+import org.apache.metron.common.Constants;
+import org.apache.metron.pcap.config.PcapOptions;
+import org.apache.metron.pcap.PcapHelper;
+import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class FixedPcapRequest extends PcapRequest {
 
-  private String ipSrcAddr;
-  private String ipDstAddr;
-  private Integer ipSrcPort;
-  private Integer ipDstPort;
-  private String protocol;
-  private String packetFilter;
-  private Boolean includeReverse = false;
+  public FixedPcapRequest() {
+    PcapOptions.FILTER_IMPL.put(this, new FixedPcapFilter.Configurator());
+  }
 
   public String getIpSrcAddr() {
-    return ipSrcAddr;
+    return FixedPcapOptions.IP_SRC_ADDR.get(this, String.class);
   }
 
   public void setIpSrcAddr(String ipSrcAddr) {
-    this.ipSrcAddr = ipSrcAddr;
+    FixedPcapOptions.IP_SRC_ADDR.put(this, ipSrcAddr);
   }
 
   public String getIpDstAddr() {
-    return ipDstAddr;
+    return FixedPcapOptions.IP_DST_ADDR.get(this, String.class);
   }
 
   public void setIpDstAddr(String ipDstAddr) {
-    this.ipDstAddr = ipDstAddr;
+    FixedPcapOptions.IP_DST_ADDR.put(this, ipDstAddr);
   }
 
   public Integer getIpSrcPort() {
-    return ipSrcPort;
+    return FixedPcapOptions.IP_SRC_PORT.get(this, Integer.class);
   }
 
   public void setIpSrcPort(Integer ipSrcPort) {
-    this.ipSrcPort = ipSrcPort;
+    FixedPcapOptions.IP_SRC_PORT.put(this, ipSrcPort);
   }
 
   public Integer getIpDstPort() {
-    return ipDstPort;
+    return FixedPcapOptions.IP_DST_PORT.get(this, Integer.class);
   }
 
   public void setIpDstPort(Integer ipDstPort) {
-    this.ipDstPort = ipDstPort;
+    FixedPcapOptions.IP_DST_PORT.put(this, ipDstPort);
   }
 
   public String getProtocol() {
-    return protocol;
+    return FixedPcapOptions.PROTOCOL.get(this, String.class);
   }
 
   public void setProtocol(String protocol) {
-    this.protocol = protocol;
+    FixedPcapOptions.PROTOCOL.put(this, protocol);
   }
 
   public String getPacketFilter() {
-    return packetFilter;
+    return FixedPcapOptions.PACKET_FILTER.get(this, String.class);
   }
 
   public void setPacketFilter(String packetFilter) {
-    this.packetFilter = packetFilter;
+    FixedPcapOptions.PACKET_FILTER.put(this, packetFilter);
   }
 
   public Boolean getIncludeReverse() {
-    return includeReverse;
+    return FixedPcapOptions.INCLUDE_REVERSE.get(this, Boolean.class);
   }
 
   public void setIncludeReverse(Boolean includeReverse) {
-    this.includeReverse = includeReverse;
+    FixedPcapOptions.INCLUDE_REVERSE.put(this, includeReverse);
+  }
+
+  public void setFields() {
+    Map<String, String> fields = new HashMap<>();
+    if (getIpSrcAddr() != null) {
+      fields.put(Constants.Fields.SRC_ADDR.getName(), getIpSrcAddr());
+    }
+    if (getIpDstAddr() != null) {
+      fields.put(Constants.Fields.DST_ADDR.getName(), getIpDstAddr());
+    }
+    if (getIpSrcPort() != null) {
+      fields.put(Constants.Fields.SRC_PORT.getName(), getIpSrcPort().toString());
+    }
+    if (getIpDstPort() != null) {
+      fields.put(Constants.Fields.DST_PORT.getName(), getIpDstPort().toString());
+    }
+    if (getProtocol() != null) {
+      fields.put(Constants.Fields.PROTOCOL.getName(), getProtocol());
+    }
+    if (getIncludeReverse() != null) {
+      fields.put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), getIncludeReverse().toString());
+    }
+    if (getPacketFilter() != null) {
+      fields.put(PcapHelper.PacketFields.PACKET_FILTER.getName(), getPacketFilter());
+    }
+    PcapOptions.FIELDS.put(this, fields);
   }
 
   @Override
