@@ -30,10 +30,10 @@ import org.apache.metron.stellar.dsl.Stellar;
 public class RegExFunctions {
 
   @Stellar(name = "REGEXP_MATCH",
-      description = "Determines whether a regex matches a string",
+      description = "Determines whether a regex matches a string, if a list of patterns is passed, then the matching is an OR operation",
       params = {
           "string - The string to test",
-          "pattern - The proposed regex pattern"
+          "pattern - The proposed regex pattern or a list of proposed regex patterns"
       },
       returns = "True if the regex pattern matches the string and false if otherwise.")
   public static class RegexpMatch extends BaseStellarFunction {
@@ -42,14 +42,29 @@ public class RegExFunctions {
     public Object apply(List<Object> list) {
       if (list.size() < 2) {
         throw new IllegalStateException(
-            "REGEXP_MATCH expects two args: [string, pattern] where pattern is a regexp pattern");
+            "REGEXP_MATCH expects two args: [string, pattern] where pattern is a regexp pattern or a list of regexp patterns");
       }
-      String patternString = (String) list.get(1);
+      Object patternObject = list.get(1);
       String str = (String) list.get(0);
-      if (str == null || patternString == null) {
+      if (str == null || patternObject == null) {
         return false;
       }
-      return PatternCache.INSTANCE.getPattern(patternString).matcher(str).matches();
+      if (patternObject instanceof String) {
+        return PatternCache.INSTANCE.getPattern((String)patternObject).matcher(str).matches();
+      } else if (patternObject instanceof Iterable) {
+        boolean matches = false;
+        for (Object thisPatternObject : (Iterable)patternObject) {
+          if (thisPatternObject == null) {
+            continue;
+          }
+          if (PatternCache.INSTANCE.getPattern(thisPatternObject.toString()).matcher(str).matches()) {
+            matches = true;
+            break;
+          }
+        }
+        return matches;
+      }
+      return false;
     }
   }
 

@@ -36,7 +36,6 @@
         <spring-kafka.version>2.0.4.RELEASE</spring-kafka.version>
         <spring.version>5.0.5.RELEASE</spring.version>
         <eclipse.link.version>2.6.4</eclipse.link.version>
-        <jackson.version>2.9.5</jackson.version>
         <jsonpath.version>2.4.0</jsonpath.version>
     </properties>
     <dependencies>
@@ -191,6 +190,16 @@
             <artifactId>guava</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-mapreduce-client-app</artifactId>
+        <version>${global_hadoop_version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-mapreduce-client-core</artifactId>
+        <version>${global_hadoop_version}</version>
       </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>

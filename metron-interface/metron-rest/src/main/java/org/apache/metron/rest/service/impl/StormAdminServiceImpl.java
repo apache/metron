@@ -50,17 +50,28 @@ public class StormAdminServiceImpl implements StormAdminService {
         TopologyResponse topologyResponse = new TopologyResponse();
         if (globalConfigService.get() == null) {
             topologyResponse.setErrorMessage(TopologyStatusCode.GLOBAL_CONFIG_MISSING.toString());
-        } else if (sensorParserConfigService.findOne(name) == null) {
-            topologyResponse.setErrorMessage(TopologyStatusCode.SENSOR_PARSER_CONFIG_MISSING.toString());
-        } else {
-            topologyResponse = createResponse(stormCLIClientWrapper.startParserTopology(name), TopologyStatusCode.STARTED, TopologyStatusCode.START_ERROR);
+            return topologyResponse;
         }
-        return topologyResponse;
+
+        String[] sensorTypes = name.split(",");
+        for (String sensorType : sensorTypes) {
+            if (sensorParserConfigService.findOne(sensorType.trim()) == null) {
+                topologyResponse
+                    .setErrorMessage(TopologyStatusCode.SENSOR_PARSER_CONFIG_MISSING.toString());
+                return topologyResponse;
+            }
+        }
+
+        return createResponse(
+            stormCLIClientWrapper.startParserTopology(name),
+                TopologyStatusCode.STARTED,
+                TopologyStatusCode.START_ERROR
+        );
     }
 
     @Override
     public TopologyResponse stopParserTopology(String name, boolean stopNow) throws RestException {
-        return createResponse(stormCLIClientWrapper.stopParserTopology(name, stopNow), TopologyStatusCode.STOPPED, TopologyStatusCode.STOP_ERROR);
+        return createResponse(stormCLIClientWrapper.stopParserTopology(name.replaceAll(",", "__"), stopNow), TopologyStatusCode.STOPPED, TopologyStatusCode.STOP_ERROR);
     }
 
     @Override

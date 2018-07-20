@@ -19,10 +19,12 @@
 package org.apache.metron.writer.kafka;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -84,5 +86,66 @@ public class KafkaWriterTest {
     Assert.assertEquals(producerConfigs.get("request.required.acks"), 1);
     Assert.assertEquals(producerConfigs.get("key1"), 1);
     Assert.assertEquals(producerConfigs.get("key2"), "value2");
+  }
+
+  @Test
+  public void testTopicField_bothTopicAndFieldSpecified() throws Exception {
+    KafkaWriter writer = new KafkaWriter();
+    WriterConfiguration configuration = createConfiguration(
+            new HashMap<String, Object>() {{
+              put("kafka.brokerUrl" , "localhost:6667");
+              put("kafka.topic" , SENSOR_TYPE);
+              put("kafka.topicField" , "kafka_topic");
+              put("kafka.producerConfigs" , ImmutableMap.of("key1", 1, "key2", "value2"));
+            }}
+    );
+
+    writer.configure(SENSOR_TYPE, configuration);
+    Assert.assertEquals( "metron"
+                       , writer.getKafkaTopic(new JSONObject() {{
+                          put("kafka_topic", "metron");
+                         }}).get()
+                       );
+    Assert.assertFalse( writer.getKafkaTopic(new JSONObject()).isPresent() );
+
+  }
+
+  @Test
+  public void testTopicField_onlyFieldSpecified() throws Exception {
+    KafkaWriter writer = new KafkaWriter();
+    WriterConfiguration configuration = createConfiguration(
+            new HashMap<String, Object>() {{
+              put("kafka.brokerUrl" , "localhost:6667");
+              put("kafka.topicField" , "kafka_topic");
+              put("kafka.producerConfigs" , ImmutableMap.of("key1", 1, "key2", "value2"));
+            }}
+    );
+
+    writer.configure(SENSOR_TYPE, configuration);
+    Assert.assertEquals( "metron"
+                       , writer.getKafkaTopic(new JSONObject() {{
+                          put("kafka_topic", "metron");
+                         }}).get()
+                       );
+    Assert.assertFalse( writer.getKafkaTopic(new JSONObject()).isPresent() );
+  }
+
+  @Test
+  public void testTopicField_neitherSpecified() throws Exception {
+    KafkaWriter writer = new KafkaWriter();
+    WriterConfiguration configuration = createConfiguration(
+            new HashMap<String, Object>() {{
+              put("kafka.brokerUrl" , "localhost:6667");
+              put("kafka.producerConfigs" , ImmutableMap.of("key1", 1, "key2", "value2"));
+            }}
+    );
+
+    writer.configure(SENSOR_TYPE, configuration);
+    Assert.assertEquals(Constants.ENRICHMENT_TOPIC
+                       , writer.getKafkaTopic(new JSONObject() {{
+                          put("kafka_topic", "metron");
+                         }}).get()
+                       );
+    Assert.assertTrue( writer.getKafkaTopic(new JSONObject()).isPresent() );
   }
 }

@@ -19,7 +19,6 @@
 import { environment } from '../../environments/environment';
 
 export const META_ALERTS_SENSOR_TYPE = 'metaalert';
-export const META_ALERTS_INDEX = 'metaalert_index';
 
 export const NUM_SAVED_SEARCH = 10;
 export const ALERTS_RECENT_SEARCH = 'metron-alerts-recent-saved-search';

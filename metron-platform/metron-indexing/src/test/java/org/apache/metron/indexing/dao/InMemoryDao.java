@@ -35,6 +35,7 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.indexing.dao.search.SortOrder;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 
 import java.io.IOException;
@@ -289,6 +290,22 @@ public class InMemoryDao implements IndexDao {
       }
     }
     return indexColumnMetadata;
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request) {
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+  }
+
+  @Override
+  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+  }
+
+  @Override
+  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
   }
 
   public static void setColumnMetadata(Map<String, Map<String, FieldType>> columnMetadata) {

@@ -17,75 +17,65 @@
  */
 package org.apache.metron.rest.model.pcap;
 
-public class PcapRequest {
+import org.apache.commons.collections4.map.AbstractMapDecorator;
+import org.apache.metron.pcap.config.PcapOptions;
 
-  private String baseOutputPath;
-  private String basePath;
-  private Long startTime = 0L;
-  private Long endTime = System.currentTimeMillis();
-  private Integer numReducers = 1;
+import java.util.HashMap;
 
-  public String getBaseOutputPath() {
-    return baseOutputPath;
-  }
+public class PcapRequest extends AbstractMapDecorator<String, Object> {
 
-  public void setBaseOutputPath(String baseOutputPath) {
-    this.baseOutputPath = baseOutputPath;
+  public PcapRequest() {
+    super(new HashMap<>());
+    setStartTimeMs(0L);
+    setEndTimeMs(System.currentTimeMillis());
+    setNumReducers(10);
   }
 
   public String getBasePath() {
-    return basePath;
+    return PcapOptions.BASE_PATH.get(this, String.class);
   }
 
   public void setBasePath(String basePath) {
-    this.basePath = basePath;
+    PcapOptions.BASE_PATH.put(this, basePath);
   }
 
-  public Long getStartTime() {
-    return startTime;
+  public String getBaseInterimResultPath() {
+    return PcapOptions.BASE_INTERIM_RESULT_PATH.get(this, String.class);
   }
 
-  public void setStartTime(Long startTime) {
-    this.startTime = startTime;
+  public void setBaseInterimResultPath(String baseInterimResultPath) {
+    PcapOptions.BASE_INTERIM_RESULT_PATH.put(this, baseInterimResultPath);
   }
 
-  public Long getEndTime() {
-    return endTime;
+  public String getFinalOutputPath() {
+    return PcapOptions.FINAL_OUTPUT_PATH.get(this, String.class);
   }
 
-  public void setEndTime(Long endTime) {
-    this.endTime = endTime;
+  public void setFinalOutputPath(String finalOutputPath) {
+    PcapOptions.FINAL_OUTPUT_PATH.put(this, finalOutputPath);
+  }
+
+  public Long getStartTimeMs() {
+    return PcapOptions.START_TIME_MS.get(this, Long.class);
+  }
+
+  public void setStartTimeMs(Long startTime) {
+    PcapOptions.START_TIME_MS.put(this, startTime);
+  }
+
+  public Long getEndTimeMs() {
+    return PcapOptions.END_TIME_MS.get(this, Long.class);
+  }
+
+  public void setEndTimeMs(Long endTime) {
+    PcapOptions.END_TIME_MS.put(this, endTime);
   }
 
   public Integer getNumReducers() {
-    return numReducers;
+    return PcapOptions.NUM_REDUCERS.get(this, Integer.class);
   }
 
   public void setNumReducers(Integer numReducers) {
-    this.numReducers = numReducers;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    PcapRequest pcapRequest = (PcapRequest) o;
-
-    return (getBaseOutputPath() != null ? getBaseOutputPath().equals(pcapRequest.getBaseOutputPath()) : pcapRequest.getBaseOutputPath() != null) &&
-            (getBasePath() != null ? getBasePath().equals(pcapRequest.getBasePath()) : pcapRequest.getBasePath() == null) &&
-            (getStartTime() != null ? getStartTime().equals(pcapRequest.getStartTime()) : pcapRequest.getStartTime() == null) &&
-            (getEndTime() != null ? getEndTime().equals(pcapRequest.getEndTime()) : pcapRequest.getEndTime() == null) &&
-            (getNumReducers() != null ? getNumReducers().equals(pcapRequest.getNumReducers()) : pcapRequest.getNumReducers() == null);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = getBaseOutputPath() != null ? getBaseOutputPath().hashCode() : 0;
-    result = 31 * result + (getBasePath() != null ? getBasePath().hashCode() : 0);
-    result = 31 * result + (getStartTime() != null ? getStartTime().hashCode() : 0);
-    result = 31 * result + (getEndTime() != null ? getEndTime().hashCode() : 0);
-    result = 31 * result + (getNumReducers() != null ? getNumReducers().hashCode() : 0);
-    return result;
+    PcapOptions.NUM_REDUCERS.put(this, numReducers);
   }
 }

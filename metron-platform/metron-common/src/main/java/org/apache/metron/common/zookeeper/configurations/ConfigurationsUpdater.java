@@ -118,7 +118,6 @@ public abstract class ConfigurationsUpdater<T extends Configurations> implements
    * this is ONLY called on deletes to path to the zookeeper nodes which correspond
    * to your configurations type (rather than all configurations type).
    * @param name the path
-   * @throws IOException when update is unable to happen
    */
   public abstract void delete(String name);
 

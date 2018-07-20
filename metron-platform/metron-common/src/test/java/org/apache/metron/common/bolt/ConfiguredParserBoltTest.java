@@ -18,6 +18,8 @@
 package org.apache.metron.common.bolt;
 
 import org.apache.log4j.Level;
+import org.apache.metron.common.configuration.FieldValidator;
+import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
@@ -44,7 +46,7 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
   public static class StandAloneConfiguredParserBolt extends ConfiguredParserBolt {
 
     public StandAloneConfiguredParserBolt(String zookeeperUrl) {
-      super(zookeeperUrl, null);
+      super(zookeeperUrl);
     }
 
     @Override
@@ -126,7 +128,34 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     sampleConfigurations.updateSensorParserConfig(sensorType, testSensorConfig);
     ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorType, testSensorConfig, zookeeperUrl);
     waitForConfigUpdate(sensorType);
-    Assert.assertEquals("Add new sensor config", sampleConfigurations, configuredBolt.getConfigurations());
+    ParserConfigurations configuredBoltConfigs = configuredBolt.getConfigurations();
+    if(!sampleConfigurations.equals(configuredBoltConfigs)) {
+      //before we fail, let's try to dump out some info.
+      if(sampleConfigurations.getFieldValidations().size() != configuredBoltConfigs.getFieldValidations().size()) {
+        System.out.println("Field validations don't line up");
+      }
+      for(int i = 0;i < sampleConfigurations.getFieldValidations().size();++i) {
+        FieldValidator l = sampleConfigurations.getFieldValidations().get(i);
+        FieldValidator r = configuredBoltConfigs.getFieldValidations().get(i);
+        if(!l.equals(r)) {
+          System.out.println(l + " != " + r);
+        }
+      }
+      if(sampleConfigurations.getConfigurations().size() != configuredBoltConfigs.getConfigurations().size()) {
+        System.out.println("Configs don't line up");
+      }
+      for(Map.Entry<String, Object> kv : sampleConfigurations.getConfigurations().entrySet() ) {
+        Object l = kv.getValue();
+        Object r = configuredBoltConfigs.getConfigurations().get(kv.getKey());
+        if(!l.equals(r)) {
+          System.out.println(kv.getKey() + " config does not line up: " );
+          System.out.println(l);
+          System.out.println(r);
+        }
+      }
+      Assert.assertEquals("Add new sensor config", sampleConfigurations, configuredBoltConfigs);
+    }
+    Assert.assertEquals("Add new sensor config", sampleConfigurations, configuredBoltConfigs);
     configuredBolt.cleanup();
   }
 }

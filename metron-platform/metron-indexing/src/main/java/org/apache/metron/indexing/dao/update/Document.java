@@ -18,10 +18,10 @@
 
 package org.apache.metron.indexing.dao.update;
 
-import org.apache.metron.common.utils.JSONUtils;
-
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
+import org.apache.metron.common.utils.JSONUtils;
 
 public class Document {
   Long timestamp;
@@ -36,13 +36,21 @@ public class Document {
     setSensorType(sensorType);
   }
 
-
   public Document(String document, String guid, String sensorType, Long timestamp) throws IOException {
     this(convertDoc(document), guid, sensorType, timestamp);
   }
 
   public Document(String document, String guid, String sensorType) throws IOException {
     this( document, guid, sensorType, null);
+  }
+
+  /**
+   * Copy constructor
+   * @param other The document to be copied.
+   */
+  public Document(Document other) {
+    this(new HashMap<>(other.getDocument()), other.getGuid(), other.getSensorType(),
+        other.getTimestamp());
   }
 
   private static Map<String, Object> convertDoc(String document) throws IOException {

@@ -274,19 +274,19 @@ public class ElasticSearchComponent implements InMemoryComponent {
 
   }
 
-    @Override
-    public void stop() {
-      try {
-        node.close();
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to stop node." , e);
-      }
-      node = null;
-      client = null;
+  @Override
+  public void stop() {
+    try {
+      node.close();
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to stop node." , e);
     }
+    node = null;
+    client = null;
+  }
 
-    @Override
-    public void reset() {
-        client.admin().indices().delete(new DeleteIndexRequest("*")).actionGet();
-    }
+  @Override
+  public void reset() {
+      client.admin().indices().delete(new DeleteIndexRequest("*")).actionGet();
+  }
 }

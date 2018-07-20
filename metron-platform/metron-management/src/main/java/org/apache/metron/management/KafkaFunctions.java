@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -749,6 +750,114 @@ public class KafkaFunctions {
       return result;
     }
 
+
+    @Override
+    public void initialize(Context context) {
+      // no initialization required
+    }
+
+    @Override
+    public boolean isInitialized() {
+      // no initialization required
+      return true;
+    }
+  }
+
+  /**
+   * KAFKA_SEEK
+   *
+   * <p>Seeks to a specific offset and returns the message.
+   *
+   * <p>Example: Find the message in 'topic', partition 2, offset 1001.
+   * <pre>
+   * {@code
+   * KAFKA_SEEK('topic', 1, 1001)
+   * }
+   * </pre>
+   *
+   * <p>By default, only the message value is returned. By setting the global property
+   * 'stellar.kafka.message.view' = 'rich' the function will return additional Kafka metadata
+   * including the topic, partition, offset, key, and timestamp contained in a map. Setting
+   * this property value to 'simple' or simply not setting the property value, will result
+   * in the default view behavior.
+   */
+  @Stellar(
+          namespace = "KAFKA",
+          name = "SEEK",
+          description = "Seeks to an offset within a topic and returns the message.",
+          params = {
+                  "topic - The name of the Kafka topic",
+                  "partition - The partition identifier; starts at 0.",
+                  "offset - The offset within the partition; starts at 0.",
+                  "config - Optional map of key/values that override any global properties."
+          },
+          returns = "The message at the given offset, if the offset exists. Otherwise, returns null."
+  )
+  public static class KafkaSeek implements StellarFunction {
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      // required - the topic, partition, and offset are all required
+      String topic = getArg("topic", 0, String.class, args);
+      int partition = getArg("partition", 1, Integer.class, args);
+      int offset = getArg("offset", 2, Integer.class, args);
+
+      // optional - property overrides provided by the user
+      Map<String, String> overrides = new HashMap<>();
+      if(args.size() > 3) {
+        overrides = getArg("overrides", 3, Map.class, args);
+      }
+
+      Properties properties = buildKafkaProperties(overrides, context);
+      return seek(topic, partition, offset, properties);
+    }
+
+    /**
+     * Find messages in Kafka that satisfy a filter expression.
+     *
+     * @param topic The kafka topic.
+     * @param partition The partition identifier.
+     * @param offset The offset within the given partition.
+     * @param properties Function configuration values.
+     * @return A list of messages that satisfy the filter expression.
+     */
+    private Object seek(String topic, int partition, int offset, Properties properties) {
+      final int pollTimeout = getPollTimeout(properties);
+      final int maxWait = getMaxWait(properties);
+      Object message = null;
+      try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
+
+        // continue until we have the message or exceeded the max wait time
+        long wait = 0L;
+        final long start = clock.currentTimeMillis();
+        while(message == null && wait < maxWait) {
+
+          // seek to the offset
+          TopicPartition topar = new TopicPartition(topic, partition);
+          consumer.assign(Collections.singletonList(topar));
+          consumer.seek(topar, offset);
+
+          // poll kafka for messages
+          for(ConsumerRecord<String, String> record : consumer.poll(pollTimeout)) {
+
+            // kafka will attempt to be helpful and return a message, even if the actual offset does not exist
+            if(record.offset() == offset && record.partition() == partition) {
+              LOG.debug("KAFKA_SEEK found message; topic={}, partition={}, offset={}", topic, partition, offset);
+              message = render(record, properties);
+            }
+          }
+
+          // how long have we waited?
+          wait = clock.currentTimeMillis() - start;
+          if(LOG.isDebugEnabled() && message == null) {
+            LOG.debug("KAFKA_SEEK no message yet; topic={}, partition={}, offset={}, waitTime={} ms",
+                    topic, partition, offset, wait);
+          }
+        }
+      }
+
+      return message;
+    }
 
     @Override
     public void initialize(Context context) {

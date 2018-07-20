@@ -17,14 +17,28 @@
  */
 package org.apache.metron.rest.service;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.model.pcap.QueryPcapRequest;
 
+import java.io.InputStream;
+import org.apache.metron.rest.model.pcap.PcapStatus;
+import org.apache.metron.rest.model.pcap.Pdml;
+
 public interface PcapService {
 
-  PcapResponse fixed(FixedPcapRequest fixedPcapRequest) throws RestException;
+  PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException;
 
-  PcapResponse query(QueryPcapRequest queryPcapRequest) throws RestException;
+  PcapStatus query(QueryPcapRequest queryPcapRequest) throws RestException;
+
+  PcapStatus getJobStatus(String username, String jobId) throws RestException;
+
+  PcapStatus killJob(String username, String jobId) throws RestException;
+
+  Path getPath(String username, String jobId, Integer page) throws RestException;
+
+  Pdml getPdml(String username, String jobId, Integer page) throws RestException;
+
+  InputStream getRawPcap(String username, String jobId, Integer page) throws RestException;
 }

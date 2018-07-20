@@ -20,6 +20,7 @@ package org.apache.metron.indexing.integration;
 
 import static org.apache.metron.indexing.dao.HBaseDao.HBASE_CF;
 import static org.apache.metron.indexing.dao.HBaseDao.HBASE_TABLE;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,12 +30,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import org.apache.commons.codec.binary.Hex;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.MultiIndexDao;
+import org.apache.metron.indexing.dao.UpdateIntegrationTest;
+import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.junit.After;
@@ -42,7 +45,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class HBaseDaoIntegrationTest {
+public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
 
   private static final String TABLE_NAME = "metron_update";
   private static final String COLUMN_FAMILY = "cf";
@@ -167,6 +170,13 @@ public class HBaseDaoIntegrationTest {
     Assert.assertFalse("Result size should be 12 but was greater", results.hasNext());
   }
 
+  @Override
+  public void test() {
+    // The main test ensures a variety of things not implemented by HBase run alongside
+    // HBaseDao itself.
+    // Therefore, just don't do anything for this test.
+  }
+
   protected List<Document> buildAlerts(int count) throws IOException {
     List<Document> alerts = new ArrayList<>();
     for (int i = 0; i < count; ++i) {
@@ -178,4 +188,67 @@ public class HBaseDaoIntegrationTest {
     return alerts;
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testRemoveComments() throws Exception {
+    Map<String, Object> fields = new HashMap<>();
+    fields.put("guid", "add_comment");
+    fields.put("source.type", SENSOR_NAME);
+
+    Document document = new Document(fields, "add_comment", SENSOR_NAME, 1526401584951L);
+    hbaseDao.update(document, Optional.of(SENSOR_NAME));
+    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+
+    addAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
+    // Ensure we have the first comment
+    ArrayList<AlertComment> comments = new ArrayList<>();
+    comments.add(new AlertComment("New Comment", "test_user", 1526401584951L));
+    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
+        Collectors.toList()));
+    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+
+    addAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
+    // Ensure we have the second comment
+    comments.add(new AlertComment("New Comment 2", "test_user_2", 1526401584952L));
+    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
+        Collectors.toList()));
+    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+
+    removeAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
+    // Ensure we only have the first comments
+    comments = new ArrayList<>();
+    comments.add(new AlertComment(commentOne));
+    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
+        Collectors.toList()));
+    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+
+    removeAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
+    // Ensure we have no comments
+    document.getDocument().remove(COMMENTS_FIELD);
+    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+  }
+
+  @Override
+  protected IndexDao getDao() {
+    return hbaseDao;
+  }
+
+  @Override
+  protected String getIndexName() {
+    return null;
+  }
+
+  @Override
+  protected MockHTable getMockHTable() {
+    return null;
+  }
+
+  @Override
+  protected void addTestData(String indexName, String sensorType, List<Map<String, Object>> docs) {
+  }
+
+  @Override
+  protected List<Map<String, Object>> getIndexedTestData(String indexName, String sensorType) {
+    return null;
+  }
 }
