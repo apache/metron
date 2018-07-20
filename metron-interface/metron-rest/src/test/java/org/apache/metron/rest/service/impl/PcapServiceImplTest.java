@@ -19,14 +19,13 @@ package org.apache.metron.rest.service.impl;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.BufferedFSInputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.job.JobException;
+import org.apache.metron.job.JobNotFoundException;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Pageable;
 import org.apache.metron.job.manager.InMemoryJobManager;
@@ -41,37 +40,34 @@ import org.apache.metron.rest.mock.MockPcapJobSupplier;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
-import org.apache.metron.rest.service.HdfsService;
-import org.apache.metron.rest.model.pcap.Pdml;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.api.mockito.PowerMockito;
 import org.springframework.core.env.Environment;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyVararg;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
@@ -356,6 +352,40 @@ public class PcapServiceImplTest {
   }
 
   @Test
+  public void killJobShouldKillJobAndReportStatus() throws Exception {
+    MockPcapJob mockPcapJob = mock(MockPcapJob.class);
+    JobManager jobManager = mock(JobManager.class);
+    JobStatus actualJobStatus = new JobStatus()
+            .withJobId("jobId")
+            .withState(JobStatus.State.KILLED)
+            .withDescription("description")
+            .withPercentComplete(100.0);
+    Pageable pageable = mock(Pageable.class);
+    when(pageable.getSize()).thenReturn(0);
+    when(mockPcapJob.getStatus()).thenReturn(actualJobStatus);
+    when(mockPcapJob.isDone()).thenReturn(true);
+    when(mockPcapJob.get()).thenReturn(pageable);
+    when(jobManager.getJob("user", "jobId")).thenReturn(mockPcapJob);
+
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager, pcapToPdmlScriptWrapper);
+    PcapStatus status = pcapService.killJob("user", "jobId");
+    verify(jobManager, times(1)).killJob("user", "jobId");
+    assertThat(status.getJobStatus(), CoreMatchers.equalTo(JobStatus.State.KILLED.toString()));
+  }
+
+  @Test
+  public void killNonExistentJobShouldReturnNull() throws Exception {
+    MockPcapJob mockPcapJob = mock(MockPcapJob.class);
+    JobManager jobManager = mock(JobManager.class);
+    doThrow(new JobNotFoundException("Not found test exception.")).when(jobManager).killJob("user", "jobId");
+
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager, pcapToPdmlScriptWrapper);
+    PcapStatus status = pcapService.killJob("user", "jobId");
+    verify(jobManager, times(1)).killJob("user", "jobId");
+    assertNull(status);
+  }
+
+  @Test
   public void getPathShouldProperlyReturnPath() throws Exception {
     Path actualPath = new Path("/path");
     MockPcapJob mockPcapJob = mock(MockPcapJob.class);
@@ -408,17 +438,6 @@ public class PcapServiceImplTest {
     PowerMockito.when(pb.start()).thenReturn(p);
 
     assertEquals(JSONUtils.INSTANCE.load(expectedPdml, Pdml.class), pcapService.getPdml("user", "jobId", 1));
-  }
-
-  @Test
-  public void getPdmlShouldReturnNullOnInvalidPage() throws Exception {
-    Path path = new Path("/some/path");
-
-    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), new InMemoryJobManager<>(), pcapToPdmlScriptWrapper));
-    FileSystem fileSystem = mock(FileSystem.class);
-    doReturn(fileSystem).when(pcapService).getFileSystem();
-
-    assertNull(pcapService.getPdml("user", "jobId", 1));
   }
 
   @Test
