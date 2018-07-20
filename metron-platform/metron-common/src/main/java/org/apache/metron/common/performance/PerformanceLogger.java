@@ -77,7 +77,7 @@ public class PerformanceLogger {
   /**
    * Log a message at DEBUG level for the given markName.
    * Warns when logging for a markName that hasn't been set.
-   * <p/>
+   * <p>
    * <p>This form avoids superfluous string concatenation when the logger
    * is disabled for the DEBUG level.</p>
    *
@@ -92,7 +92,7 @@ public class PerformanceLogger {
   /**
    * Log a message at DEBUG level for the given markName according to the specified message.
    * Warns when logging for a markName that hasn't been set.
-   * <p/>
+   * <p>
    * <p>This form avoids superfluous string concatenation when the logger
    * is disabled for the DEBUG level.</p>
    *
@@ -127,7 +127,7 @@ public class PerformanceLogger {
   /**
    * Log a message at DEBUG level for the given markName according to the specified format
    * and argument. Warns when logging for a markName that hasn't been set.
-   * <p/>
+   * <p>
    * <p>This form avoids superfluous string concatenation when the logger
    * is disabled for the DEBUG level.</p>
    *
@@ -144,7 +144,7 @@ public class PerformanceLogger {
 
   /**
    * Log a message at DEBUG level according to the specified format and argument.
-   * <p/>
+   * <p>
    * <p>This form avoids superfluous string concatenation when the logger
    * is disabled for the DEBUG level.</p>
    *
@@ -162,7 +162,7 @@ public class PerformanceLogger {
 
   /**
    * Log a message at DEBUG level according to the specified format and arguments.
-   * <p/>
+   * <p>
    * <p>This form avoids superfluous string concatenation when the logger
    * is disabled for the DEBUG level. However, this variant incurs the hidden
    * (and relatively small) cost of creating an <code>Object[]</code> before invoking the method,

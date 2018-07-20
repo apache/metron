@@ -16,9 +16,14 @@
 
 dist: trusty
 sudo: required
+addons:
+  chrome: stable
 
 env:
-  - TEST_TYPE=default
+  - SCRIPT="mvn surefire:test@unit-tests -T 2C"
+  - SCRIPT="mvn surefire:test@integration-tests"
+  - SCRIPT="mvn test --projects metron-interface/metron-config,metron-interface/metron-alerts"
+  - SCRIPT="./dev-utilities/build-utils/verify_licenses.sh"
 
 install: true
 language: java
@@ -33,10 +38,13 @@ before_install:
   - npm config set prefix $HOME/.npm-prefix --global
 
 install:
-  - time mvn -q -T 2C -DskipTests clean install
+  - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
 script:
-  - time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests && time mvn -q test --projects metron-interface/metron-config && time dev-utilities/build-utils/verify_licenses.sh
+  - time $SCRIPT
+
+matrix:
+  fast_finish: true
 
 before_cache:
   - rm -rf $HOME/.m2/repository/org/apache/metron

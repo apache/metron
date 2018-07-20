@@ -113,6 +113,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
             .withClass(KafkaFunctions.KafkaProps.class)
             .withClass(KafkaFunctions.KafkaTail.class)
             .withClass(KafkaFunctions.KafkaFind.class)
+            .withClass(KafkaFunctions.KafkaSeek.class)
             .withClass(MapFunctions.MapGet.class);
   }
 
@@ -590,6 +591,97 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     // expect no messages
     List<String> expected = Collections.emptyList();
     assertEquals(expected, actual);
+  }
+
+  /**
+   * KAFKA_SEEK should return the message at a given offset.
+   */
+  @Test
+  public void testKafkaSeek() throws Exception {
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // put 3 messages into the topic
+    run("KAFKA_PUT(topic, [ message1, message2, message3 ])");
+    {
+      // get the 3rd message from the topic
+      Object actual = run("KAFKA_SEEK(topic, 0, 2)");
+      assertEquals(message3, actual);
+    }
+    {
+      // get the 2nd message from the topic
+      Object actual = run("KAFKA_SEEK(topic, 0, 1)");
+      assertEquals(message2, actual);
+    }
+    {
+      // get the 1st message from the topic
+      Object actual = run("KAFKA_SEEK(topic, 0, 0)");
+      assertEquals(message1, actual);
+    }
+  }
+
+  /**
+   * KAFKA_SEEK should return null if the offset does not exist
+   */
+  @Test
+  public void testKafkaSeekToMissingOffset() throws Exception {
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // put 3 messages into the topic
+    run("KAFKA_PUT(topic, [ message1, message2, message3 ])");
+
+    // get the 3rd message from the topic
+    Object actual = run("KAFKA_SEEK(topic, 0, 9999)");
+    assertNull(actual);
+  }
+
+  /**
+   * KAFKA_SEEK should return null if the partition does not exist
+   */
+  @Test
+  public void testKafkaSeekToMissingPartition() throws Exception {
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    // put 3 messages into the topic
+    run("KAFKA_PUT(topic, [ message1, message2, message3 ])");
+
+    // get the 3rd message from the topic
+    Object actual = run("KAFKA_SEEK(topic, 99999, 0)");
+    assertNull(actual);
+  }
+
+  /**
+   * KAFKA_SEEK should allow a user to see a detailed view of each Kafka record.
+   */
+  @Test
+  public void testKafkaSeekWithRichView() throws Exception {
+
+    // configure a detailed view of each message
+    global.put(KafkaFunctions.MESSAGE_VIEW_PROPERTY, KafkaFunctions.MESSAGE_VIEW_RICH);
+
+    // use a unique topic name for this test
+    final String topicName = testName.getMethodName();
+    variables.put("topic", topicName);
+
+    run("KAFKA_PUT(topic, [ message1, message2, message3 ])");
+    Object actual = run("KAFKA_SEEK(topic, 0, 0)");
+
+    // expect a 'rich' view of the record
+    assertTrue(actual instanceof Map);
+    Map<String, Object> view = (Map) actual;
+    assertNull(view.get("key"));
+    assertNotNull(view.get("offset"));
+    assertEquals(0, view.get("partition"));
+    assertEquals(topicName, view.get("topic"));
+    assertEquals(message1, view.get("value"));
   }
 
   /**

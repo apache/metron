@@ -17,7 +17,7 @@
 ---
 bro_home: /usr/local/bro
 bro_bin: "{{ bro_home }}/bin"
-bro_version: 2.5.2
+bro_version: 2.5.4
 bro_daemon_log: /var/log/bro.log
 bro_topic: bro
 
