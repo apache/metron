@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers.bolt;
 
+import java.util.Collections;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.error.MetronError;
@@ -84,7 +85,7 @@ public class WriterBolt extends BaseRichBolt {
       MetronError error = new MetronError()
               .withErrorType(errorType)
               .withThrowable(e)
-              .withSensorType(sensorType)
+              .withSensorType(Collections.singleton(sensorType))
               .addRawMessage(message);
       ErrorUtils.handleError(collector, error);
       collector.ack(tuple);

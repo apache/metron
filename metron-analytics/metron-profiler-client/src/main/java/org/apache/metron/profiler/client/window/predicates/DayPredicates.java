@@ -104,7 +104,7 @@ public enum DayPredicates {
    * Create a Predicate given a set of arguments.
    * @param name
    * @param arg
-   * @return Predicate<Long> return a Predicate given a set of arguments
+   * @return {@code Predicate<Long>} return a Predicate given a set of arguments
    */
   public static Predicate<Long> create(String name, List<String> arg) {
     return DayPredicates.valueOf(name).predicateCreator.apply(arg);

@@ -53,3 +53,6 @@ kerberos:
   enabled: ${SECURITY_ENABLED}
   principal: ${METRON_PRINCIPAL_NAME}
   keytab: ${METRON_SERVICE_KEYTAB}
+
+pcap:
+  pdml.script.path: ${METRON_HOME}/bin/pcap_to_pdml.sh
