@@ -15,25 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.bolt;
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { PcapPagination } from '../model/pcap-pagination';
 
-import java.lang.invoke.MethodHandles;
-import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+@Component({
+  selector: 'app-pcap-pagination',
+  templateUrl: './pcap-pagination.component.html',
+  styleUrls: ['./pcap-pagination.component.scss']
+})
+export class PcapPaginationComponent {
 
-public abstract class ConfiguredParserBolt extends ConfiguredBolt<ParserConfigurations> {
+  @Input() pagination = new PcapPagination();
+  @Output() pageChange = new EventEmitter();
 
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  protected final ParserConfigurations configurations = new ParserConfigurations();
-  public ConfiguredParserBolt(String zookeeperUrl) {
-    super(zookeeperUrl, "PARSERS");
+  onPrevious() {
+    this.pagination.from -= 1;
+    this.pageChange.emit();
   }
 
-  protected SensorParserConfig getSensorParserConfig(String sensorType) {
-    return getConfigurations().getSensorParserConfig(sensorType);
+  onNext() {
+    this.pagination.from  += 1;
+    this.pageChange.emit();
   }
 
 }

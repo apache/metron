@@ -15,25 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.bolt;
-
-import java.lang.invoke.MethodHandles;
-import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public abstract class ConfiguredParserBolt extends ConfiguredBolt<ParserConfigurations> {
-
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  protected final ParserConfigurations configurations = new ParserConfigurations();
-  public ConfiguredParserBolt(String zookeeperUrl) {
-    super(zookeeperUrl, "PARSERS");
-  }
-
-  protected SensorParserConfig getSensorParserConfig(String sensorType) {
-    return getConfigurations().getSensorParserConfig(sensorType);
-  }
-
+export class PcapPagination {
+  from = 1;
+  total: number;
 }

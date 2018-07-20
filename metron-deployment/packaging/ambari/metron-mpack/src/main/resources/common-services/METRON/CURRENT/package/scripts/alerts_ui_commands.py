@@ -38,7 +38,8 @@ class AlertsUICommands:
         :param env: Environment
         """
         Logger.info('Starting Alerts UI')
-        Execute("service metron-alerts-ui start")
+        start_cmd = ('service', 'metron-alerts-ui', 'start')
+        Execute(start_cmd, sudo=True)
         Logger.info('Done starting Alerts UI')
 
     def stop_alerts_ui(self):
@@ -47,7 +48,8 @@ class AlertsUICommands:
         :param env: Environment
         """
         Logger.info('Stopping Alerts UI')
-        Execute("service metron-alerts-ui stop")
+        stop_cmd = ('service', 'metron-alerts-ui', 'stop')
+        Execute(stop_cmd, sudo=True)
         Logger.info('Done stopping Alerts UI')
 
     def restart_alerts_ui(self, env):
@@ -56,7 +58,8 @@ class AlertsUICommands:
         :param env: Environment
         """
         Logger.info('Restarting the Alerts UI')
-        Execute('service metron-alerts-ui restart')
+        restart_cmd = ('service', 'metron-alerts-ui', 'restart')
+        Execute(restart_cmd, sudo=True)
         Logger.info('Done restarting the Alerts UI')
 
     def status_alerts_ui(self, env):

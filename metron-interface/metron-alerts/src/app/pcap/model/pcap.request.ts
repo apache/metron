@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 export class PcapRequest {
   startTimeMs: number = 0;
   endTimeMs: number = 0;
@@ -26,4 +26,5 @@ export class PcapRequest {
   protocol: string = '';
   packetFilter: string = '';
   includeReverse: boolean = false;
+  from?: number;
 }

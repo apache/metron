@@ -1,6 +1,8 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PcapListComponent } from './pcap-list.component';
+import { PcapPagination } from '../model/pcap-pagination';
+import { PcapPaginationComponent } from '../pcap-pagination/pcap-pagination.component';
 import { FormsModule } from '../../../../node_modules/@angular/forms';
 import { PdmlPacket } from '../model/pdml';
 import { Component, Input } from '@angular/core';
@@ -32,10 +34,11 @@ describe('PcapListComponent', () => {
       imports: [
         FormsModule
       ],
-      declarations: [ 
+      declarations: [
         FakePcapPacketLineComponent,
         FakePcapPacketComponent,
         PcapListComponent,
+        PcapPaginationComponent
       ]
     })
     .compileComponents();
@@ -44,6 +47,8 @@ describe('PcapListComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(PcapListComponent);
     component = fixture.componentInstance;
+    component.pagination = new PcapPagination();
+    component.pagination.total = 10;
     fixture.detectChanges();
   });
 

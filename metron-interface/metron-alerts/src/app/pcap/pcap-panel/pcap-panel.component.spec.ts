@@ -4,6 +4,7 @@ import { PcapPanelComponent } from './pcap-panel.component';
 import { Component, Input } from '../../../../node_modules/@angular/core';
 import { PdmlPacket } from '../model/pdml';
 import { PcapService } from '../service/pcap.service';
+import { PcapPagination } from '../model/pcap-pagination';
 
 @Component({
   selector: 'app-pcap-filters',
@@ -19,6 +20,7 @@ class FakeFilterComponent {
 })
 class FakePcapListComponent {
   @Input() packets: PdmlPacket[];
+  @Input() pagination: PcapPagination;
 }
 
 describe('PcapPanelComponent', () => {
@@ -27,7 +29,7 @@ describe('PcapPanelComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ 
+      declarations: [
         FakeFilterComponent,
         FakePcapListComponent,
         PcapPanelComponent,
