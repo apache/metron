@@ -22,13 +22,8 @@ import {AuthenticationService} from '../service/authentication.service';
 import {Router} from '@angular/router';
 
 class MockAuthenticationService {
-  _isAuthenticationChecked: boolean;
   _isAuthenticated: boolean;
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
-
-  public isAuthenticationChecked(): boolean {
-    return this._isAuthenticationChecked;
-  }
 
   public isAuthenticated(): boolean {
     return this._isAuthenticated;
@@ -60,31 +55,10 @@ describe('AuthGuard', () => {
 
   it('test when authentication is checked',
     inject([AuthGuard, AuthenticationService], (authGuard: AuthGuard, authenticationService: MockAuthenticationService) => {
-      authenticationService._isAuthenticationChecked = true;
       authenticationService._isAuthenticated = true;
       expect(authGuard.canActivate(null, null)).toBe(true);
 
-      authenticationService._isAuthenticationChecked = true;
       authenticationService._isAuthenticated = false;
       expect(authGuard.canActivate(null, null)).toBe(false);
-    }));
-
-  it('test when authentication is not checked',
-    inject([AuthGuard, AuthenticationService, Router], (authGuard: AuthGuard,
-                                                        authenticationService: MockAuthenticationService,
-                                                        router: MockRouter) => {
-      authenticationService._isAuthenticationChecked = false;
-      authGuard.canActivate(null, null).subscribe(isUserValid => {
-        expect(isUserValid).toBe(true);
-      });
-      authenticationService.onLoginEvent.emit(true);
-
-
-      spyOn(router, 'navigateByUrl');
-      authenticationService._isAuthenticationChecked = false;
-      authGuard.canActivate(null, null).subscribe(isUserValid => {
-        expect(isUserValid).toBe(false);
-      });
-      authenticationService.onLoginEvent.emit(false);
     }));
 });
