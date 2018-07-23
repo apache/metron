@@ -1,6 +1,23 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { Component, OnInit, Input } from '@angular/core';
 
-import { PcapService, PcapStatusRespons } from '../service/pcap.service'
+import { PcapService, PcapStatusResponse } from '../service/pcap.service'
 import { PcapRequest } from '../model/pcap.request'
 import { Pdml } from '../model/pdml'
 import {Subscription} from "rxjs/Rx";
@@ -24,8 +41,8 @@ export class PcapPanelComponent {
   queryId: string;
   progressWidth: number = 0;
 
-  selectedPage: number = 0;
-  
+  selectedPage: number = 1;
+
   constructor(private pcapService: PcapService ) {}
 
   onSearch(pcapRequest) {
@@ -35,16 +52,15 @@ export class PcapPanelComponent {
     this.pcapService.submitRequest(pcapRequest).subscribe(id => {
       this.queryId = id;
       this.queryRunning = true;
-      this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusRespons) => {
+      this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
         if ('SUCCEEDED' === statusResponse.jobStatus) {
           this.statusSubscription.unsubscribe();
-          console.log(this.statusSubscription.closed);
           this.queryRunning = false;
-          this.pcapService.getPackets(id, this.selectedPage).subscribe(pdml => {
+          this.pcapService.getPackets(id, this.selectedPage).toPromise().then(pdml => {
             this.pdml = pdml;
-          })
+          });
         } else if (this.progressWidth < 100) {
-          this.progressWidth += 5;
+          this.progressWidth = Math.trunc(statusResponse.percentComplete);
         }
       });
     });
