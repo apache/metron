@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers.topology.config;
 
+import java.util.Collection;
 import org.apache.metron.common.configuration.SensorParserConfig;
 
 
@@ -26,5 +27,5 @@ import org.apache.metron.common.configuration.SensorParserConfig;
  * @param <T>
  */
 public interface ValueSupplier<T> {
-  T get(SensorParserConfig config, Class<T> clazz);
+  T get(Collection<SensorParserConfig> config, Class<T> clazz);
 }

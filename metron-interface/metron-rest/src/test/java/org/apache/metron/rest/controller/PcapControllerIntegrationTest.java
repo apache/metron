@@ -17,9 +17,28 @@
  */
 package org.apache.metron.rest.controller;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.fs.Path;
+import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.Constants;
+import org.apache.metron.job.JobStatus;
+import org.apache.metron.job.Pageable;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Pageable;
@@ -27,6 +46,7 @@ import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.PcapPages;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.rest.mock.MockPcapJob;
+import org.apache.metron.rest.mock.MockPcapToPdmlScriptWrapper;
 import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.service.PcapService;
 import org.junit.Assert;
@@ -41,21 +61,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -185,9 +190,6 @@ public class PcapControllerIntegrationTest {
   public void testGetStatus() throws Exception {
     MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
 
-    this.mockMvc.perform(get(pcapUrl + "/jobId").with(httpBasic(user, password)))
-            .andExpect(status().isNotFound());
-
     mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.RUNNING));
 
     this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
@@ -228,5 +230,120 @@ public class PcapControllerIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.jobStatus").value("KILLED"));
+
+    this.mockMvc.perform(get(pcapUrl + "/someJobId").with(httpBasic(user, password)))
+            .andExpect(status().isNotFound());
   }
+
+  @Test
+  public void testKillJob() throws Exception {
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId123").with(httpBasic(user, password)))
+            .andExpect(status().isNotFound());
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId123").withState(JobStatus.State.RUNNING));
+
+    this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.jobId").value("jobId123"))
+            .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId123").withState(JobStatus.State.KILLED));
+
+    this.mockMvc.perform(delete(pcapUrl + "/kill/{id}", "jobId123").with(httpBasic(user, password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.jobId").value("jobId123"))
+            .andExpect(jsonPath("$.jobStatus").value("KILLED"));
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.KILLED));
+  }
+
+  @Test
+  public void testKillNonExistentJobReturns404() throws Exception {
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId123").with(httpBasic(user, password)))
+            .andExpect(status().isNotFound());
+
+    this.mockMvc.perform(delete(pcapUrl + "/kill/{id}", "jobId123").with(httpBasic(user, password)))
+            .andExpect(status().isNotFound());
+  }
+
+  @Test
+  public void testGetPdml() throws Exception {
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.RUNNING));
+
+    this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.jobId").value("jobId"))
+            .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
+
+    Pageable<Path> pageable = new PcapPages(Arrays.asList(new Path("./target")));
+    mockPcapJob.setIsDone(true);
+    mockPcapJob.setPageable(pageable);
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId/pdml?page=1").with(httpBasic(user, password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.version").value("0"))
+            .andExpect(jsonPath("$.creator").value("wireshark/2.6.1"))
+            .andExpect(jsonPath("$.time").value("Thu Jun 28 14:14:38 2018"))
+            .andExpect(jsonPath("$.captureFile").value("/tmp/pcap-data-201806272004-289365c53112438ca55ea047e13a12a5+0001.pcap"))
+            .andExpect(jsonPath("$.packets[0].protos[0].name").value("geninfo"))
+            .andExpect(jsonPath("$.packets[0].protos[0].fields[0].name").value("num"))
+            .andExpect(jsonPath("$.packets[0].protos[1].name").value("ip"))
+            .andExpect(jsonPath("$.packets[0].protos[1].fields[0].name").value("ip.addr"))
+    ;
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId/pdml?page=0").with(httpBasic(user, password)))
+            .andExpect(status().isNotFound());
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId/pdml?page=2").with(httpBasic(user, password)))
+            .andExpect(status().isNotFound());
+  }
+
+  @Test
+  public void testRawDownload() throws Exception {
+    String pcapFileContents = "pcap file contents";
+    FileUtils.write(new File("./target/pcapFile"), pcapFileContents, "UTF8");
+
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.RUNNING));
+
+    this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.jobId").value("jobId"))
+            .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
+
+    Pageable<Path> pageable = new PcapPages(Arrays.asList(new Path("./target/pcapFile")));
+    mockPcapJob.setIsDone(true);
+    mockPcapJob.setPageable(pageable);
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId/raw?page=1").with(httpBasic(user, password)))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"pcap_jobId_1.pcap\""))
+            .andExpect(header().string("Content-Length", Integer.toString(pcapFileContents.length())))
+            .andExpect(content().contentType(MediaType.parseMediaType("application/octet-stream")))
+            .andExpect(content().bytes(pcapFileContents.getBytes()));
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId/raw?page=1&fileName=pcapFile.pcap").with(httpBasic(user, password)))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"pcapFile.pcap\""))
+            .andExpect(header().string("Content-Length", Integer.toString(pcapFileContents.length())))
+            .andExpect(content().contentType(MediaType.parseMediaType("application/octet-stream")))
+            .andExpect(content().bytes(pcapFileContents.getBytes()));
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId/raw?page=2").with(httpBasic(user, password)))
+            .andExpect(status().isNotFound());
+  }
+
+
 }

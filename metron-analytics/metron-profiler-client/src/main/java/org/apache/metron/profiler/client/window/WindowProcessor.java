@@ -19,24 +19,31 @@
  */
 package org.apache.metron.profiler.client.window;
 
-import org.antlr.v4.runtime.*;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.apache.metron.stellar.dsl.ErrorListener;
-import org.apache.metron.stellar.dsl.GrammarUtils;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.apache.metron.stellar.dsl.Token;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.profiler.client.window.generated.WindowBaseListener;
 import org.apache.metron.profiler.client.window.generated.WindowLexer;
 import org.apache.metron.profiler.client.window.generated.WindowParser;
 import org.apache.metron.profiler.client.window.predicates.DayPredicates;
-
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.ErrorListener;
+import org.apache.metron.stellar.dsl.GrammarUtils;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Token;
 
 /**
  * The WindowProcessor instance provides the parser callbacks for the Window selector language.  This constructs
@@ -142,7 +149,7 @@ public class WindowProcessor extends WindowBaseListener {
   }
 
   /**
-   * Normalize the day specifier e.g. tuesdays -> tuesday and push onto the stack.
+   * Normalize the day specifier e.g. tuesdays -{@literal >} tuesday and push onto the stack.
    * @param ctx
    */
   @Override

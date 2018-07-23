@@ -95,7 +95,7 @@ public class ReflectionUtils {
    * Create instance from passed class name with specified parameter types and arguments. If parameter
    * types is null, defaults to attempting to instantiate the no-arg constructor.
    *
-   * @param clazz Class to create instance from
+   * @param className Class to create instance from
    * @param parameterTypes parameter types to use for looking up the desired constructor
    * @param parameters arguments to pass into the constructor when instantiating the object.
    * @param <T> Instance created from passed class

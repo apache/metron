@@ -17,6 +17,8 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -27,19 +29,22 @@ import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.pcap.config.PcapOptions;
-import org.apache.metron.pcap.finalizer.PcapRestFinalizer;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.config.PcapJobSupplier;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
+import org.apache.metron.rest.model.pcap.Pdml;
 import org.apache.metron.rest.service.PcapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class PcapServiceImpl implements PcapService {
@@ -48,13 +53,15 @@ public class PcapServiceImpl implements PcapService {
   private Configuration configuration;
   private PcapJobSupplier pcapJobSupplier;
   private JobManager<Path> jobManager;
+  private PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper;
 
   @Autowired
-  public PcapServiceImpl(Environment environment, Configuration configuration, PcapJobSupplier pcapJobSupplier, JobManager<Path> jobManager) {
+  public PcapServiceImpl(Environment environment, Configuration configuration, PcapJobSupplier pcapJobSupplier, JobManager<Path> jobManager, PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper) {
     this.environment = environment;
     this.configuration = configuration;
     this.pcapJobSupplier = pcapJobSupplier;
     this.jobManager = jobManager;
+    this.pcapToPdmlScriptWrapper = pcapToPdmlScriptWrapper;
   }
 
   @Override
@@ -90,6 +97,70 @@ public class PcapServiceImpl implements PcapService {
       throw new RestException(e);
     }
     return pcapStatus;
+  }
+
+  @Override
+  public PcapStatus killJob(String username, String jobId) throws RestException {
+    try {
+      jobManager.killJob(username, jobId);
+    } catch (JobNotFoundException e) {
+      // do nothing and return null pcapStatus
+      return null;
+    } catch (JobException e) {
+      throw new RestException(e);
+    }
+    return getJobStatus(username, jobId);
+  }
+
+  @Override
+  public Path getPath(String username, String jobId, Integer page) throws RestException {
+    Path path = null;
+    try {
+      Statusable<Path> statusable = jobManager.getJob(username, jobId);
+      if (statusable != null && statusable.isDone()) {
+        Pageable<Path> pageable = statusable.get();
+        if (pageable != null && page <= pageable.getSize() && page > 0) {
+          path = pageable.getPage(page - 1);
+        }
+      }
+    } catch (JobNotFoundException e) {
+      // do nothing and return null pcapStatus
+    } catch (JobException | InterruptedException e) {
+      throw new RestException(e);
+    }
+    return path;
+  }
+
+  @Override
+  public Pdml getPdml(String username, String jobId, Integer page) throws RestException {
+    Pdml pdml = null;
+    Path path = getPath(username, jobId, page);
+    try {
+      FileSystem fileSystem = getFileSystem();
+      if (path!= null && fileSystem.exists(path)) {
+        String scriptPath = environment.getProperty(MetronRestConstants.PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY);
+        InputStream processInputStream = pcapToPdmlScriptWrapper.execute(scriptPath, fileSystem, path);
+        pdml = new XmlMapper().readValue(processInputStream, Pdml.class);
+        processInputStream.close();
+      }
+    } catch (IOException e) {
+      throw new RestException(e);
+    }
+    return pdml;
+  }
+
+  public InputStream getRawPcap(String username, String jobId, Integer page) throws RestException {
+    InputStream inputStream = null;
+    Path path = getPath(username, jobId, page);
+    try {
+      FileSystem fileSystem = getFileSystem();
+      if (path!= null && fileSystem.exists(path)) {
+        inputStream = fileSystem.open(path);
+      }
+    } catch (IOException e) {
+      throw new RestException(e);
+    }
+    return inputStream;
   }
 
   protected void setPcapOptions(String username, PcapRequest pcapRequest) throws IOException {
