@@ -6,7 +6,13 @@ import {HttpUtil} from '../../utils/httpUtil';
 import 'rxjs/add/operator/map';
 
 import {PcapRequest} from '../model/pcap.request';
-import {Pdml} from '../model/pdml'
+import {Pdml} from '../model/pdml';
+
+export class PcapStatusResponse {
+  jobStatus: string;
+  percentComplete: number;
+  pageTotal: number;
+}
 
 @Injectable()
 export class PcapService {
@@ -17,7 +23,7 @@ export class PcapService {
     constructor(private http: Http, private ngZone: NgZone) {
     }
 
-    public pollStatus(id: string): Observable<string> {
+    public pollStatus(id: string): Observable<{}> {
         return this.ngZone.runOutsideAngular(() => {
             return this.ngZone.run(() => {
                 return Observable.interval(this.statusInterval * 1000).switchMap(() => {
@@ -28,21 +34,21 @@ export class PcapService {
     }
 
     public submitRequest(pcapRequest: PcapRequest): Observable<string> {
-        return this.http.post('/api/v1/pcap/pcapqueryfilterasync/submit', pcapRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-            .map(HttpUtil.extractString)
-            .catch(HttpUtil.handleError)
-            .onErrorResumeNext();
+      return this.http.post('/api/v1/pcap/fixed', pcapRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+          .map(result => JSON.parse(result.text()).jobId)
+          .catch(HttpUtil.handleError)
+          .onErrorResumeNext();
     }
 
-    public getStatus(id: string): Observable<string> {
-        return this.http.get('/api/v1/pcap/pcapqueryfilterasync/status?idQuery=' + id,
-            new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-            .map(HttpUtil.extractString)
-            .catch(HttpUtil.handleError)
-    }
-
-    public getPackets(id: string): Observable<Pdml> {
-        return this.http.get('/api/v1/pcap/pcapqueryfilterasync/resultJson?idQuery=' + id, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    public getStatus(id: string): Observable<PcapStatusResponse> {
+      return this.http.get(`/api/v1/pcap/${id}`,
+          new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+          .map(HttpUtil.extractData)
+          .catch(HttpUtil.handleError)
+          .onErrorResumeNext();
+  }
+    public getPackets(id: string, pageId: number): Observable<Pdml> {
+        return this.http.get(`/api/v1/pcap/${id}/pdml?page=${pageId}`, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
             .map(HttpUtil.extractData)
             .catch(HttpUtil.handleError)
             .onErrorResumeNext();
