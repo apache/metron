@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Injectable, NgZone} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
+import {Observable, BehaviorSubject} from 'rxjs/Rx';
 import {Http, Headers, RequestOptions} from '@angular/http';
 import {HttpUtil} from '../../utils/httpUtil';
 
@@ -29,11 +29,13 @@ import { RestError } from '../../model/rest-error';
 export class PcapStatusResponse {
     jobStatus: string;
     percentComplete: number;
-    totalPages: number;
+    pageTotal: number;
 }
 
 @Injectable()
 export class PcapService {
+
+    pdml: BehaviorSubject<Pdml>;
 
     private statusInterval = 4;
     defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
@@ -67,13 +69,13 @@ export class PcapService {
     }
 
     public getPackets(id: string, pageId: number): Observable<Pdml> {
-        return this.http.get(`/api/v1/pcap/output/${id}/${pageId}`, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-            .map(HttpUtil.extractData)
+        return this.http.get(`/api/v1/pcap/${id}/pdml?page=${pageId}`, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+            .map(res => this.pdml = HttpUtil.extractData(res))
             .catch(HttpUtil.handleError)
             .onErrorResumeNext();
     }
 
     public getDownloadUrl(id: string, pageId: number) {
-      return `/api/v1/pcap/raw/${id}/${pageId}`;
+      return `/api/v1/pcap/${id}/raw?page=${pageId}`;
     }
 }

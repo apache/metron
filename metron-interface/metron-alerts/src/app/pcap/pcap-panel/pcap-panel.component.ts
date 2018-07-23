@@ -27,13 +27,15 @@ export class PcapPanelComponent {
   progressWidth: number = 0;
   pagination: PcapPagination = new PcapPagination();
   savedPcapRequest: {};
-  selectedPage: number = 0;
+  selectedPage: number = 1;
 
   constructor(private pcapService: PcapService ) { }
 
-  changePage(arg) {
-    this.onSearch(this.savedPcapRequest, false, arg);
-    this.selectedPage = arg;
+  changePage(page) {
+    this.selectedPage = page;
+    this.pcapService.getPackets(this.queryId, this.selectedPage).toPromise().then(pdml => {
+      this.pdml = pdml;
+    });
   }
 
   onSearch(pcapRequest, resetPaginationForSearch = true, from = 1) {
@@ -50,14 +52,14 @@ export class PcapPanelComponent {
       this.queryRunning = true;
       this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
         if ('SUCCEEDED' === statusResponse.jobStatus) {
-          this.pagination.total = statusResponse.totalPages;
+          this.pagination.total = statusResponse.pageTotal;
           this.statusSubscription.unsubscribe();
           this.queryRunning = false;
-          this.pcapService.getPackets(id, this.selectedPage).subscribe(pdml => {
+          this.pcapService.getPackets(id, this.selectedPage).toPromise().then(pdml => {
             this.pdml = pdml;
-          })
+          });
         } else if (this.progressWidth < 100) {
-          this.progressWidth += 5;
+          this.progressWidth = Math.trunc(statusResponse.percentComplete);
         }
       });
     });
