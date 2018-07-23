@@ -131,7 +131,7 @@ configurations:
       metron.ldap.group.searchfilter: member={0}
       metron.ldap.group.roleattribute: cn
   - knox-env:
-      knox_master_secret: "{{ knox_master_pasword }}"
+      knox_master_secret: "{{ knox_master_password }}"
   - knoxsso-topology:
       content: |
         <topology>
