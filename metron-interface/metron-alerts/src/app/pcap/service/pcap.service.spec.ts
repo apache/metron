@@ -1,3 +1,20 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { TestBed, async, inject } from '@angular/core/testing';
 import {
   BaseRequestOptions,
@@ -33,7 +50,7 @@ describe('PcapService', () => {
   describe('getPackets()', () => {
     it('should return an Observable<Response>',
       inject([PcapService, MockBackend], (pcapService, mockBackend) => {
-        
+
         let request: PcapRequest = {
           startTimeMs: 0,
           endTimeMs: 0,
@@ -45,7 +62,7 @@ describe('PcapService', () => {
           packetFilter: '*',
           includeReverse: false,
         };
-        
+
         mockBackend.connections.subscribe((connection) => {
           connection.mockRespond(new Response(new ResponseOptions({body: pdml_json()})));
         });
@@ -55,17 +72,17 @@ describe('PcapService', () => {
         expect(packets.pdml).toBeTruthy()
         expect(packets.pdml.packet.length).toBe(1)
         expect(packets.pdml.packet[0].proto.length).toBeGreaterThan(3)
-        
+
         console.log(packets)
       }))
-      
+
 
     it('should ...', inject([PcapService], (service: PcapService) => {
       expect(service).toBeTruthy();
     }));
-    
+
   })
-    
+
 });
 
 
