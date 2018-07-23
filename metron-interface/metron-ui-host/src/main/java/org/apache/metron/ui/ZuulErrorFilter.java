@@ -19,51 +19,49 @@ package org.apache.metron.ui;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.netflix.zuul.filters.support.FilterConstants;
+import org.springframework.cloud.netflix.zuul.util.ZuulRuntimeException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
+import com.netflix.zuul.exception.ZuulException;
 
 @Component
 public class ZuulErrorFilter extends ZuulFilter {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZuulErrorFilter.class);
 
-    @Override
-    public String filterType() {
-        return "error";
-    }
+	@Override
+	public boolean shouldFilter() {
+		return true;
+	}
 
-    @Override
-    public int filterOrder() {
-        return 0;
-    }
-
-    @Override
-    public boolean shouldFilter() {
-        return RequestContext.getCurrentContext().getThrowable() != null;
-    }
-
-    @Override
-    public Object run() {
-        try {
+	@Override
+	public Object run() throws ZuulException {
+		try {
             RequestContext ctx = RequestContext.getCurrentContext();
             Throwable throwable = ctx.getThrowable();
-            if (throwable != null) {
+            if (throwable != null && throwable instanceof ZuulException) {
                 LOG.error("Zuul failure: " + throwable.getMessage(), throwable);
-                ctx.getResponse().setContentType("application/json");
-                ZuulError error = new ZuulError(throwable);
-                ObjectMapper objectMapper = new ObjectMapper();
-                objectMapper.writeValue(ctx.getResponse().getOutputStream(), error);
-                ctx.setResponseStatusCode(500);
-                
+                ctx.setThrowable(new ZuulRuntimeException((ZuulException) throwable));
             }
         } catch (Exception ex) {
             LOG.error("Exception in custom error filter", ex);
             ReflectionUtils.rethrowRuntimeException(ex);
         }
-        return null;
-    }
+		return null;
+	}
+
+	@Override
+	public String filterType() {
+		return FilterConstants.ERROR_TYPE;
+	}
+
+	@Override
+	public int filterOrder() {
+		return FilterConstants.SEND_ERROR_FILTER_ORDER - 1;
+	}
+
 }
