@@ -254,6 +254,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/metaalert/remove/alert`](#get-apiv1metaalertremovealert)|
 | [ `GET /api/v1/metaalert/update/status/{guid}/{status}`](#get-apiv1metaalertupdatestatusguidstatus)|
 | [ `GET /api/v1/pcap/fixed`](#get-apiv1pcapfixed)|
+| [ `GET /api/v1/pcap/query`](#get-apiv1pcapquery)|
 | [ `GET /api/v1/pcap/{jobId}`](#get-apiv1pcapjobid)|
 | [ `GET /api/v1/pcap/{jobId}/pdml`](#get-apiv1pcapjobidpdml)|
 | [ `GET /api/v1/pcap/{jobId}/raw`](#get-apiv1pcapjobidraw)|
@@ -502,9 +503,16 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns 'true' if the status changed and 'false' if it did not.
 
 ### `POST /api/v1/pcap/fixed`
-  * Description: Executes a Fixed Pcap Query.
+  * Description: Executes a Fixed Filter Pcap Query.
   * Input:
     * fixedPcapRequest - A Fixed Pcap Request which includes fixed filter fields like ip source address and protocol
+  * Returns:
+    * 200 - Returns a job status with job ID.
+    
+### `POST /api/v1/pcap/query`
+  * Description: Executes a Query Filter Pcap Query.
+  * Input:
+    * queryPcapRequest - A Query Pcap Request which includes Stellar query field
   * Returns:
     * 200 - Returns a job status with job ID.
     
