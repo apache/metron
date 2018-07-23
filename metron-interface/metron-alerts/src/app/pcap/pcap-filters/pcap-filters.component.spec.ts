@@ -125,7 +125,7 @@ describe('PcapFiltersComponent', () => {
   it('From date should be converted to timestamp on submit', () => {
     component.startTimeStr = '2220-12-12 12:12:12';
     component.search.emit = (model: PcapRequest) => {
-      expect(model.startTimeMs).toBe(7919118732000);
+      expect(model.startTimeMs).toBe(new Date(component.startTimeStr).getTime());
     }
     component.onSubmit();
   });
@@ -133,7 +133,7 @@ describe('PcapFiltersComponent', () => {
   it('To date should be converted to timestamp on submit', () => {
     component.endTimeStr = '2320-03-13 13:13:13';
     component.search.emit = (model: PcapRequest) => {
-      expect(model.endTimeMs).toBe(11051122393000);
+      expect(model.endTimeMs).toBe(new Date(component.endTimeStr).getTime());
     }
     component.onSubmit();
   });
