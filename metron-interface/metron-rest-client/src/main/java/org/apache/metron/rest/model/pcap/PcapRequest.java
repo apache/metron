@@ -22,7 +22,7 @@ import org.apache.metron.pcap.config.PcapOptions;
 
 import java.util.HashMap;
 
-public class PcapRequest extends AbstractMapDecorator<String, Object> {
+public abstract class PcapRequest extends AbstractMapDecorator<String, Object> {
 
   public PcapRequest() {
     super(new HashMap<>());
@@ -78,4 +78,6 @@ public class PcapRequest extends AbstractMapDecorator<String, Object> {
   public void setNumReducers(Integer numReducers) {
     PcapOptions.NUM_REDUCERS.put(this, numReducers);
   }
+
+  public abstract void setFields();
 }

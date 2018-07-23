@@ -19,15 +19,15 @@ package org.apache.metron.rest.service;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.pcap.FixedPcapRequest;
-
-import java.io.InputStream;
+import org.apache.metron.rest.model.pcap.PcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
 
+import java.io.InputStream;
+
 public interface PcapService {
 
-  PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException;
+  PcapStatus submit(String username, PcapRequest pcapRequest) throws RestException;
 
   PcapStatus getJobStatus(String username, String jobId) throws RestException;
 
