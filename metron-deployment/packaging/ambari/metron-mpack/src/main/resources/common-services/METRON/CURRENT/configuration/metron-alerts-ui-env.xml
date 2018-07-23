@@ -78,4 +78,26 @@
         </value-attributes>
     </property>
 
+    <!-- Service Options -->
+    <property>
+        <name>metron_alerts_pid_dir</name>
+        <value>/var/run/metron</value>
+        <display-name>Metron alerts PID Dir</display-name>
+        <description>Metron alerts PID Dir.</description>
+        <value-attributes>
+            <type>directory</type>
+            <overridable>false</overridable>
+        <editable-only-at-install>true</editable-only-at-install>
+        </value-attributes>
+    </property>
+
+    <property>
+        <name>metron_alerts_jvmopts</name>
+        <description>JVM Options for the Alerts UI</description>
+        <value></value>
+        <display-name>JVM Options</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
 </configuration>
