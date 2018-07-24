@@ -73,12 +73,9 @@ export class PcapPanelComponent {
         this.errorMsg = `Response status: ${error.responseCode}. Something went wrong with your status request!`;
       });
     });
-<<<<<<< HEAD
   }
 
   getDownloadUrl() {
     return this.pcapService.getDownloadUrl(this.queryId, this.selectedPage);
-=======
->>>>>>> feature/METRON-1554-pcap-query-panel
   }
 }
