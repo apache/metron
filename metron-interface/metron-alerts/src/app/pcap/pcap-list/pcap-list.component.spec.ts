@@ -72,4 +72,10 @@ describe('PcapListComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should emit an event with onPageChange', () => {
+    const incrementSpy = spyOn(component.pageUpdate, 'emit');
+    component.onPageChange();
+    expect(incrementSpy).toHaveBeenCalled();
+  });
 });
