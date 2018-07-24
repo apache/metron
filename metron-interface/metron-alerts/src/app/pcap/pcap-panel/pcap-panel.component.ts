@@ -37,6 +37,7 @@ export class PcapPanelComponent implements OnInit {
   queryRunning: boolean = false;
   progressWidth: number = 0;
   selectedPage: number = 1;
+  errorMsg: string;
 
   constructor(private pcapService: PcapService ) { }
 
@@ -49,6 +50,7 @@ export class PcapPanelComponent implements OnInit {
     this.progressWidth = 0;
     this.pcapService.submitRequest(pcapRequest).subscribe(id => {
       this.queryRunning = true;
+      this.errorMsg = null;
       this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
         if ('SUCCEEDED' === statusResponse.jobStatus) {
           this.statusSubscription.unsubscribe();
@@ -56,23 +58,18 @@ export class PcapPanelComponent implements OnInit {
           this.pcapService.getPackets(id, this.selectedPage).toPromise().then(pdml => {
             this.pdml = pdml;
           });
+        } else if ('FAILED' === statusResponse.jobStatus) {
+          this.statusSubscription.unsubscribe();
+          this.queryRunning = false;
+          this.errorMsg = `Query status: ${statusResponse.jobStatus}. Check your filter criteria and try again!`;
         } else if (this.progressWidth < 100) {
           this.progressWidth = Math.trunc(statusResponse.percentComplete);
         }
+      }, (error: any) => {
+        this.statusSubscription.unsubscribe();
+        this.queryRunning = false;
+        this.errorMsg = `Response status: ${error.responseCode}. Something went wrong with your status request!`;
       });
     });
-
-    // this.pcapService.getTestPackets(this.pcapRequest).subscribe(response => {
-    //   this.pdml = response
-    // });
   }
-
-  test(pcapRequest) {
-    console.log(pcapRequest);
-    this.pcapService.getTestPackets(this.pcapRequest).subscribe(response => {
-      this.pdml = response
-    })
-  }
-
-
 }
