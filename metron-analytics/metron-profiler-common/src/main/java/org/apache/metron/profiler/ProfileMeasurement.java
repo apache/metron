@@ -95,7 +95,7 @@ public class ProfileMeasurement implements Serializable {
   }
 
   public ProfileMeasurement withPeriod(long whenMillis, long periodDuration, TimeUnit periodUnits) {
-    this.withPeriod(new ProfilePeriod(whenMillis, periodDuration, periodUnits));
+    this.withPeriod(ProfilePeriod.fromTimestamp(whenMillis, periodDuration, periodUnits));
     return this;
   }
 
