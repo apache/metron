@@ -183,6 +183,7 @@ public class PcapJob<T> implements Statusable<Path> {
   public PcapJob() {
     jobStatus = new JobStatus();
     finalResults = new PcapPages();
+    timer = new Timer();
     statusInterval = THREE_SECONDS;
     completeCheckInterval = ONE_SECOND;
   }
@@ -306,8 +307,7 @@ public class PcapJob<T> implements Statusable<Path> {
   }
 
   private void startJobStatusTimerThread(long interval) {
-    timer = new Timer();
-    timer.scheduleAtFixedRate(new TimerTask() {
+    getTimer().scheduleAtFixedRate(new TimerTask() {
       @Override
       public void run() {
         if (!updateStatus()) {
@@ -315,6 +315,14 @@ public class PcapJob<T> implements Statusable<Path> {
         }
       }
     }, interval, interval);
+  }
+
+  public void setTimer(Timer timer) {
+    this.timer = timer;
+  }
+
+  private Timer getTimer() {
+    return timer;
   }
 
   /**
@@ -325,7 +333,6 @@ public class PcapJob<T> implements Statusable<Path> {
   private synchronized boolean updateStatus() {
     try {
       org.apache.hadoop.mapreduce.JobStatus mrJobStatus = mrJob.getStatus();
-      jobStatus.withJobId(mrJobStatus.getJobID().toString());
       org.apache.hadoop.mapreduce.JobStatus.State mrJobState = mrJob.getStatus().getState();
       if (mrJob.isComplete()) {
         jobStatus.withPercentComplete(100.0);
