@@ -286,6 +286,19 @@ public class PcapJob<T> implements Statusable<Path> {
         , fs
         , filterImpl
     );
+    if (mrJob == null) {
+      LOG.info("No files to process with specified date range.");
+      try {
+        setFinalResults(input -> new PcapPages(), configuration);
+        jobStatus.withState(State.SUCCEEDED).withDescription("No results in specified date range.")
+            .withPercentComplete(100.0);
+      } catch (JobException e) {
+        // This should not cause an error as we simply set results to an empty result set.
+        jobStatus.withState(State.FAILED).withDescription("Unable to finalize empty job.")
+            .withFailureException(e);
+      }
+      return this;
+    }
     mrJob.submit();
     jobStatus.withState(State.SUBMITTED).withDescription("Job submitted");
     startJobStatusTimerThread(statusInterval);
@@ -352,7 +365,8 @@ public class PcapJob<T> implements Statusable<Path> {
   }
 
   /**
-   * Writes results using finalizer. Returns true on success, false otherwise.
+   * Writes results using finalizer. Returns true on success, false otherwise. If no results
+   * to finalize, returns empty Pageable.
    *
    * @param finalizer Writes results.
    * @param configuration Configure the finalizer.
@@ -361,13 +375,17 @@ public class PcapJob<T> implements Statusable<Path> {
   private void setFinalResults(Finalizer<Path> finalizer, Map<String, Object> configuration)
       throws JobException {
     Pageable<Path> results = finalizer.finalizeJob(configuration);
+    if (results == null) {
+      results = new PcapPages();
+    }
     synchronized (this) {
       finalResults = results;
     }
   }
 
   /**
-   * Creates, but does not submit the job. This is the core MapReduce mrJob.
+   * Creates, but does not submit the job. This is the core MapReduce mrJob. Empty input path
+   * results in a null to be returned instead of creating the job.
    */
   public Job createJob(Optional<String> jobName
                       ,Path basePath
@@ -381,6 +399,11 @@ public class PcapJob<T> implements Statusable<Path> {
                       , PcapFilterConfigurator<T> filterImpl
                       ) throws IOException
   {
+    Iterable<String> filteredPaths = FileFilterUtil.getPathsInTimeRange(beginNS, endNS, listFiles(fs, basePath));
+    String inputPaths = Joiner.on(',').join(filteredPaths);
+    if (StringUtils.isEmpty(inputPaths)) {
+      return null;
+    }
     conf.set(START_TS_CONF, Long.toUnsignedString(beginNS));
     conf.set(END_TS_CONF, Long.toUnsignedString(endNS));
     conf.set(WIDTH_CONF, "" + findWidth(beginNS, endNS, numReducers));
@@ -396,11 +419,6 @@ public class PcapJob<T> implements Statusable<Path> {
     job.setPartitionerClass(PcapPartitioner.class);
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(BytesWritable.class);
-    Iterable<String> filteredPaths = FileFilterUtil.getPathsInTimeRange(beginNS, endNS, listFiles(fs, basePath));
-    String inputPaths = Joiner.on(',').join(filteredPaths);
-    if (StringUtils.isEmpty(inputPaths)) {
-      return null;
-    }
     SequenceFileInputFormat.addInputPaths(job, inputPaths);
     job.setInputFormatClass(SequenceFileInputFormat.class);
     job.setOutputFormatClass(SequenceFileOutputFormat.class);
