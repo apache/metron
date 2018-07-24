@@ -84,7 +84,7 @@ public class Pdml {
 
     Pdml pdml = (Pdml) o;
 
-    return (getVersion() != null ? getVersion().equals(pdml.getVersion()) : pdml.getVersion() != null) &&
+    return (getVersion() != null ? getVersion().equals(pdml.getVersion()) : pdml.getVersion() == null) &&
             (getCreator() != null ? getCreator().equals(pdml.getCreator()) : pdml.getCreator() == null) &&
             (getTime() != null ? getTime().equals(pdml.getTime()) : pdml.getTime() == null) &&
             (getCaptureFile() != null ? getCaptureFile().equals(pdml.getCaptureFile()) : pdml.getCaptureFile() == null) &&

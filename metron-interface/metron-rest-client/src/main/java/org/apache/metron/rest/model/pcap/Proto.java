@@ -93,7 +93,7 @@ public class Proto {
 
     Proto proto = (Proto) o;
 
-    return (getName() != null ? getName().equals(proto.getName()) : proto.getName() != null) &&
+    return (getName() != null ? getName().equals(proto.getName()) : proto.getName() == null) &&
             (getPos() != null ? getPos().equals(proto.getPos()) : proto.getPos() == null) &&
             (getShowname() != null ? getShowname().equals(proto.getShowname()) : proto.getShowname() == null) &&
             (getSize() != null ? getSize().equals(proto.getSize()) : proto.getSize() == null) &&

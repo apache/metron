@@ -122,13 +122,13 @@ public class FixedPcapRequest extends PcapRequest {
     FixedPcapRequest fixedPcapRequest = (FixedPcapRequest) o;
 
     return (super.equals(o)) &&
-            (getIpSrcAddr() != null ? getIpSrcAddr().equals(fixedPcapRequest.getIpSrcAddr()) : fixedPcapRequest.getIpSrcAddr() != null) &&
-            (getIpDstAddr() != null ? getIpDstAddr().equals(fixedPcapRequest.getIpDstAddr()) : fixedPcapRequest.getIpDstAddr() != null) &&
-            (getIpSrcPort() != null ? getIpSrcPort().equals(fixedPcapRequest.getIpSrcPort()) : fixedPcapRequest.getIpSrcPort() != null) &&
-            (getIpDstPort() != null ? getIpDstPort().equals(fixedPcapRequest.getIpDstPort()) : fixedPcapRequest.getIpDstPort() != null) &&
-            (getProtocol() != null ? getProtocol().equals(fixedPcapRequest.getProtocol()) : fixedPcapRequest.getProtocol() != null) &&
-            (getPacketFilter() != null ? getPacketFilter().equals(fixedPcapRequest.getPacketFilter()) : fixedPcapRequest.getPacketFilter() != null) &&
-            (getIncludeReverse() != null ? getIncludeReverse().equals(fixedPcapRequest.getIncludeReverse()) : fixedPcapRequest.getIncludeReverse() != null);
+            (getIpSrcAddr() != null ? getIpSrcAddr().equals(fixedPcapRequest.getIpSrcAddr()) : fixedPcapRequest.getIpSrcAddr() == null) &&
+            (getIpDstAddr() != null ? getIpDstAddr().equals(fixedPcapRequest.getIpDstAddr()) : fixedPcapRequest.getIpDstAddr() == null) &&
+            (getIpSrcPort() != null ? getIpSrcPort().equals(fixedPcapRequest.getIpSrcPort()) : fixedPcapRequest.getIpSrcPort() == null) &&
+            (getIpDstPort() != null ? getIpDstPort().equals(fixedPcapRequest.getIpDstPort()) : fixedPcapRequest.getIpDstPort() == null) &&
+            (getProtocol() != null ? getProtocol().equals(fixedPcapRequest.getProtocol()) : fixedPcapRequest.getProtocol() == null) &&
+            (getPacketFilter() != null ? getPacketFilter().equals(fixedPcapRequest.getPacketFilter()) : fixedPcapRequest.getPacketFilter() == null) &&
+            (getIncludeReverse() != null ? getIncludeReverse().equals(fixedPcapRequest.getIncludeReverse()) : fixedPcapRequest.getIncludeReverse() == null);
   }
 
   @Override

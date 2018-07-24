@@ -255,6 +255,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/metaalert/update/status/{guid}/{status}`](#get-apiv1metaalertupdatestatusguidstatus)|
 | [ `GET /api/v1/pcap/fixed`](#get-apiv1pcapfixed)|
 | [ `GET /api/v1/pcap/query`](#get-apiv1pcapquery)|
+| [ `GET /api/v1/pcap`](#get-apiv1pcap)|
 | [ `GET /api/v1/pcap/{jobId}`](#get-apiv1pcapjobid)|
 | [ `GET /api/v1/pcap/{jobId}/pdml`](#get-apiv1pcapjobidpdml)|
 | [ `GET /api/v1/pcap/{jobId}/raw`](#get-apiv1pcapjobidraw)|
@@ -516,7 +517,14 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns a job status with job ID.
     
-### `POST /api/v1/pcap/{jobId}`
+### `GET /api/v1/pcap`
+  * Description: Gets a list of job statuses for Pcap query jobs that match the requested state.
+  * Input:
+    * state - Job state
+  * Returns:
+    * 200 - Returns a list of job statuses for jobs that match the requested state.  
+ 
+### `GET /api/v1/pcap/{jobId}`
   * Description: Gets job status for Pcap query job.
   * Input:
     * jobId - Job ID of submitted job
@@ -524,7 +532,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns a job status for the Job ID.
     * 404 - Job is missing.
     
-### `POST /api/v1/pcap/{jobId}/pdml`
+### `GET /api/v1/pcap/{jobId}/pdml`
   * Description: Gets Pcap Results for a page in PDML format.
   * Input:
     * jobId - Job ID of submitted job
@@ -533,7 +541,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns PDML in json format.
     * 404 - Job or page is missing.
     
-### `POST /api/v1/pcap/{jobId}/raw`
+### `GET /api/v1/pcap/{jobId}/raw`
   * Description: Download Pcap Results for a page.
   * Input:
     * jobId - Job ID of submitted job
@@ -541,6 +549,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns Pcap as a file download.
     * 404 - Job or page is missing.
+    
+### `DELETE /api/v1/pcap/kill/{jobId}`
+  * Description: Kills running job.
+  * Input:
+    * jobId - Job ID of submitted job
+  * Returns:
+    * 200 - Kills passed job.
 
 ### `POST /api/v1/search/search`
   * Description: Searches the indexing store. GUIDs must be quoted to ensure correct results.
