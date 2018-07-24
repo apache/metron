@@ -49,8 +49,7 @@ export class PcapService {
     public submitRequest(pcapRequest: PcapRequest): Observable<string> {
         return this.http.post('/api/v1/pcap/fixed', pcapRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
             .map(result => JSON.parse(result.text()).jobId)
-            .catch(HttpUtil.handleError)
-            .onErrorResumeNext();
+            .catch(HttpUtil.handleError);
     }
 
     public getStatus(id: string): Observable<PcapStatusResponse> {

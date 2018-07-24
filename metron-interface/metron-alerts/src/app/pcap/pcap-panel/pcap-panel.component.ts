@@ -65,8 +65,10 @@ export class PcapPanelComponent {
       }, (error: any) => {
         this.statusSubscription.unsubscribe();
         this.queryRunning = false;
-        this.errorMsg = `Response status: ${error.responseCode}. Something went wrong with your status request!`;
+        this.errorMsg = `Response status: ${error.message}. Something went wrong with your status request!`;
       });
+    }, (error: any) => {
+      this.errorMsg = `Response message: ${error.message}. Something went wrong with your query submission!`;
     });
   }
 
