@@ -27,6 +27,7 @@ export class AuthenticationService {
 
   private currentUser: string;
   userUrl = '/api/v1/user';
+  logout = '/logout/originalUrl={0}';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
@@ -60,5 +61,15 @@ export class AuthenticationService {
 
   public isAuthenticated(): boolean {
     return this.currentUser != null;
+  }
+
+  public logout() {
+    // clear the authentication cookie
+    browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
+      browser.cookies.remove({ url: tabs[0].url, name: 'hadoop-jwt' });
+    }).then(() => {
+      // redirect to the logout endpoint
+      location.replace(logout.format(window.location))
+    });
   }
 }

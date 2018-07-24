@@ -36,8 +36,8 @@ export class HttpUtil {
     // We'd also dig deeper into the error to get a better message
     let restError: RestError;
     if (res.status === 401) {
-      // TODO handle unauthorised access by checking jwt and redirecting to signon
-      // this should not occur with SSO enabled.
+      // on unauthorized force a reload to force re-authentication
+      location.reload();
     } else if (res.status !== 404) {
       restError = res.json();
     } else {
