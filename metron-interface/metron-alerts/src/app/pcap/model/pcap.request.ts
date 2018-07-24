@@ -15,15 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 export class PcapRequest {
-  startTime: number = 1;
-  endTime: number = 150000000000000000;
-  srcIp: string = '';
-  srcPort: string = '';
-  dstIp: string = '';
-  dstPort: string = '';
+  startTimeMs: number = 0;
+  endTimeMs: number = 150000000000000000;
+  ipSrcAddr: string = '';
+  ipSrcPort: string = '';
+  ipDstAddr: string = '';
+  ipDstPort: string = '';
   protocol: string = '';
   packetFilter: string = '';
-  includeReverseTraffic: boolean = false;
+  includeReverse: boolean = false;
 }

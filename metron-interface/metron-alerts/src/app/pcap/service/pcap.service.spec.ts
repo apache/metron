@@ -52,15 +52,15 @@ describe('PcapService', () => {
       inject([PcapService, MockBackend], (pcapService, mockBackend) => {
 
         let request: PcapRequest = {
-          startTime: 0,
-          endTime: 0,
-          srcIp: '0.0.0.0',
-          srcPort: '80',
-          dstIp: '0.0.0.0',
-          dstPort: '80',
+          startTimeMs: 0,
+          endTimeMs: 0,
+          ipSrcAddr: '0.0.0.0',
+          ipSrcPort: '80',
+          ipDstAddr: '0.0.0.0',
+          ipDstPort: '80',
           protocol: '*',
           packetFilter: '*',
-          includeReverseTraffic: false,
+          includeReverse: false,
         };
 
         mockBackend.connections.subscribe((connection) => {
