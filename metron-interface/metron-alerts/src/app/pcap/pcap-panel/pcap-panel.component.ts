@@ -27,24 +27,19 @@ export class PcapPanelComponent {
   progressWidth: number = 0;
   pagination: PcapPagination = new PcapPagination();
   savedPcapRequest: {};
-  selectedPage: number = 1;
 
   constructor(private pcapService: PcapService ) { }
 
   changePage(page) {
-    this.selectedPage = page;
-    this.pcapService.getPackets(this.queryId, this.selectedPage).toPromise().then(pdml => {
+    this.pagination.selectedPage = page;
+    this.pcapService.getPackets(this.queryId, this.pagination.selectedPage).toPromise().then(pdml => {
       this.pdml = pdml;
     });
   }
 
-  onSearch(pcapRequest, resetPaginationForSearch = true, from = 1) {
+  onSearch(pcapRequest) {
     this.savedPcapRequest = pcapRequest;
-    if (resetPaginationForSearch === true) {
-      pcapRequest.from = 1;
-    } else {
-      pcapRequest.from = from;
-    }
+    this.pagination.selectedPage = 1;
     this.pdml = null;
     this.progressWidth = 0;
     this.pcapService.submitRequest(pcapRequest).subscribe(id => {
@@ -55,7 +50,7 @@ export class PcapPanelComponent {
           this.pagination.total = statusResponse.pageTotal;
           this.statusSubscription.unsubscribe();
           this.queryRunning = false;
-          this.pcapService.getPackets(id, this.selectedPage).toPromise().then(pdml => {
+          this.pcapService.getPackets(id, this.pagination.selectedPage).toPromise().then(pdml => {
             this.pdml = pdml;
           });
         } else if (this.progressWidth < 100) {
@@ -66,6 +61,6 @@ export class PcapPanelComponent {
   }
 
   getDownloadUrl() {
-    return this.pcapService.getDownloadUrl(this.queryId, this.selectedPage);
+    return this.pcapService.getDownloadUrl(this.queryId, this.pagination.selectedPage);
   }
 }
