@@ -27,7 +27,7 @@ export class AuthenticationService {
 
   private currentUser: string;
   userUrl = '/api/v1/user';
-  logout = '/logout/originalUrl={0}';
+  logoutUrl = '/logout/originalUrl={0}';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
@@ -69,7 +69,7 @@ export class AuthenticationService {
       browser.cookies.remove({ url: tabs[0].url, name: 'hadoop-jwt' });
     }).then(() => {
       // redirect to the logout endpoint
-      location.replace(logout.format(window.location))
+      location.replace(this.logoutUrl.format(window.location))
     });
   }
 }
