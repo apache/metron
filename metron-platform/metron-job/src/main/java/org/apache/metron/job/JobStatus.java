@@ -23,8 +23,11 @@ package org.apache.metron.job;
  */
 public class JobStatus {
 
+  private Throwable failureReason;
+
   public enum State {
     NOT_RUNNING,
+    SUBMITTED,
     RUNNING,
     SUCCEEDED,
     FINALIZING,
@@ -33,12 +36,17 @@ public class JobStatus {
   }
 
   private String jobId;
-  private State state = State.NOT_RUNNING;
-  private double percentComplete = 0.0;
+  private State state;
+  private double percentComplete;
   private String description;
   private long completionTime;
 
   public JobStatus() {
+    jobId = "";
+    state = State.NOT_RUNNING;
+    percentComplete = 0.0;
+    description = "Not started";
+    completionTime = 0L;
   }
 
   /**
@@ -79,6 +87,11 @@ public class JobStatus {
     return this;
   }
 
+  public JobStatus withFailureException(Throwable failureReason) {
+    this.failureReason = failureReason;
+    return this;
+  }
+
   public String getJobId() {
     return jobId;
   }
@@ -97,6 +110,15 @@ public class JobStatus {
 
   public long getCompletionTime() {
     return completionTime;
+  }
+
+  /**
+   * Null if no failure reason available.
+   *
+   * @return Throwable indicating failure.
+   */
+  public Throwable getFailureReason() {
+    return failureReason;
   }
 
 }

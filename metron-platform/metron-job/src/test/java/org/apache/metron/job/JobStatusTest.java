@@ -42,4 +42,14 @@ public class JobStatusTest {
     assertThat(copied.getPercentComplete(), equalTo(100.0));
   }
 
+  @Test
+  public void failure_info_provided() {
+    JobException e = new JobException("The job blew up.");
+    JobStatus original = new JobStatus()
+        .withState(State.FAILED)
+        .withDescription("Failed")
+        .withFailureException(e);
+    assertThat(original.getFailureReason(), equalTo(e));
+  }
+
 }

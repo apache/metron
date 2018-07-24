@@ -270,7 +270,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<Map<String, String>> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -292,7 +291,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -315,7 +313,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<Map<String, String>> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -337,7 +334,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -360,7 +356,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<Map<String, String>> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -382,7 +377,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -405,7 +399,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<Map<String, String>> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -429,7 +422,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -452,7 +444,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<Map<String, String>> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -487,7 +478,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -520,7 +510,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -553,7 +542,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
@@ -588,7 +576,6 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         PcapJob<String> job = new PcapJob<>();
         Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
         Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
-        Assert.assertEquals(JobStatus.State.RUNNING, results.getStatus().getState());
         waitForJob(results);
 
         Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
