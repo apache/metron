@@ -16,6 +16,6 @@
  * limitations under the License.
  */
 export class PcapPagination {
-  from = 1;
+  selectedPage = 1;
   total: number;
 }

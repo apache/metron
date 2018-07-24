@@ -37,7 +37,7 @@ export class PcapListComponent  {
   }
 
   onPageChange() {
-    this.pageUpdate.emit(this.pagination.from);
+    this.pageUpdate.emit(this.pagination.selectedPage);
   }
 
 }

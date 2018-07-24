@@ -29,12 +29,12 @@ export class PcapPaginationComponent {
   @Output() pageChange = new EventEmitter();
 
   onPrevious() {
-    this.pagination.from -= 1;
+    this.pagination.selectedPage -= 1;
     this.pageChange.emit();
   }
 
   onNext() {
-    this.pagination.from  += 1;
+    this.pagination.selectedPage  += 1;
     this.pageChange.emit();
   }
 

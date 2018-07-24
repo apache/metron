@@ -46,7 +46,7 @@ describe('PcapPaginationComponent', () => {
   });
 
   it('should disable the next button if on the last page result', () => {
-    component.pagination.from = 10;
+    component.pagination.selectedPage = 10;
     fixture.detectChanges();
     const nextButton = fixture.debugElement.query(By.css('[data-qe-id="pcap-pagination-next"]')).nativeElement;
     expect(nextButton.disabled).toBe(true);
@@ -54,7 +54,7 @@ describe('PcapPaginationComponent', () => {
 
   it('should increment the current page by 1 with onNext()', () => {
     component.onNext();
-    expect(component.pagination.from).toBe(2);
+    expect(component.pagination.selectedPage).toBe(2);
   });
 
   it('should emit an event with onNext()', () => {
@@ -64,9 +64,9 @@ describe('PcapPaginationComponent', () => {
   });
 
   it('should decrement the current page by 1 with OnPrevious()', () => {
-    component.pagination.from += 1;
+    component.pagination.selectedPage += 1;
     component.onPrevious();
-    expect(component.pagination.from).toBe(1);
+    expect(component.pagination.selectedPage).toBe(1);
   });
 
   it('should emit an event with OnPrevious()', () => {
