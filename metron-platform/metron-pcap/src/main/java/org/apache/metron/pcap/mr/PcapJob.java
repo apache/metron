@@ -300,7 +300,7 @@ public class PcapJob<T> implements Statusable<Path> {
       return this;
     }
     mrJob.submit();
-    jobStatus.withState(State.SUBMITTED).withDescription("Job submitted");
+    jobStatus.withState(State.SUBMITTED).withDescription("Job submitted").withJobId(mrJob.getJobID().toString());
     startJobStatusTimerThread(statusInterval);
     return this;
   }
