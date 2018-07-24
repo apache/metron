@@ -41,13 +41,9 @@ export class PcapService {
     }
 
     public pollStatus(id: string): Observable<{}> {
-        return this.ngZone.runOutsideAngular(() => {
-            return this.ngZone.run(() => {
-                return Observable.interval(this.statusInterval * 1000).switchMap(() => {
-                    return this.getStatus(id);
-                });
-            });
-        });
+      return Observable.interval(this.statusInterval * 1000).switchMap(() => {
+        return this.getStatus(id);
+      });
     }
 
     public submitRequest(pcapRequest: PcapRequest): Observable<string> {
@@ -61,8 +57,7 @@ export class PcapService {
       return this.http.get(`/api/v1/pcap/${id}`,
           new RequestOptions({headers: new Headers(this.defaultHeaders)}))
           .map(HttpUtil.extractData)
-          .catch(HttpUtil.handleError)
-          .onErrorResumeNext();
+          .catch(HttpUtil.handleError);
   }
     public getPackets(id: string, pageId: number): Observable<Pdml> {
         return this.http.get(`/api/v1/pcap/${id}/pdml?page=${pageId}`, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
