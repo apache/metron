@@ -26,5 +26,4 @@ export class PcapRequest {
   protocol: string = '';
   packetFilter: string = '';
   includeReverse: boolean = false;
-  from?: number;
 }
