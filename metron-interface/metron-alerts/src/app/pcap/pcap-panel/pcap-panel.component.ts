@@ -43,30 +43,36 @@ export class PcapPanelComponent {
     this.pagination.selectedPage = 1;
     this.pdml = null;
     this.progressWidth = 0;
-    this.pcapService.submitRequest(pcapRequest).subscribe(id => {
-      this.queryId = id;
-      this.queryRunning = true;
-      this.errorMsg = null;
-      this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
-        if ('SUCCEEDED' === statusResponse.jobStatus) {
-          this.pagination.total = statusResponse.pageTotal;
+    this.errorMsg = null;
+    this.pcapService.submitRequest(pcapRequest).subscribe((statusResponse: PcapStatusResponse) => {
+      let id = statusResponse.jobId;
+      if (!id) {
+        this.errorMsg = statusResponse.description;
+      } else {
+        this.queryId = id;
+        this.queryRunning = true;
+        this.errorMsg = null;
+        this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
+          if ('SUCCEEDED' === statusResponse.jobStatus) {
+            this.pagination.total = statusResponse.pageTotal;
+            this.statusSubscription.unsubscribe();
+            this.queryRunning = false;
+            this.pcapService.getPackets(id, this.pagination.selectedPage).toPromise().then(pdml => {
+              this.pdml = pdml;
+            });
+          } else if ('FAILED' === statusResponse.jobStatus) {
+            this.statusSubscription.unsubscribe();
+            this.queryRunning = false;
+            this.errorMsg = `Query status: ${statusResponse.jobStatus}. Check your filter criteria and try again!`;
+          } else if (this.progressWidth < 100) {
+            this.progressWidth = Math.trunc(statusResponse.percentComplete);
+          }
+        }, (error: any) => {
           this.statusSubscription.unsubscribe();
           this.queryRunning = false;
-          this.pcapService.getPackets(id, this.pagination.selectedPage).toPromise().then(pdml => {
-            this.pdml = pdml;
-          });
-        } else if ('FAILED' === statusResponse.jobStatus) {
-          this.statusSubscription.unsubscribe();
-          this.queryRunning = false;
-          this.errorMsg = `Query status: ${statusResponse.jobStatus}. Check your filter criteria and try again!`;
-        } else if (this.progressWidth < 100) {
-          this.progressWidth = Math.trunc(statusResponse.percentComplete);
-        }
-      }, (error: any) => {
-        this.statusSubscription.unsubscribe();
-        this.queryRunning = false;
-        this.errorMsg = `Response status: ${error.message}. Something went wrong with your status request!`;
-      });
+          this.errorMsg = `Response message: ${error.message}. Something went wrong with your status request!`;
+        });
+      }
     }, (error: any) => {
       this.errorMsg = `Response message: ${error.message}. Something went wrong with your query submission!`;
     });
