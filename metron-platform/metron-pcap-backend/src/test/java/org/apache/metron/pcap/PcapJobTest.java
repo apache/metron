@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -62,6 +64,7 @@ public class PcapJobTest {
   private JobID jobId;
   @Mock
   private Finalizer<Path> finalizer;
+  private TestTimer timer;
   private Pageable<Path> pageableResult;
   private FixedPcapConfig config;
   private Configuration hadoopConfig;
@@ -76,7 +79,6 @@ public class PcapJobTest {
   private Path finalOutputPath;
   private Map<String, String> fixedFields;
   private PcapJob<Map<String, String>> testJob;
-
 
   @Before
   public void setup() throws IOException {
@@ -94,7 +96,9 @@ public class PcapJobTest {
     finalOutputPath = new Path("finaloutpath");
     when(jobId.toString()).thenReturn(jobIdVal);
     when(mrStatus.getJobID()).thenReturn(jobId);
+    when(mrJob.getJobID()).thenReturn(jobId);
     pageableResult = new PcapPages();
+    timer = new TestTimer();
     // handles setting the file name prefix under the hood
     config = new FixedPcapConfig(clock -> "clockprefix");
     PcapOptions.HADOOP_CONF.put(config, hadoopConfig);
@@ -108,9 +112,48 @@ public class PcapJobTest {
     PcapOptions.FILTER_IMPL.put(config, new FixedPcapFilter.Configurator());
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, numRecordsPerFile);
     PcapOptions.FINAL_OUTPUT_PATH.put(config, finalOutputPath);
-    testJob = new TestJob<>();
-    testJob.setStatusInterval(10);
-    testJob.setCompleteCheckInterval(10);
+    testJob = new TestJob<>(mrJob);
+    testJob.setStatusInterval(1);
+    testJob.setCompleteCheckInterval(1);
+    testJob.setTimer(timer);
+  }
+
+  private class TestJob<T> extends PcapJob<T> {
+
+    private final Job mrJob;
+
+    public TestJob(Job mrJob) {
+      this.mrJob = mrJob;
+    }
+
+    @Override
+    public Job createJob(Optional<String> jobName,
+        Path basePath,
+        Path outputPath,
+        long beginNS,
+        long endNS,
+        int numReducers,
+        T fields,
+        Configuration conf,
+        FileSystem fs,
+        PcapFilterConfigurator<T> filterImpl) throws IOException {
+      return mrJob;
+    }
+  }
+
+  private class TestTimer extends Timer {
+
+    private TimerTask task;
+
+    @Override
+    public void scheduleAtFixedRate(TimerTask task, long delay, long period) {
+      this.task = task;
+    }
+
+    public void updateJobStatus() {
+      task.run();
+    }
+
   }
 
   @Test
@@ -128,23 +171,6 @@ public class PcapJobTest {
         equalTo(8));
   }
 
-  private class TestJob<T> extends PcapJob<T> {
-
-    @Override
-    public Job createJob(Optional<String> jobName,
-        Path basePath,
-        Path outputPath,
-        long beginNS,
-        long endNS,
-        int numReducers,
-        T fields,
-        Configuration conf,
-        FileSystem fs,
-        PcapFilterConfigurator<T> filterImpl) throws IOException {
-      return mrJob;
-    }
-  }
-
   @Test
   public void job_succeeds_synchronously() throws Exception {
     pageableResult = new PcapPages(
@@ -154,6 +180,7 @@ public class PcapJobTest {
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
     when(mrJob.getStatus()).thenReturn(mrStatus);
     Statusable<Path> statusable = testJob.submit(finalizer, config);
+    timer.updateJobStatus();
     Pageable<Path> results = statusable.get();
     Assert.assertThat(results.getSize(), equalTo(3));
     JobStatus status = statusable.getStatus();
@@ -168,6 +195,7 @@ public class PcapJobTest {
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.FAILED);
     when(mrJob.getStatus()).thenReturn(mrStatus);
     Statusable<Path> statusable = testJob.submit(finalizer, config);
+    timer.updateJobStatus();
     Pageable<Path> results = statusable.get();
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.FAILED));
@@ -181,6 +209,7 @@ public class PcapJobTest {
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.KILLED);
     when(mrJob.getStatus()).thenReturn(mrStatus);
     Statusable<Path> statusable = testJob.submit(finalizer, config);
+    timer.updateJobStatus();
     Pageable<Path> results = statusable.get();
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.KILLED));
@@ -190,13 +219,11 @@ public class PcapJobTest {
 
   @Test
   public void job_succeeds_asynchronously() throws Exception {
-    // not complete a few times to make sure cancel works as expected
-    when(mrJob.isComplete()).thenReturn(false, false, false, true);
+    when(mrJob.isComplete()).thenReturn(true);
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
     when(mrJob.getStatus()).thenReturn(mrStatus);
     Statusable<Path> statusable = testJob.submit(finalizer, config);
-    while (!statusable.isDone()) {
-    }
+    timer.updateJobStatus();
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
@@ -207,18 +234,20 @@ public class PcapJobTest {
     when(mrJob.isComplete()).thenReturn(false);
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.RUNNING);
     when(mrJob.getStatus()).thenReturn(mrStatus);
-    Statusable<Path> statusable = testJob.submit(finalizer, config);
     when(mrJob.mapProgress()).thenReturn(0.5f);
     when(mrJob.reduceProgress()).thenReturn(0f);
+    Statusable<Path> statusable = testJob.submit(finalizer, config);
+    timer.updateJobStatus();
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.RUNNING));
     Assert.assertThat(status.getDescription(), equalTo("map: 50.0%, reduce: 0.0%"));
     Assert.assertThat(status.getPercentComplete(), equalTo(25.0));
     when(mrJob.mapProgress()).thenReturn(1.0f);
     when(mrJob.reduceProgress()).thenReturn(0.5f);
+    timer.updateJobStatus();
     status = statusable.getStatus();
-    Assert.assertThat(status.getPercentComplete(), equalTo(75.0));
     Assert.assertThat(status.getDescription(), equalTo("map: 100.0%, reduce: 50.0%"));
+    Assert.assertThat(status.getPercentComplete(), equalTo(75.0));
   }
 
   @Test
@@ -230,6 +259,7 @@ public class PcapJobTest {
     statusable.kill();
     when(mrJob.isComplete()).thenReturn(true);
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.KILLED);
+    timer.updateJobStatus();
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.KILLED));
   }

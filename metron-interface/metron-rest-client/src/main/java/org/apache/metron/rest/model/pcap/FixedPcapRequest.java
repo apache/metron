@@ -87,6 +87,7 @@ public class FixedPcapRequest extends PcapRequest {
     FixedPcapOptions.INCLUDE_REVERSE.put(this, includeReverse);
   }
 
+  @Override
   public void setFields() {
     Map<String, String> fields = new HashMap<>();
     if (getIpSrcAddr() != null) {

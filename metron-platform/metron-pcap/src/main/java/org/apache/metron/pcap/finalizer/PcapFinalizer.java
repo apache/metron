@@ -81,7 +81,7 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
         for (List<byte[]> data : partitions) {
           Path outputPath = getOutputPath(config, part++);
           if (data.size() > 0) {
-            getResultsWriter().write(hadoopConfig, data, outputPath.toUri().getPath());
+            write(resultsWriter, hadoopConfig, data, outputPath);
             outFiles.add(outputPath);
           }
         }
@@ -99,6 +99,8 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
     }
     return new PcapPages(outFiles);
   }
+
+  protected abstract void write(PcapResultsWriter resultsWriter, Configuration hadoopConfig, List<byte[]> data, Path outputPath) throws IOException;
 
   protected abstract Path getOutputPath(Map<String, Object> config, int partition);
 

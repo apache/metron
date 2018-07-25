@@ -820,6 +820,10 @@
           "subsection-name": "subsection-rest"
         },
         {
+          "config": "metron-rest-env/pcap_page_size",
+          "subsection-name": "subsection-rest"
+        },
+        {
           "config": "metron-management-ui-env/metron_management_ui_port",
           "subsection-name": "subsection-management-ui"
         },
@@ -1416,6 +1420,12 @@
       },
       {
         "config": "metron-rest-env/metron_escalation_topic",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/pcap_page_size",
         "widget": {
           "type": "text-field"
         }
