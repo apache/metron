@@ -79,8 +79,8 @@ public class PcapJob<T> implements Statusable<Path> {
   public static final String WIDTH_CONF = "width";
   private static final long THREE_SECONDS = 3000;
   private static final long ONE_SECOND = 1000;
-  private Job mrJob; // store a running MR job reference for async status check
-  private State jobState; // overall job state, including finalization step
+  private volatile Job mrJob; // store a running MR job reference for async status check
+  private volatile JobStatus jobStatus; // overall job status, including finalization step
   private Finalizer<Path> finalizer;
   private Map<String, Object> configuration;
   private Pageable<Path> finalResults;
@@ -181,8 +181,9 @@ public class PcapJob<T> implements Statusable<Path> {
   }
 
   public PcapJob() {
-    jobState = State.NOT_RUNNING;
+    jobStatus = new JobStatus();
     finalResults = new PcapPages();
+    timer = new Timer();
     statusInterval = THREE_SECONDS;
     completeCheckInterval = ONE_SECOND;
   }
@@ -286,73 +287,112 @@ public class PcapJob<T> implements Statusable<Path> {
         , fs
         , filterImpl
     );
+    if (mrJob == null) {
+      LOG.info("No files to process with specified date range.");
+      try {
+        setFinalResults(input -> new PcapPages(), configuration);
+        jobStatus.withState(State.SUCCEEDED).withDescription("No results in specified date range.")
+            .withPercentComplete(100.0);
+      } catch (JobException e) {
+        // This should not cause an error as we simply set results to an empty result set.
+        jobStatus.withState(State.FAILED).withDescription("Unable to finalize empty job.")
+            .withFailureException(e);
+      }
+      return this;
+    }
     mrJob.submit();
-    jobState = State.RUNNING;
+    jobStatus.withState(State.SUBMITTED).withDescription("Job submitted").withJobId(mrJob.getJobID().toString());
     startJobStatusTimerThread(statusInterval);
     return this;
   }
 
   private void startJobStatusTimerThread(long interval) {
-    timer = new Timer();
-    timer.scheduleAtFixedRate(new TimerTask() {
+    getTimer().scheduleAtFixedRate(new TimerTask() {
       @Override
       public void run() {
-        try {
-          synchronized (this) {
-            if (jobState == State.RUNNING) {
-              if (mrJob.isComplete()) {
-                switch (mrJob.getStatus().getState()) {
-                  case SUCCEEDED:
-                    jobState = State.FINALIZING;
-                    if (setFinalResults(finalizer, configuration)) {
-                      jobState = State.SUCCEEDED;
-                    } else {
-                      jobState = State.FAILED;
-                    }
-                    break;
-                  case FAILED:
-                    jobState = State.FAILED;
-                    break;
-                  case KILLED:
-                    jobState = State.KILLED;
-                    break;
-                }
-                cancel(); // be gone, ye!
-              }
-            }
-          }
-        } catch (InterruptedException | IOException e) {
-          jobState = State.FAILED;
-          cancel();
+        if (!updateStatus()) {
+          cancel(); // be gone, ye!
         }
       }
     }, interval, interval);
   }
 
+  public void setTimer(Timer timer) {
+    this.timer = timer;
+  }
+
+  private Timer getTimer() {
+    return timer;
+  }
+
   /**
-   * Writes results using finalizer. Returns true on success, false otherwise.
+   * Update job status info. Will finalize job when underlying MR job completes.
+   *
+   * @return true if should continue updating status, false otherwise.
+   */
+  private synchronized boolean updateStatus() {
+    try {
+      org.apache.hadoop.mapreduce.JobStatus mrJobStatus = mrJob.getStatus();
+      org.apache.hadoop.mapreduce.JobStatus.State mrJobState = mrJob.getStatus().getState();
+      if (mrJob.isComplete()) {
+        jobStatus.withPercentComplete(100.0);
+        switch (mrJobState) {
+          case SUCCEEDED:
+            jobStatus.withState(State.FINALIZING).withDescription("Finalizing job.");
+            try {
+              setFinalResults(finalizer, configuration);
+              jobStatus.withState(State.SUCCEEDED).withDescription("Job completed.");
+            } catch (JobException je) {
+              jobStatus.withState(State.FAILED).withDescription("Job finalize failed.")
+                  .withFailureException(je);
+            }
+            break;
+          case FAILED:
+            jobStatus.withState(State.FAILED).withDescription(mrJob.getStatus().getFailureInfo());
+            break;
+          case KILLED:
+            jobStatus.withState(State.KILLED).withDescription(mrJob.getStatus().getFailureInfo());
+            break;
+        }
+        return false;
+      } else {
+        float mapProg = mrJob.mapProgress();
+        float reduceProg = mrJob.reduceProgress();
+        float totalProgress = ((mapProg / 2) + (reduceProg / 2)) * 100;
+        String description = String
+            .format("map: %s%%, reduce: %s%%", mapProg * 100, reduceProg * 100);
+        jobStatus.withPercentComplete(totalProgress).withState(State.RUNNING)
+            .withDescription(description);
+      }
+    } catch (InterruptedException | IOException e) {
+      jobStatus.withPercentComplete(100.0).withState(State.FAILED).withFailureException(e);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Writes results using finalizer. Returns true on success, false otherwise. If no results
+   * to finalize, returns empty Pageable.
    *
    * @param finalizer Writes results.
    * @param configuration Configure the finalizer.
    * @return Returns true on success, false otherwise.
    */
-  private boolean setFinalResults(Finalizer<Path> finalizer, Map<String, Object> configuration) {
-    boolean success = true;
-    Pageable<Path> results = new PcapPages();
-    try {
-      results = finalizer.finalizeJob(configuration);
-    } catch (JobException e) {
-      LOG.error("Failed to finalize job.", e);
-      success = false;
+  private void setFinalResults(Finalizer<Path> finalizer, Map<String, Object> configuration)
+      throws JobException {
+    Pageable<Path> results = finalizer.finalizeJob(configuration);
+    if (results == null) {
+      results = new PcapPages();
     }
     synchronized (this) {
       finalResults = results;
     }
-    return success;
   }
 
   /**
-   * Creates, but does not submit the job. This is the core MapReduce mrJob.
+   * Creates, but does not submit the job. This is the core MapReduce mrJob. Empty input path
+   * results in a null to be returned instead of creating the job.
    */
   public Job createJob(Optional<String> jobName
                       ,Path basePath
@@ -366,6 +406,11 @@ public class PcapJob<T> implements Statusable<Path> {
                       , PcapFilterConfigurator<T> filterImpl
                       ) throws IOException
   {
+    Iterable<String> filteredPaths = FileFilterUtil.getPathsInTimeRange(beginNS, endNS, listFiles(fs, basePath));
+    String inputPaths = Joiner.on(',').join(filteredPaths);
+    if (StringUtils.isEmpty(inputPaths)) {
+      return null;
+    }
     conf.set(START_TS_CONF, Long.toUnsignedString(beginNS));
     conf.set(END_TS_CONF, Long.toUnsignedString(endNS));
     conf.set(WIDTH_CONF, "" + findWidth(beginNS, endNS, numReducers));
@@ -381,11 +426,6 @@ public class PcapJob<T> implements Statusable<Path> {
     job.setPartitionerClass(PcapPartitioner.class);
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(BytesWritable.class);
-    Iterable<String> filteredPaths = FileFilterUtil.getPathsInTimeRange(beginNS, endNS, listFiles(fs, basePath));
-    String inputPaths = Joiner.on(',').join(filteredPaths);
-    if (StringUtils.isEmpty(inputPaths)) {
-      return null;
-    }
     SequenceFileInputFormat.addInputPaths(job, inputPaths);
     job.setInputFormatClass(SequenceFileInputFormat.class);
     job.setOutputFormatClass(SequenceFileOutputFormat.class);
@@ -411,54 +451,9 @@ public class PcapJob<T> implements Statusable<Path> {
     return JobType.MAP_REDUCE;
   }
 
-  /**
-   * Synchronized for mrJob and jobState
-   */
   @Override
   public synchronized JobStatus getStatus() throws JobException {
-    JobStatus status = new JobStatus();
-    if (mrJob == null) {
-      status.withPercentComplete(100).withState(State.SUCCEEDED);
-    } else {
-      try {
-        org.apache.hadoop.mapreduce.JobStatus mrJobStatus = mrJob.getStatus();
-        status.withJobId(mrJobStatus.getJobID().toString());
-        if (jobState == State.SUCCEEDED) {
-          status.withPercentComplete(100).withState(State.SUCCEEDED)
-              .withDescription("Job complete");
-        } else {
-          if (mrJob.isComplete()) {
-            status.withPercentComplete(100);
-            switch (mrJobStatus.getState()) {
-              case SUCCEEDED:
-                status.withState(State.FINALIZING).withDescription(State.FINALIZING.toString());
-                break;
-              case FAILED:
-                status.withState(State.FAILED).withDescription(State.FAILED.toString());
-                break;
-              case KILLED:
-                status.withState(State.KILLED).withDescription(State.KILLED.toString());
-                break;
-              default:
-                throw new IllegalStateException(
-                    "Unknown job state reported as 'complete' by mapreduce framework: "
-                        + mrJobStatus.getState());
-            }
-          } else {
-            float mapProg = mrJob.mapProgress();
-            float reduceProg = mrJob.reduceProgress();
-            float totalProgress = ((mapProg / 2) + (reduceProg / 2)) * 100;
-            String description = String
-                .format("map: %s%%, reduce: %s%%", mapProg * 100, reduceProg * 100);
-            status.withPercentComplete(totalProgress).withState(State.RUNNING)
-                .withDescription(description);
-          }
-        }
-      } catch (Exception e) {
-        throw new JobException("Error occurred while attempting to retrieve job status.", e);
-      }
-    }
-    return status;
+    return new JobStatus(jobStatus);
   }
 
   /**
@@ -483,6 +478,7 @@ public class PcapJob<T> implements Statusable<Path> {
 
   @Override
   public synchronized boolean isDone() {
+    State jobState = jobStatus.getState();
     return (jobState == State.SUCCEEDED
         || jobState == State.KILLED
         || jobState == State.FAILED);
