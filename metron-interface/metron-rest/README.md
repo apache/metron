@@ -216,7 +216,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 |            |
 | ---------- |
-| [ `POST /api/v1/alerts/ui/escalate`](#get-apiv1alertsuiescalate)|
+| [ `POST /api/v1/alerts/ui/escalate`](#post-apiv1alertsuiescalate)|
 | [ `GET /api/v1/alerts/ui/settings`](#get-apiv1alertsuisettings)|
 | [ `GET /api/v1/alerts/ui/settings/all`](#get-apiv1alertsuisettingsall)|
 | [ `DELETE /api/v1/alerts/ui/settings`](#delete-apiv1alertsuisettings)|
@@ -242,9 +242,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/metaalert/add/alert`](#get-apiv1metaalertaddalert)|
 | [ `GET /api/v1/metaalert/remove/alert`](#get-apiv1metaalertremovealert)|
 | [ `GET /api/v1/metaalert/update/status/{guid}/{status}`](#get-apiv1metaalertupdatestatusguidstatus)|
-| [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
-| [ `POST /api/v1/search/search`](#get-apiv1searchsearch)|
-| [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
+| [ `POST /api/v1/search/search`](#post-apiv1searchsearch)|
+| [ `POST /api/v1/search/group`](#post-apiv1searchgroup)|
 | [ `GET /api/v1/search/findOne`](#get-apiv1searchfindone)|
 | [ `GET /api/v1/search/column/metadata`](#get-apiv1searchcolumnmetadata)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
@@ -293,7 +292,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/{name}`](#get-apiv1stormname)|
 | [ `GET /api/v1/storm/supervisors`](#get-apiv1stormsupervisors)|
 | [ `PATCH /api/v1/update/patch`](#patch-apiv1updatepatch)|
-| [ `PUT /api/v1/update/replace`](#patch-apiv1updatereplace)|
+| [ `PUT /api/v1/update/replace`](#put-apiv1updatereplace)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
 ### `POST /api/v1/alerts/ui/escalate`
@@ -832,8 +831,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
          }
         ```
   * Returns:
-    * 200 - nothing
-    * 404 - document not found
+    * 200 - Nothing
+    * 404 - Document not found
 
 ### `PUT /api/v1/update/replace`
   * Description: Replace a document
