@@ -65,6 +65,7 @@ public class InMemoryJobManagerTest {
   private String jobId1;
   private String jobId2;
   private String jobId3;
+  private String emptyJobId;
   private String basePath;
 
   @Before
@@ -77,6 +78,7 @@ public class InMemoryJobManagerTest {
     jobId1 = "job_abc_123";
     jobId2 = "job_def_456";
     jobId3 = "job_ghi_789";
+    emptyJobId = "";
     basePath = tempDir.getRoot().getAbsolutePath();
     when(job1.getJobType()).thenReturn(JobType.MAP_REDUCE);
     when(job2.getJobType()).thenReturn(JobType.MAP_REDUCE);
@@ -132,6 +134,20 @@ public class InMemoryJobManagerTest {
     assertThat(jm.getJob(username2, jobId1), equalTo(job1));
     assertThat(jm.getJob(username2, jobId2), equalTo(job2));
     assertThat(jm.getJob(username2, jobId3), equalTo(job3));
+  }
+
+  @Test
+  public void empty_result_set_with_empty_jobId_shows_status() throws JobException {
+    when(job1.getStatus()).thenReturn(new JobStatus().withState(State.SUCCEEDED).withJobId(emptyJobId));
+
+    // user submits 1 job with empty results
+    jm.submit(newSupplier(job1), username1);
+    assertThat(jm.getJob(username1, emptyJobId), equalTo(job1));
+
+    // user submits another job with empty results
+    when(job2.getStatus()).thenReturn(new JobStatus().withState(State.SUCCEEDED).withJobId(emptyJobId));
+    jm.submit(newSupplier(job2), username1);
+    assertThat(jm.getJob(username1, emptyJobId), equalTo(job2));
   }
 
   @Test
