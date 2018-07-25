@@ -18,11 +18,15 @@
 
 package org.apache.metron.pcap.finalizer;
 
+import java.io.IOException;
+import java.util.List;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.config.PcapOptions;
 
 import java.util.Map;
+import org.apache.metron.pcap.writer.PcapResultsWriter;
 
 /**
  * Write to HDFS.
@@ -32,6 +36,12 @@ public class PcapRestFinalizer extends PcapFinalizer {
   private static final String PCAP_REST_FILEPATH_FORMAT = "%s/%s/%s/%s/page-%s.pcap";
 
   private String jobType = Statusable.JobType.MAP_REDUCE.name();
+
+  @Override
+  protected void write(PcapResultsWriter resultsWriter, Configuration hadoopConfig,
+      List<byte[]> data, Path outputPath) throws IOException {
+    resultsWriter.write(hadoopConfig, data, outputPath.toString());
+  }
 
   @Override
   protected Path getOutputPath(Map<String, Object> config, int partition) {
