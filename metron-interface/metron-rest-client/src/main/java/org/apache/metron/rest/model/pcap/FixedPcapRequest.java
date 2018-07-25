@@ -113,34 +113,4 @@ public class FixedPcapRequest extends PcapRequest {
     }
     PcapOptions.FIELDS.put(this, fields);
   }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    FixedPcapRequest fixedPcapRequest = (FixedPcapRequest) o;
-
-    return (super.equals(o)) &&
-            (getIpSrcAddr() != null ? getIpSrcAddr().equals(fixedPcapRequest.getIpSrcAddr()) : fixedPcapRequest.getIpSrcAddr() != null) &&
-            (getIpDstAddr() != null ? getIpDstAddr().equals(fixedPcapRequest.getIpDstAddr()) : fixedPcapRequest.getIpDstAddr() != null) &&
-            (getIpSrcPort() != null ? getIpSrcPort().equals(fixedPcapRequest.getIpSrcPort()) : fixedPcapRequest.getIpSrcPort() != null) &&
-            (getIpDstPort() != null ? getIpDstPort().equals(fixedPcapRequest.getIpDstPort()) : fixedPcapRequest.getIpDstPort() != null) &&
-            (getProtocol() != null ? getProtocol().equals(fixedPcapRequest.getProtocol()) : fixedPcapRequest.getProtocol() != null) &&
-            (getPacketFilter() != null ? getPacketFilter().equals(fixedPcapRequest.getPacketFilter()) : fixedPcapRequest.getPacketFilter() != null) &&
-            (getIncludeReverse() != null ? getIncludeReverse().equals(fixedPcapRequest.getIncludeReverse()) : fixedPcapRequest.getIncludeReverse() != null);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + (getIpSrcAddr() != null ? getIpSrcAddr().hashCode() : 0);
-    result = 31 * result + (getIpDstAddr() != null ? getIpDstAddr().hashCode() : 0);
-    result = 31 * result + (getIpSrcPort() != null ? getIpSrcPort().hashCode() : 0);
-    result = 31 * result + (getIpDstPort() != null ? getIpDstPort().hashCode() : 0);
-    result = 31 * result + (getProtocol() != null ? getProtocol().hashCode() : 0);
-    result = 31 * result + (getPacketFilter() != null ? getPacketFilter().hashCode() : 0);
-    result = 31 * result + (getIncludeReverse() != null ? getIncludeReverse().hashCode() : 0);
-    return result;
-  }
 }
