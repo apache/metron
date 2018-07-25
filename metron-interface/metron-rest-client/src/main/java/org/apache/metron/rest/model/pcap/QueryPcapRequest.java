@@ -47,7 +47,7 @@ public class QueryPcapRequest extends PcapRequest {
     QueryPcapRequest queryPcapRequest = (QueryPcapRequest) o;
 
     return (super.equals(o)) &&
-            (getQuery() != null ? getQuery().equals(queryPcapRequest.getQuery()) : queryPcapRequest.getQuery() != null);
+            (getQuery() != null ? getQuery().equals(queryPcapRequest.getQuery()) : queryPcapRequest.getQuery() == null);
   }
 
   @Override

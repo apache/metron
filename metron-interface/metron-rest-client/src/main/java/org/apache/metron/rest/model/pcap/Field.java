@@ -135,7 +135,7 @@ public class Field {
 
     Field field = (Field) o;
 
-    return (getName() != null ? getName().equals(field.getName()) : field.getName() != null) &&
+    return (getName() != null ? getName().equals(field.getName()) : field.getName() == null) &&
             (getPos() != null ? getPos().equals(field.getPos()) : field.getPos() == null) &&
             (getShowname() != null ? getShowname().equals(field.getShowname()) : field.getShowname() == null) &&
             (getSize() != null ? getSize().equals(field.getSize()) : field.getSize() == null) &&
