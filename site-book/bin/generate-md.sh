@@ -63,6 +63,7 @@ RESOURCE_LIST=(
     metron-deployment/readme-images/enable-kerberos-configure-kerberos.png
     metron-deployment/readme-images/enable-kerberos-started.png
     metron-deployment/readme-images/enable-kerberos.png
+    metron-platform/metron-job/metron-job_state_statechart_diagram.svg
     metron-platform/metron-parsers/parser_arch.png
     metron-platform/metron-indexing/indexing_arch.png
     metron-platform/metron-enrichment/enrichment_arch.png
@@ -86,6 +87,7 @@ HREF_REWRITE_LIST=(
     metron-deployment/Kerberos-ambari-setup.md 's#(readme-images/enable-kerberos.png)#(../images/enable-kerberos.png)#g'
     metron-platform/metron-enrichment/README.md 's#(enrichment_arch.png)#(../../images/enrichment_arch.png)#g'
     metron-platform/metron-indexing/README.md 's#(indexing_arch.png)#(../../images/indexing_arch.png)#g'
+    metron-platform/metron-job/README.md 's#(metron-job_state_statechart_diagram.svg)#(../../images/metron-job_state_statechart_diagram.svg)#g'
     metron-platform/metron-parsers/README.md 's#(parser_arch.png)#(../../images/parser_arch.png)#g'
     metron-analytics/metron-maas-service/README.md 's#(maas_arch.png)#(../../images/maas_arch.png)#g'
 )

@@ -45,11 +45,10 @@ public class MockPcapJob extends PcapJob<Path> {
   private Map<String, String> fixedFields;
   private PcapFilterConfigurator filterImpl;
   private int recPerFile;
-  private SequenceFileIterable sequenceFileIterable;
+  private String query;
   private Statusable<Path> statusable;
 
   public MockPcapJob() {
-    sequenceFileIterable = mock(SequenceFileIterable.class);
     statusable = mock(Statusable.class);
   }
 
@@ -64,6 +63,8 @@ public class MockPcapJob extends PcapJob<Path> {
     Object fields = PcapOptions.FIELDS.get(configuration, Object.class);
     if (fields instanceof Map) {
       this.fixedFields = (Map<String, String>) fields;
+    } else {
+      this.query = (String) fields;
     }
     this.filterImpl = PcapOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
     this.recPerFile = PcapOptions.NUM_RECORDS_PER_FILE.get(configuration, Integer.class);
@@ -90,10 +91,6 @@ public class MockPcapJob extends PcapJob<Path> {
 
   public void setIsDone(boolean isDone) {
     when(statusable.isDone()).thenReturn(isDone);
-  }
-
-  public void setResults(List<byte[]> pcaps) {
-    when(sequenceFileIterable.iterator()).thenReturn(pcaps.iterator());
   }
 
   public String getBasePath() {
@@ -134,6 +131,10 @@ public class MockPcapJob extends PcapJob<Path> {
 
   public Map<String, String> getFixedFields() {
     return fixedFields;
+  }
+
+  public String getQuery() {
+    return query;
   }
 
   public PcapFilterConfigurator getFilterImpl() {

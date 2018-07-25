@@ -168,4 +168,29 @@
         <description>The field name where the threat triage score can be found in the search indices. This setting primarily affects the Alerts UI.</description>
         <value>threat:triage:score</value>
     </property>
+    <property>
+        <name>pcap_base_path</name>
+        <display-name>Pcap Base Path</display-name>
+        <description>The HDFS path where pcap files are stored.  These files are the input to pcap queries.</description>
+        <value>/apps/metron/pcap/input</value>
+    </property>
+    <property>
+        <name>pcap_base_interim_result_path</name>
+        <display-name>Pcap Base Interim Result Path</display-name>
+        <description>The HDFS path where interim results of a pcap query are stored, before they are separated into pages.</description>
+        <value>/apps/metron/pcap/interim</value>
+    </property>
+    <property>
+        <name>pcap_final_output_path</name>
+        <display-name>Pcap Final Output Path</display-name>
+        <description>The HDFS path where the final results of a pcap query are stored.</description>
+        <value>/apps/metron/pcap/output</value>
+    </property>
+    <property>
+        <name>pcap_page_size</name>
+        <display-name>Pcap Page Size</display-name>
+        <description>The number of pcaps written to a page/file as a result of a pcap query.</description>
+        <value>10</value>
+    </property>
+
 </configuration>

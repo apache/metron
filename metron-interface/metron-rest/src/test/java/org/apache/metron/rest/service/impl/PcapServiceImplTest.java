@@ -32,12 +32,14 @@ import org.apache.metron.job.manager.InMemoryJobManager;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
+import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.config.PcapJobSupplier;
 import org.apache.metron.rest.mock.MockPcapJob;
 import org.apache.metron.rest.mock.MockPcapJobSupplier;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
+import org.apache.metron.rest.model.pcap.QueryPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
 import org.hamcrest.CoreMatchers;
@@ -190,7 +192,7 @@ public class PcapServiceImplTest {
   }
 
   @Test
-  public void fixedShouldProperlyCallPcapJobQuery() throws Exception {
+  public void submitShouldProperlySubmitFixedPcapRequest() throws Exception {
     FixedPcapRequest fixedPcapRequest = new FixedPcapRequest();
     fixedPcapRequest.setBasePath("basePath");
     fixedPcapRequest.setBaseInterimResultPath("baseOutputPath");
@@ -232,7 +234,7 @@ public class PcapServiceImplTest {
     expectedPcapStatus.setJobStatus(JobStatus.State.RUNNING.name());
     expectedPcapStatus.setDescription("description");
 
-    Assert.assertEquals(expectedPcapStatus, pcapService.fixed("user", fixedPcapRequest));
+    Assert.assertEquals(expectedPcapStatus, pcapService.submit("user", fixedPcapRequest));
     Assert.assertEquals(expectedPcapStatus, pcapService.jobStatusToPcapStatus(jobManager.getJob("user", "jobId").getStatus()));
     Assert.assertEquals("basePath", mockPcapJob.getBasePath());
     Assert.assertEquals("baseOutputPath", mockPcapJob.getBaseInterrimResultPath());
@@ -253,7 +255,7 @@ public class PcapServiceImplTest {
   }
 
   @Test
-  public void fixedShouldProperlyCallPcapJobQueryWithDefaults() throws Exception {
+  public void submitShouldProperlySubmitWithDefaults() throws Exception {
     long beforeJobTime = System.currentTimeMillis();
 
     FixedPcapRequest fixedPcapRequest = new FixedPcapRequest();
@@ -275,7 +277,7 @@ public class PcapServiceImplTest {
     expectedPcapStatus.setJobStatus(JobStatus.State.RUNNING.name());
     expectedPcapStatus.setDescription("description");
 
-    Assert.assertEquals(expectedPcapStatus, pcapService.fixed("user", fixedPcapRequest));
+    Assert.assertEquals(expectedPcapStatus, pcapService.submit("user", fixedPcapRequest));
     Assert.assertEquals("/base/path", mockPcapJob.getBasePath());
     Assert.assertEquals("/base/interim/result/path", mockPcapJob.getBaseInterrimResultPath());
     Assert.assertEquals("/final/output/path", mockPcapJob.getFinalOutputPath());
@@ -286,6 +288,49 @@ public class PcapServiceImplTest {
     Assert.assertEquals(100, mockPcapJob.getRecPerFile());
     Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
     Assert.assertEquals(new HashMap<>(), mockPcapJob.getFixedFields());
+  }
+
+  @Test
+  public void submitShouldProperlySubmitQueryPcapRequest() throws Exception {
+    QueryPcapRequest queryPcapRequest = new QueryPcapRequest();
+    queryPcapRequest.setBasePath("basePath");
+    queryPcapRequest.setBaseInterimResultPath("baseOutputPath");
+    queryPcapRequest.setFinalOutputPath("finalOutputPath");
+    queryPcapRequest.setStartTimeMs(1L);
+    queryPcapRequest.setEndTimeMs(2L);
+    queryPcapRequest.setNumReducers(2);
+    queryPcapRequest.setQuery("query");
+    MockPcapJob mockPcapJob = new MockPcapJob();
+    mockPcapJobSupplier.setMockPcapJob(mockPcapJob);
+    JobManager jobManager = new InMemoryJobManager<>();
+
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager, pcapToPdmlScriptWrapper));
+    FileSystem fileSystem = mock(FileSystem.class);
+    doReturn(fileSystem).when(pcapService).getFileSystem();
+    mockPcapJob.setStatus(new JobStatus()
+            .withJobId("jobId")
+            .withDescription("description")
+            .withPercentComplete(0L)
+            .withState(JobStatus.State.RUNNING));
+
+    String expectedFields = "query";
+    PcapStatus expectedPcapStatus = new PcapStatus();
+    expectedPcapStatus.setJobId("jobId");
+    expectedPcapStatus.setJobStatus(JobStatus.State.RUNNING.name());
+    expectedPcapStatus.setDescription("description");
+
+    Assert.assertEquals(expectedPcapStatus, pcapService.submit("user", queryPcapRequest));
+    Assert.assertEquals(expectedPcapStatus, pcapService.jobStatusToPcapStatus(jobManager.getJob("user", "jobId").getStatus()));
+    Assert.assertEquals("basePath", mockPcapJob.getBasePath());
+    Assert.assertEquals("baseOutputPath", mockPcapJob.getBaseInterrimResultPath());
+    Assert.assertEquals("finalOutputPath", mockPcapJob.getFinalOutputPath());
+    Assert.assertEquals(1000000, mockPcapJob.getStartTimeNs());
+    Assert.assertEquals(2000000, mockPcapJob.getEndTimeNs());
+    Assert.assertEquals(2, mockPcapJob.getNumReducers());
+    Assert.assertEquals(100, mockPcapJob.getRecPerFile());
+    Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof QueryPcapFilter.Configurator);
+    Map<String, String> actualFixedFields = mockPcapJob.getFixedFields();
+    Assert.assertEquals("query", mockPcapJob.getQuery());
   }
 
   @Test
@@ -301,7 +346,7 @@ public class PcapServiceImplTest {
     doReturn(fileSystem).when(pcapService).getFileSystem();
     when(jobManager.submit(pcapJobSupplier, "user")).thenThrow(new JobException("some job exception"));
 
-    pcapService.fixed("user", fixedPcapRequest);
+    pcapService.submit("user", fixedPcapRequest);
   }
 
   @Test
