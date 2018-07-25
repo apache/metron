@@ -239,6 +239,7 @@ client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_
 enrichment_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 profiler_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 indexing_topology_worker_childopts = client_jaas_arg if security_enabled else ''
+pcap_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 metron_jvm_flags += (' ' + client_jaas_arg) if security_enabled else ''
 topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
 # Needed for storm.config, because it needs Java String
@@ -382,3 +383,19 @@ metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-in
 bolt_hdfs_rotation_policy = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy']
 bolt_hdfs_rotation_policy_units = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_units']
 bolt_hdfs_rotation_policy_count = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_count']
+
+# Pcap
+pcap_topology_workers = config['configurations']['metron-pcap-env']['pcap_topology_workers']
+if not len(pcap_topology_worker_childopts) == 0:
+    pcap_topology_worker_childopts += ' '
+pcap_topology_worker_childopts += config['configurations']['metron-pcap-env']['pcap_topology_worker_childopts']
+spout_kafka_topic_pcap = config['configurations']['metron-pcap-env']['spout_kafka_topic_pcap']
+hdfs_sync_every = config['configurations']['metron-pcap-env']['hdfs_sync_every']
+hdfs_replication_factor = config['configurations']['metron-pcap-env']['hdfs_replication_factor']
+kafka_pcap_start = config['configurations']['metron-pcap-env']['kafka_pcap_start']
+kafka_pcap_numpackets = config['configurations']['metron-pcap-env']['kafka_pcap_numpackets']
+kafka_pcap_maxtimems = config['configurations']['metron-pcap-env']['kafka_pcap_maxtimems']
+kafka_pcap_tsscheme = config['configurations']['metron-pcap-env']['kafka_pcap_tsscheme']
+kafka_pcap_out = config['configurations']['metron-pcap-env']['kafka_pcap_out']
+kafka_pcap_ts_granularity = config['configurations']['metron-pcap-env']['kafka_pcap_ts_granularity']
+kafka_spout_parallelism = config['configurations']['metron-pcap-env']['kafka_spout_parallelism']

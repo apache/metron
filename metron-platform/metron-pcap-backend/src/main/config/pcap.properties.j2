@@ -1,4 +1,4 @@
-#  Licensed to the Apache Software Foundation (ASF) under one
+{#  Licensed to the Apache Software Foundation (ASF) under one
 #  or more contributor license agreements.  See the NOTICE file
 #  distributed with this work for additional information
 #  regarding copyright ownership.  The ASF licenses this file
@@ -13,27 +13,28 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+#}
 
 ##### Storm #####
-topology.worker.childopts=
-topology.auto-credentials=[]
-topology.workers=1
+topology.worker.childopts={{pcap_topology_worker_childopts}}
+topology.auto-credentials={{topology_auto_credentials}}
+topology.workers={{pcap_topology_workers}}
 
 ##### Kafka #####
-spout.kafka.topic.pcap=pcap
-kafka.zk=node1:2181
-hdfs.sync.every=1
-hdfs.replication.factor=-1
-kafka.security.protocol=PLAINTEXT
+spout.kafka.topic.pcap={{spout_kafka_topic_pcap}}
+kafka.zk={{zookeeper_quorum}}
+hdfs.sync.every={{hdfs_sync_every}}
+hdfs.replication.factor=-{{hdfs_replication_factor}}
+kafka.security.protocol={{kafka_security_protocol}}
 
 # One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST
-kafka.pcap.start=UNCOMMITTED_EARLIEST
+kafka.pcap.start={{kafka_pcap_start}}
 
-kafka.pcap.numPackets=1000
-kafka.pcap.maxTimeMS=300000
-kafka.pcap.ts_scheme=FROM_KEY
-kafka.pcap.out=/apps/metron/pcap/input
+kafka.pcap.numPackets={{kafka_pcap_numpackets}}
+kafka.pcap.maxTimeMS={{kafka_pcap_maxtimems}}
+kafka.pcap.ts_scheme={{kafka_pcap_tsscheme}}
+kafka.pcap.out={{kafka_pcap_out}}
 
 ##### Parallelism #####
-kafka.pcap.ts_granularity=MICROSECONDS
-kafka.spout.parallelism=1
+kafka.pcap.ts_granularity={{kafka_pcap_ts_granularity}}
+kafka.spout.parallelism={{kafka_spout_parallelism}}
