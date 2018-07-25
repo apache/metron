@@ -21,20 +21,21 @@ import {Router} from '@angular/router';
 import {Observable}     from 'rxjs/Observable';
 import { GlobalConfigService } from './global-config.service';
 import { DataSource } from './data-source';
+import { CookieService } from 'ngx-cookie-service';
 
 @Injectable()
 export class AuthenticationService {
-
   private currentUser: string;
   userUrl = '/api/v1/user';
-  logoutUrl = '/logout/originalUrl={0}';
+  ssoCookie = 'hadoop-jwt';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   constructor(private http: Http,
               private router: Router,
               private globalConfigService: GlobalConfigService,
-              private dataSource: DataSource) {
+              private dataSource: DataSource,
+              private cookieService: CookieService) {
     this.init();
   }
 
@@ -63,13 +64,13 @@ export class AuthenticationService {
     return this.currentUser != null;
   }
 
+  private logoutUrl(originalUrl:string):string { 
+    return `/logout/originalUrl=${originalUrl}`;
+  }
+
   public logout() {
     // clear the authentication cookie
-    browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
-      browser.cookies.remove({ url: tabs[0].url, name: 'hadoop-jwt' });
-    }).then(() => {
-      // redirect to the logout endpoint
-      location.replace(this.logoutUrl.format(window.location))
-    });
+    this.cookieService.delete(this.ssoCookie);
+    window.location.href = this.logoutUrl(window.location.href);
   }
 }

@@ -38,11 +38,12 @@ import {SensorParserConfigHistory} from '../../model/sensor-parser-config-histor
 import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
 import {StormService} from '../../service/storm.service';
 import {IAppConfig} from '../../app.config.interface';
+import {CookieService} from 'ng2-cookies';
 
 class MockAuthenticationService extends AuthenticationService {
 
-  constructor(private http2: Http, private router2: Router, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, router2, config2);
+  constructor(private http2: Http, private router2: Router, @Inject(APP_CONFIG) private config2: IAppConfig, private cookie2: CookieService) {
+    super(http2, router2, config2, cookie2);
   }
 
   public checkAuthentication() {
@@ -180,6 +181,7 @@ describe('Component: SensorParserList', () => {
         {provide: Router, useClass: MockRouter},
         {provide: MetronDialogBox, useClass: MockMetronDialogBox},
         {provide: APP_CONFIG, useValue: METRON_REST_CONFIG},
+        {provide: CookieService},
         MetronAlerts
       ]
     }).compileComponents()

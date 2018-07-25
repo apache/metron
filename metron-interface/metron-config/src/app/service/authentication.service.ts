@@ -21,18 +21,21 @@ import {Router} from '@angular/router';
 import {Observable}     from 'rxjs/Observable';
 import {IAppConfig} from '../app.config.interface';
 import {APP_CONFIG} from '../app.config';
+import {CookieService} from 'ng2-cookies';
 
 @Injectable()
 export class AuthenticationService {
 
   private currentUser: string;
   userUrl: string = this.config.apiEndpoint + '/user';
+  ssoCookie: string = 'hadoop-jwt';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   constructor(private http: Http,
               private router: Router,
-              @Inject(APP_CONFIG) private config: IAppConfig) {
+              @Inject(APP_CONFIG) private config: IAppConfig,
+              private cookieService: CookieService) {
      this.init();
   }
 
@@ -58,5 +61,15 @@ export class AuthenticationService {
 
   public isAuthenticated(): boolean {
     return this.currentUser != null;
+  }
+
+  private logoutUrl(originalUrl:string):string { 
+    return `/logout/originalUrl=${originalUrl}`;
+  }
+
+  public logout() {
+    // clear the authentication cookie
+    this.cookieService.delete(this.ssoCookie);
+    window.location.href = this.logoutUrl(window.location.href);
   }
 }

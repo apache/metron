@@ -24,6 +24,7 @@ import {Observable} from 'rxjs/Observable';
 import {AuthenticationService} from './authentication.service';
 import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
 import {IAppConfig} from '../app.config.interface';
+import {CookieService} from 'ng2-cookies';
 
 class MockRouter {
     navigateByUrl(url: string) {
@@ -38,7 +39,8 @@ describe('AuthenticationService', () => {
               AuthenticationService,
               {provide: XHRBackend, useClass: MockBackend},
               {provide: Router, useClass: MockRouter},
-              {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+              {provide: APP_CONFIG, useValue: METRON_REST_CONFIG},
+              {provide: CookieService}
             ]
         })
             .compileComponents();

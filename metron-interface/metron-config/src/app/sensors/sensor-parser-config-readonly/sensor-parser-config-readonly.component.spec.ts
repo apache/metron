@@ -39,6 +39,7 @@ import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-con
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
 import {HdfsService} from '../../service/hdfs.service';
 import {GrokValidationService} from '../../service/grok-validation.service';
+import {CookieService} from 'ng2-cookies';
 
 class MockRouter {
 
@@ -63,8 +64,8 @@ class MockActivatedRoute {
 
 class MockAuthenticationService extends AuthenticationService {
 
-  constructor(private http2: Http, private router2: Router, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, router2, config2);
+  constructor(private http2: Http, private router2: Router, @Inject(APP_CONFIG) private config2: IAppConfig, cookie2: CookieService) {
+    super(http2, router2, config2, cookie2);
   }
 
   public getCurrentUser(options: RequestOptions): Observable<Response> {
@@ -275,6 +276,7 @@ describe('Component: SensorParserConfigReadonly', () => {
         {provide: GrokValidationService, useClass: MockGrokValidationService},
         {provide: Router, useClass: MockRouter},
         {provide: APP_CONFIG, useValue: METRON_REST_CONFIG},
+        {provide: CookieService},
         MetronAlerts
       ]
     }).compileComponents()

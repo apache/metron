@@ -42,7 +42,7 @@ import {StormService} from './service/storm.service';
 import {SensorParserConfigHistoryService} from './service/sensor-parser-config-history.service';
 import {SensorIndexingConfigService} from './service/sensor-indexing-config.service';
 import {HdfsService} from './service/hdfs.service';
-
+import {CookieService} from 'ng2-cookies';
 
 @NgModule({
   imports: [ BrowserModule, routing, FormsModule, ReactiveFormsModule, HttpModule, SensorParserListModule,
@@ -51,7 +51,7 @@ import {HdfsService} from './service/hdfs.service';
   providers: [  AuthenticationService, AuthGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
     StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
-    GlobalConfigService, MetronAlerts, MetronDialogBox, appRoutingProviders, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }],
+    GlobalConfigService, MetronAlerts, MetronDialogBox, appRoutingProviders, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }, CookieService],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }
