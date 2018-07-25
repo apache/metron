@@ -30,7 +30,11 @@ export class PdmlProto {
   public fields: PdmlField[]
   
   public static findField(p: PdmlProto, name: string): PdmlField {
-    return p.fields.find(f => f['name'] == name)
+    if (p && p.fields) {
+      return p.fields.find(f => f['name'] == name)
+    } else {
+      return new PdmlField();
+    }
   }
 }
 
