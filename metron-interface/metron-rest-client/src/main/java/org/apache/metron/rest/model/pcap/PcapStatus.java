@@ -17,6 +17,8 @@
  */
 package org.apache.metron.rest.model.pcap;
 
+import java.util.Objects;
+
 public class PcapStatus {
 
   private String jobId;
@@ -69,23 +71,17 @@ public class PcapStatus {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-
-    PcapStatus pcapStatus = (PcapStatus) o;
-
-    return (getJobId() != null ? getJobId().equals(pcapStatus.getJobId()) : pcapStatus.getJobId() == null) &&
-            (getJobStatus() != null ? getJobStatus().equals(pcapStatus.getJobStatus()) : pcapStatus.getJobStatus() == null) &&
-            (getDescription() != null ? getDescription().equals(pcapStatus.getDescription()) : pcapStatus.getDescription() == null) &&
-            (getPercentComplete() != null ? getPercentComplete().equals(pcapStatus.getPercentComplete()) : pcapStatus.getPercentComplete() == null) &&
-            (getPageTotal() != null ? getPageTotal().equals(pcapStatus.getPageTotal()) : pcapStatus.getPageTotal() == null);
+    PcapStatus that = (PcapStatus) o;
+    return Objects.equals(jobId, that.jobId) &&
+            Objects.equals(jobStatus, that.jobStatus) &&
+            Objects.equals(description, that.description) &&
+            Objects.equals(percentComplete, that.percentComplete) &&
+            Objects.equals(pageTotal, that.pageTotal);
   }
 
   @Override
   public int hashCode() {
-    int result = (getJobId() != null ? getJobId().hashCode() : 0);
-    result = 31 * result + (getJobStatus() != null ? getJobStatus().hashCode() : 0);
-    result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
-    result = 31 * result + (getPercentComplete() != null ? getPercentComplete().hashCode() : 0);
-    result = 31 * result + (getPageTotal() != null ? getPageTotal().hashCode() : 0);
-    return result;
+
+    return Objects.hash(jobId, jobStatus, description, percentComplete, pageTotal);
   }
 }

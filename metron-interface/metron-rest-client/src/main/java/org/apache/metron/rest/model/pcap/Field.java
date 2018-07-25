@@ -22,6 +22,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Field {
 
@@ -132,33 +133,22 @@ public class Field {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-
     Field field = (Field) o;
-
-    return (getName() != null ? getName().equals(field.getName()) : field.getName() == null) &&
-            (getPos() != null ? getPos().equals(field.getPos()) : field.getPos() == null) &&
-            (getShowname() != null ? getShowname().equals(field.getShowname()) : field.getShowname() == null) &&
-            (getSize() != null ? getSize().equals(field.getSize()) : field.getSize() == null) &&
-            (getValue() != null ? getValue().equals(field.getValue()) : field.getValue() == null) &&
-            (getShow() != null ? getShow().equals(field.getShow()) : field.getShow() == null) &&
-            (getUnmaskedvalue() != null ? getUnmaskedvalue().equals(field.getUnmaskedvalue()) : field.getUnmaskedvalue() == null) &&
-            (getHide() != null ? getHide().equals(field.getHide()) : field.getHide() == null) &&
-            (getFields() != null ? getFields().equals(field.getFields()) : field.getFields() == null) &&
-            (getProtos() != null ? getProtos().equals(field.getProtos()) : field.getProtos() == null);
+    return Objects.equals(name, field.name) &&
+            Objects.equals(pos, field.pos) &&
+            Objects.equals(showname, field.showname) &&
+            Objects.equals(size, field.size) &&
+            Objects.equals(value, field.value) &&
+            Objects.equals(show, field.show) &&
+            Objects.equals(unmaskedvalue, field.unmaskedvalue) &&
+            Objects.equals(hide, field.hide) &&
+            Objects.equals(fields, field.fields) &&
+            Objects.equals(protos, field.protos);
   }
 
   @Override
   public int hashCode() {
-    int result = getName() != null ? getName().hashCode() : 0;
-    result = 31 * result + (getPos() != null ? getPos().hashCode() : 0);
-    result = 31 * result + (getShowname() != null ? getShowname().hashCode() : 0);
-    result = 31 * result + (getSize() != null ? getSize().hashCode() : 0);
-    result = 31 * result + (getValue() != null ? getValue().hashCode() : 0);
-    result = 31 * result + (getShow() != null ? getShow().hashCode() : 0);
-    result = 31 * result + (getUnmaskedvalue() != null ? getUnmaskedvalue().hashCode() : 0);
-    result = 31 * result + (getHide() != null ? getHide().hashCode() : 0);
-    result = 31 * result + (getFields() != null ? getFields().hashCode() : 0);
-    result = 31 * result + (getProtos() != null ? getProtos().hashCode() : 0);
-    return result;
+
+    return Objects.hash(name, pos, showname, size, value, show, unmaskedvalue, hide, fields, protos);
   }
 }

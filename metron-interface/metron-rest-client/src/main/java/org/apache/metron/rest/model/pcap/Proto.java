@@ -21,6 +21,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Proto {
 
@@ -90,25 +91,18 @@ public class Proto {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-
     Proto proto = (Proto) o;
-
-    return (getName() != null ? getName().equals(proto.getName()) : proto.getName() == null) &&
-            (getPos() != null ? getPos().equals(proto.getPos()) : proto.getPos() == null) &&
-            (getShowname() != null ? getShowname().equals(proto.getShowname()) : proto.getShowname() == null) &&
-            (getSize() != null ? getSize().equals(proto.getSize()) : proto.getSize() == null) &&
-            (getHide() != null ? getHide().equals(proto.getHide()) : proto.getHide() == null) &&
-            (getFields() != null ? getFields().equals(proto.getFields()) : proto.getFields() == null);
+    return Objects.equals(name, proto.name) &&
+            Objects.equals(pos, proto.pos) &&
+            Objects.equals(showname, proto.showname) &&
+            Objects.equals(size, proto.size) &&
+            Objects.equals(hide, proto.hide) &&
+            Objects.equals(fields, proto.fields);
   }
 
   @Override
   public int hashCode() {
-    int result = getName() != null ? getName().hashCode() : 0;
-    result = 31 * result + (getPos() != null ? getPos().hashCode() : 0);
-    result = 31 * result + (getShowname() != null ? getShowname().hashCode() : 0);
-    result = 31 * result + (getSize() != null ? getSize().hashCode() : 0);
-    result = 31 * result + (getHide() != null ? getHide().hashCode() : 0);
-    result = 31 * result + (getFields() != null ? getFields().hashCode() : 0);
-    return result;
+
+    return Objects.hash(name, pos, showname, size, hide, fields);
   }
 }

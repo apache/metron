@@ -22,6 +22,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Pdml {
 
@@ -81,23 +82,17 @@ public class Pdml {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-
     Pdml pdml = (Pdml) o;
-
-    return (getVersion() != null ? getVersion().equals(pdml.getVersion()) : pdml.getVersion() == null) &&
-            (getCreator() != null ? getCreator().equals(pdml.getCreator()) : pdml.getCreator() == null) &&
-            (getTime() != null ? getTime().equals(pdml.getTime()) : pdml.getTime() == null) &&
-            (getCaptureFile() != null ? getCaptureFile().equals(pdml.getCaptureFile()) : pdml.getCaptureFile() == null) &&
-            (getPackets() != null ? getPackets().equals(pdml.getPackets()) : pdml.getPackets() == null);
+    return Objects.equals(version, pdml.version) &&
+            Objects.equals(creator, pdml.creator) &&
+            Objects.equals(time, pdml.time) &&
+            Objects.equals(captureFile, pdml.captureFile) &&
+            Objects.equals(packets, pdml.packets);
   }
 
   @Override
   public int hashCode() {
-    int result = getVersion() != null ? getVersion().hashCode() : 0;
-    result = 31 * result + (getCreator() != null ? getCreator().hashCode() : 0);
-    result = 31 * result + (getTime() != null ? getTime().hashCode() : 0);
-    result = 31 * result + (getCaptureFile() != null ? getCaptureFile().hashCode() : 0);
-    result = 31 * result + (getPackets() != null ? getPackets().hashCode() : 0);
-    return result;
+
+    return Objects.hash(version, creator, time, captureFile, packets);
   }
 }

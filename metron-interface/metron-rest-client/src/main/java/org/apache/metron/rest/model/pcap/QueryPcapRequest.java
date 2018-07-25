@@ -38,22 +38,4 @@ public class QueryPcapRequest extends PcapRequest {
   public void setFields() {
     PcapOptions.FIELDS.put(this, getQuery());
   }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    QueryPcapRequest queryPcapRequest = (QueryPcapRequest) o;
-
-    return (super.equals(o)) &&
-            (getQuery() != null ? getQuery().equals(queryPcapRequest.getQuery()) : queryPcapRequest.getQuery() == null);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + (getQuery() != null ? getQuery().hashCode() : 0);
-    return result;
-  }
 }
