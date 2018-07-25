@@ -212,7 +212,7 @@ METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 
 ## Pcap Query
 
-The REST application exposes endpoints for querying Pcap data.  For more information about filtering options see [Query Filter Utility](/metron-platform/metron-pcap-backend#query-filter-utility).
+The REST application exposes endpoints for querying Pcap data.  For more information about filtering options see [Query Filter Utility](../../metron-platform/metron-pcap-backend#query-filter-utility).
 
 There is an endpoint available that will return Pcap data in [PDML](https://wiki.wireshark.org/PDML) format.  [Wireshark](https://www.wireshark.org/) must be installed for this feature to work.
 Installing wireshark in CentOS can be done with `yum -y install wireshark`.
@@ -253,8 +253,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/metaalert/add/alert`](#get-apiv1metaalertaddalert)|
 | [ `GET /api/v1/metaalert/remove/alert`](#get-apiv1metaalertremovealert)|
 | [ `GET /api/v1/metaalert/update/status/{guid}/{status}`](#get-apiv1metaalertupdatestatusguidstatus)|
-| [ `GET /api/v1/pcap/fixed`](#get-apiv1pcapfixed)|
-| [ `GET /api/v1/pcap/query`](#get-apiv1pcapquery)|
+| [ `POST /api/v1/pcap/fixed`](#post-apiv1pcapfixed)|
+| [ `POST /api/v1/pcap/query`](#post-apiv1pcapquery)|
 | [ `GET /api/v1/pcap/{jobId}`](#get-apiv1pcapjobid)|
 | [ `GET /api/v1/pcap/{jobId}/pdml`](#get-apiv1pcapjobidpdml)|
 | [ `GET /api/v1/pcap/{jobId}/raw`](#get-apiv1pcapjobidraw)|
