@@ -76,6 +76,7 @@ class ParserCommands:
 
     def init_parsers(self):
         self.init_grok_patterns()
+        self.init_pcap()
         Logger.info("Done initializing parser configuration")
 
     def init_grok_patterns(self):
@@ -90,6 +91,16 @@ class ParserCommands:
                                    mode=0755,
                                    source=self.__params.local_grok_patterns_dir,
                                    recursive_chown = True)
+
+    def init_pcap(self):
+        Logger.info("Creating HDFS location for pcap sequence files")
+        self.__params.HdfsResource(self.__params.hdfs_pcap_sequencefiles_dir,
+                               type="directory",
+                               action="create_on_execute",
+                               owner=self.__params.metron_user,
+                               group=self.__params.metron_group,
+                               mode=0755,
+                               )
 
     def get_parser_list(self):
         return self.__parser_list
@@ -227,6 +238,9 @@ class ParserCommands:
 
         Logger.info('Checking Kafka topics for Parsers')
         metron_service.check_kafka_topics(self.__params, self.__get_topics())
+
+        Logger.info("Checking for pcap sequence files directory in HDFS for PCAP")
+        metron_service.check_hdfs_dir_exists(self.__params, self.__params.hdfs_pcap_sequencefiles_dir)
 
         if self.__params.security_enabled:
             Logger.info('Checking Kafka ACLs for Parsers')

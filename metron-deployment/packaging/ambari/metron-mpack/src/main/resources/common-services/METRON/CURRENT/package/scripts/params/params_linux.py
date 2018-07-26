@@ -161,6 +161,8 @@ metron_topic_retention = config['configurations']['metron-env']['metron_topic_re
 local_grok_patterns_dir = format("{metron_home}/patterns")
 hdfs_grok_patterns_dir = format("{metron_apps_hdfs_dir}/patterns")
 
+hdfs_pcap_sequencefiles_dir = format("{metron_apps_hdfs_dir}/pcap")
+
 # for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
