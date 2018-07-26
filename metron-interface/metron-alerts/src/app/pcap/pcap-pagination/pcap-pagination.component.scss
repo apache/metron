@@ -15,9 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-  indices: null,
-  defaultPollingState: false,
-  noTransition: false
-};
+
+.disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.pcap-pagination {
+  font-size: 14px;
+  text-align: center;
+ }
+
+.pcap-pagination-button {
+  background: transparent;
+  border: 0;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+
+  &[disabled] {
+    cursor: default;
+    opacity: 0.3;
+  }
+}

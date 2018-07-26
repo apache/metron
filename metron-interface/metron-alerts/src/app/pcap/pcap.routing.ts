@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,9 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-  indices: null,
-  defaultPollingState: false,
-  noTransition: false
-};
+import { Routes, RouterModule } from '@angular/router';
+import { ModuleWithProviders }  from '@angular/core';
+
+import {PcapPanelComponent} from './pcap-panel/pcap-panel.component';
+
+export const routes: Routes = [
+    {path: '', component: PcapPanelComponent},
+];
+
+export const routing: ModuleWithProviders = RouterModule.forChild(routes);

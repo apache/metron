@@ -15,9 +15,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-  indices: null,
-  defaultPollingState: false,
-  noTransition: false
-};
+@import "../../../vendor.scss";
+@import "../../../styles.scss";
+@import "../../../variables.scss";
+
+.ng-valid[required], .ng-valid.required  {
+  
+}
+
+.ng-invalid:not(form)  {
+  border-left: 5px solid #a94442; /* red */
+}
+
+.form-group {
+  padding: 0 0.75em 0.75em 0;
+  label {
+    margin-right: 1em;
+  }
+}
+
+.btn-search {
+
+  min-width: 42px;
+  padding-left: 0;
+  padding-right: 0;
+  border: 1px solid $blue-chill !important;
+  cursor: pointer;
+
+  &:focus {
+    box-shadow: none;
+  }
+
+  &::before {
+    font-family: "FontAwesome";
+    content: '\f002';
+    color: $piction-blue;
+  }
+}
+
+.pcap-search {
+
+  padding-bottom: 15px;
+
+  label {
+    font-size: 15px;
+  }
+
+  button {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    background: $icon-button-background;
+  }
+}

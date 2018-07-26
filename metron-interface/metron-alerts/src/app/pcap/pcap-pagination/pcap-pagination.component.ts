@@ -15,9 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-  indices: null,
-  defaultPollingState: false,
-  noTransition: false
-};
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { PcapPagination } from '../model/pcap-pagination';
+
+@Component({
+  selector: 'app-pcap-pagination',
+  templateUrl: './pcap-pagination.component.html',
+  styleUrls: ['./pcap-pagination.component.scss']
+})
+export class PcapPaginationComponent {
+
+  @Input() pagination = new PcapPagination();
+  @Output() pageChange = new EventEmitter();
+
+  onPrevious() {
+    this.pagination.selectedPage -= 1;
+    this.pageChange.emit();
+  }
+
+  onNext() {
+    this.pagination.selectedPage  += 1;
+    this.pageChange.emit();
+  }
+
+}

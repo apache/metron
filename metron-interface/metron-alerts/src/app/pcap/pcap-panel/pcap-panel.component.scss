@@ -15,9 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-  indices: null,
-  defaultPollingState: false,
-  noTransition: false
-};
+@import "../../../vendor.scss";
+@import "../../../styles.scss";
+@import "../../../variables.scss";
+
+.pcap-progress-background {
+  background-color: #2E2E2E;
+}
+
+.pcap-progress {
+  background-color: #0F6F9E;
+  transition-duration:2s;
+  animation-duration: 2s;
+}
+
+.progress-bar {
+  width: 0;
+}

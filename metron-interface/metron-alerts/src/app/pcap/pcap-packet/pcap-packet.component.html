@@ -11,18 +11,11 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Metron Alerts</title>
-  <base href="/">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="stylesheet" type="text/css" href="assets/fonts/font.css">
-</head>
-<body class="">
-  <metron-alerts-root>Loading...</metron-alerts-root>
-</body>
-</html>
+<div class="proto" *ngFor="let proto of packet.protos" (click)="proto.expanded = !proto.expanded">
+  <div class="proto-header">{{ proto.showname }}</div>
+  <div class="proto-fields" *ngIf="proto.expanded">
+    <div *ngFor="let field of proto.fields">
+      <span class="field-name">{{ field.name}}</span> {{ field.showname}}
+    </div>
+  </div>
+</div>
