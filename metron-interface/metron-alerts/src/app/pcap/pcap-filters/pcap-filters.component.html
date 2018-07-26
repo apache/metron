@@ -26,10 +26,10 @@
     <label for="ipSrcAddr">IP Source Address</label>
     <input name="ipSrcAddr" #ipSrcAddr="ngModel" class="form-control" pattern="^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$" [(ngModel)]="model.ipSrcAddr">
   </div>
-  
+
   <div class="form-group">
     <label for="ipSrcPort">IP Source Port</label>
-    <input name="ipSrcPort" #ipSrcPort="ngModel" class="form-control" type="number" [(ngModel)]="model.ipSrcPort">
+    <input name="ipSrcPort" class="form-control" pattern="^\d{0,5}$" [(ngModel)]="ipSrcPort" data-qe="ipSrcPort">
   </div>
 
   <div class="form-group"><label for="ipDstAddr">IP Dest Address</label>
@@ -38,7 +38,7 @@
 
   <div class="form-group">
     <label for="ipDstPort">IP Dest Port</label>
-    <input id="ipDstPort" name="ipDstPort" #ipDstPort="ngModel" class="form-control" type="number" [(ngModel)]="model.ipDstPort">
+    <input id="ipDstPort" name="ipDstPort" class="form-control" pattern="^\d{0,5}$" [(ngModel)]="ipDstPort" data-qe="ipDstPort">
   </div>
 
     <div class="form-group">
@@ -57,6 +57,6 @@
   </div>
 
   <div class="form-group">
-    <button type="submit" [ngClass]="{'disabled':!f.form.valid || queryRunning}" class="btn btn-primary btn-search" [disabled]="!f.form.valid || queryRunning"></button>
+    <button type="submit" [ngClass]="{'disabled':!f.form.valid || queryRunning}" class="btn btn-primary btn-search" [disabled]="!f.form.valid || queryRunning" data-qe="submitButton"></button>
   </div>
 </form>
