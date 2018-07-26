@@ -25,7 +25,7 @@
     </thead>
     <tbody>
       <ng-container *ngFor="let packet of packets">
-        <tr (click)="toggle(packet)" app-pcap-packet-line [packet]="packet"></tr>
+        <tr (click)="toggle(packet)" app-pcap-packet-line [packet]="packet" data-qe-id="pcap-packet-line"></tr>
         <tr *ngIf="packet.expanded">
           <td colspan="6" class="pcap-packet">
             <app-pcap-packet [packet]="packet"></app-pcap-packet>
