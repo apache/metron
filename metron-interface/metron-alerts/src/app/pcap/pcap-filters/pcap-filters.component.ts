@@ -33,8 +33,6 @@ export class PcapFiltersComponent implements OnInit {
 
   startTimeStr: string;
   endTimeStr: string;
-  ipSrcPort: string = '';
-  ipDstPort: string = '';
 
   model = new PcapRequest();
 
@@ -51,9 +49,6 @@ export class PcapFiltersComponent implements OnInit {
   onSubmit() {
     this.model.startTimeMs = new Date(this.startTimeStr).getTime();
     this.model.endTimeMs = new Date(this.endTimeStr).getTime();
-    this.model.ipSrcPort = +this.ipSrcPort;
-    this.model.ipDstPort = +this.ipDstPort;
-
     this.search.emit(this.model);
   }
 }
