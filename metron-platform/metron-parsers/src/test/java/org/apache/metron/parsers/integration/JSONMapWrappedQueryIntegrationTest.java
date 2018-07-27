@@ -15,21 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.parsers.integration;
 
-import { Pipe, PipeTransform } from '@angular/core';
-import * as moment from 'moment/moment';
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
 
-@Pipe({
-  name: 'timeLapse'
-})
-export class TimeLapsePipe implements PipeTransform {
+import java.util.ArrayList;
+import java.util.List;
 
-  transform(value: any): any {
-    if (isNaN(value)) {
-      return '';
-    }
-
-    return moment(new Date(value)).fromNow();
+public class JSONMapWrappedQueryIntegrationTest extends ParserIntegrationTest {
+  @Override
+  String getSensorType() {
+    return "jsonMapWrappedQuery";
   }
 
+  @Override
+  List<ParserValidation> getValidations() {
+    return new ArrayList<ParserValidation>() {{
+      add(new SampleDataValidation());
+    }};
+  }
 }

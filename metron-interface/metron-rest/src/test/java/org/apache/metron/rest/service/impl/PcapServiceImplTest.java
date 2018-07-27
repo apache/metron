@@ -28,6 +28,7 @@ import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobNotFoundException;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Pageable;
+import org.apache.metron.job.Statusable;
 import org.apache.metron.job.manager.InMemoryJobManager;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.pcap.PcapHelper;
@@ -58,6 +59,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -189,6 +192,7 @@ public class PcapServiceImplTest {
     when(environment.getProperty(MetronRestConstants.PCAP_FINAL_OUTPUT_PATH_SPRING_PROPERTY)).thenReturn("/final/output/path");
     when(environment.getProperty(MetronRestConstants.PCAP_PAGE_SIZE_SPRING_PROPERTY)).thenReturn("100");
     when(environment.getProperty(MetronRestConstants.PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/path/to/pdml/script");
+    when(environment.getProperty(MetronRestConstants.USER_JOB_LIMIT_SPRING_PROPERTY, Integer.class, 1)).thenReturn(1);
   }
 
   @Test
@@ -334,6 +338,26 @@ public class PcapServiceImplTest {
   }
 
   @Test
+  public void submitShouldThrowExceptionOnRunningJobFound() throws Exception {
+    exception.expect(RestException.class);
+    exception.expectMessage("Cannot submit job because a job is already running.  Please contact the administrator to cancel job(s) with id(s) jobId");
+
+    PcapStatus runningStatus1 = new PcapStatus();
+    runningStatus1.setJobStatus("RUNNING");
+    runningStatus1.setJobId("jobId1");
+    PcapStatus runningStatus2 = new PcapStatus();
+    runningStatus2.setJobStatus("RUNNING");
+    runningStatus2.setJobId("jobId2");
+
+    PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, new InMemoryJobManager<>(), pcapToPdmlScriptWrapper));
+    doReturn(Arrays.asList(runningStatus1, runningStatus2)).when(pcapService).getJobStatus("user", JobStatus.State.RUNNING);
+    when(environment.getProperty(MetronRestConstants.USER_JOB_LIMIT_SPRING_PROPERTY, Integer.class, 1)).thenReturn(2);
+
+    pcapService.submit("user", new FixedPcapRequest());
+  }
+
+
+  @Test
   public void fixedShouldThrowRestException() throws Exception {
     exception.expect(RestException.class);
     exception.expectMessage("some job exception");
@@ -394,6 +418,50 @@ public class PcapServiceImplTest {
 
     PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager, pcapToPdmlScriptWrapper);
     pcapService.getJobStatus("user", "jobId");
+  }
+
+  @Test
+  public void getStatusForStateShouldProperlyReturnJobs() throws Exception {
+    MockPcapJob mockPcapJob = mock(MockPcapJob.class);
+    JobManager jobManager = mock(JobManager.class);
+    Statusable<Path> runningJob = mock(Statusable.class);
+    JobStatus runningStatus = mock(JobStatus.class);
+    when(runningStatus.getJobId()).thenReturn("runningJob");
+    when(runningStatus.getState()).thenReturn(JobStatus.State.RUNNING);
+    when(runningJob.getStatus()).thenReturn(runningStatus);
+
+    Statusable<Path> failedJob = mock(Statusable.class);
+    when(failedJob.getStatus()).thenThrow(new JobException("job exception"));
+
+    Statusable<Path> succeededJob = mock(Statusable.class);
+    JobStatus succeededStatus = mock(JobStatus.class);
+    when(succeededStatus.getJobId()).thenReturn("succeededJob");
+    when(succeededStatus.getState()).thenReturn(JobStatus.State.SUCCEEDED);
+    when(succeededJob.isDone()).thenReturn(true);
+    when(succeededJob.getStatus()).thenReturn(succeededStatus);
+    Pageable<Path> succeededPageable = mock(Pageable.class);
+    when(succeededPageable.getSize()).thenReturn(5);
+    when(succeededJob.get()).thenReturn(succeededPageable);
+
+    when(jobManager.getJobs("user")).thenReturn(Arrays.asList(runningJob, failedJob, succeededJob));
+
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager, pcapToPdmlScriptWrapper);
+
+    PcapStatus expectedRunningPcapStatus = new PcapStatus();
+    expectedRunningPcapStatus.setJobId("runningJob");
+    expectedRunningPcapStatus.setJobStatus(JobStatus.State.RUNNING.name());
+    Assert.assertEquals(expectedRunningPcapStatus, pcapService.getJobStatus("user", JobStatus.State.RUNNING).get(0));
+
+    PcapStatus expectedFailedPcapStatus = new PcapStatus();
+    expectedFailedPcapStatus.setJobStatus(JobStatus.State.FAILED.name());
+    expectedFailedPcapStatus.setDescription("job exception");
+    Assert.assertEquals(expectedFailedPcapStatus, pcapService.getJobStatus("user", JobStatus.State.FAILED).get(0));
+
+    PcapStatus expectedSucceededPcapStatus = new PcapStatus();
+    expectedSucceededPcapStatus.setJobId("succeededJob");
+    expectedSucceededPcapStatus.setJobStatus(JobStatus.State.SUCCEEDED.name());
+    expectedSucceededPcapStatus.setPageTotal(5);
+    Assert.assertEquals(expectedSucceededPcapStatus, pcapService.getJobStatus("user", JobStatus.State.SUCCEEDED).get(0));
   }
 
   @Test

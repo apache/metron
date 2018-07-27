@@ -1,0 +1,5 @@
+{
+  "parserClassName":"org.apache.metron.parsers.json.JSONMapParser",
+  "sensorTopic":"jsonMapWrappedQuery",
+  "parserConfig": {"jsonpQuery":"$.foo","wrapInEntityArray":"true","wrapEntityName":"foo"}
+}

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Packet {
 
@@ -40,14 +41,13 @@ public class Packet {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-
     Packet packet = (Packet) o;
-
-    return (getProtos() != null ? getProtos().equals(packet.getProtos()) : packet.getProtos() == null);
+    return Objects.equals(protos, packet.protos);
   }
 
   @Override
   public int hashCode() {
-    return getProtos() != null ? getProtos().hashCode() : 0;
+
+    return Objects.hash(protos);
   }
 }
