@@ -72,6 +72,7 @@ user:
   settings:
     table: user_settings
     cf: cf
+  job.limit: 1
 
 pcap:
   base.path: /apps/metron/pcap/input
