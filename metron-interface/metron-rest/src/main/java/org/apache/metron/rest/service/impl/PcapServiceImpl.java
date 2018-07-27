@@ -18,7 +18,6 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -32,7 +31,6 @@ import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.config.PcapJobSupplier;
-import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
@@ -43,8 +41,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PcapServiceImpl implements PcapService {
@@ -65,11 +64,19 @@ public class PcapServiceImpl implements PcapService {
   }
 
   @Override
-  public PcapStatus fixed(String username, FixedPcapRequest fixedPcapRequest) throws RestException {
+  public PcapStatus submit(String username, PcapRequest pcapRequest) throws RestException {
+    List<PcapStatus> runningJobs = getJobStatus(username, JobStatus.State.RUNNING);
+    Integer userJobLimit = environment.getProperty(MetronRestConstants.USER_JOB_LIMIT_SPRING_PROPERTY, Integer.class, 1);
+    if (runningJobs != null && runningJobs.size() >= userJobLimit) {
+      String jobIds = runningJobs.stream().map(PcapStatus::getJobId).collect(Collectors.joining(", "));
+      String message = String.format("Cannot submit job because a job is already running.  " +
+              "Please contact the administrator to cancel job(s) with id(s) %s", jobIds);
+      throw new RestException(message);
+    }
     try {
-      setPcapOptions(username, fixedPcapRequest);
-      fixedPcapRequest.setFields();
-      pcapJobSupplier.setPcapRequest(fixedPcapRequest);
+      setPcapOptions(username, pcapRequest);
+      pcapRequest.setFields();
+      pcapJobSupplier.setPcapRequest(pcapRequest);
       JobStatus jobStatus = jobManager.submit(pcapJobSupplier, username);
       return jobStatusToPcapStatus(jobStatus);
     } catch (IOException | JobException e) {
@@ -83,13 +90,7 @@ public class PcapServiceImpl implements PcapService {
     try {
       Statusable<Path> statusable = jobManager.getJob(username, jobId);
       if (statusable != null) {
-        pcapStatus = jobStatusToPcapStatus(statusable.getStatus());
-        if (statusable.isDone()) {
-          Pageable<Path> pageable = statusable.get();
-          if (pageable != null) {
-            pcapStatus.setPageTotal(pageable.getSize());
-          }
-        }
+        pcapStatus = statusableToPcapStatus(statusable);
       }
     } catch (JobNotFoundException | InterruptedException e) {
       // do nothing and return null pcapStatus
@@ -97,6 +98,40 @@ public class PcapServiceImpl implements PcapService {
       throw new RestException(e);
     }
     return pcapStatus;
+  }
+
+  @Override
+  public List<PcapStatus> getJobStatus(String username, JobStatus.State state) throws RestException {
+    List<PcapStatus> pcapStatuses = new ArrayList<>();
+    try {
+      List<Statusable<Path>> statusables = jobManager.getJobs(username);
+      if (statusables != null) {
+        pcapStatuses = statusables.stream()
+                .filter(statusable -> {
+                  try {
+                    return statusable.getStatus().getState() == state;
+                  } catch (JobException e) {
+                    return JobStatus.State.FAILED == state;
+                  }
+                })
+                .map(statusable -> {
+                  try {
+                    return statusableToPcapStatus(statusable);
+                  } catch (JobException | InterruptedException e) {
+                    PcapStatus pcapStatus = new PcapStatus();
+                    pcapStatus.setJobStatus(JobStatus.State.FAILED.toString());
+                    pcapStatus.setDescription(e.getMessage());
+                    return pcapStatus;
+                  }
+                })
+                .collect(Collectors.toList());
+      }
+    } catch (JobNotFoundException e) {
+      // do nothing and return null pcapStatus
+    } catch (JobException e) {
+      throw new RestException(e);
+    }
+    return pcapStatuses;
   }
 
   @Override
@@ -149,6 +184,7 @@ public class PcapServiceImpl implements PcapService {
     return pdml;
   }
 
+  @Override
   public InputStream getRawPcap(String username, String jobId, Integer page) throws RestException {
     InputStream inputStream = null;
     Path path = getPath(username, jobId, page);
@@ -184,6 +220,17 @@ public class PcapServiceImpl implements PcapService {
 
   protected FileSystem getFileSystem() throws IOException {
     return FileSystem.get(configuration);
+  }
+
+  protected PcapStatus statusableToPcapStatus(Statusable<Path> statusable) throws JobException, InterruptedException {
+    PcapStatus pcapStatus = jobStatusToPcapStatus(statusable.getStatus());
+    if (statusable.isDone()) {
+      Pageable<Path> pageable = statusable.get();
+      if (pageable != null) {
+        pcapStatus.setPageTotal(pageable.getSize());
+      }
+    }
+    return pcapStatus;
   }
 
   protected PcapStatus jobStatusToPcapStatus(JobStatus jobStatus) {

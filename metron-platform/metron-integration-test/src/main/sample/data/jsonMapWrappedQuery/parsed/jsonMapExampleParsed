@@ -1,0 +1,6 @@
+{ "string" : "foo", "number" : 1, "ignored" : [ "blah" ], "original_string":"{ \"string\" : \"foo\", \"number\" : 1, \"ignored\" : [ \"blah\" ] }","timestamp":1000000000000, "source.type":"jsonMapWrappedQuery","guid":"this-is-random-uuid-will-be-36-chars" }
+{ "number" : 4 , "original_string" : "{ \"number\" : 4 }", "source.type":"jsonMapWrappedQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}
+{ "string" : "bar", "number" : 2, "ignored" : [ "blah" ], "original_string":"{ \"string\" : \"bar\", \"number\" : 2, \"ignored\" : [ \"blah\" ] }","timestamp":1000000000000, "source.type":"jsonMapWrappedQuery","guid":"this-is-random-uuid-will-be-36-chars" }
+{ "number" : 5 , "original_string" : "{ \"number\" : 5 }", "source.type":"jsonMapWrappedQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}
+{ "string" : "baz", "number" : 3, "ignored" : [ "blah" ], "original_string":"{ \"string\" : \"baz\", \"number\" : 3, \"ignored\" : [ \"blah\" ] }","timestamp":1000000000000, "source.type":"jsonMapWrappedQuery","guid":"this-is-random-uuid-will-be-36-chars" }
+{ "number" : 6 , "original_string" : "{ \"number\" : 6 }", "source.type":"jsonMapWrappedQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}

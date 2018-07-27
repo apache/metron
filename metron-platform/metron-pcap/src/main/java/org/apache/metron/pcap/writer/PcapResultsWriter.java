@@ -18,6 +18,8 @@
 package org.apache.metron.pcap.writer;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import org.apache.hadoop.conf.Configuration;
@@ -36,6 +38,20 @@ public class PcapResultsWriter {
    */
   public void write(Configuration config, List<byte[]> pcaps, String outPath) throws IOException {
     HDFSUtils.write(config, mergePcaps(pcaps), outPath);
+  }
+
+  /**
+   * Write out pcaps to the local FS
+   *
+   * @param pcaps pcap data to write. Pre-merged format as a list of pcaps as byte arrays.
+   * @param outPath where to write the pcap data to.
+   * @throws IOException I/O issue encountered.
+   */
+  public void writeLocal(List<byte[]> pcaps, String outPath) throws IOException {
+    File out = new File(outPath);
+    try (FileOutputStream fos = new FileOutputStream(out)) {
+      fos.write(mergePcaps(pcaps));
+    }
   }
 
   /**

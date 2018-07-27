@@ -17,37 +17,18 @@
  */
 package org.apache.metron.rest.controller;
 
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.fs.Path;
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
 import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.Pageable;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.job.JobStatus;
-import org.apache.metron.job.Pageable;
+import org.apache.metron.job.manager.InMemoryJobManager;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.PcapPages;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
+import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.rest.mock.MockPcapJob;
-import org.apache.metron.rest.mock.MockPcapToPdmlScriptWrapper;
-import org.apache.metron.rest.model.PcapResponse;
 import org.apache.metron.rest.service.PcapService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,6 +42,22 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Map;
+
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -101,6 +98,20 @@ public class PcapControllerIntegrationTest {
   @Multiline
   public static String fixedWithDefaultsJson;
 
+  /**
+   {
+   "basePath": "/base/path",
+   "baseInterimResultPath": "/base/interim/result/path",
+   "finalOutputPath": "/final/output/path",
+   "startTimeMs": 10,
+   "endTimeMs": 20,
+   "numReducers": 2,
+   "query": "query"
+   }
+   */
+  @Multiline
+  public static String queryJson;
+
   @Autowired
   private PcapService pcapService;
 
@@ -117,23 +128,24 @@ public class PcapControllerIntegrationTest {
   @Before
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
+    InMemoryJobManager jobManager = (InMemoryJobManager) wac.getBean("jobManager");
+    jobManager.clear();
   }
 
   @Test
   public void testSecurity() throws Exception {
     this.mockMvc.perform(post(pcapUrl + "/fixed").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
             .andExpect(status().isUnauthorized());
+
+    this.mockMvc.perform(post(pcapUrl + "/query").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(queryJson))
+            .andExpect(status().isUnauthorized());
   }
 
   @Test
   public void testFixedRequest() throws Exception {
     MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
-    List<byte[]> results = Arrays.asList("pcap1".getBytes(), "pcap2".getBytes());
-    mockPcapJob.setResults(results);
     mockPcapJob.setStatus(new JobStatus().withState(JobStatus.State.RUNNING));
 
-    PcapResponse expectedReponse = new PcapResponse();
-    expectedReponse.setPcaps(results);
     this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
@@ -187,6 +199,45 @@ public class PcapControllerIntegrationTest {
   }
 
   @Test
+  public void testQueryRequest() throws Exception {
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+    mockPcapJob.setStatus(new JobStatus().withState(JobStatus.State.RUNNING));
+
+    this.mockMvc.perform(post(pcapUrl + "/query").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(queryJson))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
+
+    Assert.assertEquals("/base/path", mockPcapJob.getBasePath());
+    Assert.assertEquals("/base/interim/result/path", mockPcapJob.getBaseInterrimResultPath());
+    Assert.assertEquals("/final/output/path", mockPcapJob.getFinalOutputPath());
+    Assert.assertEquals(10000000, mockPcapJob.getStartTimeNs());
+    Assert.assertEquals(20000000, mockPcapJob.getEndTimeNs());
+    Assert.assertEquals(2, mockPcapJob.getNumReducers());
+    Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof QueryPcapFilter.Configurator);
+    Assert.assertEquals("query", mockPcapJob.getQuery());
+  }
+
+  @Test
+  public void testTooManyJobs() throws Exception {
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.RUNNING));
+
+    this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.jobId").value("jobId"))
+            .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
+
+    this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.message").value("Cannot submit job because a job is already running.  Please contact the administrator to cancel job(s) with id(s) jobId"));
+
+  }
+
+  @Test
   public void testGetStatus() throws Exception {
     MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
 
@@ -233,6 +284,30 @@ public class PcapControllerIntegrationTest {
 
     this.mockMvc.perform(get(pcapUrl + "/someJobId").with(httpBasic(user, password)))
             .andExpect(status().isNotFound());
+  }
+
+  @Test
+  public void testGetStatusList() throws Exception {
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.RUNNING));
+
+    this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.jobId").value("jobId"))
+            .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
+
+    this.mockMvc.perform(get(pcapUrl + "?state=RUNNING").with(httpBasic(user, password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$[0].jobId").value("jobId"))
+            .andExpect(jsonPath("$[0].jobStatus").value("RUNNING"));
+
+    this.mockMvc.perform(get(pcapUrl + "?state=SUCCEEDED").with(httpBasic(user, password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(content().json("[]"));
   }
 
   @Test

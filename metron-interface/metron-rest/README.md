@@ -212,7 +212,7 @@ METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 
 ## Pcap Query
 
-The REST application exposes endpoints for querying Pcap data.  For more information about filtering options see [Query Filter Utility](/metron-platform/metron-pcap-backend#query-filter-utility).
+The REST application exposes endpoints for querying Pcap data.  For more information about filtering options see [Query Filter Utility](../../metron-platform/metron-pcap-backend#query-filter-utility).
 
 There is an endpoint available that will return Pcap data in [PDML](https://wiki.wireshark.org/PDML) format.  [Wireshark](https://www.wireshark.org/) must be installed for this feature to work.
 Installing wireshark in CentOS can be done with `yum -y install wireshark`.
@@ -227,7 +227,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 |            |
 | ---------- |
-| [ `POST /api/v1/alerts/ui/escalate`](#get-apiv1alertsuiescalate)|
+| [ `POST /api/v1/alerts/ui/escalate`](#post-apiv1alertsuiescalate)|
 | [ `GET /api/v1/alerts/ui/settings`](#get-apiv1alertsuisettings)|
 | [ `GET /api/v1/alerts/ui/settings/all`](#get-apiv1alertsuisettingsall)|
 | [ `DELETE /api/v1/alerts/ui/settings`](#delete-apiv1alertsuisettings)|
@@ -253,13 +253,15 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/metaalert/add/alert`](#get-apiv1metaalertaddalert)|
 | [ `GET /api/v1/metaalert/remove/alert`](#get-apiv1metaalertremovealert)|
 | [ `GET /api/v1/metaalert/update/status/{guid}/{status}`](#get-apiv1metaalertupdatestatusguidstatus)|
-| [ `GET /api/v1/pcap/fixed`](#get-apiv1pcapfixed)|
+| [ `POST /api/v1/pcap/fixed`](#post-apiv1pcapfixed)|
+| [ `POST /api/v1/pcap/query`](#post-apiv1pcapquery)|
+| [ `GET /api/v1/pcap`](#get-apiv1pcap)|
 | [ `GET /api/v1/pcap/{jobId}`](#get-apiv1pcapjobid)|
 | [ `GET /api/v1/pcap/{jobId}/pdml`](#get-apiv1pcapjobidpdml)|
 | [ `GET /api/v1/pcap/{jobId}/raw`](#get-apiv1pcapjobidraw)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
-| [ `POST /api/v1/search/search`](#get-apiv1searchsearch)|
-| [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
+| [ `POST /api/v1/search/search`](#post-apiv1searchsearch)|
+| [ `POST /api/v1/search/group`](#post-apiv1searchgroup)|
 | [ `GET /api/v1/search/findOne`](#get-apiv1searchfindone)|
 | [ `GET /api/v1/search/column/metadata`](#get-apiv1searchcolumnmetadata)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
@@ -308,7 +310,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/{name}`](#get-apiv1stormname)|
 | [ `GET /api/v1/storm/supervisors`](#get-apiv1stormsupervisors)|
 | [ `PATCH /api/v1/update/patch`](#patch-apiv1updatepatch)|
-| [ `PUT /api/v1/update/replace`](#patch-apiv1updatereplace)|
+| [ `PUT /api/v1/update/replace`](#put-apiv1updatereplace)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
 ### `POST /api/v1/alerts/ui/escalate`
@@ -502,13 +504,27 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns 'true' if the status changed and 'false' if it did not.
 
 ### `POST /api/v1/pcap/fixed`
-  * Description: Executes a Fixed Pcap Query.
+  * Description: Executes a Fixed Filter Pcap Query.
   * Input:
     * fixedPcapRequest - A Fixed Pcap Request which includes fixed filter fields like ip source address and protocol
   * Returns:
     * 200 - Returns a job status with job ID.
     
-### `POST /api/v1/pcap/{jobId}`
+### `POST /api/v1/pcap/query`
+  * Description: Executes a Query Filter Pcap Query.
+  * Input:
+    * queryPcapRequest - A Query Pcap Request which includes Stellar query field
+  * Returns:
+    * 200 - Returns a job status with job ID.
+    
+### `GET /api/v1/pcap`
+  * Description: Gets a list of job statuses for Pcap query jobs that match the requested state.
+  * Input:
+    * state - Job state
+  * Returns:
+    * 200 - Returns a list of job statuses for jobs that match the requested state.  
+ 
+### `GET /api/v1/pcap/{jobId}`
   * Description: Gets job status for Pcap query job.
   * Input:
     * jobId - Job ID of submitted job
@@ -516,7 +532,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns a job status for the Job ID.
     * 404 - Job is missing.
     
-### `POST /api/v1/pcap/{jobId}/pdml`
+### `GET /api/v1/pcap/{jobId}/pdml`
   * Description: Gets Pcap Results for a page in PDML format.
   * Input:
     * jobId - Job ID of submitted job
@@ -525,7 +541,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns PDML in json format.
     * 404 - Job or page is missing.
     
-### `POST /api/v1/pcap/{jobId}/raw`
+### `GET /api/v1/pcap/{jobId}/raw`
   * Description: Download Pcap Results for a page.
   * Input:
     * jobId - Job ID of submitted job
@@ -533,6 +549,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns Pcap as a file download.
     * 404 - Job or page is missing.
+    
+### `DELETE /api/v1/pcap/kill/{jobId}`
+  * Description: Kills running job.
+  * Input:
+    * jobId - Job ID of submitted job
+  * Returns:
+    * 200 - Kills passed job.
 
 ### `POST /api/v1/search/search`
   * Description: Searches the indexing store. GUIDs must be quoted to ensure correct results.
@@ -880,8 +903,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
          }
         ```
   * Returns:
-    * 200 - nothing
-    * 404 - document not found
+    * 200 - Nothing
+    * 404 - Document not found
 
 ### `PUT /api/v1/update/replace`
   * Description: Replace a document

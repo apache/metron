@@ -117,8 +117,22 @@ class RestCommands:
         metron_service.init_kafka_acl_groups(self.__params, groups)
 
     def init_pcap(self):
-        Logger.info("Creating HDFS location for Pcap")
-        self.__params.HdfsResource(self.__params.pcap_hdfs_dir,
+        Logger.info("Creating HDFS locations for Pcap")
+        self.__params.HdfsResource(self.__params.pcap_base_path,
+                                   type="directory",
+                                   action="create_on_execute",
+                                   owner=self.__params.metron_user,
+                                   group=self.__params.metron_group,
+                                   mode=0755,
+                                   )
+        self.__params.HdfsResource(self.__params.pcap_base_interim_result_path,
+                                   type="directory",
+                                   action="create_on_execute",
+                                   owner=self.__params.metron_user,
+                                   group=self.__params.metron_group,
+                                   mode=0755,
+                                   )
+        self.__params.HdfsResource(self.__params.pcap_final_output_path,
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,

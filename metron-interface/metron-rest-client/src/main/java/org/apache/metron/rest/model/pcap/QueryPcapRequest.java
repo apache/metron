@@ -15,21 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.rest.model.pcap;
 
-import { Pipe, PipeTransform } from '@angular/core';
-import * as moment from 'moment/moment';
+import org.apache.metron.pcap.config.PcapOptions;
+import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 
-@Pipe({
-  name: 'timeLapse'
-})
-export class TimeLapsePipe implements PipeTransform {
+public class QueryPcapRequest extends PcapRequest {
 
-  transform(value: any): any {
-    if (isNaN(value)) {
-      return '';
-    }
-
-    return moment(new Date(value)).fromNow();
+  public QueryPcapRequest() {
+    PcapOptions.FILTER_IMPL.put(this, new QueryPcapFilter.Configurator());
   }
 
+  public String getQuery() {
+    return QueryPcapOptions.QUERY.get(this, String.class);
+  }
+
+  public void setQuery(String query) {
+    QueryPcapOptions.QUERY.put(this, query);
+  }
+
+  @Override
+  public void setFields() {
+    PcapOptions.FIELDS.put(this, getQuery());
+  }
 }
