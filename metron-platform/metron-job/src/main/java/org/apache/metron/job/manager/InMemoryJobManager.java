@@ -87,4 +87,8 @@ public class InMemoryJobManager<PAGE_T> implements JobManager<PAGE_T> {
     return new ArrayList<>(getUserJobs(username).values());
   }
 
+  public void clear() {
+    jobs.clear();
+  }
+
 }

@@ -29,25 +29,25 @@ export class PcapPacketLineComponent implements OnInit {
 
   ip: {
     timestamp: PdmlField,
-    ip_src_addr: PdmlField, ip_src_port: PdmlField,
-    ip_dest_addr: PdmlField, ip_dest_port: PdmlField,
+    ipSrcAddr: PdmlField, ipSrcPort: PdmlField,
+    ipDestAddr: PdmlField, ipDestPort: PdmlField,
     protocol: PdmlField
   }
 
   constructor() { }
 
   ngOnInit() {
-    let gen_proto: PdmlProto = this.packet.protos.filter(p => p.name == "geninfo")[0]
-    let ip_proto: PdmlProto = this.packet.protos.filter(p => p.name == "ip")[0]
-    let tcp_proto: PdmlProto = this.packet.protos.filter(p => p.name == "tcp")[0]
+    const genProto: PdmlProto = this.packet.protos.filter(p => p.name == "geninfo")[0]
+    const ipProto: PdmlProto = this.packet.protos.filter(p => p.name == "ip")[0]
+    const tcpProto: PdmlProto = this.packet.protos.filter(p => p.name == "tcp")[0]
 
     this.ip = {
-      timestamp: PdmlProto.findField(gen_proto,'timestamp'),
-      ip_src_addr: PdmlProto.findField(ip_proto,'ip.src'),
-      ip_src_port: PdmlProto.findField(tcp_proto,'tcp.srcport'),
-      ip_dest_addr: PdmlProto.findField(ip_proto,'ip.dst'),
-      ip_dest_port: PdmlProto.findField(tcp_proto,'tcp.dstport'),
-      protocol: PdmlProto.findField(ip_proto,'ip.proto')
+      timestamp: PdmlProto.findField(genProto,'timestamp'),
+      ipSrcAddr: PdmlProto.findField(ipProto,'ip.src'),
+      ipSrcPort: PdmlProto.findField(tcpProto,'tcp.srcport'),
+      ipDestAddr: PdmlProto.findField(ipProto,'ip.dst'),
+      ipDestPort: PdmlProto.findField(tcpProto,'tcp.dstport'),
+      protocol: PdmlProto.findField(ipProto,'ip.proto')
     };
   }
 

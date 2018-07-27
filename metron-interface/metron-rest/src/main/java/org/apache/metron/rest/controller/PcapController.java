@@ -22,6 +22,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.io.IOUtils;
+import org.apache.metron.job.JobStatus;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
@@ -44,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/pcap")
@@ -85,6 +87,17 @@ public class PcapController {
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+  }
+
+  @ApiOperation(value = "Gets a list of job statuses for Pcap query jobs that match the requested state.")
+  @ApiResponses(value = {
+          @ApiResponse(message = "Returns a list of job statuses for jobs that match the requested state.", code = 200)
+  })
+  @RequestMapping(method = RequestMethod.GET)
+  ResponseEntity<List<PcapStatus>> getStatuses(@ApiParam(name="state", value="Job state", required=true)@RequestParam String state) throws RestException {
+
+    List<PcapStatus> jobs = pcapQueryService.getJobStatus(SecurityUtils.getCurrentUser(), JobStatus.State.valueOf(state));
+    return new ResponseEntity<>(jobs, HttpStatus.OK);
   }
 
   @ApiOperation(value = "Gets Pcap Results for a page in PDML format.")
