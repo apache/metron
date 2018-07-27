@@ -18,7 +18,6 @@
 package org.apache.metron.rest.mock;
 
 import org.apache.hadoop.fs.Path;
-import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.job.Finalizer;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobStatus;
@@ -28,7 +27,7 @@ import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.mr.PcapJob;
 
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.Mockito.mock;
@@ -54,6 +53,7 @@ public class MockPcapJob extends PcapJob<Path> {
 
   @Override
   public Statusable<Path> submit(Finalizer<Path> finalizer, Map<String, Object> configuration) throws JobException {
+    when(statusable.getConfiguration()).thenReturn(new HashMap<>(configuration));
     this.basePath = PcapOptions.BASE_PATH.get(configuration, String.class);
     this.baseInterrimResultPath = PcapOptions.BASE_INTERIM_RESULT_PATH.get(configuration, String.class);
     this.finalOutputPath = PcapOptions.FINAL_OUTPUT_PATH.get(configuration, String.class);

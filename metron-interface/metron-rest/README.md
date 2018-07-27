@@ -259,6 +259,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/pcap/{jobId}`](#get-apiv1pcapjobid)|
 | [ `GET /api/v1/pcap/{jobId}/pdml`](#get-apiv1pcapjobidpdml)|
 | [ `GET /api/v1/pcap/{jobId}/raw`](#get-apiv1pcapjobidraw)|
+| [ `DELETE /api/v1/pcap/kill/{jobId}`](#delete-apiv1pcapkilljobid)|
+| [ `GET /api/v1/pcap/{jobId}/configuration`](#get-apiv1pcapjobidconfiguration)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
@@ -556,6 +558,14 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * jobId - Job ID of submitted job
   * Returns:
     * 200 - Kills passed job.
+    
+### `GET /api/v1/pcap/{jobId}/configuration`
+  * Description: Gets job configuration for Pcap query job.
+  * Input:
+    * jobId - Job ID of submitted job
+  * Returns:
+    * 200 - Returns a map of job properties for the Job ID.
+    * 404 - Job is missing.
 
 ### `POST /api/v1/search/search`
   * Description: Searches the indexing store. GUIDs must be quoted to ensure correct results.

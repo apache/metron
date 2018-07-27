@@ -420,5 +420,55 @@ public class PcapControllerIntegrationTest {
             .andExpect(status().isNotFound());
   }
 
+  @Test
+  public void testGetFixedFilterConfiguration() throws Exception {
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
 
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.RUNNING));
+
+    this.mockMvc.perform(post(pcapUrl + "/fixed").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(fixedJson))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.jobId").value("jobId"))
+            .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId/configuration").with(httpBasic(user, password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.basePath").value("/base/path"))
+            .andExpect(jsonPath("$.finalOutputPath").value("/final/output/path"))
+            .andExpect(jsonPath("$.startTimeMs").value(10))
+            .andExpect(jsonPath("$.endTimeMs").value(20))
+            .andExpect(jsonPath("$.numReducers").value(2))
+            .andExpect(jsonPath("$.ipSrcAddr").value("192.168.1.2"))
+            .andExpect(jsonPath("$.ipDstAddr").value("192.168.1.1"))
+            .andExpect(jsonPath("$.ipSrcPort").value("2000"))
+            .andExpect(jsonPath("$.ipDstPort").value("1000"))
+            .andExpect(jsonPath("$.protocol").value("TCP"))
+            .andExpect(jsonPath("$.packetFilter").value("filter"))
+            .andExpect(jsonPath("$.includeReverse").value("true"));
+  }
+
+  @Test
+  public void testGeQueryFilterConfiguration() throws Exception {
+    MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
+
+    mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.RUNNING));
+
+    this.mockMvc.perform(post(pcapUrl + "/query").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(queryJson))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.jobId").value("jobId"))
+            .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
+
+    this.mockMvc.perform(get(pcapUrl + "/jobId/configuration").with(httpBasic(user, password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.basePath").value("/base/path"))
+            .andExpect(jsonPath("$.finalOutputPath").value("/final/output/path"))
+            .andExpect(jsonPath("$.startTimeMs").value(10))
+            .andExpect(jsonPath("$.endTimeMs").value(20))
+            .andExpect(jsonPath("$.numReducers").value(2))
+            .andExpect(jsonPath("$.query").value("query"));
+  }
 }

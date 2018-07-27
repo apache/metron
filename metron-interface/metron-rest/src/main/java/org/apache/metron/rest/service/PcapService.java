@@ -26,6 +26,7 @@ import org.apache.metron.rest.model.pcap.Pdml;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 public interface PcapService {
 
@@ -43,5 +44,5 @@ public interface PcapService {
 
   InputStream getRawPcap(String username, String jobId, Integer page) throws RestException;
 
-
+  Map<String, Object> getConfiguration(String username, String jobId) throws RestException;
 }
