@@ -64,7 +64,7 @@ export class AuthenticationService {
   }
 
   private logoutUrl(originalUrl:string):string { 
-    return `/logout/originalUrl=${originalUrl}`;
+    return `/logout?originalUrl=${originalUrl}`;
   }
 
   public logout() {
