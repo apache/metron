@@ -36,16 +36,16 @@ class ManagementUICommands:
         self.__params = params
 
     def script(self, action): 
-        Directory(params.metron_config_pid_dir,
+        Directory(self.__params.metron_config_pid_dir,
                   mode=0755,
-                  owner=params.metron_user,
-                  group=params.metron_group,
+                  owner=self.__params.metron_user,
+                  group=self.__params.metron_group,
                   create_parents=True
                   )
-        Directory(params.metron_log_dir,
+        Directory(self.__params.metron_log_dir,
                   mode=0755,
-                  owner=params.metron_user,
-                  group=params.metron_group,
+                  owner=self.__params.metron_user,
+                  group=self.__params.metron_group,
                   create_parents=True
                   )
         password = self.__params.metron_config_ssl_password
