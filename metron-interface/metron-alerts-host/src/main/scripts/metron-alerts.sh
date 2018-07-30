@@ -48,6 +48,7 @@ APP_JAR="${files[0]}"
 
 export CONF_FOLDER=$METHRON_HOME/config
 export LOG_FOLDER=/var/log/metron/
+export PID_FOLDER=/var/run/metron/
 export RUN_ARGS=$METRON_SPRING_OPTIONS
 export APP_NAME=metron-alerts
 export MODE=service
