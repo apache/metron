@@ -11,11 +11,12 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div class="proto" *ngFor="let proto of packet.protos" (click)="proto.expanded = !proto.expanded">
-  <div class="proto-header">{{ proto.showname }}</div>
-  <div class="proto-fields" *ngIf="proto.expanded">
-    <div *ngFor="let field of proto.fields">
-      <span class="field-name">{{ field.name}}</span> {{ field.showname}}
+<div data-qe-id="proto" class="proto" *ngFor="let proto of packet.protos" (click)="proto.expanded = !proto.expanded">
+  <div data-qe-id="proto-showname" class="proto-header">{{ proto.showname }}</div>
+  <div data-qe-id="proto-fields" class="proto-fields" *ngIf="proto.expanded">
+    <div data-qe-id="proto-field" *ngFor="let field of proto.fields">
+      <span data-qe-id="proto-field-name" class="field-name">{{ field.name }}</span>
+      <span data-qe-id="proto-field-showname">{{ field.showname }}</span>
     </div>
   </div>
 </div>

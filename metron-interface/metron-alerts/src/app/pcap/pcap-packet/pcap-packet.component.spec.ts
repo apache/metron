@@ -19,6 +19,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PcapPacketComponent } from './pcap-packet.component';
 import { PdmlPacket } from '../model/pdml';
+import { By } from '@angular/platform-browser';
 
 describe('PcapPacketComponent', () => {
   let component: PcapPacketComponent;
@@ -40,6 +41,40 @@ describe('PcapPacketComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should expand the packet`s proto fieldset', () => {
+
+    const protos = fixture.debugElement.queryAll(By.css('[data-qe-id="proto"]'));
+
+    protos.forEach((proto, i) => {
+
+      expect(proto.query(By.css('[data-qe-id="proto-fields"]'))).toBeFalsy();
+      proto.nativeElement.click();
+      fixture.detectChanges();
+      const fieldsContainer = proto.query(By.css('[data-qe-id="proto-fields"]'));
+      expect(fieldsContainer).toBeDefined();
+
+      const fields = fieldsContainer.queryAll(By.css('[data-qe-id="proto-field"]'));
+
+      fields.forEach((field, j) => {
+        const name = field.query(By.css('[data-qe-id="proto-field-name"]'));
+        expect(name.nativeElement.textContent.trim()).toBe(fakePacket.protos[i].fields[j].name);
+        const showname = field.query(By.css('[data-qe-id="proto-field-showname"]'));
+        expect(showname.nativeElement.textContent.trim()).toBe(fakePacket.protos[i].fields[j].showname);
+      });
+    });
+  });
+
+  it('should render proto`s showname property', () => {
+    const protos = fixture.debugElement.queryAll(By.css('[data-qe-id="proto"]'));
+    protos.forEach((proto, i) => {
+      expect(
+        proto.query(By.css('[data-qe-id="proto-showname"]'))
+          .nativeElement
+          .textContent.trim()
+      ).toBe(fakePacket.protos[i].showname);
+    });
   });
 });
 
