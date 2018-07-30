@@ -32,6 +32,8 @@ class AlertsUICommands:
         if params is None:
             raise ValueError("params argument is required for initialization")
         self.__params = params
+
+    def script(self, action): 
         Directory(params.metron_alerts_pid_dir,
                   mode=0755,
                   owner=params.metron_user,
@@ -44,8 +46,7 @@ class AlertsUICommands:
                   group=params.metron_group,
                   create_parents=True
                   )
-
-    def script(self, action): 
+        
         password = self.__params.metron_alerts_ssl_password
         metron_home = self.__params.metron_home
         pid_dir = self.__params.metron_alerts_pid_dir
