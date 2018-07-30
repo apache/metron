@@ -58,11 +58,12 @@ public class UserController {
     }
 
     @RequestMapping(path = "/logout", method = RequestMethod.GET)
-    public void logout(Principal user, HttpServletResponse httpServletResponse, @RequestParam("originalUrl") String originalUrl) throws UnsupportedEncodingException {
-        StringBuilder logoutUrl = new StringBuilder(knoxSSOUrl.replaceAll("knoxsso", "knoxssout"));
-        logoutUrl.append(knoxSSOUrl.contains("?") ? "&": "?");
-        logoutUrl.append("originalUrl=");
-        logoutUrl.append(URLEncoder.encode(originalUrl, StandardCharsets.UTF_8.name()));
-        httpServletResponse.setHeader("Location", logoutUrl.toString());
+    public String logout(Principal user, HttpServletResponse httpServletResponse, @RequestParam("originalUrl") String originalUrl) throws UnsupportedEncodingException {
+        StringBuilder redirect = new StringBuilder("redirect:" );
+        redirect.append(knoxSSOUrl.replaceAll("knoxsso", "knoxssout"));
+        redirect.append(knoxSSOUrl.contains("?") ? "&": "?");
+        redirect.append("originalUrl=");
+        redirect.append(URLEncoder.encode(originalUrl, StandardCharsets.UTF_8.name()));
+        return redirect.toString();
     }
 }
