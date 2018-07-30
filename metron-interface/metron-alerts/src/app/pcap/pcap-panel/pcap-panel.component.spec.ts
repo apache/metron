@@ -20,7 +20,7 @@ import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core
 import { PcapPanelComponent } from './pcap-panel.component';
 import { Component, Input } from '../../../../node_modules/@angular/core';
 import { PdmlPacket, Pdml } from '../model/pdml';
-import { PcapService } from '../service/pcap.service';
+import { PcapService, PcapStatusResponse } from '../service/pcap.service';
 import { PcapPagination } from '../model/pcap-pagination';
 import { By } from '../../../../node_modules/@angular/platform-browser';
 import { PcapRequest } from '../model/pcap.request';
@@ -180,5 +180,146 @@ describe('PcapPanelComponent', () => {
 
     expect(fixture.debugElement.query(By.css('app-pcap-list'))).toBeFalsy();
     expect(fixture.debugElement.query(By.css('[data-qe-id="download-link"]'))).toBeFalsy();
+  }));
+
+  it('should render the error message if the search response has no valid job id', fakeAsync(() => {
+    const response = new PcapStatusResponse();
+    response.jobId = '';
+    response.description = 'error message';
+    pcapService.submitRequest = jasmine.createSpy('submitRequest').and.returnValue(
+      defer(() => Promise.resolve(response))
+    );
+
+    component.onSearch(new PcapRequest());
+
+    tick();
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('[data-qe-id="error"]'))
+      .nativeElement
+      .textContent.trim()
+    ).toBe(response.description);
+  }));
+
+  it('should render the error message if the search request fails', fakeAsync(() => {
+
+    pcapService.submitRequest = jasmine.createSpy('submitRequest').and.returnValue(
+      defer(() => Promise.reject(new Error('search error')))
+    );
+
+    component.onSearch(new PcapRequest());
+
+    tick();
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('[data-qe-id="error"]'))
+      .nativeElement
+      .textContent.trim()
+    ).toBe('Response message: search error. Something went wrong with your query submission!');
+  }));
+
+  it('should render the error message if the poll status request fails', fakeAsync(() => {
+
+    const response = new PcapStatusResponse();
+    response.jobId = '42';
+    pcapService.submitRequest = jasmine.createSpy('submitRequest').and.returnValue(
+      defer(() => Promise.resolve(response))
+    );
+
+    pcapService.pollStatus = jasmine.createSpy('pollStatus').and.returnValue(
+      defer(() => Promise.reject(new Error('poll error')))
+    );
+
+    component.onSearch(new PcapRequest());
+
+    tick();
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('[data-qe-id="error"]'))
+      .nativeElement
+      .textContent.trim()
+    ).toBe('Response message: poll error. Something went wrong with your status request!');
+  }));
+
+  it('should render the error message if the poll response`s job status is "failed"', fakeAsync(() => {
+    const searchResponse = new PcapStatusResponse();
+    searchResponse.jobId = '42';
+
+    pcapService.submitRequest = jasmine.createSpy('submitRequest').and.returnValue(
+      defer(() => Promise.resolve(searchResponse))
+    );
+
+    const pollResponse = new PcapStatusResponse();
+    pollResponse.jobStatus = 'FAILED';
+    pcapService.pollStatus = jasmine.createSpy('pollStatus').and.returnValue(
+      defer(() => Promise.resolve(pollResponse))
+    );
+
+    component.onSearch(new PcapRequest());
+
+    tick();
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('[data-qe-id="error"]'))
+      .nativeElement
+      .textContent.trim()
+    ).toBe(`Query status: ${pollResponse.jobStatus}. Check your filter criteria and try again!`);
+  }));
+
+  it('should render the progress if the poll status is neither "succeded" nor "failed"', fakeAsync(() => {
+    const searchResponse = new PcapStatusResponse();
+    searchResponse.jobId = '42';
+
+    pcapService.submitRequest = jasmine.createSpy('submitRequest').and.returnValue(
+      defer(() => Promise.resolve(searchResponse))
+    );
+
+    const pollResponse = new PcapStatusResponse();
+    pollResponse.percentComplete = 86;
+    pcapService.pollStatus = jasmine.createSpy('pollStatus').and.returnValue(
+      defer(() => Promise.resolve(pollResponse))
+    );
+
+    component.progressWidth = 98;
+
+    component.onSearch(new PcapRequest());
+
+    tick();
+    fixture.detectChanges();
+
+    const progress = fixture.debugElement.query(By.css('.pcap-progress'));
+    expect(progress.nativeElement.textContent).toBe(pollResponse.percentComplete + '%');
+  }));
+
+  it('should render the pcap list if the poll status is "succeeded"', fakeAsync(() => {
+    const searchResponse = new PcapStatusResponse();
+    searchResponse.jobId = '42';
+
+    pcapService.submitRequest = jasmine.createSpy('submitRequest').and.returnValue(
+      defer(() => Promise.resolve(searchResponse))
+    );
+
+    const pollResponse = new PcapStatusResponse();
+    pcapService.pollStatus = jasmine.createSpy('pollStatus').and.returnValue(
+      defer(() => Promise.resolve(pollResponse))
+    );
+
+    const myPdml = new Pdml();
+    pcapService.getPackets = jasmine.createSpy('getPackets').and.returnValue(
+      defer(() => Promise.resolve(myPdml))
+    );
+
+    component.onSearch(new PcapRequest());
+
+    expect(fixture.debugElement.query(By.css('app-pcap-list'))).toBeFalsy();
+
+    tick();
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('app-pcap-list'))).toBeDefined();
   }));
 });
