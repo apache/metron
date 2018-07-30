@@ -43,7 +43,7 @@ class FakePcapPacketComponent {
   @Input() packet: PdmlPacket;
 }
 
-fdescribe('PcapListComponent', () => {
+describe('PcapListComponent', () => {
   let component: PcapListComponent;
   let fixture: ComponentFixture<PcapListComponent>;
 
