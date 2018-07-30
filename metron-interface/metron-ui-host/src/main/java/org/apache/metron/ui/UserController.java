@@ -17,6 +17,9 @@
  */
 package org.apache.metron.ui;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +32,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -37,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class UserController {
-    @Value("knox.sso.url")
+    @Value("${knox.sso.url}")
     private String knoxSSOUrl;
 
     @RequestMapping(path = "/whoami", method = RequestMethod.GET)
@@ -54,8 +58,11 @@ public class UserController {
     }
 
     @RequestMapping(path = "/logout", method = RequestMethod.GET)
-    public void logout(Principal user, HttpServletResponse httpServletResponse) {
-        String logoutUrl = knoxSSOUrl.replaceAll("(web|knox)sso", "$1ssout");
-        httpServletResponse.setHeader("Location", logoutUrl);
+    public void logout(Principal user, HttpServletResponse httpServletResponse, @RequestParam("originalUrl") String originalUrl) throws UnsupportedEncodingException {
+        StringBuilder logoutUrl = new StringBuilder(knoxSSOUrl.replaceAll("knoxsso", "knoxssout"));
+        logoutUrl.append(knoxSSOUrl.contains("?") ? "&": "?");
+        logoutUrl.append("originalUrl=");
+        logoutUrl.append(URLEncoder.encode(originalUrl, StandardCharsets.UTF_8.name()));
+        httpServletResponse.setHeader("Location", logoutUrl.toString());
     }
 }
