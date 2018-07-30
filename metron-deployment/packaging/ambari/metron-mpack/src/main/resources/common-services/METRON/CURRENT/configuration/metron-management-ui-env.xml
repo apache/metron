@@ -80,7 +80,7 @@
     <!-- Service Options -->
     <property>
         <name>metron_config_pid_dir</name>
-        <value>/var/run/metron</value>
+        <value>/var/run/metron/</value>
         <display-name>Metron config PID Dir</display-name>
         <description>Metron config PID Dir.</description>
         <value-attributes>
