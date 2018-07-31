@@ -60,7 +60,7 @@ public class UserController {
     @RequestMapping(path = "/logout", method = RequestMethod.GET)
     public String logout(Principal user, HttpServletResponse httpServletResponse, @RequestParam("originalUrl") String originalUrl) throws UnsupportedEncodingException {
         StringBuilder redirect = new StringBuilder("redirect:" );
-        redirect.append(knoxSSOUrl.replaceAll("knoxsso", "knoxssout"));
+        redirect.append(knoxSSOUrl.replaceAll("websso", "webssout"));
         redirect.append(knoxSSOUrl.contains("?") ? "&": "?");
         redirect.append("originalUrl=");
         redirect.append(URLEncoder.encode(originalUrl, StandardCharsets.UTF_8.name()));
