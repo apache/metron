@@ -13,7 +13,7 @@
   -->
 <div class="panel my-4">
   <div class="panel-header">
-    <app-pcap-filters [queryRunning]="queryRunning" (search)="onSearch($event)"></app-pcap-filters>
+    <app-pcap-filters [queryRunning]="queryRunning" [model]="pcapRequest" (search)="onSearch($event)"></app-pcap-filters>
   </div>
   <div *ngIf="queryRunning" class="progress pcap-progress-background">
     <div class="progress-bar progress-bar-animated pcap-progress" role="progressbar" attr.aria-valuenow="{{progressWidth}}" aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'width': progressWidth + '%'}">{{progressWidth}}%</div>

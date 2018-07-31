@@ -32,7 +32,7 @@ class Query {
   templateUrl: './pcap-panel.component.html',
   styleUrls: ['./pcap-panel.component.scss']
 })
-export class PcapPanelComponent {
+export class PcapPanelComponent implements OnInit {
 
   @Input() pdml: Pdml = null;
   @Input() pcapRequest: PcapRequest;
@@ -47,6 +47,21 @@ export class PcapPanelComponent {
   errorMsg: string;
 
   constructor(private pcapService: PcapService ) { }
+
+  ngOnInit() {
+    this.pcapRequest = new PcapRequest();
+    this.pcapService.getRunningJob().subscribe((statusResponses: PcapStatusResponse[]) => {
+      if (statusResponses.length > 0) {
+        // Assume the first job in the list is the running job
+        let statusResponse = statusResponses[0];
+        this.updateStatus(statusResponse);
+        this.startPolling(statusResponse.jobId);
+        this.pcapService.getPcapRequest(statusResponse.jobId).subscribe((pcapRequest: PcapRequest) => {
+          this.pcapRequest = pcapRequest;
+        });
+      }
+    });
+  }
 
   changePage(page) {
     this.pagination.selectedPage = page;
@@ -66,33 +81,41 @@ export class PcapPanelComponent {
       if (!id) {
         this.errorMsg = statusResponse.description;
       } else {
-        this.queryId = id;
-        this.queryRunning = true;
-        this.errorMsg = null;
-        this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
-          if ('SUCCEEDED' === statusResponse.jobStatus) {
-            this.pagination.total = statusResponse.pageTotal;
-            this.statusSubscription.unsubscribe();
-            this.queryRunning = false;
-            this.pcapService.getPackets(id, this.pagination.selectedPage).toPromise().then(pdml => {
-              this.pdml = pdml;
-            });
-          } else if ('FAILED' === statusResponse.jobStatus) {
-            this.statusSubscription.unsubscribe();
-            this.queryRunning = false;
-            this.errorMsg = `Query status: ${statusResponse.jobStatus}. Check your filter criteria and try again!`;
-          } else if (this.progressWidth < 100) {
-            this.progressWidth = Math.trunc(statusResponse.percentComplete);
-          }
-        }, (error: any) => {
-          this.statusSubscription.unsubscribe();
-          this.queryRunning = false;
-          this.errorMsg = `Response message: ${error.message}. Something went wrong with your status request!`;
-        });
+        this.startPolling(id);
       }
     }, (error: any) => {
       this.errorMsg = `Response message: ${error.message}. Something went wrong with your query submission!`;
     });
+  }
+
+  startPolling(id: string) {
+    this.queryId = id;
+    this.queryRunning = true;
+    this.errorMsg = null;
+    this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
+      this.updateStatus(statusResponse);
+    }, (error: any) => {
+      this.statusSubscription.unsubscribe();
+      this.queryRunning = false;
+      this.errorMsg = `Response message: ${error.message}. Something went wrong with your status request!`;
+    });
+  }
+
+  updateStatus(statusResponse: PcapStatusResponse) {
+    if ('SUCCEEDED' === statusResponse.jobStatus) {
+      this.pagination.total = statusResponse.pageTotal;
+      this.statusSubscription.unsubscribe();
+      this.queryRunning = false;
+      this.pcapService.getPackets(this.queryId, this.pagination.selectedPage).toPromise().then(pdml => {
+        this.pdml = pdml;
+      });
+    } else if ('FAILED' === statusResponse.jobStatus) {
+      this.statusSubscription.unsubscribe();
+      this.queryRunning = false;
+      this.errorMsg = `Query status: ${statusResponse.jobStatus}. Check your filter criteria and try again!`;
+    } else if (this.progressWidth < 100) {
+      this.progressWidth = Math.trunc(statusResponse.percentComplete);
+    }
   }
 
   getDownloadUrl() {

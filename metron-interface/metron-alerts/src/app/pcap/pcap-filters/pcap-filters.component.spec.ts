@@ -21,7 +21,7 @@ import { By } from '@angular/platform-browser';
 
 import { PcapFiltersComponent } from './pcap-filters.component';
 import { FormsModule } from '../../../../node_modules/@angular/forms';
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {Component, Input, Output, EventEmitter, SimpleChanges, SimpleChange} from '@angular/core';
 import { PcapRequest } from '../model/pcap.request';
 import { emit } from 'cluster';
 
@@ -187,4 +187,24 @@ describe('PcapFiltersComponent', () => {
     expect(fixture.componentInstance.model.hasOwnProperty('includeReverse')).toBeTruthy();
   });
 
+
+  it('should update time on changes', () => {
+
+    let startTimeStr = '2220-12-12 12:12:12';
+    let endTimeStr = '2320-03-13 13:13:13';
+
+    let newModel = {
+      startTimeMs: new Date(startTimeStr).getTime(),
+      endTimeMs: new Date(endTimeStr).getTime()
+    };
+    component.model.startTimeMs = new Date(startTimeStr).getTime();
+    component.model.endTimeMs = new Date(endTimeStr).getTime();
+
+    component.ngOnChanges({
+      model: new SimpleChange(null, newModel, false)
+    });
+
+    expect(component.startTimeStr).toBe(startTimeStr);
+    expect(component.endTimeStr).toBe(endTimeStr);
+  });
 });
