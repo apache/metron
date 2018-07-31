@@ -17,12 +17,10 @@
  */
 import {ModuleWithProviders} from '@angular/core';
 import {Routes, RouterModule} from '@angular/router';
-import {AuthGuard} from './shared/auth-guard';
 
 export const routes: Routes = [
-  { path: '',  redirectTo: 'sensors', canActivate: [AuthGuard], pathMatch: 'full'},
-  { path: 'sensors', loadChildren: 'app/sensors/sensor-parser-list/sensor-parser-list.module#SensorParserListModule',
-    canActivate: [AuthGuard] },
+  { path: '',  redirectTo: 'sensors', pathMatch: 'full'},
+  { path: 'sensors', loadChildren: 'app/sensors/sensor-parser-list/sensor-parser-list.module#SensorParserListModule'},
 ];
 
 export const appRoutingProviders: any[] = [

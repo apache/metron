@@ -18,8 +18,7 @@
 import { ModuleWithProviders }  from '@angular/core';
 import { RouterModule } from '@angular/router';
 import {SensorParserConfigReadonlyComponent} from './sensor-parser-config-readonly.component';
-import {AuthGuard} from '../../shared/auth-guard';
 
 export const routing: ModuleWithProviders = RouterModule.forChild([
-  { path: 'sensors-readonly/:id', component: SensorParserConfigReadonlyComponent, canActivate: [AuthGuard], outlet: 'dialog'}
+  { path: 'sensors-readonly/:id', component: SensorParserConfigReadonlyComponent, outlet: 'dialog'}
 ]);

@@ -37,7 +37,6 @@ import {SwitchModule} from './shared/switch/switch.module';
 import {ColumnNamesService} from './service/column-names.service';
 import {DataSource} from './service/data-source';
 import {ElasticSearchLocalstorageImpl} from './service/elasticsearch-localstorage-impl';
-import {AuthGuard} from './shared/auth-guard';
 import {AuthenticationService} from './service/authentication.service';
 import {UpdateService} from './service/update.service';
 import {MetaAlertService} from './service/meta-alert.service';
@@ -72,7 +71,6 @@ export function initConfig(config: ColumnNamesService) {
   providers: [{ provide: APP_INITIALIZER, useFactory: initConfig, deps: [ColumnNamesService], multi: true },
               { provide: DataSource, useClass: ElasticSearchLocalstorageImpl },
               AuthenticationService,
-              AuthGuard,
               ConfigureTableService,
               SearchService,
               SaveSearchService,

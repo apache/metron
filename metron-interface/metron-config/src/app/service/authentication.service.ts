@@ -63,7 +63,7 @@ export class AuthenticationService {
     return this.currentUser != null;
   }
 
-  private logoutUrl(originalUrl:string):string { 
+  private logoutUrl(originalUrl:string):string {
     return `/logout?originalUrl=${originalUrl}`;
   }
 
