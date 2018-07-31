@@ -40,12 +40,15 @@ import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
 import org.apache.metron.rest.model.pcap.QueryPcapOptions;
 import org.apache.metron.rest.service.PcapService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,6 +59,8 @@ import java.util.Map;
 
 @Service
 public class PcapServiceImpl implements PcapService {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private Environment environment;
   private Configuration configuration;
@@ -102,7 +107,7 @@ public class PcapServiceImpl implements PcapService {
         pcapStatus = statusableToPcapStatus(statusable);
       }
     } catch (JobNotFoundException | InterruptedException e) {
-      // do nothing and return null pcapStatus
+      LOG.warn(String.format("Could not get job status.  Job not found for user %s with job id %s", username, jobId));
     } catch (JobException e) {
       throw new RestException(e);
     }
@@ -148,7 +153,7 @@ public class PcapServiceImpl implements PcapService {
     try {
       jobManager.killJob(username, jobId);
     } catch (JobNotFoundException e) {
-      // do nothing and return null pcapStatus
+      LOG.warn(String.format("Could not kill job.  Job not found for user %s with job id %s", username, jobId));
       return null;
     } catch (JobException e) {
       throw new RestException(e);
@@ -168,7 +173,7 @@ public class PcapServiceImpl implements PcapService {
         }
       }
     } catch (JobNotFoundException e) {
-      // do nothing and return null pcapStatus
+      LOG.warn(String.format("Could not get path for page %s.  Job not found for user %s with job id %s", page, username, jobId));
     } catch (JobException | InterruptedException e) {
       throw new RestException(e);
     }
@@ -235,7 +240,7 @@ public class PcapServiceImpl implements PcapService {
         }
       }
     } catch (JobNotFoundException e) {
-      // do nothing and return an empty configuration
+      LOG.warn(String.format("Could not get job configuration.  Job not found for user %s with job id %s", username, jobId));
     } catch (JobException e) {
       throw new RestException(e);
     }
