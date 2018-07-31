@@ -27,6 +27,7 @@ import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * Defines the 'route' a message must take through the Profiler.
@@ -74,6 +75,10 @@ public class MessageRoute implements Serializable {
     this.timestamp = timestamp;
   }
 
+  public MessageRoute() {
+    // necessary for serialization
+  }
+
   public String getEntity() {
     return entity;
   }
@@ -96,6 +101,10 @@ public class MessageRoute implements Serializable {
 
   public void setMessage(JSONObject message) {
     this.message = message;
+  }
+
+  public void setMessage(Map message) {
+    this.message = new JSONObject(message);
   }
 
   public Long getTimestamp() {

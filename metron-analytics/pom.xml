@@ -46,6 +46,7 @@
 		<module>metron-profiler</module>
 		<module>metron-profiler-client</module>
 		<module>metron-profiler-common</module>
+		<module>metron-profiler-spark</module>
     </modules>
 	<dependencies>
 		<dependency>
