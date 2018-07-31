@@ -716,4 +716,27 @@ public class PcapServiceImplTest {
     Assert.assertEquals("query", QueryPcapOptions.QUERY.get(configuration, String.class));
   }
 
+  @Test
+  public void getConfigurationShouldReturnEmptyMapOnMissingJob() throws Exception {
+    MockPcapJob mockPcapJob = mock(MockPcapJob.class);
+    JobManager jobManager = mock(JobManager.class);
+    doThrow(new JobNotFoundException("Not found test exception.")).when(jobManager).getJob("user", "jobId");
+
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager, pcapToPdmlScriptWrapper);
+    Map<String, Object> configuration = pcapService.getConfiguration("user", "jobId");
+    Assert.assertEquals(new HashMap<>(), configuration);
+  }
+
+  @Test
+  public void getConfigurationShouldThrowRestException() throws Exception {
+    exception.expect(RestException.class);
+    exception.expectMessage("some job exception");
+
+    JobManager jobManager = mock(JobManager.class);
+    when(jobManager.getJob("user", "jobId")).thenThrow(new JobException("some job exception"));
+
+    PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager, pcapToPdmlScriptWrapper);
+    pcapService.getConfiguration("user", "jobId");
+  }
+
 }

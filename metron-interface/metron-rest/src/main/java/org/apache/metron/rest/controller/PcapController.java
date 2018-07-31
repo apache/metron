@@ -167,7 +167,7 @@ public class PcapController {
           @ApiResponse(message = "Returns a map of job properties for the Job ID.", code = 200),
           @ApiResponse(message = "Job is missing.", code = 404)
   })
-  @RequestMapping(value = "/{jobId}/configuration", method = RequestMethod.GET)
+  @RequestMapping(value = "/{jobId}/config", method = RequestMethod.GET)
   ResponseEntity<Map<String, Object>> getConfiguration(@ApiParam(name="jobId", value="Job ID of submitted job", required=true)@PathVariable String jobId) throws RestException {
     Map<String, Object> configuration = pcapQueryService.getConfiguration(SecurityUtils.getCurrentUser(), jobId);
     if (configuration != null) {

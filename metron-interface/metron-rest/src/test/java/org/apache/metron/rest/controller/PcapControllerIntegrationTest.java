@@ -432,7 +432,7 @@ public class PcapControllerIntegrationTest {
             .andExpect(jsonPath("$.jobId").value("jobId"))
             .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
 
-    this.mockMvc.perform(get(pcapUrl + "/jobId/configuration").with(httpBasic(user, password)))
+    this.mockMvc.perform(get(pcapUrl + "/jobId/config").with(httpBasic(user, password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.basePath").value("/base/path"))
@@ -450,7 +450,7 @@ public class PcapControllerIntegrationTest {
   }
 
   @Test
-  public void testGeQueryFilterConfiguration() throws Exception {
+  public void testGetQueryFilterConfiguration() throws Exception {
     MockPcapJob mockPcapJob = (MockPcapJob) wac.getBean("mockPcapJob");
 
     mockPcapJob.setStatus(new JobStatus().withJobId("jobId").withState(JobStatus.State.RUNNING));
@@ -461,7 +461,7 @@ public class PcapControllerIntegrationTest {
             .andExpect(jsonPath("$.jobId").value("jobId"))
             .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
 
-    this.mockMvc.perform(get(pcapUrl + "/jobId/configuration").with(httpBasic(user, password)))
+    this.mockMvc.perform(get(pcapUrl + "/jobId/config").with(httpBasic(user, password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.basePath").value("/base/path"))
