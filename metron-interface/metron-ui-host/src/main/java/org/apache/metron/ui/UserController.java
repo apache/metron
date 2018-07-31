@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * A trivial endpoint to ping for currently authenticated user principal
@@ -58,12 +60,13 @@ public class UserController {
     }
 
     @RequestMapping(path = "/logout", method = RequestMethod.GET)
-    public String logout(Principal user, HttpServletResponse httpServletResponse, @RequestParam("originalUrl") String originalUrl) throws UnsupportedEncodingException {
+    public RedirectView logout(Principal user, HttpServletResponse httpServletResponse, @RequestParam("originalUrl") String originalUrl) throws UnsupportedEncodingException {
         StringBuilder redirect = new StringBuilder("redirect:" );
         redirect.append(knoxSSOUrl.replaceAll("websso", "webssout"));
         redirect.append(knoxSSOUrl.contains("?") ? "&": "?");
         redirect.append("originalUrl=");
         redirect.append(URLEncoder.encode(originalUrl, StandardCharsets.UTF_8.name()));
-        return redirect.toString();
+
+        return new RedirectView(redirect.toString());
     }
 }
