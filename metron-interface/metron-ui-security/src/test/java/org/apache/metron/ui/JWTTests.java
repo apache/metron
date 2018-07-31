@@ -22,11 +22,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Date;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 
 import org.junit.Test;
@@ -44,28 +47,18 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSASSASigner;
 
+import net.minidev.json.JSONObject;
+
 public class JWTTests {
     private static final String COOKIE_NAME = "hadoop-jwt";
     private static final String knoxUrl = "https://localhost:8443/gateway/default/knoxsso";
+    
+    private static final Payload DEFAULT_PAYLOAD = new Payload("{ \"sub\": \"test\" }");
 
     @Test
     public void testValidJWT() throws Exception {
         KeyPair key = createKey();
-
-        MockHttpServletRequest request = requestWithJWT(tokenWithKey((RSAPrivateKey) key.getPrivate()));
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        MockFilterChain chain = new MockFilterChain();
-
-        MetronAuthenticationProvider authenticationProvider = new MetronAuthenticationProvider();
-        KnoxSSOAuthenticationFilter knoxSSOAuthenticationFilter = new KnoxSSOAuthenticationFilter(
-                authenticationProvider, knoxUrl, null, null, (RSAPublicKey) key.getPublic());
-
-        knoxSSOAuthenticationFilter.doFilter(request, response, chain);
-
-        // ensure that the filter has passed a successful authentication context
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        assertNotNull("Authentication object is set", authentication);
-        assertEquals("test", ((User) authentication.getPrincipal()).getUsername());
+        requestThatSucceeds(tokenWithKey((RSAPrivateKey) key.getPrivate(),DEFAULT_PAYLOAD), key);
     }
 
     @Test
@@ -73,33 +66,100 @@ public class JWTTests {
         KeyPair key = createKey();
         KeyPair badKey = createKey();
         assertFalse(key.equals(badKey));
+        requestThatFails(tokenWithKey((RSAPrivateKey) badKey.getPrivate(),DEFAULT_PAYLOAD), key);
+    }
 
-        MockHttpServletRequest request = requestWithJWT(tokenWithKey((RSAPrivateKey) badKey.getPrivate()));
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        MockFilterChain chain = new MockFilterChain();
+    @Test()
+    public void testExpiredJWT() throws Exception {
+      Date date = new Date();
+      KeyPair key = createKey();
+      
+      JSONObject json = new JSONObject();
+      json.appendField("sub", "test");
+      json.appendField("exp", (date.getTime() - 60000) / 1000);
+      
+      Payload payload = new Payload(json);
+      JWSObject token = tokenWithKey((RSAPrivateKey) key.getPrivate(), payload);
+      
+      requestThatFails(token, key);
+    }
+    
+    @Test()
+    public void testNotYetJWT() throws Exception {
+      Date date = new Date();
+      KeyPair key = createKey();
+      
+      JSONObject json = new JSONObject();
+      json.appendField("sub", "test");
+      json.appendField("exp", (date.getTime() + 60000) / 1000);
+      json.appendField("nbf", (date.getTime() + 30000) / 1000);
+      
+      Payload payload = new Payload(json);
+      JWSObject token = tokenWithKey((RSAPrivateKey) key.getPrivate(), payload);
+      
+      requestThatFails(token, key);
+    }
 
-        MetronAuthenticationProvider authenticationProvider = new MetronAuthenticationProvider();
-        KnoxSSOAuthenticationFilter knoxSSOAuthenticationFilter = new KnoxSSOAuthenticationFilter(
-                authenticationProvider, knoxUrl, null, null, (RSAPublicKey) key.getPublic());
+    @Test()
+    public void testCorrectTimeWindowJWT() throws Exception {
+      Date date = new Date();
+      KeyPair key = createKey();
+      
+      JSONObject json = new JSONObject();
+      json.appendField("sub", "test");
+      json.appendField("exp", (date.getTime() + 60000) / 1000);
+      json.appendField("nbf", (date.getTime() - 30000) / 1000);
+      
+      Payload payload = new Payload(json);
+      JWSObject token = tokenWithKey((RSAPrivateKey) key.getPrivate(), payload);
+      
+      requestThatSucceeds(token, key);
+    }
 
-        knoxSSOAuthenticationFilter.doFilter(request, response, chain);
+    private void requestThatSucceeds(JWSObject token, KeyPair key) throws IOException, ServletException {
+      MockHttpServletRequest request = requestWithJWT(token);
+      MockHttpServletResponse response = new MockHttpServletResponse();
+      MockFilterChain chain = new MockFilterChain();
 
-        assertRedirectedToKnox(response);
+      MetronAuthenticationProvider authenticationProvider = new MetronAuthenticationProvider();
+      KnoxSSOAuthenticationFilter knoxSSOAuthenticationFilter = new KnoxSSOAuthenticationFilter(
+              authenticationProvider, knoxUrl, null, null, (RSAPublicKey) key.getPublic());
+
+      knoxSSOAuthenticationFilter.doFilter(request, response, chain);
+
+      // ensure that the filter has passed a successful authentication context
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      assertNotNull("Authentication object is set", authentication);
+      assertEquals("test", ((User) authentication.getPrincipal()).getUsername());
+    }
+
+    private void requestThatFails(JWSObject token, KeyPair key) throws IOException, ServletException {
+      MockHttpServletRequest request = requestWithJWT(token);
+      MockHttpServletResponse response = new MockHttpServletResponse();
+      MockFilterChain chain = new MockFilterChain();
+
+      MetronAuthenticationProvider authenticationProvider = new MetronAuthenticationProvider();
+      KnoxSSOAuthenticationFilter knoxSSOAuthenticationFilter = new KnoxSSOAuthenticationFilter(
+              authenticationProvider, knoxUrl, null, null, (RSAPublicKey) key.getPublic());
+
+      knoxSSOAuthenticationFilter.doFilter(request, response, chain);
+      
+      assertRedirectedToKnox(response);
     }
 
     private KeyPair createKey() throws Exception {
         return KeyPairGenerator.getInstance("RSA").generateKeyPair();
     }
 
-    private String tokenWithKey(RSAPrivateKey key) throws JOSEException {
-        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.RS256), new Payload("{ \"sub\": \"test\" }"));
+    private JWSObject tokenWithKey(RSAPrivateKey key, Payload payload) throws JOSEException {
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.RS256), payload);
         jwsObject.sign(new RSASSASigner(key));
-        return jwsObject.serialize();
+        return jwsObject;
     }
 
-    private MockHttpServletRequest requestWithJWT(String jwt) {
+    private MockHttpServletRequest requestWithJWT(JWSObject jwt) {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setCookies(new Cookie(COOKIE_NAME, jwt));
+        request.setCookies(new Cookie(COOKIE_NAME, jwt.serialize()));
         return request;
     }
 

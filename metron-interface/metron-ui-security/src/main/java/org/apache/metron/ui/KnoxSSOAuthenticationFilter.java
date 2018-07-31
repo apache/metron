@@ -26,6 +26,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.Filter;
@@ -115,7 +116,6 @@ public class KnoxSSOAuthenticationFilter implements Filter {
                     if (valid) {
                         String userName = jwtToken.getJWTClaimsSet().getSubject();
                         LOG.info("SSO login user : {} ", userName);
-                        // if we get the userName from the token then log into atlas using the same user
                         if (userName != null && !userName.trim().isEmpty()) {
                             List<GrantedAuthority> grantedAuths = MetronAuthenticationProvider
                                     .getAuthoritiesFromUGI(userName);
@@ -127,6 +127,17 @@ public class KnoxSSOAuthenticationFilter implements Filter {
                             Authentication authentication = authenticationProvider.authenticate(finalAuthentication);
                             SecurityContextHolder.getContext().setAuthentication(authentication);
                         }
+                        Date expirationTime = jwtToken.getJWTClaimsSet().getExpirationTime();
+                        Date notBeforeTime = jwtToken.getJWTClaimsSet().getNotBeforeTime();
+                        Date now = new Date();
+                        if (expirationTime != null && now.after(expirationTime)) {
+                          LOG.info("SSO token expired: {} ", userName);
+                          redirectToKnox(httpRequest, httpResponse, chain);
+                        } 
+                        if (notBeforeTime != null && now.before(notBeforeTime)) {
+                          LOG.info("SSO token not yet valid: {} ", userName);
+                          redirectToKnox(httpRequest, httpResponse, chain);
+                        }
                         chain.doFilter(request, response);
                     } else { // if the token is not valid then redirect to knox sso
                         redirectToKnox(httpRequest, httpResponse, chain);
@@ -135,7 +146,7 @@ public class KnoxSSOAuthenticationFilter implements Filter {
                     LOG.warn("Unable to parse the JWT token", e);
                     redirectToKnox(httpRequest, httpResponse, chain);
                 }
-            } else {
+            } else { // if there is no token, redirect
                 redirectToKnox(httpRequest, httpResponse, chain);
             }
         }
