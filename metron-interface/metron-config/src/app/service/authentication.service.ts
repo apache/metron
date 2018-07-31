@@ -26,7 +26,7 @@ import {CookieService} from 'ng2-cookies';
 @Injectable()
 export class AuthenticationService {
 
-  private currentUser: string;
+  private currentUser: Observable<string>;
   userUrl: string = this.config.apiEndpoint + '/user';
   ssoCookie: string = 'hadoop-jwt';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
@@ -40,22 +40,20 @@ export class AuthenticationService {
   }
 
   public init() {
-      this.getCurrentUser(new RequestOptions({headers: new Headers(this.defaultHeaders)})).subscribe((response: Response) => {
-        this.currentUser = response.text();
-        if (this.currentUser) {
+      this.getCurrentUser(new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+        .subscribe(result => {
           this.onLoginEvent.emit(true);
-        }
-      }, error => {
-        this.onLoginEvent.emit(false);
-        this.currentUser = null;
-      });
+          this.currentUser = Observable.create(result.text)
+        }, error => {
+          this.onLoginEvent.emit(false);
+        })
   }
 
   public getCurrentUser(options: RequestOptions): Observable<Response> {
     return this.http.get(this.userUrl, options);
   }
 
-  public getCurrentUserName(): string {
+  public getCurrentUserName(): Observable<string> {
     return this.currentUser;
   }
 
