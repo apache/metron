@@ -100,8 +100,8 @@ describe('PcapService', () => {
     it('should return an Observable<PcapStatusResponse>', inject(
       [PcapService, XHRBackend],
       (pcapService, mockBackend) => {
-        let request: PcapRequest = fakePcapRequest;
-        let responseMock: PcapStatusResponse = fakePcapStatusResponse;
+        const request: PcapRequest = fakePcapRequest;
+        const responseMock: PcapStatusResponse = fakePcapStatusResponse;
         let response;
 
         mockBackend.connections.subscribe(connection => {
@@ -121,7 +121,7 @@ describe('PcapService', () => {
     it('should return an Observable<PcapStatusResponse>', inject(
       [PcapService, XHRBackend],
       (pcapService, mockBackend) => {
-        let responseMock: PcapStatusResponse = fakePcapStatusResponse;
+        const responseMock: PcapStatusResponse = fakePcapStatusResponse;
         let response;
 
         mockBackend.connections.subscribe(connection => {
