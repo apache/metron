@@ -43,7 +43,7 @@ export class AuthenticationService {
       this.getCurrentUser(new RequestOptions({headers: new Headers(this.defaultHeaders)}))
         .subscribe(result => {
           this.onLoginEvent.emit(true);
-          this.currentUser = Observable.create(result.text)
+          this.currentUser = Observable.create(result.text());
         }, error => {
           this.onLoginEvent.emit(false);
         })
