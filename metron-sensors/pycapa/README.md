@@ -231,30 +231,19 @@ Capturing on 'Standard input'
 
 ### Kerberos
 
-The probe can be used in a Kerberized environment.  Follow these additional steps to use Pycapa with Kerberos.  The following assumptions have been made.  These may need altered to fit your environment.
+The probe can be used in a Kerberized environment. The Python client README (https://github.com/confluentinc/confluent-kafka-python) has an important note for Kerberos case that the pre-built Linux wheels do NOT contain SASL Kerberos support. You will need to use the non-binary wheel to install confluent-kafka-python and build/install librdkafka separately. Follow these additional steps to use Pycapa with Kerberos.  The following assumptions have been made.  These may need altered to fit your environment.
 
   * The Kafka broker is at `kafka1:6667`
   * Zookeeper is at `zookeeper1:2181`
   * The Kafka security protocol is `SASL_PLAINTEXT`
   * The keytab used is located at `/etc/security/keytabs/metron.headless.keytab`
   * The service principal is `metron@EXAMPLE.COM`
-
-    If it is not, ensure that you have `libsasl` or `libsasl2` installed.  On CentOS, this can be installed with the following command.   
-    ```
-    yum install -y cyrus-sasl cyrus-sasl-devel cyrus-sasl-gssapi
-    ```
- 
- 1. Use the non-binary wheel to install confluent-kafka-python.
    
-    The Python client README (https://github.com/confluentinc/confluent-kafka-python) has an important note for Kerberos case:
-    ```
-    **NOTE:** The pre-built Linux wheels do NOT contain SASL Kerberos support.
-             If you need SASL Kerberos support you must install librdkafka and
-             its dependencies using the above repositories and then build
-             confluent-kafka from source.
+ 
+1. If it is not, ensure that you have `libsasl` or `libsasl2` installed.  On CentOS, this can be installed with the following command.
      ```
-    
-    so you will need to use the non-binary wheel to install confluent-kafka-python and build/install librdkafka separately
+        yum install -y cyrus-sasl cyrus-sasl-devel cyrus-sasl-gssapi
+     ```
 
 1. Build Librdkafka with SASL support (` --enable-sasl`) and install at your chosen $PREFIX.
     ```
@@ -270,10 +259,10 @@ The probe can be used in a Kerberized environment.  Follow these additional step
     $ examples/rdkafka_example -X builtin.features    
       builtin.features = gzip,snappy,ssl,sasl,regex,lz4,sasl_gssapi,sasl_plain,sasl_scram,plugins
     ```
-1. The source install of confluent-kafka:       
-             
-      ```
-       // If you have already installed, remove the binary wheel python client first, repeat until it says no longer installed
+1. The source install of confluent-kafka.
+       
+    If you have already installed, remove the binary wheel python client first, repeat until it says no longer installed          
+      ```       
        pip uninstall -y confluent-kafka 
       ```
        
