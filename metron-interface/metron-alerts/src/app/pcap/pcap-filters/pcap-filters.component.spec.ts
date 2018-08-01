@@ -15,41 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../variables";
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-.navbar
-{
-  flex-direction: row;
-  background: $nav-bar-bg;
-  padding: 0rem 1rem;
-  height: 50px;
-  line-height: 50px;
-  max-height: 50px;
-}
+import { PcapFiltersComponent } from './pcap-filters.component';
+import { FormsModule } from '../../../../node_modules/@angular/forms';
 
-.nav-link
-{
-  padding-bottom: 0;
-  padding-top: 0;
-  color: inherit;
-}
+describe('PcapFiltersComponent', () => {
+  let component: PcapFiltersComponent;
+  let fixture: ComponentFixture<PcapFiltersComponent>;
 
-.nav-item.active
-{
-  border-bottom: 3px solid #32abe2;
-  margin-bottom: 5px;
-}
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        FormsModule
+      ],
+      declarations: [ PcapFiltersComponent ]
+    })
+    .compileComponents();
+  }));
 
-.nav-link.active
-{
-  color: #ffffff;
-}
+  beforeEach(() => {
+    fixture = TestBed.createComponent(PcapFiltersComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
 
-.logout {
-  padding-left: 10px;
-}
-
-.logout-link{
-  color: $all-ports;
-  cursor: pointer;
-}
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

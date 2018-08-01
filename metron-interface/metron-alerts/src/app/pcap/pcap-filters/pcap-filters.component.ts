@@ -15,41 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../variables";
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { PcapRequest } from '../model/pcap.request'
 
-.navbar
-{
-  flex-direction: row;
-  background: $nav-bar-bg;
-  padding: 0rem 1rem;
-  height: 50px;
-  line-height: 50px;
-  max-height: 50px;
-}
+@Component({
+  selector: 'app-pcap-filters',
+  templateUrl: './pcap-filters.component.html',
+  styleUrls: ['./pcap-filters.component.scss']
+})
+export class PcapFiltersComponent implements OnInit {
 
-.nav-link
-{
-  padding-bottom: 0;
-  padding-top: 0;
-  color: inherit;
-}
+  @Input() queryRunning: boolean = true;
+  @Output() search: EventEmitter<PcapRequest> = new EventEmitter<PcapRequest>();
 
-.nav-item.active
-{
-  border-bottom: 3px solid #32abe2;
-  margin-bottom: 5px;
-}
+  model = new PcapRequest();
 
-.nav-link.active
-{
-  color: #ffffff;
-}
+  constructor() { }
 
-.logout {
-  padding-left: 10px;
-}
+  ngOnInit() {
+  }
 
-.logout-link{
-  color: $all-ports;
-  cursor: pointer;
+  onSubmit() {
+    this.search.emit(this.model)
+  }
 }

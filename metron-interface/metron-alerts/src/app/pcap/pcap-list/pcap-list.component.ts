@@ -15,41 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../variables";
+import { Component, OnInit, Input } from '@angular/core';
+import { Pdml,PdmlPacket } from '../model/pdml'
 
-.navbar
-{
-  flex-direction: row;
-  background: $nav-bar-bg;
-  padding: 0rem 1rem;
-  height: 50px;
-  line-height: 50px;
-  max-height: 50px;
-}
+@Component({
+  selector: 'app-pcap-list',
+  templateUrl: './pcap-list.component.html',
+  styleUrls: ['./pcap-list.component.scss']
+})
+export class PcapListComponent implements OnInit {
 
-.nav-link
-{
-  padding-bottom: 0;
-  padding-top: 0;
-  color: inherit;
-}
+  @Input() packets: PdmlPacket[]
 
-.nav-item.active
-{
-  border-bottom: 3px solid #32abe2;
-  margin-bottom: 5px;
-}
+  constructor() { }
 
-.nav-link.active
-{
-  color: #ffffff;
-}
+  ngOnInit() {
+  }
 
-.logout {
-  padding-left: 10px;
-}
+  toggle(packet) {
+    packet.expanded= !packet.expanded
+  }
 
-.logout-link{
-  color: $all-ports;
-  cursor: pointer;
 }
