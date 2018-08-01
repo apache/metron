@@ -25,6 +25,7 @@ import { PcapPagination } from '../model/pcap-pagination';
 import { By } from '../../../../node_modules/@angular/platform-browser';
 import { PcapRequest } from '../model/pcap.request';
 import { defer } from 'rxjs/observable/defer';
+import { RestError } from '../../model/rest-error';
 
 @Component({
   selector: 'app-pcap-filters',
@@ -48,6 +49,9 @@ class FakePcapService {
     return '';
   }
   submitRequest() {}
+  cancelQuery() {
+    return defer(() => Promise.resolve());
+  }
 }
 
 describe('PcapPanelComponent', () => {
@@ -321,5 +325,75 @@ describe('PcapPanelComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css('app-pcap-list'))).toBeDefined();
+  }));
+
+  it('should render a cancel button only if a query runs', () => {
+    component.queryRunning = false;
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-qe-id="pcap-cancel-query-button"]'))).toBeFalsy();
+
+    component.queryRunning = true;
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-qe-id="pcap-cancel-query-button"]'))).toBeDefined();
+  });
+
+  it('should hide the progress bar if the user clicks on the cancel button', fakeAsync(() => {
+    component.queryRunning = true;
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('.pcap-progress'))).toBeDefined();
+
+    const cancelBtn = fixture.debugElement.query(By.css('[data-qe-id="pcap-cancel-query-button"]'));
+    const cancelBtnEl = cancelBtn.nativeElement;
+
+    cancelBtnEl.click();
+    tick();
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.pcap-progress'))).toBeFalsy();
+  }));
+
+  it('should hide the progress bar if the cancellation request fails', fakeAsync(() => {
+    const restError = new RestError();
+    pcapService.cancelQuery = jasmine.createSpy('cancelQuery').and.returnValue(
+      defer(() => Promise.reject(restError))
+    );
+
+    component.queryRunning = true;
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('.pcap-progress'))).toBeDefined();
+
+    const cancelBtn = fixture.debugElement.query(By.css('[data-qe-id="pcap-cancel-query-button"]'));
+    const cancelBtnEl = cancelBtn.nativeElement;
+
+    cancelBtnEl.click();
+    tick();
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.pcap-progress'))).toBeFalsy();
+  }));
+
+  it('should show an error message if the cancellation request fails', fakeAsync(() => {
+    const restError = new RestError();
+    restError.message = 'cancellation error';
+    pcapService.cancelQuery = jasmine.createSpy('cancelQuery').and.returnValue(
+      defer(() => Promise.reject(restError))
+    );
+
+    component.queryRunning = true;
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-qe-id="error"]'))).toBeFalsy();
+
+    const cancelBtn = fixture.debugElement.query(By.css('[data-qe-id="pcap-cancel-query-button"]'));
+    const cancelBtnEl = cancelBtn.nativeElement;
+
+    cancelBtnEl.click();
+    tick();
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('[data-qe-id="error"]'))
+        .nativeElement
+        .textContent.trim()
+    ).toBe(`Response message: ${restError.message}. Something went wrong with the cancellation!`);
   }));
 });
