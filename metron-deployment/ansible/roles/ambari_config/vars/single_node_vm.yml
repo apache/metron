@@ -211,7 +211,7 @@ configurations:
             </param>
             <param>
               <name>knoxsso.token.ttl</name>
-              <value>30000</value>
+              <value>36000000</value>
             </param>
             <param>
               <name>knoxsso.redirect.whitelist.regex</name>
