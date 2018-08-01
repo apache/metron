@@ -46,7 +46,7 @@ export class AuthenticationService {
           return result.text();
         }, error => {
           this.onLoginEvent.emit(false);
-        })
+        });
   }
 
   public getCurrentUser(options: RequestOptions): Observable<Response> {
@@ -57,11 +57,7 @@ export class AuthenticationService {
     return this.currentUser;
   }
 
-  public isAuthenticated(): boolean {
-    return this.currentUser != null;
-  }
-
-  private logoutUrl(originalUrl:string):string {
+  private logoutUrl(originalUrl: string): string {
     return `/logout?originalUrl=${originalUrl}`;
   }
 
