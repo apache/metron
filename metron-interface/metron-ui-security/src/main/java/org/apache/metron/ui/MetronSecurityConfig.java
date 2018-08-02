@@ -114,7 +114,7 @@ public class MetronSecurityConfig extends WebSecurityConfigurerAdapter {
             http.addFilterAt(ssoAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         }
         http.headers().disable();
-        http.csrf();
+        http.csrf().disable();
     }
 
     private KnoxSSOAuthenticationFilter ssoAuthenticationFilter() throws Exception {
