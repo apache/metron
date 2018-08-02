@@ -23,6 +23,8 @@ import {IAppConfig} from '../app.config.interface';
 import {SensorParserConfigHistory} from '../model/sensor-parser-config-history';
 import {APP_CONFIG} from '../app.config';
 import {SensorParserConfig} from '../model/sensor-parser-config';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 @Injectable()
 export class SensorParserConfigHistoryService {
