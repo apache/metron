@@ -69,6 +69,7 @@
           </commandScript>
           <configuration-dependencies>
             <config-type>metron-parsers-env</config-type>
+            <config-type>metron-pcap-env</config-type>
           </configuration-dependencies>
         </component>
 

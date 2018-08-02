@@ -57,6 +57,7 @@ class ParserMaster(Script):
             commands.init_kafka_acls()
             commands.set_acl_configured()
 
+        Logger.info("Running PCAP configure")
         File(format("{metron_config_path}/pcap.properties"),
              content=Template("pcap.properties.j2"),
              owner=params.metron_user,
