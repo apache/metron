@@ -15,47 +15,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
-import { PcapService, PcapStatusResponse } from '../service/pcap.service'
-import { PcapRequest } from '../model/pcap.request'
-import { Pdml } from '../model/pdml'
-import {Subscription} from "rxjs/Rx";
+import { PcapService, PcapStatusResponse } from '../service/pcap.service';
+import { PcapRequest } from '../model/pcap.request';
+import { Pdml } from '../model/pdml';
+import { Subscription } from 'rxjs/Rx';
 
 @Component({
   selector: 'app-pcap-panel',
   templateUrl: './pcap-panel.component.html',
   styleUrls: ['./pcap-panel.component.scss']
 })
-export class PcapPanelComponent implements OnInit {
+export class PcapPanelComponent {
 
   @Input() pdml: Pdml = null;
-
   @Input() pcapRequest: PcapRequest;
 
   statusSubscription: Subscription;
   queryRunning: boolean = false;
+  queryId: string;
   progressWidth: number = 0;
   selectedPage: number = 1;
   errorMsg: string;
 
-  constructor(private pcapService: PcapService ) { }
-
-  ngOnInit() {
-  }
+  constructor(private pcapService: PcapService) {}
 
   onSearch(pcapRequest) {
     console.log(pcapRequest);
     this.pdml = null;
     this.progressWidth = 0;
-    this.pcapService.submitRequest(pcapRequest).subscribe(id => {
+    this.pcapService.submitRequest(pcapRequest).subscribe((submitResponse: PcapStatusResponse) => {
+      this.queryId = submitResponse.jobId;
       this.queryRunning = true;
       this.errorMsg = null;
-      this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
+      this.statusSubscription = this.pcapService.pollStatus(submitResponse.jobId).subscribe((statusResponse: PcapStatusResponse) => {
         if ('SUCCEEDED' === statusResponse.jobStatus) {
           this.statusSubscription.unsubscribe();
           this.queryRunning = false;
-          this.pcapService.getPackets(id, this.selectedPage).toPromise().then(pdml => {
+          this.pcapService.getPackets(submitResponse.jobId, this.selectedPage).toPromise().then(pdml => {
             this.pdml = pdml;
           });
         } else if ('FAILED' === statusResponse.jobStatus) {
@@ -71,5 +69,9 @@ export class PcapPanelComponent implements OnInit {
         this.errorMsg = `Response status: ${error.responseCode}. Something went wrong with your status request!`;
       });
     });
+  }
+
+  getDownloadUrl() {
+    return this.pcapService.getDownloadUrl(this.queryId, this.selectedPage);
   }
 }

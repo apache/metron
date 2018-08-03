@@ -27,5 +27,5 @@
   <div class="panel-body" *ngIf="pdml">
     <app-pcap-list [packets]="pdml.packets"></app-pcap-list>
   </div>
-
+  <a class="btn btn-primary" [attr.href]="getDownloadUrl()" *ngIf="pdml">Download PCAP</a>
 </div>
