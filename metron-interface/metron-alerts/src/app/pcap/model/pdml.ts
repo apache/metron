@@ -17,8 +17,7 @@
  */
  
  export class PdmlField {
-  //public $: any[]
-    public name: string;
+  public name: string;
   public fields?: PdmlField[]
   public show: string;
   public value: string;
@@ -26,9 +25,8 @@
 }
 
 export class PdmlProto {
-  //public $: any
-    public name: string;
-    public showname: string;
+  public name: string;
+  public showname: string;
   public fields: PdmlField[]
   
   public static findField(p: PdmlProto, name: string): PdmlField {
@@ -36,10 +34,8 @@ export class PdmlProto {
   }
 }
 
-
 export class PdmlPacket {
-  //public $: any
-    public name: string;
+  public name: string;
   public protos: PdmlProto[]
   public expanded: boolean = false
 }

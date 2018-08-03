@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 import {Injectable, NgZone} from '@angular/core';
-import {Observable, Subject} from 'rxjs/Rx';
-import {Http, Headers, RequestOptions, Response} from '@angular/http';
+import {Observable} from 'rxjs/Rx';
+import {Http, Headers, RequestOptions} from '@angular/http';
 import {HttpUtil} from '../../utils/httpUtil';
 
 import 'rxjs/add/operator/map';
@@ -26,9 +26,10 @@ import {PcapRequest} from '../model/pcap.request';
 import {Pdml} from '../model/pdml';
 
 export class PcapStatusResponse {
+  jobId: string;
   jobStatus: string;
   percentComplete: number;
-  pageTotal: number;
+  totalPages: number;
 }
 
 @Injectable()
@@ -46,9 +47,9 @@ export class PcapService {
       });
     }
 
-    public submitRequest(pcapRequest: PcapRequest): Observable<string> {
+    public submitRequest(pcapRequest: PcapRequest): Observable<PcapStatusResponse> {
       return this.http.post('/api/v1/pcap/fixed', pcapRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-          .map(result => JSON.parse(result.text()).jobId)
+          .map(result => result.json() as PcapStatusResponse)
           .catch(HttpUtil.handleError)
           .onErrorResumeNext();
     }
@@ -64,5 +65,9 @@ export class PcapService {
             .map(HttpUtil.extractData)
             .catch(HttpUtil.handleError)
             .onErrorResumeNext();
+    }
+
+    public getDownloadUrl(id: string, pageNo: number) {
+      return `/api/v1/pcap/${id}/raw?page=${pageNo}`;
     }
 }
