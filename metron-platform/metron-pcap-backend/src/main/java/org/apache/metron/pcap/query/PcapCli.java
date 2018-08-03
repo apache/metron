@@ -80,7 +80,7 @@ public class PcapCli {
     Pageable<Path> results;
     // write to local FS in the executing directory
     String execDir = System.getProperty("user.dir");
-
+    jobRunner.reportStatus(System.out);
     if ("fixed".equals(jobType)) {
       FixedCliParser fixedParser = new FixedCliParser(prefixStrategy);
       FixedPcapConfig config = null;
