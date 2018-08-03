@@ -22,6 +22,7 @@ import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
 import {Subscription} from 'rxjs/Rx';
 import { PcapPagination } from '../model/pcap-pagination';
+import {RestError} from "../../model/rest-error";
 
 class Query {
   id: String
@@ -74,8 +75,14 @@ export class PcapPanelComponent {
             this.pagination.total = statusResponse.pageTotal;
             this.statusSubscription.unsubscribe();
             this.queryRunning = false;
-            this.pcapService.getPackets(id, this.pagination.selectedPage).toPromise().then(pdml => {
+            this.pcapService.getPackets(id, this.pagination.selectedPage).subscribe(pdml => {
               this.pdml = pdml;
+            }, (error: RestError) => {
+              if (error.responseCode === 404) {
+                this.errorMsg = 'No results returned';
+              } else {
+                this.errorMsg = `Response message: ${error.message}. Something went wrong retrieving pdml results!`;
+              }
             });
           } else if ('FAILED' === statusResponse.jobStatus) {
             this.statusSubscription.unsubscribe();
