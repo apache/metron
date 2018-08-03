@@ -77,4 +77,6 @@ public interface Statusable<PAGE_T> {
    */
   boolean validate(Map<String, Object> configuration);
 
+  Map<String, Object> getConfiguration();
+
 }
