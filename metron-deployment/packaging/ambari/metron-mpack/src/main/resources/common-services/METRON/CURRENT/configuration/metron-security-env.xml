@@ -136,7 +136,7 @@
         <on-ambari-upgrade add="true"/>
     </property>
     <property>
-        <name>metron.ldap.publickey</name>
+        <name>metron.sso.publicKey</name>
         <display-name>SSO public key</display-name>
         <value></value>
         <description>Public key for SSO cookie verification</description>

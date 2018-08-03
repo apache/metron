@@ -863,7 +863,7 @@
         { "config": "metron-security-env/metron.ldap.group.roleattribute", "subsection-name": "subsection-security-ldap" },
         { "config": "metron-security-env/metron.sso.enabled", "subsection-name": "subsection-security-sso" },
         { "config": "metron-security-env/metron.sso.providerurl", "subsection-name": "subsection-security-sso" },
-        { "config": "metron-security-env/metron.sso.publickey", "subsection-name": "subsection-security-sso" }
+        { "config": "metron-security-env/metron.sso.publicKey", "subsection-name": "subsection-security-sso" }
       ]
     },
     "widgets": [
@@ -1445,7 +1445,7 @@
       { "config": "metron-security-env/metron.ldap.group.roleattribute", "widget": { "type": "text-field"}},
       { "config": "metron-security-env/metron.sso.enabled", "widget": { "type": "toggle"}},
       { "config": "metron-security-env/metron.sso.providerurl", "widget": { "type": "text-field"}},
-      { "config": "metron-security-env/metron.sso.publickey", "widget": { "type": "text-area"}}
+      { "config": "metron-security-env/metron.sso.publicKey", "widget": { "type": "text-area"}}
     ]
   }
 }

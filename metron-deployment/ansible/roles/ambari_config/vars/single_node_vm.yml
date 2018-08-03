@@ -120,7 +120,7 @@ configurations:
   - metron-security-env:
       metron.sso.providerurl: https://{{ ambari_host }}:8443/gateway/knoxsso/api/v1/websso
       metron.sso.enabled: true
-      metron.sso.publickey: "{{ knox_public_key.stdout }}"
+      metron.sso.publicKey: "{{ knox_public_key.stdout }}"
       metron.ldap.url: ldap://{{ ambari_host }}:33389
       metron.ldap.bind.dn: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
       metron.ldap.bind.password: admin-password

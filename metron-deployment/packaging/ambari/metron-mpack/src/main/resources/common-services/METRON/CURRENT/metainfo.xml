@@ -283,6 +283,7 @@
             <scriptType>PYTHON</scriptType>
           </commandScript>
           <configuration-dependencies>
+            <config-type>metron-security-env</config-type>
             <config-type>metron-indexing-env</config-type>
             <config-type>metron-rest-env</config-type>
           </configuration-dependencies>
@@ -331,6 +332,7 @@
             <scriptType>PYTHON</scriptType>
           </commandScript>
             <configuration-dependencies>
+                <config-type>metron-security-env</config-type>
                 <config-type>metron-rest-env</config-type>
                 <config-type>metron-management-ui-env</config-type>
             </configuration-dependencies>
@@ -357,6 +359,7 @@
             <scriptType>PYTHON</scriptType>
           </commandScript>
           <configuration-dependencies>
+            <config-type>metron-security-env</config-type>
             <config-type>metron-rest-env</config-type>
             <config-type>metron-alerts-ui-env</config-type>
           </configuration-dependencies>

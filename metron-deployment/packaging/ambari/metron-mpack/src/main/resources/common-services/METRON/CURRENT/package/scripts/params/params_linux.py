@@ -274,7 +274,7 @@ ldap_group_role = config['configurations']['metron-security-env']['metron.ldap.g
 knox_sso_enabled = config['configurations']['metron-security-env']['metron.sso.enabled']
 knox_sso_url = config['configurations']['metron-security-env']['metron.sso.providerurl']
 knox_sso_cookie = config['configurations']['metron-security-env']['metron.sso.cookiename']
-knox_sso_pubkey = re.sub(r'\s+', '', config['configurations']['metron-security-env']['metron.sso.publickey'])
+knox_sso_pubkey = re.sub(r'\s+', '', config['configurations']['metron-security-env']['metron.sso.publicKey'])
 knox_sso_originalurl = config['configurations']['metron-security-env']['metron.sso.query.param.originalurl']
 
 # SSL
