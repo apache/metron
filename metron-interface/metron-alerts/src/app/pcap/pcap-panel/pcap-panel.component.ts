@@ -57,10 +57,10 @@ export class PcapPanelComponent {
     this.pdml = null;
     this.progressWidth = 0;
     this.errorMsg = null;
-    this.pcapService.submitRequest(pcapRequest).subscribe((statusResponse: PcapStatusResponse) => {
-      let id = statusResponse.jobId;
+    this.pcapService.submitRequest(pcapRequest).subscribe((submitResponse: PcapStatusResponse) => {
+      let id = submitResponse.jobId;
       if (!id) {
-        this.errorMsg = statusResponse.description;
+        this.errorMsg = submitResponse.description;
       } else {
         this.queryId = id;
         this.queryRunning = true;
@@ -70,7 +70,7 @@ export class PcapPanelComponent {
             this.pagination.total = statusResponse.pageTotal;
             this.statusSubscription.unsubscribe();
             this.queryRunning = false;
-            this.pcapService.getPackets(id, this.pagination.selectedPage).toPromise().then(pdml => {
+            this.pcapService.getPackets(submitResponse.jobId, this.pagination.selectedPage).toPromise().then(pdml => {
               this.pdml = pdml;
             });
           } else if ('FAILED' === statusResponse.jobStatus) {
