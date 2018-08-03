@@ -26,9 +26,10 @@ import {PcapRequest} from '../model/pcap.request';
 import {Pdml} from '../model/pdml';
 
 export class PcapStatusResponse {
-    jobStatus: string;
-    percentComplete: number;
-    pageTotal: number;
+  jobId: string;
+  jobStatus: string;
+  percentComplete: number;
+  totalPages: number;
 }
 
 @Injectable()
@@ -46,11 +47,11 @@ export class PcapService {
       });
     }
 
-    public submitRequest(pcapRequest: PcapRequest): Observable<string> {
-        return this.http.post('/api/v1/pcap/fixed', pcapRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-            .map(result => JSON.parse(result.text()).jobId)
-            .catch(HttpUtil.handleError)
-            .onErrorResumeNext();
+    public submitRequest(pcapRequest: PcapRequest): Observable<PcapStatusResponse> {
+      return this.http.post('/api/v1/pcap/fixed', pcapRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+          .map(result => result.json() as PcapStatusResponse)
+          .catch(HttpUtil.handleError)
+          .onErrorResumeNext();
     }
 
     public getStatus(id: string): Observable<PcapStatusResponse> {
