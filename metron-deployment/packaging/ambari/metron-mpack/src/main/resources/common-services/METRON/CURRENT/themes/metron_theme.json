@@ -425,8 +425,8 @@
             "name": "security",
             "display-name": "Security",
             "layout": {
-              "tab-columns": "1",
-              "tab-rows": "2",
+              "tab-columns": "2",
+              "tab-rows": "1",
               "sections": [
                 {
                   "name": "section-security-ldap",

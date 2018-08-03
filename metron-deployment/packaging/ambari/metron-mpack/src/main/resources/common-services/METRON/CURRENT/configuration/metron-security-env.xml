@@ -117,9 +117,20 @@
         <name>metron.sso.enabled</name>
         <display-name>Enable Metron SSO</display-name>
         <value>false</value>
-        <description/>
+        <description>Turn on to enable integration with KnoxSSO</description>
         <value-attributes>
-            <type>boolean</type>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>true</value>
+                    <label>Enabled</label>
+                </entry>
+                <entry>
+                    <value>false</value>
+                    <label>Off</label>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
             <overridable>false</overridable>
         </value-attributes>
         <on-ambari-upgrade add="true"/>
