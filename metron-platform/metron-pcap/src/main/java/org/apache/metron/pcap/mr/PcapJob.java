@@ -23,7 +23,6 @@ import static org.apache.metron.pcap.PcapHelper.lessThanOrEqualTo;
 
 import com.google.common.base.Joiner;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.lang.invoke.MethodHandles;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -89,7 +88,6 @@ public class PcapJob<T> implements Statusable<Path> {
   private Timer timer;
   private long statusInterval; // how often timer thread checks job status.
   private long completeCheckInterval; // how long we sleep between isDone checks in get()
-  private PrintStream statusPrintStream; // report status to this print stream
 
   public static enum PCAP_COUNTER {
     MALFORMED_PACKET_COUNT
@@ -466,22 +464,17 @@ public class PcapJob<T> implements Statusable<Path> {
   public Pageable<Path> get() throws JobException, InterruptedException {
     for (; ; ) {
       JobStatus status = getStatus();
-      if (statusPrintStream != null) {
-        statusPrintStream.println(String.format("Job status = %s, percent complete = %.2f%%",
-                  status.getState(), status.getPercentComplete()));
-      }
       if (status.getState() == State.SUCCEEDED
           || status.getState() == State.KILLED
           || status.getState() == State.FAILED) {
-
         return getFinalResults();
       }
       Thread.sleep(completeCheckInterval);
     }
   }
 
-  public void reportStatus(PrintStream printStream) {
-    statusPrintStream = printStream;
+  public void monitorJob() throws IOException, InterruptedException {
+    mrJob.monitorAndPrintJob();
   }
 
   private synchronized Pageable<Path> getFinalResults() {

@@ -80,7 +80,7 @@ public class PcapCli {
     Pageable<Path> results;
     // write to local FS in the executing directory
     String execDir = System.getProperty("user.dir");
-    jobRunner.reportStatus(System.out);
+
     if ("fixed".equals(jobType)) {
       FixedCliParser fixedParser = new FixedCliParser(prefixStrategy);
       FixedPcapConfig config = null;
@@ -101,7 +101,8 @@ public class PcapCli {
       PcapOptions.HADOOP_CONF.put(commonConfig, hadoopConf);
       try {
         PcapOptions.FILESYSTEM.put(commonConfig, FileSystem.get(hadoopConf));
-        results = jobRunner.submit(PcapFinalizerStrategies.CLI, commonConfig).get();
+        jobRunner.submit(PcapFinalizerStrategies.CLI, commonConfig);
+        jobRunner.monitorJob();
       } catch (IOException|InterruptedException | JobException e) {
         LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
         return -1;
@@ -125,7 +126,8 @@ public class PcapCli {
       PcapOptions.HADOOP_CONF.put(commonConfig, hadoopConf);
       try {
         PcapOptions.FILESYSTEM.put(commonConfig, FileSystem.get(hadoopConf));
-        results = jobRunner.submit(PcapFinalizerStrategies.CLI, commonConfig).get();
+        jobRunner.submit(PcapFinalizerStrategies.CLI, commonConfig);
+        jobRunner.monitorJob();
       } catch (IOException| InterruptedException | JobException e) {
         LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
         return -1;
