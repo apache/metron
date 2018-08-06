@@ -22,9 +22,9 @@ export const fakePcapRequest = {
   startTimeMs: 0,
   endTimeMs: 0,
   ipSrcAddr: '0.0.0.0',
-  ipSrcPort: '80',
+  ipSrcPort: 80,
   ipDstAddr: '0.0.0.0',
-  ipDstPort: '80',
+  ipDstPort: 80,
   protocol: '*',
   packetFilter: '*',
   includeReverse: false
