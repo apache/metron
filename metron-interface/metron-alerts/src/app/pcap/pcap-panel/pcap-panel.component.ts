@@ -17,7 +17,8 @@
  */
 import { Component, Input } from '@angular/core';
 
-import { PcapService, PcapStatusResponse } from '../service/pcap.service';
+import { PcapService } from '../service/pcap.service';
+import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
 import { Subscription } from 'rxjs/Rx';

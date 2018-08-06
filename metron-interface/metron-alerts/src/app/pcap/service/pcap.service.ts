@@ -24,14 +24,7 @@ import 'rxjs/add/operator/map';
 
 import {PcapRequest} from '../model/pcap.request';
 import {Pdml} from '../model/pdml';
-
-export class PcapStatusResponse {
-    jobId: string;
-    jobStatus: string;
-    description: string;
-    percentComplete: number;
-    pageTotal: number;
-}
+import { PcapStatusResponse } from '../model/pcap-status-response';
 
 @Injectable()
 export class PcapService {
