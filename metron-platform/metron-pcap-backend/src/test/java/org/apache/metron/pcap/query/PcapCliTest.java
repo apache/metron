@@ -101,7 +101,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    verify(jobRunner).get();
+    verify(jobRunner).monitorJob();
   }
 
   /**
@@ -168,7 +168,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    verify(jobRunner).get();
+    verify(jobRunner).monitorJob();
   }
 
   @Test
@@ -214,7 +214,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    verify(jobRunner).get();
+    verify(jobRunner).monitorJob();
   }
 
   private long asNanos(String inDate, String format) throws ParseException {
@@ -247,7 +247,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    verify(jobRunner).get();
+    verify(jobRunner).monitorJob();
   }
 
   @Test
@@ -277,7 +277,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    verify(jobRunner).get();
+    verify(jobRunner).monitorJob();
   }
 
   // INVALID OPTION CHECKS
