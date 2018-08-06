@@ -52,6 +52,12 @@ export class PcapPanelComponent {
   }
 
   onSearch(pcapRequest) {
+
+    if (pcapRequest.startTimeMs > pcapRequest.endTimeMs || pcapRequest.endTimeMs > new Date().getTime()) {
+      this.errorMsg = "From should be earlier than To and To shouldn't be in the future.";
+      return;
+    }
+
     this.savedPcapRequest = pcapRequest;
     this.pagination.selectedPage = 1;
     this.pdml = null;
