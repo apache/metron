@@ -67,7 +67,7 @@ export class PcapService {
             .onErrorResumeNext();
     }
 
-    public getDownloadUrl(id: string, pageNo: number) {
-      return `/api/v1/pcap/${id}/raw?page=${pageNo}`;
+    public getDownloadUrl(id: string, pageId: number) {
+      return `/api/v1/pcap/${id}/raw?page=${pageId}`;
     }
 }

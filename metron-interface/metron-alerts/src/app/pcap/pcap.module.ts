@@ -22,6 +22,8 @@ import { HttpModule } from '@angular/http';
 
 import { routing } from './pcap.routing';
 
+import { DatePickerModule } from '../shared/date-picker/date-picker.module';
+
 import { PcapListComponent } from './pcap-list/pcap-list.component';
 import { PcapPacketComponent } from './pcap-packet/pcap-packet.component';
 import { PcapFiltersComponent } from './pcap-filters/pcap-filters.component';
@@ -29,13 +31,15 @@ import { PcapPanelComponent } from './pcap-panel/pcap-panel.component';
 import { PcapPacketLineComponent } from './pcap-packet-line/pcap-packet-line.component';
 
 import { PcapService } from './service/pcap.service'
+
  
 @NgModule({
   imports: [
     routing,
     CommonModule,
     FormsModule,
-    HttpModule    
+    HttpModule,
+    DatePickerModule,
   ],
   declarations: [
     PcapListComponent,
