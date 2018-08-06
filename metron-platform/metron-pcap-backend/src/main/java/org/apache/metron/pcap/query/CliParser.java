@@ -25,7 +25,7 @@ import org.apache.metron.pcap.config.PcapConfig;
  * Provides commmon required fields for the PCAP filter jobs
  */
 public class CliParser {
-  public static final String BASE_PATH_DEFAULT = "/apps/metron/pcap";
+  public static final String BASE_PATH_DEFAULT = "/apps/metron/pcap/input";
   public static final String BASE_INTERIM_OUTPUT_PATH_DEFAULT = "/tmp";
   public static final int NUM_REDUCERS_DEFAULT = 10;
   public static final int NUM_RECORDS_PER_FILE_DEFAULT = 10000;
