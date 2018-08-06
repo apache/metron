@@ -13,7 +13,7 @@
   -->
 <div data-qe-id="proto" class="proto" *ngFor="let proto of packet.protos" (click)="proto.expanded = !proto.expanded">
   <div data-qe-id="proto-showname" class="proto-header">{{ proto.showname }}</div>
-  <div data-qe-id="proto-fields" class="proto-fields" *ngIf="proto.expanded">
+  <div data-qe-id="proto-fields" class="proto-fields" (click)="$event.stopPropagation()" *ngIf="proto.expanded">
     <div data-qe-id="proto-field" *ngFor="let field of proto.fields">
       <span data-qe-id="proto-field-name" class="field-name">{{ field.name }}</span>
       <span data-qe-id="proto-field-showname">{{ field.showname }}</span>
