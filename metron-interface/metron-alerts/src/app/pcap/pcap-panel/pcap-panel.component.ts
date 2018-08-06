@@ -62,7 +62,7 @@ export class PcapPanelComponent {
       this.errorMsg = null;
       this.statusSubscription = this.pcapService.pollStatus(submitResponse.jobId).subscribe((statusResponse: PcapStatusResponse) => {
         if ('SUCCEEDED' === statusResponse.jobStatus) {
-          this.pagination.total = statusResponse.totalPages;
+          this.pagination.total = statusResponse.pageTotal;
           this.statusSubscription.unsubscribe();
           this.queryRunning = false;
           this.pcapService.getPackets(submitResponse.jobId, this.pagination.selectedPage).toPromise().then(pdml => {

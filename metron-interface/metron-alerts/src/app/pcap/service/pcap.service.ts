@@ -29,7 +29,7 @@ export class PcapStatusResponse {
   jobId: string;
   jobStatus: string;
   percentComplete: number;
-  totalPages: number;
+  pageTotal: number;
 }
 
 @Injectable()
