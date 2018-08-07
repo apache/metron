@@ -15,15 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { PcapRequest } from './pcap.request';
+import { PcapStatusResponse } from '../model/pcap-status-response';
 
-export class PcapRequest {
-  startTimeMs: number = 0;
-  endTimeMs: number = 150000000000000000;
-  ipSrcAddr: string = '';
-  ipSrcPort: number = 0;
-  ipDstAddr: string = '';
-  ipDstPort: number = 0;
-  protocol: string = '';
-  packetFilter: string = '';
-  includeReverse: boolean = false;
-}
+export const fakePcapRequest = {
+  startTimeMs: 0,
+  endTimeMs: 0,
+  ipSrcAddr: '0.0.0.0',
+  ipSrcPort: 80,
+  ipDstAddr: '0.0.0.0',
+  ipDstPort: 80,
+  protocol: '*',
+  packetFilter: '*',
+  includeReverse: false
+} as PcapRequest;
+
+export const fakePcapStatusResponse = {
+  jobId: 'job_1234567890123_4567',
+  jobStatus: 'SUBMITTED',
+  description: 'Job submitted.',
+  percentComplete: 0.0,
+  pageTotal: 0
+} as PcapStatusResponse;

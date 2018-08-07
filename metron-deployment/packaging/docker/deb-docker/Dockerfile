@@ -18,16 +18,17 @@
 FROM ubuntu:trusty
 
 # install prerequisites
-RUN apt-get update && apt-get install -y \
-  build-essential \
-  openjdk-7-jdk \
-  wget \
-  curl \
-  dpkg-dev \
-  gettext
-
-# install nodejs so that the node dependencies can be packaged into the DEBs
-RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-RUN apt-get install -y nodejs
+RUN apt-get update \
+    && apt-get install -y \
+        build-essential \
+        openjdk-7-jdk \
+        curl \
+        dpkg-dev \
+        gettext \
+    # install nodejs so that the node dependencies can be packaged into the DEBs \
+    && curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash - \
+    && apt-get install -y \
+        nodejs \
+    && apt-get clean
 
 WORKDIR /root

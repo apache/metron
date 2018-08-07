@@ -20,7 +20,8 @@ import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core
 import { PcapPanelComponent } from './pcap-panel.component';
 import { Component, Input } from '../../../../node_modules/@angular/core';
 import { PdmlPacket, Pdml } from '../model/pdml';
-import { PcapService, PcapStatusResponse } from '../service/pcap.service';
+import { PcapService } from '../service/pcap.service';
+import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapPagination } from '../model/pcap-pagination';
 import { By } from '../../../../node_modules/@angular/platform-browser';
 import { PcapRequest } from '../model/pcap.request';
