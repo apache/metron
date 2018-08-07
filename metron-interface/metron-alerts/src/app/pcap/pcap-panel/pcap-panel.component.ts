@@ -15,9 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnDestroy } from '@angular/core';
 
-import { PcapService, PcapStatusResponse } from '../service/pcap.service';
+import { PcapService } from '../service/pcap.service';
+import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
 import { Subscription } from 'rxjs/Rx';
@@ -28,13 +29,16 @@ import { PcapPagination } from '../model/pcap-pagination';
   templateUrl: './pcap-panel.component.html',
   styleUrls: ['./pcap-panel.component.scss']
 })
-export class PcapPanelComponent {
+export class PcapPanelComponent implements OnDestroy {
 
   @Input() pdml: Pdml = null;
   @Input() pcapRequest: PcapRequest;
   @Input() resetPaginationForSearch: boolean;
 
   statusSubscription: Subscription;
+  cancelSubscription: Subscription;
+  submitSubscription: Subscription;
+  getSubscription: Subscription;
   queryRunning: boolean = false;
   queryId: string;
   progressWidth: number = 0;
@@ -52,24 +56,19 @@ export class PcapPanelComponent {
   }
 
   onSearch(pcapRequest) {
-
-    if (pcapRequest.startTimeMs > pcapRequest.endTimeMs || pcapRequest.endTimeMs > new Date().getTime()) {
-      this.errorMsg = "From should be earlier than To and To shouldn't be in the future.";
-      return;
-    }
-
+    this.queryRunning = true;
     this.savedPcapRequest = pcapRequest;
     this.pagination.selectedPage = 1;
     this.pdml = null;
     this.progressWidth = 0;
     this.errorMsg = null;
-    this.pcapService.submitRequest(pcapRequest).subscribe((submitResponse: PcapStatusResponse) => {
+    this.submitSubscription = this.pcapService.submitRequest(pcapRequest).subscribe((submitResponse: PcapStatusResponse) => {
       let id = submitResponse.jobId;
       if (!id) {
         this.errorMsg = submitResponse.description;
+        this.queryRunning = false;
       } else {
         this.queryId = id;
-        this.queryRunning = true;
         this.errorMsg = null;
         this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
           if ('SUCCEEDED' === statusResponse.jobStatus) {
@@ -93,11 +92,42 @@ export class PcapPanelComponent {
         });
       }
     }, (error: any) => {
+      this.queryRunning = false;
       this.errorMsg = `Response message: ${error.message}. Something went wrong with your query submission!`;
     });
   }
 
   getDownloadUrl() {
     return this.pcapService.getDownloadUrl(this.queryId, this.pagination.selectedPage);
+  }
+
+  unsubscribeAll() {
+    if (this.cancelSubscription) {
+      this.cancelSubscription.unsubscribe();
+    }
+    if (this.statusSubscription) {
+      this.statusSubscription.unsubscribe();
+    }
+    if (this.submitSubscription) {
+      this.submitSubscription.unsubscribe();
+    }
+  }
+
+  cancelQuery() {
+    this.cancelSubscription = this.pcapService.cancelQuery(this.queryId)
+      .subscribe(() => {
+        this.unsubscribeAll();
+        this.queryId = '';
+        this.queryRunning = false;
+      }, (error: any) => {
+        this.cancelSubscription.unsubscribe();
+        this.queryId = '';
+        this.errorMsg = `Response message: ${error.message}. Something went wrong with the cancellation!`;
+        this.queryRunning = false;
+      });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribeAll();
   }
 }
