@@ -20,25 +20,27 @@
 
 package org.apache.metron.profiler;
 
-import static java.lang.String.format;
-
 import com.google.common.base.Ticker;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
+import static java.lang.String.format;
 
 /**
  * The default implementation of a {@link MessageDistributor}.
@@ -57,7 +59,7 @@ import org.slf4j.LoggerFactory;
  * lost.
  *
  */
-public class DefaultMessageDistributor implements MessageDistributor {
+public class DefaultMessageDistributor implements MessageDistributor, Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -73,7 +75,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
    * messages.  Once it has not received messages for a period of time, it is
    * moved to the expired cache.
    */
-  private transient Cache<Integer, ProfileBuilder> activeCache;
+  private Cache<Integer, ProfileBuilder> activeCache;
 
   /**
    * A cache of expired profiles.
@@ -84,7 +86,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
    * can flush the state of the expired profile.  If the client does not flush
    * the expired profiles, this state will be lost forever.
    */
-  private transient Cache<Integer, ProfileBuilder> expiredCache;
+  private Cache<Integer, ProfileBuilder> expiredCache;
 
   /**
    * Create a new message distributor.
@@ -287,7 +289,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
   /**
    * A listener that is notified when profiles expire from the active cache.
    */
-  private class ActiveCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder> {
+  private class ActiveCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder>, Serializable {
 
     @Override
     public void onRemoval(RemovalNotification<Integer, ProfileBuilder> notification) {
@@ -305,7 +307,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
   /**
    * A listener that is notified when profiles expire from the active cache.
    */
-  private class ExpiredCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder> {
+  private class ExpiredCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder>, Serializable {
 
     @Override
     public void onRemoval(RemovalNotification<Integer, ProfileBuilder> notification) {
