@@ -17,7 +17,8 @@
  */
 import { Component, Input } from '@angular/core';
 
-import { PcapService, PcapStatusResponse } from '../service/pcap.service';
+import { PcapService } from '../service/pcap.service';
+import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
 import { Subscription } from 'rxjs/Rx';
@@ -52,6 +53,7 @@ export class PcapPanelComponent {
   }
 
   onSearch(pcapRequest) {
+    this.queryRunning = true;
     this.savedPcapRequest = pcapRequest;
     this.pagination.selectedPage = 1;
     this.pdml = null;
@@ -61,9 +63,9 @@ export class PcapPanelComponent {
       let id = submitResponse.jobId;
       if (!id) {
         this.errorMsg = submitResponse.description;
+        this.queryRunning = false;
       } else {
         this.queryId = id;
-        this.queryRunning = true;
         this.errorMsg = null;
         this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
           if ('SUCCEEDED' === statusResponse.jobStatus) {
@@ -87,6 +89,7 @@ export class PcapPanelComponent {
         });
       }
     }, (error: any) => {
+      this.queryRunning = false;
       this.errorMsg = `Response message: ${error.message}. Something went wrong with your query submission!`;
     });
   }
