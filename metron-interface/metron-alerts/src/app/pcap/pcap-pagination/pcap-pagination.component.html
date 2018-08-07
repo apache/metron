@@ -11,13 +11,6 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-  <!-- <div *ngIf="pagination.total > 0">
-    <i *ngIf="pagination.selectedPage > 0" class="fa fa-chevron-left" aria-hidden="true" (click)="onPrevious()"></i>
-    <i *ngIf="pagination.selectedPage === 0" class="fa fa-chevron-left disabled" aria-hidden="true"></i>
-    <span> {{pagination.selectedPage + 1}} - {{pagination.total > (pagination.selectedPage + pagination.size) ? (pagination.selectedPage + pagination.size) : pagination.total}} of {{ pagination.total }} </span>
-    <i *ngIf="pagination.total - (pagination.selectedPage + pagination.size) > 0"  class="fa fa-chevron-right" aria-hidden="true" (click)="onNext()"></i>
-    <i *ngIf="pagination.total - (pagination.selectedPage + pagination.size) <= 0"  class="fa fa-chevron-right disabled" aria-hidden="true"></i>
-  </div> -->
 
   <div class="pcap-pagination" *ngIf="pagination.total > 0">
     <button class="pcap-pagination-button fa fa-chevron-left" data-qe-id="pcap-pagination-back" (click)="onPrevious()" [disabled]="pagination.selectedPage <= 1"></button>
