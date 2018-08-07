@@ -101,7 +101,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    verify(jobRunner).monitorJob();
+    verify(jobRunner).get();
   }
 
   /**
@@ -145,7 +145,8 @@ public class PcapCliTest {
             "-protocol", "6",
             "-include_reverse",
             "-num_reducers", "10",
-            "-records_per_file", "1000"
+            "-records_per_file", "1000",
+            "-ps"
     };
     Map<String, String> query = new HashMap<String, String>() {{
       put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
@@ -169,6 +170,7 @@ public class PcapCliTest {
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
     verify(jobRunner).monitorJob();
+    verify(jobRunner).get();
   }
 
   @Test
@@ -187,7 +189,8 @@ public class PcapCliTest {
             "-protocol", "6",
             "-include_reverse",
             "-num_reducers", "10",
-            "-records_per_file", "1000"
+            "-records_per_file", "1000",
+            "-ps"
     };
     Map<String, String> query = new HashMap<String, String>() {{
       put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
@@ -215,6 +218,7 @@ public class PcapCliTest {
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
     verify(jobRunner).monitorJob();
+    verify(jobRunner).get();
   }
 
   private long asNanos(String inDate, String format) throws ParseException {
@@ -247,7 +251,7 @@ public class PcapCliTest {
 
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    verify(jobRunner).monitorJob();
+    verify(jobRunner).get();
   }
 
   @Test
@@ -260,7 +264,8 @@ public class PcapCliTest {
             "-base_path", "/base/path",
             "-base_output_path", "/base/output/path",
             "-query", "some query string",
-            "-records_per_file", "1000"
+            "-records_per_file", "1000",
+            "-ps"
     };
 
     String query = "some query string";
@@ -278,6 +283,7 @@ public class PcapCliTest {
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
     verify(jobRunner).monitorJob();
+    verify(jobRunner).get();
   }
 
   // INVALID OPTION CHECKS

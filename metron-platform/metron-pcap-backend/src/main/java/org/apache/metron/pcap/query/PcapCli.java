@@ -30,6 +30,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.Pageable;
+import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.config.FixedPcapConfig;
 import org.apache.metron.pcap.config.PcapConfig;
@@ -102,7 +103,11 @@ public class PcapCli {
       try {
         PcapOptions.FILESYSTEM.put(commonConfig, FileSystem.get(hadoopConf));
         jobRunner.submit(PcapFinalizerStrategies.CLI, commonConfig);
-        jobRunner.monitorJob();
+        if (config.printStatus()) {
+          jobRunner.monitorJob();
+          LOGGER.info("Finalizing results");
+        }
+        jobRunner.get();
       } catch (IOException|InterruptedException | JobException e) {
         LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
         return -1;
@@ -127,7 +132,11 @@ public class PcapCli {
       try {
         PcapOptions.FILESYSTEM.put(commonConfig, FileSystem.get(hadoopConf));
         jobRunner.submit(PcapFinalizerStrategies.CLI, commonConfig);
-        jobRunner.monitorJob();
+        if (config.printStatus()) {
+          jobRunner.monitorJob();
+          LOGGER.info("Finalizing results");
+        }
+        jobRunner.get();
       } catch (IOException| InterruptedException | JobException e) {
         LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
         return -1;
