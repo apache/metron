@@ -32,7 +32,8 @@ import {
 import { MockBackend } from '@angular/http/testing';
 import { Observable } from 'rxjs/Rx';
 
-import { PcapService, PcapStatusResponse } from './pcap.service';
+import { PcapService } from './pcap.service';
+import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapRequest } from '../model/pcap.request';
 import { fakePdml, fakePacket } from '../model/pdml.mock';
 import { fakePcapStatusResponse, fakePcapRequest } from '../model/pcap.mock';
