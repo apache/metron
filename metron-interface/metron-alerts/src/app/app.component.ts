@@ -17,6 +17,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import {AuthenticationService} from './service/authentication.service';
+import { environment } from 'environments/environment';
 
 declare var $;
 
@@ -27,11 +28,13 @@ declare var $;
 })
 export class AppComponent implements OnInit {
   loggedIn = false;
+  noTransition = false;
 
   constructor(private authService: AuthenticationService) {
     this.authService.onLoginEvent.subscribe(result => {
       this.loggedIn = result;
     });
+    this.noTransition = environment.noTransition;
   }
 
   ngOnInit(): void {

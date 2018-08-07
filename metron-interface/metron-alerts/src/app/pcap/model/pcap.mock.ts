@@ -15,36 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
- export class PdmlField {
-  public name: string;
-  public fields?: PdmlField[]
-  public show: string;
-  public value: string;
-  public showname: string;
-}
+import { PcapRequest } from './pcap.request';
+import { PcapStatusResponse } from '../model/pcap-status-response';
 
-export class PdmlProto {
-  public name: string;
-  public showname: string;
-  public fields: PdmlField[]
-  
-  public static findField(p: PdmlProto, name: string): PdmlField {
-    if (p && p.fields) {
-      return p.fields.find(f => f['name'] == name)
-    } else {
-      return new PdmlField();
-    }
-  }
-}
+export const fakePcapRequest = {
+  startTimeMs: 0,
+  endTimeMs: 0,
+  ipSrcAddr: '0.0.0.0',
+  ipSrcPort: '80',
+  ipDstAddr: '0.0.0.0',
+  ipDstPort: '80',
+  protocol: '*',
+  packetFilter: '*',
+  includeReverse: false
+} as PcapRequest;
 
-export class PdmlPacket {
-  public name: string;
-  public protos: PdmlProto[]
-  public expanded: boolean = false
-}
-
-export class Pdml {
-  public name: string;
-  public packets: PdmlPacket[];
-}
+export const fakePcapStatusResponse = {
+  jobId: 'job_1234567890123_4567',
+  jobStatus: 'SUBMITTED',
+  description: 'Job submitted.',
+  percentComplete: 0.0,
+  pageTotal: 0
+} as PcapStatusResponse;

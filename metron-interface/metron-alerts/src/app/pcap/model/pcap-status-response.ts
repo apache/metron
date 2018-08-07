@@ -18,6 +18,7 @@
 export class PcapStatusResponse {
   jobId: string;
   jobStatus: string;
+  description: string;
   percentComplete: number;
   pageTotal: number;
 }
