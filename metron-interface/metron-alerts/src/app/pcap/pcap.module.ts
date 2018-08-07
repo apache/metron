@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {NgModule} from '@angular/core';
-import { CommonModule } from '@angular/common';  
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
@@ -29,10 +29,9 @@ import { PcapPacketComponent } from './pcap-packet/pcap-packet.component';
 import { PcapFiltersComponent } from './pcap-filters/pcap-filters.component';
 import { PcapPanelComponent } from './pcap-panel/pcap-panel.component';
 import { PcapPacketLineComponent } from './pcap-packet-line/pcap-packet-line.component';
+import { PcapPaginationComponent } from './pcap-pagination/pcap-pagination.component'
+import { PcapService } from './service/pcap.service';
 
-import { PcapService } from './service/pcap.service'
-
- 
 @NgModule({
   imports: [
     routing,
@@ -46,7 +45,8 @@ import { PcapService } from './service/pcap.service'
     PcapPacketComponent,
     PcapFiltersComponent,
     PcapPanelComponent,
-    PcapPacketLineComponent
+    PcapPacketLineComponent,
+    PcapPaginationComponent
   ],
   exports: [ PcapPanelComponent ],
   providers: [ PcapService ]

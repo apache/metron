@@ -17,10 +17,12 @@
  */
 import { Component, Input } from '@angular/core';
 
-import { PcapService, PcapStatusResponse } from '../service/pcap.service';
+import { PcapService } from '../service/pcap.service';
+import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
 import { Subscription } from 'rxjs/Rx';
+import { PcapPagination } from '../model/pcap-pagination';
 
 @Component({
   selector: 'app-pcap-panel',
@@ -31,18 +33,28 @@ export class PcapPanelComponent {
 
   @Input() pdml: Pdml = null;
   @Input() pcapRequest: PcapRequest;
+  @Input() resetPaginationForSearch: boolean;
 
   statusSubscription: Subscription;
   queryRunning: boolean = false;
   queryId: string;
   progressWidth: number = 0;
-  selectedPage: number = 1;
+  pagination: PcapPagination = new PcapPagination();
+  savedPcapRequest: {};
   errorMsg: string;
 
-  constructor(private pcapService: PcapService) {}
+  constructor(private pcapService: PcapService) { }
+
+  changePage(page) {
+    this.pagination.selectedPage = page;
+    this.pcapService.getPackets(this.queryId, this.pagination.selectedPage).toPromise().then(pdml => {
+      this.pdml = pdml;
+    });
+  }
 
   onSearch(pcapRequest) {
-    console.log(pcapRequest);
+    this.savedPcapRequest = pcapRequest;
+    this.pagination.selectedPage = 1;
     this.pdml = null;
     this.progressWidth = 0;
     this.pcapService.submitRequest(pcapRequest).subscribe((submitResponse: PcapStatusResponse) => {
@@ -51,9 +63,10 @@ export class PcapPanelComponent {
       this.errorMsg = null;
       this.statusSubscription = this.pcapService.pollStatus(submitResponse.jobId).subscribe((statusResponse: PcapStatusResponse) => {
         if ('SUCCEEDED' === statusResponse.jobStatus) {
+          this.pagination.total = statusResponse.pageTotal;
           this.statusSubscription.unsubscribe();
           this.queryRunning = false;
-          this.pcapService.getPackets(submitResponse.jobId, this.selectedPage).toPromise().then(pdml => {
+          this.pcapService.getPackets(submitResponse.jobId, this.pagination.selectedPage).toPromise().then(pdml => {
             this.pdml = pdml;
           });
         } else if ('FAILED' === statusResponse.jobStatus) {
@@ -72,6 +85,6 @@ export class PcapPanelComponent {
   }
 
   getDownloadUrl() {
-    return this.pcapService.getDownloadUrl(this.queryId, this.selectedPage);
+    return this.pcapService.getDownloadUrl(this.queryId, this.pagination.selectedPage);
   }
 }

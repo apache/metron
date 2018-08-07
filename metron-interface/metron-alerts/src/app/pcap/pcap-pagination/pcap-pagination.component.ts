@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,13 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Routes, RouterModule } from '@angular/router';
-import { ModuleWithProviders }  from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { PcapPagination } from '../model/pcap-pagination';
 
-import {PcapPanelComponent} from './pcap-panel/pcap-panel.component';
+@Component({
+  selector: 'app-pcap-pagination',
+  templateUrl: './pcap-pagination.component.html',
+  styleUrls: ['./pcap-pagination.component.scss']
+})
+export class PcapPaginationComponent {
 
-export const routes: Routes = [
-    {path: '', component: PcapPanelComponent},
-];
+  @Input() pagination = new PcapPagination();
+  @Output() pageChange = new EventEmitter();
 
-export const routing: ModuleWithProviders = RouterModule.forChild(routes);
+  onPrevious() {
+    this.pagination.selectedPage -= 1;
+    this.pageChange.emit();
+  }
+
+  onNext() {
+    this.pagination.selectedPage  += 1;
+    this.pageChange.emit();
+  }
+
+}

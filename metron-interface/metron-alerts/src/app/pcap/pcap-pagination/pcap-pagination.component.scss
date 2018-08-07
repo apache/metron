@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,13 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Routes, RouterModule } from '@angular/router';
-import { ModuleWithProviders }  from '@angular/core';
 
-import {PcapPanelComponent} from './pcap-panel/pcap-panel.component';
+.disabled {
+  cursor: default;
+  opacity: 0.3;
+}
 
-export const routes: Routes = [
-    {path: '', component: PcapPanelComponent},
-];
+.pcap-pagination {
+  font-size: 14px;
+  text-align: center;
+ }
 
-export const routing: ModuleWithProviders = RouterModule.forChild(routes);
+.pcap-pagination-button {
+  background: transparent;
+  border: 0;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+
+  &[disabled] {
+    cursor: default;
+    opacity: 0.3;
+  }
+}
