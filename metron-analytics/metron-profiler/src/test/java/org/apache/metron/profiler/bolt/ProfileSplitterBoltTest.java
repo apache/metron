@@ -23,6 +23,7 @@ package org.apache.metron.profiler.bolt;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
+import org.apache.metron.profiler.DefaultMessageRouter;
 import org.apache.metron.profiler.clock.FixedClockFactory;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.test.bolt.BaseBoltTest;
@@ -428,7 +429,9 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
     bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
 
     // set the clock factory AFTER calling prepare to use the fixed clock factory
-    bolt.setClockFactory(new FixedClockFactory(timestamp));
+    DefaultMessageRouter router = new DefaultMessageRouter(bolt.getStellarContext());
+    router.setClockFactory(new FixedClockFactory(timestamp));
+    bolt.setRouter(router);
 
     return bolt;
   }
