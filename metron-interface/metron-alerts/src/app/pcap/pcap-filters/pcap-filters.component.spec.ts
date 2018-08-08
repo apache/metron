@@ -16,20 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { PcapFiltersComponent } from './pcap-filters.component';
 import { FormsModule } from '../../../../node_modules/@angular/forms';
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, DebugElement } from '@angular/core';
 import { PcapRequest } from '../model/pcap.request';
-import { emit } from 'cluster';
 
 @Component({
   selector: 'app-date-picker',
   template: '<input type="text" [(value)]="date">',
 })
-class FakeDatePicker {
+class FakeDatePickerComponent {
   @Input() date: string;
   @Output() dateChange = new EventEmitter<string>();
 }
@@ -44,7 +43,7 @@ describe('PcapFiltersComponent', () => {
         FormsModule
       ],
       declarations: [
-        FakeDatePicker,
+        FakeDatePickerComponent,
         PcapFiltersComponent,
       ]
     })
@@ -86,13 +85,21 @@ describe('PcapFiltersComponent', () => {
     expect(component.model.ipSrcAddr).toBe('192.168.0.1');
   });
 
-  it('IP Source Port should be bound to the model', () => {
+  it('IP Source Port should be bound to the property', () => {
     let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="ipSrcPort"]');
     input.value = '9345';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(component.model.ipSrcPort).toBe(9345);
+    expect(component.ipSrcPort).toBe('9345');
+  });
+
+  it('IP Source Port should be converted to number on submit', () => {
+    component.ipSrcPort = '42';
+    component.search.emit = (model: PcapRequest) => {
+      expect(model.ipSrcPort).toBe(42);
+    };
+    component.onSubmit();
   });
 
   it('IP Dest Address should be bound to the model', () => {
@@ -104,13 +111,21 @@ describe('PcapFiltersComponent', () => {
     expect(component.model.ipDstAddr).toBe('256.0.0.7');
   });
 
-  it('IP Dest Port should be bound to the model', () => {
+  it('IP Dest Port should be bound to the property', () => {
     let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="ipDstPort"]');
     input.value = '8989';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(component.model.ipDstPort).toBe(8989);
+    expect(component.ipDstPort).toBe('8989');
+  });
+
+  it('IP Dest Port should be converted to number on submit', () => {
+    component.ipDstPort = '42';
+    component.search.emit = (model: PcapRequest) => {
+      expect(model.ipDstPort).toBe(42);
+    };
+    component.onSubmit();
   });
 
   it('Protocol should be bound to the model', () => {
@@ -144,7 +159,7 @@ describe('PcapFiltersComponent', () => {
     component.startTimeStr = '2220-12-12 12:12:12';
     component.search.emit = (model: PcapRequest) => {
       expect(model.startTimeMs).toBe(new Date(component.startTimeStr).getTime());
-    }
+    };
     component.onSubmit();
   });
 
@@ -152,7 +167,7 @@ describe('PcapFiltersComponent', () => {
     component.endTimeStr = '2320-03-13 13:13:13';
     component.search.emit = (model: PcapRequest) => {
       expect(model.endTimeMs).toBe(new Date(component.endTimeStr).getTime());
-    }
+    };
     component.onSubmit();
   });
 
@@ -187,4 +202,195 @@ describe('PcapFiltersComponent', () => {
     expect(fixture.componentInstance.model.hasOwnProperty('includeReverse')).toBeTruthy();
   });
 
+  describe('Filter validation', () => {
+
+    function setup() {
+      component.queryRunning = false;
+      fixture.detectChanges();
+    }
+
+    function getFieldWithSubmit(fieldId: string): { field: DebugElement, submit: DebugElement } {
+      const field = fixture.debugElement.query(By.css('[data-qe-id="' + fieldId  + '"]'));
+      const submit = fixture.debugElement.query(By.css('[data-qe-id="submit-button"]'));
+      return {
+        field,
+        submit
+      };
+    }
+
+    function setFieldValue(field: DebugElement, value: any) {
+      field.nativeElement.value = value;
+      field.nativeElement.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    }
+
+    function isSubmitDisabled(submit: DebugElement): boolean {
+      return submit.classes['disabled'] && submit.nativeElement.disabled;
+    }
+
+    function isFieldInvalid(field: DebugElement): boolean {
+      return field.classes['ng-invalid'];
+    }
+
+    function tearDown(field: DebugElement) {
+      setFieldValue(field, '');
+    };
+
+    beforeEach(setup);
+
+    it('should disable the form if the ip source port is invalid', () => {
+      const invalidValues = [
+        '-42',
+        '-1',
+        'foobar',
+        '.',
+        '-',
+        '+',
+        'e',
+        'E',
+        '3.14',
+        '123456',
+        '65536',
+        '99999',
+        '2352363474576',
+        '1e3',
+      ];
+
+      invalidValues.forEach((value) => {
+        const els = getFieldWithSubmit('ip-src-port');
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
+        setFieldValue(els.field, value);
+
+        expect(isFieldInvalid(els.field)).toBe(true, 'the field should be invalid with ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(true, 'the submit button should be disabled with ' + value);
+        tearDown(els.field);
+      });
+    });
+
+    it('should keep the form enabled if the ip source port is valid', () => {
+      const validValues = [
+        '8080',
+        '1024',
+        '3000',
+        '1',
+        '0',
+        '12345',
+        '65535',
+      ];
+
+      validValues.forEach((value) => {
+        const els = getFieldWithSubmit('ip-src-port');
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
+        setFieldValue(els.field, value);
+
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid with ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
+        tearDown(els.field);
+      });
+    });
+
+    it('should disable the form if the ip destination port is invalid', () => {
+      const invalidValues = [
+        '-42',
+        '-1',
+        'foobar',
+        '.',
+        '-',
+        '+',
+        'e',
+        'E',
+        '3.14',
+        '123456',
+        '65536',
+        '99999',
+        '2352363474576',
+        '1e3',
+      ];
+
+      invalidValues.forEach((value) => {
+        const els = getFieldWithSubmit('ip-dest-port');
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
+        setFieldValue(els.field, value);
+
+        expect(isFieldInvalid(els.field)).toBe(true, 'the field should be invalid with ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(true, 'the submit button should be disabled with ' + value);
+        tearDown(els.field);
+      });
+    });
+
+    it('should keep the form enabled if the ip destination port is valid', () => {
+      const validValues = [
+        '8080',
+        '1024',
+        '3000',
+        '1',
+        '0',
+        '12345',
+        '65535',
+      ];
+
+      validValues.forEach((value) => {
+        const els = getFieldWithSubmit('ip-dest-port');
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
+        setFieldValue(els.field, value);
+
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid with ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
+        tearDown(els.field);
+      });
+    });
+
+
+    it('should disable the form if the ip source field is invalid', () => {
+      const invalidValues = [
+        'tst',
+        0o0,
+        0,
+        '111.111.111',
+        '222.222.222.222.222',
+        '333.333.333.333',
+      ];
+
+      invalidValues.forEach((value) => {
+        const els = getFieldWithSubmit('ip-src-addr');
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
+        setFieldValue(els.field, value);
+
+        expect(isFieldInvalid(els.field)).toBe(true, 'the field should be invalid with ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(true, 'the submit button should be disabled with ' + value);
+        tearDown(els.field);
+      });
+    });
+
+    it('should keep the form enabled if the ip source field is valid', () => {
+      const validValues = [
+        '0.0.0.0',
+        '222.222.222.222',
+        '255.255.255.255',
+      ];
+
+      validValues.forEach((value) => {
+        const els = getFieldWithSubmit('ip-src-addr');
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
+        setFieldValue(els.field, value);
+
+        expect(isFieldInvalid(els.field)).toBe(false, 'tthe field should be valid with ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
+        tearDown(els.field);
+      });
+    });
+
+  });
 });
