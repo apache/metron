@@ -56,8 +56,7 @@ export class PcapService {
     public getPackets(id: string, pageId: number): Observable<Pdml> {
         return this.http.get(`/api/v1/pcap/${id}/pdml?page=${pageId}`, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
             .map(HttpUtil.extractData)
-            .catch(HttpUtil.handleError)
-            .onErrorResumeNext();
+            .catch(HttpUtil.handleError);
     }
 
     public getDownloadUrl(id: string, pageId: number) {
