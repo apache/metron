@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configurable;
@@ -80,6 +79,7 @@ public class PcapJob<T> implements Statusable<Path> {
   public static final String WIDTH_CONF = "width";
   private static final long THREE_SECONDS = 3000;
   private static final long ONE_SECOND = 1000;
+  private final OutputDirFormatter outputDirFormatter;
   private volatile Job mrJob; // store a running MR job reference for async status check
   private volatile JobStatus jobStatus; // overall job status, including finalization step
   private Finalizer<Path> finalizer;
@@ -184,6 +184,7 @@ public class PcapJob<T> implements Statusable<Path> {
   public PcapJob() {
     jobStatus = new JobStatus();
     finalResults = new PcapPages();
+    outputDirFormatter = new OutputDirFormatter();
     timer = new Timer();
     statusInterval = THREE_SECONDS;
     completeCheckInterval = ONE_SECOND;
@@ -266,7 +267,7 @@ public class PcapJob<T> implements Statusable<Path> {
       FileSystem fs,
       PcapFilterConfigurator<T> filterImpl)
       throws IOException, ClassNotFoundException, InterruptedException {
-    String outputDirName = Joiner.on("_").join(beginNS, endNS, filterImpl.queryToString(fields), UUID.randomUUID().toString());
+    String outputDirName = outputDirFormatter.format(beginNS, endNS, filterImpl.queryToString(fields));
     if(LOG.isDebugEnabled()) {
       DateFormat format = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.LONG
           , SimpleDateFormat.LONG
