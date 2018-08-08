@@ -17,15 +17,13 @@
  */
 import { Component, OnInit, Input } from '@angular/core';
 
-import { PcapService, PcapStatusResponse } from '../service/pcap.service';
+import { PcapService } from '../service/pcap.service';
+import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
-import {Subscription} from 'rxjs/Rx';
+import { Subscription } from 'rxjs/Rx';
 import { PcapPagination } from '../model/pcap-pagination';
-
-class Query {
-  id: String
-}
+import { RestError } from "../../model/rest-error";
 
 @Component({
   selector: 'app-pcap-panel',
@@ -108,6 +106,12 @@ export class PcapPanelComponent implements OnInit {
       this.queryRunning = false;
       this.pcapService.getPackets(this.queryId, this.pagination.selectedPage).toPromise().then(pdml => {
         this.pdml = pdml;
+      }, (error: RestError) => {
+        if (error.responseCode === 404) {
+          this.errorMsg = 'No results returned';
+        } else {
+          this.errorMsg = `Response message: ${error.message}. Something went wrong retrieving pdml results!`;
+        }
       });
     } else if ('FAILED' === statusResponse.jobStatus) {
       this.statusSubscription.unsubscribe();

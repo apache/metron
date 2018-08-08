@@ -28,25 +28,39 @@ import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.pcap.config.PcapOptions;
+import org.apache.metron.pcap.filter.PcapFilterConfigurator;
+import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
+import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.config.PcapJobSupplier;
+import org.apache.metron.rest.model.pcap.FixedPcapOptions;
 import org.apache.metron.rest.model.pcap.PcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
+import org.apache.metron.rest.model.pcap.QueryPcapOptions;
 import org.apache.metron.rest.service.PcapService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Service
 public class PcapServiceImpl implements PcapService {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private Environment environment;
   private Configuration configuration;
@@ -93,7 +107,7 @@ public class PcapServiceImpl implements PcapService {
         pcapStatus = statusableToPcapStatus(statusable);
       }
     } catch (JobNotFoundException | InterruptedException e) {
-      // do nothing and return null pcapStatus
+      LOG.warn(String.format("Could not get job status.  Job not found for user %s with job id %s", username, jobId));
     } catch (JobException e) {
       throw new RestException(e);
     }
@@ -139,7 +153,7 @@ public class PcapServiceImpl implements PcapService {
     try {
       jobManager.killJob(username, jobId);
     } catch (JobNotFoundException e) {
-      // do nothing and return null pcapStatus
+      LOG.warn(String.format("Could not kill job.  Job not found for user %s with job id %s", username, jobId));
       return null;
     } catch (JobException e) {
       throw new RestException(e);
@@ -159,7 +173,7 @@ public class PcapServiceImpl implements PcapService {
         }
       }
     } catch (JobNotFoundException e) {
-      // do nothing and return null pcapStatus
+      LOG.warn(String.format("Could not get path for page %s.  Job not found for user %s with job id %s", page, username, jobId));
     } catch (JobException | InterruptedException e) {
       throw new RestException(e);
     }
@@ -197,6 +211,40 @@ public class PcapServiceImpl implements PcapService {
       throw new RestException(e);
     }
     return inputStream;
+  }
+
+  @Override
+  public Map<String, Object> getConfiguration(String username, String jobId) throws RestException {
+    Map<String, Object> configuration = new HashMap<>();
+    try {
+      Statusable<Path> statusable = jobManager.getJob(username, jobId);
+      if (statusable != null) {
+        Map<String, Object> jobConfiguration = statusable.getConfiguration();
+        configuration.put(PcapOptions.BASE_PATH.getKey(), PcapOptions.BASE_PATH.get(jobConfiguration, String.class));
+        configuration.put(PcapOptions.FINAL_OUTPUT_PATH.getKey(), PcapOptions.FINAL_OUTPUT_PATH.get(jobConfiguration, String.class));
+        configuration.put(PcapOptions.START_TIME_MS.getKey(), PcapOptions.START_TIME_MS.get(jobConfiguration, String.class));
+        configuration.put(PcapOptions.END_TIME_MS.getKey(), PcapOptions.END_TIME_MS.get(jobConfiguration, String.class));
+        configuration.put(PcapOptions.NUM_REDUCERS.getKey(), PcapOptions.NUM_REDUCERS.get(jobConfiguration, Integer.class));
+
+        boolean isFixedFilter = PcapOptions.FILTER_IMPL.get(jobConfiguration, PcapFilterConfigurator.class) instanceof FixedPcapFilter.Configurator;
+        if (isFixedFilter) {
+          configuration.put(FixedPcapOptions.IP_SRC_ADDR.getKey(), FixedPcapOptions.IP_SRC_ADDR.get(jobConfiguration, String.class));
+          configuration.put(FixedPcapOptions.IP_DST_ADDR.getKey(), FixedPcapOptions.IP_DST_ADDR.get(jobConfiguration, String.class));
+          configuration.put(FixedPcapOptions.IP_SRC_PORT.getKey(), FixedPcapOptions.IP_SRC_PORT.get(jobConfiguration, String.class));
+          configuration.put(FixedPcapOptions.IP_DST_PORT.getKey(), FixedPcapOptions.IP_DST_PORT.get(jobConfiguration, String.class));
+          configuration.put(FixedPcapOptions.PROTOCOL.getKey(), FixedPcapOptions.PROTOCOL.get(jobConfiguration, String.class));
+          configuration.put(FixedPcapOptions.PACKET_FILTER.getKey(), FixedPcapOptions.PACKET_FILTER.get(jobConfiguration, String.class));
+          configuration.put(FixedPcapOptions.INCLUDE_REVERSE.getKey(), FixedPcapOptions.INCLUDE_REVERSE.get(jobConfiguration, String.class));
+        } else {
+          configuration.put(QueryPcapOptions.QUERY.getKey(), QueryPcapOptions.QUERY.get(jobConfiguration, String.class));
+        }
+      }
+    } catch (JobNotFoundException e) {
+      LOG.warn(String.format("Could not get job configuration.  Job not found for user %s with job id %s", username, jobId));
+    } catch (JobException e) {
+      throw new RestException(e);
+    }
+    return configuration;
   }
 
   protected void setPcapOptions(String username, PcapRequest pcapRequest) throws IOException {

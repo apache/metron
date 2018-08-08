@@ -18,6 +18,18 @@
 
 import { PdmlPacket, PdmlProto, PdmlField } from './pdml';
 
+export const fakePdml = {
+  "pdml": {
+    "$": {
+      "version": "0",
+      "creator": "wireshark/2.4.2",
+      "time": "Tue Mar 27 21:55:25 2018",
+      "capture_file": "./metron-platform/metron-api/src/test/resources/test-tcp-packet.pcap"
+    },
+    "packet": [] as PdmlPacket[]
+  }
+};
+
 export const fakePacket = {
   "name": '',
   "expanded": false,

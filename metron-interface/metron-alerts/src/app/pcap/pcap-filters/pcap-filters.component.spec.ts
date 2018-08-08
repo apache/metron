@@ -21,7 +21,7 @@ import { By } from '@angular/platform-browser';
 
 import { PcapFiltersComponent } from './pcap-filters.component';
 import { FormsModule } from '../../../../node_modules/@angular/forms';
-import {Component, Input, Output, EventEmitter, SimpleChanges, SimpleChange} from '@angular/core';
+import {Component, Input, Output, EventEmitter, SimpleChange} from '@angular/core';
 import { PcapRequest } from '../model/pcap.request';
 import { emit } from 'cluster';
 
