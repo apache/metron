@@ -373,13 +373,13 @@ describe('PcapFiltersComponent', () => {
     });
 
     it('should keep the form enabled if the ip source field is valid', () => {
-      const invalidValues = [
+      const validValues = [
         '0.0.0.0',
         '222.222.222.222',
         '255.255.255.255',
       ];
 
-      invalidValues.forEach((value) => {
+      validValues.forEach((value) => {
         const els = getFieldWithSubmit('ip-src-addr');
         expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
         expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
