@@ -20,6 +20,8 @@ Pycapa
 
 * [Overview](#overview)
 * [Installation](#installation)
+  * [Centos 7](#centos-7)
+  * [Centos 6](#centos-6)
 * [Usage](#usage)
   * [Parameters](#parameters)
   * [Examples](#examples)
@@ -27,22 +29,23 @@ Pycapa
 * [FAQs](#faqs)
 
 Overview
-========
+--------
 
 Pycapa performs network packet capture, both off-the-wire and from a Kafka topic, which is useful for the testing and development of [Apache Metron](https://github.com/apache/metron).  It is not intended for production use. The tool will capture packets from a specified interface and push them into a Kafka Topic.  The tool can also do the reverse.  It can consume packets from Kafka and reconstruct each network packet.  This can then be used to create a [libpcap-compliant file](https://wiki.wireshark.org/Development/LibpcapFileFormat) or even to feed directly into a tool like Wireshark to monitor ongoing activity.
 
 Installation
-============
+------------
 
 General notes on the installation of Pycapa. 
 * Python 2.7 is required.
 * The following package dependencies are required and can be installed automatically with `pip`. The requirements are installed as part of step 4
   * [confluent-kafka-python](https://github.com/confluentinc/confluent-kafka-python)
   * [pcapy](https://github.com/CoreSecurity/pcapy)
-* These instructions can be used directly on CentOS 7+.  
-* Other Linux distributions that come with Python 2.7 can use these instructions with some minor modifications.  
-* Older distributions, like CentOS 6, that come with Python 2.6 installed, should install Python 2.7 within a virtual environment and then run Pycapa from within the virtual environment.
 
+### Centos 7
+
+* These instructions can be used directly on CentOS 7+.
+* Other Linux distributions that come with Python 2.7 can use these instructions with some minor modifications.  
 
 1. Install system dependencies including the core development tools, Python libraries and header files, and Libpcap libraries and header files.  On CentOS 7+, you can install these requirements with the following command.
 
@@ -76,8 +79,83 @@ General notes on the installation of Pycapa.
     python setup.py install
     ```
 
+### Centos 6
+
+* These instructions can be used directly on CentOS 6 - useful for developers using the Full Dev Vagrant test box.
+* Older distributions, like CentOS 6, that come with Python 2.6 installed, should install Python 2.7 within a virtual environment and then run Pycapa from within the virtual environment.
+
+1. Set up a couple environment variables.
+
+    ```
+    PYCAPA_HOME=/opt/pycapa
+    PYTHON27_HOME=/opt/rh/python27/root
+    ```
+
+1. Install required packages.
+
+    ```
+    for item in epel-release centos-release-scl "@Development tools" python27 python27-scldevel python27-python-virtualenv libpcap-devel libselinux-python; do yum install -y $item; done
+    ```
+
+1. Setup Pycapa directory.
+
+    ```
+    mkdir $PYCAPA_HOME && chmod 755 $PYCAPA_HOME
+    ```
+
+1. Create the virtualenv.
+
+    ```
+    export LD_LIBRARY_PATH="/opt/rh/python27/root/usr/lib64"
+    cd $PYCAPA_HOME
+    ${PYTHON27_HOME}/usr/bin/virtualenv pycapa-venv
+    ```
+
+1. Install Librdkafka at your chosen $PREFIX.
+
+    ```
+    export PREFIX=/usr
+    wget https://github.com/edenhill/librdkafka/archive/v0.11.5.tar.gz   -O - | tar -xz
+    cd librdkafka-0.11.5/
+    ./configure --prefix=$PREFIX
+    make
+    make install
+    ```
+
+1. Add Librdkafka to the dynamic library load path.
+
+    ```
+    echo "$PREFIX/lib" >> /etc/ld.so.conf.d/pycapa.conf
+    ldconfig -v
+    ```
+
+1. Copy the Pycapa source files from the Metron project to your chosen $PYCAPA_HOME (e.g. `/opt/pycapa`). You should have pycapa source files in `/opt/pycapa/pycapa`.
+
+    ```
+    scp -r metron-sensors/pycapa root@node1:$PYCAPA_HOME
+    ```
+
+1. Install Pycapa using the `pycapa-venv` virtualenv you created earlier.
+
+    ```
+    cd ${PYCAPA_HOME}/pycapa
+    # activate the virtualenv
+    source ${PYCAPA_HOME}/pycapa-venv/bin/activate
+    pip install -r requirements.txt
+    python setup.py install
+    ```
+
+1. Special notes on running pycapa on Centos 6. You should run it using the virtualenv.
+
+    ```
+    cd ${PYCAPA_HOME}/pycapa-venv/bin
+    pycapa --producer --kafka-topic pcap --interface eth1 --kafka-broker $BROKERLIST
+    ```
+
+**Note:** To deactivate your virtualenv, simply type "deactivate" and hit enter.
+
 Usage
-=====
+-----
 
 Pycapa has two primary runtime modes.
 
@@ -306,7 +384,7 @@ The probe can be used in a Kerberized environment. The Python client README (htt
     ```
     
 FAQs
-====
+----
 
 ### How do I get more logs?
 
