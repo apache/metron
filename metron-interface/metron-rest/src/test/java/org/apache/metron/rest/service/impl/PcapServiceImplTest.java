@@ -671,18 +671,18 @@ public class PcapServiceImplTest {
     pcapService.submit("user", fixedPcapRequest);
 
     Map<String, Object> configuration = pcapService.getConfiguration("user", "jobId");
-    Assert.assertEquals("basePath", PcapOptions.BASE_PATH.get(configuration, String.class));
-    Assert.assertEquals("finalOutputPath", PcapOptions.FINAL_OUTPUT_PATH.get(configuration, String.class));
-    Assert.assertEquals(1L, PcapOptions.START_TIME_MS.get(configuration, Long.class).longValue());
-    Assert.assertEquals(2L, PcapOptions.END_TIME_MS.get(configuration, Long.class).longValue());
-    Assert.assertEquals(2, PcapOptions.NUM_REDUCERS.get(configuration, Integer.class).intValue());
-    Assert.assertEquals("ip_src_addr", FixedPcapOptions.IP_SRC_ADDR.get(configuration, String.class));
-    Assert.assertEquals("ip_dst_addr", FixedPcapOptions.IP_DST_ADDR.get(configuration, String.class));
-    Assert.assertEquals(1000, FixedPcapOptions.IP_SRC_PORT.get(configuration, Integer.class).intValue());
-    Assert.assertEquals(2000, FixedPcapOptions.IP_DST_PORT.get(configuration, Integer.class).intValue());
-    Assert.assertEquals("tcp", FixedPcapOptions.PROTOCOL.get(configuration, String.class));
-    Assert.assertEquals("filter", FixedPcapOptions.PACKET_FILTER.get(configuration, String.class));
-    Assert.assertEquals(true, FixedPcapOptions.INCLUDE_REVERSE.get(configuration, Boolean.class));
+    Assert.assertEquals("basePath", configuration.get(PcapOptions.BASE_PATH.getKey()));
+    Assert.assertEquals("finalOutputPath", configuration.get(PcapOptions.FINAL_OUTPUT_PATH.getKey()));
+    Assert.assertEquals(1L, configuration.get(PcapOptions.START_TIME_MS.getKey()));
+    Assert.assertEquals(2L, configuration.get(PcapOptions.END_TIME_MS.getKey()));
+    Assert.assertEquals(2, configuration.get(PcapOptions.NUM_REDUCERS.getKey()));
+    Assert.assertEquals("ip_src_addr", configuration.get(FixedPcapOptions.IP_SRC_ADDR.getKey()));
+    Assert.assertEquals("ip_dst_addr", configuration.get(FixedPcapOptions.IP_DST_ADDR.getKey()));
+    Assert.assertEquals(1000, configuration.get(FixedPcapOptions.IP_SRC_PORT.getKey()));
+    Assert.assertEquals(2000, configuration.get(FixedPcapOptions.IP_DST_PORT.getKey()));
+    Assert.assertEquals("tcp", configuration.get(FixedPcapOptions.PROTOCOL.getKey()));
+    Assert.assertEquals("filter", configuration.get(FixedPcapOptions.PACKET_FILTER.getKey()));
+    Assert.assertEquals(true, configuration.get(FixedPcapOptions.INCLUDE_REVERSE.getKey()));
   }
 
   @Test
@@ -708,12 +708,12 @@ public class PcapServiceImplTest {
     pcapService.submit("user", queryPcapRequest);
 
     Map<String, Object> configuration = pcapService.getConfiguration("user", "jobId");
-    Assert.assertEquals("basePath", PcapOptions.BASE_PATH.get(configuration, String.class));
-    Assert.assertEquals("finalOutputPath", PcapOptions.FINAL_OUTPUT_PATH.get(configuration, String.class));
-    Assert.assertEquals(1L, PcapOptions.START_TIME_MS.get(configuration, Long.class).longValue());
-    Assert.assertEquals(2L, PcapOptions.END_TIME_MS.get(configuration, Long.class).longValue());
-    Assert.assertEquals(2, PcapOptions.NUM_REDUCERS.get(configuration, Integer.class).intValue());
-    Assert.assertEquals("query", QueryPcapOptions.QUERY.get(configuration, String.class));
+    Assert.assertEquals("basePath", configuration.get(PcapOptions.BASE_PATH.getKey()));
+    Assert.assertEquals("finalOutputPath", configuration.get(PcapOptions.FINAL_OUTPUT_PATH.getKey()));
+    Assert.assertEquals(1L, configuration.get(PcapOptions.START_TIME_MS.getKey()));
+    Assert.assertEquals(2L, configuration.get(PcapOptions.END_TIME_MS.getKey()));
+    Assert.assertEquals(2, configuration.get(PcapOptions.NUM_REDUCERS.getKey()));
+    Assert.assertEquals("query", configuration.get(QueryPcapOptions.QUERY.getKey()));
   }
 
   @Test

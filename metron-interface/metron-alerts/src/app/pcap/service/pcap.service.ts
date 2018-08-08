@@ -68,7 +68,7 @@ export class PcapService {
     }
 
     public getPcapRequest(id: string): Observable<PcapRequest> {
-      return this.http.get(`/api/v1/pcap/${id}/configuration`,
+      return this.http.get(`/api/v1/pcap/${id}/config`,
               new RequestOptions({headers: new Headers(this.defaultHeaders)}))
               .map(HttpUtil.extractData)
               .catch(HttpUtil.handleError);

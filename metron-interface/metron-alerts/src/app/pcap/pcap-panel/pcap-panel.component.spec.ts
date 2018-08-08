@@ -412,12 +412,14 @@ describe('PcapPanelComponent', () => {
             defer(() => Promise.resolve(pcapRequest))
     );
 
+    expect(component.queryRunning).toEqual(false);
     expect(component.pcapRequest).toEqual(new PcapRequest());
 
     component.ngOnInit();
 
     tick();
 
+    expect(component.queryRunning).toEqual(true);
     expect(component.updateStatus).toHaveBeenCalled();
     expect(component.startPolling).toHaveBeenCalledWith('42');
     expect(pcapService.getPcapRequest).toHaveBeenCalledWith('42');

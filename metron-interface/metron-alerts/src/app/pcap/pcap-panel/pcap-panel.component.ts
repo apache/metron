@@ -51,6 +51,7 @@ export class PcapPanelComponent implements OnInit {
     this.pcapService.getRunningJob().subscribe((statusResponses: PcapStatusResponse[]) => {
       if (statusResponses.length > 0) {
         // Assume the first job in the list is the running job
+        this.queryRunning = true;
         let statusResponse = statusResponses[0];
         this.updateStatus(statusResponse);
         this.startPolling(statusResponse.jobId);
@@ -69,15 +70,17 @@ export class PcapPanelComponent implements OnInit {
   }
 
   onSearch(pcapRequest) {
+    this.queryRunning = true;
     this.savedPcapRequest = pcapRequest;
     this.pagination.selectedPage = 1;
     this.pdml = null;
     this.progressWidth = 0;
     this.errorMsg = null;
-    this.pcapService.submitRequest(pcapRequest).subscribe((statusResponse: PcapStatusResponse) => {
-      let id = statusResponse.jobId;
+    this.pcapService.submitRequest(pcapRequest).subscribe((submitResponse: PcapStatusResponse) => {
+      let id = submitResponse.jobId;
       if (!id) {
-        this.errorMsg = statusResponse.description;
+        this.errorMsg = submitResponse.description;
+        this.queryRunning = false;
       } else {
         this.startPolling(id);
       }
@@ -88,7 +91,6 @@ export class PcapPanelComponent implements OnInit {
 
   startPolling(id: string) {
     this.queryId = id;
-    this.queryRunning = true;
     this.errorMsg = null;
     this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
       this.updateStatus(statusResponse);
