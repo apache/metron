@@ -73,9 +73,7 @@ export class PcapPanelComponent {
             this.pagination.total = statusResponse.pageTotal;
             this.statusSubscription.unsubscribe();
             this.queryRunning = false;
-            this.pcapService.getPackets(submitResponse.jobId, this.pagination.selectedPage).toPromise().then(pdml => {
-              this.pdml = pdml;
-            this.pcapService.getPackets(id, this.pagination.selectedPage).subscribe(pdml => {
+            this.pcapService.getPackets(id, this.pagination.selectedPage).toPromise().then(pdml => {
               this.pdml = pdml;
             }, (error: RestError) => {
               if (error.responseCode === 404) {

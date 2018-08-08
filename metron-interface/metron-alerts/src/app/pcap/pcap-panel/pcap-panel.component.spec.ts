@@ -26,6 +26,7 @@ import { PcapPagination } from '../model/pcap-pagination';
 import { By } from '../../../../node_modules/@angular/platform-browser';
 import { PcapRequest } from '../model/pcap.request';
 import { defer } from 'rxjs/observable/defer';
+import {RestError} from "../../model/rest-error";
 
 @Component({
   selector: 'app-pcap-filters',
@@ -305,6 +306,7 @@ describe('PcapPanelComponent', () => {
     );
 
     const pollResponse = new PcapStatusResponse();
+    pollResponse.jobStatus = 'SUCCEEDED';
     pcapService.pollStatus = jasmine.createSpy('pollStatus').and.returnValue(
       defer(() => Promise.resolve(pollResponse))
     );
@@ -321,6 +323,68 @@ describe('PcapPanelComponent', () => {
     tick();
     fixture.detectChanges();
 
+    expect(component.pdml).toEqual(myPdml);
     expect(fixture.debugElement.query(By.css('app-pcap-list'))).toBeDefined();
+  }));
+
+  it('should handle get packet 404', fakeAsync(() => {
+    const searchResponse = new PcapStatusResponse();
+    searchResponse.jobId = '42';
+
+    pcapService.submitRequest = jasmine.createSpy('submitRequest').and.returnValue(
+            defer(() => Promise.resolve(searchResponse))
+    );
+
+    const pollResponse = new PcapStatusResponse();
+    pollResponse.jobStatus = 'SUCCEEDED';
+    pcapService.pollStatus = jasmine.createSpy('pollStatus').and.returnValue(
+            defer(() => Promise.resolve(pollResponse))
+    );
+
+    const restError = new RestError();
+    restError.responseCode = 404;
+    pcapService.getPackets = jasmine.createSpy('getPackets').and.returnValue(
+            defer(() => Promise.reject(restError))
+    );
+
+    component.onSearch(new PcapRequest());
+
+    expect(component.errorMsg).toBeFalsy();
+
+    tick();
+    fixture.detectChanges();
+
+    expect(component.errorMsg).toEqual('No results returned');
+  }));
+
+  it('should handle get packet error', fakeAsync(() => {
+    const searchResponse = new PcapStatusResponse();
+    searchResponse.jobId = '42';
+
+    pcapService.submitRequest = jasmine.createSpy('submitRequest').and.returnValue(
+            defer(() => Promise.resolve(searchResponse))
+    );
+
+    const pollResponse = new PcapStatusResponse();
+    pollResponse.jobStatus = 'SUCCEEDED';
+    pcapService.pollStatus = jasmine.createSpy('pollStatus').and.returnValue(
+            defer(() => Promise.resolve(pollResponse))
+    );
+
+    const restError = new RestError();
+    restError.responseCode = 500;
+    restError.message = 'error message';
+    pcapService.getPackets = jasmine.createSpy('getPackets').and.returnValue(
+            defer(() => Promise.reject(restError))
+    );
+
+    component.onSearch(new PcapRequest());
+
+    expect(component.errorMsg).toBeFalsy();
+
+    tick();
+    fixture.detectChanges();
+
+    expect(component.errorMsg).toEqual('Response message: error message. Something went wrong retrieving pdml results!');
   }));
 });
