@@ -24,7 +24,7 @@
 
   <div class="form-group">
     <label for="ipSrcAddr">IP Source Address</label>
-    <input name="ipSrcAddr" #ipSrcAddr="ngModel" class="form-control" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$" [(ngModel)]="model.ipSrcAddr">
+    <input name="ipSrcAddr" #ipSrcAddr="ngModel" class="form-control" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$" [(ngModel)]="model.ipSrcAddr" data-qe-id="ip-src-addr">
   </div>
 
   <div class="form-group">
@@ -33,7 +33,7 @@
   </div>
 
   <div class="form-group"><label for="ipDstAddr">IP Dest Address</label>
-    <input name="ipDstAddr" #ipDstAddr="ngModel" class="form-control" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$" [(ngModel)]="model.ipDstAddr">
+    <input name="ipDstAddr" #ipDstAddr="ngModel" class="form-control" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$" [(ngModel)]="model.ipDstAddr" data-qe-id="ip-dst-addr">
   </div>
 
   <div class="form-group">
