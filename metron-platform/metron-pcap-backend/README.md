@@ -138,6 +138,7 @@ usage: Fixed filter options
  -sa,--ip_src_addr <arg>         Source IP address
  -sp,--ip_src_port <arg>         Source port
  -st,--start_time <arg>          (required) Packet start time range.
+ -yq,--yarn_queue <arg>          Yarn queue this job will be submitted to
 ```
 
 ```
@@ -156,6 +157,7 @@ usage: Query filter options
  -h,--help                       Display help
  -q,--query <arg>                Query string to use as a filter
  -st,--start_time <arg>          (required) Packet start time range.
+ -yq,--yarn_queue <arg>          Yarn queue this job will be submitted to
 ```
 
 The Query filter's `--query` argument specifies the Stellar expression to

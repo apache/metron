@@ -22,6 +22,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.job.JobException;
@@ -186,7 +187,7 @@ public class PcapServiceImplTest {
   @Before
   public void setUp() throws Exception {
     environment = mock(Environment.class);
-    configuration = mock(Configuration.class);
+    configuration = new Configuration();
     mockPcapJobSupplier = new MockPcapJobSupplier();
     pcapToPdmlScriptWrapper = new PcapToPdmlScriptWrapper();
 
@@ -200,6 +201,9 @@ public class PcapServiceImplTest {
 
   @Test
   public void submitShouldProperlySubmitFixedPcapRequest() throws Exception {
+    when(environment.containsProperty(MetronRestConstants.PCAP_YARN_QUEUE_SPRING_PROPERTY)).thenReturn(true);
+    when(environment.getProperty(MetronRestConstants.PCAP_YARN_QUEUE_SPRING_PROPERTY)).thenReturn("pcap");
+
     FixedPcapRequest fixedPcapRequest = new FixedPcapRequest();
     fixedPcapRequest.setBasePath("basePath");
     fixedPcapRequest.setBaseInterimResultPath("baseOutputPath");
@@ -250,6 +254,7 @@ public class PcapServiceImplTest {
     Assert.assertEquals(2000000, mockPcapJob.getEndTimeNs());
     Assert.assertEquals(2, mockPcapJob.getNumReducers());
     Assert.assertEquals(100, mockPcapJob.getRecPerFile());
+    Assert.assertEquals("pcap", mockPcapJob.getYarnQueue());
     Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
     Map<String, String> actualFixedFields = mockPcapJob.getFixedFields();
     Assert.assertEquals("ip_src_addr", actualFixedFields.get(Constants.Fields.SRC_ADDR.getName()));
