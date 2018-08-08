@@ -149,7 +149,7 @@ General notes on the installation of Pycapa.
 
     ```
     cd ${PYCAPA_HOME}/pycapa-venv/bin
-    pycapa --producer --topic pcap -i eth1 -k $BROKERLIST
+    pycapa --producer --kafka-topic pcap --interface eth1 --kafka-broker $BROKERLIST
     ```
 
 **Note:** To deactivate your virtualenv, simply type "deactivate" and hit enter.
