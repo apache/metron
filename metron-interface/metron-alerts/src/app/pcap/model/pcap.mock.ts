@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { PcapRequest } from './pcap.request';
-import { PcapStatusResponse } from '../service/pcap.service';
+import { PcapStatusResponse } from '../model/pcap-status-response';
 
 export const fakePcapRequest = {
   startTimeMs: 0,

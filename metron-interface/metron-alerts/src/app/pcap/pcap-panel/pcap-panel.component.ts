@@ -15,18 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
-import { PcapService, PcapStatusResponse } from '../service/pcap.service';
+import { PcapService } from '../service/pcap.service';
+import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
-import {Subscription} from 'rxjs/Rx';
+import { Subscription } from 'rxjs/Rx';
 import { PcapPagination } from '../model/pcap-pagination';
 import {RestError} from "../../model/rest-error";
-
-class Query {
-  id: String
-}
 
 @Component({
   selector: 'app-pcap-panel',
@@ -47,7 +44,7 @@ export class PcapPanelComponent {
   savedPcapRequest: {};
   errorMsg: string;
 
-  constructor(private pcapService: PcapService ) { }
+  constructor(private pcapService: PcapService) { }
 
   changePage(page) {
     this.pagination.selectedPage = page;
@@ -57,24 +54,27 @@ export class PcapPanelComponent {
   }
 
   onSearch(pcapRequest) {
+    this.queryRunning = true;
     this.savedPcapRequest = pcapRequest;
     this.pagination.selectedPage = 1;
     this.pdml = null;
     this.progressWidth = 0;
     this.errorMsg = null;
-    this.pcapService.submitRequest(pcapRequest).subscribe((statusResponse: PcapStatusResponse) => {
-      let id = statusResponse.jobId;
+    this.pcapService.submitRequest(pcapRequest).subscribe((submitResponse: PcapStatusResponse) => {
+      let id = submitResponse.jobId;
       if (!id) {
-        this.errorMsg = statusResponse.description;
+        this.errorMsg = submitResponse.description;
+        this.queryRunning = false;
       } else {
         this.queryId = id;
-        this.queryRunning = true;
         this.errorMsg = null;
         this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
           if ('SUCCEEDED' === statusResponse.jobStatus) {
             this.pagination.total = statusResponse.pageTotal;
             this.statusSubscription.unsubscribe();
             this.queryRunning = false;
+            this.pcapService.getPackets(submitResponse.jobId, this.pagination.selectedPage).toPromise().then(pdml => {
+              this.pdml = pdml;
             this.pcapService.getPackets(id, this.pagination.selectedPage).subscribe(pdml => {
               this.pdml = pdml;
             }, (error: RestError) => {
@@ -98,6 +98,7 @@ export class PcapPanelComponent {
         });
       }
     }, (error: any) => {
+      this.queryRunning = false;
       this.errorMsg = `Response message: ${error.message}. Something went wrong with your query submission!`;
     });
   }

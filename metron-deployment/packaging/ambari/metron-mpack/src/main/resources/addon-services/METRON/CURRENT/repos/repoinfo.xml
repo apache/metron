@@ -35,4 +35,11 @@
             <reponame>METRON</reponame>
         </repo>
     </os>
+    <os family="redhat-ppc7">
+    <repo>
+        <baseurl>file:///localrepo</baseurl>
+        <repoid>METRON-${metron.version}</repoid>
+        <reponame>METRON</reponame>
+    </repo>
+    </os>
 </reposinfo>

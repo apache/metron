@@ -16,6 +16,9 @@
  * limitations under the License.
  */
 export class PcapStatusResponse {
-  status: string;
-  totalPages: number;
+  jobId: string;
+  jobStatus: string;
+  description: string;
+  percentComplete: number;
+  pageTotal: number;
 }
