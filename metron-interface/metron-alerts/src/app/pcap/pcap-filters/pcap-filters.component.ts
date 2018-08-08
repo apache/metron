@@ -15,44 +15,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
+
 import * as moment from 'moment/moment';
 import { DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
 
 import { PcapRequest } from '../model/pcap.request';
+
+const endTime = new Date();
+const startTime = new Date().setDate(endTime.getDate() - 5);
+
+function dateRangeValidator(filterForm: FormGroup): ValidationErrors | null {
+  const startTimeMs = new Date(filterForm.controls.startTimeMs.value).getTime();
+  const endTimeMs = new Date(filterForm.controls.endTimeMs.value).getTime();
+
+  if (startTimeMs > endTimeMs || endTimeMs > new Date().getTime()) {
+    return { error: 'Selected date range is invalid.' };
+  }
+  return null;
+}
 
 @Component({
   selector: 'app-pcap-filters',
   templateUrl: './pcap-filters.component.html',
   styleUrls: ['./pcap-filters.component.scss']
 })
-export class PcapFiltersComponent implements OnInit {
+export class PcapFiltersComponent {
 
-  @Input() queryRunning: boolean = true;
+  @Input() queryRunning = true;
   @Output() search: EventEmitter<PcapRequest> = new EventEmitter<PcapRequest>();
 
-  startTimeStr: string;
-  endTimeStr: string;
-  ipSrcPort: string = '';
-  ipDstPort: string = '';
+  private validIp: RegExp = /^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$/;
+  private validPort: RegExp = /^((6553[0-5])|(655[0-2][0-9])|(65[0-4][0-9]{2})|(6[0-4][0-9]{3})|([1-5][0-9]{4})|([0-5]{0,5})|([0-9]{1,4}))$/;
+
+  filterForm = new FormGroup({
+    startTimeMs: new FormControl(moment(startTime).format(DEFAULT_TIMESTAMP_FORMAT)),
+    endTimeMs: new FormControl(moment(endTime).format(DEFAULT_TIMESTAMP_FORMAT)),
+    ipSrcAddr: new FormControl('', Validators.pattern(this.validIp)),
+    ipSrcPort: new FormControl('', Validators.pattern(this.validPort)),
+    ipDstAddr: new FormControl('', Validators.pattern(this.validIp)),
+    ipDstPort: new FormControl('', Validators.pattern(this.validPort)),
+    protocol: new FormControl(),
+    includeReverse: new FormControl(),
+    packetFilter: new FormControl(),
+  }, dateRangeValidator);
 
   model = new PcapRequest();
 
-  constructor() { }
-
-  ngOnInit() {
-    const endTime = new Date();
-    const startTime = new Date().setDate(endTime.getDate() - 5);
-
-    this.startTimeStr = moment(startTime).format(DEFAULT_TIMESTAMP_FORMAT);
-    this.endTimeStr = moment(endTime).format(DEFAULT_TIMESTAMP_FORMAT);
-  }
-
   onSubmit() {
-    this.model.startTimeMs = new Date(this.startTimeStr).getTime();
-    this.model.endTimeMs = new Date(this.endTimeStr).getTime();
-    this.model.ipSrcPort = +this.ipSrcPort;
-    this.model.ipDstPort = +this.ipDstPort;
+    this.model = this.filterForm.value;
+    this.model.startTimeMs = new Date(this.filterForm.value.startTimeMs).getTime();
+    this.model.endTimeMs = new Date(this.filterForm.value.endTimeMs).getTime();
+    this.model.ipSrcPort = +this.filterForm.value.ipSrcPort;
+    this.model.ipDstPort = +this.filterForm.value.ipDstPort;
 
     this.search.emit(this.model);
   }
