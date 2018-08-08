@@ -57,6 +57,7 @@ export class PcapPanelComponent implements OnDestroy {
 
   onSearch(pcapRequest) {
     this.queryRunning = true;
+    this.queryId = '';
     this.savedPcapRequest = pcapRequest;
     this.pagination.selectedPage = 1;
     this.pdml = null;

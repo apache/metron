@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { PcapFiltersComponent } from './pcap-filters.component';
@@ -28,7 +28,7 @@ import { PcapRequest } from '../model/pcap.request';
   selector: 'app-date-picker',
   template: '<input type="text" [(value)]="date">',
 })
-class FakeDatePicker {
+class FakeDatePickerComponent {
   @Input() date: string;
   @Output() dateChange = new EventEmitter<string>();
 }
@@ -43,7 +43,7 @@ describe('PcapFiltersComponent', () => {
         FormsModule
       ],
       declarations: [
-        FakeDatePicker,
+        FakeDatePickerComponent,
         PcapFiltersComponent,
       ]
     })
@@ -98,7 +98,7 @@ describe('PcapFiltersComponent', () => {
     component.ipSrcPort = '42';
     component.search.emit = (model: PcapRequest) => {
       expect(model.ipSrcPort).toBe(42);
-    }
+    };
     component.onSubmit();
   });
 
@@ -124,7 +124,7 @@ describe('PcapFiltersComponent', () => {
     component.ipDstPort = '42';
     component.search.emit = (model: PcapRequest) => {
       expect(model.ipDstPort).toBe(42);
-    }
+    };
     component.onSubmit();
   });
 
@@ -159,7 +159,7 @@ describe('PcapFiltersComponent', () => {
     component.startTimeStr = '2220-12-12 12:12:12';
     component.search.emit = (model: PcapRequest) => {
       expect(model.startTimeMs).toBe(new Date(component.startTimeStr).getTime());
-    }
+    };
     component.onSubmit();
   });
 
@@ -167,7 +167,7 @@ describe('PcapFiltersComponent', () => {
     component.endTimeStr = '2320-03-13 13:13:13';
     component.search.emit = (model: PcapRequest) => {
       expect(model.endTimeMs).toBe(new Date(component.endTimeStr).getTime());
-    }
+    };
     component.onSubmit();
   });
 
@@ -202,7 +202,7 @@ describe('PcapFiltersComponent', () => {
     expect(fixture.componentInstance.model.hasOwnProperty('includeReverse')).toBeTruthy();
   });
 
-  describe('Pcap port filters', () => {
+  describe('Filter validation', () => {
 
     function setup() {
       component.queryRunning = false;
@@ -218,7 +218,7 @@ describe('PcapFiltersComponent', () => {
       };
     }
 
-    function setFieldValue(field:DebugElement, value: any) {
+    function setFieldValue(field: DebugElement, value: any) {
       field.nativeElement.value = value;
       field.nativeElement.dispatchEvent(new Event('input'));
       fixture.detectChanges();
@@ -239,7 +239,6 @@ describe('PcapFiltersComponent', () => {
     beforeEach(setup);
 
     it('should disable the form if the ip source port is invalid', () => {
-
       const invalidValues = [
         '-42',
         '-1',
@@ -252,14 +251,18 @@ describe('PcapFiltersComponent', () => {
         '3.14',
         '123456',
         '65536',
+        '99999',
         '2352363474576',
+        '1e3',
       ];
 
       invalidValues.forEach((value) => {
         const els = getFieldWithSubmit('ip-src-port');
-        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid with ' + value);
-        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
         setFieldValue(els.field, value);
+
         expect(isFieldInvalid(els.field)).toBe(true, 'the field should be invalid with ' + value);
         expect(isSubmitDisabled(els.submit)).toBe(true, 'the submit button should be disabled with ' + value);
         tearDown(els.field);
@@ -267,7 +270,6 @@ describe('PcapFiltersComponent', () => {
     });
 
     it('should keep the form enabled if the ip source port is valid', () => {
-
       const validValues = [
         '8080',
         '1024',
@@ -280,9 +282,11 @@ describe('PcapFiltersComponent', () => {
 
       validValues.forEach((value) => {
         const els = getFieldWithSubmit('ip-src-port');
-        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid with ' + value);
-        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
         setFieldValue(els.field, value);
+
         expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid with ' + value);
         expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
         tearDown(els.field);
@@ -290,7 +294,6 @@ describe('PcapFiltersComponent', () => {
     });
 
     it('should disable the form if the ip destination port is invalid', () => {
-
       const invalidValues = [
         '-42',
         '-1',
@@ -303,14 +306,18 @@ describe('PcapFiltersComponent', () => {
         '3.14',
         '123456',
         '65536',
+        '99999',
         '2352363474576',
+        '1e3',
       ];
 
       invalidValues.forEach((value) => {
         const els = getFieldWithSubmit('ip-dest-port');
-        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid with ' + value);
-        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
         setFieldValue(els.field, value);
+
         expect(isFieldInvalid(els.field)).toBe(true, 'the field should be invalid with ' + value);
         expect(isSubmitDisabled(els.submit)).toBe(true, 'the submit button should be disabled with ' + value);
         tearDown(els.field);
@@ -318,7 +325,6 @@ describe('PcapFiltersComponent', () => {
     });
 
     it('should keep the form enabled if the ip destination port is valid', () => {
-
       const validValues = [
         '8080',
         '1024',
@@ -331,13 +337,60 @@ describe('PcapFiltersComponent', () => {
 
       validValues.forEach((value) => {
         const els = getFieldWithSubmit('ip-dest-port');
-        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid with ' + value);
-        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
         setFieldValue(els.field, value);
+
         expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid with ' + value);
         expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
         tearDown(els.field);
       });
     });
+
+
+    it('should disable the form if the ip source field is invalid', () => {
+      const invalidValues = [
+        'tst',
+        0o0,
+        0,
+        '111.111.111',
+        '222.222.222.222.222',
+        '333.333.333.333',
+      ];
+
+      invalidValues.forEach((value) => {
+        const els = getFieldWithSubmit('ip-src-addr');
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
+        setFieldValue(els.field, value);
+
+        expect(isFieldInvalid(els.field)).toBe(true, 'the field should be invalid with ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(true, 'the submit button should be disabled with ' + value);
+        tearDown(els.field);
+      });
+    });
+
+    it('should keep the form enabled if the ip source field is valid', () => {
+      const invalidValues = [
+        '0.0.0.0',
+        '222.222.222.222',
+        '255.255.255.255',
+      ];
+
+      invalidValues.forEach((value) => {
+        const els = getFieldWithSubmit('ip-src-addr');
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
+
+        setFieldValue(els.field, value);
+
+        expect(isFieldInvalid(els.field)).toBe(false, 'tthe field should be valid with ' + value);
+        expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
+        tearDown(els.field);
+      });
+    });
+
   });
 });

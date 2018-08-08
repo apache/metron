@@ -46,8 +46,8 @@ export class PcapFiltersComponent {
   @Input() queryRunning = true;
   @Output() search: EventEmitter<PcapRequest> = new EventEmitter<PcapRequest>();
 
-  private validIp: RegExp = /^(?:\d{1,3}\.){3}\d{1,3}(.\d{1,2})?$/;
-  private validPort: RegExp = /^((6553[0-5])|(655[0-2][0-9])|(65[0-4][0-9]{2})|(6[0-4][0-9]{3})|([1-5][0-9]{4})|([0-5]{0,5})|([0-9]{1,4}))$/;
+  private validIp: RegExp = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$/;
+  private validPort: RegExp = /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/;
 
   filterForm = new FormGroup({
     startTimeMs: new FormControl(moment(startTime).format(DEFAULT_TIMESTAMP_FORMAT)),
