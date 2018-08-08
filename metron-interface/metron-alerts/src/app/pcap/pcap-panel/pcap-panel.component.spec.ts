@@ -393,7 +393,6 @@ describe('PcapPanelComponent', () => {
     fixture.detectChanges();
 
     expect(component.errorMsg).toEqual('Response message: error message. Something went wrong retrieving pdml results!');
-    expect(fixture.debugElement.query(By.css('app-pcap-list'))).toBeDefined();
   }));
 
   it('should load running job on init', fakeAsync(() => {
