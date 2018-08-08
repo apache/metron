@@ -87,6 +87,7 @@ public class PcapCli {
       try {
         config = fixedParser.parse(otherArgs);
         commonConfig = config;
+        PcapOptions.FINAL_OUTPUT_PATH.put(commonConfig, new Path(execDir));
       } catch (ParseException | java.text.ParseException e) {
         System.err.println(e.getMessage());
         System.err.flush();
@@ -112,6 +113,7 @@ public class PcapCli {
       try {
         config = queryParser.parse(otherArgs);
         commonConfig = config;
+        PcapOptions.FINAL_OUTPUT_PATH.put(commonConfig, new Path(execDir));
       } catch (ParseException | java.text.ParseException e) {
         System.err.println(e.getMessage());
         queryParser.printHelp();
