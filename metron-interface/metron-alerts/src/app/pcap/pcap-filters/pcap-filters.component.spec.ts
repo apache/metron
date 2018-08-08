@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { PcapFiltersComponent } from './pcap-filters.component';
@@ -28,7 +28,7 @@ import { PcapRequest } from '../model/pcap.request';
   selector: 'app-date-picker',
   template: '<input type="text" [(value)]="date">',
 })
-class FakeDatePicker {
+class FakeDatePickerComponent {
   @Input() date: string;
   @Output() dateChange = new EventEmitter<string>();
 }
@@ -43,7 +43,7 @@ describe('PcapFiltersComponent', () => {
         FormsModule
       ],
       declarations: [
-        FakeDatePicker,
+        FakeDatePickerComponent,
         PcapFiltersComponent,
       ]
     })
@@ -98,7 +98,7 @@ describe('PcapFiltersComponent', () => {
     component.ipSrcPort = '42';
     component.search.emit = (model: PcapRequest) => {
       expect(model.ipSrcPort).toBe(42);
-    }
+    };
     component.onSubmit();
   });
 
@@ -124,7 +124,7 @@ describe('PcapFiltersComponent', () => {
     component.ipDstPort = '42';
     component.search.emit = (model: PcapRequest) => {
       expect(model.ipDstPort).toBe(42);
-    }
+    };
     component.onSubmit();
   });
 
@@ -159,7 +159,7 @@ describe('PcapFiltersComponent', () => {
     component.startTimeStr = '2220-12-12 12:12:12';
     component.search.emit = (model: PcapRequest) => {
       expect(model.startTimeMs).toBe(new Date(component.startTimeStr).getTime());
-    }
+    };
     component.onSubmit();
   });
 
@@ -167,7 +167,7 @@ describe('PcapFiltersComponent', () => {
     component.endTimeStr = '2320-03-13 13:13:13';
     component.search.emit = (model: PcapRequest) => {
       expect(model.endTimeMs).toBe(new Date(component.endTimeStr).getTime());
-    }
+    };
     component.onSubmit();
   });
 
@@ -218,7 +218,7 @@ describe('PcapFiltersComponent', () => {
       };
     }
 
-    function setFieldValue(field:DebugElement, value: any) {
+    function setFieldValue(field: DebugElement, value: any) {
       field.nativeElement.value = value;
       field.nativeElement.dispatchEvent(new Event('input'));
       fixture.detectChanges();
