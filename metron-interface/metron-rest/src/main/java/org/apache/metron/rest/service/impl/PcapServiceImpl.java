@@ -255,7 +255,10 @@ public class PcapServiceImpl implements PcapService {
     PcapOptions.USERNAME.put(pcapRequest, username);
     Configuration hadoopConf = new Configuration(configuration);
     if (environment.containsProperty(PCAP_YARN_QUEUE_SPRING_PROPERTY)) {
-      hadoopConf.set(MRJobConfig.QUEUE_NAME, environment.getProperty(PCAP_YARN_QUEUE_SPRING_PROPERTY));
+      String queue = environment.getProperty(PCAP_YARN_QUEUE_SPRING_PROPERTY);
+      if (queue != null && !queue.isEmpty()) {
+        hadoopConf.set(MRJobConfig.QUEUE_NAME, environment.getProperty(PCAP_YARN_QUEUE_SPRING_PROPERTY));
+      }
     }
     PcapOptions.HADOOP_CONF.put(pcapRequest, hadoopConf);
     PcapOptions.FILESYSTEM.put(pcapRequest, getFileSystem());
