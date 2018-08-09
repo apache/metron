@@ -77,4 +77,12 @@ export class PcapService {
     public getDownloadUrl(id: string, pageId: number) {
       return `/api/v1/pcap/${id}/raw?page=${pageId}`;
     }
+
+    public cancelQuery(queryId: string) {
+      return this.http
+        .delete(`/api/v1/pcap/kill/${queryId}`, new RequestOptions({
+          headers: new Headers(this.defaultHeaders),
+        }))
+        .catch(HttpUtil.handleError);
+    }
 }
