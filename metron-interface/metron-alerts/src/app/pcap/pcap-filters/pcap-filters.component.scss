@@ -20,7 +20,7 @@
 @import "../../../variables.scss";
 
 .ng-valid[required], .ng-valid.required  {
-  
+
 }
 
 .ng-invalid:not(form)  {
@@ -65,5 +65,11 @@
     padding-top: 6px;
     padding-bottom: 6px;
     background: $icon-button-background;
+  }
+}
+
+.pcap-search-validation-errors {
+  & ul {
+    margin: 0
   }
 }
