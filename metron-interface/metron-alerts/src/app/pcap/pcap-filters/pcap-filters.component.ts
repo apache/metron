@@ -48,17 +48,25 @@ export class PcapFiltersComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.model.currentValue) {
-      this.startTimeStr = moment(changes.model.currentValue.startTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
-      this.endTimeStr = moment(changes.model.currentValue.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
+    if (changes['model']) {
+      this.startTimeStr = moment(changes['model'].currentValue.startTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
+      this.endTimeStr = moment(changes['model'].currentValue.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
+      let newIpSrcPort = changes['model'].currentValue.ipSrcPort;
+      this.ipSrcPort = newIpSrcPort ? newIpSrcPort.toString() : '';
+      let newIpDstPort = changes['model'].currentValue.ipDstPort;
+      this.ipDstPort = newIpDstPort ? newIpDstPort.toString() : '';
     }
   }
 
   onSubmit() {
     this.model.startTimeMs = new Date(this.startTimeStr).getTime();
     this.model.endTimeMs = new Date(this.endTimeStr).getTime();
-    this.model.ipSrcPort = +this.ipSrcPort;
-    this.model.ipDstPort = +this.ipDstPort;
+    if (this.ipSrcPort !== '') {
+      this.model.ipSrcPort = +this.ipSrcPort;
+    }
+    if (this.ipDstPort !== '') {
+      this.model.ipDstPort = +this.ipDstPort;
+    }
 
     this.search.emit(this.model);
   }

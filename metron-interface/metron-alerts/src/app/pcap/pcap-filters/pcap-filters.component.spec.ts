@@ -171,6 +171,14 @@ describe('PcapFiltersComponent', () => {
     component.onSubmit();
   });
 
+  it('Port fields should be missing by default', () => {
+    component.search.emit = (model: PcapRequest) => {
+      expect(model.ipSrcPort).toBeFalsy();
+      expect(model.ipDstPort).toBeFalsy();
+    };
+    component.onSubmit();
+  });
+
   it('Filter should have an output called search', () => {
     component.search.subscribe((filterModel) => {
       expect(filterModel).toBeDefined();
@@ -194,15 +202,39 @@ describe('PcapFiltersComponent', () => {
     expect(fixture.componentInstance.model.hasOwnProperty('startTimeMs')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('endTimeMs')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('ipSrcAddr')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipSrcPort')).toBeTruthy();
+    expect(fixture.componentInstance.model.hasOwnProperty('ipSrcPort')).toBeFalsy();
     expect(fixture.componentInstance.model.hasOwnProperty('ipDstAddr')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipDstPort')).toBeTruthy();
+    expect(fixture.componentInstance.model.hasOwnProperty('ipDstPort')).toBeFalsy();
     expect(fixture.componentInstance.model.hasOwnProperty('protocol')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('packetFilter')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('includeReverse')).toBeTruthy();
   });
 
-  it('should update time on changes', () => {
+  it('should update request on changes', () => {
+
+    let startTimeStr = '2220-12-12 12:12:12';
+    let endTimeStr = '2320-03-13 13:13:13';
+
+    let newModel = {
+      startTimeMs: new Date(startTimeStr).getTime(),
+      endTimeMs: new Date(endTimeStr).getTime(),
+      ipSrcPort: 9345,
+      ipDstPort: 8989
+    };
+    component.model.startTimeMs = new Date(startTimeStr).getTime();
+    component.model.endTimeMs = new Date(endTimeStr).getTime();
+
+    component.ngOnChanges({
+      model: new SimpleChange(null, newModel, false)
+    });
+
+    expect(component.startTimeStr).toBe(startTimeStr);
+    expect(component.endTimeStr).toBe(endTimeStr);
+    expect(component.ipSrcPort).toBe('9345');
+    expect(component.ipDstPort).toBe('8989');
+  });
+
+  it('should update request on changes with missing port filters', () => {
 
     let startTimeStr = '2220-12-12 12:12:12';
     let endTimeStr = '2320-03-13 13:13:13';
@@ -220,6 +252,8 @@ describe('PcapFiltersComponent', () => {
 
     expect(component.startTimeStr).toBe(startTimeStr);
     expect(component.endTimeStr).toBe(endTimeStr);
+    expect(component.ipSrcPort).toBe('');
+    expect(component.ipDstPort).toBe('');
   });
 
   describe('Filter validation', () => {
