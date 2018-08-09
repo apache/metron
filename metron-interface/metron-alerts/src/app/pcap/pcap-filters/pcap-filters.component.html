@@ -61,7 +61,8 @@
     <button type="submit" [ngClass]="{'disabled': filterForm.status === 'INVALID' || queryRunning}" class="btn btn-primary btn-search" [disabled]="filterForm.status === 'INVALID' || queryRunning" data-qe-id="submit-button"></button>
   </div>
 </form>
-<div *ngIf="filterForm.invalid">
+<div class="pcap-search-validation-errors alert alert-danger" *ngIf="filterForm.invalid">
+  <h5 class="alert-heading">Validation errors</h5>
   <ul>
     <li *ngIf="filterForm.controls.startTimeMs.invalid || filterForm.controls.endTimeMs.invalid">Selected date range is invalid. ("To" should be later than "From" and can't be in the future.)</li>
     <li *ngIf="filterForm.controls.ipSrcAddr.invalid">Source IP address format is invalid. (Use valid v4IP format like 192.168.0.1)</li>
