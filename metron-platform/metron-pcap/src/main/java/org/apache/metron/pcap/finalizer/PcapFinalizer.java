@@ -18,6 +18,8 @@
 
 package org.apache.metron.pcap.finalizer;
 
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.NUM_RECORDS_PER_FILE_DEFAULT;
+
 import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -62,9 +64,9 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
   @Override
   public Pageable<Path> finalizeJob(Map<String, Object> config) throws JobException {
     Configuration hadoopConfig = PcapOptions.HADOOP_CONF.get(config, Configuration.class);
-    int recPerFile = PcapOptions.NUM_RECORDS_PER_FILE.get(config, Integer.class);
-    Path interimResultPath = PcapOptions.INTERIM_RESULT_PATH
-        .get(config, PcapOptions.STRING_TO_PATH, Path.class);
+    int recPerFile = PcapOptions.NUM_RECORDS_PER_FILE
+        .getOrDefault(config, Integer.class, NUM_RECORDS_PER_FILE_DEFAULT);
+    Path interimResultPath = PcapOptions.INTERIM_RESULT_PATH.get(config, PcapOptions.STRING_TO_PATH, Path.class);
     FileSystem fs = PcapOptions.FILESYSTEM.get(config, FileSystem.class);
 
     SequenceFileIterable interimResults = null;

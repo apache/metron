@@ -20,6 +20,7 @@ package org.apache.metron.pcap.mr;
 
 import static org.apache.metron.pcap.PcapHelper.greaterThanOrEqualTo;
 import static org.apache.metron.pcap.PcapHelper.lessThanOrEqualTo;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.NUM_REDUCERS_DEFAULT;
 
 import com.google.common.base.Joiner;
 import java.io.IOException;
@@ -50,6 +51,7 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.job.Finalizer;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobStatus;
@@ -59,6 +61,7 @@ import org.apache.metron.job.Statusable;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.PcapPages;
+import org.apache.metron.pcap.config.PcapGlobalDefaults;
 import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
@@ -217,20 +220,22 @@ public class PcapJob<T> implements Statusable<Path> {
     Configuration hadoopConf = PcapOptions.HADOOP_CONF.get(configuration, Configuration.class);
     FileSystem fileSystem = PcapOptions.FILESYSTEM.get(configuration, FileSystem.class);
     Path basePath = PcapOptions.BASE_PATH.getTransformed(configuration, Path.class);
-    Path baseInterimResultPath = PcapOptions.BASE_INTERIM_RESULT_PATH.getTransformed(configuration, Path.class);
-    long startTime;
+    Path baseInterimResultPath = PcapOptions.BASE_INTERIM_RESULT_PATH
+        .getTransformedOrDefault(configuration, Path.class,
+            new Path(PcapGlobalDefaults.BASE_INTERIM_RESULT_PATH_DEFAULT));
+    long startTimeNs;
     if (configuration.containsKey(PcapOptions.START_TIME_NS.getKey())) {
-      startTime = PcapOptions.START_TIME_NS.get(configuration, Long.class);
+      startTimeNs = PcapOptions.START_TIME_NS.getOrDefault(configuration, Long.class, 0L);
     } else {
-      startTime = PcapOptions.START_TIME_MS.get(configuration, Long.class) * 1000000;
+      startTimeNs = TimestampConverters.MILLISECONDS.toNanoseconds(PcapOptions.START_TIME_MS.getOrDefault(configuration, Long.class, 0L));
     }
-    long endTime;
+    long endTimeNs;
     if (configuration.containsKey(PcapOptions.END_TIME_NS.getKey())) {
-      endTime = PcapOptions.END_TIME_NS.get(configuration, Long.class);
+      endTimeNs = PcapOptions.END_TIME_NS.getOrDefault(configuration, Long.class, TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis()));
     } else {
-      endTime = PcapOptions.END_TIME_MS.get(configuration, Long.class) * 1000000;
+      endTimeNs = TimestampConverters.MILLISECONDS.toNanoseconds(PcapOptions.END_TIME_MS.getOrDefault(configuration, Long.class, System.currentTimeMillis()));
     }
-    int numReducers = PcapOptions.NUM_REDUCERS.get(configuration, Integer.class);
+    int numReducers = PcapOptions.NUM_REDUCERS.getOrDefault(configuration, Integer.class, NUM_REDUCERS_DEFAULT);
     T fields = (T) PcapOptions.FIELDS.get(configuration, Object.class);
     PcapFilterConfigurator<T> filterImpl = PcapOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
 
@@ -238,8 +243,8 @@ public class PcapJob<T> implements Statusable<Path> {
       Statusable<Path> statusable = query(jobName,
           basePath,
           baseInterimResultPath,
-          startTime,
-          endTime,
+          startTimeNs,
+          endTimeNs,
           numReducers,
           fields,
           // create a new copy for each job, bad things happen when hadoop config is reused

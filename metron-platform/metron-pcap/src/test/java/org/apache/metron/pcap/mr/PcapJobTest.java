@@ -264,4 +264,27 @@ public class PcapJobTest {
     Assert.assertThat(status.getState(), equalTo(State.KILLED));
   }
 
+  @Test
+  public void handles_null_values_with_defaults() throws Exception {
+    PcapOptions.START_TIME_NS.put(config, null);
+    PcapOptions.END_TIME_NS.put(config, null);
+    PcapOptions.NUM_REDUCERS.put(config, null);
+    PcapOptions.NUM_RECORDS_PER_FILE.put(config, null);
+
+    pageableResult = new PcapPages(
+        Arrays.asList(new Path("1.txt"), new Path("2.txt"), new Path("3.txt")));
+    when(finalizer.finalizeJob(any())).thenReturn(pageableResult);
+    when(mrJob.isComplete()).thenReturn(true);
+    when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
+    when(mrJob.getStatus()).thenReturn(mrStatus);
+    Statusable<Path> statusable = testJob.submit(finalizer, config);
+    timer.updateJobStatus();
+    Pageable<Path> results = statusable.get();
+    Assert.assertThat(results.getSize(), equalTo(3));
+    JobStatus status = statusable.getStatus();
+    Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
+    Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
+    Assert.assertThat(status.getJobId(), equalTo(jobIdVal));
+  }
+
 }
