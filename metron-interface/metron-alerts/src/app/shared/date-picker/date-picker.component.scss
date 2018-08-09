@@ -29,3 +29,10 @@
     content: '\f073';
   }
 }
+
+.ng-invalid {
+  border-left: none;
+}
+.ng-invalid input {
+  border-left: 5px solid #a94442;
+}

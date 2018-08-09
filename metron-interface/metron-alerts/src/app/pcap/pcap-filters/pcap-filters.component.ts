@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
 
 import * as moment from 'moment/moment';
@@ -26,9 +26,14 @@ import { PcapRequest } from '../model/pcap.request';
 const endTime = new Date();
 const startTime = new Date().setDate(endTime.getDate() - 5);
 
-function dateRangeValidator(filterForm: FormGroup): ValidationErrors | null {
-  const startTimeMs = new Date(filterForm.controls.startTimeMs.value).getTime();
-  const endTimeMs = new Date(filterForm.controls.endTimeMs.value).getTime();
+function dateRangeValidator(formControl: FormControl): ValidationErrors | null {
+  if (!formControl.parent) {
+    return null;
+  }
+
+  const filterForm = formControl.parent;
+  const startTimeMs = new Date(filterForm.controls['startTimeMs'].value).getTime();
+  const endTimeMs = new Date(filterForm.controls['endTimeMs'].value).getTime();
 
   if (startTimeMs > endTimeMs || endTimeMs > new Date().getTime()) {
     return { error: 'Selected date range is invalid.' };
@@ -50,8 +55,8 @@ export class PcapFiltersComponent {
   private validPort: RegExp = /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/;
 
   filterForm = new FormGroup({
-    startTimeMs: new FormControl(moment(startTime).format(DEFAULT_TIMESTAMP_FORMAT)),
-    endTimeMs: new FormControl(moment(endTime).format(DEFAULT_TIMESTAMP_FORMAT)),
+    startTimeMs: new FormControl(moment(startTime).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
+    endTimeMs: new FormControl(moment(endTime).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
     ipSrcAddr: new FormControl('', Validators.pattern(this.validIp)),
     ipSrcPort: new FormControl('', Validators.pattern(this.validPort)),
     ipDstAddr: new FormControl('', Validators.pattern(this.validIp)),
@@ -59,7 +64,7 @@ export class PcapFiltersComponent {
     protocol: new FormControl(),
     includeReverse: new FormControl(),
     packetFilter: new FormControl(),
-  }, dateRangeValidator);
+  });
 
   model = new PcapRequest();
 
