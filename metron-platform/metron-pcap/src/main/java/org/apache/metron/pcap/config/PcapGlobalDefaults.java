@@ -15,22 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../../../_variables.scss";
 
-.proto-header {
-  font-weight: bold;
-  border-top: 1px solid $table-border-color;
-}
+package org.apache.metron.pcap.config;
 
-.proto {
-  margin-left: 1em;
-}
-
-.proto-fields {
-  cursor: text;
-  padding-left: 1em;
-}
-
-.field-name {
-  display: none
+public class PcapGlobalDefaults {
+  public static final String BASE_PCAP_PATH_DEFAULT = "/apps/metron/pcap";
+  public static final String BASE_INPUT_PATH_DEFAULT = BASE_PCAP_PATH_DEFAULT + "/input";
+  public static final String BASE_INTERIM_RESULT_PATH_DEFAULT = BASE_PCAP_PATH_DEFAULT + "/interim";
+  public static final String FINAL_OUTPUT_PATH_DEFAULT = BASE_PCAP_PATH_DEFAULT + "/output";
+  public static final int NUM_REDUCERS_DEFAULT = 10;
+  public static final int NUM_RECORDS_PER_FILE_DEFAULT = 10000;
 }

@@ -18,5 +18,6 @@
 export const environment = {
   production: false,
   indices: 'alerts_ui_e2e,metaalert',
-  defaultPollingState: true
+  defaultPollingState: true,
+  noTransition: true
 };

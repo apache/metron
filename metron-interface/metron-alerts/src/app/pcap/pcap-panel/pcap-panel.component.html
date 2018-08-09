@@ -15,17 +15,17 @@
   <div class="panel-header">
     <app-pcap-filters [queryRunning]="queryRunning" (search)="onSearch($event)"></app-pcap-filters>
   </div>
-
-  <div *ngIf="queryRunning" class="progress pcap-progress-background">
-      <div class="progress-bar progress-bar-animated pcap-progress" role="progressbar" attr.aria-valuenow="{{progressWidth}}" aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'max-width': progressWidth + '%', 'transition-duration':'1000ms'}">{{progressWidth}}%</div>
+  <div *ngIf="queryRunning" class="pcap-progress-wrapper">
+    <div class="progress pcap-progress-background">
+      <div class="progress-bar progress-bar-animated pcap-progress" role="progressbar" attr.aria-valuenow="{{progressWidth}}" aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'width': progressWidth + '%'}">{{progressWidth}}%</div>
+    </div>
+    <button data-qe-id="pcap-cancel-query-button" class="pcap-cancel-query-button btn btn-primary btn-sm" (click)="cancelQuery()" [disabled]="!queryId"></button>
   </div>
-  
-  <div *ngIf="errorMsg" class="alert alert-danger" role="alert">
+  <div *ngIf="errorMsg" class="alert alert-danger" role="alert" data-qe-id="error">
     {{ errorMsg }}
   </div>
-
   <div class="panel-body" *ngIf="pdml">
-    <app-pcap-list [packets]="pdml.packets"></app-pcap-list>
+    <app-pcap-list [packets]="pdml.packets" [pagination]="pagination" (pageUpdate)="changePage($event)"></app-pcap-list>
   </div>
-  <a class="btn btn-primary" [attr.href]="getDownloadUrl()" *ngIf="pdml">Download PCAP</a>
+  <a class="btn btn-primary" [attr.href]="getDownloadUrl()" *ngIf="pdml" data-qe-id="download-link">Download PCAP</a>
 </div>

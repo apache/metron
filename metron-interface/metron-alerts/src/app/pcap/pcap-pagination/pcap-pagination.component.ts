@@ -15,22 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../../../_variables.scss";
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { PcapPagination } from '../model/pcap-pagination';
 
-.proto-header {
-  font-weight: bold;
-  border-top: 1px solid $table-border-color;
-}
+@Component({
+  selector: 'app-pcap-pagination',
+  templateUrl: './pcap-pagination.component.html',
+  styleUrls: ['./pcap-pagination.component.scss']
+})
+export class PcapPaginationComponent {
 
-.proto {
-  margin-left: 1em;
-}
+  @Input() pagination = new PcapPagination();
+  @Output() pageChange = new EventEmitter();
 
-.proto-fields {
-  cursor: text;
-  padding-left: 1em;
-}
+  onPrevious() {
+    this.pagination.selectedPage -= 1;
+    this.pageChange.emit();
+  }
 
-.field-name {
-  display: none
+  onNext() {
+    this.pagination.selectedPage  += 1;
+    this.pageChange.emit();
+  }
+
 }
