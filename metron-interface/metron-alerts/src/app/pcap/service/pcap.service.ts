@@ -52,7 +52,7 @@ export class PcapService {
           new RequestOptions({headers: new Headers(this.defaultHeaders)}))
           .map(HttpUtil.extractData)
           .catch(HttpUtil.handleError);
-  }
+    }
     public getPackets(id: string, pageId: number): Observable<Pdml> {
         return this.http.get(`/api/v1/pcap/${id}/pdml?page=${pageId}`, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
             .map(HttpUtil.extractData)
@@ -61,5 +61,13 @@ export class PcapService {
 
     public getDownloadUrl(id: string, pageId: number) {
       return `/api/v1/pcap/${id}/raw?page=${pageId}`;
+    }
+
+    public cancelQuery(queryId: string) {
+      return this.http
+        .delete(`/api/v1/pcap/kill/${queryId}`, new RequestOptions({
+          headers: new Headers(this.defaultHeaders),
+        }))
+        .catch(HttpUtil.handleError);
     }
 }

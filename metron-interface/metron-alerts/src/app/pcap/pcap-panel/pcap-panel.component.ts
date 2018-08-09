@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnDestroy } from '@angular/core';
 
 import { PcapService } from '../service/pcap.service';
 import { PcapStatusResponse } from '../model/pcap-status-response';
@@ -30,13 +30,16 @@ import {RestError} from "../../model/rest-error";
   templateUrl: './pcap-panel.component.html',
   styleUrls: ['./pcap-panel.component.scss']
 })
-export class PcapPanelComponent {
+export class PcapPanelComponent implements OnDestroy {
 
   @Input() pdml: Pdml = null;
   @Input() pcapRequest: PcapRequest;
   @Input() resetPaginationForSearch: boolean;
 
   statusSubscription: Subscription;
+  cancelSubscription: Subscription;
+  submitSubscription: Subscription;
+  getSubscription: Subscription;
   queryRunning: boolean = false;
   queryId: string;
   progressWidth: number = 0;
@@ -55,12 +58,13 @@ export class PcapPanelComponent {
 
   onSearch(pcapRequest) {
     this.queryRunning = true;
+    this.queryId = '';
     this.savedPcapRequest = pcapRequest;
     this.pagination.selectedPage = 1;
     this.pdml = null;
     this.progressWidth = 0;
     this.errorMsg = null;
-    this.pcapService.submitRequest(pcapRequest).subscribe((submitResponse: PcapStatusResponse) => {
+    this.submitSubscription = this.pcapService.submitRequest(pcapRequest).subscribe((submitResponse: PcapStatusResponse) => {
       let id = submitResponse.jobId;
       if (!id) {
         this.errorMsg = submitResponse.description;
@@ -103,5 +107,35 @@ export class PcapPanelComponent {
 
   getDownloadUrl() {
     return this.pcapService.getDownloadUrl(this.queryId, this.pagination.selectedPage);
+  }
+
+  unsubscribeAll() {
+    if (this.cancelSubscription) {
+      this.cancelSubscription.unsubscribe();
+    }
+    if (this.statusSubscription) {
+      this.statusSubscription.unsubscribe();
+    }
+    if (this.submitSubscription) {
+      this.submitSubscription.unsubscribe();
+    }
+  }
+
+  cancelQuery() {
+    this.cancelSubscription = this.pcapService.cancelQuery(this.queryId)
+      .subscribe(() => {
+        this.unsubscribeAll();
+        this.queryId = '';
+        this.queryRunning = false;
+      }, (error: any) => {
+        this.cancelSubscription.unsubscribe();
+        this.queryId = '';
+        this.errorMsg = `Response message: ${error.message}. Something went wrong with the cancellation!`;
+        this.queryRunning = false;
+      });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribeAll();
   }
 }
