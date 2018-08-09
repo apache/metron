@@ -166,12 +166,12 @@ public class PcapCliTest {
     PcapOptions.START_TIME_MS.put(config, 500L);
     PcapOptions.END_TIME_MS.put(config, 1000L);
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
+    PcapOptions.PRINT_JOB_STATUS.put(config, true);
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
 
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    verify(jobRunner).monitorJob();
     verify(jobRunner).get();
   }
 
@@ -214,12 +214,12 @@ public class PcapCliTest {
     PcapOptions.START_TIME_MS.put(config, startAsNanos / 1000000L); // needed bc defaults in config
     PcapOptions.END_TIME_MS.put(config, endAsNanos / 1000000L);  // needed bc defaults in config
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
+    PcapOptions.PRINT_JOB_STATUS.put(config, true);
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
 
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    verify(jobRunner).monitorJob();
     verify(jobRunner).get();
   }
 
@@ -279,12 +279,12 @@ public class PcapCliTest {
     PcapOptions.START_TIME_MS.put(config, 500L); // needed bc defaults in config
     PcapOptions.END_TIME_MS.put(config, 1000L);  // needed bc defaults in config
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
+    PcapOptions.PRINT_JOB_STATUS.put(config, true);
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
 
     PcapCli cli = new PcapCli(jobRunner, prefixStrategy);
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    verify(jobRunner).monitorJob();
     verify(jobRunner).get();
   }
 

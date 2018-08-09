@@ -31,7 +31,6 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
   public interface PrefixStrategy extends Function<Clock, String>{}
 
   private boolean showHelp;
-  private boolean printStatus;
   private DateFormat dateFormat;
 
   public PcapConfig() {
@@ -41,7 +40,7 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
   public PcapConfig(PrefixStrategy prefixStrategy) {
     this();
     setShowHelp(false);
-    setPrintStatus(false);
+    setPrintJobStatus(false);
     setBasePath("");
     setBaseInterimResultPath("");
     setStartTimeMs(-1L);
@@ -75,12 +74,12 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
     this.showHelp = showHelp;
   }
 
-  public boolean printStatus() {
-    return printStatus;
+  public boolean printJobStatus() {
+    return PcapOptions.PRINT_JOB_STATUS.get(this, Boolean.class);
   }
 
-  public void setPrintStatus(boolean printStatus) {
-    this.printStatus = printStatus;
+  public void setPrintJobStatus(boolean printJobStatus) {
+    PcapOptions.PRINT_JOB_STATUS.put(this, printJobStatus);
   }
 
   public String getBasePath() {

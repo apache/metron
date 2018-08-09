@@ -127,7 +127,7 @@ public class CliParser {
       }
     }
     if (commandLine.hasOption("print_status")) {
-      config.setPrintStatus(true);
+      config.setPrintJobStatus(true);
     }
   }
 
