@@ -18,17 +18,23 @@
 
 package org.apache.metron.pcap.query;
 
-import org.apache.commons.cli.*;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INTERIM_RESULT_PATH_DEFAULT;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INPUT_PATH_DEFAULT;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.NUM_RECORDS_PER_FILE_DEFAULT;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.NUM_REDUCERS_DEFAULT;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
 import org.apache.metron.pcap.config.PcapConfig;
 
 /**
  * Provides commmon required fields for the PCAP filter jobs
  */
 public class CliParser {
-  public static final String BASE_PATH_DEFAULT = "/apps/metron/pcap/input";
-  public static final String BASE_INTERIM_OUTPUT_PATH_DEFAULT = "/tmp";
-  public static final int NUM_REDUCERS_DEFAULT = 10;
-  public static final int NUM_RECORDS_PER_FILE_DEFAULT = 10000;
   private CommandLineParser parser;
   protected PcapConfig.PrefixStrategy prefixStrategy;
 
@@ -40,9 +46,10 @@ public class CliParser {
   public Options buildOptions() {
     Options options = new Options();
     options.addOption(newOption("h", "help", false, "Display help"));
-    options.addOption(newOption("bp", "base_path", true, String.format("Base PCAP data path. Default is '%s'", BASE_PATH_DEFAULT)));
+    options.addOption(newOption("bp", "base_path", true, String.format("Base PCAP data path. Default is '%s'",
+        BASE_INPUT_PATH_DEFAULT)));
     options.addOption(newOption("bop", "base_output_path", true, String.format("Query result output path. Default is '%s'",
-        BASE_INTERIM_OUTPUT_PATH_DEFAULT)));
+        BASE_INTERIM_RESULT_PATH_DEFAULT)));
     options.addOption(newOption("st", "start_time", true, "(required) Packet start time range.", true));
     options.addOption(newOption("nr", "num_reducers", true, String.format("Number of reducers to use (defaults to %s)", NUM_REDUCERS_DEFAULT)));
     options.addOption(newOption("rpf", "records_per_file", true, String.format("Number of records to include in each output pcap file (defaults to %s)", NUM_RECORDS_PER_FILE_DEFAULT)));
@@ -71,12 +78,12 @@ public class CliParser {
     if (commandLine.hasOption("base_path")) {
       config.setBasePath(commandLine.getOptionValue("base_path"));
     } else {
-      config.setBasePath(BASE_PATH_DEFAULT);
+      config.setBasePath(BASE_INPUT_PATH_DEFAULT);
     }
     if (commandLine.hasOption("base_output_path")) {
       config.setBaseInterimResultPath(commandLine.getOptionValue("base_output_path"));
     } else {
-      config.setBaseInterimResultPath(BASE_INTERIM_OUTPUT_PATH_DEFAULT);
+      config.setBaseInterimResultPath(BASE_INTERIM_RESULT_PATH_DEFAULT);
     }
     if (commandLine.hasOption("start_time")) {
       try {
