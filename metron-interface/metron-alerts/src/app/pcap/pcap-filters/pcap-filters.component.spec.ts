@@ -20,18 +20,9 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { PcapFiltersComponent } from './pcap-filters.component';
-import { FormsModule } from '../../../../node_modules/@angular/forms';
-import { Component, Input, Output, EventEmitter, DebugElement } from '@angular/core';
-import { PcapRequest } from '../model/pcap.request';
-
-@Component({
-  selector: 'app-date-picker',
-  template: '<input type="text" [(value)]="date">',
-})
-class FakeDatePickerComponent {
-  @Input() date: string;
-  @Output() dateChange = new EventEmitter<string>();
-}
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DebugElement } from '@angular/core';
+import { DatePickerModule } from '../../shared/date-picker/date-picker.module';
 
 describe('PcapFiltersComponent', () => {
   let component: PcapFiltersComponent;
@@ -40,10 +31,11 @@ describe('PcapFiltersComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
-        FormsModule
+        FormsModule,
+        ReactiveFormsModule,
+        DatePickerModule,
       ],
       declarations: [
-        FakeDatePickerComponent,
         PcapFiltersComponent,
       ]
     })
@@ -56,119 +48,6 @@ describe('PcapFiltersComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
-  });
-
-  it('From date should be bound to the component', () => {
-    let input = fixture.debugElement.query(By.css('#startTime'));
-    const dateString = '2020-11-11 11:11:11';
-    input.componentInstance.dateChange.emit(dateString);
-    fixture.detectChanges();
-
-    expect(component.startTimeStr).toBe(dateString);
-  });
-
-  it('To date should be bound to the component', () => {
-    let input = fixture.debugElement.query(By.css('#endTime'));
-    const dateString = '2030-11-11 11:11:11';
-    input.componentInstance.dateChange.emit(dateString);
-    fixture.detectChanges();
-
-    expect(component.endTimeStr).toBe(dateString);
-  });
-
-  it('IP Source Address should be bound to the model', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="ipSrcAddr"]');
-    input.value = '192.168.0.1';
-    input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    expect(component.model.ipSrcAddr).toBe('192.168.0.1');
-  });
-
-  it('IP Source Port should be bound to the property', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="ipSrcPort"]');
-    input.value = '9345';
-    input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    expect(component.ipSrcPort).toBe('9345');
-  });
-
-  it('IP Source Port should be converted to number on submit', () => {
-    component.ipSrcPort = '42';
-    component.search.emit = (model: PcapRequest) => {
-      expect(model.ipSrcPort).toBe(42);
-    };
-    component.onSubmit();
-  });
-
-  it('IP Dest Address should be bound to the model', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="ipDstAddr"]');
-    input.value = '256.0.0.7';
-    input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    expect(component.model.ipDstAddr).toBe('256.0.0.7');
-  });
-
-  it('IP Dest Port should be bound to the property', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="ipDstPort"]');
-    input.value = '8989';
-    input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    expect(component.ipDstPort).toBe('8989');
-  });
-
-  it('IP Dest Port should be converted to number on submit', () => {
-    component.ipDstPort = '42';
-    component.search.emit = (model: PcapRequest) => {
-      expect(model.ipDstPort).toBe(42);
-    };
-    component.onSubmit();
-  });
-
-  it('Protocol should be bound to the model', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="protocol"]');
-    input.value = 'TCP';
-    input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    expect(component.model.protocol).toBe('TCP');
-  });
-
-  it('Include Reverse Traffic should be bound to the model', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="includeReverse"]');
-    input.click();
-    input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    expect(component.model.includeReverse).toBe(true);
-  });
-
-  it('Text filter should be bound to the model', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="protocol"]');
-    input.value = 'TestStringFilter';
-    input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    expect(component.model.protocol).toBe('TestStringFilter');
-  });
-
-  it('From date should be converted to timestamp on submit', () => {
-    component.startTimeStr = '2220-12-12 12:12:12';
-    component.search.emit = (model: PcapRequest) => {
-      expect(model.startTimeMs).toBe(new Date(component.startTimeStr).getTime());
-    };
-    component.onSubmit();
-  });
-
-  it('To date should be converted to timestamp on submit', () => {
-    component.endTimeStr = '2320-03-13 13:13:13';
-    component.search.emit = (model: PcapRequest) => {
-      expect(model.endTimeMs).toBe(new Date(component.endTimeStr).getTime());
-    };
-    component.onSubmit();
   });
 
   it('Filter should have an output called search', () => {
@@ -386,7 +265,7 @@ describe('PcapFiltersComponent', () => {
 
         setFieldValue(els.field, value);
 
-        expect(isFieldInvalid(els.field)).toBe(false, 'tthe field should be valid with ' + value);
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid with ' + value);
         expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
         tearDown(els.field);
       });
