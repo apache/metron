@@ -132,7 +132,7 @@ public class PcapCliTest {
           } else {
             V itemValue = item.get(key);
             V mapValue = map.get(key);
-            if (itemValue != null ? !itemValue.equals(mapValue) : mapValue == null) {
+            if (itemValue != null ? !itemValue.equals(mapValue) : mapValue != null) {
               return false;
             }
           }
