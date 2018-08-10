@@ -130,7 +130,7 @@ export class AlertSearchDirective implements AfterViewInit, OnChanges {
 
   private handleMouseEvent (callback: Function) {
     clearTimeout(this.mouseEventTimer);
-    this.mouseEventTimer = setTimeout(() => { callback(); }, 100);
+    this.mouseEventTimer = window.setTimeout(() => { callback(); }, 100);
   }
 
   private mouseover($event) {

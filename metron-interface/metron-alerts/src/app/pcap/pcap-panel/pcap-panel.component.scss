@@ -31,22 +31,37 @@
 
 .progress-bar {
   width: 0;
-  animation: progress 1.5s ease-in-out forwards;
+  height: 34px;
+  line-height: 34px;
+  vertical-align: middle;
+  font-size: 0.875rem;
 }
 
-@keyframes progress {
-  from {
-    width: 0;
-  }
-  to {
-    width: 100%;
-  }
+.pcap-progress-wrapper {
+  position: relative;
+  padding-right: 55px;
 }
-@keyframes show  {
-  from {
-    opacity: 0;
+
+.pcap-cancel-query-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  background: $icon-button-background;
+  min-width: 42px;
+  padding-left: 0;
+  padding-right: 0;
+  border: 1px solid $blue-chill !important;
+  cursor: pointer;
+
+  &:focus {
+    box-shadow: none;
   }
-  to {
-    opacity: 1;
+
+  &::before {
+    font-family: "FontAwesome";
+    content: '\f00d';
+    color: $piction-blue;
   }
 }

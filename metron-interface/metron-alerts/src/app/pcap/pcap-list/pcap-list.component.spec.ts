@@ -16,8 +16,11 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 
 import { PcapListComponent } from './pcap-list.component';
+import { PcapPagination } from '../model/pcap-pagination';
+import { PcapPaginationComponent } from '../pcap-pagination/pcap-pagination.component';
 import { FormsModule } from '../../../../node_modules/@angular/forms';
 import { PdmlPacket } from '../model/pdml';
 import { Component, Input } from '@angular/core';
@@ -53,6 +56,7 @@ describe('PcapListComponent', () => {
         FakePcapPacketLineComponent,
         FakePcapPacketComponent,
         PcapListComponent,
+        PcapPaginationComponent
       ]
     })
     .compileComponents();
@@ -61,10 +65,34 @@ describe('PcapListComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(PcapListComponent);
     component = fixture.componentInstance;
+    component.packets = [{name: 'test', protos: [], expanded: true}];
+    component.pagination = new PcapPagination();
+    component.pagination.total = 10;
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should emit an event with onPageChange', () => {
+    const incrementSpy = spyOn(component.pageUpdate, 'emit');
+    component.onPageChange();
+    expect(incrementSpy).toHaveBeenCalled();
+  });
+
+  it('should toggle packet details expansion with toggle()', () => {
+    let packet = new PdmlPacket();
+    component.toggle(packet);
+    expect(packet.expanded).toBe(true);
+    component.toggle(packet);
+    expect(packet.expanded).toBe(false);
+  });
+
+  it('should execute toggle() when app-pcap-packet-line is clicked', () => {
+    const packetLineDe  = fixture.debugElement.query(By.css('[data-qe-id="pcap-packet-line"]'));
+    const incrementSpy = spyOn(component, 'toggle');
+    packetLineDe.triggerEventHandler('click', null);
+    expect(incrementSpy).toHaveBeenCalled();
   });
 });
