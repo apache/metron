@@ -63,9 +63,13 @@ export class PcapFiltersComponent implements OnInit, OnChanges {
     this.model.endTimeMs = new Date(this.endTimeStr).getTime();
     if (this.ipSrcPort !== '') {
       this.model.ipSrcPort = +this.ipSrcPort;
+    } else {
+      delete this.model.ipSrcPort;
     }
     if (this.ipDstPort !== '') {
       this.model.ipDstPort = +this.ipDstPort;
+    } else {
+      delete this.model.ipDstPort;
     }
 
     this.search.emit(this.model);
