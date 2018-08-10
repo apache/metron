@@ -17,7 +17,9 @@
  */
 package org.apache.metron.rest.mock;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.metron.job.Finalizer;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobStatus;
@@ -45,6 +47,7 @@ public class MockPcapJob extends PcapJob<Path> {
   private PcapFilterConfigurator filterImpl;
   private int recPerFile;
   private String query;
+  private String yarnQueue;
   private Statusable<Path> statusable;
 
   public MockPcapJob() {
@@ -68,6 +71,7 @@ public class MockPcapJob extends PcapJob<Path> {
     }
     this.filterImpl = PcapOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
     this.recPerFile = PcapOptions.NUM_RECORDS_PER_FILE.get(configuration, Integer.class);
+    this.yarnQueue = PcapOptions.HADOOP_CONF.get(configuration, Configuration.class).get(MRJobConfig.QUEUE_NAME);
     return statusable;
   }
 
@@ -143,5 +147,9 @@ public class MockPcapJob extends PcapJob<Path> {
 
   public int getRecPerFile() {
     return recPerFile;
+  }
+
+  public String getYarnQueue() {
+    return yarnQueue;
   }
 }
