@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.function.Function;
 
 public class PcapConfig extends AbstractMapDecorator<String, Object>{
+
   public interface PrefixStrategy extends Function<Clock, String>{}
 
   private boolean showHelp;
@@ -128,4 +129,9 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
   public void setNumRecordsPerFile(int numRecordsPerFile) {
     PcapOptions.NUM_RECORDS_PER_FILE.put(this, numRecordsPerFile);
   }
+
+  public void setNumFinalizerThreads(String numThreads) {
+    PcapOptions.FINALIZER_PARALLELISM.put(this, numThreads);
+  }
+
 }

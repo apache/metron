@@ -458,7 +458,7 @@ public class PcapJob<T> implements Statusable<Path> {
   }
 
   @Override
-  public synchronized JobStatus getStatus() throws JobException {
+  public JobStatus getStatus() throws JobException {
     return new JobStatus(jobStatus);
   }
 

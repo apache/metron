@@ -25,8 +25,11 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
@@ -66,8 +69,11 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
     Configuration hadoopConfig = PcapOptions.HADOOP_CONF.get(config, Configuration.class);
     int recPerFile = PcapOptions.NUM_RECORDS_PER_FILE
         .getOrDefault(config, Integer.class, NUM_RECORDS_PER_FILE_DEFAULT);
-    Path interimResultPath = PcapOptions.INTERIM_RESULT_PATH.get(config, PcapOptions.STRING_TO_PATH, Path.class);
+    Path interimResultPath = PcapOptions.INTERIM_RESULT_PATH
+        .get(config, PcapOptions.STRING_TO_PATH, Path.class);
     FileSystem fs = PcapOptions.FILESYSTEM.get(config, FileSystem.class);
+    int parallelism = getNumThreads(PcapOptions.FINALIZER_PARALLELISM.get(config, String.class));
+    LOG.info("Finalizer running with parallelism set to " + parallelism);
 
     SequenceFileIterable interimResults = null;
     try {
@@ -78,15 +84,14 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
     List<Path> outFiles = new ArrayList<>();
     try {
       Iterable<List<byte[]>> partitions = Iterables.partition(interimResults, recPerFile);
+      Map<Path, List<byte[]>> toWrite = new HashMap<>();
       int part = 1;
       if (partitions.iterator().hasNext()) {
         for (List<byte[]> data : partitions) {
           Path outputPath = getOutputPath(config, part++);
-          if (data.size() > 0) {
-            write(resultsWriter, hadoopConfig, data, outputPath);
-            outFiles.add(outputPath);
-          }
+          toWrite.put(outputPath, data);
         }
+        outFiles = writeParallel(hadoopConfig, toWrite, parallelism);
       } else {
         LOG.info("No results returned.");
       }
@@ -99,10 +104,55 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
         LOG.warn("Unable to cleanup files in HDFS", e);
       }
     }
+    LOG.info("Done finalizing results");
     return new PcapPages(outFiles);
   }
 
-  protected abstract void write(PcapResultsWriter resultsWriter, Configuration hadoopConfig, List<byte[]> data, Path outputPath) throws IOException;
+  /**
+   * Figure out how many threads to use in the thread pool. If it's a string and ends with "C",
+   * then strip the C and treat it as an integral multiple of the number of cores.  If it's a
+   * string and does not end with a C, then treat it as a number in string form.
+   */
+  private static int getNumThreads(String numThreads) {
+    String numThreadsStr = ((String) numThreads).trim().toUpperCase();
+    if (numThreadsStr.endsWith("C")) {
+      Integer factor = Integer.parseInt(numThreadsStr.replace("C", ""));
+      return factor * Runtime.getRuntime().availableProcessors();
+    } else {
+      return Integer.parseInt(numThreadsStr);
+    }
+  }
+
+  protected List<Path> writeParallel(Configuration hadoopConfig, Map<Path, List<byte[]>> toWrite,
+      int parallelism) throws IOException {
+    List<Path> outFiles = Collections.synchronizedList(new ArrayList<>());
+    ForkJoinPool tp = new ForkJoinPool(parallelism);
+    try {
+      tp.submit(() -> {
+        toWrite.entrySet().parallelStream().forEach(e -> {
+          try {
+            Path path = e.getKey();
+            List<byte[]> data = e.getValue();
+            if (data.size() > 0) {
+              write(getResultsWriter(), hadoopConfig, data, path);
+              outFiles.add(path);
+            }
+          } catch (IOException ioe) {
+            throw new RuntimeException("Failed to write results", ioe);
+          }
+        });
+      }).get();
+    } catch (InterruptedException | ExecutionException  e) {
+      throw new IOException("Error finalizing results.", e);
+    } catch (RuntimeException e) {
+      throw new IOException(e.getMessage(), e.getCause());
+    }
+    outFiles.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
+    return outFiles;
+  }
+
+  protected abstract void write(PcapResultsWriter resultsWriter, Configuration hadoopConfig,
+      List<byte[]> data, Path outputPath) throws IOException;
 
   protected abstract Path getOutputPath(Map<String, Object> config, int partition);
 

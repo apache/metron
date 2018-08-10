@@ -40,7 +40,8 @@ public enum PcapOptions implements ConfigOption {
   FIELDS("fields"),
   FILTER_IMPL("filterImpl"),
   HADOOP_CONF("hadoopConf"),
-  FILESYSTEM("fileSystem");
+  FILESYSTEM("fileSystem"),
+  FINALIZER_PARALLELISM("finalizerParallelism");
 
   public static final BiFunction<String, Object, Path> STRING_TO_PATH =
       (s, o) -> o == null ? null : new Path(o.toString());

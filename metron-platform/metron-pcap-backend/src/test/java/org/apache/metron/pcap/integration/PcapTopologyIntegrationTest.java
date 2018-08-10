@@ -306,6 +306,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.NUM_REDUCERS.put(configuration, 10);
     PcapOptions.NUM_RECORDS_PER_FILE.put(configuration, 1);
     PcapOptions.FINAL_OUTPUT_PATH.put(configuration, new Path(outputDir.getAbsolutePath()));
+    PcapOptions.FINALIZER_PARALLELISM.put(configuration, 4);
   }
 
   @Test
