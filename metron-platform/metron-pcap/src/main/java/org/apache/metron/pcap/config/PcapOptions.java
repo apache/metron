@@ -41,6 +41,7 @@ public enum PcapOptions implements ConfigOption {
   FILTER_IMPL("filterImpl"),
   HADOOP_CONF("hadoopConf"),
   FILESYSTEM("fileSystem"),
+  PRINT_JOB_STATUS("printJobStatus"),
   FINALIZER_PARALLELISM("finalizerParallelism");
 
   public static final BiFunction<String, Object, Path> STRING_TO_PATH =

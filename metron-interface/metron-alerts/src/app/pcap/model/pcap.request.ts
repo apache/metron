@@ -20,9 +20,9 @@ export class PcapRequest {
   startTimeMs: number = 0;
   endTimeMs: number = 150000000000000000;
   ipSrcAddr: string = '';
-  ipSrcPort: number = 0;
+  ipSrcPort: number;
   ipDstAddr: string = '';
-  ipDstPort: number = 0;
+  ipDstPort: number;
   protocol: string = '';
   packetFilter: string = '';
   includeReverse: boolean = false;

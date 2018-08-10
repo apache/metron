@@ -467,6 +467,13 @@ public class PcapJob<T> implements Statusable<Path> {
    */
   @Override
   public Pageable<Path> get() throws JobException, InterruptedException {
+    if (PcapOptions.PRINT_JOB_STATUS.get(configuration, Boolean.class)) {
+      try {
+        mrJob.monitorAndPrintJob();
+      } catch (IOException e) {
+        throw new JobException("Could not monitor job status", e);
+      }
+    }
     for (; ; ) {
       JobStatus status = getStatus();
       if (status.getState() == State.SUCCEEDED
@@ -476,6 +483,10 @@ public class PcapJob<T> implements Statusable<Path> {
       }
       Thread.sleep(completeCheckInterval);
     }
+  }
+
+  public void monitorJob() throws IOException, InterruptedException {
+    mrJob.monitorAndPrintJob();
   }
 
   private synchronized Pageable<Path> getFinalResults() {

@@ -148,6 +148,7 @@ public class PcapCliTest {
             "-include_reverse",
             "-num_reducers", "10",
             "-records_per_file", "1000",
+            "-ps",
             "-finalizer_threads", "10"
     };
     Map<String, String> query = new HashMap<String, String>() {{
@@ -166,6 +167,7 @@ public class PcapCliTest {
     PcapOptions.START_TIME_MS.put(config, 500L);
     PcapOptions.END_TIME_MS.put(config, 1000L);
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
+    PcapOptions.PRINT_JOB_STATUS.put(config, true);
     PcapOptions.FINALIZER_PARALLELISM.put(config, "10");
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
@@ -192,8 +194,9 @@ public class PcapCliTest {
             "-include_reverse",
             "-num_reducers", "10",
             "-records_per_file", "1000",
+            "-ps",
             "-finalizer_threads", "10"
-    };
+      };
     Map<String, String> query = new HashMap<String, String>() {{
       put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
       put(Constants.Fields.DST_ADDR.getName(), "192.168.1.2");
@@ -214,6 +217,7 @@ public class PcapCliTest {
     PcapOptions.START_TIME_MS.put(config, startAsNanos / 1000000L); // needed bc defaults in config
     PcapOptions.END_TIME_MS.put(config, endAsNanos / 1000000L);  // needed bc defaults in config
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
+    PcapOptions.PRINT_JOB_STATUS.put(config, true);
     PcapOptions.FINALIZER_PARALLELISM.put(config, "10");
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
@@ -268,6 +272,7 @@ public class PcapCliTest {
             "-base_output_path", "/base/output/path",
             "-query", "some query string",
             "-records_per_file", "1000",
+            "-ps",
             "-finalizer_threads", "10"
     };
 
@@ -280,6 +285,7 @@ public class PcapCliTest {
     PcapOptions.START_TIME_MS.put(config, 500L); // needed bc defaults in config
     PcapOptions.END_TIME_MS.put(config, 1000L);  // needed bc defaults in config
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
+    PcapOptions.PRINT_JOB_STATUS.put(config, true);
     PcapOptions.FINALIZER_PARALLELISM.put(config, "10");
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);

@@ -26,6 +26,7 @@ import { PcapPagination } from '../model/pcap-pagination';
 import { By } from '../../../../node_modules/@angular/platform-browser';
 import { PcapRequest } from '../model/pcap.request';
 import { defer } from 'rxjs/observable/defer';
+import {Observable} from "rxjs/Observable";
 import {RestError} from "../../model/rest-error";
 
 @Component({
@@ -34,6 +35,7 @@ import {RestError} from "../../model/rest-error";
 })
 class FakeFilterComponent {
   @Input() queryRunning: boolean;
+  @Input() model: PcapRequest;
 }
 
 @Component({
@@ -46,6 +48,9 @@ class FakePcapListComponent {
 }
 
 class FakePcapService {
+
+  getRunningJob() {}
+
   getDownloadUrl() {
     return '';
   }
@@ -76,6 +81,8 @@ describe('PcapPanelComponent', () => {
 
   beforeEach(() => {
     pcapService = TestBed.get(PcapService);
+    pcapService.getRunningJob = jasmine.createSpy('getRunningJob')
+            .and.returnValue(Observable.of([]));
     fixture = TestBed.createComponent(PcapPanelComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -516,5 +523,35 @@ describe('PcapPanelComponent', () => {
     fixture.detectChanges();
 
     expect(component.errorMsg).toEqual('Response message: error message. Something went wrong retrieving pdml results!');
+  }));
+
+  it('should load running job on init', fakeAsync(() => {
+    const searchResponse = new PcapStatusResponse();
+    searchResponse.jobId = '42';
+
+    pcapService.getRunningJob = jasmine.createSpy('getRunningJob').and.returnValue(
+            defer(() => Promise.resolve([searchResponse]))
+    );
+    component.updateStatus = jasmine.createSpy('updateStatus');
+    component.startPolling = jasmine.createSpy('startPolling');
+
+    const pcapRequest = new PcapRequest();
+    pcapRequest.ipSrcAddr = 'ip_src_addr';
+    pcapService.getPcapRequest = jasmine.createSpy('getPcapRequest').and.returnValue(
+            defer(() => Promise.resolve(pcapRequest))
+    );
+
+    expect(component.queryRunning).toEqual(false);
+    expect(component.pcapRequest).toEqual(new PcapRequest());
+
+    component.ngOnInit();
+
+    tick();
+
+    expect(component.queryRunning).toEqual(true);
+    expect(component.updateStatus).toHaveBeenCalled();
+    expect(component.startPolling).toHaveBeenCalledWith('42');
+    expect(pcapService.getPcapRequest).toHaveBeenCalledWith('42');
+    expect(component.pcapRequest).toEqual(pcapRequest)
   }));
 });

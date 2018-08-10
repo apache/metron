@@ -140,6 +140,50 @@ describe('PcapService', () => {
     ));
   });
 
+  describe('getRunningJob()', () => {
+    it('should return an Observable<PcapStatusResponse>', inject(
+            [PcapService, XHRBackend],
+            (pcapService, mockBackend) => {
+              const responseMock: PcapStatusResponse = fakePcapStatusResponse;
+              let response;
+
+              mockBackend.connections.subscribe(connection => {
+                expect(connection.request.url).toMatch(
+                        /\/api\/v1\/pcap\?state=RUNNING/
+                );
+                connection.mockRespond(
+                        new Response(new ResponseOptions({ body: responseMock }))
+                );
+              });
+
+              pcapService.getRunningJob().subscribe(r => (response = r));
+              expect(response).toBeTruthy();
+            }
+    ));
+  });
+
+  describe('getPcapRequest()', () => {
+    it('should return an Observable<PcapRequest>', inject(
+            [PcapService, XHRBackend],
+            (pcapService, mockBackend) => {
+              const responseMock: PcapRequest = fakePcapRequest;
+              let response;
+
+              mockBackend.connections.subscribe(connection => {
+                expect(connection.request.url).toMatch(
+                        /\/api\/v1\/pcap\/job_1234567890123_4567\/config/
+                );
+                connection.mockRespond(
+                        new Response(new ResponseOptions({ body: responseMock }))
+                );
+              });
+
+              pcapService.getPcapRequest(jobId).subscribe(r => (response = r));
+              expect(response).toBeTruthy();
+            }
+    ));
+  });
+
   describe('getDownloadUrl()', () => {
     it('should return a url with the correct page to download the pdml', inject(
       [PcapService],
