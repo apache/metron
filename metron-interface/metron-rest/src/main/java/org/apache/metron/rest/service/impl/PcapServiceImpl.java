@@ -225,19 +225,19 @@ public class PcapServiceImpl implements PcapService {
         Map<String, Object> jobConfiguration = statusable.getConfiguration();
         configuration.put(PcapOptions.BASE_PATH.getKey(), PcapOptions.BASE_PATH.get(jobConfiguration, String.class));
         configuration.put(PcapOptions.FINAL_OUTPUT_PATH.getKey(), PcapOptions.FINAL_OUTPUT_PATH.get(jobConfiguration, String.class));
-        configuration.put(PcapOptions.START_TIME_MS.getKey(), PcapOptions.START_TIME_MS.get(jobConfiguration, String.class));
-        configuration.put(PcapOptions.END_TIME_MS.getKey(), PcapOptions.END_TIME_MS.get(jobConfiguration, String.class));
+        configuration.put(PcapOptions.START_TIME_MS.getKey(), PcapOptions.START_TIME_MS.get(jobConfiguration, Long.class));
+        configuration.put(PcapOptions.END_TIME_MS.getKey(), PcapOptions.END_TIME_MS.get(jobConfiguration, Long.class));
         configuration.put(PcapOptions.NUM_REDUCERS.getKey(), PcapOptions.NUM_REDUCERS.get(jobConfiguration, Integer.class));
 
         boolean isFixedFilter = PcapOptions.FILTER_IMPL.get(jobConfiguration, PcapFilterConfigurator.class) instanceof FixedPcapFilter.Configurator;
         if (isFixedFilter) {
           configuration.put(FixedPcapOptions.IP_SRC_ADDR.getKey(), FixedPcapOptions.IP_SRC_ADDR.get(jobConfiguration, String.class));
           configuration.put(FixedPcapOptions.IP_DST_ADDR.getKey(), FixedPcapOptions.IP_DST_ADDR.get(jobConfiguration, String.class));
-          configuration.put(FixedPcapOptions.IP_SRC_PORT.getKey(), FixedPcapOptions.IP_SRC_PORT.get(jobConfiguration, String.class));
-          configuration.put(FixedPcapOptions.IP_DST_PORT.getKey(), FixedPcapOptions.IP_DST_PORT.get(jobConfiguration, String.class));
+          configuration.put(FixedPcapOptions.IP_SRC_PORT.getKey(), FixedPcapOptions.IP_SRC_PORT.get(jobConfiguration, Integer.class));
+          configuration.put(FixedPcapOptions.IP_DST_PORT.getKey(), FixedPcapOptions.IP_DST_PORT.get(jobConfiguration, Integer.class));
           configuration.put(FixedPcapOptions.PROTOCOL.getKey(), FixedPcapOptions.PROTOCOL.get(jobConfiguration, String.class));
           configuration.put(FixedPcapOptions.PACKET_FILTER.getKey(), FixedPcapOptions.PACKET_FILTER.get(jobConfiguration, String.class));
-          configuration.put(FixedPcapOptions.INCLUDE_REVERSE.getKey(), FixedPcapOptions.INCLUDE_REVERSE.get(jobConfiguration, String.class));
+          configuration.put(FixedPcapOptions.INCLUDE_REVERSE.getKey(), FixedPcapOptions.INCLUDE_REVERSE.get(jobConfiguration, Boolean.class));
         } else {
           configuration.put(QueryPcapOptions.QUERY.getKey(), QueryPcapOptions.QUERY.get(jobConfiguration, String.class));
         }

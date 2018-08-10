@@ -132,6 +132,7 @@ usage: Fixed filter options
  -nr,--num_reducers <arg>        The number of reducers to use.  Default
                                  is 10.
  -h,--help                       Display help
+ -ps,--print_status              Print the status of the job as it runs
  -ir,--include_reverse           Indicates if filter should check swapped
                                  src/dest addresses and IPs
  -p,--protocol <arg>             IP Protocol
@@ -155,6 +156,7 @@ usage: Query filter options
  -nr,--num_reducers <arg>        The number of reducers to use.  Default
                                  is 10.
  -h,--help                       Display help
+ -ps,--print_status              Print the status of the job as it runs
  -q,--query <arg>                Query string to use as a filter
  -st,--start_time <arg>          (required) Packet start time range.
  -yq,--yarn_queue <arg>          Yarn queue this job will be submitted to

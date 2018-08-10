@@ -53,10 +53,25 @@ export class PcapService {
           .map(HttpUtil.extractData)
           .catch(HttpUtil.handleError);
     }
+
+    public getRunningJob(): Observable<PcapStatusResponse[]> {
+      return this.http.get(`/api/v1/pcap?state=RUNNING`,
+              new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+              .map(HttpUtil.extractData)
+              .catch(HttpUtil.handleError);
+    }
+
     public getPackets(id: string, pageId: number): Observable<Pdml> {
         return this.http.get(`/api/v1/pcap/${id}/pdml?page=${pageId}`, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
             .map(HttpUtil.extractData)
             .catch(HttpUtil.handleError);
+    }
+
+    public getPcapRequest(id: string): Observable<PcapRequest> {
+      return this.http.get(`/api/v1/pcap/${id}/config`,
+              new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+              .map(HttpUtil.extractData)
+              .catch(HttpUtil.handleError);
     }
 
     public getDownloadUrl(id: string, pageId: number) {
