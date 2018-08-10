@@ -30,9 +30,9 @@
   }
 }
 
-.ng-invalid {
+.ng-invalid:not(form) {
   border-left: none;
 }
-.ng-invalid input {
+.ng-invalid:not(form) input {
   border-left: 5px solid #a94442;
 }
