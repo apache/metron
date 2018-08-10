@@ -30,9 +30,14 @@
   }
 }
 
-.ng-invalid:not(form) {
+:host(.ng-invalid):not(form) {
   border-left: none;
 }
-.ng-invalid:not(form) input {
-  border-left: 5px solid #a94442;
+
+:host(.ng-invalid) input {
+  border-left: 5px solid #a94442; /* red */
+
+  &:focus {
+    border-color: #4D4D4D;
+  }
 }
