@@ -133,9 +133,9 @@ public class CliParser {
     }
     if (commandLine.hasOption("finalizer_threads")) {
       String numThreads = commandLine.getOptionValue("finalizer_threads");
-      config.setNumFinalizerThreads(numThreads);
+      config.setFinalizerThreadpoolSize(numThreads);
     } else {
-      config.setNumFinalizerThreads(NUM_FINALIZER_THREADS_DEFAULT);
+      config.setFinalizerThreadpoolSize(NUM_FINALIZER_THREADS_DEFAULT);
     }
   }
 

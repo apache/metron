@@ -60,3 +60,4 @@ pcap:
   base.interim.result.path: ${PCAP_BASE_INTERIM_RESULT_PATH}
   final.output.path: ${PCAP_FINAL_OUTPUT_PATH}
   page.size: ${PCAP_PAGE_SIZE}
+  finalizer.threadpool.size: ${PCAP_FINALIZER_THREADPOOL_SIZE}

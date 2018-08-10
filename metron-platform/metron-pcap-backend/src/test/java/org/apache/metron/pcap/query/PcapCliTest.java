@@ -168,7 +168,7 @@ public class PcapCliTest {
     PcapOptions.END_TIME_MS.put(config, 1000L);
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
     PcapOptions.PRINT_JOB_STATUS.put(config, true);
-    PcapOptions.FINALIZER_PARALLELISM.put(config, "10");
+    PcapOptions.FINALIZER_THREADPOOL_SIZE.put(config, "10");
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
 
@@ -218,7 +218,7 @@ public class PcapCliTest {
     PcapOptions.END_TIME_MS.put(config, endAsNanos / 1000000L);  // needed bc defaults in config
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
     PcapOptions.PRINT_JOB_STATUS.put(config, true);
-    PcapOptions.FINALIZER_PARALLELISM.put(config, "10");
+    PcapOptions.FINALIZER_THREADPOOL_SIZE.put(config, "10");
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
 
@@ -252,7 +252,7 @@ public class PcapCliTest {
     PcapOptions.FIELDS.put(config, query);
     PcapOptions.NUM_REDUCERS.put(config, 10);
     PcapOptions.START_TIME_MS.put(config, 500L);
-    PcapOptions.FINALIZER_PARALLELISM.put(config, "1");
+    PcapOptions.FINALIZER_THREADPOOL_SIZE.put(config, "1");
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
 
@@ -286,7 +286,7 @@ public class PcapCliTest {
     PcapOptions.END_TIME_MS.put(config, 1000L);  // needed bc defaults in config
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
     PcapOptions.PRINT_JOB_STATUS.put(config, true);
-    PcapOptions.FINALIZER_PARALLELISM.put(config, "10");
+    PcapOptions.FINALIZER_THREADPOOL_SIZE.put(config, "10");
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
 

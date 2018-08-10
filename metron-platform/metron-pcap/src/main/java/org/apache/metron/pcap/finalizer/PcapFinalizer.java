@@ -72,7 +72,7 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
     Path interimResultPath = PcapOptions.INTERIM_RESULT_PATH
         .get(config, PcapOptions.STRING_TO_PATH, Path.class);
     FileSystem fs = PcapOptions.FILESYSTEM.get(config, FileSystem.class);
-    int parallelism = getNumThreads(PcapOptions.FINALIZER_PARALLELISM.get(config, String.class));
+    int parallelism = getNumThreads(PcapOptions.FINALIZER_THREADPOOL_SIZE.get(config, String.class));
     LOG.info("Finalizer running with parallelism set to " + parallelism);
 
     SequenceFileIterable interimResults = null;

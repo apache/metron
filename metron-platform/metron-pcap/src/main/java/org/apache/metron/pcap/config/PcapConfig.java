@@ -139,8 +139,8 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
     PcapOptions.NUM_RECORDS_PER_FILE.put(this, numRecordsPerFile);
   }
 
-  public void setNumFinalizerThreads(String numThreads) {
-    PcapOptions.FINALIZER_PARALLELISM.put(this, numThreads);
+  public void setFinalizerThreadpoolSize(String numThreads) {
+    PcapOptions.FINALIZER_THREADPOOL_SIZE.put(this, numThreads);
   }
 
 }

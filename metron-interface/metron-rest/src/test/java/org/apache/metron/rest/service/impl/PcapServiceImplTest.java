@@ -17,6 +17,26 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -42,10 +62,10 @@ import org.apache.metron.rest.mock.MockPcapJob;
 import org.apache.metron.rest.mock.MockPcapJobSupplier;
 import org.apache.metron.rest.model.pcap.FixedPcapOptions;
 import org.apache.metron.rest.model.pcap.FixedPcapRequest;
-import org.apache.metron.rest.model.pcap.QueryPcapOptions;
-import org.apache.metron.rest.model.pcap.QueryPcapRequest;
 import org.apache.metron.rest.model.pcap.PcapStatus;
 import org.apache.metron.rest.model.pcap.Pdml;
+import org.apache.metron.rest.model.pcap.QueryPcapOptions;
+import org.apache.metron.rest.model.pcap.QueryPcapRequest;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
@@ -57,28 +77,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @SuppressWarnings("ALL")
 @RunWith(PowerMockRunner.class)
@@ -194,6 +192,7 @@ public class PcapServiceImplTest {
     when(environment.getProperty(MetronRestConstants.PCAP_BASE_INTERIM_RESULT_PATH_SPRING_PROPERTY)).thenReturn("/base/interim/result/path");
     when(environment.getProperty(MetronRestConstants.PCAP_FINAL_OUTPUT_PATH_SPRING_PROPERTY)).thenReturn("/final/output/path");
     when(environment.getProperty(MetronRestConstants.PCAP_PAGE_SIZE_SPRING_PROPERTY)).thenReturn("100");
+    when(environment.getProperty(MetronRestConstants.PCAP_FINALIZER_THREADPOOL_SIZE_SPRING_PROPERTY)).thenReturn("2C");
     when(environment.getProperty(MetronRestConstants.PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/path/to/pdml/script");
     when(environment.getProperty(MetronRestConstants.USER_JOB_LIMIT_SPRING_PROPERTY, Integer.class, 1)).thenReturn(1);
   }
@@ -250,6 +249,7 @@ public class PcapServiceImplTest {
     Assert.assertEquals(2000000, mockPcapJob.getEndTimeNs());
     Assert.assertEquals(2, mockPcapJob.getNumReducers());
     Assert.assertEquals(100, mockPcapJob.getRecPerFile());
+    Assert.assertEquals("2C", mockPcapJob.getFinalizerThreadpoolSize());
     Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
     Map<String, String> actualFixedFields = mockPcapJob.getFixedFields();
     Assert.assertEquals("ip_src_addr", actualFixedFields.get(Constants.Fields.SRC_ADDR.getName()));

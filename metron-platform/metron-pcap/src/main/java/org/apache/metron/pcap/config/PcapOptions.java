@@ -42,7 +42,7 @@ public enum PcapOptions implements ConfigOption {
   HADOOP_CONF("hadoopConf"),
   FILESYSTEM("fileSystem"),
   PRINT_JOB_STATUS("printJobStatus"),
-  FINALIZER_PARALLELISM("finalizerParallelism");
+  FINALIZER_THREADPOOL_SIZE("finalizerThreadpoolSize");
 
   public static final BiFunction<String, Object, Path> STRING_TO_PATH =
       (s, o) -> o == null ? null : new Path(o.toString());
