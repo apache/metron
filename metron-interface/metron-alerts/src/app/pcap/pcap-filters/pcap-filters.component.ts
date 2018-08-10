@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import {Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges} from '@angular/core';
 import * as moment from 'moment/moment';
 import { DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
 
@@ -26,17 +26,16 @@ import { PcapRequest } from '../model/pcap.request';
   templateUrl: './pcap-filters.component.html',
   styleUrls: ['./pcap-filters.component.scss']
 })
-export class PcapFiltersComponent implements OnInit {
+export class PcapFiltersComponent implements OnInit, OnChanges {
 
   @Input() queryRunning: boolean = true;
+  @Input() model: PcapRequest = new PcapRequest();
   @Output() search: EventEmitter<PcapRequest> = new EventEmitter<PcapRequest>();
 
   startTimeStr: string;
   endTimeStr: string;
   ipSrcPort: string = '';
   ipDstPort: string = '';
-
-  model = new PcapRequest();
 
   constructor() { }
 
@@ -48,11 +47,26 @@ export class PcapFiltersComponent implements OnInit {
     this.endTimeStr = moment(endTime).format(DEFAULT_TIMESTAMP_FORMAT);
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['model']) {
+      this.startTimeStr = moment(changes['model'].currentValue.startTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
+      this.endTimeStr = moment(changes['model'].currentValue.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
+      let newIpSrcPort = changes['model'].currentValue.ipSrcPort;
+      this.ipSrcPort = newIpSrcPort ? newIpSrcPort.toString() : '';
+      let newIpDstPort = changes['model'].currentValue.ipDstPort;
+      this.ipDstPort = newIpDstPort ? newIpDstPort.toString() : '';
+    }
+  }
+
   onSubmit() {
     this.model.startTimeMs = new Date(this.startTimeStr).getTime();
     this.model.endTimeMs = new Date(this.endTimeStr).getTime();
-    this.model.ipSrcPort = +this.ipSrcPort;
-    this.model.ipDstPort = +this.ipDstPort;
+    if (this.ipSrcPort !== '') {
+      this.model.ipSrcPort = +this.ipSrcPort;
+    }
+    if (this.ipDstPort !== '') {
+      this.model.ipDstPort = +this.ipDstPort;
+    }
 
     this.search.emit(this.model);
   }
