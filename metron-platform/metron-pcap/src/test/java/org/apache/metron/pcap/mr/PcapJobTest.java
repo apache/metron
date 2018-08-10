@@ -241,13 +241,27 @@ public class PcapJobTest {
     JobStatus status = statusable.getStatus();
     Assert.assertThat(status.getState(), equalTo(State.RUNNING));
     Assert.assertThat(status.getDescription(), equalTo("map: 50.0%, reduce: 0.0%"));
-    Assert.assertThat(status.getPercentComplete(), equalTo(25.0));
+    Assert.assertThat(status.getPercentComplete(), equalTo(25.0 * 0.75));
     when(mrJob.mapProgress()).thenReturn(1.0f);
     when(mrJob.reduceProgress()).thenReturn(0.5f);
     timer.updateJobStatus();
     status = statusable.getStatus();
     Assert.assertThat(status.getDescription(), equalTo("map: 100.0%, reduce: 50.0%"));
+    Assert.assertThat(status.getPercentComplete(), equalTo(75.0 * 0.75));
+    when(mrJob.mapProgress()).thenReturn(1.0f);
+    when(mrJob.reduceProgress()).thenReturn(1.0f);
+    timer.updateJobStatus();
+    status = statusable.getStatus();
+    Assert.assertThat(status.getDescription(), equalTo("map: 100.0%, reduce: 100.0%"));
     Assert.assertThat(status.getPercentComplete(), equalTo(75.0));
+    when(mrJob.isComplete()).thenReturn(true);
+    when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
+    when(mrJob.mapProgress()).thenReturn(1.0f);
+    when(mrJob.reduceProgress()).thenReturn(1.0f);
+    timer.updateJobStatus();
+    status = statusable.getStatus();
+    Assert.assertThat(status.getDescription(), equalTo("Job completed."));
+    Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
   }
 
   @Test
