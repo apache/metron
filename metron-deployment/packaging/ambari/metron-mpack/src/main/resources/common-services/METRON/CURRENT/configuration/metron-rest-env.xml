@@ -192,5 +192,14 @@
         <description>The number of pcaps written to a page/file as a result of a pcap query.</description>
         <value>10</value>
     </property>
+    <property>
+        <name>pcap_yarn_queue</name>
+        <display-name>Pcap YARN Queue</display-name>
+        <description>The YARN queue pcap jobs will be submitted to.</description>
+        <value/>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
 
 </configuration>

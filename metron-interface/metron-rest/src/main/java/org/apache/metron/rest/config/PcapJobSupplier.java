@@ -39,7 +39,7 @@ public class PcapJobSupplier implements Supplier<Statusable<Path>> {
       PcapJob<Path> pcapJob = createPcapJob();
       return pcapJob.submit(PcapFinalizerStrategies.REST, pcapRequest);
     } catch (JobException e) {
-      throw new RuntimeJobException(e.getMessage());
+      throw new RuntimeJobException(e.getMessage(), e);
     }
   }
 
