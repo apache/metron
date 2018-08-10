@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.pcap;
+package org.apache.metron.pcap.mr;
 
 import static java.lang.Long.toUnsignedString;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -43,11 +43,11 @@ import org.apache.metron.job.JobStatus;
 import org.apache.metron.job.JobStatus.State;
 import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
+import org.apache.metron.pcap.PcapPages;
 import org.apache.metron.pcap.config.FixedPcapConfig;
 import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
-import org.apache.metron.pcap.mr.PcapJob;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
