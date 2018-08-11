@@ -193,16 +193,27 @@
         <value>10</value>
     </property>
     <property>
-        <name>pcap_finalizer_threadpool_size</name>
-        <display-name>Pcap Finalizer Threadpool Size</display-name>
-        <description>The number of threads to use when finalizing Pcap jobs. This affects parallelism around writing out paged files to their final location.
-          If it's a string and ends with "C", then strip the C and treat it as an integral multiple of the number of cores.  If it's a string and does not end with a C, then treat it as a number in string form.
-        </description>
-        <value>/etc/default/metron</value>
+        <name>pcap_yarn_queue</name>
+        <display-name>Pcap YARN Queue</display-name>
+        <description>The YARN queue pcap jobs will be submitted to.</description>
+        <value/>
         <value-attributes>
-          <empty-value-valid>false</empty-value-valid>
+            <empty-value-valid>true</empty-value-valid>
         </value-attributes>
     </property>
-
+    <property>
+        <name>pcap_finalizer_threadpool_size</name>
+        <display-name>Pcap Finalizer Threadpool Size</display-name>
+        <description>The number of threads to use when finalizing Pcap jobs. This affects parallelism
+          around writing out paged files to their final location.
+          If it's a string and ends with "C", then strip the C and treat it as an integral multiple of
+          the number of cores. If it's a string and does not end with a C, then treat it as a number in
+          string form.
+        </description>
+        <value>1</value>
+        <value-attributes>
+            <empty-value-valid>false</empty-value-valid>
+        </value-attributes>
+    </property>
 
 </configuration>

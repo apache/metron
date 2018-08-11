@@ -25,6 +25,7 @@ import org.apache.metron.common.configuration.ConfigOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class PcapConfig extends AbstractMapDecorator<String, Object>{
@@ -33,6 +34,7 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
 
   private boolean showHelp;
   private DateFormat dateFormat;
+  private String yarnQueue;
 
   public PcapConfig() {
     super(new HashMap<>());
@@ -137,6 +139,14 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
 
   public void setNumRecordsPerFile(int numRecordsPerFile) {
     PcapOptions.NUM_RECORDS_PER_FILE.put(this, numRecordsPerFile);
+  }
+
+  public void setYarnQueue(String yarnQueue) {
+    this.yarnQueue = yarnQueue;
+  }
+
+  public Optional<String> getYarnQueue() {
+    return Optional.ofNullable(yarnQueue);
   }
 
   public void setFinalizerThreadpoolSize(String numThreads) {

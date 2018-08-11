@@ -17,6 +17,8 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.apache.metron.rest.MetronRestConstants.PCAP_YARN_QUEUE_SPRING_PROPERTY;
+
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobNotFoundException;
 import org.apache.metron.job.JobStatus;
@@ -246,7 +249,14 @@ public class PcapServiceImpl implements PcapService {
   protected void setPcapOptions(String username, PcapRequest pcapRequest) throws IOException {
     PcapOptions.JOB_NAME.put(pcapRequest, "jobName");
     PcapOptions.USERNAME.put(pcapRequest, username);
-    PcapOptions.HADOOP_CONF.put(pcapRequest, configuration);
+    Configuration hadoopConf = new Configuration(configuration);
+    if (environment.containsProperty(PCAP_YARN_QUEUE_SPRING_PROPERTY)) {
+      String queue = environment.getProperty(PCAP_YARN_QUEUE_SPRING_PROPERTY);
+      if (queue != null && !queue.isEmpty()) {
+        hadoopConf.set(MRJobConfig.QUEUE_NAME, environment.getProperty(PCAP_YARN_QUEUE_SPRING_PROPERTY));
+      }
+    }
+    PcapOptions.HADOOP_CONF.put(pcapRequest, hadoopConf);
     PcapOptions.FILESYSTEM.put(pcapRequest, getFileSystem());
 
     if (pcapRequest.getBasePath() == null) {

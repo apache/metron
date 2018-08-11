@@ -17,8 +17,8 @@
  */
 package org.apache.metron.pcap.query;
 
-import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INTERIM_RESULT_PATH_DEFAULT;
 import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INPUT_PATH_DEFAULT;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INTERIM_RESULT_PATH_DEFAULT;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.argThat;
@@ -37,6 +37,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
@@ -114,7 +116,24 @@ public class PcapCliTest {
     return new TypeSafeMatcher<Map<K, V>>() {
       @Override
       protected boolean matchesSafely(Map<K, V> item) {
-        return item.entrySet().containsAll(map.entrySet());
+        for(K key: map.keySet()) {
+          if (key.equals(PcapOptions.HADOOP_CONF.getKey())) {
+            Configuration itemConfiguration = (Configuration) item.get(PcapOptions.HADOOP_CONF.getKey());
+            Map<String, Object> mapConfiguration = (Map<String, Object>) map.get(PcapOptions.HADOOP_CONF.getKey());
+            for(String setting: mapConfiguration.keySet()) {
+              if (!mapConfiguration.get(setting).equals(itemConfiguration.get(setting, ""))) {
+                return false;
+              }
+            }
+          } else {
+            V itemValue = item.get(key);
+            V mapValue = map.get(key);
+            if (itemValue != null ? !itemValue.equals(mapValue) : mapValue != null) {
+              return false;
+            }
+          }
+        }
+        return true;
       }
 
       @Override
@@ -195,8 +214,9 @@ public class PcapCliTest {
             "-num_reducers", "10",
             "-records_per_file", "1000",
             "-ps",
+            "-yq", "pcap",
             "-finalizer_threads", "10"
-      };
+    };
     Map<String, String> query = new HashMap<String, String>() {{
       put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
       put(Constants.Fields.DST_ADDR.getName(), "192.168.1.2");
@@ -218,6 +238,9 @@ public class PcapCliTest {
     PcapOptions.END_TIME_MS.put(config, endAsNanos / 1000000L);  // needed bc defaults in config
     PcapOptions.NUM_RECORDS_PER_FILE.put(config, 1000);
     PcapOptions.PRINT_JOB_STATUS.put(config, true);
+    PcapOptions.HADOOP_CONF.put(config, new HashMap<String, Object>() {{
+      put(MRJobConfig.QUEUE_NAME, "pcap");
+    }});
     PcapOptions.FINALIZER_THREADPOOL_SIZE.put(config, "10");
 
     when(jobRunner.submit(isA(Finalizer.class), argThat(mapContaining(config)))).thenReturn(jobRunner);
