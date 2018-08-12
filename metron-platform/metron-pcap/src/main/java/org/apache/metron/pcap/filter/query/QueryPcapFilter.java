@@ -18,19 +18,18 @@
 
 package org.apache.metron.pcap.filter.query;
 
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.MapVariableResolver;
-import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.stellar.common.StellarPredicateProcessor;
-import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
-
-import java.util.Map;
+import org.apache.metron.stellar.common.StellarPredicateProcessor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.dsl.VariableResolver;
 
 public class QueryPcapFilter implements PcapFilter {
   public static final String QUERY_STR_CONFIG = "mql";
@@ -45,9 +44,7 @@ public class QueryPcapFilter implements PcapFilter {
     @Override
     public String queryToString(String fields) {
       return (fields == null ? "" :
-              fields.trim().replaceAll("\\s", "_")
-                      .replace(".", "-")
-                      .replace("'", "")
+          fields.trim().replaceAll("\\s", "_")
       );
     }
   }
