@@ -15,22 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../../../_variables.scss";
 
-.proto-header {
-  font-weight: bold;
-  border-top: 1px solid $table-border-color;
+.disabled {
+  cursor: default;
+  opacity: 0.3;
 }
 
-.proto {
-  margin-left: 1em;
-}
+.pcap-pagination {
+  font-size: 14px;
+  text-align: center;
+ }
 
-.proto-fields {
-  cursor: text;
-  padding-left: 1em;
-}
+.pcap-pagination-button {
+  background: transparent;
+  border: 0;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
 
-.field-name {
-  display: none
+  &[disabled] {
+    cursor: default;
+    opacity: 0.3;
+  }
 }

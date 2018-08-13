@@ -24,13 +24,7 @@ import 'rxjs/add/operator/map';
 
 import {PcapRequest} from '../model/pcap.request';
 import {Pdml} from '../model/pdml';
-
-export class PcapStatusResponse {
-  jobId: string;
-  jobStatus: string;
-  percentComplete: number;
-  totalPages: number;
-}
+import { PcapStatusResponse } from '../model/pcap-status-response';
 
 @Injectable()
 export class PcapService {
@@ -48,10 +42,9 @@ export class PcapService {
     }
 
     public submitRequest(pcapRequest: PcapRequest): Observable<PcapStatusResponse> {
-      return this.http.post('/api/v1/pcap/fixed', pcapRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-          .map(result => result.json() as PcapStatusResponse)
-          .catch(HttpUtil.handleError)
-          .onErrorResumeNext();
+        return this.http.post('/api/v1/pcap/fixed', pcapRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+                .map(HttpUtil.extractData)
+                .catch(HttpUtil.handleError);
     }
 
     public getStatus(id: string): Observable<PcapStatusResponse> {
@@ -59,15 +52,37 @@ export class PcapService {
           new RequestOptions({headers: new Headers(this.defaultHeaders)}))
           .map(HttpUtil.extractData)
           .catch(HttpUtil.handleError);
-  }
+    }
+
+    public getRunningJob(): Observable<PcapStatusResponse[]> {
+      return this.http.get(`/api/v1/pcap?state=RUNNING`,
+              new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+              .map(HttpUtil.extractData)
+              .catch(HttpUtil.handleError);
+    }
+
     public getPackets(id: string, pageId: number): Observable<Pdml> {
         return this.http.get(`/api/v1/pcap/${id}/pdml?page=${pageId}`, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
             .map(HttpUtil.extractData)
-            .catch(HttpUtil.handleError)
-            .onErrorResumeNext();
+            .catch(HttpUtil.handleError);
     }
 
-    public getDownloadUrl(id: string, pageNo: number) {
-      return `/api/v1/pcap/${id}/raw?page=${pageNo}`;
+    public getPcapRequest(id: string): Observable<PcapRequest> {
+      return this.http.get(`/api/v1/pcap/${id}/config`,
+              new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+              .map(HttpUtil.extractData)
+              .catch(HttpUtil.handleError);
+    }
+
+    public getDownloadUrl(id: string, pageId: number) {
+      return `/api/v1/pcap/${id}/raw?page=${pageId}`;
+    }
+
+    public cancelQuery(queryId: string) {
+      return this.http
+        .delete(`/api/v1/pcap/kill/${queryId}`, new RequestOptions({
+          headers: new Headers(this.defaultHeaders),
+        }))
+        .catch(HttpUtil.handleError);
     }
 }

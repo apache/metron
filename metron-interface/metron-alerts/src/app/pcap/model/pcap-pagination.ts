@@ -15,22 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../../../_variables.scss";
-
-.proto-header {
-  font-weight: bold;
-  border-top: 1px solid $table-border-color;
-}
-
-.proto {
-  margin-left: 1em;
-}
-
-.proto-fields {
-  cursor: text;
-  padding-left: 1em;
-}
-
-.field-name {
-  display: none
+export class PcapPagination {
+  selectedPage = 1;
+  total: number;
 }
