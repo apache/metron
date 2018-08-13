@@ -47,7 +47,7 @@ import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INP
 import static org.apache.spark.sql.functions.sum;
 
 /**
- * A Profiler that generates profiles by consuming data in batch from archived telemetry.
+ * The 'Batch Profiler' that generates profiles by consuming data in batch from archived telemetry.
  *
  * <p>The Batch Profiler is executed in Spark.
  */
@@ -63,10 +63,10 @@ public class BatchProfiler implements Serializable {
    * @param profiles The profile definitions.
    * @return The number of profile measurements produced.
    */
-  public long execute(SparkSession spark,
-                      Properties properties,
-                      Properties globalProperties,
-                      ProfilerConfig profiles) {
+  public long run(SparkSession spark,
+                  Properties properties,
+                  Properties globalProperties,
+                  ProfilerConfig profiles) {
     LOG.debug("Building {} profile(s)", profiles.getProfiles().size());
 
     Map<String, String> globals = Maps.fromProperties(globalProperties);

@@ -86,9 +86,9 @@ public class BatchProfilerIntegrationTest {
   @Test
   public void testBatchProfiler() {
 
-    // execute the batch profiler
+    // run the batch profiler
     BatchProfiler profiler = new BatchProfiler();
-    profiler.execute(spark, profilerProperties, getGlobals(), getProfile());
+    profiler.run(spark, profilerProperties, getGlobals(), getProfile());
 
     List<Put> puts = profilerTable.getPutLog();
     assertEquals(2, puts.size());
