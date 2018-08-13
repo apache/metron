@@ -59,12 +59,12 @@ public class BatchProfiler implements Serializable {
    * Execute the Batch Profiler.
    *
    * @param spark The spark session.
-   * @param properties The profiler configuration properties.
+   * @param profilerProperties The profiler configuration properties.
    * @param profiles The profile definitions.
    * @return The number of profile measurements produced.
    */
   public long run(SparkSession spark,
-                  Properties properties,
+                  Properties profilerProperties,
                   Properties globalProperties,
                   ProfilerConfig profiles) {
     LOG.debug("Building {} profile(s)", profiles.getProfiles().size());
@@ -72,19 +72,19 @@ public class BatchProfiler implements Serializable {
     Map<String, String> globals = Maps.fromProperties(globalProperties);
 
     // fetch the archived telemetry
-    Dataset<String> telemetry = readTelemetry(spark, properties);
+    Dataset<String> telemetry = readTelemetry(spark, profilerProperties);
 
     // find all routes for each message
     Dataset<MessageRoute> routes = findRoutes(telemetry, profiles, globals);
 
     // group the routes
-    KeyValueGroupedDataset<String, MessageRoute> groupedRoutes = groupRoutes(routes, properties);
+    KeyValueGroupedDataset<String, MessageRoute> groupedRoutes = groupRoutes(routes, profilerProperties);
 
     // build the profiles
-    Dataset<ProfileMeasurementAdapter> measurements = buildProfiles(groupedRoutes, properties, globals);
+    Dataset<ProfileMeasurementAdapter> measurements = buildProfiles(groupedRoutes, profilerProperties, globals);
 
     // write the profile measurements to HBase
-    long count = write(measurements, properties);
+    long count = write(measurements, profilerProperties);
     return count;
   }
 
