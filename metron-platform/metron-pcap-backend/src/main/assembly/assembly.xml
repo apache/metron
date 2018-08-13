@@ -36,6 +36,7 @@
       <excludes>
         <exclude>**/*.formatted</exclude>
         <exclude>**/*.filtered</exclude>
+        <exclude>**/*.j2</exclude>
       </excludes>
       <fileMode>0755</fileMode>
       <lineEnding>unix</lineEnding>

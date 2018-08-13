@@ -19,6 +19,9 @@ limitations under the License.
 
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import File
+from resource_management.core.source import Template
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.script import Script
 
 from metron_security import storm_security_setup
@@ -53,6 +56,13 @@ class ParserMaster(Script):
         if params.security_enabled and not commands.is_acl_configured():
             commands.init_kafka_acls()
             commands.set_acl_configured()
+
+        Logger.info("Running PCAP configure")
+        File(format("{metron_config_path}/pcap.properties"),
+             content=Template("pcap.properties.j2"),
+             owner=params.metron_user,
+             group=params.metron_group
+             )
 
         Logger.info("Calling security setup")
         storm_security_setup(params)
