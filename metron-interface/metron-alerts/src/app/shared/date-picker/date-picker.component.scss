@@ -31,7 +31,7 @@
 }
 
 :host(.ng-invalid):not(form) {
-  border-left: none;
+  border-left: none !important;
 }
 
 :host(.ng-invalid) input {
