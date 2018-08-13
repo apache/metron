@@ -126,6 +126,9 @@ public class CliParser {
         //no-op
       }
     }
+    if (commandLine.hasOption("yarn_queue")) {
+      config.setYarnQueue(commandLine.getOptionValue("yarn_queue"));
+    }
   }
 
   public void printHelp(String msg, Options opts) {
