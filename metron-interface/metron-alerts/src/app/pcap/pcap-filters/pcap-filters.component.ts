@@ -59,8 +59,8 @@ export class PcapFiltersComponent implements OnInit, OnChanges {
   }
 
   onSubmit() {
-    this.model.startTimeMs = new Date(this.startTimeStr).getTime();
-    this.model.endTimeMs = new Date(this.endTimeStr).getTime();
+    this.model.startTimeMs = moment(this.startTimeStr, DEFAULT_TIMESTAMP_FORMAT).valueOf();
+    this.model.endTimeMs = moment(this.endTimeStr, DEFAULT_TIMESTAMP_FORMAT).valueOf();
     if (this.ipSrcPort !== '') {
       this.model.ipSrcPort = +this.ipSrcPort;
     } else {
