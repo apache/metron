@@ -308,6 +308,10 @@ public class PcapJob<T> implements Statusable<Path> {
       return this;
     }
     synchronized (this) {
+      // this block synchronized for proper variable visibility across threads once the status timer
+      // is started. mrJob and jobStatus need to be synchronized so that their references and internal
+      // state are made available to the timer thread. The references to these variables above need
+      // not be synchronized because the job will exit when only 1 thread will have had to use them.
       mrJob.submit();
       jobStatus.withState(State.SUBMITTED).withDescription("Job submitted")
           .withJobId(mrJob.getJobID().toString());

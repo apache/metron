@@ -18,6 +18,7 @@
 
 package org.apache.metron.pcap.finalizer;
 
+import static java.lang.String.format;
 import static org.apache.metron.pcap.config.PcapGlobalDefaults.NUM_RECORDS_PER_FILE_DEFAULT;
 
 import com.google.common.collect.Iterables;
@@ -113,13 +114,19 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
    * then strip the C and treat it as an integral multiple of the number of cores.  If it's a
    * string and does not end with a C, then treat it as a number in string form.
    */
-  private static int getNumThreads(String numThreads) {
+  private static int getNumThreads(String numThreads) throws JobException {
     String numThreadsStr = ((String) numThreads).trim().toUpperCase();
-    if (numThreadsStr.endsWith("C")) {
-      Integer factor = Integer.parseInt(numThreadsStr.replace("C", ""));
-      return factor * Runtime.getRuntime().availableProcessors();
-    } else {
-      return Integer.parseInt(numThreadsStr);
+    try {
+      if (numThreadsStr.endsWith("C")) {
+        Integer factor = Integer.parseInt(numThreadsStr.replace("C", ""));
+        return factor * Runtime.getRuntime().availableProcessors();
+      } else {
+        return Integer.parseInt(numThreadsStr);
+      }
+    } catch (NumberFormatException e) {
+      throw new JobException(
+          format("Unable to set number of threads for finalizing from property value '%s'",
+              numThreads));
     }
   }
 
@@ -130,15 +137,16 @@ public abstract class PcapFinalizer implements Finalizer<Path> {
     try {
       tp.submit(() -> {
         toWrite.entrySet().parallelStream().forEach(e -> {
-          try {
-            Path path = e.getKey();
-            List<byte[]> data = e.getValue();
-            if (data.size() > 0) {
+          Path path = e.getKey();
+          List<byte[]> data = e.getValue();
+          if (data.size() > 0) {
+            try {
               write(getResultsWriter(), hadoopConfig, data, path);
-              outFiles.add(path);
+            } catch (IOException ioe) {
+              throw new RuntimeException(
+                  String.format("Failed to write results to path '%s'", path.toString()), ioe);
             }
-          } catch (IOException ioe) {
-            throw new RuntimeException("Failed to write results", ioe);
+            outFiles.add(path);
           }
         });
       }).get();
