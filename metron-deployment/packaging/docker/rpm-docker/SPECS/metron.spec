@@ -384,7 +384,7 @@ This package installs the Metron PCAP files %{metron_home}
 %package        profiler-storm
 Summary:        Metron Profiler for Storm
 Group:          Applications/Internet
-Provides:       profiler = %{version}
+Provides:       profiler-storm = %{version}
 
 %description    profiler-storm
 This package installs the Metron Profiler for Storm %{metron_home}
@@ -541,7 +541,7 @@ This package installs the Metron Alerts UI %{metron_home}
 %package        profiler-spark
 Summary:        Metron Profiler for Spark
 Group:          Applications/Internet
-Provides:       profiler = %{version}
+Provides:       profiler-spark = %{version}
 
 %description    profiler-spark
 This package installs the Metron Profiler for Spark %{metron_home}
