@@ -167,7 +167,6 @@ public class PcapCliTest {
             "-include_reverse",
             "-num_reducers", "10",
             "-records_per_file", "1000",
-            "-ps",
             "-finalizer_threads", "10"
     };
     Map<String, String> query = new HashMap<String, String>() {{
@@ -213,7 +212,6 @@ public class PcapCliTest {
             "-include_reverse",
             "-num_reducers", "10",
             "-records_per_file", "1000",
-            "-ps",
             "-yq", "pcap",
             "-finalizer_threads", "10"
     };
@@ -295,7 +293,6 @@ public class PcapCliTest {
             "-base_output_path", "/base/output/path",
             "-query", "some query string",
             "-records_per_file", "1000",
-            "-ps",
             "-finalizer_threads", "10"
     };
 

@@ -21,6 +21,9 @@ package org.apache.metron.pcap.mr;
 import static java.lang.Long.toUnsignedString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -299,6 +302,22 @@ public class PcapJobTest {
     Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
     Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
     Assert.assertThat(status.getJobId(), equalTo(jobIdVal));
+  }
+
+  @Test
+  public void get_should_print_status() throws Exception {
+    Map<String, Object> configuration = new HashMap<>();
+    testJob.setConfiguration(configuration);
+    testJob.setMrJob(mrJob);
+    testJob.setJobStatus(new JobStatus().withState(State.SUCCEEDED));
+
+    testJob.get();
+    verify(mrJob, times(0)).monitorAndPrintJob();
+
+    PcapOptions.PRINT_JOB_STATUS.put(configuration, true);
+    testJob.get();
+    verify(mrJob, times(1)).monitorAndPrintJob();
+    verifyNoMoreInteractions(mrJob);
   }
 
 }

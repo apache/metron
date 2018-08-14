@@ -43,7 +43,7 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
   public PcapConfig(PrefixStrategy prefixStrategy) {
     this();
     setShowHelp(false);
-    setPrintJobStatus(false);
+    setPrintJobStatus(true);
     setBasePath("");
     setBaseInterimResultPath("");
     setStartTimeMs(-1L);
