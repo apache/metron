@@ -463,12 +463,20 @@ public class PcapJob<T> implements Statusable<Path> {
     return new JobStatus(jobStatus);
   }
 
+  protected void setJobStatus(JobStatus jobStatus) {
+    this.jobStatus = jobStatus;
+  }
+
+  protected void setMrJob(Job mrJob) {
+    this.mrJob = mrJob;
+  }
+
   /**
    * Synchronous call blocks until completion.
    */
   @Override
   public Pageable<Path> get() throws JobException, InterruptedException {
-    if (PcapOptions.PRINT_JOB_STATUS.get(configuration, Boolean.class)) {
+    if (PcapOptions.PRINT_JOB_STATUS.getOrDefault(configuration, Boolean.class, false) && mrJob != null) {
       try {
         mrJob.monitorAndPrintJob();
       } catch (IOException e) {
@@ -484,10 +492,6 @@ public class PcapJob<T> implements Statusable<Path> {
       }
       Thread.sleep(completeCheckInterval);
     }
-  }
-
-  public void monitorJob() throws IOException, InterruptedException {
-    mrJob.monitorAndPrintJob();
   }
 
   private synchronized Pageable<Path> getFinalResults() {
@@ -520,5 +524,9 @@ public class PcapJob<T> implements Statusable<Path> {
   @Override
   public Map<String, Object> getConfiguration() {
     return new HashMap<>(this.configuration);
+  }
+
+  protected void setConfiguration(Map<String, Object> configuration) {
+    this.configuration = configuration;
   }
 }

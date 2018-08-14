@@ -55,7 +55,6 @@ public class CliParser {
     options.addOption(newOption("rpf", "records_per_file", true, String.format("Number of records to include in each output pcap file (defaults to %s)", NUM_RECORDS_PER_FILE_DEFAULT)));
     options.addOption(newOption("et", "end_time", true, "Packet end time range. Default is current system time."));
     options.addOption(newOption("df", "date_format", true, "Date format to use for parsing start_time and end_time. Default is to use time in millis since the epoch."));
-    options.addOption(newOption("ps", "print_status", false, "Print the status of the job as it runs"));
     options.addOption(newOption("yq", "yarn_queue", true, "Yarn queue this job will be submitted to"));
     return options;
   }
@@ -126,9 +125,6 @@ public class CliParser {
       } catch (NumberFormatException nfe) {
         //no-op
       }
-    }
-    if (commandLine.hasOption("print_status")) {
-      config.setPrintJobStatus(true);
     }
     if (commandLine.hasOption("yarn_queue")) {
       config.setYarnQueue(commandLine.getOptionValue("yarn_queue"));
