@@ -179,6 +179,19 @@ describe('PcapFiltersComponent', () => {
     component.onSubmit();
   });
 
+  it('Port fields should be removed from request when set to empty', () => {
+    component.model.ipSrcPort = 44;
+    component.model.ipDstPort = 44;
+    component.ipSrcPort = '';
+    component.ipDstPort = '';
+
+    component.search.emit = (model: PcapRequest) => {
+      expect(model.ipSrcPort).toBeFalsy();
+      expect(model.ipDstPort).toBeFalsy();
+    };
+    component.onSubmit();
+  });
+
   it('Filter should have an output called search', () => {
     component.search.subscribe((filterModel) => {
       expect(filterModel).toBeDefined();
