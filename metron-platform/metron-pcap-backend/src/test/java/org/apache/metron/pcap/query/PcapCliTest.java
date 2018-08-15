@@ -217,7 +217,6 @@ public class PcapCliTest {
             "-include_reverse",
             "-num_reducers", "10",
             "-records_per_file", "1000",
-            "-ps",
             "-yq", "pcap"
     };
     Map<String, String> query = new HashMap<String, String>() {{

@@ -1,4 +1,3 @@
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,24 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { Component, Input, Output, EventEmitter, DebugElement, SimpleChange } from '@angular/core';
+import { DebugElement, SimpleChange } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { PcapFiltersComponent } from './pcap-filters.component';
 import { DatePickerModule } from '../../shared/date-picker/date-picker.module';
 import { PcapRequest } from '../model/pcap.request';
-
-// @Component({
-//   selector: 'app-date-picker',
-//   template: '<input type="text" [(value)]="date">',
-// })
-// class FakeDatePickerComponent {
-//   @Input() date: string;
-//   @Output() dateChange = new EventEmitter<string>();
-// }
 
 describe('PcapFiltersComponent', () => {
   let component: PcapFiltersComponent;
@@ -208,9 +198,9 @@ describe('PcapFiltersComponent', () => {
     expect(fixture.componentInstance.model.hasOwnProperty('startTimeMs')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('endTimeMs')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('ipSrcAddr')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipSrcPort')).toBeTruthy();
+    expect(fixture.componentInstance.model.hasOwnProperty('ipSrcPort')).toBeFalsy();
     expect(fixture.componentInstance.model.hasOwnProperty('ipDstAddr')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipDstPort')).toBeTruthy();
+    expect(fixture.componentInstance.model.hasOwnProperty('ipDstPort')).toBeFalsy();
     expect(fixture.componentInstance.model.hasOwnProperty('protocol')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('packetFilter')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('includeReverse')).toBeTruthy();
