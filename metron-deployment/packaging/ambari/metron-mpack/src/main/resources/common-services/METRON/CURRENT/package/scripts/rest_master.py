@@ -60,6 +60,11 @@ class RestMaster(Script):
         if params.security_enabled and not commands.is_kafka_acl_configured():
             commands.init_kafka_acls()
             commands.set_kafka_acl_configured()
+        if params.security_enabled and not commands.is_pcap_perm_configured():
+            # If we Kerberize the cluster, we need to call this again, to remove write perms from hadoop group
+            # If we start off Kerberized, it just does the same thing twice.
+            commands.init_pcap()
+            commands.set_pcap_perm_configured()
 
     def start(self, env, upgrade_type=None):
         from params import params
