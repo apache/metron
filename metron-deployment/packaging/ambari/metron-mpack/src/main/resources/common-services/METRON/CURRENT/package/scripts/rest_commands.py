@@ -118,26 +118,29 @@ class RestCommands:
 
     def init_pcap(self):
         Logger.info("Creating HDFS locations for Pcap")
+        # Non Kerberized Metron runs under 'storm', requiring write under the 'hadoop' group.
+        # Kerberized Metron runs under it's own user.
+        ownership = 0755 if self.__params.security_enabled else 0775
         self.__params.HdfsResource(self.__params.pcap_base_path,
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
-                                   group=self.__params.metron_group,
-                                   mode=0755,
+                                   group=self.__params.hadoop_group,
+                                   mode=ownership,
                                    )
         self.__params.HdfsResource(self.__params.pcap_base_interim_result_path,
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
-                                   group=self.__params.metron_group,
-                                   mode=0755,
+                                   group=self.__params.hadoop_group,
+                                   mode=ownership,
                                    )
         self.__params.HdfsResource(self.__params.pcap_final_output_path,
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
-                                   group=self.__params.metron_group,
-                                   mode=0755,
+                                   group=self.__params.hadoop_group,
+                                   mode=ownership,
                                    )
 
     def create_metron_user_hdfs_dir(self):
