@@ -71,15 +71,15 @@ export class PcapFiltersComponent implements OnChanges {
     if (changes['model']) {
       const newModel: PcapRequest = Object.assign(this.model, changes['model'].currentValue);
 
-      this.filterForm.setValue({ startTime: moment(newModel.startTimeMs).format(DEFAULT_TIMESTAMP_FORMAT) });
-      this.filterForm.setValue({ endTime: moment(newModel.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT) });
-      this.filterForm.setValue({ ipSrcAddr: newModel.ipSrcAddr });
-      this.filterForm.setValue({ ipSrcPort: newModel.ipSrcPort });
-      this.filterForm.setValue({ ipDstAddr: newModel.ipDstAddr });
-      this.filterForm.setValue({ ipDstPort: newModel.ipDstPort });
-      this.filterForm.setValue({ protocol: newModel.protocol });
-      this.filterForm.setValue({ includeReverse: newModel.includeReverse });
-      this.filterForm.setValue({ packetFilter: newModel.packetFilter });
+      this.filterForm.patchValue({ startTime: moment(newModel.startTimeMs).format(DEFAULT_TIMESTAMP_FORMAT) });
+      this.filterForm.patchValue({ endTime: moment(newModel.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT) });
+      this.filterForm.patchValue({ ipSrcAddr: newModel.ipSrcAddr });
+      this.filterForm.patchValue({ ipSrcPort: newModel.ipSrcPort });
+      this.filterForm.patchValue({ ipDstAddr: newModel.ipDstAddr });
+      this.filterForm.patchValue({ ipDstPort: newModel.ipDstPort });
+      this.filterForm.patchValue({ protocol: newModel.protocol });
+      this.filterForm.patchValue({ includeReverse: newModel.includeReverse });
+      this.filterForm.patchValue({ packetFilter: newModel.packetFilter });
     }
   }
 

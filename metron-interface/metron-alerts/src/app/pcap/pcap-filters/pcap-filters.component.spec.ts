@@ -61,16 +61,13 @@ describe('PcapFiltersComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  fit('From date should be bound to the component', fakeAsync(() => {
+  it('From date should be bound to the component', () => {
     let input = fixture.debugElement.query(By.css('[data-qe-id="start-time"]'));
     const dateString = '2020-11-11 11:11:11';
-    input.componentInstance.dateChange.emit(dateString);
     input.componentInstance.onChange(dateString);
     fixture.detectChanges();
-
-    tick();
     expect(component.filterForm.controls.startTime.value).toBe(dateString);
-  }));
+  });
 
   it('To date should be bound to the component', () => {
     let input = fixture.debugElement.query(By.css('[data-qe-id="end-time"]'));
@@ -100,7 +97,7 @@ describe('PcapFiltersComponent', () => {
   });
 
   it('IP Source Port should be converted to number on submit', () => {
-    component.filterForm.setValue({ ipSrcPort: '42' });
+    component.filterForm.patchValue({ ipSrcPort: '42' });
     component.search.emit = (model: PcapRequest) => {
       expect(model.ipSrcPort).toBe(42);
     };
@@ -126,7 +123,7 @@ describe('PcapFiltersComponent', () => {
   });
 
   it('IP Dest Port should be converted to number on submit', () => {
-    component.filterForm.setValue({ ipDstPort: '42' });
+    component.filterForm.patchValue({ ipDstPort: '42' });
     component.search.emit = (model: PcapRequest) => {
       expect(model.ipDstPort).toBe(42);
     };
@@ -152,16 +149,16 @@ describe('PcapFiltersComponent', () => {
   });
 
   it('Text filter should be bound to the model', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('data-qe-id="packet-filter"');
+    let input: HTMLInputElement = fixture.nativeElement.querySelector('[data-qe-id="packet-filter"]');
     input.value = 'TestStringFilter';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(component.filterForm.controls.protocol.value).toBe('TestStringFilter');
+    expect(component.filterForm.controls.packetFilter.value).toBe('TestStringFilter');
   });
 
   it('From date should be converted to timestamp on submit', () => {
-    component.filterForm.setValue({ startTime: '2220-12-12 12:12:12' });
+    component.filterForm.patchValue({ startTime: '2220-12-12 12:12:12' });
     component.search.emit = (model: PcapRequest) => {
       expect(model.startTimeMs).toBe(new Date(component.filterForm.controls.startTime.value).getTime());
     };
@@ -169,7 +166,7 @@ describe('PcapFiltersComponent', () => {
   });
 
   it('To date should be converted to timestamp on submit', () => {
-    component.filterForm.setValue({ endTimeStr: '2320-03-13 13:13:13' });
+    component.filterForm.patchValue({ endTimeStr: '2320-03-13 13:13:13' });
     component.search.emit = (model: PcapRequest) => {
       expect(model.endTimeMs).toBe(new Date(component.filterForm.controls.endTime.value).getTime());
     };
@@ -203,13 +200,17 @@ describe('PcapFiltersComponent', () => {
     expect(component.search.emit).toHaveBeenCalledWith(component.model);
   });
 
+  // @FIXME: I've fixed this test and kept it here as is but imho
+  // we should not test whether the model property has the proper type.
+  // This is why we use typescript.
+  // I would remove this because it's unnecessary.
   it('Filter model structure aka PcapRequest', () => {
     expect(fixture.componentInstance.model.hasOwnProperty('startTimeMs')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('endTimeMs')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('ipSrcAddr')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipSrcPort')).toBeFalsy();
+    expect(fixture.componentInstance.model.hasOwnProperty('ipSrcPort')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('ipDstAddr')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipDstPort')).toBeFalsy();
+    expect(fixture.componentInstance.model.hasOwnProperty('ipDstPort')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('protocol')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('packetFilter')).toBeTruthy();
     expect(fixture.componentInstance.model.hasOwnProperty('includeReverse')).toBeTruthy();
@@ -233,10 +234,10 @@ describe('PcapFiltersComponent', () => {
       model: new SimpleChange(null, newModel, false)
     });
 
-    expect(component.filterForm.controls.startTime).toBe(startTimeStr);
-    expect(component.filterForm.controls.endTime).toBe(endTimeStr);
-    expect(component.filterForm.controls.ipSrcPort).toBe('9345');
-    expect(component.filterForm.controls.ipDstPort).toBe('8989');
+    expect(component.filterForm.controls.startTime.value).toBe(startTimeStr);
+    expect(component.filterForm.controls.endTime.value).toBe(endTimeStr);
+    expect(component.filterForm.controls.ipSrcPort.value).toBe(newModel.ipSrcPort);
+    expect(component.filterForm.controls.ipDstPort.value).toBe(newModel.ipDstPort);
   });
 
   it('should update request on changes with missing port filters', () => {
@@ -255,10 +256,10 @@ describe('PcapFiltersComponent', () => {
       model: new SimpleChange(null, newModel, false)
     });
 
-    expect(component.filterForm.controls.startTime).toBe(startTimeStr);
-    expect(component.filterForm.controls.endTime).toBe(endTimeStr);
-    expect(component.filterForm.controls.ipSrcPort).toBe('');
-    expect(component.filterForm.controls.ipDstPort).toBe('');
+    expect(component.filterForm.controls.startTime.value).toBe(startTimeStr);
+    expect(component.filterForm.controls.endTime.value).toBe(endTimeStr);
+    expect(component.filterForm.controls.ipSrcPort.value).toBe(0);
+    expect(component.filterForm.controls.ipDstPort.value).toBe(0);
   });
 
   describe('Filter validation', () => {
@@ -371,7 +372,7 @@ describe('PcapFiltersComponent', () => {
       ];
 
       invalidValues.forEach((value) => {
-        const els = getFieldWithSubmit('ip-dest-port');
+        const els = getFieldWithSubmit('ip-dst-port');
         expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
         expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
 
@@ -395,7 +396,7 @@ describe('PcapFiltersComponent', () => {
       ];
 
       validValues.forEach((value) => {
-        const els = getFieldWithSubmit('ip-dest-port');
+        const els = getFieldWithSubmit('ip-dst-port');
         expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
         expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
 
