@@ -26,6 +26,7 @@ import { PcapPagination } from '../model/pcap-pagination';
 import { By } from '../../../../node_modules/@angular/platform-browser';
 import { PcapRequest } from '../model/pcap.request';
 import { defer } from 'rxjs/observable/defer';
+import { Observable } from 'rxjs/Observable';
 import { RestError } from '../../model/rest-error';
 
 @Component({
@@ -34,6 +35,7 @@ import { RestError } from '../../model/rest-error';
 })
 class FakeFilterComponent {
   @Input() queryRunning: boolean;
+  @Input() model: PcapRequest;
 }
 
 @Component({
@@ -46,6 +48,9 @@ class FakePcapListComponent {
 }
 
 class FakePcapService {
+
+  getRunningJob() {}
+
   getDownloadUrl() {
     return '';
   }
@@ -76,6 +81,8 @@ describe('PcapPanelComponent', () => {
 
   beforeEach(() => {
     pcapService = TestBed.get(PcapService);
+    pcapService.getRunningJob = jasmine.createSpy('getRunningJob')
+            .and.returnValue(Observable.of([]));
     fixture = TestBed.createComponent(PcapPanelComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -309,6 +316,7 @@ describe('PcapPanelComponent', () => {
     );
 
     const pollResponse = new PcapStatusResponse();
+    pollResponse.jobStatus = 'SUCCEEDED';
     pcapService.pollStatus = jasmine.createSpy('pollStatus').and.returnValue(
       defer(() => Promise.resolve(pollResponse))
     );
@@ -325,6 +333,7 @@ describe('PcapPanelComponent', () => {
     tick();
     fixture.detectChanges();
 
+    expect(component.pdml).toEqual(myPdml);
     expect(fixture.debugElement.query(By.css('app-pcap-list'))).toBeDefined();
   }));
 
@@ -399,5 +408,150 @@ describe('PcapPanelComponent', () => {
         .nativeElement
         .textContent.trim()
     ).toBe(`Response message: ${restError.message}. Something went wrong with the cancellation!`);
+  }));
+
+  it('cancel button should be disabled till we get back a queryId', fakeAsync(() => {
+    component.queryRunning = true;
+    component.queryId = '';
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-qe-id="pcap-cancel-query-button"]')).nativeElement.disabled).toBeTruthy();
+  }));
+
+  it('cancel button should be enabled when we have a queryId', fakeAsync(() => {
+    component.queryRunning = true;
+    component.queryId = 'testid';
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-qe-id="pcap-cancel-query-button"]')).nativeElement.disabled).toBeFalsy();
+  }));
+
+  it('queryId should be emptied if the cancellation request fails', fakeAsync(() => {
+    const restError = new RestError();
+    restError.message = 'cancellation error';
+    pcapService.cancelQuery = jasmine.createSpy('cancelQuery').and.returnValue(
+      defer(() => Promise.reject(restError))
+    );
+
+    component.queryRunning = true;
+    component.queryId = 'testid';
+    fixture.detectChanges();
+
+    const cancelBtn = fixture.debugElement.query(By.css('[data-qe-id="pcap-cancel-query-button"]'));
+    const cancelBtnEl = cancelBtn.nativeElement;
+
+    cancelBtnEl.click();
+    tick();
+    fixture.detectChanges();
+
+    expect(component.queryId).toBeFalsy();
+  }));
+
+  it('queryId should be emptied if the cancellation success', fakeAsync(() => {
+    pcapService.cancelQuery = jasmine.createSpy('cancelQuery').and.returnValue(
+      defer(() => Promise.resolve())
+    );
+
+    component.queryRunning = true;
+    component.queryId = 'testid';
+    fixture.detectChanges();
+
+    const cancelBtn = fixture.debugElement.query(By.css('[data-qe-id="pcap-cancel-query-button"]'));
+    const cancelBtnEl = cancelBtn.nativeElement;
+
+    cancelBtnEl.click();
+    tick();
+    fixture.detectChanges();
+
+    expect(component.queryId).toBeFalsy();
+  }));
+
+  it('should handle get packet 404', fakeAsync(() => {
+    const searchResponse = new PcapStatusResponse();
+    searchResponse.jobId = '42';
+
+    pcapService.submitRequest = jasmine.createSpy('submitRequest').and.returnValue(
+            defer(() => Promise.resolve(searchResponse))
+    );
+
+    const pollResponse = new PcapStatusResponse();
+    pollResponse.jobStatus = 'SUCCEEDED';
+    pcapService.pollStatus = jasmine.createSpy('pollStatus').and.returnValue(
+            defer(() => Promise.resolve(pollResponse))
+    );
+
+    const restError = new RestError();
+    restError.responseCode = 404;
+    pcapService.getPackets = jasmine.createSpy('getPackets').and.returnValue(
+            defer(() => Promise.reject(restError))
+    );
+
+    component.onSearch(new PcapRequest());
+
+    expect(component.errorMsg).toBeFalsy();
+
+    tick();
+    fixture.detectChanges();
+
+    expect(component.errorMsg).toEqual('No results returned');
+  }));
+
+  it('should handle get packet error', fakeAsync(() => {
+    const searchResponse = new PcapStatusResponse();
+    searchResponse.jobId = '42';
+
+    pcapService.submitRequest = jasmine.createSpy('submitRequest').and.returnValue(
+            defer(() => Promise.resolve(searchResponse))
+    );
+
+    const pollResponse = new PcapStatusResponse();
+    pollResponse.jobStatus = 'SUCCEEDED';
+    pcapService.pollStatus = jasmine.createSpy('pollStatus').and.returnValue(
+            defer(() => Promise.resolve(pollResponse))
+    );
+
+    const restError = new RestError();
+    restError.responseCode = 500;
+    restError.message = 'error message';
+    pcapService.getPackets = jasmine.createSpy('getPackets').and.returnValue(
+            defer(() => Promise.reject(restError))
+    );
+
+    component.onSearch(new PcapRequest());
+
+    expect(component.errorMsg).toBeFalsy();
+
+    tick();
+    fixture.detectChanges();
+
+    expect(component.errorMsg).toEqual('Response message: error message. Something went wrong retrieving pdml results!');
+  }));
+
+  it('should load running job on init', fakeAsync(() => {
+    const searchResponse = new PcapStatusResponse();
+    searchResponse.jobId = '42';
+
+    pcapService.getRunningJob = jasmine.createSpy('getRunningJob').and.returnValue(
+            defer(() => Promise.resolve([searchResponse]))
+    );
+    component.updateStatus = jasmine.createSpy('updateStatus');
+    component.startPolling = jasmine.createSpy('startPolling');
+
+    const pcapRequest = new PcapRequest();
+    pcapRequest.ipSrcAddr = 'ip_src_addr';
+    pcapService.getPcapRequest = jasmine.createSpy('getPcapRequest').and.returnValue(
+            defer(() => Promise.resolve(pcapRequest))
+    );
+
+    expect(component.queryRunning).toEqual(false);
+    expect(component.pcapRequest).toEqual(new PcapRequest());
+
+    component.ngOnInit();
+
+    tick();
+
+    expect(component.queryRunning).toEqual(true);
+    expect(component.updateStatus).toHaveBeenCalled();
+    expect(component.startPolling).toHaveBeenCalledWith('42');
+    expect(pcapService.getPcapRequest).toHaveBeenCalledWith('42');
+    expect(component.pcapRequest).toEqual(pcapRequest)
   }));
 });

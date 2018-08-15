@@ -221,6 +221,8 @@ The REST application uses a Java Process object to call out to the `pcap_to_pdml
 Out of the box it is a simple wrapper around the tshark command to transform raw pcap data to PDML.  However it can be extended to do additional processing as long as the expected input/output is maintained.
 REST will supply the script with raw pcap data through standard in and expects PDML data serialized as XML.
 
+Pcap query jobs can be configured for submission to a YARN queue.  This setting is exposed as the Spring property `pcap.yarn.queue`.  If configured, the REST application will set the `mapreduce.job.queuename` Hadoop property to that value.
+
 ## API
 
 Request and Response objects are JSON formatted.  The JSON schemas are available in the Swagger UI.

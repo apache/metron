@@ -26,6 +26,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.job.JobException;
@@ -99,6 +100,7 @@ public class PcapCli {
         return 0;
       }
       PcapOptions.FILTER_IMPL.put(commonConfig, new FixedPcapFilter.Configurator());
+      config.getYarnQueue().ifPresent(s -> hadoopConf.set(MRJobConfig.QUEUE_NAME, s));
       PcapOptions.HADOOP_CONF.put(commonConfig, hadoopConf);
       try {
         PcapOptions.FILESYSTEM.put(commonConfig, FileSystem.get(hadoopConf));
@@ -124,6 +126,7 @@ public class PcapCli {
         return 0;
       }
       PcapOptions.FILTER_IMPL.put(commonConfig, new FixedPcapFilter.Configurator());
+      config.getYarnQueue().ifPresent(s -> hadoopConf.set(MRJobConfig.QUEUE_NAME, s));
       PcapOptions.HADOOP_CONF.put(commonConfig, hadoopConf);
       try {
         PcapOptions.FILESYSTEM.put(commonConfig, FileSystem.get(hadoopConf));

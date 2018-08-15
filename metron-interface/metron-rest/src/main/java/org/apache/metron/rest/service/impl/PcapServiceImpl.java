@@ -21,6 +21,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.metron.job.JobException;
 import org.apache.metron.job.JobNotFoundException;
 import org.apache.metron.job.JobStatus;
@@ -56,6 +57,8 @@ import java.util.stream.Collectors;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import static org.apache.metron.rest.MetronRestConstants.PCAP_YARN_QUEUE_SPRING_PROPERTY;
 
 @Service
 public class PcapServiceImpl implements PcapService {
@@ -222,19 +225,19 @@ public class PcapServiceImpl implements PcapService {
         Map<String, Object> jobConfiguration = statusable.getConfiguration();
         configuration.put(PcapOptions.BASE_PATH.getKey(), PcapOptions.BASE_PATH.get(jobConfiguration, String.class));
         configuration.put(PcapOptions.FINAL_OUTPUT_PATH.getKey(), PcapOptions.FINAL_OUTPUT_PATH.get(jobConfiguration, String.class));
-        configuration.put(PcapOptions.START_TIME_MS.getKey(), PcapOptions.START_TIME_MS.get(jobConfiguration, String.class));
-        configuration.put(PcapOptions.END_TIME_MS.getKey(), PcapOptions.END_TIME_MS.get(jobConfiguration, String.class));
+        configuration.put(PcapOptions.START_TIME_MS.getKey(), PcapOptions.START_TIME_MS.get(jobConfiguration, Long.class));
+        configuration.put(PcapOptions.END_TIME_MS.getKey(), PcapOptions.END_TIME_MS.get(jobConfiguration, Long.class));
         configuration.put(PcapOptions.NUM_REDUCERS.getKey(), PcapOptions.NUM_REDUCERS.get(jobConfiguration, Integer.class));
 
         boolean isFixedFilter = PcapOptions.FILTER_IMPL.get(jobConfiguration, PcapFilterConfigurator.class) instanceof FixedPcapFilter.Configurator;
         if (isFixedFilter) {
           configuration.put(FixedPcapOptions.IP_SRC_ADDR.getKey(), FixedPcapOptions.IP_SRC_ADDR.get(jobConfiguration, String.class));
           configuration.put(FixedPcapOptions.IP_DST_ADDR.getKey(), FixedPcapOptions.IP_DST_ADDR.get(jobConfiguration, String.class));
-          configuration.put(FixedPcapOptions.IP_SRC_PORT.getKey(), FixedPcapOptions.IP_SRC_PORT.get(jobConfiguration, String.class));
-          configuration.put(FixedPcapOptions.IP_DST_PORT.getKey(), FixedPcapOptions.IP_DST_PORT.get(jobConfiguration, String.class));
+          configuration.put(FixedPcapOptions.IP_SRC_PORT.getKey(), FixedPcapOptions.IP_SRC_PORT.get(jobConfiguration, Integer.class));
+          configuration.put(FixedPcapOptions.IP_DST_PORT.getKey(), FixedPcapOptions.IP_DST_PORT.get(jobConfiguration, Integer.class));
           configuration.put(FixedPcapOptions.PROTOCOL.getKey(), FixedPcapOptions.PROTOCOL.get(jobConfiguration, String.class));
           configuration.put(FixedPcapOptions.PACKET_FILTER.getKey(), FixedPcapOptions.PACKET_FILTER.get(jobConfiguration, String.class));
-          configuration.put(FixedPcapOptions.INCLUDE_REVERSE.getKey(), FixedPcapOptions.INCLUDE_REVERSE.get(jobConfiguration, String.class));
+          configuration.put(FixedPcapOptions.INCLUDE_REVERSE.getKey(), FixedPcapOptions.INCLUDE_REVERSE.get(jobConfiguration, Boolean.class));
         } else {
           configuration.put(QueryPcapOptions.QUERY.getKey(), QueryPcapOptions.QUERY.get(jobConfiguration, String.class));
         }
@@ -250,7 +253,14 @@ public class PcapServiceImpl implements PcapService {
   protected void setPcapOptions(String username, PcapRequest pcapRequest) throws IOException {
     PcapOptions.JOB_NAME.put(pcapRequest, "jobName");
     PcapOptions.USERNAME.put(pcapRequest, username);
-    PcapOptions.HADOOP_CONF.put(pcapRequest, configuration);
+    Configuration hadoopConf = new Configuration(configuration);
+    if (environment.containsProperty(PCAP_YARN_QUEUE_SPRING_PROPERTY)) {
+      String queue = environment.getProperty(PCAP_YARN_QUEUE_SPRING_PROPERTY);
+      if (queue != null && !queue.isEmpty()) {
+        hadoopConf.set(MRJobConfig.QUEUE_NAME, environment.getProperty(PCAP_YARN_QUEUE_SPRING_PROPERTY));
+      }
+    }
+    PcapOptions.HADOOP_CONF.put(pcapRequest, hadoopConf);
     PcapOptions.FILESYSTEM.put(pcapRequest, getFileSystem());
 
     if (pcapRequest.getBasePath() == null) {

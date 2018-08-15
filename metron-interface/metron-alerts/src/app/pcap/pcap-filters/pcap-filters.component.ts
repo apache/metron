@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import {Component, Input, Output, EventEmitter, OnChanges, SimpleChanges} from '@angular/core';
 import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
 
 import * as moment from 'moment/moment';
@@ -32,8 +32,8 @@ function dateRangeValidator(formControl: FormControl): ValidationErrors | null {
   }
 
   const filterForm = formControl.parent;
-  const startTimeMs = new Date(filterForm.controls['startTimeMs'].value).getTime();
-  const endTimeMs = new Date(filterForm.controls['endTimeMs'].value).getTime();
+  const startTimeMs = new Date(filterForm.controls['startTime'].value).getTime();
+  const endTimeMs = new Date(filterForm.controls['endTime'].value).getTime();
 
   if (startTimeMs > endTimeMs || endTimeMs > new Date().getTime()) {
     return { error: 'Selected date range is invalid.' };
@@ -46,17 +46,18 @@ function dateRangeValidator(formControl: FormControl): ValidationErrors | null {
   templateUrl: './pcap-filters.component.html',
   styleUrls: ['./pcap-filters.component.scss']
 })
-export class PcapFiltersComponent {
+export class PcapFiltersComponent implements OnChanges {
 
   @Input() queryRunning = true;
+  @Input() model: PcapRequest = new PcapRequest();
   @Output() search: EventEmitter<PcapRequest> = new EventEmitter<PcapRequest>();
 
   private validIp: RegExp = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$/;
   private validPort: RegExp = /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/;
 
   filterForm = new FormGroup({
-    startTimeMs: new FormControl(moment(startTime).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
-    endTimeMs: new FormControl(moment(endTime).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
+    startTime: new FormControl(moment(startTime).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
+    endTime: new FormControl(moment(endTime).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
     ipSrcAddr: new FormControl('', Validators.pattern(this.validIp)),
     ipSrcPort: new FormControl('', Validators.pattern(this.validPort)),
     ipDstAddr: new FormControl('', Validators.pattern(this.validIp)),
@@ -66,14 +67,34 @@ export class PcapFiltersComponent {
     packetFilter: new FormControl(),
   });
 
-  model = new PcapRequest();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['model']) {
+      const newModel: PcapRequest = Object.assign(this.model, changes['model'].currentValue);
+
+      this.filterForm.setValue({ startTime: moment(newModel.startTimeMs).format(DEFAULT_TIMESTAMP_FORMAT) });
+      this.filterForm.setValue({ endTime: moment(newModel.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT) });
+      this.filterForm.setValue({ ipSrcAddr: newModel.ipSrcAddr });
+      this.filterForm.setValue({ ipSrcPort: newModel.ipSrcPort });
+      this.filterForm.setValue({ ipDstAddr: newModel.ipDstAddr });
+      this.filterForm.setValue({ ipDstPort: newModel.ipDstPort });
+      this.filterForm.setValue({ protocol: newModel.protocol });
+      this.filterForm.setValue({ includeReverse: newModel.includeReverse });
+      this.filterForm.setValue({ packetFilter: newModel.packetFilter });
+    }
+  }
 
   onSubmit() {
     this.model = this.filterForm.value;
-    this.model.startTimeMs = new Date(this.filterForm.value.startTimeMs).getTime();
-    this.model.endTimeMs = new Date(this.filterForm.value.endTimeMs).getTime();
-    this.model.ipSrcPort = +this.filterForm.value.ipSrcPort;
-    this.model.ipDstPort = +this.filterForm.value.ipDstPort;
+
+    this.model.startTimeMs = new Date(this.filterForm.value.startTime).getTime();
+    this.model.endTimeMs = new Date(this.filterForm.value.endTime).getTime();
+
+    if (this.filterForm.value.ipSrcPort !== '') {
+      this.model.ipSrcPort = +this.filterForm.value.ipSrcPort;
+    }
+    if (this.filterForm.value.ipDstPort !== '') {
+      this.model.ipDstPort = +this.filterForm.value.ipDstPort;
+    }
 
     this.search.emit(this.model);
   }

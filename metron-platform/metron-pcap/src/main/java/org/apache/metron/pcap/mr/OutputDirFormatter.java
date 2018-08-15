@@ -15,22 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../../../_variables.scss";
 
-.proto-header {
-  font-weight: bold;
-  border-top: 1px solid $table-border-color;
-}
+package org.apache.metron.pcap.mr;
 
-.proto {
-  margin-left: 1em;
-}
+import com.google.common.base.Joiner;
+import java.util.UUID;
 
-.proto-fields {
-  cursor: text;
-  padding-left: 1em;
-}
+public class OutputDirFormatter {
 
-.field-name {
-  display: none
+  public String format(long beginNS, long endNS, String query) {
+    return sanitize(Joiner.on("_").join(beginNS, endNS, query, UUID.randomUUID().toString()));
+  }
+
+  private String sanitize(String path) {
+    return path
+        .replace(".", "-")
+        .replace("'", "")
+        .replace(":", "");
+  }
+
 }
