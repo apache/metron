@@ -29,6 +29,8 @@ import org.json.simple.JSONObject;
 import java.io.Serializable;
 import java.util.Map;
 
+import java.io.Serializable;
+
 /**
  * Defines the 'route' a message must take through the Profiler.
  *
