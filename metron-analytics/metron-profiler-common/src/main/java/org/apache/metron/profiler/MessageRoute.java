@@ -22,6 +22,8 @@ package org.apache.metron.profiler;
 
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 
+import java.io.Serializable;
+
 /**
  * Defines the 'route' a message must take through the Profiler.
  *
@@ -33,7 +35,7 @@ import org.apache.metron.common.configuration.profiler.ProfileConfig;
  *
  * @see MessageRouter
  */
-public class MessageRoute {
+public class MessageRoute implements Serializable {
 
   /**
    * The definition of the profile on this route.
