@@ -392,6 +392,7 @@ pcap_final_output_path = config['configurations']['metron-rest-env']['pcap_final
 pcap_page_size = config['configurations']['metron-rest-env']['pcap_page_size']
 pcap_yarn_queue = config['configurations']['metron-rest-env']['pcap_yarn_queue']
 pcap_configured_flag_file = status_params.pcap_configured_flag_file
+pcap_perm_configured_flag_file = status_params.pcap_perm_configured_flag_file
 
 # MapReduce
 metron_user_hdfs_dir = '/user/' + metron_user
