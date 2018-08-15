@@ -494,6 +494,10 @@ public class PcapJob<T> implements Statusable<Path> {
     }
   }
 
+  public void monitorJob() throws IOException, InterruptedException {
+    mrJob.monitorAndPrintJob();
+  }
+
   private synchronized Pageable<Path> getFinalResults() {
     return new PcapPages(finalResults);
   }
