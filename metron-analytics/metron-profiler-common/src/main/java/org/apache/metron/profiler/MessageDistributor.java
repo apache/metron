@@ -43,12 +43,10 @@ public interface MessageDistributor {
   /**
    * Distribute a message along a {@link MessageRoute}.
    *
-   * @param message The message that needs distributed.
-   * @param timestamp The timestamp of the message.
    * @param route The message route.
    * @param context The Stellar execution context.
    */
-  void distribute(JSONObject message, long timestamp, MessageRoute route, Context context);
+  void distribute(MessageRoute route, Context context);
 
   /**
    * Flush all active profiles.
