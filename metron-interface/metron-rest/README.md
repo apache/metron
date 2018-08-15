@@ -222,6 +222,17 @@ Out of the box it is a simple wrapper around the tshark command to transform raw
 REST will supply the script with raw pcap data through standard in and expects PDML data serialized as XML.
 
 Pcap query jobs can be configured for submission to a YARN queue.  This setting is exposed as the Spring property `pcap.yarn.queue`.  If configured, the REST application will set the `mapreduce.job.queuename` Hadoop property to that value.
+It is highly recommended that a dedicated YARN queue be created and configured for Pcap queries to prevent a job from consuming too many cluster resources.  More information about setting up YARN queues can be found [here](https://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/CapacityScheduler.html#Setting_up_queues).
+
+Pcap query results are stored in HDFS.  The location of query results when run through the REST app is determined by a couple factors.  The root of Pcap query results defaults to `/apps/metron/pcap/output` but can be changed with the 
+Spring property `pcap.final.output.path`.  Assuming the default Pcap query output directory, the path to a result page will follow this pattern:
+```
+/apps/metron/pcap/output/{username}/MAP_REDUCE/{job id}/page-{page number}.pcap
+```
+Over time Pcap query results will accumulate in HDFS.  Currently these results are not cleaned up automatically so cluster administrators should be aware of this and monitor them.  It is highly recommended that a process be put in place to 
+periodically delete files and directories under the Pcap query results root.
+
+Users should also be mindful of date ranges used in queries so they don't produce result sets that are too large.  Currently there are no limits enforced on date ranges.
 
 Queries can also be configured on a global level for setting the number of results per page via a Spring property `pcap.page.size`. By default, this value is set to 10 pcaps per page, but you may choose to set this value higher
 based on observing frequenetly-run query result sizes. This setting works in conjunction with the property for setting finalizer threadpool size when optimizing query performance.
