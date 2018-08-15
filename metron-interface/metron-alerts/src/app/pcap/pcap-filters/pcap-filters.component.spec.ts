@@ -190,22 +190,6 @@ describe('PcapFiltersComponent', () => {
     expect(component.search.emit).toHaveBeenCalledWith(component.model);
   });
 
-  // @FIXME: I've fixed this test and kept it here as is but imho
-  // we should not test whether the model property has the proper type.
-  // This is why we use typescript.
-  // I would remove this because it's unnecessary.
-  it('Filter model structure aka PcapRequest', () => {
-    expect(fixture.componentInstance.model.hasOwnProperty('startTimeMs')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('endTimeMs')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipSrcAddr')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipSrcPort')).toBeFalsy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipDstAddr')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipDstPort')).toBeFalsy();
-    expect(fixture.componentInstance.model.hasOwnProperty('protocol')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('packetFilter')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('includeReverse')).toBeTruthy();
-  });
-
   it('should update request on changes', () => {
 
     let startTimeStr = '2220-12-12 12:12:12';
