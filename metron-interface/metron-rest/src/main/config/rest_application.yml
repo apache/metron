@@ -61,3 +61,4 @@ pcap:
   final.output.path: ${PCAP_FINAL_OUTPUT_PATH}
   page.size: ${PCAP_PAGE_SIZE}
   yarn.queue: ${PCAP_YARN_QUEUE}
+  finalizer.threadpool.size: ${PCAP_FINALIZER_THREADPOOL_SIZE}

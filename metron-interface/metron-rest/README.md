@@ -223,6 +223,16 @@ REST will supply the script with raw pcap data through standard in and expects P
 
 Pcap query jobs can be configured for submission to a YARN queue.  This setting is exposed as the Spring property `pcap.yarn.queue`.  If configured, the REST application will set the `mapreduce.job.queuename` Hadoop property to that value.
 
+Queries can also be configured on a global level for setting the number of results per page via a Spring property `pcap.page.size`. By default, this value is set to 10 pcaps per page, but you may choose to set this value higher
+based on observing frequenetly-run query result sizes. This setting works in conjunction with the property for setting finalizer threadpool size when optimizing query performance.
+
+Pcap query jobs have a finalization routine that writes their results out to HDFS in pages. Depending on the size of your pcaps, the number or results typically returned, page sizing (described above), and available CPU cores for running
+your REST application, your performance can be improved by adjusting the number of files that can be written to HDFS in parallel. To this end, there is a threadpool used for this finalization step that can be configured to use a specified
+number of threads. This setting is exposed as the Spring property `pcap.finalizer.threadpool.size`. A default value of "1" is used if not specified by the user. Generally speaking, you should see a performance gain when this value is set
+to anything higher than 1. A sizeable increase in performance can be achieved, especially for larger numbers of files of smaller size, by increasing the number of threads. It should be noted that this property is parsed as a String to allow
+for more complex parallelism values. In addition to normal integer values, you can specify a multiple of the number of cores. If it's a string and ends with "C", then strip the C and treat it as an integral multiple of the number of cores.
+If it's a string and does not end with a C, then treat it as a number in string form.
+
 ## API
 
 Request and Response objects are JSON formatted.  The JSON schemas are available in the Swagger UI.

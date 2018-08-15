@@ -17,6 +17,11 @@
  */
 package org.apache.metron.rest.mock;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.MRJobConfig;
@@ -29,12 +34,6 @@ import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.mr.PcapJob;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public class MockPcapJob extends PcapJob<Path> {
 
   private String basePath;
@@ -46,6 +45,7 @@ public class MockPcapJob extends PcapJob<Path> {
   private Map<String, String> fixedFields;
   private PcapFilterConfigurator filterImpl;
   private int recPerFile;
+  private String finalizerThreadpoolSize;
   private String query;
   private String yarnQueue;
   private Statusable<Path> statusable;
@@ -72,6 +72,7 @@ public class MockPcapJob extends PcapJob<Path> {
     this.filterImpl = PcapOptions.FILTER_IMPL.get(configuration, PcapFilterConfigurator.class);
     this.recPerFile = PcapOptions.NUM_RECORDS_PER_FILE.get(configuration, Integer.class);
     this.yarnQueue = PcapOptions.HADOOP_CONF.get(configuration, Configuration.class).get(MRJobConfig.QUEUE_NAME);
+    this.finalizerThreadpoolSize = PcapOptions.FINALIZER_THREADPOOL_SIZE.get(configuration, String.class);
     return statusable;
   }
 
@@ -152,4 +153,9 @@ public class MockPcapJob extends PcapJob<Path> {
   public String getYarnQueue() {
     return yarnQueue;
   }
+
+  public String getFinalizerThreadpoolSize() {
+    return finalizerThreadpoolSize;
+  }
+
 }

@@ -82,4 +82,5 @@ public class MetronRestConstants {
   public static final String PCAP_PAGE_SIZE_SPRING_PROPERTY = "pcap.page.size";
   public static final String PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY = "pcap.pdml.script.path";
   public static final String PCAP_YARN_QUEUE_SPRING_PROPERTY = "pcap.yarn.queue";
+  public static final String PCAP_FINALIZER_THREADPOOL_SIZE_SPRING_PROPERTY = "pcap.finalizer.threadpool.size";
 }

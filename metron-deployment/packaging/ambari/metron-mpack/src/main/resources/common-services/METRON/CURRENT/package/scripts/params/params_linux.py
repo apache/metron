@@ -391,6 +391,7 @@ pcap_base_interim_result_path = config['configurations']['metron-rest-env']['pca
 pcap_final_output_path = config['configurations']['metron-rest-env']['pcap_final_output_path']
 pcap_page_size = config['configurations']['metron-rest-env']['pcap_page_size']
 pcap_yarn_queue = config['configurations']['metron-rest-env']['pcap_yarn_queue']
+pcap_finalizer_threadpool_size= config['configurations']['metron-rest-env']['pcap_finalizer_threadpool_size']
 pcap_configured_flag_file = status_params.pcap_configured_flag_file
 
 # MapReduce

@@ -25,4 +25,5 @@ public class PcapGlobalDefaults {
   public static final String FINAL_OUTPUT_PATH_DEFAULT = BASE_PCAP_PATH_DEFAULT + "/output";
   public static final int NUM_REDUCERS_DEFAULT = 10;
   public static final int NUM_RECORDS_PER_FILE_DEFAULT = 10000;
+  public static final String NUM_FINALIZER_THREADS_DEFAULT = "1";
 }

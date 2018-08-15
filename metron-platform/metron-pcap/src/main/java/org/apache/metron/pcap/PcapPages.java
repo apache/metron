@@ -64,7 +64,7 @@ public class PcapPages implements Pageable<Path> {
     return new PcapIterator(files.iterator());
   }
 
-  private class PcapIterator implements Iterator<Path> {
+  private static class PcapIterator implements Iterator<Path> {
 
     private Iterator<Path> delegateIt;
 

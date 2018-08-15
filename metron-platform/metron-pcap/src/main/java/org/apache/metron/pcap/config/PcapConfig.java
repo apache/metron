@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public class PcapConfig extends AbstractMapDecorator<String, Object>{
+
   public interface PrefixStrategy extends Function<Clock, String>{}
 
   private boolean showHelp;
@@ -147,4 +148,9 @@ public class PcapConfig extends AbstractMapDecorator<String, Object>{
   public Optional<String> getYarnQueue() {
     return Optional.ofNullable(yarnQueue);
   }
+
+  public void setFinalizerThreadpoolSize(String numThreads) {
+    PcapOptions.FINALIZER_THREADPOOL_SIZE.put(this, numThreads);
+  }
+
 }

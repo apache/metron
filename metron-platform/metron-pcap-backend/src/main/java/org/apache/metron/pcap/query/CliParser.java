@@ -18,8 +18,9 @@
 
 package org.apache.metron.pcap.query;
 
-import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INTERIM_RESULT_PATH_DEFAULT;
 import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INPUT_PATH_DEFAULT;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INTERIM_RESULT_PATH_DEFAULT;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.NUM_FINALIZER_THREADS_DEFAULT;
 import static org.apache.metron.pcap.config.PcapGlobalDefaults.NUM_RECORDS_PER_FILE_DEFAULT;
 import static org.apache.metron.pcap.config.PcapGlobalDefaults.NUM_REDUCERS_DEFAULT;
 
@@ -56,6 +57,7 @@ public class CliParser {
     options.addOption(newOption("et", "end_time", true, "Packet end time range. Default is current system time."));
     options.addOption(newOption("df", "date_format", true, "Date format to use for parsing start_time and end_time. Default is to use time in millis since the epoch."));
     options.addOption(newOption("yq", "yarn_queue", true, "Yarn queue this job will be submitted to"));
+    options.addOption(newOption("ft", "finalizer_threads", true, "Number of threads to use for the final output writing."));
     return options;
   }
 
@@ -128,6 +130,12 @@ public class CliParser {
     }
     if (commandLine.hasOption("yarn_queue")) {
       config.setYarnQueue(commandLine.getOptionValue("yarn_queue"));
+    }
+    if (commandLine.hasOption("finalizer_threads")) {
+      String numThreads = commandLine.getOptionValue("finalizer_threads");
+      config.setFinalizerThreadpoolSize(numThreads);
+    } else {
+      config.setFinalizerThreadpoolSize(NUM_FINALIZER_THREADS_DEFAULT);
     }
   }
 
