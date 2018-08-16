@@ -22,14 +22,11 @@ package org.apache.metron.profiler;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
 import java.util.Map;
-
-import java.io.Serializable;
 
 /**
  * Defines the 'route' a message must take through the Profiler.
