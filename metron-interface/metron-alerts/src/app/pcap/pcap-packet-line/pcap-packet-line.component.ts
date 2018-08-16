@@ -25,28 +25,29 @@ import { PdmlPacket, PdmlProto, PdmlField } from '../model/pdml'
 })
 export class PcapPacketLineComponent implements OnInit {
 
-  @Input() packet: PdmlPacket
+  @Input() packet: PdmlPacket;
 
   ip: {
     timestamp: PdmlField,
     ipSrcAddr: PdmlField, ipSrcPort: PdmlField,
     ipDestAddr: PdmlField, ipDestPort: PdmlField,
     protocol: PdmlField
-  }
+  };
 
   constructor() { }
 
   ngOnInit() {
-    const genProto: PdmlProto = this.packet.protos.filter(p => p.name == "geninfo")[0]
-    const ipProto: PdmlProto = this.packet.protos.filter(p => p.name == "ip")[0]
-    const tcpProto: PdmlProto = this.packet.protos.filter(p => p.name == "tcp")[0]
+    const genProto: PdmlProto = this.packet.protos.filter(p => p.name == "geninfo")[0];
+    const ipProto: PdmlProto = this.packet.protos.filter(p => p.name == "ip")[0];
+    const tcpProto: PdmlProto = this.packet.protos.filter(p => p.name == "tcp")[0];
+    const udpProto: PdmlProto = this.packet.protos.filter(p => p.name == "udp")[0];
 
     this.ip = {
       timestamp: PdmlProto.findField(genProto,'timestamp'),
       ipSrcAddr: PdmlProto.findField(ipProto,'ip.src'),
-      ipSrcPort: PdmlProto.findField(tcpProto,'tcp.srcport'),
+      ipSrcPort: tcpProto ? PdmlProto.findField(tcpProto,'tcp.srcport') : PdmlProto.findField(udpProto,'udp.srcport'),
       ipDestAddr: PdmlProto.findField(ipProto,'ip.dst'),
-      ipDestPort: PdmlProto.findField(tcpProto,'tcp.dstport'),
+      ipDestPort: tcpProto ? PdmlProto.findField(tcpProto,'tcp.dstport') : PdmlProto.findField(udpProto,'udp.dstport'),
       protocol: PdmlProto.findField(ipProto,'ip.proto')
     };
   }

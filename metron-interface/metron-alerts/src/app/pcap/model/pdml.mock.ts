@@ -60,3 +60,34 @@ export const fakePacket = {
     } as PdmlProto
   ]
 } as PdmlPacket;
+
+export const fakeUdpPacket = {
+  "name": '',
+  "expanded": false,
+  "protos": [
+    {
+      "name": "geninfo",
+      "showname": "",
+      "fields": [
+        { "name": "timestamp", "pos": "0", "showname": "Captured Time", "size": "342", "value": "1534414874.932794000", "show": "Aug 16, 2018 10:21:14.932794000 UTC", "unmaskedvalue": null, "hide": null, "fields": null, "protos": null } as PdmlField
+      ]
+    } as PdmlProto,
+    {
+      "name": "ip",
+      "showname": "",
+      "fields": [
+        { "name": "ip.proto", "pos": "23", "showname": "Protocol: UDP (17)", "size": "1", "value": "11", "show": "17", "unmaskedvalue": null, "hide": null, "fields": null, "protos": null } as PdmlField,
+        { "name": "ip.src", "pos": "26", "showname": "Source: 0.0.0.0 (0.0.0.0)", "size": "4", "value": "00000000", "show": "0.0.0.0", "unmaskedvalue": null, "hide": null, "fields": null, "protos": null } as PdmlField,
+        { "name": "ip.dst", "pos": "30", "showname": "Destination: 255.255.255.255 (255.255.255.255)", "size": "4", "value": "ffffffff", "show": "255.255.255.255", "unmaskedvalue": null, "hide": null, "fields": null, "protos": null } as PdmlField
+      ]
+    } as PdmlProto,
+    {
+      "name": "udp",
+      "showname": "User Datagram Protocol, Src Port: bootpc (68), Dst Port: bootps (67)",
+      "fields": [
+        { "name": "udp.srcport", "pos": "34", "showname": "Source port: bootpc (68)", "size": "2", "value": "0044", "show": "68", "unmaskedvalue": null, "hide": null, "fields": null, "protos": null } as PdmlField,
+        { "name": "udp.dstport", "pos": "36", "showname": "Destination port: bootps (67)", "size": "2", "value": "0043", "show": "67", "unmaskedvalue": null, "hide": null, "fields": null, "protos": null } as PdmlField
+      ],
+    } as PdmlProto
+  ]
+} as PdmlPacket;
