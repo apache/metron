@@ -20,7 +20,11 @@
 
 package org.apache.metron.profiler;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
+import org.json.simple.JSONObject;
 
 import java.io.Serializable;
 
@@ -48,14 +52,26 @@ public class MessageRoute implements Serializable {
   private String entity;
 
   /**
+   * The message taking this route.
+   */
+  private JSONObject message;
+
+  /**
+   * The timestamp of the message.
+   */
+  private Long timestamp;
+
+  /**
    * Create a {@link MessageRoute}.
    *
    * @param profileDefinition The profile definition.
-   * @param entity The entity.
+   * @param entity            The entity.
    */
-  public MessageRoute(ProfileConfig profileDefinition, String entity) {
+  public MessageRoute(ProfileConfig profileDefinition, String entity, JSONObject message, Long timestamp) {
     this.entity = entity;
     this.profileDefinition = profileDefinition;
+    this.message = message;
+    this.timestamp = timestamp;
   }
 
   public String getEntity() {
@@ -72,5 +88,49 @@ public class MessageRoute implements Serializable {
 
   public void setProfileDefinition(ProfileConfig profileDefinition) {
     this.profileDefinition = profileDefinition;
+  }
+
+  public JSONObject getMessage() {
+    return message;
+  }
+
+  public void setMessage(JSONObject message) {
+    this.message = message;
+  }
+
+  public Long getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(Long timestamp) {
+    this.timestamp = timestamp;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    MessageRoute that = (MessageRoute) o;
+    return new EqualsBuilder()
+            .append(profileDefinition, that.profileDefinition)
+            .append(entity, that.entity)
+            .append(message, that.message)
+            .append(timestamp, that.timestamp)
+            .isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37)
+            .append(profileDefinition)
+            .append(entity)
+            .append(message)
+            .append(timestamp)
+            .toHashCode();
   }
 }

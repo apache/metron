@@ -127,7 +127,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.execute(tupleWindow);
 
     // the message should have been extracted from the tuple and passed to the MessageDistributor
-    verify(distributor).distribute(eq(message1), eq(timestamp1), any(MessageRoute.class), any());
+    verify(distributor).distribute(any(MessageRoute.class), any());
   }
 
 
