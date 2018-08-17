@@ -20,7 +20,6 @@
 
 package org.apache.metron.profiler.bolt;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -56,10 +55,12 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.metron.profiler.bolt.ProfileSplitterBolt.ENTITY_TUPLE_FIELD;
@@ -283,16 +284,43 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
             .build();
   }
 
+  private void logTupleWindow(TupleWindow window) {
+    // summarize the newly received tuples
+    LongSummaryStatistics received = window.get()
+            .stream()
+            .map(tuple -> getField(TIMESTAMP_TUPLE_FIELD, tuple, Long.class))
+            .collect(Collectors.summarizingLong(Long::longValue));
+
+    LOG.debug("Tuple(s) received; count={}, min={}, max={}, window={} ms",
+            received.getCount(),
+            received.getMin(),
+            received.getMax(),
+            received.getMax() - received.getMin());
+
+    if (window.getExpired().size() > 0) {
+      // summarize the expired tuples
+      LongSummaryStatistics expired = window.getExpired()
+              .stream()
+              .map(tuple -> getField(TIMESTAMP_TUPLE_FIELD, tuple, Long.class))
+              .collect(Collectors.summarizingLong(Long::longValue));
+
+      LOG.debug("Tuple(s) expired; count={}, min={}, max={}, window={} ms, lag={} ms",
+              expired.getCount(),
+              expired.getMin(),
+              expired.getMax(),
+              expired.getMax() - expired.getMin(),
+              received.getMin() - expired.getMin());
+    }
+  }
+
   @Override
   public void execute(TupleWindow window) {
 
-    LOG.debug("Tuple window contains {} tuple(s), {} expired, {} new",
-            CollectionUtils.size(window.get()),
-            CollectionUtils.size(window.getExpired()),
-            CollectionUtils.size(window.getNew()));
+    if(LOG.isDebugEnabled()) {
+      logTupleWindow(window);
+    }
 
     try {
-
       // handle each tuple in the window
       for(Tuple tuple : window.get()) {
         handleMessage(tuple);
@@ -304,7 +332,6 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
       }
 
     } catch (Throwable e) {
-
       LOG.error("Unexpected error", e);
       collector.reportError(e);
     }
