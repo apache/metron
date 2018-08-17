@@ -20,11 +20,13 @@ package org.apache.metron.pcap.query;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.metron.pcap.config.PcapConfig;
+import org.apache.metron.pcap.config.QueryPcapConfig;
 
 public class QueryCliParser extends CliParser {
   private Options queryOptions;
 
-  public QueryCliParser(CliConfig.PrefixStrategy prefixStrategy) {
+  public QueryCliParser(PcapConfig.PrefixStrategy prefixStrategy) {
     super(prefixStrategy);
     queryOptions = setupOptions();
   }
@@ -43,15 +45,15 @@ public class QueryCliParser extends CliParser {
    * @return Configuration tailored to query pcap queries
    * @throws ParseException
    */
-  public QueryCliConfig parse(String[] args) throws ParseException, java.text.ParseException {
+  public QueryPcapConfig parse(String[] args) throws ParseException, java.text.ParseException {
     CommandLine commandLine = getParser().parse(queryOptions, args);
-    QueryCliConfig config = new QueryCliConfig(prefixStrategy);
+    QueryPcapConfig config = new QueryPcapConfig(prefixStrategy);
     super.parse(commandLine, config);
     if (commandLine.hasOption("query")) {
       config.setQuery(commandLine.getOptionValue("query"));
     }
     if(commandLine.hasOption("prefix")) {
-      config.setPrefix(commandLine.getOptionValue("prefix"));
+      config.setFinalFilenamePrefix(commandLine.getOptionValue("prefix"));
     }
     return config;
   }

@@ -210,6 +210,40 @@ Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 ```
 
+## Pcap Query
+
+The REST application exposes endpoints for querying Pcap data.  For more information about filtering options see [Query Filter Utility](../../metron-platform/metron-pcap-backend#query-filter-utility).
+
+There is an endpoint available that will return Pcap data in [PDML](https://wiki.wireshark.org/PDML) format.  [Wireshark](https://www.wireshark.org/) must be installed for this feature to work.
+Installing wireshark in CentOS can be done with `yum -y install wireshark`.
+
+The REST application uses a Java Process object to call out to the `pcap_to_pdml.sh` script.  This script is installed at `$METRON_HOME/bin/pcap_to_pdml.sh` by default.
+Out of the box it is a simple wrapper around the tshark command to transform raw pcap data to PDML.  However it can be extended to do additional processing as long as the expected input/output is maintained.
+REST will supply the script with raw pcap data through standard in and expects PDML data serialized as XML.
+
+Pcap query jobs can be configured for submission to a YARN queue.  This setting is exposed as the Spring property `pcap.yarn.queue`.  If configured, the REST application will set the `mapreduce.job.queuename` Hadoop property to that value.
+It is highly recommended that a dedicated YARN queue be created and configured for Pcap queries to prevent a job from consuming too many cluster resources.  More information about setting up YARN queues can be found [here](https://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/CapacityScheduler.html#Setting_up_queues).
+
+Pcap query results are stored in HDFS.  The location of query results when run through the REST app is determined by a couple factors.  The root of Pcap query results defaults to `/apps/metron/pcap/output` but can be changed with the 
+Spring property `pcap.final.output.path`.  Assuming the default Pcap query output directory, the path to a result page will follow this pattern:
+```
+/apps/metron/pcap/output/{username}/MAP_REDUCE/{job id}/page-{page number}.pcap
+```
+Over time Pcap query results will accumulate in HDFS.  Currently these results are not cleaned up automatically so cluster administrators should be aware of this and monitor them.  It is highly recommended that a process be put in place to 
+periodically delete files and directories under the Pcap query results root.
+
+Users should also be mindful of date ranges used in queries so they don't produce result sets that are too large.  Currently there are no limits enforced on date ranges.
+
+Queries can also be configured on a global level for setting the number of results per page via a Spring property `pcap.page.size`. By default, this value is set to 10 pcaps per page, but you may choose to set this value higher
+based on observing frequenetly-run query result sizes. This setting works in conjunction with the property for setting finalizer threadpool size when optimizing query performance.
+
+Pcap query jobs have a finalization routine that writes their results out to HDFS in pages. Depending on the size of your pcaps, the number or results typically returned, page sizing (described above), and available CPU cores for running
+your REST application, your performance can be improved by adjusting the number of files that can be written to HDFS in parallel. To this end, there is a threadpool used for this finalization step that can be configured to use a specified
+number of threads. This setting is exposed as the Spring property `pcap.finalizer.threadpool.size`. A default value of "1" is used if not specified by the user. Generally speaking, you should see a performance gain when this value is set
+to anything higher than 1. A sizeable increase in performance can be achieved, especially for larger numbers of files of smaller size, by increasing the number of threads. It should be noted that this property is parsed as a String to allow
+for more complex parallelism values. In addition to normal integer values, you can specify a multiple of the number of cores. If it's a string and ends with "C", then strip the C and treat it as an integral multiple of the number of cores.
+If it's a string and does not end with a C, then treat it as a number in string form.
+
 ## API
 
 Request and Response objects are JSON formatted.  The JSON schemas are available in the Swagger UI.
@@ -242,6 +276,15 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/metaalert/add/alert`](#get-apiv1metaalertaddalert)|
 | [ `GET /api/v1/metaalert/remove/alert`](#get-apiv1metaalertremovealert)|
 | [ `GET /api/v1/metaalert/update/status/{guid}/{status}`](#get-apiv1metaalertupdatestatusguidstatus)|
+| [ `POST /api/v1/pcap/fixed`](#post-apiv1pcapfixed)|
+| [ `POST /api/v1/pcap/query`](#post-apiv1pcapquery)|
+| [ `GET /api/v1/pcap`](#get-apiv1pcap)|
+| [ `GET /api/v1/pcap/{jobId}`](#get-apiv1pcapjobid)|
+| [ `GET /api/v1/pcap/{jobId}/pdml`](#get-apiv1pcapjobidpdml)|
+| [ `GET /api/v1/pcap/{jobId}/raw`](#get-apiv1pcapjobidraw)|
+| [ `DELETE /api/v1/pcap/kill/{jobId}`](#delete-apiv1pcapkilljobid)|
+| [ `GET /api/v1/pcap/{jobId}/config`](#get-apiv1pcapjobidconfig)|
+| [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/search`](#post-apiv1searchsearch)|
 | [ `POST /api/v1/search/group`](#post-apiv1searchgroup)|
 | [ `GET /api/v1/search/findOne`](#get-apiv1searchfindone)|
@@ -484,6 +527,68 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * status - Meta alert status with a value of either 'ACTIVE' or 'INACTIVE'
   * Returns:
     * 200 - Returns 'true' if the status changed and 'false' if it did not.
+
+### `POST /api/v1/pcap/fixed`
+  * Description: Executes a Fixed Filter Pcap Query.
+  * Input:
+    * fixedPcapRequest - A Fixed Pcap Request which includes fixed filter fields like ip source address and protocol
+  * Returns:
+    * 200 - Returns a job status with job ID.
+    
+### `POST /api/v1/pcap/query`
+  * Description: Executes a Query Filter Pcap Query.
+  * Input:
+    * queryPcapRequest - A Query Pcap Request which includes Stellar query field
+  * Returns:
+    * 200 - Returns a job status with job ID.
+    
+### `GET /api/v1/pcap`
+  * Description: Gets a list of job statuses for Pcap query jobs that match the requested state.
+  * Input:
+    * state - Job state
+  * Returns:
+    * 200 - Returns a list of job statuses for jobs that match the requested state.  
+ 
+### `GET /api/v1/pcap/{jobId}`
+  * Description: Gets job status for Pcap query job.
+  * Input:
+    * jobId - Job ID of submitted job
+  * Returns:
+    * 200 - Returns a job status for the Job ID.
+    * 404 - Job is missing.
+    
+### `GET /api/v1/pcap/{jobId}/pdml`
+  * Description: Gets Pcap Results for a page in PDML format.
+  * Input:
+    * jobId - Job ID of submitted job
+    * page - Page number
+  * Returns:
+    * 200 - Returns PDML in json format.
+    * 404 - Job or page is missing.
+    
+### `GET /api/v1/pcap/{jobId}/raw`
+  * Description: Download Pcap Results for a page.
+  * Input:
+    * jobId - Job ID of submitted job
+    * page - Page number
+  * Returns:
+    * 200 - Returns Pcap as a file download.
+    * 404 - Job or page is missing.
+    
+### `DELETE /api/v1/pcap/kill/{jobId}`
+  * Description: Kills running job.
+  * Input:
+    * jobId - Job ID of submitted job
+  * Returns:
+    * 200 - Kills passed job.
+    
+### `GET /api/v1/pcap/{jobId}/config`
+  * Description: Gets job configuration for Pcap query job.
+  * Input:
+    * jobId - Job ID of submitted job
+  * Returns:
+    * 200 - Returns a map of job properties for the Job ID.
+    * 404 - Job is missing.
 
 ### `POST /api/v1/search/search`
   * Description: Searches the indexing store. GUIDs must be quoted to ensure correct results.

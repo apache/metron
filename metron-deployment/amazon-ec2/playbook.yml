@@ -32,7 +32,7 @@
     - include: tasks/create-open-outbound-security-group.yml
     - include: tasks/create-hosts.yml host_count=1 host_type=sensors,ambari_master,ec2,monit
     - include: tasks/create-hosts.yml host_count=4 host_type=ambari_slave,ec2
-    - include: tasks/create-hosts.yml host_count=1 host_type=pcap_server,monit,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=monit,ec2
     - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,enrichment,metron,ec2,zeppelin
     - include: tasks/create-hosts.yml host_count=2 host_type=ambari_slave,search,ec2
     - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,web,ec2

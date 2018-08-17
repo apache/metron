@@ -72,3 +72,10 @@ user:
   settings:
     table: user_settings
     cf: cf
+  job.limit: 1
+
+pcap:
+  base.path: /apps/metron/pcap/input
+  base.interim.result.path: /apps/metron/pcap/interim
+  final.output.path: /apps/metron/pcap/output
+  page.size: 10

@@ -420,6 +420,7 @@ This package installs the Metron Rest %{metron_home}
 %dir %{metron_home}/lib
 %{metron_home}/config/rest_application.yml
 %{metron_home}/bin/metron-rest.sh
+%{metron_home}/bin/pcap_to_pdml.sh
 %attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
