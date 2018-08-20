@@ -85,6 +85,8 @@ public class HBaseClientTest {
     // create the table
     table = util.createTable(Bytes.toBytes(tableName), WidgetMapper.CF);
     util.waitTableEnabled(table.getName());
+    // setup the client
+    client = new HBaseClient((c,t) -> table, table.getConfiguration(), tableName);
   }
 
   @AfterClass
@@ -105,9 +107,6 @@ public class HBaseClientTest {
 
   @Before
   public void setupTuples() throws Exception {
-
-    // setup the client
-    client = new HBaseClient((c,t) -> table, table.getConfiguration(), tableName);
 
     // create a mapper
     mapper = new WidgetMapper();
