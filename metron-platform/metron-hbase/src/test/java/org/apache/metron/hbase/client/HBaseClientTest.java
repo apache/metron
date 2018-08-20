@@ -160,7 +160,10 @@ public class HBaseClientTest {
     // add two mutations to the queue
     client.addMutation(rowKey1, cols1, Durability.SYNC_WAL);
     client.addMutation(rowKey2, cols2, Durability.SYNC_WAL);
-    client.mutate();
+    int count = client.mutate();
+
+    // there were two mutations
+    Assert.assertEquals(2, count);
 
     HBaseProjectionCriteria criteria = new HBaseProjectionCriteria();
     criteria.addColumnFamily(WidgetMapper.CF_STRING);
@@ -176,6 +179,31 @@ public class HBaseClientTest {
     for(Result result : results) {
       Widget widget = toWidget(result);
       Assert.assertTrue(expected.contains(widget));
+    }
+  }
+
+  /**
+   * What happens when there is nothing in the batch to write?
+   */
+  @Test
+  public void testEmptyBatch() throws Exception {
+
+    // do not add any mutations before attempting to write
+    int count = client.mutate();
+    Assert.assertEquals(0, count);
+
+    HBaseProjectionCriteria criteria = new HBaseProjectionCriteria();
+    criteria.addColumnFamily(WidgetMapper.CF_STRING);
+
+    // read back both
+    client.addGet(rowKey1, criteria);
+    client.addGet(rowKey2, criteria);
+    Result[] results = client.getAll();
+
+    // validate - there should be nothing to find
+    assertEquals(2, results.length);
+    for(Result result : results) {
+      Assert.assertTrue(result.isEmpty());
     }
   }
 
