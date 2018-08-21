@@ -106,6 +106,12 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   public static final String ParentSessionStartTime = "parent_session_start_time";
   public static final String TunnelType = "tunnel_type";
 
+  //System
+  public static final String EventId = "event_id";
+  public static final String Object = "object";
+  public static final String Module = "module";
+  public static final String Description = "description";
+
   //Config
   public static final String Command = "command";
   public static final String Admin = "admin";
@@ -203,24 +209,6 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
       throw new UnsupportedOperationException("Unsupported log type.");
     }
 
-    int tokenLength = tokens.length;
-
-    //validate log versions by checking tokens length
-    if (tokenLength != 16 && //CONFIG v61 no custom fields
-        tokenLength != 18 && //CONFIG v61 custom fields
-        tokenLength != 22 && //CONFIG v70 no custom fields
-        tokenLength != 24 && //CONFIG v70 custom fields
-        tokenLength != 45 && //THREAT v60
-        tokenLength != 53 && //THREAT v61
-        tokenLength != 61 && //THREAT v70 and TRAFFIC v80
-        tokenLength != 72 && //THREAT v80
-        tokenLength != 46 && //TRAFFIC v60
-        tokenLength != 47 && //TRAFFIC v61
-        tokenLength != 54) //TRAFFIC v70
-    {
-      throw new UnsupportedOperationException("Unsupported device version.");
-    }
-
     //populate common objects
     if (!empty_attribute(tokens[0])) outputMessage.put(PaloAltoDomain, tokens[0].trim());
     if (!empty_attribute(tokens[1])) outputMessage.put(ReceiveTime, tokens[1].trim());
@@ -233,23 +221,23 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
     if (LogTypeConfig.equals(type.toUpperCase())) {
       // There are two fields in custom logs only and they are not in the default format.
       // But we need to parse them if they exist
-      if (tokenLength == 16 || tokenLength == 18) parser_version = 61;
-      else if (tokenLength == 22 || tokenLength == 24) parser_version = 80;
+      if (tokens.length == 16 || tokens.length == 18) parser_version = 61;
+      else if (tokens.length == 22 || tokens.length == 24) parser_version = 80;
 
-      outputMessage.put(ParserVersion, parser_version);
-
-      if (!empty_attribute(tokens[7])) outputMessage.put(HOST, tokens[7].trim());
-      if (!empty_attribute(tokens[8])) outputMessage.put(VirtualSystem, tokens[8].trim());
-      if (!empty_attribute(tokens[9])) outputMessage.put(Command, tokens[9].trim());
-      if (!empty_attribute(tokens[10])) outputMessage.put(Admin, tokens[10].trim());
-      if (!empty_attribute(tokens[11])) outputMessage.put(Client, unquoted_attribute(tokens[11]));
-      if (!empty_attribute(tokens[12])) outputMessage.put(Result, unquoted_attribute(tokens[12]));
-      if (!empty_attribute(tokens[13])) outputMessage.put(ConfigurationPath, unquoted_attribute(tokens[13]));
+      if (parser_version >= 61) {
+        if (!empty_attribute(tokens[7])) outputMessage.put(HOST, tokens[7].trim());
+        if (!empty_attribute(tokens[8])) outputMessage.put(VirtualSystem, tokens[8].trim());
+        if (!empty_attribute(tokens[9])) outputMessage.put(Command, tokens[9].trim());
+        if (!empty_attribute(tokens[10])) outputMessage.put(Admin, tokens[10].trim());
+        if (!empty_attribute(tokens[11])) outputMessage.put(Client, unquoted_attribute(tokens[11]));
+        if (!empty_attribute(tokens[12])) outputMessage.put(Result, unquoted_attribute(tokens[12]));
+        if (!empty_attribute(tokens[13])) outputMessage.put(ConfigurationPath, unquoted_attribute(tokens[13]));
+      }
 
       if (parser_version == 61) {
         if (!empty_attribute(tokens[14])) outputMessage.put(Seqno, unquoted_attribute(tokens[14]));
         if (!empty_attribute(tokens[15])) outputMessage.put(ActionFlags, unquoted_attribute(tokens[15]));
-        if (tokenLength == 18) {
+        if (tokens.length == 18) {
           if (!empty_attribute(tokens[16]))
             outputMessage.put(BeforeChangeDetail, unquoted_attribute(tokens[16]));
           if (!empty_attribute(tokens[17]))
@@ -259,7 +247,7 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
 
       if (parser_version >= 70) {
         int custom_fields_offset = 0;
-        if (tokenLength == 24) {
+        if (tokens.length == 24) {
           if (!empty_attribute(tokens[14])) {
             outputMessage.put(BeforeChangeDetail, unquoted_attribute(tokens[14 + custom_fields_offset]));
           }
@@ -294,8 +282,29 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
         }
       }
     } else if (LogTypeSystem.equals(type.toUpperCase())) {
+      if (tokens.length == 17) parser_version = 61;
+      else if (tokens.length == 23) parser_version = 80;
 
+      if (parser_version >= 61) {
+        if (!empty_attribute(tokens[7])) outputMessage.put(VirtualSystem, tokens[7].trim());
+        if (!empty_attribute(tokens[8])) outputMessage.put(EventId, tokens[8].trim());
+        if (!empty_attribute(tokens[9])) outputMessage.put(Object, tokens[9].trim());
 
+        if (!empty_attribute(tokens[12])) outputMessage.put(Module, tokens[12].trim());
+        if (!empty_attribute(tokens[13])) outputMessage.put(Severity, unquoted_attribute(tokens[13]));
+        if (!empty_attribute(tokens[14])) outputMessage.put(Description, unquoted_attribute(tokens[14]));
+        if (!empty_attribute(tokens[15])) outputMessage.put(Seqno, unquoted_attribute(tokens[15]));
+        if (!empty_attribute(tokens[16])) outputMessage.put(ActionFlags, unquoted_attribute(tokens[16]));
+      }
+
+      if (parser_version == 80) {
+        if (!empty_attribute(tokens[17])) outputMessage.put(DGH1, tokens[17].trim());
+        if (!empty_attribute(tokens[18])) outputMessage.put(DGH2, tokens[18].trim());
+        if (!empty_attribute(tokens[19])) outputMessage.put(DGH3, tokens[19].trim());
+        if (!empty_attribute(tokens[20])) outputMessage.put(DGH4, tokens[20].trim());
+        if (!empty_attribute(tokens[21])) outputMessage.put(VSYSName, unquoted_attribute(tokens[21]));
+        if (!empty_attribute(tokens[22])) outputMessage.put(DeviceName, unquoted_attribute(tokens[22]));
+      }
     } else if (LogTypeThreat.equals(type.toUpperCase()) ||
                LogTypeTraffic.equals(type.toUpperCase())) {
       if (!empty_attribute(tokens[7])) outputMessage.put(SourceAddress, tokens[7].trim());
@@ -323,7 +332,6 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
       if (!empty_attribute(tokens[29])) outputMessage.put(IPProtocol, unquoted_attribute(tokens[29]));
       if (!empty_attribute(tokens[30])) outputMessage.put(Action, unquoted_attribute(tokens[30]));
 
-
       if (LogTypeThreat.equals(type.toUpperCase())) {
         int p1_offset = 0;
         if      (tokens.length == 45) parser_version = 60;
@@ -335,7 +343,6 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
           parser_version = 80;
           p1_offset = 1;
         }
-        outputMessage.put(ParserVersion, parser_version);
         if (!empty_attribute(tokens[31])) {
           outputMessage.put(URL, unquoted_attribute(tokens[31]));
           try {
@@ -396,15 +403,11 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
           if (!empty_attribute(tokens[69])) outputMessage.put(ThreatCategory, tokens[69].trim());
           if (!empty_attribute(tokens[70])) outputMessage.put(ContentVersion, tokens[70].trim());
         }
-        if (parser_version == 0) {
-          outputMessage.put(Tokens, tokens.length);
-        }
       } else if (LogTypeTraffic.equals(type.toUpperCase())) {
         if (tokens.length == 46) parser_version = 60;
         else if (tokens.length == 47) parser_version = 61;
         else if (tokens.length == 54) parser_version = 70;
         else if (tokens.length == 61) parser_version = 80;
-        outputMessage.put(ParserVersion, parser_version);
         if (!empty_attribute(tokens[31])) outputMessage.put(Bytes, tokens[31].trim());
         if (!empty_attribute(tokens[32])) outputMessage.put(BytesSent, tokens[32].trim());
         if (!empty_attribute(tokens[33])) outputMessage.put(BytesReceived, tokens[33].trim());
@@ -440,10 +443,11 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
           if (!empty_attribute(tokens[59])) outputMessage.put(ParentSessionStartTime, tokens[59].trim());
           if (!empty_attribute(tokens[60])) outputMessage.put(TunnelType, tokens[60].trim());
         }
-        if (parser_version == 0) {
-          outputMessage.put(Tokens, tokens.length);
-        }
       }
+    }
+    outputMessage.put(ParserVersion, parser_version);
+    if (parser_version == 0) {
+      outputMessage.put(Tokens, tokens.length);
     }
   }
 }
