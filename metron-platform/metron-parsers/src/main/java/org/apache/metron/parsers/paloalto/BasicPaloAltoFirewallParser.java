@@ -34,21 +34,26 @@ import java.util.regex.Pattern;
 
 public class BasicPaloAltoFirewallParser extends BasicParser {
 
-  private static boolean empty_attribute( final String s ) {
+  private static boolean empty_attribute(final String s) {
     return s == null || s.trim().isEmpty() || s.equals("\"\"");
   }
 
-  private static String unquoted_attribute( String s ) {
+  private static String unquoted_attribute(String s) {
     s = s.trim();
-    if ( s.startsWith( "\"" ) && s.endsWith( "\"" ) )
-      return s.substring( 1, s.length( ) - 1 );
+    if (s.startsWith("\"") && s.endsWith("\""))
+      return s.substring(1, s.length() - 1);
     return s;
   }
 
-  private static final Logger _LOG = LoggerFactory.getLogger
-          (BasicPaloAltoFirewallParser.class);
+  private static final Logger _LOG = LoggerFactory.getLogger(BasicPaloAltoFirewallParser.class);
 
   private static final long serialVersionUID = 3147090149725343999L;
+
+  private static final String LogTypeConfig = "CONFIG";
+  private static final String LogTypeSystem = "SYSTEM";
+  private static final String LogTypeThreat = "THREAT";
+  private static final String LogTypeTraffic = "TRAFFIC";
+
   public static final String PaloAltoDomain = "palo_alto_domain";
   public static final String ReceiveTime = "receive_time";
   public static final String SerialNum = "serial";
@@ -101,6 +106,15 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   public static final String ParentSessionStartTime = "parent_session_start_time";
   public static final String TunnelType = "tunnel_type";
 
+  //Config
+  public static final String Command = "command";
+  public static final String Admin = "admin";
+  public static final String Client = "client";
+  public static final String Result = "result";
+  public static final String ConfigurationPath = "configuration_path";
+  public static final String BeforeChangeDetail = "before_change_detail";
+  public static final String AfterChangeDetail = "after_change_detail";
+
   //Threat
   public static final String URL = "url";
   public static final String HOST = "host";
@@ -113,7 +127,7 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   public static final String PCAPID = "pcap_id";
   public static final String WFFileDigest = "filedigest";
   public static final String WFCloud = "cloud";
-  public static final String UserAgent= "user_agent";
+  public static final String UserAgent = "user_agent";
   public static final String WFFileType = "filetype";
   public static final String XForwardedFor = "xff";
   public static final String Referer = "referer";
@@ -159,8 +173,6 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
 
       toParse = new String(msg, "UTF-8");
       _LOG.debug("Received message: {}", toParse);
-
-
       parseMessage(toParse, outputMessage);
       long timestamp = System.currentTimeMillis();
       outputMessage.put("timestamp", System.currentTimeMillis());
@@ -178,159 +190,260 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   private void parseMessage(String message, JSONObject outputMessage) {
 
     String[] tokens = Iterables.toArray(Splitter.on(Pattern.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")).split(message), String.class);
+
     int parser_version = 0;
 
     String type = tokens[3].trim();
 
-    //populate common objects
-    if( !empty_attribute( tokens[0] ) ) outputMessage.put(PaloAltoDomain, tokens[0].trim());
-    if( !empty_attribute( tokens[1] ) ) outputMessage.put(ReceiveTime, tokens[1].trim());
-    if( !empty_attribute( tokens[2] ) ) outputMessage.put(SerialNum, tokens[2].trim());
-    outputMessage.put(Type, type);
-    if( !empty_attribute( tokens[4] ) ) outputMessage.put(ThreatContentType, unquoted_attribute(tokens[4]));
-    if( !empty_attribute( tokens[5] ) ) outputMessage.put(ConfigVersion, tokens[5].trim());
-    if( !empty_attribute( tokens[6] ) ) outputMessage.put(GenerateTime, tokens[6].trim());
-    if( !empty_attribute( tokens[7] ) ) outputMessage.put(SourceAddress, tokens[7].trim());
-    if( !empty_attribute( tokens[8] ) ) outputMessage.put(DestinationAddress, tokens[8].trim());
-    if( !empty_attribute( tokens[9] ) ) outputMessage.put(NATSourceIP, tokens[9].trim());
-    if( !empty_attribute( tokens[10] ) ) outputMessage.put(NATDestinationIP, tokens[10].trim());
-    if( !empty_attribute( tokens[11] ) ) outputMessage.put(Rule, unquoted_attribute(tokens[11]));
-    if( !empty_attribute( tokens[12] ) ) outputMessage.put(SourceUser, unquoted_attribute(tokens[12]));
-    if( !empty_attribute( tokens[13] ) ) outputMessage.put(DestinationUser, unquoted_attribute(tokens[13]));
-    if( !empty_attribute( tokens[14] ) ) outputMessage.put(Application, unquoted_attribute(tokens[14]));
-    if( !empty_attribute( tokens[15] ) ) outputMessage.put(VirtualSystem, unquoted_attribute(tokens[15]));
-    if( !empty_attribute( tokens[16] ) ) outputMessage.put(SourceZone, unquoted_attribute(tokens[16]));
-    if( !empty_attribute( tokens[17] ) ) outputMessage.put(DestinationZone, unquoted_attribute(tokens[17]));
-    if( !empty_attribute( tokens[18] ) ) outputMessage.put(InboundInterface, unquoted_attribute(tokens[18]));
-    if( !empty_attribute( tokens[19] ) ) outputMessage.put(OutboundInterface, unquoted_attribute(tokens[19]));
-    if( !empty_attribute( tokens[20] ) ) outputMessage.put(LogAction, unquoted_attribute(tokens[20]));
-    if( !empty_attribute( tokens[21] ) ) outputMessage.put(TimeLogged, tokens[21].trim());
-    if( !empty_attribute( tokens[22] ) ) outputMessage.put(SessionID, tokens[22].trim());
-    if( !empty_attribute( tokens[23] ) ) outputMessage.put(RepeatCount, tokens[23].trim());
-    if( !empty_attribute( tokens[24] ) ) outputMessage.put(SourcePort, tokens[24].trim());
-    if( !empty_attribute( tokens[25] ) ) outputMessage.put(DestinationPort, tokens[25].trim());
-    if( !empty_attribute( tokens[26] ) ) outputMessage.put(NATSourcePort, tokens[26].trim());
-    if( !empty_attribute( tokens[27] ) ) outputMessage.put(NATDestinationPort, tokens[27].trim());
-    if( !empty_attribute( tokens[28] ) ) outputMessage.put(Flags, tokens[28].trim());
-    if( !empty_attribute( tokens[29] ) ) outputMessage.put(IPProtocol, unquoted_attribute(tokens[29]));
-    if( !empty_attribute( tokens[30] ) ) outputMessage.put(Action, unquoted_attribute(tokens[30]));
-
-
-    if ("THREAT".equals(type.toUpperCase())) {
-      int p1_offset = 0;
-      if      (tokens.length == 45) parser_version = 60;
-      else if (tokens.length == 53) parser_version = 61;
-      else if (tokens.length == 61) {
-        parser_version = 70;
-        p1_offset = 1;
-      }
-      else if (tokens.length == 72) {
-        parser_version = 80;
-        p1_offset =1;
-      }
-      outputMessage.put(ParserVersion, parser_version);
-      if( !empty_attribute( tokens[31] ) ) {
-        outputMessage.put(URL, unquoted_attribute(tokens[31]));
-        try {
-            URL url = new URL(unquoted_attribute(tokens[31]));
-            outputMessage.put(HOST, url.getHost());
-        } catch (MalformedURLException e) {
-        }
-      }
-      if( !empty_attribute( tokens[32] ) ) outputMessage.put(ThreatID, tokens[32].trim());
-      if( !empty_attribute( tokens[33] ) ) outputMessage.put(Category, unquoted_attribute(tokens[33]));
-      if( !empty_attribute( tokens[34] ) ) outputMessage.put(Severity, unquoted_attribute(tokens[34]));
-      if( !empty_attribute( tokens[35] ) ) outputMessage.put(Direction, unquoted_attribute(tokens[35]));
-      if( !empty_attribute( tokens[36] ) ) outputMessage.put(Seqno, tokens[36].trim());
-      if( !empty_attribute( tokens[37] ) ) outputMessage.put(ActionFlags, unquoted_attribute(tokens[37]));
-      if( !empty_attribute( tokens[38] ) ) outputMessage.put(SourceLocation, unquoted_attribute(tokens[38]));
-      if( !empty_attribute( tokens[39] ) ) outputMessage.put(DestinationLocation, unquoted_attribute(tokens[39]));
-      if( !empty_attribute( tokens[41] ) ) outputMessage.put(ContentType, unquoted_attribute(tokens[41]));
-      if( !empty_attribute( tokens[42] ) ) outputMessage.put(PCAPID, tokens[42].trim());
-      if( !empty_attribute( tokens[43] ) ) outputMessage.put(WFFileDigest, unquoted_attribute(tokens[43]));
-      if( !empty_attribute( tokens[44] ) ) outputMessage.put(WFCloud, unquoted_attribute(tokens[44]));
-      if ( parser_version >= 61) {
-        if( !empty_attribute( tokens[(45 + p1_offset)] ) ) outputMessage.put(UserAgent, unquoted_attribute(tokens[(45 + p1_offset)]));
-        if( !empty_attribute( tokens[(46 + p1_offset)] ) ) outputMessage.put(WFFileType, unquoted_attribute(tokens[(46 + p1_offset)]));
-        if( !empty_attribute( tokens[(47 + p1_offset)] ) ) outputMessage.put(XForwardedFor, unquoted_attribute(tokens[(47 + p1_offset)]));
-        if( !empty_attribute( tokens[(48 + p1_offset)] ) ) outputMessage.put(Referer, unquoted_attribute(tokens[(48 + p1_offset)]));
-        if( !empty_attribute( tokens[(49 + p1_offset)] ) ) outputMessage.put(WFSender, unquoted_attribute(tokens[(49 + p1_offset)]));
-        if( !empty_attribute( tokens[(50 + p1_offset)] ) ) outputMessage.put(WFSubject, unquoted_attribute(tokens[(50 + p1_offset)]));
-        if( !empty_attribute( tokens[(51 + p1_offset)] ) ) outputMessage.put(WFRecipient, unquoted_attribute(tokens[(51 + p1_offset)]));
-        if( !empty_attribute( tokens[(52 + p1_offset)] ) ) outputMessage.put(WFReportID, unquoted_attribute(tokens[(52 + p1_offset)]));
-      }
-      if ( parser_version >= 70) { 
-        if( !empty_attribute( tokens[45] ) ) outputMessage.put(URLIndex, tokens[45].trim());
-        if( !empty_attribute( tokens[54] ) ) outputMessage.put(DGH1, tokens[54].trim());
-        if( !empty_attribute( tokens[55] ) ) outputMessage.put(DGH2, tokens[55].trim());
-        if( !empty_attribute( tokens[56] ) ) outputMessage.put(DGH3, tokens[56].trim());
-        if( !empty_attribute( tokens[57] ) ) outputMessage.put(DGH4, tokens[57].trim());
-        if( !empty_attribute( tokens[58] ) ) outputMessage.put(VSYSName, unquoted_attribute(tokens[58]));
-        if( !empty_attribute( tokens[59] ) ) outputMessage.put(DeviceName, unquoted_attribute(tokens[59]));
-      }
-      if ( parser_version >= 80) {
-        if( !empty_attribute( tokens[61] ) ) outputMessage.put(SourceVmUuid, tokens[61].trim());
-        if( !empty_attribute( tokens[62] ) ) outputMessage.put(DestinationVmUuid, tokens[62].trim());
-        if( !empty_attribute( tokens[63] ) ) outputMessage.put(HTTPMethod, tokens[63].trim());
-        if( !empty_attribute( tokens[64] ) ) outputMessage.put(TunnelId, tokens[64].trim());
-        if( !empty_attribute( tokens[65] ) ) outputMessage.put(MonitorTag, tokens[65].trim());
-        if( !empty_attribute( tokens[66] ) ) outputMessage.put(ParentSessionId, tokens[66].trim());
-        if( !empty_attribute( tokens[67] ) ) outputMessage.put(ParentSessionStartTime, tokens[67].trim());
-        if( !empty_attribute( tokens[68] ) ) outputMessage.put(TunnelType, tokens[68].trim());
-        if( !empty_attribute( tokens[69] ) ) outputMessage.put(ThreatCategory, tokens[69].trim());
-        if( !empty_attribute( tokens[70] ) ) outputMessage.put(ContentVersion, tokens[70].trim());
-      }
-      if ( parser_version == 0) {
-        outputMessage.put(Tokens, tokens.length);
-      }
-
-
-    } else if ("TRAFFIC".equals(type.toUpperCase())) {
-      if      (tokens.length == 46) parser_version = 60;
-      else if (tokens.length == 47) parser_version = 61;
-      else if (tokens.length == 54) parser_version = 70;
-      else if (tokens.length == 61) parser_version = 80;
-      outputMessage.put(ParserVersion, parser_version);
-      if( !empty_attribute( tokens[31] ) ) outputMessage.put(Bytes, tokens[31].trim());
-      if( !empty_attribute( tokens[32] ) ) outputMessage.put(BytesSent, tokens[32].trim());
-      if( !empty_attribute( tokens[33] ) ) outputMessage.put(BytesReceived, tokens[33].trim());
-      if( !empty_attribute( tokens[34] ) ) outputMessage.put(Packets, tokens[34].trim());
-      if( !empty_attribute( tokens[35] ) ) outputMessage.put(StartTime, tokens[35].trim());
-      if( !empty_attribute( tokens[36] ) ) outputMessage.put(ElapsedTimeInSec, tokens[36].trim());
-      if( !empty_attribute( tokens[37] ) ) outputMessage.put(Category, unquoted_attribute(tokens[37]));
-      if( !empty_attribute( tokens[39] ) ) outputMessage.put(Seqno, tokens[39].trim());
-      if( !empty_attribute( tokens[40] ) ) outputMessage.put(ActionFlags, unquoted_attribute(tokens[40]));
-      if( !empty_attribute( tokens[41] ) ) outputMessage.put(SourceLocation, unquoted_attribute(tokens[41]));
-      if( !empty_attribute( tokens[42] ) ) outputMessage.put(DestinationLocation, unquoted_attribute(tokens[42]));
-      if( !empty_attribute( tokens[44] ) ) outputMessage.put(PktsSent, tokens[44].trim());
-      if( !empty_attribute( tokens[45] ) ) outputMessage.put(PktsReceived, tokens[45].trim());
-      if ( parser_version >= 61) {
-        if( !empty_attribute( tokens[46] ) ) outputMessage.put(EndReason, unquoted_attribute(tokens[46]));
-      }
-      if ( parser_version >= 70) {
-        if( !empty_attribute( tokens[47] ) ) outputMessage.put(DGH1, tokens[47].trim());
-        if( !empty_attribute( tokens[48] ) ) outputMessage.put(DGH2, tokens[48].trim());
-        if( !empty_attribute( tokens[49] ) ) outputMessage.put(DGH3, tokens[49].trim());
-        if( !empty_attribute( tokens[50] ) ) outputMessage.put(DGH4, tokens[50].trim());
-        if( !empty_attribute( tokens[51] ) ) outputMessage.put(VSYSName, unquoted_attribute(tokens[51]));
-        if( !empty_attribute( tokens[52] ) ) outputMessage.put(DeviceName, unquoted_attribute(tokens[52]));
-        if( !empty_attribute( tokens[53] ) ) outputMessage.put(ActionSource, unquoted_attribute(tokens[53]));
-      }
-      if ( parser_version >= 80) {
-        if( !empty_attribute( tokens[54] ) ) outputMessage.put(SourceVmUuid, tokens[54].trim());
-        if( !empty_attribute( tokens[55] ) ) outputMessage.put(DestinationVmUuid, tokens[55].trim());
-        if( !empty_attribute( tokens[56] ) ) outputMessage.put(TunnelId, tokens[56].trim());
-        if( !empty_attribute( tokens[57] ) ) outputMessage.put(MonitorTag, tokens[57].trim());
-        if( !empty_attribute( tokens[58] ) ) outputMessage.put(ParentSessionId, tokens[58].trim());
-        if( !empty_attribute( tokens[59] ) ) outputMessage.put(ParentSessionStartTime, tokens[59].trim());
-        if( !empty_attribute( tokens[60] ) ) outputMessage.put(TunnelType, tokens[60].trim());
-      }
-      if ( parser_version == 0) {
-        outputMessage.put(Tokens, tokens.length);
-      }
+    //validate log types
+    if (!type.equals(LogTypeConfig) &&
+        !type.equals(LogTypeThreat) &&
+        !type.equals(LogTypeTraffic) &&
+        !type.equals(LogTypeSystem)) {
+      throw new UnsupportedOperationException("Unsupported log type.");
     }
 
+    int tokenLength = tokens.length;
+
+    //validate log versions by checking tokens length
+    if (tokenLength != 16 && //CONFIG v61 no custom fields
+        tokenLength != 18 && //CONFIG v61 custom fields
+        tokenLength != 22 && //CONFIG v70 no custom fields
+        tokenLength != 24 && //CONFIG v70 custom fields
+        tokenLength != 45 && //THREAT v60
+        tokenLength != 53 && //THREAT v61
+        tokenLength != 61 && //THREAT v70 and TRAFFIC v80
+        tokenLength != 72 && //THREAT v80
+        tokenLength != 46 && //TRAFFIC v60
+        tokenLength != 47 && //TRAFFIC v61
+        tokenLength != 54) //TRAFFIC v70
+    {
+      throw new UnsupportedOperationException("Unsupported device version.");
+    }
+
+    //populate common objects
+    if (!empty_attribute(tokens[0])) outputMessage.put(PaloAltoDomain, tokens[0].trim());
+    if (!empty_attribute(tokens[1])) outputMessage.put(ReceiveTime, tokens[1].trim());
+    if (!empty_attribute(tokens[2])) outputMessage.put(SerialNum, tokens[2].trim());
+    outputMessage.put(Type, type);
+    if (!empty_attribute(tokens[4])) outputMessage.put(ThreatContentType, unquoted_attribute(tokens[4]));
+    if (!empty_attribute(tokens[5])) outputMessage.put(ConfigVersion, tokens[5].trim());
+    if (!empty_attribute(tokens[6])) outputMessage.put(GenerateTime, tokens[6].trim());
+
+    if (LogTypeConfig.equals(type.toUpperCase())) {
+      // There are two fields in custom logs only and they are not in the default format.
+      // But we need to parse them if they exist
+      if (tokenLength == 16 || tokenLength == 18) parser_version = 61;
+      else if (tokenLength == 22 || tokenLength == 24) parser_version = 80;
+
+      outputMessage.put(ParserVersion, parser_version);
+
+      if (!empty_attribute(tokens[7])) outputMessage.put(HOST, tokens[7].trim());
+      if (!empty_attribute(tokens[8])) outputMessage.put(VirtualSystem, tokens[8].trim());
+      if (!empty_attribute(tokens[9])) outputMessage.put(Command, tokens[9].trim());
+      if (!empty_attribute(tokens[10])) outputMessage.put(Admin, tokens[10].trim());
+      if (!empty_attribute(tokens[11])) outputMessage.put(Client, unquoted_attribute(tokens[11]));
+      if (!empty_attribute(tokens[12])) outputMessage.put(Result, unquoted_attribute(tokens[12]));
+      if (!empty_attribute(tokens[13])) outputMessage.put(ConfigurationPath, unquoted_attribute(tokens[13]));
+
+      if (parser_version == 61) {
+        if (!empty_attribute(tokens[14])) outputMessage.put(Seqno, unquoted_attribute(tokens[14]));
+        if (!empty_attribute(tokens[15])) outputMessage.put(ActionFlags, unquoted_attribute(tokens[15]));
+        if (tokenLength == 18) {
+          if (!empty_attribute(tokens[16]))
+            outputMessage.put(BeforeChangeDetail, unquoted_attribute(tokens[16]));
+          if (!empty_attribute(tokens[17]))
+            outputMessage.put(AfterChangeDetail, unquoted_attribute(tokens[17]));
+        }
+      }
+
+      if (parser_version >= 70) {
+        int custom_fields_offset = 0;
+        if (tokenLength == 24) {
+          if (!empty_attribute(tokens[14])) {
+            outputMessage.put(BeforeChangeDetail, unquoted_attribute(tokens[14 + custom_fields_offset]));
+          }
+          if (!empty_attribute(tokens[15])) {
+            outputMessage.put(AfterChangeDetail, unquoted_attribute(tokens[15 + custom_fields_offset]));
+          }
+          custom_fields_offset = 2;
+        }
+        if (!empty_attribute(tokens[14 + custom_fields_offset])) {
+          outputMessage.put(Seqno, unquoted_attribute(tokens[14 + custom_fields_offset]));
+        }
+        if (!empty_attribute(tokens[15 + custom_fields_offset])) {
+          outputMessage.put(ActionFlags, unquoted_attribute(tokens[15 + custom_fields_offset]));
+        }
+        if (!empty_attribute(tokens[16 + custom_fields_offset])) {
+          outputMessage.put(DGH1, unquoted_attribute(tokens[16 + custom_fields_offset]));
+        }
+        if (!empty_attribute(tokens[17 + custom_fields_offset])) {
+          outputMessage.put(DGH2, unquoted_attribute(tokens[17 + custom_fields_offset]));
+        }
+        if (!empty_attribute(tokens[18 + custom_fields_offset])) {
+          outputMessage.put(DGH3, unquoted_attribute(tokens[18 + custom_fields_offset]));
+        }
+        if (!empty_attribute(tokens[19 + custom_fields_offset])) {
+          outputMessage.put(DGH4, unquoted_attribute(tokens[19 + custom_fields_offset]));
+        }
+        if (!empty_attribute(tokens[20 + custom_fields_offset])) {
+          outputMessage.put(VSYSName, unquoted_attribute(tokens[20 + custom_fields_offset]));
+        }
+        if (!empty_attribute(tokens[21 + custom_fields_offset])) {
+          outputMessage.put(DeviceName, unquoted_attribute(tokens[21 + custom_fields_offset]));
+        }
+      }
+    } else if (LogTypeSystem.equals(type.toUpperCase())) {
+
+
+    } else if (LogTypeThreat.equals(type.toUpperCase()) ||
+               LogTypeTraffic.equals(type.toUpperCase())) {
+      if (!empty_attribute(tokens[7])) outputMessage.put(SourceAddress, tokens[7].trim());
+      if (!empty_attribute(tokens[8])) outputMessage.put(DestinationAddress, tokens[8].trim());
+      if (!empty_attribute(tokens[9])) outputMessage.put(NATSourceIP, tokens[9].trim());
+      if (!empty_attribute(tokens[10])) outputMessage.put(NATDestinationIP, tokens[10].trim());
+      if (!empty_attribute(tokens[11])) outputMessage.put(Rule, unquoted_attribute(tokens[11]));
+      if (!empty_attribute(tokens[12])) outputMessage.put(SourceUser, unquoted_attribute(tokens[12]));
+      if (!empty_attribute(tokens[13])) outputMessage.put(DestinationUser, unquoted_attribute(tokens[13]));
+      if (!empty_attribute(tokens[14])) outputMessage.put(Application, unquoted_attribute(tokens[14]));
+      if (!empty_attribute(tokens[15])) outputMessage.put(VirtualSystem, unquoted_attribute(tokens[15]));
+      if (!empty_attribute(tokens[16])) outputMessage.put(SourceZone, unquoted_attribute(tokens[16]));
+      if (!empty_attribute(tokens[17])) outputMessage.put(DestinationZone, unquoted_attribute(tokens[17]));
+      if (!empty_attribute(tokens[18])) outputMessage.put(InboundInterface, unquoted_attribute(tokens[18]));
+      if (!empty_attribute(tokens[19])) outputMessage.put(OutboundInterface, unquoted_attribute(tokens[19]));
+      if (!empty_attribute(tokens[20])) outputMessage.put(LogAction, unquoted_attribute(tokens[20]));
+      if (!empty_attribute(tokens[21])) outputMessage.put(TimeLogged, tokens[21].trim());
+      if (!empty_attribute(tokens[22])) outputMessage.put(SessionID, tokens[22].trim());
+      if (!empty_attribute(tokens[23])) outputMessage.put(RepeatCount, tokens[23].trim());
+      if (!empty_attribute(tokens[24])) outputMessage.put(SourcePort, tokens[24].trim());
+      if (!empty_attribute(tokens[25])) outputMessage.put(DestinationPort, tokens[25].trim());
+      if (!empty_attribute(tokens[26])) outputMessage.put(NATSourcePort, tokens[26].trim());
+      if (!empty_attribute(tokens[27])) outputMessage.put(NATDestinationPort, tokens[27].trim());
+      if (!empty_attribute(tokens[28])) outputMessage.put(Flags, tokens[28].trim());
+      if (!empty_attribute(tokens[29])) outputMessage.put(IPProtocol, unquoted_attribute(tokens[29]));
+      if (!empty_attribute(tokens[30])) outputMessage.put(Action, unquoted_attribute(tokens[30]));
+
+
+      if (LogTypeThreat.equals(type.toUpperCase())) {
+        int p1_offset = 0;
+        if      (tokens.length == 45) parser_version = 60;
+        else if (tokens.length == 53) parser_version = 61;
+        else if (tokens.length == 61) {
+          parser_version = 70;
+          p1_offset = 1;
+        } else if (tokens.length == 72) {
+          parser_version = 80;
+          p1_offset = 1;
+        }
+        outputMessage.put(ParserVersion, parser_version);
+        if (!empty_attribute(tokens[31])) {
+          outputMessage.put(URL, unquoted_attribute(tokens[31]));
+          try {
+            URL url = new URL(unquoted_attribute(tokens[31]));
+            outputMessage.put(HOST, url.getHost());
+          } catch (MalformedURLException e) {
+          }
+        }
+        if (!empty_attribute(tokens[32])) outputMessage.put(ThreatID, tokens[32].trim());
+        if (!empty_attribute(tokens[33])) outputMessage.put(Category, unquoted_attribute(tokens[33]));
+        if (!empty_attribute(tokens[34])) outputMessage.put(Severity, unquoted_attribute(tokens[34]));
+        if (!empty_attribute(tokens[35])) outputMessage.put(Direction, unquoted_attribute(tokens[35]));
+        if (!empty_attribute(tokens[36])) outputMessage.put(Seqno, tokens[36].trim());
+        if (!empty_attribute(tokens[37])) outputMessage.put(ActionFlags, unquoted_attribute(tokens[37]));
+        if (!empty_attribute(tokens[38])) outputMessage.put(SourceLocation, unquoted_attribute(tokens[38]));
+        if (!empty_attribute(tokens[39]))
+          outputMessage.put(DestinationLocation, unquoted_attribute(tokens[39]));
+        if (!empty_attribute(tokens[41])) outputMessage.put(ContentType, unquoted_attribute(tokens[41]));
+        if (!empty_attribute(tokens[42])) outputMessage.put(PCAPID, tokens[42].trim());
+        if (!empty_attribute(tokens[43])) outputMessage.put(WFFileDigest, unquoted_attribute(tokens[43]));
+        if (!empty_attribute(tokens[44])) outputMessage.put(WFCloud, unquoted_attribute(tokens[44]));
+        if (parser_version >= 61) {
+          if (!empty_attribute(tokens[(45 + p1_offset)]))
+            outputMessage.put(UserAgent, unquoted_attribute(tokens[(45 + p1_offset)]));
+          if (!empty_attribute(tokens[(46 + p1_offset)]))
+            outputMessage.put(WFFileType, unquoted_attribute(tokens[(46 + p1_offset)]));
+          if (!empty_attribute(tokens[(47 + p1_offset)]))
+            outputMessage.put(XForwardedFor, unquoted_attribute(tokens[(47 + p1_offset)]));
+          if (!empty_attribute(tokens[(48 + p1_offset)]))
+            outputMessage.put(Referer, unquoted_attribute(tokens[(48 + p1_offset)]));
+          if (!empty_attribute(tokens[(49 + p1_offset)]))
+            outputMessage.put(WFSender, unquoted_attribute(tokens[(49 + p1_offset)]));
+          if (!empty_attribute(tokens[(50 + p1_offset)]))
+            outputMessage.put(WFSubject, unquoted_attribute(tokens[(50 + p1_offset)]));
+          if (!empty_attribute(tokens[(51 + p1_offset)]))
+            outputMessage.put(WFRecipient, unquoted_attribute(tokens[(51 + p1_offset)]));
+          if (!empty_attribute(tokens[(52 + p1_offset)]))
+            outputMessage.put(WFReportID, unquoted_attribute(tokens[(52 + p1_offset)]));
+        }
+        if (parser_version >= 70) {
+          if (!empty_attribute(tokens[45])) outputMessage.put(URLIndex, tokens[45].trim());
+          if (!empty_attribute(tokens[54])) outputMessage.put(DGH1, tokens[54].trim());
+          if (!empty_attribute(tokens[55])) outputMessage.put(DGH2, tokens[55].trim());
+          if (!empty_attribute(tokens[56])) outputMessage.put(DGH3, tokens[56].trim());
+          if (!empty_attribute(tokens[57])) outputMessage.put(DGH4, tokens[57].trim());
+          if (!empty_attribute(tokens[58])) outputMessage.put(VSYSName, unquoted_attribute(tokens[58]));
+          if (!empty_attribute(tokens[59])) outputMessage.put(DeviceName, unquoted_attribute(tokens[59]));
+        }
+        if (parser_version >= 80) {
+          if (!empty_attribute(tokens[61])) outputMessage.put(SourceVmUuid, tokens[61].trim());
+          if (!empty_attribute(tokens[62])) outputMessage.put(DestinationVmUuid, tokens[62].trim());
+          if (!empty_attribute(tokens[63])) outputMessage.put(HTTPMethod, tokens[63].trim());
+          if (!empty_attribute(tokens[64])) outputMessage.put(TunnelId, tokens[64].trim());
+          if (!empty_attribute(tokens[65])) outputMessage.put(MonitorTag, tokens[65].trim());
+          if (!empty_attribute(tokens[66])) outputMessage.put(ParentSessionId, tokens[66].trim());
+          if (!empty_attribute(tokens[67])) outputMessage.put(ParentSessionStartTime, tokens[67].trim());
+          if (!empty_attribute(tokens[68])) outputMessage.put(TunnelType, tokens[68].trim());
+          if (!empty_attribute(tokens[69])) outputMessage.put(ThreatCategory, tokens[69].trim());
+          if (!empty_attribute(tokens[70])) outputMessage.put(ContentVersion, tokens[70].trim());
+        }
+        if (parser_version == 0) {
+          outputMessage.put(Tokens, tokens.length);
+        }
+      } else if (LogTypeTraffic.equals(type.toUpperCase())) {
+        if (tokens.length == 46) parser_version = 60;
+        else if (tokens.length == 47) parser_version = 61;
+        else if (tokens.length == 54) parser_version = 70;
+        else if (tokens.length == 61) parser_version = 80;
+        outputMessage.put(ParserVersion, parser_version);
+        if (!empty_attribute(tokens[31])) outputMessage.put(Bytes, tokens[31].trim());
+        if (!empty_attribute(tokens[32])) outputMessage.put(BytesSent, tokens[32].trim());
+        if (!empty_attribute(tokens[33])) outputMessage.put(BytesReceived, tokens[33].trim());
+        if (!empty_attribute(tokens[34])) outputMessage.put(Packets, tokens[34].trim());
+        if (!empty_attribute(tokens[35])) outputMessage.put(StartTime, tokens[35].trim());
+        if (!empty_attribute(tokens[36])) outputMessage.put(ElapsedTimeInSec, tokens[36].trim());
+        if (!empty_attribute(tokens[37])) outputMessage.put(Category, unquoted_attribute(tokens[37]));
+        if (!empty_attribute(tokens[39])) outputMessage.put(Seqno, tokens[39].trim());
+        if (!empty_attribute(tokens[40])) outputMessage.put(ActionFlags, unquoted_attribute(tokens[40]));
+        if (!empty_attribute(tokens[41])) outputMessage.put(SourceLocation, unquoted_attribute(tokens[41]));
+        if (!empty_attribute(tokens[42]))
+          outputMessage.put(DestinationLocation, unquoted_attribute(tokens[42]));
+        if (!empty_attribute(tokens[44])) outputMessage.put(PktsSent, tokens[44].trim());
+        if (!empty_attribute(tokens[45])) outputMessage.put(PktsReceived, tokens[45].trim());
+        if (parser_version >= 61) {
+          if (!empty_attribute(tokens[46])) outputMessage.put(EndReason, unquoted_attribute(tokens[46]));
+        }
+        if (parser_version >= 70) {
+          if (!empty_attribute(tokens[47])) outputMessage.put(DGH1, tokens[47].trim());
+          if (!empty_attribute(tokens[48])) outputMessage.put(DGH2, tokens[48].trim());
+          if (!empty_attribute(tokens[49])) outputMessage.put(DGH3, tokens[49].trim());
+          if (!empty_attribute(tokens[50])) outputMessage.put(DGH4, tokens[50].trim());
+          if (!empty_attribute(tokens[51])) outputMessage.put(VSYSName, unquoted_attribute(tokens[51]));
+          if (!empty_attribute(tokens[52])) outputMessage.put(DeviceName, unquoted_attribute(tokens[52]));
+          if (!empty_attribute(tokens[53])) outputMessage.put(ActionSource, unquoted_attribute(tokens[53]));
+        }
+        if (parser_version >= 80) {
+          if (!empty_attribute(tokens[54])) outputMessage.put(SourceVmUuid, tokens[54].trim());
+          if (!empty_attribute(tokens[55])) outputMessage.put(DestinationVmUuid, tokens[55].trim());
+          if (!empty_attribute(tokens[56])) outputMessage.put(TunnelId, tokens[56].trim());
+          if (!empty_attribute(tokens[57])) outputMessage.put(MonitorTag, tokens[57].trim());
+          if (!empty_attribute(tokens[58])) outputMessage.put(ParentSessionId, tokens[58].trim());
+          if (!empty_attribute(tokens[59])) outputMessage.put(ParentSessionStartTime, tokens[59].trim());
+          if (!empty_attribute(tokens[60])) outputMessage.put(TunnelType, tokens[60].trim());
+        }
+        if (parser_version == 0) {
+          outputMessage.put(Tokens, tokens.length);
+        }
+      }
+    }
   }
-
-
 }
