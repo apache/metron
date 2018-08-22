@@ -30,9 +30,6 @@ node1
 [sensors]
 node1
 
-[pcap_server]
-node1
-
 [web]
 node1
 
@@ -41,7 +38,6 @@ node1
 
 [monit:children]
 sensors
-pcap_server
 
 [local]
 127.0.0.1

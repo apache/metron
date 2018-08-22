@@ -71,7 +71,22 @@
             </snapshots>
         </repository>
     </repositories>
-
+    <pluginRepositories>
+      <pluginRepository>
+            <id>apache.snapshots</id>
+            <name>Apache Development Snapshot Repository</name>
+            <url>https://repository.apache.org/content/repositories/snapshots/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+                <enabled>true</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
     <properties>
         <twitter>@ApacheMetron</twitter>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -292,7 +307,7 @@
             <plugin>
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>
-                <version>0.12</version>
+                <version>0.13-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <phase>verify</phase>
@@ -321,6 +336,7 @@
                         <exclude>**/*.rpm</exclude>
                         <exclude>site/**</exclude>
                         <exclude>**/src/main/resources/patterns/**</exclude>
+                        <exclude>**/src/test/resources/patterns/**</exclude>
                         <exclude>**/src/main/sample/patterns/**</exclude>
                         <exclude>**/src/test/resources/**</exclude>
                         <exclude>**/src/main/sample/data/**</exclude>

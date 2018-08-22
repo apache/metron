@@ -580,7 +580,7 @@ X-Pack
     Submit the update to Zookeeper
 
     ```
-    $METRON_HOME/bin/zk_load_configs.sh -m PUSH -i METRON_HOME/config/zookeeper/ -z $ZOOKEEPER
+    $METRON_HOME/bin/zk_load_configs.sh -m PUSH -i $METRON_HOME/config/zookeeper/ -z $ZOOKEEPER
     ```
 
 1. The last step before restarting the topology is to create a custom X-Pack shaded and relocated jar. This is up to you because of licensing restrictions, but here is a sample Maven pom file that should help.
@@ -736,6 +736,8 @@ X-Pack
     ```
     $METRON_HOME/bin/start_elasticsearch_topology.sh
     ```
+
+1. Restart the metron-rest service, and make sure the elasticsearch-xpack-shaded-5.6.2.jar is in the METRON_REST_CLASSPATH when the metron-rest starts.
 
 Once you've performed these steps, you should be able to start seeing data in your ES indexes.
 

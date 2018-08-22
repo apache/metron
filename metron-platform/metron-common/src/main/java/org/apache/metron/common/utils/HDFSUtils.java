@@ -23,14 +23,29 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 public class HDFSUtils {
 
+  public static byte[] readBytes(String path) throws IOException {
+    return readBytes(new Path(path));
+  }
+
+  public static byte[] readBytes(Path inPath) throws IOException {
+    FileSystem fs = FileSystem.get(inPath.toUri(), new Configuration());
+    try (FSDataInputStream inputStream = fs.open(inPath)) {
+      return IOUtils.toByteArray(inputStream);
+    }
+  }
+
   /**
-   * Reads full HDFS FS file contents into a List of Strings. Initializes file system with default
-   * configuration. Opens and closes the file system on each call. Never null.
+   * Reads full file contents into a List of Strings. Reads from local FS if file:/// used as the
+   * scheme. Initializes file system with default configuration.
+   * Automatically handles file system translation for the provided path's scheme.
+   * Opens and closes the file system on each call. Never null.
+   * Null/empty scheme defaults to default configured FS.
    *
    * @param path path to file
    * @return file contents as a String
@@ -41,8 +56,10 @@ public class HDFSUtils {
   }
 
   /**
-   * Reads full HDFS FS file contents into a String. Opens and closes the file system on each call.
-   * Never null.
+   * Reads full file contents into a String. Reads from local FS if file:/// used as the scheme.
+   * Opens and closes the file system on each call.
+   * Never null. Automatically handles file system translation for the provided path's scheme.
+   * Null/empty scheme defaults to default configured FS.
    *
    * @param config Hadoop configuration
    * @param path path to file
@@ -50,10 +67,30 @@ public class HDFSUtils {
    * @throws IOException
    */
   public static List<String> readFile(Configuration config, String path) throws IOException {
-    FileSystem fs = FileSystem.newInstance(config);
-    Path hdfsPath = new Path(path);
-    FSDataInputStream inputStream = fs.open(hdfsPath);
-    return IOUtils.readLines(inputStream, "UTF-8");
+    Path inPath = new Path(path);
+    FileSystem fs = FileSystem.get(inPath.toUri(), config);
+    try (FSDataInputStream inputStream = fs.open(inPath)) {
+      return IOUtils.readLines(inputStream, "UTF-8");
+    }
   }
 
+  /**
+   * Write file to HDFS. Writes to local FS if file:/// used as the scheme.
+   * Automatically handles file system translation for the provided path's scheme.
+   * Null/empty scheme defaults to default configured FS.
+   *
+   * @param config filesystem configuration
+   * @param bytes bytes to write
+   * @param path output path
+   * @throws IOException This is the generic Hadoop "everything is an IOException."
+   */
+  public static void write(Configuration config, byte[] bytes, String path) throws IOException {
+    Path outPath = new Path(path);
+    FileSystem fs = FileSystem.get(outPath.toUri(), config);
+    fs.mkdirs(outPath.getParent());
+    try (FSDataOutputStream outputStream = fs.create(outPath)) {
+      outputStream.write(bytes);
+      outputStream.flush();
+    }
+  }
 }

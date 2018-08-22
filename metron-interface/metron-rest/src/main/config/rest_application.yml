@@ -53,3 +53,12 @@ kerberos:
   enabled: ${SECURITY_ENABLED}
   principal: ${METRON_PRINCIPAL_NAME}
   keytab: ${METRON_SERVICE_KEYTAB}
+
+pcap:
+  pdml.script.path: ${METRON_HOME}/bin/pcap_to_pdml.sh
+  base.path: ${PCAP_BASE_PATH}
+  base.interim.result.path: ${PCAP_BASE_INTERIM_RESULT_PATH}
+  final.output.path: ${PCAP_FINAL_OUTPUT_PATH}
+  page.size: ${PCAP_PAGE_SIZE}
+  yarn.queue: ${PCAP_YARN_QUEUE}
+  finalizer.threadpool.size: ${PCAP_FINALIZER_THREADPOOL_SIZE}

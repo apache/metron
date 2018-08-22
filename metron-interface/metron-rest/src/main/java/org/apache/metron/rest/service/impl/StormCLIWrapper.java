@@ -17,14 +17,8 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.utils.KafkaUtils;
-import org.apache.metron.rest.MetronRestConstants;
-import org.apache.metron.rest.RestException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import static java.util.stream.Collectors.toList;
+import static org.apache.metron.rest.MetronRestConstants.ENRICHMENT_TOPOLOGY_NAME;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,9 +28,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.stream.Collectors.toList;
-import static org.apache.metron.rest.MetronRestConstants.ENRICHMENT_TOPOLOGY_NAME;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.utils.KafkaUtils;
+import org.apache.metron.rest.MetronRestConstants;
+import org.apache.metron.rest.RestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 public class StormCLIWrapper {
 
@@ -99,13 +98,13 @@ public class StormCLIWrapper {
     return exitValue;
   }
 
-  protected String[] getParserStartCommand(String name) {
+  protected String[] getParserStartCommand(String names) {
     List<String> command = new ArrayList<>();
     command.add( environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY));
 
     // sensor type
     command.add( "-s");
-    command.add( name);
+    command.add( names);
 
     // zookeeper
     command.add( "-z");

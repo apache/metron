@@ -49,6 +49,7 @@ import { GlobalConfigService } from './service/global-config.service';
 import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.interceptor';
 
 
+import {PcapModule} from './pcap/pcap.module';
 
 export function initConfig(config: ColumnNamesService) {
   return () => config.list();
@@ -71,7 +72,8 @@ export function initConfig(config: ColumnNamesService) {
     ConfigureRowsModule,
     SaveSearchModule,
     SavedSearchesModule,
-    SwitchModule
+    SwitchModule,
+    PcapModule
   ],
   providers: [{ provide: APP_INITIALIZER, useFactory: initConfig, deps: [ColumnNamesService], multi: true },
               { provide: DataSource, useClass: ElasticSearchLocalstorageImpl },

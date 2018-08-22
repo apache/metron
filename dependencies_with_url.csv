@@ -141,12 +141,15 @@ com.fasterxml.jackson.dataformat:jackson-dataformat-smile:jar:2.6.6:compile,ASLv
 com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.6.6:compile,ASLv2,https://github.com/FasterXML/jackson
 com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:jar:2.7.4:compile,ASLv2,http://wiki.fasterxml.com/JacksonForCbor
 com.fasterxml.jackson.dataformat:jackson-dataformat-smile:jar:2.7.4:compile,ASLv2,http://wiki.fasterxml.com/JacksonForSmile
+com.fasterxml.jackson.dataformat:jackson-dataformat-xml:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson
 com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.7.4:compile,ASLv2,https://github.com/FasterXML/jackson
 com.fasterxml.jackson.datatype:jackson-datatype-joda:jar:2.8.1:compile,ASLv2,https://github.com/FasterXML/jackson-datatype-joda
 com.fasterxml.jackson.datatype:jackson-datatype-joda:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-datatype-joda
 com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-modules-java8
 com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-modules-java8
 com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-modules-java8
+com.fasterxml.jackson.module:jackson-module-jaxb-annotations:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-modules-java8
+com.fasterxml.woodstox:woodstox-core:jar:5.0.3:compile,ASLv2,https://github.com/FasterXML/woodstox
 com.fasterxml:classmate:jar:1.3.1:compile,ASLv2,http://github.com/cowtowncoder/java-classmate
 com.fasterxml:classmate:jar:1.3.4:compile,ASLv2,http://github.com/cowtowncoder/java-classmate
 com.google.code.gson:gson:jar:2.2.4:compile,The Apache Software License, Version 2.0,http://code.google.com/p/google-gson/
@@ -213,6 +216,7 @@ io.confluent:kafka-avro-serializer:jar:1.0:compile,ASLv2,https://github.com/conf
 io.confluent:kafka-schema-registry-client:jar:1.0:compile,ASLv2,https://github.com/confluentinc/schema-registry/
 io.netty:netty-all:jar:4.0.23.Final:compile,ASLv2,
 io.netty:netty-all:jar:4.0.23.Final:provided,ASLv2,
+io.netty:netty-all:jar:4.1.23.Final:compile,ASLv2,
 io.netty:netty:jar:3.10.5.Final:compile,Apache License, Version 2.0,http://netty.io/
 io.netty:netty:jar:3.6.2.Final:compile,Apache License, Version 2.0,http://netty.io/
 io.netty:netty:jar:3.7.0.Final:compile,Apache License, Version 2.0,http://netty.io/
