@@ -17,7 +17,7 @@
  */
 import {NgModule} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
 import { routing } from './pcap.routing';
@@ -29,7 +29,7 @@ import { PcapPacketComponent } from './pcap-packet/pcap-packet.component';
 import { PcapFiltersComponent } from './pcap-filters/pcap-filters.component';
 import { PcapPanelComponent } from './pcap-panel/pcap-panel.component';
 import { PcapPacketLineComponent } from './pcap-packet-line/pcap-packet-line.component';
-import { PcapPaginationComponent } from './pcap-pagination/pcap-pagination.component'
+import { PcapPaginationComponent } from './pcap-pagination/pcap-pagination.component';
 import { PcapService } from './service/pcap.service';
 
 @NgModule({
@@ -37,6 +37,7 @@ import { PcapService } from './service/pcap.service';
     routing,
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     HttpModule,
     DatePickerModule,
   ],
