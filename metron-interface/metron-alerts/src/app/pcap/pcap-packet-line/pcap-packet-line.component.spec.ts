@@ -17,7 +17,6 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { fakePacket } from '../model/pdml.mock';
-import { fakeUdpPacket } from '../model/pdml.mock';
 
 import { PcapPacketLineComponent } from './pcap-packet-line.component';
 
@@ -35,6 +34,8 @@ describe('PcapPacketLineComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(PcapPacketLineComponent);
     component = fixture.componentInstance;
+    component.packet = fakePacket;
+    fixture.detectChanges();
   });
 
   it('should be created', () => {
@@ -42,8 +43,6 @@ describe('PcapPacketLineComponent', () => {
   });
 
   it('should extract timestamp fields', () => {
-    component.packet = fakePacket;
-    fixture.detectChanges();
     expect(component.ip.timestamp).toEqual({ 
       "name": "timestamp", 
       "pos": "0", 
@@ -60,8 +59,6 @@ describe('PcapPacketLineComponent', () => {
   });
 
   it('should extract ipSrcAddr fields', () => {
-    component.packet = fakePacket;
-    fixture.detectChanges();
     expect(component.ip.ipSrcAddr).toEqual({ 
       "name": "ip.src", 
       "pos": "26", 
@@ -77,8 +74,6 @@ describe('PcapPacketLineComponent', () => {
   });
 
   it('should extract ipSrcPort fields', () => {
-    component.packet = fakePacket;
-    fixture.detectChanges();
     expect(component.ip.ipSrcPort).toEqual({ 
       "name": "tcp.srcport", 
       "pos": "34", 
@@ -93,9 +88,7 @@ describe('PcapPacketLineComponent', () => {
     });
   });
 
-  it('should extract TCP ipDestAddr fields', () => {
-    component.packet = fakePacket;
-    fixture.detectChanges();
+  it('should extract ipDestAddr fields', () => {
     expect(component.ip.ipDestAddr).toEqual({ 
       "name": "ip.dst", 
       "pos": "30", 
@@ -110,9 +103,7 @@ describe('PcapPacketLineComponent', () => {
     });
   });
   
-  it('should extract TCP ipDestPort fields', () => {
-    component.packet = fakePacket;
-    fixture.detectChanges();
+  it('should extract ipDestPort fields', () => {
     expect(component.ip.ipDestPort).toEqual({ 
       "name": "tcp.dstport", 
       "pos": "36", 
@@ -128,8 +119,6 @@ describe('PcapPacketLineComponent', () => {
   });
   
   it('should extract protocol fields', () => {
-    component.packet = fakePacket;
-    fixture.detectChanges();
     expect(component.ip.protocol).toEqual({ 
       "name": "ip.proto", 
       "pos": "23", 
@@ -141,40 +130,6 @@ describe('PcapPacketLineComponent', () => {
       "hide": null, 
       "fields": null, 
       "protos": null 
-    });
-  });
-
-  it('should extract UDP ipSrcPort fields', () => {
-    component.packet = fakeUdpPacket;
-    fixture.detectChanges();
-    expect(component.ip.ipSrcPort).toEqual({
-      "name": "udp.srcport",
-      "pos": "34",
-      "showname": "Source port: bootpc (68)",
-      "size": "2",
-      "value": "0044",
-      "show": "68",
-      "unmaskedvalue": null,
-      "hide": null,
-      "fields": null,
-      "protos": null
-    });
-  });
-
-  it('should extract UDP ipDestPort fields', () => {
-    component.packet = fakeUdpPacket;
-    fixture.detectChanges();
-    expect(component.ip.ipDestPort).toEqual({
-      "name": "udp.dstport",
-      "pos": "36",
-      "showname": "Destination port: bootps (67)",
-      "size": "2",
-      "value": "0043",
-      "show": "67",
-      "unmaskedvalue": null,
-      "hide": null,
-      "fields": null,
-      "protos": null
     });
   });
 });
