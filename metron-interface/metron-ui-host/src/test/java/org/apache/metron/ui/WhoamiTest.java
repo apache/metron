@@ -17,6 +17,7 @@
  */
 package org.apache.metron.ui;
 
+import static org.apache.metron.ui.EmbeddedLdap.EMBEDDED_LDAP_PROFILE;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -32,24 +33,19 @@ import java.util.Base64;
 
 import javax.servlet.http.Cookie;
 
-import org.apache.metron.ui.config.TestsConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
@@ -57,11 +53,8 @@ import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSASSASigner;
 
 @RunWith(SpringRunner.class)
-@TestPropertySource("classpath:application-test.yml")
-@ContextConfiguration(classes = { MetronSecurityConfig.class,
-    TestsConfig.class }, initializers = ConfigFileApplicationContextInitializer.class)
-@SpringBootTest(classes = TestHostApplication.class)
-@WebAppConfiguration
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles({"test", EMBEDDED_LDAP_PROFILE})
 public class WhoamiTest {
 
   @Autowired

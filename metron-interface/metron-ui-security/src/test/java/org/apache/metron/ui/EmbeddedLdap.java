@@ -47,6 +47,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class EmbeddedLdap implements InitializingBean, DisposableBean {
 
+    public static final String EMBEDDED_LDAP_PROFILE = "embedded-ldap";
     private Logger LOG = LoggerFactory.getLogger(this.getClass());
 
     @Value("${ldap.provider.url}")
@@ -133,7 +134,7 @@ public class EmbeddedLdap implements InitializingBean, DisposableBean {
         ldapService.start();
 
         // load default schema
-        applyLdif(new File(this.getClass().getClassLoader().getResource("schema.ldif").toURI()));
+        applyLdif(new File("schema.ldif"));
         LOG.debug("LDAP server started");
     }
 
