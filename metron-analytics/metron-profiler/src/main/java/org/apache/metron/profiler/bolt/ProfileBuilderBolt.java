@@ -284,14 +284,19 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
             .build();
   }
 
-  private void logTupleWindow(TupleWindow window) {
+  /**
+   * Logs information about the {@link TupleWindow}.
+   *
+   * @param window The tuple window.
+   */
+  private void log(TupleWindow window) {
     // summarize the newly received tuples
     LongSummaryStatistics received = window.get()
             .stream()
             .map(tuple -> getField(TIMESTAMP_TUPLE_FIELD, tuple, Long.class))
             .collect(Collectors.summarizingLong(Long::longValue));
 
-    LOG.debug("Tuple(s) received; count={}, min={}, max={}, window={} ms",
+    LOG.debug("Tuple(s) received; count={}, min={}, max={}, range={} ms",
             received.getCount(),
             received.getMin(),
             received.getMax(),
@@ -304,7 +309,7 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
               .map(tuple -> getField(TIMESTAMP_TUPLE_FIELD, tuple, Long.class))
               .collect(Collectors.summarizingLong(Long::longValue));
 
-      LOG.debug("Tuple(s) expired; count={}, min={}, max={}, window={} ms, lag={} ms",
+      LOG.debug("Tuple(s) expired; count={}, min={}, max={}, range={} ms, lag={} ms",
               expired.getCount(),
               expired.getMin(),
               expired.getMax(),
@@ -315,9 +320,8 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
 
   @Override
   public void execute(TupleWindow window) {
-
     if(LOG.isDebugEnabled()) {
-      logTupleWindow(window);
+      log(window);
     }
 
     try {
@@ -388,7 +392,7 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
 
     // keep track of time
     activeFlushSignal.update(timestamp);
-    
+
     // distribute the message
     MessageRoute route = new MessageRoute(definition, entity);
     synchronized (messageDistributor) {
