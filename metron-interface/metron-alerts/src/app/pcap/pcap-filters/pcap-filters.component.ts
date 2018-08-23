@@ -23,8 +23,8 @@ import { DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
 
 import { PcapRequest } from '../model/pcap.request';
 
-const DEFAULT_END_TIME = new Date();
-const DEFAULT_START_TIME = new Date().setDate(DEFAULT_END_TIME.getDate() - 5);
+const defaultEndTime = new Date();
+const defaultStartTime = new Date().setDate(defaultEndTime.getDate() - 5);
 
 function dateRangeValidator(formControl: FormControl): ValidationErrors | null {
   if (!formControl.parent) {
@@ -54,10 +54,10 @@ export type PcapFilterFormValue = {
 };
 
 function transformModelToControlValue(model: PcapRequest): PcapFilterFormValue {
-  const startTimeStr = moment(model.startTimeMs > 0 ? model.startTimeMs : DEFAULT_START_TIME).format(DEFAULT_TIMESTAMP_FORMAT);
+  const startTimeStr = moment(model.startTimeMs > 0 ? model.startTimeMs : defaultStartTime).format(DEFAULT_TIMESTAMP_FORMAT);
   let endTimeStr = moment(model.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
   if (isNaN((new Date(model.endTimeMs).getTime()))) {
-    endTimeStr = moment(DEFAULT_END_TIME).format(DEFAULT_TIMESTAMP_FORMAT);
+    endTimeStr = moment(defaultEndTime).format(DEFAULT_TIMESTAMP_FORMAT);
   } else {
     endTimeStr = moment(model.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
   }
@@ -104,8 +104,8 @@ export class PcapFiltersComponent implements OnChanges {
   private validPort: RegExp = /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/;
 
   filterForm = new FormGroup({
-    startTime: new FormControl(moment(DEFAULT_START_TIME).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
-    endTime: new FormControl(moment(DEFAULT_END_TIME).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
+    startTime: new FormControl(moment(defaultStartTime).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
+    endTime: new FormControl(moment(defaultEndTime).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
     ipSrcAddr: new FormControl('', Validators.pattern(this.validIp)),
     ipSrcPort: new FormControl('', Validators.pattern(this.validPort)),
     ipDstAddr: new FormControl('', Validators.pattern(this.validIp)),
