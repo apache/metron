@@ -17,12 +17,15 @@
  */
 import * as moment from 'moment/moment';
 
-import {DEFAULT_TIMESTAMP_FORMAT, META_ALERTS_SENSOR_TYPE} from './constants';
-import {Alert} from '../model/alert';
-import {DateFilterValue} from '../model/date-filter-value';
-import { environment } from 'environments/environment';
+import { DEFAULT_START_TIME, DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT, META_ALERTS_SENSOR_TYPE } from './constants';
+import { Alert } from '../model/alert';
+import { DateFilterValue } from '../model/date-filter-value';
+import { PcapRequest } from '../pcap/model/pcap.request';
+import { PcapFilterFormValue } from '../pcap/pcap-filters/pcap-filters.component';
+import { FormGroup } from '@angular/forms';
 
 export class Utils {
+  
   public static escapeESField(field: string): string {
     return field.replace(/:/g, '\\:');
   }
@@ -200,6 +203,42 @@ export class Utils {
     fromDate = moment(fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
 
     return {toDate: toDate, fromDate: fromDate};
+  }
+
+  public static transformModelToControlValue(model: PcapRequest): PcapFilterFormValue {
+    const startTimeStr = moment(model.startTimeMs > 0 ? model.startTimeMs : DEFAULT_START_TIME).format(DEFAULT_TIMESTAMP_FORMAT);
+    let endTimeStr = moment(model.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
+    if (isNaN((new Date(model.endTimeMs).getTime()))) {
+      endTimeStr = moment(DEFAULT_END_TIME).format(DEFAULT_TIMESTAMP_FORMAT);
+    } else {
+      endTimeStr = moment(model.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
+    }
+
+    return {
+      startTime: startTimeStr,
+      endTime: endTimeStr,
+      ipSrcAddr: model.ipSrcAddr,
+      ipDstAddr: model.ipDstAddr,
+      ipSrcPort: model.ipSrcPort ? String(model.ipSrcPort) : '',
+      ipDstPort: model.ipDstPort ? String(model.ipDstPort) : '',
+      protocol: model.protocol,
+      includeReverse: model.includeReverse,
+      packetFilter: model.packetFilter
+    };
+  }
+
+  public static transformControlValueToModel(control: FormGroup): PcapRequest {
+    const pcapRequest = new PcapRequest();
+    pcapRequest.startTimeMs = new Date(control.value.startTime).getTime();
+    pcapRequest.endTimeMs = new Date(control.value.endTime).getTime();
+    pcapRequest.ipSrcAddr = control.value.ipSrcAddr;
+    pcapRequest.ipDstAddr = control.value.ipDstAddr;
+    pcapRequest.ipSrcPort = control.value.ipSrcPort;
+    pcapRequest.ipDstPort = control.value.ipDstPort;
+    pcapRequest.protocol =  control.value.protocol;
+    pcapRequest.includeReverse = control.value.includeReverse;
+    pcapRequest.packetFilter = control.value.packetFilter;
+    return pcapRequest;
   }
 
 }

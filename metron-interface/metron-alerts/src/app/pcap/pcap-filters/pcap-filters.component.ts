@@ -19,12 +19,10 @@ import {Component, Input, Output, EventEmitter, OnChanges, SimpleChanges} from '
 import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
 
 import * as moment from 'moment/moment';
-import { DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
+import { DEFAULT_START_TIME, DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
 
 import { PcapRequest } from '../model/pcap.request';
-
-const defaultEndTime = new Date();
-const defaultStartTime = new Date().setDate(defaultEndTime.getDate() - 5);
+import { Utils } from '../../utils/utils';
 
 function dateRangeValidator(formControl: FormControl): ValidationErrors | null {
   if (!formControl.parent) {
@@ -53,42 +51,6 @@ export type PcapFilterFormValue = {
   packetFilter: string
 };
 
-function transformModelToControlValue(model: PcapRequest): PcapFilterFormValue {
-  const startTimeStr = moment(model.startTimeMs > 0 ? model.startTimeMs : defaultStartTime).format(DEFAULT_TIMESTAMP_FORMAT);
-  let endTimeStr = moment(model.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
-  if (isNaN((new Date(model.endTimeMs).getTime()))) {
-    endTimeStr = moment(defaultEndTime).format(DEFAULT_TIMESTAMP_FORMAT);
-  } else {
-    endTimeStr = moment(model.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
-  }
-
-  return {
-    startTime: startTimeStr,
-    endTime: endTimeStr,
-    ipSrcAddr: model.ipSrcAddr,
-    ipDstAddr: model.ipDstAddr,
-    ipSrcPort: model.ipSrcPort ? String(model.ipSrcPort) : '',
-    ipDstPort: model.ipDstPort ? String(model.ipDstPort) : '',
-    protocol: model.protocol,
-    includeReverse: model.includeReverse,
-    packetFilter: model.packetFilter
-  };
-}
-
-function transformControlValueToModel(control: FormGroup): PcapRequest {
-  const pcapRequest = new PcapRequest();
-  pcapRequest.startTimeMs = new Date(control.value.startTime).getTime();
-  pcapRequest.endTimeMs = new Date(control.value.endTime).getTime();
-  pcapRequest.ipSrcAddr = control.value.ipSrcAddr;
-  pcapRequest.ipDstAddr = control.value.ipDstAddr;
-  pcapRequest.ipSrcPort = control.value.ipSrcPort;
-  pcapRequest.ipDstPort = control.value.ipDstPort;
-  pcapRequest.protocol =  control.value.protocol;
-  pcapRequest.includeReverse = control.value.includeReverse;
-  pcapRequest.packetFilter = control.value.packetFilter;
-  return pcapRequest;
-}
-
 @Component({
   selector: 'app-pcap-filters',
   templateUrl: './pcap-filters.component.html',
@@ -104,8 +66,8 @@ export class PcapFiltersComponent implements OnChanges {
   private validPort: RegExp = /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/;
 
   filterForm = new FormGroup({
-    startTime: new FormControl(moment(defaultStartTime).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
-    endTime: new FormControl(moment(defaultEndTime).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
+    startTime: new FormControl(moment(DEFAULT_START_TIME).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
+    endTime: new FormControl(moment(DEFAULT_END_TIME).format(DEFAULT_TIMESTAMP_FORMAT), dateRangeValidator),
     ipSrcAddr: new FormControl('', Validators.pattern(this.validIp)),
     ipSrcPort: new FormControl('', Validators.pattern(this.validPort)),
     ipDstAddr: new FormControl('', Validators.pattern(this.validIp)),
@@ -118,13 +80,13 @@ export class PcapFiltersComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['model']) {
       const newModel: PcapRequest = changes['model'].currentValue;
-      const controlValue = transformModelToControlValue(newModel);
+      const controlValue = Utils.transformModelToControlValue(newModel);
       this.filterForm.setValue(controlValue);
     }
   }
 
   onSubmit() {
-    const pcapRequest = transformControlValueToModel(this.filterForm);
+    const pcapRequest = Utils.transformControlValueToModel(this.filterForm);
     this.search.emit(pcapRequest);
   }
 }
