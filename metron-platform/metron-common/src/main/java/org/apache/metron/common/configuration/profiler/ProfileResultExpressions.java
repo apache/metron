@@ -35,6 +35,10 @@ public class ProfileResultExpressions implements Serializable {
     this.expression = expression;
   }
 
+  public ProfileResultExpressions() {
+    // needed for serialization and Spark's code generator
+  }
+
   @JsonValue
   public String getExpression() {
     return expression;

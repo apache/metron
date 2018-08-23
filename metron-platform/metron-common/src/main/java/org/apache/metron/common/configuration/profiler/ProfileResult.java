@@ -65,6 +65,10 @@ public class ProfileResult implements Serializable {
     this.triageExpressions = new ProfileTriageExpressions();
   }
 
+  public ProfileResult() {
+    // needed for serialization and Spark's code generator
+  }
+
   public ProfileResultExpressions getProfileExpressions() {
     return profileExpressions;
   }
