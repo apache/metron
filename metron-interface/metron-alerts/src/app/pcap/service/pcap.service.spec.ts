@@ -22,7 +22,10 @@ import {
   tick,
   discardPeriodicTasks
 } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import {
+  HttpClientTestingModule,
+  HttpTestingController
+} from '@angular/common/http/testing';
 import { Observable } from 'rxjs/Rx';
 
 import { PcapService } from './pcap.service';
@@ -39,15 +42,16 @@ describe('PcapService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [
-        PcapService
-      ]
+      providers: [PcapService]
     });
   });
 
-  afterEach(inject([HttpTestingController], (httpMock: HttpTestingController) => {
-    httpMock.verify();
-  }));
+  afterEach(inject(
+    [HttpTestingController],
+    (httpMock: HttpTestingController) => {
+      httpMock.verify();
+    }
+  ));
 
   describe('getPackets()', () => {
     it('should return an Observable<Response>', inject(
@@ -63,16 +67,20 @@ describe('PcapService', () => {
           expect(packets.pdml.packet[0].protos.length).toBe(3);
         });
 
-        const req = mockBackend.expectOne(`/api/v1/pcap/job_1234567890123_4567/pdml?page=1`);
+        const req = mockBackend.expectOne(
+          `/api/v1/pcap/job_1234567890123_4567/pdml?page=1`
+        );
         expect(req.request.method).toEqual('GET');
         req.flush(pdmlJsonMock);
-        }
+      }
     ));
   });
 
   describe('pollStatus()', () => {
-    it('should call getStatus() in intervals', fakeAsync(inject(
-      [PcapService, HttpTestingController], (pcapService, mockBackend) => {
+    it('should call getStatus() in intervals', fakeAsync(
+      inject(
+        [PcapService, HttpTestingController],
+        (pcapService, mockBackend) => {
           const responseMock: PcapStatusResponse = fakePcapStatusResponse;
           const spy = spyOn(pcapService, 'getStatus').and.returnValue(
             Observable.of(responseMock)
@@ -85,9 +93,9 @@ describe('PcapService', () => {
           tick(4000);
           expect(spy.calls.count()).toBe(2);
           discardPeriodicTasks();
-        })
+        }
       )
-    );
+    ));
   });
 
   describe('submitRequest()', () => {
@@ -122,48 +130,52 @@ describe('PcapService', () => {
           expect(response).toBeTruthy();
         });
 
-        const req = mockBackend.expectOne(`/api/v1/pcap/job_1234567890123_4567`);
+        const req = mockBackend.expectOne(
+          `/api/v1/pcap/job_1234567890123_4567`
+        );
         expect(req.request.method).toEqual('GET');
         req.flush(responseMock);
       }
     ));
   });
 
- describe('getRunningJob()', () => {
+  describe('getRunningJob()', () => {
     it('should return an Observable<PcapStatusResponse>', inject(
-            [PcapService, HttpTestingController],
-            (pcapService, mockBackend) => {
-              const responseMock: PcapStatusResponse = fakePcapStatusResponse;
-              let response;
+      [PcapService, HttpTestingController],
+      (pcapService, mockBackend) => {
+        const responseMock: PcapStatusResponse = fakePcapStatusResponse;
+        let response;
 
-              pcapService.getRunningJob().subscribe(r => {
-                response = r
-                expect(response).toBeTruthy();
-              });
+        pcapService.getRunningJob().subscribe(r => {
+          response = r;
+          expect(response).toBeTruthy();
+        });
 
-              const req = mockBackend.expectOne(`/api/v1/pcap?state=RUNNING`);
-              expect(req.request.method).toEqual('GET');
-              req.flush(responseMock);
-            }
+        const req = mockBackend.expectOne(`/api/v1/pcap?state=RUNNING`);
+        expect(req.request.method).toEqual('GET');
+        req.flush(responseMock);
+      }
     ));
   });
 
   describe('getPcapRequest()', () => {
     it('should return an Observable<PcapRequest>', inject(
-            [PcapService, HttpTestingController],
-            (pcapService, mockBackend) => {
-              const responseMock: PcapRequest = fakePcapRequest;
-              let response;
+      [PcapService, HttpTestingController],
+      (pcapService, mockBackend) => {
+        const responseMock: PcapRequest = fakePcapRequest;
+        let response;
 
-              pcapService.getPcapRequest(jobId).subscribe(r => {
-                response = r
-                expect(response).toBeTruthy();
-              });
+        pcapService.getPcapRequest(jobId).subscribe(r => {
+          response = r;
+          expect(response).toBeTruthy();
+        });
 
-              const req = mockBackend.expectOne(`/api/v1/pcap/job_1234567890123_4567/config`);
-              expect(req.request.method).toEqual('GET');
-              req.flush(responseMock);
-            }
+        const req = mockBackend.expectOne(
+          `/api/v1/pcap/job_1234567890123_4567/config`
+        );
+        expect(req.request.method).toEqual('GET');
+        req.flush(responseMock);
+      }
     ));
   });
 
