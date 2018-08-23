@@ -22,7 +22,6 @@ import * as moment from 'moment/moment';
 import { DEFAULT_START_TIME, DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
 
 import { PcapRequest } from '../model/pcap.request';
-import { Utils } from '../../utils/utils';
 
 function dateRangeValidator(formControl: FormControl): ValidationErrors | null {
   if (!formControl.parent) {
@@ -37,6 +36,42 @@ function dateRangeValidator(formControl: FormControl): ValidationErrors | null {
     return { error: 'Selected date range is invalid.' };
   }
   return null;
+}
+
+function transformPcapRequestToFormGroupValue(model: PcapRequest): PcapFilterFormValue {
+  const startTimeStr = moment(model.startTimeMs > 0 ? model.startTimeMs : DEFAULT_START_TIME).format(DEFAULT_TIMESTAMP_FORMAT);
+  let endTimeStr = moment(model.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
+  if (isNaN((new Date(model.endTimeMs).getTime()))) {
+    endTimeStr = moment(DEFAULT_END_TIME).format(DEFAULT_TIMESTAMP_FORMAT);
+  } else {
+    endTimeStr = moment(model.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
+  }
+
+  return {
+    startTime: startTimeStr,
+    endTime: endTimeStr,
+    ipSrcAddr: model.ipSrcAddr,
+    ipDstAddr: model.ipDstAddr,
+    ipSrcPort: model.ipSrcPort ? String(model.ipSrcPort) : '',
+    ipDstPort: model.ipDstPort ? String(model.ipDstPort) : '',
+    protocol: model.protocol,
+    includeReverse: model.includeReverse,
+    packetFilter: model.packetFilter
+  };
+}
+
+function transformFormGroupValueToPcapRequest(control: FormGroup): PcapRequest {
+  const pcapRequest = new PcapRequest();
+  pcapRequest.startTimeMs = new Date(control.value.startTime).getTime();
+  pcapRequest.endTimeMs = new Date(control.value.endTime).getTime();
+  pcapRequest.ipSrcAddr = control.value.ipSrcAddr;
+  pcapRequest.ipDstAddr = control.value.ipDstAddr;
+  pcapRequest.ipSrcPort = control.value.ipSrcPort;
+  pcapRequest.ipDstPort = control.value.ipDstPort;
+  pcapRequest.protocol =  control.value.protocol;
+  pcapRequest.includeReverse = control.value.includeReverse;
+  pcapRequest.packetFilter = control.value.packetFilter;
+  return pcapRequest;
 }
 
 export type PcapFilterFormValue = {
@@ -80,13 +115,13 @@ export class PcapFiltersComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['model']) {
       const newModel: PcapRequest = changes['model'].currentValue;
-      const controlValue = Utils.transformModelToControlValue(newModel);
+      const controlValue = transformPcapRequestToFormGroupValue(newModel);
       this.filterForm.setValue(controlValue);
     }
   }
 
   onSubmit() {
-    const pcapRequest = Utils.transformControlValueToModel(this.filterForm);
+    const pcapRequest = transformFormGroupValueToPcapRequest(this.filterForm);
     this.search.emit(pcapRequest);
   }
 }
