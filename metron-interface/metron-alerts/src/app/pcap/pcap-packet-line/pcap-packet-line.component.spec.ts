@@ -92,7 +92,7 @@ describe('PcapPacketLineComponent', () => {
     });
   });
 
-  it('should extract ipDestAddr fields', () => {
+  it('should extract TCP ipDestAddr fields', () => {
     component.packet = fakePacket;
     fixture.detectChanges();
     expect(component.ip.ipDestAddr).toEqual({ 
@@ -109,7 +109,7 @@ describe('PcapPacketLineComponent', () => {
     });
   });
   
-  it('should extract ipDestPort fields', () => {
+  it('should extract TCP ipDestPort fields', () => {
     component.packet = fakePacket;
     fixture.detectChanges();
     expect(component.ip.ipDestPort).toEqual({ 
