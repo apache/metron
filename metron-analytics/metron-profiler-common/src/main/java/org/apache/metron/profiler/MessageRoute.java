@@ -76,7 +76,6 @@ public class MessageRoute implements Serializable {
 
   public MessageRoute() {
     // necessary for serialization
-
   }
 
   public String getEntity() {
