@@ -17,8 +17,8 @@
  */
 
 export class PcapRequest {
-  startTimeMs = 0;
-  endTimeMs = 150000000000000000;
+  startTimeMs: number;
+  endTimeMs: number;
   ipSrcAddr = '';
   ipSrcPort = '';
   ipDstAddr = '';
