@@ -16,15 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { Component, Input, Output, EventEmitter, DebugElement, SimpleChange } from '@angular/core';
+import { DebugElement, SimpleChange } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { PcapFiltersComponent } from './pcap-filters.component';
 import { DatePickerModule } from '../../shared/date-picker/date-picker.module';
 import { PcapRequest } from '../model/pcap.request';
+import { DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
+import * as moment from 'moment/moment';
 
 describe('PcapFiltersComponent', () => {
   let component: PcapFiltersComponent;
@@ -414,5 +416,49 @@ describe('PcapFiltersComponent', () => {
       });
     });
 
+    it('start date should be valid by default', () => {
+      expect(component.filterForm.get('startTime').valid).toBe(true);
+    });
+
+    it('start date is invalid if it is bigger than end date', () => {
+      // start time is bigger than end time
+      component.filterForm.patchValue({
+        startTime: '2018-08-24 16:30:00',
+        endTime: '2018-08-23 16:30:00'
+      });
+
+      expect(component.filterForm.get('startTime').valid).toBe(false);
+    });
+
+    it('start date should be valid again based on the end date', () => {
+      // start time is bigger than end time
+      component.filterForm.patchValue({
+        startTime: '2018-08-24 16:30:00',
+        endTime: '2018-08-23 16:30:00'
+      });
+
+      expect(component.filterForm.get('startTime').valid).toBe(false);
+
+      component.filterForm.patchValue({
+        endTime: '2018-08-25 16:30:00'
+      });
+
+      expect(component.filterForm.get('startTime').valid).toBe(true);
+    });
+
+    it('end date should be valid by default', () => {
+      expect(component.filterForm.get('endTime').valid).toBe(true);
+    });
+
+    it('end date is invalid if it is in the future', () => {
+
+      expect(component.filterForm.get('endTime').valid).toBe(true);
+
+      component.filterForm.patchValue({
+        endTime: moment(new Date()).add(2, 'days').format(DEFAULT_TIMESTAMP_FORMAT)
+      });
+
+      expect(component.filterForm.get('endTime').valid).toBe(false);
+    });
   });
 });
