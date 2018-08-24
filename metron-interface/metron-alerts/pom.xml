@@ -62,7 +62,7 @@
                     </execution>
                     <execution>
                         <phase>generate-resources</phase>
-                        <id>ng build</id>
+                        <id>ng build --aot</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
