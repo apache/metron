@@ -228,7 +228,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // wait a bit beyond the window lag before writing another message.  this allows storm's window manager to close
     // the event window, which then lets the profiler processes the previous messages.
-    Thread.sleep(windowLagMillis * 2);
+    long sleep = windowLagMillis + periodDurationMillis;
+    LOG.debug("Waiting {} millis before sending message to close window", sleep);
+    Thread.sleep(sleep);
     kafkaComponent.writeMessages(inputTopic, message3);
 
     // retrieve the profile measurement using PROFILE_GET
@@ -241,7 +243,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     while(actuals.size() == 0 && attempt++ < 10) {
 
       // wait for the profiler to flush
-      long sleep = windowDurationMillis;
+      sleep = windowDurationMillis;
       LOG.debug("Waiting {} millis for profiler to flush", sleep);
       Thread.sleep(sleep);
 
