@@ -167,7 +167,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     // retrieve the profile measurement using PROFILE_GET
     String profileGetExpression = "PROFILE_GET('processing-time-test', '10.0.0.1', PROFILE_FIXED('5', 'MINUTES'))";
     List<Integer> actuals = execute(profileGetExpression, List.class);
-    LOG.debug("{} = {}", profileGetExpression, actuals);
 
     // storm needs at least one message to close its event window
     int attempt = 0;
@@ -185,7 +184,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
       // retrieve the profile measurement using PROFILE_GET
       actuals = execute(profileGetExpression, List.class);
-      LOG.debug("{} = {}", profileGetExpression, actuals);
     }
 
     // the profile should count at least 3 messages
@@ -236,7 +234,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     // retrieve the profile measurement using PROFILE_GET
     String profileGetExpression = "PROFILE_GET('processing-time-test', '10.0.0.1', PROFILE_FIXED('5', 'MINUTES'))";
     List<Integer> actuals = execute(profileGetExpression, List.class);
-    LOG.debug("{} = {}", profileGetExpression, actuals);
 
     // storm needs at least one message to close its event window
     int attempt = 0;
@@ -252,7 +249,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
       // retrieve the profile measurement using PROFILE_GET
       actuals = execute(profileGetExpression, List.class);
-      LOG.debug("{} = {}", profileGetExpression, actuals);
     }
 
     // the profile should count 3 messages
@@ -278,29 +274,36 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     List<String> messages = FileUtils.readLines(new File("src/test/resources/telemetry.json"));
     kafkaComponent.writeMessages(inputTopic, messages);
 
-    // wait until the profile is flushed
-    waitOrTimeout(() -> profilerTable.getPutLog().size() >= 3, timeout(seconds(90)));
+    long timestamp = System.currentTimeMillis();
+    LOG.debug("Attempting to close window period by sending message with timestamp = {}", timestamp);
+    kafkaComponent.writeMessages(inputTopic, getMessage("192.168.66.1", timestamp));
+    kafkaComponent.writeMessages(inputTopic, getMessage("192.168.138.158", timestamp));
 
-    // validate the measurements written by the profiler using `PROFILE_GET`
-    // the 'window' looks up to 5 hours before the last timestamp contained in the telemetry
+    // create the 'window' that looks up to 5 hours before the last timestamp contained in the telemetry
     assign("lastTimestamp", "1530978728982L");
     assign("window", "PROFILE_WINDOW('from 5 hours ago', lastTimestamp)");
 
-    // validate the first profile period; the next has likely not been flushed yet
+    // wait until the profile flushes both periods.  the first period will flush immediately as subsequent messages
+    // advance time.  the next period contains all of the remaining messages, so there are no other messages to
+    // advance time.  because of this the next period only flushes after the time-to-live expires
+    waitOrTimeout(() -> profilerTable.getPutLog().size() >= 6, timeout(seconds(90)));
     {
-      // there are 14 messages where ip_src_addr = 192.168.66.1
+      // there are 14 messages in the first period and 12 in the next where ip_src_addr = 192.168.66.1
       List results = execute("PROFILE_GET('count-by-ip', '192.168.66.1', window)", List.class);
       assertEquals(14, results.get(0));
+      assertEquals(12, results.get(1));
     }
     {
-      // there are 36 messages where ip_src_addr = 192.168.138.158
+      // there are 36 messages in the first period and 38 in the next where ip_src_addr = 192.168.138.158
       List results = execute("PROFILE_GET('count-by-ip', '192.168.138.158', window)", List.class);
       assertEquals(36, results.get(0));
+      assertEquals(38, results.get(1));
     }
     {
-      // there are 50 messages in all
+      // in all there are 50 messages in the first period and 50 messages in the next
       List results = execute("PROFILE_GET('total-count', 'total', window)", List.class);
       assertEquals(50, results.get(0));
+      assertEquals(50, results.get(1));
     }
   }
 
@@ -521,6 +524,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * @return The result of executing the Stellar expression.
    */
   private <T> T execute(String expression, Class<T> clazz) {
-    return executor.execute(expression, Collections.emptyMap(), clazz);
+    T results = executor.execute(expression, Collections.emptyMap(), clazz);
+
+    LOG.debug("{} = {}", expression, results);
+    return results;
   }
 }
