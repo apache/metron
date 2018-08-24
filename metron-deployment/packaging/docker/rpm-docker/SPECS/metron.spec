@@ -154,6 +154,7 @@ This package installs the Metron Parser files
 %{metron_home}/config/zookeeper/parsers/jsonMapWrappedQuery.json
 %{metron_home}/config/zookeeper/parsers/snort.json
 %{metron_home}/config/zookeeper/parsers/squid.json
+%{metron_home}/config/zookeeper/parsers/syslog5424.json
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
 %{metron_home}/config/zookeeper/parsers/asa.json
@@ -546,6 +547,8 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Fri Aug 24 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
+- Add syslog5424 parser
 * Thu Feb 1 2018 Apache Metron <dev@metron.apache.org> - 0.4.3
 - Add Solr install script to Solr RPM
 * Tue Sep 25 2017 Apache Metron <dev@metron.apache.org> - 0.4.2
