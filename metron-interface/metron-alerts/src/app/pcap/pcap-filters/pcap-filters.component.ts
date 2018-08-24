@@ -15,13 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, Output, EventEmitter, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import {Component, Input, Output, EventEmitter, OnChanges, OnInit, OnDestroy, SimpleChanges} from '@angular/core';
 import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
 
 import * as moment from 'moment/moment';
 import { DEFAULT_START_TIME, DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
 
 import { PcapRequest } from '../model/pcap.request';
+import { Observable, Subscription } from 'rxjs';
 
 function validateStartDate(formControl: FormControl): ValidationErrors | null {
   if (!formControl.parent) {
@@ -101,7 +102,7 @@ export type PcapFilterFormValue = {
   templateUrl: './pcap-filters.component.html',
   styleUrls: ['./pcap-filters.component.scss']
 })
-export class PcapFiltersComponent implements OnInit, OnChanges {
+export class PcapFiltersComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input() queryRunning = true;
   @Input() model: PcapRequest = new PcapRequest();
@@ -109,6 +110,8 @@ export class PcapFiltersComponent implements OnInit, OnChanges {
 
   private validIp: RegExp = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$/;
   private validPort: RegExp = /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/;
+
+  private dateRangeChangeSubscription: Subscription;
 
   filterForm = new FormGroup({
     startTime: new FormControl(moment(DEFAULT_START_TIME).format(DEFAULT_TIMESTAMP_FORMAT), validateStartDate),
@@ -122,16 +125,26 @@ export class PcapFiltersComponent implements OnInit, OnChanges {
     packetFilter: new FormControl(''),
   });
 
-  ngOnInit() {
-    this.filterForm.get('startTime').valueChanges.subscribe((value) => {
-       this.filterForm.get('endTime').updateValueAndValidity({
-         emitEvent: false
-       });
-    });
-    this.filterForm.get('endTime').valueChanges.subscribe((value) => {
-      this.filterForm.get('startTime').updateValueAndValidity({
+  subscribeToDateRangeChanges(callback: () => void): Subscription {
+    const startTimeChanges: Observable<string> = this.filterForm.get('startTime').valueChanges;
+    const endTimeChanges: Observable<string> = this.filterForm.get('endTime').valueChanges;
+    return startTimeChanges.merge(endTimeChanges).subscribe(callback);
+  }
+
+  forceValidateDateRangeFields() {
+    [
+      this.filterForm.get('startTime'),
+      this.filterForm.get('endTime'),
+    ].forEach((control: FormControl) => {
+      control.updateValueAndValidity({
         emitEvent: false
       });
+    });
+  }
+
+  ngOnInit() {
+    this.dateRangeChangeSubscription = this.subscribeToDateRangeChanges(() => {
+      this.forceValidateDateRangeFields();
     });
   }
 
@@ -146,5 +159,9 @@ export class PcapFiltersComponent implements OnInit, OnChanges {
   onSubmit() {
     const pcapRequest = transformFormGroupValueToPcapRequest(this.filterForm);
     this.search.emit(pcapRequest);
+  }
+
+  ngOnDestroy() {
+    this.dateRangeChangeSubscription.unsubscribe();
   }
 }
