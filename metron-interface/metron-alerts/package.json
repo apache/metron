@@ -7,7 +7,8 @@
     "build": "./node_modules/@angular/cli/bin/ng build --prod",
     "start": "ng serve",
     "lint": "tslint \"src/**/*.ts\"",
-    "test": "karma start --single-run --browsers ChromeHeadless karma.conf.js",
+    "test": "ng test --browsers=Chrome",
+    "testCI": "ng test --watch=false --browsers=ChromeHeadless",
     "pree2e": "webdriver-manager update",
     "e2e": "protractor-flake --protractor-path=./node_modules/.bin/protractor --max-attempts=3 -- ./protractor.conf.js"
   },
