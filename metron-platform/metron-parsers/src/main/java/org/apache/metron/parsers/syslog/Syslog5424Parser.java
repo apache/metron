@@ -35,20 +35,15 @@ import org.json.simple.JSONObject;
  */
 public class Syslog5424Parser extends BasicParser {
   public static final String NIL_POLICY_CONFIG = "nilPolicy";
-  /**
-   * The NilPolicy specifies how the parser handles missing fields in the return
-   * It can:
-   *  Omit the fields
-   *  Have a value of '-' ( as spec )
-   *  Have null values for the fields
-   * <p>The default is to omit the fields from the return set.</p>
-   */
-  private NilPolicy nilPolicy = NilPolicy.OMIT;
+  private SyslogParser syslogParser;
 
   @Override
   public void configure(Map<String, Object> config) {
+    // Default to OMIT policy for nil fields
+    // this means they will not be in the returned field set
     String nilPolicyStr = (String) config.getOrDefault(NIL_POLICY_CONFIG,NilPolicy.OMIT.name());
-    nilPolicy = NilPolicy.valueOf(nilPolicyStr);
+    NilPolicy nilPolicy = NilPolicy.valueOf(nilPolicyStr);
+    syslogParser = new SyslogParserBuilder().withNilPolicy(nilPolicy).build();
   }
 
   @Override
@@ -64,10 +59,7 @@ public class Syslog5424Parser extends BasicParser {
       }
 
       String originalString = new String(rawMessage);
-
-      SyslogParser parser = new SyslogParserBuilder().withNilPolicy(nilPolicy).build();
-
-      JSONObject jsonObject = new JSONObject(parser.parseLine(originalString));
+      JSONObject jsonObject = new JSONObject(syslogParser.parseLine(originalString));
 
       // be sure to put in the original string, and the timestamp.
       // we wil just copy over the timestamp from the syslog
