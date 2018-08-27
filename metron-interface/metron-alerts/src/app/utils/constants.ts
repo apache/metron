@@ -37,3 +37,6 @@ export let INDEXES =  environment.indices ? environment.indices.split(',') : [];
 export let POLLING_DEFAULT_STATE = environment.defaultPollingState;
 
 export let MAX_ALERTS_IN_META_ALERTS = 350;
+
+export const DEFAULT_END_TIME = new Date();
+export const DEFAULT_START_TIME = new Date().setDate(DEFAULT_END_TIME.getDate() - 5);

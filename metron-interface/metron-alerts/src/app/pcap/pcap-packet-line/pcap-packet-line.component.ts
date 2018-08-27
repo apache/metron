@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Component, OnInit, Input } from '@angular/core';
-import { PdmlPacket, PdmlProto, PdmlField } from '../model/pdml'
+import { PdmlPacket, PdmlProto, PdmlField } from '../model/pdml';
 
 @Component({
   selector: '[app-pcap-packet-line]',
@@ -37,18 +37,18 @@ export class PcapPacketLineComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
-    const genProto: PdmlProto = this.packet.protos.filter(p => p.name == "geninfo")[0];
-    const ipProto: PdmlProto = this.packet.protos.filter(p => p.name == "ip")[0];
-    const tcpProto: PdmlProto = this.packet.protos.filter(p => p.name == "tcp")[0];
-    const udpProto: PdmlProto = this.packet.protos.filter(p => p.name == "udp")[0];
+    const genProto: PdmlProto = this.packet.protos.filter(p => p.name === 'geninfo')[0];
+    const ipProto: PdmlProto = this.packet.protos.filter(p => p.name === 'ip')[0];
+    const tcpProto: PdmlProto = this.packet.protos.filter(p => p.name === 'tcp')[0];
+    const udpProto: PdmlProto = this.packet.protos.filter(p => p.name === 'udp')[0];
 
     this.ip = {
-      timestamp: PdmlProto.findField(genProto,'timestamp'),
-      ipSrcAddr: PdmlProto.findField(ipProto,'ip.src'),
-      ipSrcPort: tcpProto ? PdmlProto.findField(tcpProto,'tcp.srcport') : PdmlProto.findField(udpProto,'udp.srcport'),
-      ipDestAddr: PdmlProto.findField(ipProto,'ip.dst'),
-      ipDestPort: tcpProto ? PdmlProto.findField(tcpProto,'tcp.dstport') : PdmlProto.findField(udpProto,'udp.dstport'),
-      protocol: PdmlProto.findField(ipProto,'ip.proto')
+      timestamp: PdmlProto.findField(genProto, 'timestamp'),
+      ipSrcAddr: PdmlProto.findField(ipProto, 'ip.src'),
+      ipSrcPort: tcpProto ? PdmlProto.findField(tcpProto, 'tcp.srcport') : PdmlProto.findField(udpProto, 'udp.srcport'),
+      ipDestAddr: PdmlProto.findField(ipProto, 'ip.dst'),
+      ipDestPort: tcpProto ? PdmlProto.findField(tcpProto, 'tcp.dstport') : PdmlProto.findField(udpProto, 'udp.dstport'),
+      protocol: PdmlProto.findField(ipProto, 'ip.proto')
     };
   }
 

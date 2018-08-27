@@ -23,7 +23,7 @@ import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
 import { Subscription } from 'rxjs/Rx';
 import { PcapPagination } from '../model/pcap-pagination';
-import { RestError } from "../../model/rest-error";
+import { RestError } from '../../model/rest-error';
 
 @Component({
   selector: 'app-pcap-panel',
@@ -40,9 +40,9 @@ export class PcapPanelComponent implements OnInit, OnDestroy {
   cancelSubscription: Subscription;
   submitSubscription: Subscription;
   getSubscription: Subscription;
-  queryRunning: boolean = false;
+  queryRunning = false;
   queryId: string;
-  progressWidth: number = 0;
+  progressWidth = 0;
   pagination: PcapPagination = new PcapPagination();
   savedPcapRequest: {};
   errorMsg: string;
