@@ -20,6 +20,9 @@
 
 package org.apache.metron.profiler;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.SerDeUtils;
@@ -77,10 +80,23 @@ public class ProfileMeasurementTest {
   @Test
   public void testKryoSerialization() throws Exception {
     assertNotNull(measurement);
+    Kryo kryo = new Kryo();
 
-    // round-trip serialization
-    byte[] raw = SerDeUtils.toBytes(measurement);
-    Object actual = SerDeUtils.fromBytes(raw, Object.class);
+    // serialize
+    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+    Output output = new Output(byteStream);
+    kryo.writeObject(output, measurement);
+
+    // validate serialization
+    byte[] bits = output.toBytes();
+    assertNotNull(bits);
+
+    // deserialize
+    Input input = new Input(new ByteArrayInputStream(bits));
+    ProfileMeasurement actual = kryo.readObject(input, ProfileMeasurement.class);
+
+    // validate deserialization
+    assertNotNull(actual);
     assertEquals(measurement, actual);
   }
 
