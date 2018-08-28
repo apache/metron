@@ -42,6 +42,10 @@ public class ProfileResult implements Serializable {
   @JsonProperty("triage")
   private ProfileTriageExpressions triageExpressions;
 
+  public ProfileResult() {
+    // default constructor required for kryo serialization
+  }
+
   @JsonCreator
   public ProfileResult(
           @JsonProperty(value = "profile", required = true) ProfileResultExpressions profileExpressions,
