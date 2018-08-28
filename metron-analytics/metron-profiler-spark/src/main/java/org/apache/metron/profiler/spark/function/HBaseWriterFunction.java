@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -108,25 +109,31 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
    */
   @Override
   public Iterator<Integer> call(Iterator<ProfileMeasurementAdapter> iterator) throws Exception {
+    int count = 0;
     LOG.debug("About to write profile measurement(s) to HBase");
 
-    // open an HBase connection
-    Configuration config = HBaseConfiguration.create();
-    try(HBaseClient client = new HBaseClient(tableProvider, config, tableName)) {
+    // do not open hbase connection, if nothing to write
+    List<ProfileMeasurementAdapter> measurements = IteratorUtils.toList(iterator);
+    if(measurements.size() > 0) {
 
-      while(iterator.hasNext()) {
-        ProfileMeasurement m = iterator.next().toProfileMeasurement();
-        client.addMutation(rowKeyBuilder.rowKey(m), columnBuilder.columns(m), durability);
+      // open an HBase connection
+      Configuration config = HBaseConfiguration.create();
+      try (HBaseClient client = new HBaseClient(tableProvider, config, tableName)) {
+
+        for (ProfileMeasurementAdapter adapter : measurements) {
+          ProfileMeasurement m = adapter.toProfileMeasurement();
+          client.addMutation(rowKeyBuilder.rowKey(m), columnBuilder.columns(m), durability);
+        }
+        count = client.mutate();
+
+      } catch (IOException e) {
+        LOG.error("Unable to open connection to HBase", e);
+        throw new RuntimeException(e);
       }
-
-      int count = client.mutate();
-      LOG.debug("{} profile measurement(s) written to HBase", count);
-      return IteratorUtils.singletonIterator(count);
-
-    } catch(IOException e) {
-      LOG.error("Unable to open connection to HBase", e);
-      throw new RuntimeException(e);
     }
+
+    LOG.debug("{} profile measurement(s) written to HBase", count);
+    return IteratorUtils.singletonIterator(count);
   }
 
   /**

@@ -58,6 +58,7 @@ Source11:       metron-management-%{full_version}-archive.tar.gz
 Source12:       metron-maas-service-%{full_version}-archive.tar.gz
 Source13:       metron-alerts-%{full_version}-archive.tar.gz
 Source14:       metron-performance-%{full_version}-archive.tar.gz
+Source15:       metron-profiler-spark-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -95,6 +96,7 @@ tar -xzf %{SOURCE11} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE12} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE13} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE14} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE15} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
@@ -379,15 +381,15 @@ This package installs the Metron PCAP files %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-%package        profiler
-Summary:        Metron Profiler
+%package        profiler-storm
+Summary:        Metron Profiler for Storm
 Group:          Applications/Internet
-Provides:       profiler = %{version}
+Provides:       profiler-storm = %{version}
 
-%description    profiler
-This package installs the Metron Profiler %{metron_home}
+%description    profiler-storm
+This package installs the Metron Profiler for Storm %{metron_home}
 
-%files          profiler
+%files          profiler-storm
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
@@ -536,6 +538,27 @@ This package installs the Metron Alerts UI %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        profiler-spark
+Summary:        Metron Profiler for Spark
+Group:          Applications/Internet
+Provides:       profiler-spark = %{version}
+
+%description    profiler-spark
+This package installs the Metron Profiler for Spark %{metron_home}
+
+%files          profiler-spark
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/config
+%{metron_home}/config/batch-profiler.properties
+%dir %{metron_home}/bin
+%{metron_home}/bin/start_batch_profiler.sh
+%dir %{metron_home}/lib
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-spark-%{full_version}.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %post config
 chkconfig --add metron-management-ui
 chkconfig --add metron-alerts-ui
@@ -545,6 +568,8 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Tue Aug 14 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
+- Add Profiler for Spark
 * Thu Feb 1 2018 Apache Metron <dev@metron.apache.org> - 0.4.3
 - Add Solr install script to Solr RPM
 * Tue Sep 25 2017 Apache Metron <dev@metron.apache.org> - 0.4.2
