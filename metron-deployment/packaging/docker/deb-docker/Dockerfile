@@ -26,8 +26,4 @@ RUN apt-get update && apt-get install -y \
   dpkg-dev \
   gettext
 
-# install nodejs so that the node dependencies can be packaged into the DEBs
-RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-RUN apt-get install -y nodejs
-
 WORKDIR /root

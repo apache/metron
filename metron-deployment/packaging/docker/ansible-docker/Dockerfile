@@ -58,8 +58,5 @@ RUN yum -y install asciidoc rpm-build rpm2cpio tar unzip xmlto zip rpmlint make 
 # create a .bashrc for root, enabling the cpp 11 toolset
 RUN touch /root/.bashrc \
  && cat '/opt/rh/devtoolset-4/enable' >> /root/.bashrc
-# install node so that the node dependencies can be packaged into the RPMs
-RUN curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
-RUN yum -y install nodejs
 WORKDIR /root
 

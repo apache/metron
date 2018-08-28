@@ -174,7 +174,7 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-interface/metron-config/target/</directory>
+                                    <directory>${metron_dir}/metron-interface/metron-config-host/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -186,7 +186,7 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-interface/metron-alerts/target/</directory>
+                                    <directory>${metron_dir}/metron-interface/metron-alerts-host/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

@@ -421,3 +421,51 @@ com.google.code.gson:gson:jar:2.8.2:compile,ASLv2,https://github.com/google/gson
 com.zaxxer:HikariCP:jar:2.7.8:compile,ASLv2,https://github.com/brettwooldridge/HikariCP
 org.hibernate.validator:hibernate-validator:jar:6.0.9.Final:compile,ASLv2,https://github.com/hibernate/hibernate-validator
 
+com.github.stephenc.jcip:jcip-annotations:jar:1.0-1:compile,ASLv2,http://stephenc.github.io/jcip-annotations/
+com.google.guava:guava:jar:15.0:compile,ASLv2,
+com.netflix.archaius:archaius-core:jar:0.7.6:compile,ASLv2,https://github.com/Netflix/archaius
+com.netflix.hystrix:hystrix-core:jar:1.5.12:compile,ASLv2,https://github.com/Netflix/Hystrix
+com.netflix.hystrix:hystrix-javanica:jar:1.5.12:compile,ASLv2,https://github.com/Netflix/Hystrix
+com.netflix.hystrix:hystrix-metrics-event-stream:jar:1.5.12:compile,ASLv2,https://github.com/Netflix/Hystrix
+com.netflix.hystrix:hystrix-serialization:jar:1.5.12:compile,ASLv2,https://github.com/Netflix/Hystrix
+com.netflix.netflix-commons:netflix-commons-util:jar:0.3.0:compile
+com.netflix.ribbon:ribbon-core:jar:2.2.5:compile,ASLv2,https://github.com/Netflix/ribbon
+com.netflix.ribbon:ribbon-httpclient:jar:2.2.5:compile,ASLv2,https://github.com/Netflix/ribbon
+com.netflix.ribbon:ribbon-loadbalancer:jar:2.2.5:compile,ASLv2,https://github.com/Netflix/ribbon
+com.netflix.ribbon:ribbon:jar:2.2.5:compile,ASLv2,https://github.com/Netflix/ribbon
+com.netflix.zuul:zuul-core:jar:1.3.1:compile,ASLv2,https://github.com/Netflix/zuul
+com.nimbusds:nimbus-jose-jwt:jar:4.41.2:compile,ASLv2,https://connect2id.com/products/nimbus-jose-jwt
+commons-configuration:commons-configuration:jar:1.8:compile,ASLv2,http://commons.apache.org/
+commons-lang:commons-lang:jar:2.3:compile,ASLv2,http://commons.apache.org/
+io.micrometer:micrometer-core:jar:1.0.3:compile,ASLv2,http://micrometer.io/
+io.reactivex:rxjava-reactive-streams:jar:1.2.1:compile,ASLv2,http://reactivex.io/
+io.reactivex:rxjava:jar:1.2.0:compile,ASLv2,http://reactivex.io/
+io.undertow:undertow-core:jar:1.4.23.Final:compile,ASLv2,http://undertow.io/
+io.undertow:undertow-servlet:jar:1.4.23.Final:compile,ASLv2,http://undertow.io/
+io.undertow:undertow-websockets-jsr:jar:1.4.23.Final:compile,ASLv2,http://undertow.io/
+org.bouncycastle:bcpkix-jdk15on:jar:1.56:compile,MIT,https://www.bouncycastle.org/
+org.bouncycastle:bcprov-jdk15on:jar:1.56:compile,MIT,https://www.bouncycastle.org/
+org.glassfish:javax.el:jar:3.0.0:compile,Common Development and Distribution License (CDDL) v1.0
+org.hdrhistogram:HdrHistogram:jar:2.1.10:compile,BSD 2-clause,http://hdrhistogram.org/
+org.jboss.xnio:xnio-api:jar:3.3.8.Final:compile,ASLv2,http://xnio.jboss.org/
+org.latencyutils:LatencyUtils:jar:2.0.3:compile,BSD 2-clause,http://latencyutils.org/
+org.springframework.boot:spring-boot-actuator-autoconfigure:jar:2.0.1.RELEASE:compile,ASLv2,https://spring.io/projects/spring-boot
+org.springframework.boot:spring-boot-actuator:jar:2.0.1.RELEASE:compile,ASLv2,https://spring.io/projects/spring-boot
+org.springframework.boot:spring-boot-starter-actuator:jar:2.0.1.RELEASE:compile,ASLv2,https://spring.io/projects/spring-boot
+org.springframework.boot:spring-boot-starter-undertow:jar:2.0.1.RELEASE:compile,ASLv2,https://spring.io/projects/spring-boot
+org.springframework.cloud:spring-cloud-commons:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/
+org.springframework.cloud:spring-cloud-context:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/
+org.springframework.cloud:spring-cloud-netflix-archaius:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/
+org.springframework.cloud:spring-cloud-netflix-core:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/
+org.springframework.cloud:spring-cloud-netflix-ribbon:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/
+org.springframework.cloud:spring-cloud-netflix-zuul:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/
+org.springframework.cloud:spring-cloud-starter-netflix-archaius:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/
+org.springframework.cloud:spring-cloud-starter-netflix-hystrix:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/
+org.springframework.cloud:spring-cloud-starter-netflix-ribbon:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/
+org.springframework.cloud:spring-cloud-starter-netflix-zuul:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/
+org.springframework.cloud:spring-cloud-starter:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/
+org.springframework.ldap:spring-ldap-core:jar:2.3.2.RELEASE:compile,ASLv2,https://spring.io/projects/spring-ldap
+org.springframework.security:spring-security-crypto:jar:5.0.4.RELEASE:compile,ASLv2,https://spring.io/projects/spring-security
+org.springframework.security:spring-security-ldap:jar:5.0.4.RELEASE:compile,ASLv2,https://spring.io/projects/spring-security
+org.springframework.security:spring-security-rsa:jar:1.0.5.RELEASE:compile,ASLv2,https://spring.io/projects/spring-security
+org.springframework.cloud:spring-cloud-commons:jar:2.0.0.RELEASE:compile,ASLv2,http://projects.spring.io/spring-cloud/

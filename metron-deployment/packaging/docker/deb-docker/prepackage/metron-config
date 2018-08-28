@@ -27,6 +27,3 @@
 # the working directory containing all of the files to
 # be packaged will be passed as the only argument to this script.
 #
-
-# package the 'production' node dependencies
-npm install --prefix="${PACKAGE_WORKDIR}/${METRON_HOME}/web/expressjs" --only=production

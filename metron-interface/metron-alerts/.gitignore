@@ -4,3 +4,6 @@ metron-alerts.iml
 node_modules/
 /dist/
 coverage
+
+# Build Files
+bin/

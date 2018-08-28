@@ -31,6 +31,12 @@
     <dependencies>
     </dependencies>
     <build>
+        <resources>
+            <resource>
+                <directory>dist</directory>
+                <targetPath>public</targetPath>
+            </resource>
+        </resources>    
         <plugins>
             <plugin>
                 <groupId>com.github.eirslett</groupId>
@@ -95,21 +101,6 @@
                         </fileset>
                     </filesets>
                 </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptor>assembly.xml</descriptor>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id> <!-- this is used for inheritance merges -->
-                        <phase>package</phase> <!-- bind to the packaging phase -->
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
