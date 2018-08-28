@@ -20,11 +20,8 @@
 
 package org.apache.metron.profiler.hbase;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.storm.tuple.Tuple;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
-import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,9 +36,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests the SaltyRowKeyBuilder.
@@ -54,7 +48,6 @@ public class SaltyRowKeyBuilderTest {
 
   private SaltyRowKeyBuilder rowKeyBuilder;
   private ProfileMeasurement measurement;
-  private Tuple tuple;
 
   /**
    * Thu, Aug 25 2016 13:27:10 GMT
@@ -69,10 +62,6 @@ public class SaltyRowKeyBuilderTest {
             .withProfileName("profile")
             .withEntity("entity")
             .withPeriod(AUG2016, periodDuration, periodUnits);
-
-    // the tuple will contain the original message
-    tuple = mock(Tuple.class);
-    when(tuple.getValueByField(eq("measurement"))).thenReturn(measurement);
 
     rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
   }
