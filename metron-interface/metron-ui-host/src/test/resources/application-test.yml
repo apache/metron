@@ -14,30 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-spring: 
+spring:
   logging:
     level:
       root: debug
 
-ldap:
-  provider:
-    url: ldap://localhost:33389
-    userdn: uid=admin,ou=people,dc=metron,dc=apache,dc=org
-    password: password
-  user:
-    dn.patterns: uid={0},ou=people,dc=metron,dc=apache,dc=org
-    passwordAttribute: userPassword
-    searchBase: ou=people,dc=metron,dc=apache,dc=org
-    searchFilter: ""
-  group:
-    searchBase: ou=groups,dc=metron,dc=apache,dc=org
-    searchFilter: "member={0}"
-    roleAttribute: "cn"
-
 knox:
   sso:
     url: https://localhost:8443/gateway/knoxsso/api/v1/websso
-    pubkey: | 
+    pubkey: |
       MIIEqTCCApGgAwIBAgICEAAwDQYJKoZIhvcNAQELBQAwRTELMAkGA1UEBhMCVVMx
       CzAJBgNVBAgMAkNBMQ8wDQYDVQQKDAZBcGFjaGUxGDAWBgNVBAMMD0NBIGludGVy
       bWVkaWF0ZTAeFw0xODA3MTExOTA0NTRaFw0yODEwMTYxOTA0NTRaMDsxCzAJBgNV

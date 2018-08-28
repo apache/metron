@@ -18,27 +18,11 @@
 package org.apache.metron.ui.config;
 
 import org.apache.metron.ui.EmbeddedLdap;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
-import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 
 @Configuration
-public class TestsConfig {
-    /**
-     * PropertyPlaceholderConfigurer bean required to make SPEL Values injectable in
-     * Tests from YAML config.
-     * 
-     */
-    @Bean
-    public static PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
-        YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
-        yaml.setResources(new ClassPathResource("application-test.yml"));
-        PropertyPlaceholderConfigurer propertyPlaceholderConfigurer = new PropertyPlaceholderConfigurer();
-        propertyPlaceholderConfigurer.setProperties(yaml.getObject());
-        return propertyPlaceholderConfigurer;
-    }
+public class TestSecurityConfig {
 
     @Bean
     public EmbeddedLdap embeddedLdap() {

@@ -41,12 +41,9 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.mock.MockStormCLIClientWrapper;
 import org.apache.metron.rest.mock.MockStormRestTemplate;
 import org.apache.metron.rest.service.impl.StormCLIWrapper;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
-import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.web.client.RestTemplate;
@@ -183,22 +180,9 @@ public class TestConfig {
     return AdminUtils$.MODULE$;
   }
 
+
   @Bean()
   public UserSettingsClient userSettingsClient() throws RestException, IOException {
     return new UserSettingsClient(new MockHBaseTableProvider().addToCache("user_settings", "cf"), Bytes.toBytes("cf"));
-  }
-
-  /**
-   * PropertyPlaceholderConfigurer bean required to make SPEL Values injectable in
-   * Tests from YAML config.
-   * 
-   */
-  @Bean
-  public static PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
-      YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
-      yaml.setResources(new ClassPathResource("application-test.yml"));
-      PropertyPlaceholderConfigurer propertyPlaceholderConfigurer = new PropertyPlaceholderConfigurer();
-      propertyPlaceholderConfigurer.setProperties(yaml.getObject());
-      return propertyPlaceholderConfigurer;
   }
 }
