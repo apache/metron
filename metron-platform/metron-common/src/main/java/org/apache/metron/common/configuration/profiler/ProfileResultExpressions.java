@@ -31,7 +31,7 @@ public class ProfileResultExpressions implements Serializable {
   private String expression;
 
   public ProfileResultExpressions() {
-    // default constructor required for kryo serialization
+    // no-arg constructor required for kryo serialization
   }
 
   @JsonCreator
