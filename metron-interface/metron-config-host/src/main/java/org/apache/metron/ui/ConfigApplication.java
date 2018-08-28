@@ -25,7 +25,7 @@ import org.springframework.context.annotation.ComponentScans;
 @SpringBootApplication
 @ComponentScans(value = { @ComponentScan, @ComponentScan(basePackageClasses = MetronSecurityConfig.class) })
 public class ConfigApplication extends AbstractHostApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(ConfigApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(ConfigApplication.class, args);
+  }
 }
