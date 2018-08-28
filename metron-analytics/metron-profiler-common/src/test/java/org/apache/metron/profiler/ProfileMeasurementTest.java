@@ -23,6 +23,7 @@ package org.apache.metron.profiler;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.SerDeUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -33,6 +34,7 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class ProfileMeasurementTest {
@@ -56,9 +58,9 @@ public class ProfileMeasurementTest {
   private ProfileConfig definition;
   private ProfileMeasurement measurement;
 
+  @Before
   public void setup() throws Exception {
     definition = ProfileConfig.fromJSON(profile);
-
     measurement = new ProfileMeasurement()
             .withProfileName("profile")
             .withEntity("entity")
@@ -74,6 +76,7 @@ public class ProfileMeasurementTest {
    */
   @Test
   public void testKryoSerialization() throws Exception {
+    assertNotNull(measurement);
 
     // round-trip serialization
     byte[] raw = SerDeUtils.toBytes(measurement);
@@ -88,6 +91,7 @@ public class ProfileMeasurementTest {
    */
   @Test
   public void testJavaSerialization() throws Exception {
+    assertNotNull(measurement);
 
     // serialize using java
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
