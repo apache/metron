@@ -35,7 +35,7 @@ import org.json.simple.JSONObject;
  */
 public class Syslog5424Parser extends BasicParser {
   public static final String NIL_POLICY_CONFIG = "nilPolicy";
-  private SyslogParser syslogParser;
+  private transient SyslogParser syslogParser;
 
   @Override
   public void configure(Map<String, Object> config) {
