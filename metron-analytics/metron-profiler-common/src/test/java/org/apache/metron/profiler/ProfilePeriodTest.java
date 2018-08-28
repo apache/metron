@@ -155,7 +155,7 @@ public class ProfilePeriodTest {
 
     // deserialize
     Input input = new Input(new ByteArrayInputStream(bits));
-    ProfileMeasurement actual = kryo.readObject(input, ProfileMeasurement.class);
+    ProfilePeriod actual = kryo.readObject(input, ProfilePeriod.class);
 
     // validate deserialization
     assertNotNull(actual);

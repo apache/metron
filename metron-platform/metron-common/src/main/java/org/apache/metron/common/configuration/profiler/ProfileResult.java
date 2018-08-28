@@ -43,7 +43,7 @@ public class ProfileResult implements Serializable {
   private ProfileTriageExpressions triageExpressions;
 
   public ProfileResult() {
-    // no-arg constructor required for kryo serialization
+    // no-arg constructor required for kryo serialization in storm
   }
 
   @JsonCreator
