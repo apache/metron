@@ -404,6 +404,22 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
             .emit(any(Values.class));
   }
 
+  @Test
+  public void testWithNullMessage() throws Exception {
+
+    // ensure the tuple returns null to mimic a null message in kafka
+    when(tuple.getBinary(0)).thenReturn(null);
+
+    ProfilerConfig config = toProfilerConfig(profileWithOnlyIfInvalid);
+    ProfileSplitterBolt bolt = createBolt(config);
+    bolt.execute(tuple);
+
+    // a tuple should NOT be emitted for the downstream profile builder
+    verify(outputCollector, times(0))
+            .emit(any(Values.class));
+
+  }
+
   /**
    * Creates a ProfilerConfig based on a string containing JSON.
    *
