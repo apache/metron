@@ -59,10 +59,7 @@ Source12:       metron-maas-service-%{full_version}-archive.tar.gz
 Source13:       metron-alerts-%{full_version}-archive.tar.gz
 Source14:       metron-performance-%{full_version}-archive.tar.gz
 Source15:       metron-profiler-spark-%{full_version}-archive.tar.gz
-<<<<<<< HEAD
 Source16:       metron-profiler-repl-%{full_version}-archive.tar.gz
-=======
->>>>>>> apache/feature/METRON-1699-create-batch-profiler
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
