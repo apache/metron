@@ -22,7 +22,6 @@ package org.apache.metron.profiler.integration;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.hbase.client.Put;
 import org.apache.metron.common.Constants;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.hbase.mock.MockHTable;
@@ -32,18 +31,15 @@ import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
-import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.client.stellar.FixedLookback;
 import org.apache.metron.profiler.client.stellar.GetProfile;
 import org.apache.metron.profiler.client.stellar.WindowLookback;
-import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.statistics.OnlineStatisticsProvider;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.json.simple.JSONObject;
+import org.apache.storm.Config;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -72,7 +68,6 @@ import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PRO
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -375,16 +370,16 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       // storm settings
       setProperty("profiler.workers", "1");
       setProperty("profiler.executors", "0");
-      setProperty("storm.auto.credentials", "[]");
-      setProperty("topology.auto-credentials", "[]");
-      setProperty("topology.message.timeout.secs", "180");
-      setProperty("topology.max.spout.pending", "100000");
+
+      setProperty(Config.TOPOLOGY_AUTO_CREDENTIALS, "[]");
+      setProperty(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, "60");
+      setProperty(Config.TOPOLOGY_MAX_SPOUT_PENDING, "100000");
 
       // ensure tuples are serialized during the test, otherwise serialization problems
       // will not be found until the topology is run on a cluster with multiple workers
-      setProperty("topology.testing.always.try.serialize", "true");
-      setProperty("topology.fall.back.on.java.serialization", "false");
-      setProperty("topology.kryo.register", kryoSerializers);
+      setProperty(Config.TOPOLOGY_TESTING_ALWAYS_TRY_SERIALIZE, "true");
+      setProperty(Config.TOPOLOGY_FALL_BACK_ON_JAVA_SERIALIZATION, "false");
+      setProperty(Config.TOPOLOGY_KRYO_REGISTER, kryoSerializers);
 
       // kafka settings
       setProperty("profiler.input.topic", inputTopic);

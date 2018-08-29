@@ -17,12 +17,15 @@
  */
 import * as moment from 'moment/moment';
 
-import {DEFAULT_TIMESTAMP_FORMAT, META_ALERTS_SENSOR_TYPE} from './constants';
-import {Alert} from '../model/alert';
-import {DateFilterValue} from '../model/date-filter-value';
-import { environment } from 'environments/environment';
+import { DEFAULT_START_TIME, DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT, META_ALERTS_SENSOR_TYPE } from './constants';
+import { Alert } from '../model/alert';
+import { DateFilterValue } from '../model/date-filter-value';
+import { PcapRequest } from '../pcap/model/pcap.request';
+import { PcapFilterFormValue } from '../pcap/pcap-filters/pcap-filters.component';
+import { FormGroup } from '@angular/forms';
 
 export class Utils {
+  
   public static escapeESField(field: string): string {
     return field.replace(/:/g, '\\:');
   }
@@ -201,5 +204,4 @@ export class Utils {
 
     return {toDate: toDate, fromDate: fromDate};
   }
-
 }

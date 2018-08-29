@@ -19,11 +19,7 @@
 @import "../../../styles.scss";
 @import "../../../variables.scss";
 
-.ng-valid[required], .ng-valid.required  {
-  
-}
-
-.ng-invalid:not(form)  {
+.ng-invalid:not(form) {
   border-left: 5px solid #a94442; /* red */
 }
 
@@ -35,7 +31,6 @@
 }
 
 .btn-search {
-
   min-width: 42px;
   padding-left: 0;
   padding-right: 0;
@@ -65,5 +60,11 @@
     padding-top: 6px;
     padding-bottom: 6px;
     background: $icon-button-background;
+  }
+}
+
+.pcap-search-validation-errors {
+  & ul {
+    margin: 0
   }
 }

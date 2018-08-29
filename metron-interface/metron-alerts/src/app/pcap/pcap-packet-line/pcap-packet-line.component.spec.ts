@@ -16,8 +16,7 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { fakePacket } from '../model/pdml.mock';
-import { fakeUdpPacket } from '../model/pdml.mock';
+import { fakePacket, fakeUdpPacket } from '../model/pdml.mock';
 
 import { PcapPacketLineComponent } from './pcap-packet-line.component';
 

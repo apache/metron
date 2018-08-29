@@ -196,8 +196,8 @@ public class CEFParserTest {
 
 	@Test
 	public void testPaloAltoCEF() throws Exception {
-		URL waf_url = Resources.getResource(getClass(), "palo.cef");
-		runTest("palo", Resources.readLines(waf_url, UTF_8),
+		URL palo_url = Resources.getResource(getClass(), "palo.cef");
+		runTest("palo", Resources.readLines(palo_url, UTF_8),
 				Resources.toString(Resources.getResource(getClass(), "palo.schema"), UTF_8));
 	}
 

@@ -19,19 +19,14 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { PcapFiltersComponent } from './pcap-filters.component';
-import { FormsModule } from '../../../../node_modules/@angular/forms';
-import { Component, Input, Output, EventEmitter, DebugElement, SimpleChange } from '@angular/core';
-import { PcapRequest } from '../model/pcap.request';
+import { DebugElement, SimpleChange } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-@Component({
-  selector: 'app-date-picker',
-  template: '<input type="text" [(value)]="date">',
-})
-class FakeDatePickerComponent {
-  @Input() date: string;
-  @Output() dateChange = new EventEmitter<string>();
-}
+import { PcapFiltersComponent } from './pcap-filters.component';
+import { DatePickerModule } from '../../shared/date-picker/date-picker.module';
+import { PcapRequest } from '../model/pcap.request';
+import { DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
+import * as moment from 'moment/moment';
 
 describe('PcapFiltersComponent', () => {
   let component: PcapFiltersComponent;
@@ -40,10 +35,11 @@ describe('PcapFiltersComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
-        FormsModule
+        FormsModule,
+        ReactiveFormsModule,
+        DatePickerModule,
       ],
       declarations: [
-        FakeDatePickerComponent,
         PcapFiltersComponent,
       ]
     })
@@ -59,132 +55,118 @@ describe('PcapFiltersComponent', () => {
   });
 
   it('From date should be bound to the component', () => {
-    let input = fixture.debugElement.query(By.css('#startTime'));
+    let input = fixture.debugElement.query(By.css('[data-qe-id="start-time"]'));
     const dateString = '2020-11-11 11:11:11';
-    input.componentInstance.dateChange.emit(dateString);
+    input.componentInstance.onChange(dateString);
     fixture.detectChanges();
-
-    expect(component.startTimeStr).toBe(dateString);
+    expect(component.filterForm.controls.startTime.value).toBe(dateString);
   });
 
   it('To date should be bound to the component', () => {
-    let input = fixture.debugElement.query(By.css('#endTime'));
+    let input = fixture.debugElement.query(By.css('[data-qe-id="end-time"]'));
     const dateString = '2030-11-11 11:11:11';
-    input.componentInstance.dateChange.emit(dateString);
+    input.componentInstance.onChange(dateString);
     fixture.detectChanges();
 
-    expect(component.endTimeStr).toBe(dateString);
+    expect(component.filterForm.controls.endTime.value).toBe(dateString);
   });
 
   it('IP Source Address should be bound to the model', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="ipSrcAddr"]');
+    let input: HTMLInputElement = fixture.nativeElement.querySelector('[data-qe-id="ip-src-addr"]');
     input.value = '192.168.0.1';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(component.model.ipSrcAddr).toBe('192.168.0.1');
+    expect(component.filterForm.controls.ipSrcAddr.value).toBe('192.168.0.1');
   });
 
   it('IP Source Port should be bound to the property', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="ipSrcPort"]');
+    let input: HTMLInputElement = fixture.nativeElement.querySelector('[data-qe-id="ip-src-port"]');
     input.value = '9345';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(component.ipSrcPort).toBe('9345');
+    expect(component.filterForm.controls.ipSrcPort.value).toBe('9345');
   });
 
   it('IP Source Port should be converted to number on submit', () => {
-    component.ipSrcPort = '42';
+    component.filterForm.patchValue({ ipSrcPort: '42' });
     component.search.emit = (model: PcapRequest) => {
-      expect(model.ipSrcPort).toBe(42);
+      expect(model.ipSrcPort).toBe('42');
     };
     component.onSubmit();
   });
 
   it('IP Dest Address should be bound to the model', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="ipDstAddr"]');
+    let input: HTMLInputElement = fixture.nativeElement.querySelector('[data-qe-id="ip-dst-addr"]');
     input.value = '256.0.0.7';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(component.model.ipDstAddr).toBe('256.0.0.7');
+    expect(component.filterForm.controls.ipDstAddr.value).toBe('256.0.0.7');
   });
 
   it('IP Dest Port should be bound to the property', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="ipDstPort"]');
+    let input: HTMLInputElement = fixture.nativeElement.querySelector('[data-qe-id="ip-dst-port"]');
     input.value = '8989';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(component.ipDstPort).toBe('8989');
+    expect(component.filterForm.controls.ipDstPort.value).toBe('8989');
   });
 
   it('IP Dest Port should be converted to number on submit', () => {
-    component.ipDstPort = '42';
+    component.filterForm.patchValue({ ipDstPort: '42' });
     component.search.emit = (model: PcapRequest) => {
-      expect(model.ipDstPort).toBe(42);
+      expect(model.ipDstPort).toBe('42');
     };
     component.onSubmit();
   });
 
   it('Protocol should be bound to the model', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="protocol"]');
+    let input: HTMLInputElement = fixture.nativeElement.querySelector('[data-qe-id="protocol"]');
     input.value = 'TCP';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(component.model.protocol).toBe('TCP');
+    expect(component.filterForm.controls.protocol.value).toBe('TCP');
   });
 
   it('Include Reverse Traffic should be bound to the model', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="includeReverse"]');
+    let input: HTMLInputElement = fixture.nativeElement.querySelector('[data-qe-id="include-reverse"]');
     input.click();
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(component.model.includeReverse).toBe(true);
+    expect(component.filterForm.controls.includeReverse.value).toBe(true);
   });
 
   it('Text filter should be bound to the model', () => {
-    let input: HTMLInputElement = fixture.nativeElement.querySelector('[name="protocol"]');
+    let input: HTMLInputElement = fixture.nativeElement.querySelector('[data-qe-id="packet-filter"]');
     input.value = 'TestStringFilter';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(component.model.protocol).toBe('TestStringFilter');
+    expect(component.filterForm.controls.packetFilter.value).toBe('TestStringFilter');
   });
 
   it('From date should be converted to timestamp on submit', () => {
-    component.startTimeStr = '2220-12-12 12:12:12';
+    component.filterForm.patchValue({ startTime: '2220-12-12 12:12:12' });
     component.search.emit = (model: PcapRequest) => {
-      expect(model.startTimeMs).toBe(new Date(component.startTimeStr).getTime());
+      expect(model.startTimeMs).toBe(new Date(component.filterForm.controls.startTime.value).getTime());
     };
     component.onSubmit();
   });
 
   it('To date should be converted to timestamp on submit', () => {
-    component.endTimeStr = '2320-03-13 13:13:13';
+    component.filterForm.patchValue({ endTimeStr: '2320-03-13 13:13:13' });
     component.search.emit = (model: PcapRequest) => {
-      expect(model.endTimeMs).toBe(new Date(component.endTimeStr).getTime());
+      expect(model.endTimeMs).toBe(new Date(component.filterForm.controls.endTime.value).getTime());
     };
     component.onSubmit();
   });
 
   it('Port fields should be missing by default', () => {
-    component.search.emit = (model: PcapRequest) => {
-      expect(model.ipSrcPort).toBeFalsy();
-      expect(model.ipDstPort).toBeFalsy();
-    };
-    component.onSubmit();
-  });
-
-  it('Port fields should be removed from request when set to empty', () => {
-    component.model.ipSrcPort = 44;
-    component.model.ipDstPort = 44;
-    component.ipSrcPort = '';
-    component.ipDstPort = '';
-
     component.search.emit = (model: PcapRequest) => {
       expect(model.ipSrcPort).toBeFalsy();
       expect(model.ipDstPort).toBeFalsy();
@@ -205,68 +187,43 @@ describe('PcapFiltersComponent', () => {
     expect(component.search.emit).toHaveBeenCalled();
   });
 
-  it('Search event should contains the filter model', () => {
-    spyOn(component.search, 'emit');
-    component.onSubmit();
-    expect(component.search.emit).toHaveBeenCalledWith(component.model);
-  });
-
-  it('Filter model structure aka PcapRequest', () => {
-    expect(fixture.componentInstance.model.hasOwnProperty('startTimeMs')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('endTimeMs')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipSrcAddr')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipSrcPort')).toBeFalsy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipDstAddr')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('ipDstPort')).toBeFalsy();
-    expect(fixture.componentInstance.model.hasOwnProperty('protocol')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('packetFilter')).toBeTruthy();
-    expect(fixture.componentInstance.model.hasOwnProperty('includeReverse')).toBeTruthy();
-  });
-
   it('should update request on changes', () => {
+    const startTimeStr = '2220-12-12 12:12:12';
+    const endTimeStr = '2320-03-13 13:13:13';
 
-    let startTimeStr = '2220-12-12 12:12:12';
-    let endTimeStr = '2320-03-13 13:13:13';
-
-    let newModel = {
-      startTimeMs: new Date(startTimeStr).getTime(),
-      endTimeMs: new Date(endTimeStr).getTime(),
-      ipSrcPort: 9345,
-      ipDstPort: 8989
-    };
-    component.model.startTimeMs = new Date(startTimeStr).getTime();
-    component.model.endTimeMs = new Date(endTimeStr).getTime();
+    const newModel = new PcapRequest();
+    newModel.startTimeMs = new Date(startTimeStr).getTime();
+    newModel.endTimeMs = new Date(endTimeStr).getTime();
+    newModel.ipSrcPort = '9345';
+    newModel.ipDstPort = '8989';
 
     component.ngOnChanges({
       model: new SimpleChange(null, newModel, false)
     });
 
-    expect(component.startTimeStr).toBe(startTimeStr);
-    expect(component.endTimeStr).toBe(endTimeStr);
-    expect(component.ipSrcPort).toBe('9345');
-    expect(component.ipDstPort).toBe('8989');
+    expect(component.filterForm.controls.startTime.value).toBe(startTimeStr);
+    expect(component.filterForm.controls.endTime.value).toBe(endTimeStr);
+    expect(component.filterForm.controls.ipSrcPort.value).toBe('9345');
+    expect(component.filterForm.controls.ipDstPort.value).toBe('8989');
   });
 
   it('should update request on changes with missing port filters', () => {
 
-    let startTimeStr = '2220-12-12 12:12:12';
-    let endTimeStr = '2320-03-13 13:13:13';
+    const startTimeStr = '2220-12-12 12:12:12';
+    const endTimeStr = '2320-03-13 13:13:13';
 
-    let newModel = {
-      startTimeMs: new Date(startTimeStr).getTime(),
-      endTimeMs: new Date(endTimeStr).getTime()
-    };
-    component.model.startTimeMs = new Date(startTimeStr).getTime();
-    component.model.endTimeMs = new Date(endTimeStr).getTime();
+    let newModel = new PcapRequest();
+    newModel.startTimeMs = new Date(startTimeStr).getTime();
+    newModel.endTimeMs = new Date(endTimeStr).getTime();
 
     component.ngOnChanges({
       model: new SimpleChange(null, newModel, false)
     });
 
-    expect(component.startTimeStr).toBe(startTimeStr);
-    expect(component.endTimeStr).toBe(endTimeStr);
-    expect(component.ipSrcPort).toBe('');
-    expect(component.ipDstPort).toBe('');
+    expect(component.filterForm.controls.startTime.value).toBe(startTimeStr);
+    expect(component.filterForm.controls.endTime.value).toBe(endTimeStr);
+    expect(component.filterForm.controls.ipSrcPort.value).toBe('');
+    expect(component.filterForm.controls.ipDstPort.value).toBe('');
   });
 
   describe('Filter validation', () => {
@@ -379,7 +336,7 @@ describe('PcapFiltersComponent', () => {
       ];
 
       invalidValues.forEach((value) => {
-        const els = getFieldWithSubmit('ip-dest-port');
+        const els = getFieldWithSubmit('ip-dst-port');
         expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
         expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
 
@@ -403,7 +360,7 @@ describe('PcapFiltersComponent', () => {
       ];
 
       validValues.forEach((value) => {
-        const els = getFieldWithSubmit('ip-dest-port');
+        const els = getFieldWithSubmit('ip-dst-port');
         expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid without ' + value);
         expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled without ' + value);
 
@@ -453,11 +410,55 @@ describe('PcapFiltersComponent', () => {
 
         setFieldValue(els.field, value);
 
-        expect(isFieldInvalid(els.field)).toBe(false, 'tthe field should be valid with ' + value);
+        expect(isFieldInvalid(els.field)).toBe(false, 'the field should be valid with ' + value);
         expect(isSubmitDisabled(els.submit)).toBe(false, 'the submit button should be enabled with ' + value);
         tearDown(els.field);
       });
     });
 
+    it('start date should be valid by default', () => {
+      expect(component.filterForm.get('startTime').valid).toBe(true);
+    });
+
+    it('start date is invalid if it is bigger than end date', () => {
+      // start time is bigger than end time
+      component.filterForm.patchValue({
+        startTime: '2018-08-24 16:30:00',
+        endTime: '2018-08-23 16:30:00'
+      });
+
+      expect(component.filterForm.get('startTime').valid).toBe(false);
+    });
+
+    it('start date should be valid again based on the end date', () => {
+      // start time is bigger than end time
+      component.filterForm.patchValue({
+        startTime: '2018-08-24 16:30:00',
+        endTime: '2018-08-23 16:30:00'
+      });
+
+      expect(component.filterForm.get('startTime').valid).toBe(false);
+
+      component.filterForm.patchValue({
+        endTime: '2018-08-25 16:30:00'
+      });
+
+      expect(component.filterForm.get('startTime').valid).toBe(true);
+    });
+
+    it('end date should be valid by default', () => {
+      expect(component.filterForm.get('endTime').valid).toBe(true);
+    });
+
+    it('end date is invalid if it is in the future', () => {
+
+      expect(component.filterForm.get('endTime').valid).toBe(true);
+
+      component.filterForm.patchValue({
+        endTime: moment(new Date()).add(2, 'days').format(DEFAULT_TIMESTAMP_FORMAT)
+      });
+
+      expect(component.filterForm.get('endTime').valid).toBe(false);
+    });
   });
 });
