@@ -24,6 +24,7 @@ import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,11 @@ public class Syslog5424ParserTest {
           + " [exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
 
   private static final String SYSLOG_LINE_MISSING = "<14>1 2014-06-20T09:14:07+00:00 loggregator"
+          + " d0602076-b14a-4c55-852a-981e7afeed38 DEA -"
+          + " [exampleSDID@32473 iut=\"3\" eventSource=\"Application\" eventID=\"1011\"]"
+          + " [exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
+
+  private static final String SYSLOG_LINE_MISSING_DATE = "<14>1 - loggregator"
           + " d0602076-b14a-4c55-852a-981e7afeed38 DEA -"
           + " [exampleSDID@32473 iut=\"3\" eventSource=\"Application\" eventID=\"1011\"]"
           + " [exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
@@ -117,5 +123,29 @@ public class Syslog5424ParserTest {
     Assert.assertEquals(expectedIUT2, message.get(String.format(SyslogFieldKeys.STRUCTURED_ELEMENT_ID_PNAME_FMT.getField(), "exampleSDID@32480", "iut")));
     Assert.assertEquals(expectedEventSource2, message.get(String.format(SyslogFieldKeys.STRUCTURED_ELEMENT_ID_PNAME_FMT.getField(), "exampleSDID@32480", "eventSource")));
     Assert.assertEquals(expectedEventID2, message.get(String.format(SyslogFieldKeys.STRUCTURED_ELEMENT_ID_PNAME_FMT.getField(), "exampleSDID@32480", "eventID")));
+  }
+
+  @Test
+  public void testMissingTimestamp() {
+    Syslog5424Parser parser = new Syslog5424Parser();
+    Map<String, Object> config = new HashMap<>();
+    config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.DASH.name());
+    parser.configure(config);
+    List<JSONObject> output = parser.parse(SYSLOG_LINE_MISSING_DATE.getBytes());
+    String timeStampString = output.get(0).get("timestamp").toString();
+    DateTimeFormatter.ISO_DATE_TIME.parse(timeStampString);
+    config.clear();
+    config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.NULL.name());
+    parser.configure(config);
+    output = parser.parse(SYSLOG_LINE_MISSING_DATE.getBytes());
+    timeStampString = output.get(0).get("timestamp").toString();
+    DateTimeFormatter.ISO_DATE_TIME.parse(timeStampString);
+
+    config.clear();
+    config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.OMIT.name());
+    parser.configure(config);
+    output = parser.parse(SYSLOG_LINE_MISSING_DATE.getBytes());
+    timeStampString = output.get(0).get("timestamp").toString();
+    DateTimeFormatter.ISO_DATE_TIME.parse(timeStampString);
   }
 }

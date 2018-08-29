@@ -22,12 +22,15 @@ import com.github.palindromicity.syslog.NilPolicy;
 import com.github.palindromicity.syslog.SyslogParser;
 import com.github.palindromicity.syslog.SyslogParserBuilder;
 import com.github.palindromicity.syslog.dsl.SyslogFieldKeys;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -41,7 +44,7 @@ public class Syslog5424Parser extends BasicParser {
   public void configure(Map<String, Object> config) {
     // Default to OMIT policy for nil fields
     // this means they will not be in the returned field set
-    String nilPolicyStr = (String) config.getOrDefault(NIL_POLICY_CONFIG,NilPolicy.OMIT.name());
+    String nilPolicyStr = (String) config.getOrDefault(NIL_POLICY_CONFIG, NilPolicy.OMIT.name());
     NilPolicy nilPolicy = NilPolicy.valueOf(nilPolicyStr);
     syslogParser = new SyslogParserBuilder().withNilPolicy(nilPolicy).build();
   }
@@ -64,12 +67,22 @@ public class Syslog5424Parser extends BasicParser {
       // be sure to put in the original string, and the timestamp.
       // we wil just copy over the timestamp from the syslog
       jsonObject.put("original_string", originalString);
-      jsonObject.put("timestamp", jsonObject.get(SyslogFieldKeys.HEADER_TIMESTAMP.getField()));
+      setTimestamp(jsonObject);
       return Collections.singletonList(jsonObject);
     } catch (Exception e) {
       String message = "Unable to parse " + new String(rawMessage) + ": " + e.getMessage();
       LOG.error(message, e);
       throw new IllegalStateException(message, e);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void setTimestamp(JSONObject message) {
+    String timeStampString = (String) message.get(SyslogFieldKeys.HEADER_TIMESTAMP.getField());
+    if (!StringUtils.isBlank(timeStampString) && !timeStampString.equals("-")) {
+      message.put("timestamp", timeStampString);
+    } else {
+      message.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
     }
   }
 }
