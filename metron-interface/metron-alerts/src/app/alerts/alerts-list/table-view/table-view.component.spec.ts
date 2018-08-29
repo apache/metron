@@ -18,7 +18,7 @@
 
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, Input } from '@angular/core';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 
 import { TableViewComponent } from './table-view.component';
 import { MetronTableDirective } from '../../../shared/metron-table/metron-table.directive';
@@ -51,7 +51,6 @@ describe('TableViewComponent', () => {
         GlobalConfigService,
         MetaAlertService,
         MetronDialogBox,
-        HttpClient,
       ],
       declarations: [
         MetronTableDirective,
