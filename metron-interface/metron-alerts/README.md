@@ -129,12 +129,11 @@ The application will be available at http://host:4201 assuming the port is set t
     npm ci
     ```
 
-    You're probably wondering why we want you to use the `ci` command instead of `install`. This case, you probably just want to install the dependencies listed in `package.json` but sometimes it changes the lock file if one of the dependencies (or dependencies of other dependencies) introduce a minor change or a patch.
+    You're probably wondering why we use the `ci` command instead of `install`. By design, `npm install` will change the lock file every time it is ran. This happens whether or not dependencies have a new release or not because `npm install` still updates a unique identifier within the lock file.
 
-    To prevent the lock file from being changed, you can just run the `ci` command which installs the modules listed in the lock file without updating it.
-    The only case when you should run `npm install` is when you want to add a new dependency to the application.
+    To prevent the lock file from being changed, run the `ci` command. This installs the modules listed in the lock file without updating it. The only case when you should run `npm install` is when you want to add a new dependency to the application. You can update dependencies with the `npm update` command.
 
-    `nvm use` will change for the node version specified in the `.nvmrc` file. It doesn't necessarily mean that you'll have an npm installed which has the `ci` command. Make sure you have the latest npm which comes with the `ci` command.
+    `nvm use` will ensure your local node version matches the one specified in the `.nvmrc` file. It doesn't necessarily mean that you'll have an npm version installed which includes the `ci` command. Make sure you have the latest npm version which comes with the `ci` command.
 
 1. UI can be run by using the following command
     ```
