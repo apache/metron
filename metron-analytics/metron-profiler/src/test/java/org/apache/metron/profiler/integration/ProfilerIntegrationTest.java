@@ -20,7 +20,12 @@
 
 package org.apache.metron.profiler.integration;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.serializers.FieldSerializer;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -39,16 +44,27 @@ import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
+import org.apache.storm.Config;
+import org.apache.storm.serialization.KryoTupleDeserializer;
+import org.apache.storm.serialization.KryoTupleSerializer;
+import org.apache.storm.serialization.KryoValuesDeserializer;
+import org.apache.storm.serialization.KryoValuesSerializer;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +74,7 @@ import static com.google.code.tempusfugit.temporal.Timeout.timeout;
 import static com.google.code.tempusfugit.temporal.WaitFor.waitOrTimeout;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -313,16 +330,15 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       // storm settings
       setProperty("profiler.workers", "1");
       setProperty("profiler.executors", "0");
-      setProperty("storm.auto.credentials", "[]");
-      setProperty("topology.auto-credentials", "[]");
-      setProperty("topology.message.timeout.secs", "60");
-      setProperty("topology.max.spout.pending", "100000");
+      setProperty(Config.TOPOLOGY_AUTO_CREDENTIALS, "[]");
+      setProperty(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, "60");
+      setProperty(Config.TOPOLOGY_MAX_SPOUT_PENDING, "100000");
 
       // ensure tuples are serialized during the test, otherwise serialization problems
       // will not be found until the topology is run on a cluster with multiple workers
-      setProperty("topology.testing.always.try.serialize", "true");
-      setProperty("topology.fall.back.on.java.serialization", "false");
-      setProperty("topology.kryo.register", kryoSerializers);
+      setProperty(Config.TOPOLOGY_TESTING_ALWAYS_TRY_SERIALIZE, "true");
+      setProperty(Config.TOPOLOGY_FALL_BACK_ON_JAVA_SERIALIZATION, "false");
+      setProperty(Config.TOPOLOGY_KRYO_REGISTER, kryoSerializers);
 
       // kafka settings
       setProperty("profiler.input.topic", inputTopic);
