@@ -21,10 +21,6 @@
 - hosts: localhost
   vars_files:
     - conf/defaults.yml
-  pre_tasks:
-    - name: Verify Ansible Version
-      fail: msg="Metron Requires Ansible 2.4.0 or newer, current version is {{ ansible_version.full }}"
-      when: "ansible_version.full is version_compare('2.4.0', '<')"
   tasks:
     - include: tasks/create-keypair.yml
     - include: tasks/create-vpc.yml
