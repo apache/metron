@@ -26,6 +26,5 @@
 - debug: msg="Swap space is NOT yet enabled"
   when: swapcheck.rc == 1
 
-- include: enable-swap.yml
-  static: no
+- include_tasks: enable-swap.yml
   when: swapcheck.rc != 0
