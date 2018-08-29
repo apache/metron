@@ -221,9 +221,10 @@ This section will describe the steps required to get your first "Hello, World!""
 
 Continuing the previous running example, at this point, you have seen how your profile behaves against real, live telemetry in a controlled execution environment.  The next step is to deploy your profile to the live, actively running Profiler topology.
 
-1.  Start the Stellar Shell with the `-z ZK:2181` command line argument.  This is required when deploying a new profile to the active Profiler topology.  Replace `ZK:2181` with a URL that is appropriate to your environment.
+1.  Start the Stellar Shell with the `-z` command line argument so that a connection to Zookeeper is established.  This is required when  deploying a new profile definition as shown in the steps below.
 	```
-	[root@node1 ~]# $METRON_HOME/bin/stellar -z ZK:2181
+  [root@node1 ~]# source /etc/default/metron
+	[root@node1 ~]# $METRON_HOME/bin/stellar -z $ZOOKEEPER
 	Stellar, Go!
 	[Stellar]>>>
 	[Stellar]>>> %functions CONFIG CONFIG_GET, CONFIG_PUT
@@ -280,16 +281,17 @@ Continuing the previous running example, at this point, you have seen how your p
     }
     ```
 
-1. Upload the profile definition to Zookeeper.  Change `node1:2181` to refer the actual Zookeeper host in your environment.
+1. Upload the profile definition to Zookeeper.
 
     ```
+    $ source /etc/default/metron
     $ cd $METRON_HOME
-    $ bin/zk_load_configs.sh -m PUSH -i config/zookeeper/ -z node1:2181
+    $ bin/zk_load_configs.sh -m PUSH -i config/zookeeper/ -z $ZOOKEEPER
     ```
 
     You can validate this by reading back the Metron configuration from Zookeeper using the same script. The result should look-like the following.
     ```
-    $ bin/zk_load_configs.sh -m DUMP -z node1:2181
+    $ bin/zk_load_configs.sh -m DUMP -z $ZOOKEEPER
     ...
     PROFILER Config: profiler
     {
@@ -317,7 +319,8 @@ Continuing the previous running example, at this point, you have seen how your p
 1. Use the [Profiler Client](../metron-profiler-client) to read the profile data.  The following `PROFILE_GET` command will read the data written by the `hello-world` profile. This assumes that `10.0.0.1` is one of the values for `ip_src_addr` contained within the telemetry consumed by the Profiler.
 
     ```
-    $ bin/stellar -z node1:2181
+    $ source /etc/default/metron
+    $ bin/stellar -z $ZOOKEEPER
     [Stellar]>>> PROFILE_GET( "hello-world", "10.0.0.1", PROFILE_FIXED(30, "MINUTES"))
     [451, 448]
     ```
@@ -827,7 +830,8 @@ It is assumed that the PROFILE_GET client is configured as described [here](../m
 
 Retrieve the last 30 minutes of profile measurements for a specific host.
 ```
-$ bin/stellar -z node1:2181
+$ source /etc/default/metron
+$ bin/stellar -z $ZOOKEEPER
 
 [Stellar]>>> stats := PROFILE_GET( "example4", "10.0.0.1", PROFILE_FIXED(30, "MINUTES"))
 [Stellar]>>> stats
