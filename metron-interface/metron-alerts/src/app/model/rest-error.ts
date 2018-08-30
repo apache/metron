@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 export class RestError {
-  responseCode: number;
+  status: number;
   message: string;
-  fullMessage: string;
+  error: string;
 }
