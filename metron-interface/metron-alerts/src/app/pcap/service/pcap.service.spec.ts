@@ -58,7 +58,7 @@ describe('PcapService', () => {
   });
 
   describe('getPackets()', () => {
-    it('should return an Observable<Response>', () => {
+    it('should return an Observable<Pdml>', () => {
       let packets;
 
       pcapService.getPackets(jobId, 1).subscribe(r => {
