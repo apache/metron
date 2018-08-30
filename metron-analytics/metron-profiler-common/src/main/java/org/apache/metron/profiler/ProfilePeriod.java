@@ -47,6 +47,9 @@ public class ProfilePeriod implements Serializable {
    */
   private long durationMillis;
 
+  public ProfilePeriod() {
+    // no-arg constructor required for kryo serialization in storm
+  }
 
   /**
    * @param epochMillis A timestamp contained somewhere within the profile period.
