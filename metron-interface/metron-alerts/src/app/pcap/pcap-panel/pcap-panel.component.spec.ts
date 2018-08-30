@@ -479,7 +479,7 @@ describe('PcapPanelComponent', () => {
     );
 
     const restError = new RestError();
-    restError.responseCode = 404;
+    restError.status = 404;
     pcapService.getPackets = jasmine.createSpy('getPackets').and.returnValue(
             defer(() => Promise.reject(restError))
     );
@@ -509,7 +509,7 @@ describe('PcapPanelComponent', () => {
     );
 
     const restError = new RestError();
-    restError.responseCode = 500;
+    restError.status = 500;
     restError.message = 'error message';
     pcapService.getPackets = jasmine.createSpy('getPackets').and.returnValue(
             defer(() => Promise.reject(restError))

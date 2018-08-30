@@ -18,7 +18,6 @@ import {catchError, map} from 'rxjs/operators';
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { Response } from '@angular/http';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {HttpUtil} from '../utils/httpUtil';
@@ -33,7 +32,7 @@ export class GlobalConfigService {
 
   public get(): Observable<{}> {
     return this.http.get(this.url).pipe(
-      map((res: Response): any => {
+      map((res): any => {
         let body = res;
         let globalConfig = this.setDefaults(body);
         return globalConfig || {};

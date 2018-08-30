@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { Response } from '@angular/http';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {Router} from '@angular/router';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
@@ -42,7 +41,7 @@ export class AuthenticationService {
   }
 
   public init() {
-      this.getCurrentUser({responseType: 'text'}).subscribe((response: Response) => {
+      this.getCurrentUser({responseType: 'text'}).subscribe((response) => {
         this.currentUser = response.toString();
         if (this.currentUser) {
           this.onLoginEvent.next(true);
@@ -56,7 +55,7 @@ export class AuthenticationService {
   public login(username: string, password: string, onError): void {
     let credentials = btoa(username + ':' + password);
     this.getCurrentUser({ headers: new HttpHeaders({'Authorization': `Basic ${credentials}`}), responseType: 'text' })
-        .subscribe((response: Response) => {
+        .subscribe((response) => {
           this.currentUser = response.toString();
           this.router.navigateByUrl('/alerts-list');
           this.onLoginEvent.next(true);

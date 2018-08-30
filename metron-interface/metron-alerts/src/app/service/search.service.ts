@@ -36,7 +36,7 @@ export class SearchService {
 
   interval = 80000;
 
-  private static extractColumnNameDataFromRestApi(res: Response): ColumnMetadata[] {
+  private static extractColumnNameDataFromRestApi(res): ColumnMetadata[] {
     let response: any = res || {};
     let processedKeys: string[] = [];
     let columnMetadatas: ColumnMetadata[] = [];
