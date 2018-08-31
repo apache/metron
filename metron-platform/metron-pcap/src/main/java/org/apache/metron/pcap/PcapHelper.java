@@ -257,9 +257,23 @@ public class PcapHelper {
       if(pi.getTcpPacket().getDestination() != null ) {
         ret.put(org.apache.metron.common.Constants.Fields.DST_PORT.getName(), pi.getTcpPacket().getDestination().getPort());
       }
-      if(pi.getIpv4Packet() != null) {
-        ret.put(org.apache.metron.common.Constants.Fields.PROTOCOL.getName(), pi.getIpv4Packet().getProtocol());
+    }
+    if(pi.getUdpPacket() != null) {
+      if (pi.getUdpPacket().getSource() != null) {
+        if(pi.getUdpPacket().getSource().getAddress() != null) {
+          ret.put(org.apache.metron.common.Constants.Fields.SRC_ADDR.getName(), pi.getUdpPacket().getSource().getAddress().getHostAddress());
+        }
+        ret.put(org.apache.metron.common.Constants.Fields.SRC_PORT.getName(), pi.getUdpPacket().getSource().getPort());
       }
+      if (pi.getUdpPacket().getDestination() != null) {
+        if(pi.getUdpPacket().getDestination().getAddress() != null ) {
+          ret.put(org.apache.metron.common.Constants.Fields.DST_ADDR.getName(), pi.getUdpPacket().getDestination().getAddress().getHostAddress());
+        }
+        ret.put(org.apache.metron.common.Constants.Fields.DST_PORT.getName(), pi.getUdpPacket().getDestination().getPort());
+      }
+    }
+    if(pi.getIpv4Packet() != null) {
+      ret.put(org.apache.metron.common.Constants.Fields.PROTOCOL.getName(), pi.getIpv4Packet().getProtocol());
     }
     return ret;
   }

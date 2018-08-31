@@ -46,12 +46,12 @@
 		<module>metron-enrichment</module>
 		<module>metron-solr</module>
 		<module>metron-parsers</module>
+ 		<module>metron-job</module>
 		<module>metron-pcap-backend</module>
 		<module>metron-data-management</module>
 		<module>metron-pcap</module>
 		<module>metron-integration-test</module>
 		<module>metron-test-utilities</module>
-		<module>metron-api</module>
 		<module>metron-indexing</module>
 		<module>metron-management</module>
 		<module>metron-writer</module>

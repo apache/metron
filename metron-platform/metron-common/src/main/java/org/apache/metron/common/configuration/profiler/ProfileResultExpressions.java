@@ -30,13 +30,13 @@ public class ProfileResultExpressions implements Serializable {
 
   private String expression;
 
+  public ProfileResultExpressions() {
+    // no-arg constructor required for kryo serialization in storm
+  }
+
   @JsonCreator
   public ProfileResultExpressions(String expression) {
     this.expression = expression;
-  }
-
-  public ProfileResultExpressions() {
-    // needed for serialization and Spark's code generator
   }
 
   @JsonValue

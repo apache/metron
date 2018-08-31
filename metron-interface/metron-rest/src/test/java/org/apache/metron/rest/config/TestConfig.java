@@ -17,6 +17,15 @@
  */
 package org.apache.metron.rest.config;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import kafka.admin.AdminUtils$;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
@@ -37,9 +46,15 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.job.manager.InMemoryJobManager;
+import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.mock.MockPcapJob;
+import org.apache.metron.rest.mock.MockPcapJobSupplier;
+import org.apache.metron.rest.mock.MockPcapToPdmlScriptWrapper;
 import org.apache.metron.rest.mock.MockStormCLIClientWrapper;
 import org.apache.metron.rest.mock.MockStormRestTemplate;
+import org.apache.metron.rest.service.impl.PcapToPdmlScriptWrapper;
 import org.apache.metron.rest.service.impl.StormCLIWrapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,16 +62,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.web.client.RestTemplate;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
 @Configuration
 @Profile(TEST_PROFILE)
@@ -184,5 +189,27 @@ public class TestConfig {
   @Bean()
   public UserSettingsClient userSettingsClient() throws RestException, IOException {
     return new UserSettingsClient(new MockHBaseTableProvider().addToCache("user_settings", "cf"), Bytes.toBytes("cf"));
+  }
+
+  @Bean
+  public JobManager jobManager() {
+    return new InMemoryJobManager();
+  }
+
+  @Bean
+  public MockPcapJob mockPcapJob() {
+    return new MockPcapJob();
+  }
+
+  @Bean
+  public PcapJobSupplier pcapJobSupplier(MockPcapJob mockPcapJob) {
+    MockPcapJobSupplier mockPcapJobSupplier = new MockPcapJobSupplier();
+    mockPcapJobSupplier.setMockPcapJob(mockPcapJob);
+    return mockPcapJobSupplier;
+  }
+
+  @Bean
+  public PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper() {
+    return new MockPcapToPdmlScriptWrapper();
   }
 }

@@ -138,9 +138,9 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     try {
       doExecute(input);
 
-    } catch (IllegalArgumentException | ParseException | UnsupportedEncodingException e) {
-      LOG.error("Unexpected error", e);
-      collector.reportError(e);
+    } catch (Throwable t) {
+      LOG.error("Unexpected error", t);
+      collector.reportError(t);
 
     } finally {
       collector.ack(input);
@@ -151,16 +151,20 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
 
     // retrieve the input message
     byte[] data = input.getBinary(0);
-    JSONObject message = (JSONObject) parser.parse(new String(data, "UTF8"));
+    if(data == null) {
+      LOG.debug("Received null message. Nothing to do.");
+      return;
+    }
 
     // ensure there is a valid profiler configuration
     ProfilerConfig config = getProfilerConfig();
-    if(config != null && config.getProfiles().size() > 0) {
-      routeMessage(input, message, config);
-
-    } else if(LOG.isDebugEnabled()) {
-      LOG.debug("No Profiler configuration found.  Nothing to do.");
+    if(config == null || getProfilerConfig().getProfiles().size() == 0) {
+      LOG.debug("No Profiler configuration found. Nothing to do.");
+      return;
     }
+
+    JSONObject message = (JSONObject) parser.parse(new String(data, "UTF8"));
+    routeMessage(input, message, config);
   }
 
   /**

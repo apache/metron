@@ -42,6 +42,10 @@ public class ProfileResult implements Serializable {
   @JsonProperty("triage")
   private ProfileTriageExpressions triageExpressions;
 
+  public ProfileResult() {
+    // no-arg constructor required for kryo serialization in storm
+  }
+
   @JsonCreator
   public ProfileResult(
           @JsonProperty(value = "profile", required = true) ProfileResultExpressions profileExpressions,
@@ -63,10 +67,6 @@ public class ProfileResult implements Serializable {
   public ProfileResult(String expression) {
     this.profileExpressions = new ProfileResultExpressions(expression);
     this.triageExpressions = new ProfileTriageExpressions();
-  }
-
-  public ProfileResult() {
-    // needed for serialization and Spark's code generator
   }
 
   public ProfileResultExpressions getProfileExpressions() {

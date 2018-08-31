@@ -1,0 +1,73 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<form (ngSubmit)="onSubmit()" #f="ngForm" [formGroup]="filterForm" class="form-inline pcap-search">
+
+  <div class="form-group">
+    <label>From</label>
+    <app-date-picker formControlName="startTime" data-qe-id="start-time"> </app-date-picker>
+  </div>
+  <div class="form-group">
+    <label>To</label>
+    <app-date-picker formControlName="endTime" data-qe-id="end-time"> </app-date-picker>
+  </div>
+
+  <div class="form-group">
+    <label>IP Source Address</label>
+    <input class="form-control" formControlName="ipSrcAddr" data-qe-id="ip-src-addr">
+  </div>
+
+  <div class="form-group">
+    <label>IP Source Port</label>
+    <input class="form-control" formControlName="ipSrcPort" data-qe-id="ip-src-port">
+  </div>
+
+  <div class="form-group">
+    <label>IP Dest Address</label>
+    <input class="form-control" formControlName="ipDstAddr" data-qe-id="ip-dst-addr">
+  </div>
+
+  <div class="form-group">
+    <label>IP Dest Port</label>
+    <input class="form-control" formControlName="ipDstPort" data-qe-id="ip-dst-port">
+  </div>
+
+  <div class="form-group">
+    <label>Protocol</label>
+    <input class="form-control" formControlName="protocol" data-qe-id="protocol">
+  </div>
+
+  <div class="form-group">
+    <label>Include Reverse Traffic</label>
+    <input class="form-control" type="checkbox" formControlName="includeReverse" data-qe-id="include-reverse">
+  </div>
+
+  <div class="form-group">
+    <label>Filter</label>
+    <input class="form-control" formControlName="packetFilter" data-qe-id="packet-filter">
+  </div>
+
+  <div class="form-group">
+    <button type="submit" [ngClass]="{'disabled': filterForm.status === 'INVALID' || queryRunning}" class="btn btn-primary btn-search" [disabled]="filterForm.status === 'INVALID' || queryRunning" data-qe-id="submit-button"></button>
+  </div>
+</form>
+<div class="pcap-search-validation-errors alert alert-danger" *ngIf="filterForm.invalid">
+  <h5 class="alert-heading">Validation errors</h5>
+  <ul>
+    <li *ngIf="filterForm.controls.startTime.invalid || filterForm.controls.endTime.invalid">Selected date range is invalid. The "To" date must be later than the "From" date and the "To" date cannot be in the future.</li>
+    <li *ngIf="filterForm.controls.ipSrcAddr.invalid">Source IP address format is invalid. Use valid v4IP format, for example, 192.168.0.1</li>
+    <li *ngIf="filterForm.controls.ipSrcPort.invalid">Source port is invalid. Port number must be within the range of 0-65535.</li>
+    <li *ngIf="filterForm.controls.ipDstAddr.invalid">Destination IP address format is invalid. Use valid v4IP format, for example, 192.168.0.1</li>
+    <li *ngIf="filterForm.controls.ipDstPort.invalid">Destination port is invalid. Port number must be within the range of 0-65535.</li>
+  </ul>
+</div>

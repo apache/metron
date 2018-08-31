@@ -1,0 +1,70 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import "../../../vendor.scss";
+@import "../../../styles.scss";
+@import "../../../variables.scss";
+
+.ng-invalid:not(form) {
+  border-left: 5px solid #a94442; /* red */
+}
+
+.form-group {
+  padding: 0 0.75em 0.75em 0;
+  label {
+    margin-right: 1em;
+  }
+}
+
+.btn-search {
+  min-width: 42px;
+  padding-left: 0;
+  padding-right: 0;
+  border: 1px solid $blue-chill !important;
+  cursor: pointer;
+
+  &:focus {
+    box-shadow: none;
+  }
+
+  &::before {
+    font-family: "FontAwesome";
+    content: '\f002';
+    color: $piction-blue;
+  }
+}
+
+.pcap-search {
+
+  padding-bottom: 15px;
+
+  label {
+    font-size: 15px;
+  }
+
+  button {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    background: $icon-button-background;
+  }
+}
+
+.pcap-search-validation-errors {
+  & ul {
+    margin: 0
+  }
+}

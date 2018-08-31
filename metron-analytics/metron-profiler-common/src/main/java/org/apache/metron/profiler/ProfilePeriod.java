@@ -48,6 +48,17 @@ public class ProfilePeriod implements Serializable {
   private long durationMillis;
 
   /**
+   * A no-arg constructor is required for using Kryo serialization in Storm. Using this
+   * constructor elsewhere is discouraged.
+   *
+   * <p>Use either {@link #fromPeriodId(long, long, TimeUnit)} or {@link #fromTimestamp(long, long, TimeUnit)}
+   * to create a {@link ProfilePeriod}.
+   */
+  public ProfilePeriod() {
+    // no-arg constructor required for kryo serialization in storm
+  }
+
+  /**
    * @param periodId A monotonically increasing number identifying the period.
    * @param duration The duration of each profile period.
    * @param units The units of the duration; hours, minutes, etc.
