@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Rx';
+import { Observable, interval } from 'rxjs';
+import { map, catchError, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { HttpUtil } from '../../utils/httpUtil';
 
-import 'rxjs/add/operator/map';
 
 import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
@@ -37,46 +37,48 @@ export class PcapService {
   constructor(private http: HttpClient) {}
 
   public pollStatus(id: string): Observable<{}> {
-    return Observable.interval(this.statusInterval * 1000).switchMap(() => {
-      return this.getStatus(id);
-    });
+    return interval(this.statusInterval * 1000).pipe(
+      switchMap(() => {
+        return this.getStatus(id);
+      })
+    );
   }
 
   public submitRequest(
     pcapRequest: PcapRequest
   ): Observable<PcapStatusResponse> {
-    return this.http
-      .post('/api/v1/pcap/fixed', pcapRequest)
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.post('/api/v1/pcap/fixed', pcapRequest).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
   public getStatus(id: string): Observable<PcapStatusResponse> {
-    return this.http
-      .get(`/api/v1/pcap/${id}`)
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(`/api/v1/pcap/${id}`).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
   public getRunningJob(): Observable<PcapStatusResponse[]> {
-    return this.http
-      .get(`/api/v1/pcap?state=RUNNING`)
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(`/api/v1/pcap?state=RUNNING`).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
   public getPackets(id: string, pageId: number): Observable<Pdml> {
-    return this.http
-      .get(`/api/v1/pcap/${id}/pdml?page=${pageId}`)
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(`/api/v1/pcap/${id}/pdml?page=${pageId}`).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
   public getPcapRequest(id: string): Observable<PcapRequest> {
-    return this.http
-      .get(`/api/v1/pcap/${id}/config`)
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(`/api/v1/pcap/${id}/config`).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
   public getDownloadUrl(id: string, pageId: number) {
@@ -86,6 +88,6 @@ export class PcapService {
   public cancelQuery(queryId: string) {
     return this.http
       .delete(`/api/v1/pcap/kill/${queryId}`)
-      .catch(HttpUtil.handleError);
+      .pipe(catchError(HttpUtil.handleError));
   }
 }

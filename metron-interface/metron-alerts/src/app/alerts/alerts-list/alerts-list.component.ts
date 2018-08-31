@@ -19,7 +19,7 @@ import {forkJoin as observableForkJoin} from 'rxjs';
  */
 import {Component, OnInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
-import {Observable, Subscription} from 'rxjs/Rx';
+import {Subscription} from 'rxjs';
 
 import {Alert} from '../../model/alert';
 import {SearchService} from '../../service/search.service';

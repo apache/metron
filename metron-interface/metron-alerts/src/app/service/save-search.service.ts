@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Injectable, } from '@angular/core';
-import {Observable} from 'rxjs/Rx';
+import {Observable} from 'rxjs';
 import { Subject } from 'rxjs';
 import {QueryBuilder} from '../alerts/alerts-list/query-builder';
 import {SaveSearch} from '../model/save-search';

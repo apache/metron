@@ -17,7 +17,7 @@
  */
 import {Injectable} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {Observable} from 'rxjs/Rx';
+import {Observable} from 'rxjs';
 import { forkJoin as observableForkJoin, Subject } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 

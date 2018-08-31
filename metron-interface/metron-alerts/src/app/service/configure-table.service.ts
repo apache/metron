@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
+import {Observable} from 'rxjs';
 import { Subject } from 'rxjs';
 import {ColumnMetadata} from '../model/column-metadata';
 import {TableMetadata} from '../model/table-metadata';

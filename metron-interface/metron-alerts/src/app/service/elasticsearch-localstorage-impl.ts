@@ -19,7 +19,7 @@ import {catchError, map, onErrorResumeNext} from 'rxjs/operators';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Observable} from 'rxjs/Rx';
+import {Observable} from 'rxjs';
 import { Injectable } from '@angular/core';
 import {HttpUtil} from '../utils/httpUtil';
 import {DataSource} from './data-source';

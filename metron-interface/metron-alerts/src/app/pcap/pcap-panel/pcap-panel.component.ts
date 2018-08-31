@@ -21,7 +21,7 @@ import { PcapService } from '../service/pcap.service';
 import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
-import { Subscription } from 'rxjs/Rx';
+import { Subscription } from 'rxjs';
 import { PcapPagination } from '../model/pcap-pagination';
 import { RestError } from '../../model/rest-error';
 

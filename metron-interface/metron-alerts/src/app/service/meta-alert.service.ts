@@ -19,7 +19,7 @@ import {map, catchError} from 'rxjs/operators';
  */
 import {Injectable} from '@angular/core';
 import {Subject}    from 'rxjs';
-import {Observable} from 'rxjs/Rx';
+import {Observable} from 'rxjs';
 
 import {HttpUtil} from '../utils/httpUtil';
 import {Alert} from '../model/alert';

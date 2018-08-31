@@ -17,7 +17,7 @@
  */
 import { HttpClient } from '@angular/common/http';
 import {Injectable, NgZone} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
+import {Observable} from 'rxjs';
 import { map, onErrorResumeNext, catchError, switchMap } from 'rxjs/operators';
 import { interval as observableInterval } from 'rxjs';
 import {HttpUtil} from '../utils/httpUtil';

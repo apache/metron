@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
+import {Observable} from 'rxjs';
 
 import {ColumnNames} from '../model/column-names';
 import {DataSource} from './data-source';

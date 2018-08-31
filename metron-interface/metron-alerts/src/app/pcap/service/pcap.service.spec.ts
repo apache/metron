@@ -26,7 +26,7 @@ import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
-import { Observable } from 'rxjs/Rx';
+import { of } from 'rxjs';
 
 import { PcapService } from './pcap.service';
 import { PcapStatusResponse } from '../model/pcap-status-response';
@@ -81,7 +81,7 @@ describe('PcapService', () => {
     it('should call getStatus() in intervals', fakeAsync(() => {
       const responseMock: PcapStatusResponse = fakePcapStatusResponse;
       const spy = spyOn(pcapService, 'getStatus').and.returnValue(
-        Observable.of(responseMock)
+        of(responseMock)
       );
       let response;
 
