@@ -19,20 +19,19 @@
 package org.apache.metron.pcap.filter.fixed;
 
 import com.google.common.base.Joiner;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import javax.xml.bind.DatatypeConverter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.common.Constants;
-import org.apache.metron.stellar.dsl.MapVariableResolver;
-import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
 import org.apache.metron.pcap.pattern.ByteArrayMatchingUtil;
-
-import javax.xml.bind.DatatypeConverter;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.VariableResolver;
 
 
 public class FixedPcapFilter implements PcapFilter {
@@ -48,7 +47,8 @@ public class FixedPcapFilter implements PcapFilter {
 
     @Override
     public String queryToString(Map<String, String> fields) {
-      return (fields == null ? "" : Joiner.on("_").join(fields.values()));
+      return (fields == null ? "" : Joiner.on("_").join(fields.values()).replaceAll("\\s", "_")
+      );
     }
   }
 

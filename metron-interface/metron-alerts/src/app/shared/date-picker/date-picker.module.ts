@@ -19,8 +19,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule }        from '@angular/common';
 import { FormsModule }         from '@angular/forms';
-import {DatePickerComponent} from './date-picker.component';
-import {SharedModule} from '../shared.module';
+import { DatePickerComponent } from './date-picker.component';
 
 @NgModule({
   imports: [

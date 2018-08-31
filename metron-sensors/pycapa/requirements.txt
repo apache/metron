@@ -14,6 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-confluent_kafka
-pcapy
-argparse
+confluent-kafka==0.11.5
+pcapy==0.11.4
+argparse==1.4.0

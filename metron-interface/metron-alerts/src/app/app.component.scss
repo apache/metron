@@ -27,6 +27,24 @@
   max-height: 50px;
 }
 
+.nav-link
+{
+  padding-bottom: 0;
+  padding-top: 0;
+  color: inherit;
+}
+
+.nav-item.active
+{
+  border-bottom: 3px solid #32abe2;
+  margin-bottom: 5px;
+}
+
+.nav-link.active
+{
+  color: #ffffff;
+}
+
 .logout {
   padding-left: 10px;
 }
