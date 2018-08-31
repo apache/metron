@@ -34,6 +34,7 @@ import {MetaAlertService} from '../../../service/meta-alert.service';
 import {MetaAlertAddRemoveRequest} from '../../../model/meta-alert-add-remove-request';
 import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
+import {SENSOR_TYPE_FIELD} from "../../../utils/constants";
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -87,7 +88,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
     this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
       this.globalConfig = config;
       if (this.globalConfig['source.type.field']) {
-        let filteredAlertsColumnsToDisplay = this.alertsColumnsToDisplay.filter(colName => colName.name !== 'source:type');
+        let filteredAlertsColumnsToDisplay = this.alertsColumnsToDisplay.filter(colName => colName.name !== SENSOR_TYPE_FIELD);
         if (filteredAlertsColumnsToDisplay.length < this.alertsColumnsToDisplay.length) {
           this.alertsColumnsToDisplay = filteredAlertsColumnsToDisplay;
           this.alertsColumnsToDisplay.splice(2, 0, new ColumnMetadata(this.globalConfig['source.type.field'], 'string'));

@@ -40,7 +40,7 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
    * {
    * "ip_src_addr": "ip1",
    * "ip_dst_addr": "ip2",
-   * "source.type": "test"
+   * "metron_sensor_type": "test"
    * }
    */
   @Multiline
@@ -50,7 +50,7 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
    * {
    * "enrichments.geo.ip_src_addr": "ip1",
    * "enrichments.geo.ip_dst_addr": "ip2",
-   * "source.type": "test"
+   * "metron_sensor_type": "test"
    * }
    */
   @Multiline
@@ -60,7 +60,7 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
    * {
    * "enrichments.host.ip_src_addr": "ip1",
    * "enrichments.host.ip_dst_addr": "ip2",
-   * "source.type": "test"
+   * "metron_sensor_type": "test"
    * }
    */
   @Multiline
@@ -70,7 +70,7 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
    * {
    * "enrichments.hbaseEnrichment.ip_src_addr": "ip1",
    * "enrichments.hbaseEnrichment.ip_dst_addr": "ip2",
-   * "source.type": "test"
+   * "metron_sensor_type": "test"
    * }
    */
   @Multiline

@@ -27,7 +27,7 @@ export class AlertSource {
   tcpwindow: number;
   tcpack: number;
   protocol: string;
-  'source:type': string;
+  metron_sensor_type: string;
   ip_dst_addr: number;
   original_string: string;
   tos: number;
@@ -46,11 +46,11 @@ export class AlertSource {
   sig_generator: number;
   metron_alert: AlertSource[] = [];
   comments: AlertComment[] = [];
-  'threat:triage:score': number;
-  'threatinteljoinbolt:joiner:ts': number;
-  'enrichmentsplitterbolt:splitter:begin:ts': number;
-  'enrichmentjoinbolt:joiner:ts': number;
-  'threatintelsplitterbolt:splitter:end:ts': number;
-  'enrichmentsplitterbolt:splitter:end:ts': number;
-  'threatintelsplitterbolt:splitter:begin:ts': number;
+  'threat.triage.score': number;
+  'threatinteljoinbolt.joiner.ts': number;
+  'enrichmentsplitterbolt.splitter.begin.ts': number;
+  'enrichmentjoinbolt.joiner.ts': number;
+  'threatintelsplitterbolt.splitter.end.ts': number;
+  'enrichmentsplitterbolt.splitter.end.ts': number;
+  'threatintelsplitterbolt.splitter.begin.ts': number;
 }

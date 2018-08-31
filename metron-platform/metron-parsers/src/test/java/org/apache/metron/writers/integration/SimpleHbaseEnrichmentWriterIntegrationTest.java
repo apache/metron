@@ -54,6 +54,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
+
 public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationTest {
 
   /**
@@ -170,7 +172,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
       }};
       for (LookupKV<EnrichmentKey, EnrichmentValue> kv : result.getResult()) {
         Assert.assertTrue(validIndicators.contains(kv.getKey().indicator));
-        Assert.assertEquals(kv.getValue().getMetadata().get("source.type"), "dummy");
+        Assert.assertEquals(kv.getValue().getMetadata().get(SENSOR_TYPE), "dummy");
         Assert.assertNotNull(kv.getValue().getMetadata().get("timestamp"));
         Assert.assertNotNull(kv.getValue().getMetadata().get("original_string"));
         Map<String, String> metadata = validMetadata.get(kv.getKey().indicator);

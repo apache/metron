@@ -31,6 +31,7 @@ import {Utils} from '../utils/utils';
 import {Patch} from '../model/patch';
 import { GlobalConfigService } from './global-config.service';
 import {CommentAddRemoveRequest} from "../model/comment-add-remove-request";
+import {SENSOR_TYPE_FIELD} from "../utils/constants";
 
 @Injectable()
 export class UpdateService {
@@ -39,7 +40,7 @@ export class UpdateService {
 
   alertChangedSource = new Subject<PatchRequest>();
   alertChanged$ = this.alertChangedSource.asObservable();
-  sourceType = 'source:type';
+  sourceType = SENSOR_TYPE_FIELD;
   alertCommentChangedSource = new Subject<CommentAddRemoveRequest>();
   alertCommentChanged$ = this.alertCommentChangedSource.asObservable();
 

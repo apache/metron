@@ -17,7 +17,7 @@
            "mapping": {
               "type": "float"
             },
-            "match": "threat:triage:*score",
+            "path_match": "threat.triage.*score",
             "match_mapping_type": "*"
           }
         }
@@ -39,7 +39,7 @@
         "metron_alert": {
           "type": "nested"
         },
-        "source:type": {
+        "metron_sensor_type": {
           "type": "keyword"
         }
       }

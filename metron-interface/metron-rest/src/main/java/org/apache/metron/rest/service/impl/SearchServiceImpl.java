@@ -144,7 +144,8 @@ public class SearchServiceImpl implements SearchService {
 
   @SuppressWarnings("unchecked")
   public List<String> getDefaultFacetFields() throws RestException {
-    Optional<AlertsUIUserSettings> alertUserSettings = alertsUIService.getAlertsUIUserSettings();
+    //Optional<AlertsUIUserSettings> alertUserSettings = alertsUIService.getAlertsUIUserSettings();
+    Optional<AlertsUIUserSettings> alertUserSettings = Optional.empty();
     if (!alertUserSettings.isPresent() || alertUserSettings.get().getFacetFields() == null) {
       String facetFieldsProperty = environment
           .getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, "");

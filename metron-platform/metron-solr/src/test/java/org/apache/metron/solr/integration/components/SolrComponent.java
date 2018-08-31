@@ -47,6 +47,8 @@ import java.util.Map;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.zookeeper.KeeperException;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
+
 public class SolrComponent implements InMemoryComponent {
 
   public static class Builder {
@@ -173,8 +175,8 @@ public class SolrComponent implements InMemoryComponent {
     // If it's metaalert, we need to adjust the query. We want child docs with the parent,
     // not separate.
     if (collection.equals("metaalert")) {
-      parameters.setQuery("source.type:metaalert")
-          .setFields("*", "[child parentFilter=source.type:metaalert limit=999]");
+      parameters.setQuery(String.format("%s:metaalert", SENSOR_TYPE))
+          .setFields("*", String.format("[child parentFilter=%s:metaalert limit=999]", SENSOR_TYPE));
     } else {
       parameters.set("q", "*:*");
     }

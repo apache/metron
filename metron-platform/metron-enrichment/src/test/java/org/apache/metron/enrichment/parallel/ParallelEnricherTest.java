@@ -49,7 +49,7 @@ public class ParallelEnricherTest {
                       ,"one" : "MAP_GET('blah', map)"
                       ,"foo": "1 + 1"
                       }
-          ,"ALL_CAPS" : "TO_UPPER(source.type)"
+          ,"ALL_CAPS" : "TO_UPPER(metron_sensor_type)"
         }
       }
     }
@@ -141,7 +141,7 @@ public class ParallelEnricherTest {
     JSONObject ret = result.getResult();
     Assert.assertEquals("Got the wrong result count: " + ret, 8, ret.size());
     Assert.assertEquals(1, ret.get("map.blah"));
-    Assert.assertEquals("test", ret.get("source.type"));
+    Assert.assertEquals("test", ret.get("metron_sensor_type"));
     Assert.assertEquals(1, ret.get("one"));
     Assert.assertEquals(2, ret.get("foo"));
     Assert.assertEquals("TEST", ret.get("ALL_CAPS"));
@@ -184,7 +184,7 @@ public class ParallelEnricherTest {
                       ,"one := MAP_GET('blah', map)"
                       ,"foo := 1 + 1"
                       ]
-          ,"ALL_CAPS" : "TO_UPPER(source.type)"
+          ,"ALL_CAPS" : "TO_UPPER(metron_sensor_type)"
           ,"errors" : [
             "error := 1/0"
           ]
@@ -210,7 +210,7 @@ public class ParallelEnricherTest {
     JSONObject ret = result.getResult();
     Assert.assertEquals(ret + " is not what I expected", 8, ret.size());
     Assert.assertEquals(1, ret.get("map.blah"));
-    Assert.assertEquals("test", ret.get("source.type"));
+    Assert.assertEquals("test", ret.get("metron_sensor_type"));
     Assert.assertEquals(1, ret.get("one"));
     Assert.assertEquals(2, ret.get("foo"));
     Assert.assertEquals("TEST", ret.get("ALL_CAPS"));

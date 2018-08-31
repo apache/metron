@@ -17,6 +17,7 @@
  */
 package org.apache.metron.solr.integration;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 
 import java.io.IOException;
@@ -24,7 +25,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -55,8 +55,6 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     indexComponent = startIndex();
     dao = createDao();
     // The data is all static for searches, so we can set it up here, and not do anything between tests.
-    broData = SearchIntegrationTest.broData.replace("source:type", "source.type");
-    snortData = SearchIntegrationTest.snortData.replace("source:type", "source.type");
     solrComponent.addCollection("bro", "../metron-solr/src/main/config/schema/bro");
     solrComponent.addCollection("snort", "../metron-solr/src/main/config/schema/snort");
     loadTestData();
@@ -115,7 +113,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
 
       // Fields present in both with same type
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get(SENSOR_TYPE));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
@@ -147,11 +145,11 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     // getColumnMetadata with only snort
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(33, fieldTypes.size());
+      Assert.assertEquals(35, fieldTypes.size());
 
       // Fields present in both with same type
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get(SENSOR_TYPE));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
@@ -162,8 +160,13 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
       // A dynamic field present in both with same type
       Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("score"));
 
-      // Dyanamic field present in both with nonstandard types.
+      // Dynamic field present in both with nonstandard types.
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+
+      // Dynamic fields only present in snort
+      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat.triage.score"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("threat.triage.rules.snort_field.name"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("threat.triage.rules.snort_field.reason"));
 
       // Field with nonstandard type
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
@@ -190,7 +193,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
 
     // Fields present in both with same type
     Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source.type"));
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get(SENSOR_TYPE));
     Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
     Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
     Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
@@ -232,7 +235,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
 
   @Override
   protected String getSourceTypeField() {
-    return Constants.SENSOR_TYPE;
+    return SENSOR_TYPE;
   }
 
   @Override

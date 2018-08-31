@@ -18,6 +18,7 @@
 
 import { environment } from '../../environments/environment';
 
+export const SENSOR_TYPE_FIELD = 'metron_sensor_type';
 export const META_ALERTS_SENSOR_TYPE = 'metaalert';
 
 export const NUM_SAVED_SEARCH = 10;

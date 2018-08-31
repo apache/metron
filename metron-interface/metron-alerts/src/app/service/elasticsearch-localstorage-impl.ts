@@ -24,7 +24,7 @@ import {ColumnMetadata} from '../model/column-metadata';
 import {ElasticsearchUtils} from '../utils/elasticsearch-utils';
 import {
   ALERTS_COLUMN_NAMES, ALERTS_TABLE_METADATA, ALERTS_RECENT_SEARCH,
-  ALERTS_SAVED_SEARCH, NUM_SAVED_SEARCH
+  ALERTS_SAVED_SEARCH, NUM_SAVED_SEARCH, SENSOR_TYPE_FIELD
 } from '../utils/constants';
 import {ColumnNames} from '../model/column-names';
 import {ColumnNamesService} from './column-names.service';
@@ -37,15 +37,12 @@ import {AlertSource} from '../model/alert-source';
 @Injectable()
 export class ElasticSearchLocalstorageImpl extends DataSource {
 
-  globalConfig: {} = {};
-  sourceType: 'source:type';
-
   private defaultColumnMetadata = [
     new ColumnMetadata('id', 'string'),
     new ColumnMetadata('timestamp', 'date'),
-    new ColumnMetadata('source:type', 'string'),
+    new ColumnMetadata(SENSOR_TYPE_FIELD, 'string'),
     new ColumnMetadata('ip_src_addr', 'ip'),
-    new ColumnMetadata('enrichments:geo:ip_dst_addr:country', 'string'),
+    new ColumnMetadata('enrichments.geo.ip_dst_addr.country', 'string'),
     new ColumnMetadata('ip_dst_addr', 'ip'),
     new ColumnMetadata('host', 'string'),
     new ColumnMetadata('alert_status', 'string')

@@ -125,7 +125,7 @@ public class FieldNameConvertersTest {
 
     // if none defined, should default to 'DEDOT'
     FieldNameConverter converter = FieldNameConverters.create(sensor, config);
-    assertEquals(FieldNameConverters.DEDOT, converter);
+    assertEquals(FieldNameConverters.NOOP, converter);
   }
 
   /**
@@ -140,11 +140,11 @@ public class FieldNameConvertersTest {
 
     // no converter defined in config, should use 'DEDOT' converter
     WriterConfiguration config = createConfig(writer, sensor, jsonWithNoConverter);
-    assertEquals(FieldNameConverters.DEDOT, FieldNameConverters.create(sensor, config));
+    assertEquals(FieldNameConverters.NOOP, FieldNameConverters.create(sensor, config));
 
     // an 'updated' config uses the 'NOOP' converter
-    WriterConfiguration newConfig = createConfig(writer, sensor, jsonWithNoop);
-    assertEquals(FieldNameConverters.NOOP, FieldNameConverters.create(sensor, newConfig));
+    WriterConfiguration newConfig = createConfig(writer, sensor, jsonWithDedot);
+    assertEquals(FieldNameConverters.DEDOT, FieldNameConverters.create(sensor, newConfig));
   }
 
   /**
@@ -175,7 +175,7 @@ public class FieldNameConvertersTest {
 
     // if invalid value defined, it should fall-back to using default 'DEDOT'
     FieldNameConverter converter = FieldNameConverters.create(sensor, config);
-    assertEquals(FieldNameConverters.DEDOT, converter);
+    assertEquals(FieldNameConverters.NOOP, converter);
   }
 
   /**
@@ -206,6 +206,6 @@ public class FieldNameConvertersTest {
 
     // if invalid value defined, it should fall-back to using default 'DEDOT'
     FieldNameConverter converter = FieldNameConverters.create(sensor, config);
-    assertEquals(FieldNameConverters.DEDOT, converter);
+    assertEquals(FieldNameConverters.NOOP, converter);
   }
 }

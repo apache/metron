@@ -18,6 +18,7 @@
 
 package org.apache.metron.solr.integration;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -176,7 +177,7 @@ public class SolrRetrieveLatestIntegrationTest {
 
   protected Document buildExpectedDocument(String sensor, int i) {
     Map<String, Object> expectedMapOne = new HashMap<>();
-    expectedMapOne.put("source.type", sensor);
+    expectedMapOne.put(SENSOR_TYPE, sensor);
     expectedMapOne.put(Constants.GUID, buildGuid(sensor, i));
     return new Document(expectedMapOne, buildGuid(sensor, i), sensor, 0L);
   }
@@ -194,7 +195,7 @@ public class SolrRetrieveLatestIntegrationTest {
     for (int i = 0; i < 3; ++i) {
       final String name = buildGuid(sensorName, i);
       HashMap<String, Object> inputMap = new HashMap<>();
-      inputMap.put("source.type", sensorName);
+      inputMap.put(SENSOR_TYPE, sensorName);
       inputMap.put(Constants.GUID, name);
       inputData.add(inputMap);
     }

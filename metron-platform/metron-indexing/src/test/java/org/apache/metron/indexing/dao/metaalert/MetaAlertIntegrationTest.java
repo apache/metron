@@ -18,6 +18,7 @@
 
 package org.apache.metron.indexing.dao.metaalert;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
@@ -991,7 +992,7 @@ public abstract class MetaAlertIntegrationTest {
       final String guid = "message_" + i;
       Map<String, Object> alerts = new HashMap<>();
       alerts.put(Constants.GUID, guid);
-      alerts.put(getSourceTypeField(), SENSOR_NAME);
+      alerts.put(SENSOR_TYPE, SENSOR_NAME);
       alerts.put(THREAT_FIELD_DEFAULT, (double) i);
       alerts.put("timestamp", System.currentTimeMillis());
       inputData.add(alerts);

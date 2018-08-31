@@ -104,7 +104,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
       @Override
       protected String getDefaultThreatTriageField() {
-        return THREAT_FIELD_DEFAULT.replace(':', '.');
+        return THREAT_FIELD_DEFAULT;
       }
 
       @Override

@@ -7,9 +7,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,15 @@
  */
 package org.apache.metron.indexing.dao;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -46,11 +49,11 @@ import org.junit.rules.ExpectedException;
 public abstract class SearchIntegrationTest {
   /**
    * [
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "ttl": "data 1", "guid":"bro_1"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "score": 50.0, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "ttl": "data 2", "guid":"bro_2"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "score": 20.0, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "ttl": "data 3", "guid":"bro_3"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "ttl": "data 4", "guid":"bro_4"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "score": 98.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "ttl": "data 5", "guid":"bro_5"}
+   * {"metron_sensor_type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "ttl": "data 1", "guid":"bro_1"},
+   * {"metron_sensor_type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "score": 50.0, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "ttl": "data 2", "guid":"bro_2"},
+   * {"metron_sensor_type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "score": 20.0, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "ttl": "data 3", "guid":"bro_3"},
+   * {"metron_sensor_type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "ttl": "data 4", "guid":"bro_4"},
+   * {"metron_sensor_type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "score": 98.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "ttl": "data 5", "guid":"bro_5"}
    * ]
    */
   @Multiline
@@ -58,11 +61,11 @@ public abstract class SearchIntegrationTest {
 
   /**
    * [
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "ttl": 1, "guid":"snort_1", "threat:triage:score":10.0},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "ttl": 2, "guid":"snort_2", "threat:triage:score":20.0},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "ttl": 3, "guid":"snort_3"},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "ttl": 4, "guid":"snort_4"},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "ttl": 5, "guid":"snort_5"}
+   * {"metron_sensor_type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "ttl": 1, "guid":"snort_1", "threat.triage.score":10.0, "threat.triage.rules.snort_field.reason":"snort_1 reason", "threat.triage.rules.snort_field.name":"snort_1 name"},
+   * {"metron_sensor_type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "ttl": 2, "guid":"snort_2", "threat.triage.score":20.0, "threat.triage.rules.snort_field.reason":"snort_2 reason", "threat.triage.rules.snort_field.name":"snort_2 name"},
+   * {"metron_sensor_type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "ttl": 3, "guid":"snort_3"},
+   * {"metron_sensor_type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "ttl": 4, "guid":"snort_4"},
+   * {"metron_sensor_type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "ttl": 5, "guid":"snort_5"}
    * ]
    */
   @Multiline
@@ -154,7 +157,7 @@ public abstract class SearchIntegrationTest {
    * "size": 25,
    * "sort": [
    *    {
-   *      "field": "threat:triage:score",
+   *      "field": "threat.triage.score",
    *      "sortOrder": "asc"
    *    }
    *  ]
@@ -174,7 +177,7 @@ public abstract class SearchIntegrationTest {
    * "size": 25,
    * "sort": [
    *    {
-   *      "field": "threat:triage:score",
+   *      "field": "threat.triage.score",
    *      "sortOrder": "desc"
    *    }
    *  ]
@@ -219,7 +222,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "facetFields": ["source:type", "ip_src_addr", "ip_src_port", "long_field", "timestamp", "latitude", "score", "is_alert"],
+   * "facetFields": ["metron_sensor_type", "ip_src_addr", "ip_src_port", "long_field", "timestamp", "latitude", "score", "is_alert"],
    * "indices": ["bro", "snort"],
    * "query": "*",
    * "from": 0,
@@ -482,7 +485,7 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(10, results.size());
-    for(int i = 0;i < 5;++i) {
+    for (int i = 0; i < 5; ++i) {
       Assert.assertEquals("snort", results.get(i).getSource().get(getSourceTypeField()));
       Assert.assertEquals(getIndexName("snort"), results.get(i).getIndex());
       Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
@@ -506,10 +509,11 @@ public abstract class SearchIntegrationTest {
 
   @Test
   public void get_all_latest_guid() throws Exception {
-    List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new JSONUtils.ReferenceSupplier<List<GetRequest>>(){});
+    List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new JSONUtils.ReferenceSupplier<List<GetRequest>>() {
+    });
     Map<String, Document> docs = new HashMap<>();
 
-    for(Document doc : getIndexDao().getAllLatest(request)) {
+    for (Document doc : getIndexDao().getAllLatest(request)) {
       docs.put(doc.getGuid(), doc);
     }
     Assert.assertEquals(2, docs.size());
@@ -552,14 +556,14 @@ public abstract class SearchIntegrationTest {
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(10, results.size());
 
-    // the remaining are missing the 'threat:triage:score' and should be sorted last
+    // the remaining are missing the 'threat.triage.score' and should be sorted last
     for (int i = 0; i < 8; i++) {
-      Assert.assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
+      Assert.assertFalse(results.get(i).getSource().containsKey("threat.triage.score"));
     }
 
     // validate sorted order - there are only 2 with a 'threat:triage:score'
-    Assert.assertEquals("10.0", results.get(8).getSource().get("threat:triage:score").toString());
-    Assert.assertEquals("20.0", results.get(9).getSource().get("threat:triage:score").toString());
+    Assert.assertEquals("10.0", results.get(8).getSource().get("threat.triage.score").toString());
+    Assert.assertEquals("20.0", results.get(9).getSource().get("threat.triage.score").toString());
   }
 
   @Test
@@ -571,12 +575,12 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(10, results.size());
 
     // validate sorted order - there are only 2 with a 'threat:triage:score'
-    Assert.assertEquals("20.0", results.get(0).getSource().get("threat:triage:score").toString());
-    Assert.assertEquals("10.0", results.get(1).getSource().get("threat:triage:score").toString());
+    Assert.assertEquals("20.0", results.get(0).getSource().get("threat.triage.score").toString());
+    Assert.assertEquals("10.0", results.get(1).getSource().get("threat.triage.score").toString());
 
     // the remaining are missing the 'threat:triage:score' and should be sorted last
     for (int i = 2; i < 10; i++) {
-      Assert.assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
+      Assert.assertFalse(results.get(i).getSource().containsKey("threat.triage.score"));
     }
   }
 
@@ -609,7 +613,7 @@ public abstract class SearchIntegrationTest {
 
   @Test
   public void facet_query_yields_field_types() throws Exception {
-    String facetQuery = facetQueryRaw.replace("source:type", getSourceTypeField());
+    String facetQuery = facetQueryRaw.replace(SENSOR_TYPE, getSourceTypeField());
     SearchRequest request = JSONUtils.INSTANCE.load(facetQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
@@ -934,8 +938,10 @@ public abstract class SearchIntegrationTest {
 
   @Test
   public abstract void returns_column_data_for_multiple_indices() throws Exception;
+
   @Test
   public abstract void returns_column_metadata_for_specified_indices() throws Exception;
+
   @Test
   public abstract void different_type_filter_query() throws Exception;
 

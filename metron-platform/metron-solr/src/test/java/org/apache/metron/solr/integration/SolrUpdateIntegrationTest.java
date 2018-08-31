@@ -17,6 +17,7 @@
  */
 package org.apache.metron.solr.integration;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 import static org.junit.Assert.assertEquals;
 
@@ -140,7 +141,7 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   public void suppress_expanded_fields() throws Exception {
     Map<String, Object> fields = new HashMap<>();
     fields.put("guid", "bro_1");
-    fields.put("source.type", SENSOR_NAME);
+    fields.put(SENSOR_TYPE, SENSOR_NAME);
     fields.put("ip_src_port", 8010);
     fields.put("long_field", 10000);
     fields.put("latitude", 48.5839);

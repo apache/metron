@@ -51,7 +51,7 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
    * {
    * "field1": "value1",
    * "enrichedField1": "enrichedValue1",
-   * "source.type": "test"
+   * "metron_sensor_type": "test"
    * }
    */
   @Multiline
@@ -61,7 +61,7 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
    * {
    * "field1": "value1",
    * "enrichedField1": "enrichedValue1",
-   * "source.type": "test",
+   * "metron_sensor_type": "test",
    * "threatintels.field.end.ts": "timing"
    * }
    */
@@ -72,7 +72,7 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
    * {
    * "field1": "value1",
    * "enrichedField1": "enrichedValue1",
-   * "source.type": "test",
+   * "metron_sensor_type": "test",
    * "threatintels.field": "threatIntelValue"
    * }
    */

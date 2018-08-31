@@ -99,32 +99,35 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
           MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
           Map<String, Object> sourceAsMap = mappingMetaData.getSourceAsMap();
           if (sourceAsMap.containsKey("properties")) {
-            Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) sourceAsMap.get("properties");
+            Map<String, Map<String, Object>> map = (Map<String, Map<String, Object>>) sourceAsMap.get("properties");
 
             // for each field in the mapping
-            for (String field : map.keySet()) {
-              if (!fieldBlackList.contains(field)) {
-                FieldType type = toFieldType(map.get(field).get("type"));
+            for (Map.Entry<String, Map<String, Object>> entry : map.entrySet()) {
+              Map<String, FieldType> fields = new HashMap<>();
+              getFields(entry, entry.getKey(), fields);
+              for (String field: fields.keySet()) {
+                if (!fieldBlackList.contains(field)) {
+                  FieldType type = fields.get(field);
+                  if (!indexColumnMetadata.containsKey(field)) {
+                    indexColumnMetadata.put(field, type);
 
-                if(!indexColumnMetadata.containsKey(field)) {
-                  indexColumnMetadata.put(field, type);
+                    // record the last index in which a field exists, to be able to print helpful error message on type mismatch
+                    previousIndices.put(field, indexName);
 
-                  // record the last index in which a field exists, to be able to print helpful error message on type mismatch
-                  previousIndices.put(field, indexName);
+                  } else {
+                    FieldType previousType = indexColumnMetadata.get(field);
+                    if (!type.equals(previousType)) {
+                      String previousIndexName = previousIndices.get(field);
+                      LOG.error(String.format(
+                              "Field type mismatch: %s.%s has type %s while %s.%s has type %s.  Defaulting type to %s.",
+                              indexName, field, type.getFieldType(),
+                              previousIndexName, field, previousType.getFieldType(),
+                              FieldType.OTHER.getFieldType()));
+                      indexColumnMetadata.put(field, FieldType.OTHER);
 
-                } else {
-                  FieldType previousType = indexColumnMetadata.get(field);
-                  if (!type.equals(previousType)) {
-                    String previousIndexName = previousIndices.get(field);
-                    LOG.error(String.format(
-                        "Field type mismatch: %s.%s has type %s while %s.%s has type %s.  Defaulting type to %s.",
-                        indexName, field, type.getFieldType(),
-                        previousIndexName, field, previousType.getFieldType(),
-                        FieldType.OTHER.getFieldType()));
-                    indexColumnMetadata.put(field, FieldType.OTHER);
-
-                    // the field is defined in multiple indices with different types; ignore the field as type has been set to OTHER
-                    fieldBlackList.add(field);
+                      // the field is defined in multiple indices with different types; ignore the field as type has been set to OTHER
+                      fieldBlackList.add(field);
+                    }
                   }
                 }
               }
@@ -190,6 +193,18 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
     }
 
     return latestIndices.values().toArray(new String[latestIndices.size()]);
+  }
+
+  private void getFields(Map.Entry<String, Map<String, Object>> entry, String fieldName, Map<String, FieldType> fields) {
+    if (entry.getValue().containsKey("properties")) {
+      Map<String, Map<String, Object>> map = (Map<String, Map<String, Object>>) entry.getValue().get("properties");
+      for(Map.Entry<String, Map<String, Object>> propertyEntry: map.entrySet()) {
+        getFields(propertyEntry, String.format("%s.%s", fieldName, propertyEntry.getKey()), fields);
+      }
+    } else {
+      FieldType type = toFieldType((String) entry.getValue().get("type"));
+      fields.put(fieldName, type);
+    }
   }
 
   /**

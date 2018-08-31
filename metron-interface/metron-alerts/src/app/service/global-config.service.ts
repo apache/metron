@@ -19,6 +19,7 @@ import {Injectable, Inject} from '@angular/core';
 import {Http, Headers, RequestOptions, Response, ResponseOptions} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import {HttpUtil} from '../utils/httpUtil';
+import {SENSOR_TYPE_FIELD} from "../utils/constants";
 
 @Injectable()
 export class GlobalConfigService {
@@ -43,8 +44,8 @@ export class GlobalConfigService {
     let missingSourceTypeField = !globalConfig['source.type.field'];
     let missingThreatScoreField = !globalConfig['threat.triage.score.field'];
     if(missingSourceTypeField || missingThreatScoreField) {
-      let sourceTypeField = missingSourceTypeField?'source:type':globalConfig['source.type.field'];
-      let threatScoreField = missingThreatScoreField?'threat:triage:score':globalConfig['threat.triage.score.field'];
+      let sourceTypeField = missingSourceTypeField?SENSOR_TYPE_FIELD:globalConfig['source.type.field'];
+      let threatScoreField = missingThreatScoreField?'threat.triage.score':globalConfig['threat.triage.score.field'];
       return Object.assign({}, globalConfig,
                           {'source.type.field': sourceTypeField
                           , 'threat.triage.score.field' : threatScoreField

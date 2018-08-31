@@ -17,6 +17,7 @@
  */
 package org.apache.metron.writers.integration;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -376,7 +377,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
       assertThat("size should match", result.getResult().size(), equalTo(inputMessages.size()));
       for (JSONObject record : result.getResult()) {
         assertThat("record should have a guid", record.containsKey("guid"), equalTo(true));
-        assertThat("record should have correct source.type", record.get("source.type"),
+        assertThat(String.format("record should have correct %s", SENSOR_TYPE), record.get(SENSOR_TYPE),
             equalTo(sensorType));
       }
     } finally {

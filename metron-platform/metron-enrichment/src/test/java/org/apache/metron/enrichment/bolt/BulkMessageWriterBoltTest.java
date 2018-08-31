@@ -88,7 +88,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   /**
    * {
    * "field": "value",
-   * "source.type": "test"
+   * "metron_sensor_type": "test"
    * }
    */
   @Multiline

@@ -43,6 +43,7 @@ import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {MetaAlertService} from '../../service/meta-alert.service';
 import {Facets} from '../../model/facets';
 import { GlobalConfigService } from '../../service/global-config.service';
+import {SENSOR_TYPE_FIELD} from '../../utils/constants';
 
 @Component({
   selector: 'app-alerts-list',
@@ -182,7 +183,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
       this.globalConfig = config;
       if (this.globalConfig['source.type.field']) {
-        let filteredAlertsColumns = this.alertsColumns.filter(colName => colName.name !== 'source:type');
+        let filteredAlertsColumns = this.alertsColumns.filter(colName => colName.name !== SENSOR_TYPE_FIELD);
         if (filteredAlertsColumns.length < this.alertsColumns.length) {
           this.alertsColumns = filteredAlertsColumns;
           this.alertsColumns.splice(2, 0, new ColumnMetadata(this.globalConfig['source.type.field'], 'string'));

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.bolt;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.argThat;
@@ -264,7 +265,7 @@ public class ParserBoltTest extends BaseBoltTest {
             .withErrorFields(new HashSet<String>() {{ add("field"); }})
             .addRawMessage(new JSONObject(){{
               put("field", "invalidValue");
-              put("source.type", "yaf");
+              put(SENSOR_TYPE, "yaf");
               put("guid", "this-is-unique-identifier-for-tuple");
             }});
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
@@ -300,8 +301,8 @@ public class ParserBoltTest extends BaseBoltTest {
       add(sampleMessage1);
       add(sampleMessage2);
     }};
-    final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"source.type\":\"" + sensorType + "\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
-    final JSONObject finalMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"source.type\":\"" + sensorType + "\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
+    final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"" + SENSOR_TYPE + "\":\"" + sensorType + "\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
+    final JSONObject finalMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"" + SENSOR_TYPE + "\":\"" + sensorType + "\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
     when(tuple.getBinary(0)).thenReturn(sampleBinary);
     when(parser.parseOptional(sampleBinary)).thenReturn(Optional.of(messages));
     when(parser.validate(eq(messages.get(0)))).thenReturn(true);

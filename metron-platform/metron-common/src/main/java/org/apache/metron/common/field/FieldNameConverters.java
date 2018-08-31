@@ -104,8 +104,8 @@ public enum FieldNameConverters implements FieldNameConverter {
     }
 
     if(result == null) {
-      // if no converter defined or an invalid converter is defined, default to 'DEDOT'
-      result = FieldNameConverters.DEDOT;
+      // if no converter defined or an invalid converter is defined, default to 'NOOP'
+      result = FieldNameConverters.NOOP;
     }
 
     LOG.debug("Created field name converter; sensorType={}, configured={}, class={}",

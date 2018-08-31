@@ -51,6 +51,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
+
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   private static String indexDir = "target/elasticsearch_search";
@@ -63,7 +65,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    * {
    * "bro_doc": {
    *   "properties": {
-   *     "source:type": {
+   *     "metron_sensor_type": {
    *        "type": "text",
    *        "fielddata" : "true"
    *     },
@@ -117,7 +119,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    * {
    *  "snort_doc": {
    *     "properties": {
-   *        "source:type": {
+   *        "metron_sensor_type": {
    *          "type": "text",
    *          "fielddata" : "true"
    *        },
@@ -158,7 +160,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *        "alert": {
    *           "type": "nested"
    *        },
-   *        "threat:triage:score": {
+   *        "threat.triage.score": {
    *           "type": "float"
    *        }
    *      }
@@ -184,6 +186,44 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    */
   @Multiline
   private static String broDefaultStringMappings;
+
+  /**
+   * {
+   * "snort_doc_dynamic": {
+   *   "dynamic_templates": [{
+   *     "threat_triage_score": {
+   *       "mapping": {
+   *         "type": "float"
+   *       },
+   *       "path_match": "threat.triage.*score",
+   *       "match_mapping_type": "*"
+   *       }
+   *     },
+   *     {
+   *     "threat_triage_reason": {
+   *       "mapping": {
+   *         "type": "text",
+   *         "fielddata": "true"
+   *       },
+   *       "path_match": "threat.triage.rules.*.reason",
+   *       "match_mapping_type": "*"
+   *       }
+   *     },
+   *     {
+   *     "threat_triage_name": {
+   *       "mapping": {
+   *         "type": "text",
+   *         "fielddata": "true"
+   *       },
+   *       "path_match": "threat.triage.rules.*.name",
+   *       "match_mapping_type": "*"
+   *     }
+   *   }]
+   *  }
+   * }
+   */
+  @Multiline
+  private static String snortDynamicMappings;
 
   @BeforeClass
   public static void setup() throws Exception {
@@ -226,7 +266,8 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
         .addMapping("bro_doc", broTypeMappings)
         .addMapping("bro_doc_default", broDefaultStringMappings).get();
     es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
-        .addMapping("snort_doc", snortTypeMappings).get();
+        .addMapping("snort_doc", snortTypeMappings)
+        .addMapping("snort_doc_dynamic", snortDynamicMappings).get();
 
     BulkRequestBuilder bulkRequest = es.getClient().prepareBulk()
         .setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
@@ -277,7 +318,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get(SENSOR_TYPE));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
@@ -293,11 +334,10 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     // getColumnMetadata with only snort
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(14, fieldTypes.size());
+      Assert.assertEquals(16, fieldTypes.size());
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get(SENSOR_TYPE));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
@@ -308,15 +348,18 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
+      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat.triage.score"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("threat.triage.rules.snort_field.name"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("threat.triage.rules.snort_field.reason"));
     }
   }
 
   @Override
   public void returns_column_data_for_multiple_indices() throws Exception {
     Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
-    Assert.assertEquals(15, fieldTypes.size());
+    Assert.assertEquals(17, fieldTypes.size());
     Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get(SENSOR_TYPE));
     Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
     Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
     Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
@@ -329,7 +372,9 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
     //NOTE: This is because the field is in both bro and snort and they have different types.
     Assert.assertEquals(FieldType.OTHER, fieldTypes.get("ttl"));
-    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
+    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat.triage.score"));
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("threat.triage.rules.snort_field.name"));
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("threat.triage.rules.snort_field.reason"));
     Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
   }
 
@@ -348,13 +393,13 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     SearchResponse response = dao.search(request);
     Assert.assertEquals(1, response.getTotal());
     List<SearchResult> results = response.getResults();
-    Assert.assertEquals("bro", results.get(0).getSource().get("source:type"));
+    Assert.assertEquals("bro", results.get(0).getSource().get(SENSOR_TYPE));
     Assert.assertEquals("data 1", results.get(0).getSource().get("ttl"));
   }
 
   @Override
   protected String getSourceTypeField() {
-    return Constants.SENSOR_TYPE.replace('.', ':');
+    return SENSOR_TYPE.replace('.', ':');
   }
 
   @Override

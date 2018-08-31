@@ -271,7 +271,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       Assert.assertTrue(error.get(Constants.ErrorFields.MESSAGE.getName()).toString(), error.get(Constants.ErrorFields.MESSAGE.getName()).toString().contains("/ by zero") );
       Assert.assertTrue(error.get(Constants.ErrorFields.EXCEPTION.getName()).toString().contains("/ by zero"));
       Assert.assertEquals(Constants.ErrorType.ENRICHMENT_ERROR.getType(), error.get(Constants.ErrorFields.ERROR_TYPE.getName()));
-      Assert.assertEquals("{\"error_test\":{},\"source.type\":\"test\"}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
+      Assert.assertEquals("{\"metron_sensor_type\":\"test\",\"error_test\":{}}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
     }
   }
 

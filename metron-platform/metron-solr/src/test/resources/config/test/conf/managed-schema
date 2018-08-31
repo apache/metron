@@ -35,12 +35,12 @@
   <field name="guid" type="string" indexed="true" stored="true" required="true"
     multiValued="false"/>
 
-  <field name="source.type" type="string" indexed="true" stored="true"/>
+  <field name="metron_sensor_type" type="string" indexed="true" stored="true"/>
   <field name="name" type="string" indexed="true" stored="true"/>
   <field name="timestamp" type="plong" indexed="true" stored="true"/>
   <field name="new-field" type="string" indexed="true" stored="true"/>
   <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>
-  <field name="threat:triage:score" type="pdouble" indexed="true" stored="true"/>
+  <field name="threat.triage.score" type="pdouble" indexed="true" stored="true"/>
   <field name="score" type="pdouble" indexed="true" stored="true"/>
 
 

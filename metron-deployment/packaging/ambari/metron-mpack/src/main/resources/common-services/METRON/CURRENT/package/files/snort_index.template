@@ -5,7 +5,7 @@
       "dynamic_templates": [
       {
         "geo_location_point": {
-          "match": "enrichments:geo:*:location_point",
+          "path_match": "enrichments.geo.*.location_point",
           "match_mapping_type": "*",
           "mapping": {
             "type": "geo_point"
@@ -14,7 +14,7 @@
       },
       {
         "geo_country": {
-          "match": "enrichments:geo:*:country",
+          "path_match": "enrichments.geo.*.country",
           "match_mapping_type": "*",
           "mapping": {
             "type": "keyword"
@@ -23,7 +23,7 @@
       },
       {
         "geo_city": {
-          "match": "enrichments:geo:*:city",
+          "path_match": "enrichments.geo.*.city",
           "match_mapping_type": "*",
           "mapping": {
             "type": "keyword"
@@ -32,7 +32,7 @@
       },
       {
         "geo_location_id": {
-          "match": "enrichments:geo:*:locID",
+          "path_match": "enrichments.geo.*.locID",
           "match_mapping_type": "*",
           "mapping": {
             "type": "keyword"
@@ -41,7 +41,7 @@
       },
       {
         "geo_dma_code": {
-          "match": "enrichments:geo:*:dmaCode",
+          "path_match": "enrichments.geo.*.dmaCode",
           "match_mapping_type": "*",
           "mapping": {
             "type": "keyword"
@@ -50,7 +50,7 @@
       },
       {
         "geo_postal_code": {
-          "match": "enrichments:geo:*:postalCode",
+          "path_match": "enrichments.geo.*.postalCode",
           "match_mapping_type": "*",
           "mapping": {
             "type": "keyword"
@@ -59,7 +59,7 @@
       },
       {
         "geo_latitude": {
-          "match": "enrichments:geo:*:latitude",
+          "path_match": "enrichments.geo.*.latitude",
           "match_mapping_type": "*",
           "mapping": {
             "type": "float"
@@ -68,7 +68,7 @@
       },
       {
         "geo_longitude": {
-          "match": "enrichments:geo:*:longitude",
+          "path_match": "enrichments.geo.*.longitude",
           "match_mapping_type": "*",
           "mapping": {
             "type": "float"
@@ -77,7 +77,7 @@
       },
       {
         "timestamps": {
-          "match": "*:ts",
+          "path_match": "*.ts",
           "match_mapping_type": "*",
           "mapping": {
             "type": "date",
@@ -90,7 +90,7 @@
           "mapping": {
             "type": "float"
           },
-          "match": "threat:triage:*score",
+          "path_match": "threat.triage.*score",
           "match_mapping_type": "*"
         }
       },
@@ -100,7 +100,7 @@
               "type": "text",
               "fielddata": "true"
             },
-            "match": "threat.triage.rules:*:reason",
+            "path_match": "threat.triage.rules.*.reason",
             "match_mapping_type": "*"
           }
         },
@@ -110,7 +110,7 @@
               "type": "text",
               "fielddata": "true"
             },
-            "match": "threat.triage.rules:*:name",
+            "path_match": "threat.triage.rules.*.name",
             "match_mapping_type": "*"
           }
         }
@@ -120,7 +120,7 @@
           "type": "date",
           "format": "epoch_millis"
         },
-        "source:type": {
+        "metron_sensor_type": {
           "type": "keyword"
         },
         "ip_dst_addr": {

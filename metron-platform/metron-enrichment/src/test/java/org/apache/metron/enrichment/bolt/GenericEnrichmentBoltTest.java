@@ -90,7 +90,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
    {
    "field1": "value1",
    "field2": "value2",
-   "source.type": "test"
+   "metron_sensor_type": "test"
    }
    */
   @Multiline
@@ -116,7 +116,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
    {
    "field1.enrichedField1": "enrichedValue1",
    "field2.enrichedField2": "enrichedValue2",
-   "source.type": "test"
+   "metron_sensor_type": "test"
    }
    */
   @Multiline
@@ -210,7 +210,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     when(tuple.getValueByField("message")).thenReturn(originalMessage);
     when(enrichmentAdapter.enrich(any())).thenReturn(new JSONObject());
     genericEnrichmentBolt.execute(tuple);
-    verify(outputCollector, times(1)).emit(eq(enrichmentType), argThat(new EnrichedMessageMatcher(key, new JSONObject(ImmutableMap.of("source.type", "test")))));
+    verify(outputCollector, times(1)).emit(eq(enrichmentType), argThat(new EnrichedMessageMatcher(key, new JSONObject(ImmutableMap.of("metron_sensor_type", "test")))));
     reset(enrichmentAdapter);
 
     SensorEnrichmentConfig sensorEnrichmentConfig = SensorEnrichmentConfig.
@@ -238,7 +238,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
             .addRawMessage(new JSONObject() {{
               put("field1", "value1");
               put("field2", "value2");
-              put("source.type", "test");
+              put("metron_sensor_type", "test");
             }})
             .withThrowable(new Exception("[Metron] Could not enrich string: value1"));
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
