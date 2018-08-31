@@ -97,16 +97,6 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
                                                     , Constants.THREAT_SCORE_FIELD_PROPERTY, THREAT_FIELD_DEFAULT
                                                     )
           ) {
-
-            @Override
-            protected String getDefaultThreatTriageField() {
-              return THREAT_FIELD_DEFAULT.replace(':', '.');
-            }
-
-            @Override
-            protected String getDefaultSourceTypeField() {
-              return Constants.SENSOR_TYPE;
-            }
           };
 
   private static Map<String, Document> documents = new HashMap<>();

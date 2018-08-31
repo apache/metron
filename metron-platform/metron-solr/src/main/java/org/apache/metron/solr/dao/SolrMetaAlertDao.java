@@ -134,15 +134,6 @@ public class SolrMetaAlertDao implements MetaAlertDao {
         this.threatSort,
         globalConfigSupplier
     ) {
-      @Override
-      protected String getDefaultThreatTriageField() {
-        return MetaAlertConstants.THREAT_FIELD_DEFAULT.replace(':', '.');
-      }
-
-      @Override
-      protected String getDefaultSourceTypeField() {
-        return Constants.SENSOR_TYPE;
-      }
     };
 
     SolrClient solrClient = solrDao.getSolrClient(solrDao.getZkHosts());

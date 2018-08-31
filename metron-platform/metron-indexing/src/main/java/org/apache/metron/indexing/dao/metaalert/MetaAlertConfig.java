@@ -55,12 +55,10 @@ public abstract class MetaAlertConfig {
   public String getThreatTriageField() {
     Optional<Map<String, Object>> globalConfig = Optional.ofNullable(globalConfigSupplier.get());
     if(!globalConfig.isPresent()) {
-      return getDefaultThreatTriageField();
+      return MetaAlertConstants.THREAT_FIELD_DEFAULT;
     }
-    return ConfigurationsUtils.getFieldName(globalConfig.get(), Constants.THREAT_SCORE_FIELD_PROPERTY, getDefaultThreatTriageField());
+    return ConfigurationsUtils.getFieldName(globalConfig.get(), Constants.THREAT_SCORE_FIELD_PROPERTY, MetaAlertConstants.THREAT_FIELD_DEFAULT);
   }
-
-  protected abstract String getDefaultThreatTriageField();
 
   public String getThreatSort() {
     return threatSort;
@@ -73,11 +71,9 @@ public abstract class MetaAlertConfig {
   public String getSourceTypeField() {
     Optional<Map<String, Object>> globalConfig = Optional.ofNullable(globalConfigSupplier.get());
     if(!globalConfig.isPresent()) {
-      return getDefaultSourceTypeField();
+      return Constants.SENSOR_TYPE;
     }
-    return ConfigurationsUtils.getFieldName(globalConfig.get(), Constants.SENSOR_TYPE_FIELD_PROPERTY, getDefaultSourceTypeField());
+    return ConfigurationsUtils.getFieldName(globalConfig.get(), Constants.SENSOR_TYPE_FIELD_PROPERTY, Constants.SENSOR_TYPE);
   }
-
-  protected abstract String getDefaultSourceTypeField();
 
 }

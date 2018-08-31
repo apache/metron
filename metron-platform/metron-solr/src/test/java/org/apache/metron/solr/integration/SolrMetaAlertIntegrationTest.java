@@ -101,16 +101,6 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
                                                     , Constants.THREAT_SCORE_FIELD_PROPERTY, THREAT_FIELD_DEFAULT
                                                     )
     ) {
-
-      @Override
-      protected String getDefaultThreatTriageField() {
-        return THREAT_FIELD_DEFAULT;
-      }
-
-      @Override
-      protected String getDefaultSourceTypeField() {
-        return Constants.SENSOR_TYPE;
-      }
     };
 
 

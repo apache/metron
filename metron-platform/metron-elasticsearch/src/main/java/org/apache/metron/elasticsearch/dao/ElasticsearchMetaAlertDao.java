@@ -18,7 +18,6 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
@@ -51,9 +50,7 @@ import java.util.function.Supplier;
 
 public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
-  public static final String THREAT_TRIAGE_FIELD = MetaAlertConstants.THREAT_FIELD_DEFAULT;
   public static final String METAALERTS_INDEX = "metaalert_index";
-  public static final String SOURCE_TYPE_FIELD = Constants.SENSOR_TYPE.replace('.', ':');
   protected String metaAlertsIndex = METAALERTS_INDEX;
   protected String threatSort = MetaAlertConstants.THREAT_SORT_DEFAULT;
 
@@ -132,15 +129,6 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
             this.threatSort,
             globalConfigSupplier
     ) {
-      @Override
-      protected String getDefaultThreatTriageField() {
-        return THREAT_TRIAGE_FIELD;
-      }
-
-      @Override
-      protected String getDefaultSourceTypeField() {
-        return SOURCE_TYPE_FIELD;
-      }
     };
 
     this.metaAlertSearchDao = new ElasticsearchMetaAlertSearchDao(
