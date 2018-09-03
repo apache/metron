@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers.syslog;
 
+import com.github.palindromicity.syslog.AllowableDeviations;
 import com.github.palindromicity.syslog.NilPolicy;
 import com.github.palindromicity.syslog.SyslogParser;
 import com.github.palindromicity.syslog.SyslogParserBuilder;
@@ -29,6 +30,7 @@ import org.json.simple.JSONObject;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +48,10 @@ public class Syslog5424Parser extends BasicParser {
     // this means they will not be in the returned field set
     String nilPolicyStr = (String) config.getOrDefault(NIL_POLICY_CONFIG, NilPolicy.OMIT.name());
     NilPolicy nilPolicy = NilPolicy.valueOf(nilPolicyStr);
-    syslogParser = new SyslogParserBuilder().withNilPolicy(nilPolicy).build();
+    syslogParser = new SyslogParserBuilder()
+            .withNilPolicy(nilPolicy)
+            .withDeviations(EnumSet.of(AllowableDeviations.PRIORITY,AllowableDeviations.VERSION))
+            .build();
   }
 
   @Override
