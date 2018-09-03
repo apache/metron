@@ -1,0 +1,78 @@
+$popover-button-color-confirm: #006EA0;
+$popover-button-border-color-confirm: $popover-button-color-confirm;
+
+$popover-button-color-cancel: #333333;
+$popover-button-border-color-cancel: #0F6F9E;
+
+$popover-background-color: #0C3B43;
+$popover-border-color: #1B596C;
+
+.confirm-popover {
+  background-color: $popover-background-color;
+  border: 1px solid $popover-border-color;
+  color: #999999;
+
+  & .btn {
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  & .btn-default {
+    background-color: $popover-button-color-cancel;
+    border-color: $popover-button-border-color-cancel;
+    color: #32ABDF;
+
+    &:hover {
+      background-color: #004b6d;
+    }
+  }
+
+  & .btn-danger {
+    background-color: $popover-button-color-confirm;
+    border-color: $popover-button-border-color-confirm;
+    color: white;
+
+    &:hover {
+      background-color: #004b6d;
+      border-color: #004b6d;
+    }
+  }
+
+
+  &.popover-top {
+    &::before {
+      border-top-color: $popover-border-color;
+    }
+    &::after {
+      border-top-color: $popover-background-color;
+      bottom: -9px;
+    }
+  }
+  &.popover-right {
+    &::before {
+      border-right-color: $popover-border-color;
+    }
+    &::after {
+      border-right-color: $popover-background-color;
+      left: -9px;
+    }
+  }
+  &.popover-bottom {
+    &::before {
+      border-bottom-color: $popover-border-color;
+    }
+    &::after {
+      border-bottom-color: $popover-background-color;
+      top: -9px;
+    }
+  }
+  &.popover-left {
+    &::before {
+      border-left-color: $popover-border-color;
+    }
+    &::after {
+      border-left-color: $popover-background-color;
+      right: -9px;
+    }
+  }
+}
