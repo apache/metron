@@ -85,18 +85,18 @@ public class HdfsControllerIntegrationTest {
         this.mockMvc.perform(get(hdfsUrl + "?path=" + path).with(httpBasic(user,password)))
                 .andExpect(status().isNotFound());
 
-//        this.mockMvc.perform(post(hdfsUrl + "?path=" + path).with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")).content(fileContents))
-//                .andExpect(status().isOk());
-//
-//        this.mockMvc.perform(get(hdfsUrl + "?path=" + path).with(httpBasic(user,password)))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")))
-//                .andExpect(content().bytes(fileContents.getBytes()));
-//
-//        this.mockMvc.perform(delete(hdfsUrl + "?path=" + path).with(httpBasic(user,password)).with(csrf()))
-//                .andExpect(status().isOk());
-//
-//        this.mockMvc.perform(delete(hdfsUrl + "?path=" + path).with(httpBasic(user,password)).with(csrf()))
-//                .andExpect(status().isNotFound());
+        this.mockMvc.perform(post(hdfsUrl + "?path=" + path).with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")).content(fileContents))
+                .andExpect(status().isOk());
+
+        this.mockMvc.perform(get(hdfsUrl + "?path=" + path).with(httpBasic(user,password)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")))
+                .andExpect(content().bytes(fileContents.getBytes()));
+
+        this.mockMvc.perform(delete(hdfsUrl + "?path=" + path).with(httpBasic(user,password)).with(csrf()))
+                .andExpect(status().isOk());
+
+        this.mockMvc.perform(delete(hdfsUrl + "?path=" + path).with(httpBasic(user,password)).with(csrf()))
+                .andExpect(status().isNotFound());
     }
 }
