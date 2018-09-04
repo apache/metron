@@ -33,6 +33,7 @@ There are two general types types of parsers:
     * `timeFields` : A list of fields to be treated as time
     * `dateFormat` : The date format to use to parse the time fields
     * `timezone` : The timezone to use. `UTC` is default.
+    * The Grok parser supports either 1 line to parse per incoming message, or incoming messages with multiple log lines, and will produce a json message per line
   * CSV Parser: `org.apache.metron.parsers.csv.CSVParser` with possible `parserConfig` entries of
     * `timestampFormat` : The date format of the timestamp to use.  If unspecified, the parser assumes the timestamp is ms since unix epoch.
     * `columns` : A map of column names you wish to extract from the CSV to their offsets (e.g. `{ 'name' : 1, 'profession' : 3}`  would be a column map for extracting the 2nd and 4th columns from a CSV)

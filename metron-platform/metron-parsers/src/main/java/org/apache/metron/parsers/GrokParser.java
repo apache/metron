@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,22 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.metron.parsers;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import org.apache.hadoop.conf.Configuration;
@@ -41,6 +30,23 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Serializable;
+import java.io.StringReader;
+import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
 
 public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
@@ -55,6 +61,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected String patternsCommonDir = "/patterns/common";
 
   @Override
+  @SuppressWarnings("unchecked")
   public void configure(Map<String, Object> parserConfig) {
     this.grokPath = (String) parserConfig.get("grokPath");
     this.patternLabel = (String) parserConfig.get("patternLabel");
@@ -132,33 +139,36 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     }
     List<JSONObject> messages = new ArrayList<>();
     String originalMessage = null;
-    try {
-      originalMessage = new String(rawMessage, "UTF-8");
-      LOG.debug("Grok parser parsing message: {}",originalMessage);
-      Match gm = grok.match(originalMessage);
-      gm.captures();
-      JSONObject message = new JSONObject();
-      message.putAll(gm.toMap());
+    // read the incoming raw data as if it may have multiple lines of logs
+    // if there is only only one line, it will just get processed.
+    try (BufferedReader reader = new BufferedReader(new StringReader(new String(rawMessage, StandardCharsets.UTF_8)))) {
+      while ((originalMessage = reader.readLine()) != null) {
+        LOG.debug("Grok parser parsing message: {}", originalMessage);
+        Match gm = grok.match(originalMessage);
+        gm.captures();
+        JSONObject message = new JSONObject();
+        message.putAll(gm.toMap());
 
-      if (message.size() == 0)
-        throw new RuntimeException("Grok statement produced a null message. Original message was: "
-                + originalMessage + " and the parsed message was: " + message + " . Check the pattern at: "
-                + grokPath);
+        if (message.size() == 0)
+          throw new RuntimeException("Grok statement produced a null message. Original message was: "
+                  + originalMessage + " and the parsed message was: " + message + " . Check the pattern at: "
+                  + grokPath);
 
-      message.put("original_string", originalMessage);
-      for (String timeField : timeFields) {
-        String fieldValue = (String) message.get(timeField);
-        if (fieldValue != null) {
-          message.put(timeField, toEpoch(fieldValue));
+        message.put("original_string", originalMessage);
+        for (String timeField : timeFields) {
+          String fieldValue = (String) message.get(timeField);
+          if (fieldValue != null) {
+            message.put(timeField, toEpoch(fieldValue));
+          }
         }
+        if (timestampField != null) {
+          message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
+        }
+        message.remove(patternLabel);
+        postParse(message);
+        messages.add(message);
+        LOG.debug("Grok parser parsed message: {}", message);
       }
-      if (timestampField != null) {
-        message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
-      }
-      message.remove(patternLabel);
-      postParse(message);
-      messages.add(message);
-      LOG.debug("Grok parser parsed message: {}", message);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw new IllegalStateException("Grok parser Error: " + e.getMessage() + " on " + originalMessage , e);
