@@ -219,7 +219,7 @@ public abstract class MetaAlertIntegrationTest {
 
     // Test descending
     SortField sf = new SortField();
-    sf.setField(getThreatTriageField());
+    sf.setField(THREAT_FIELD_DEFAULT);
     sf.setSortOrder(SortOrder.DESC.getSortOrder());
     SearchRequest sr = new SearchRequest();
     sr.setQuery("*:*");
@@ -235,7 +235,7 @@ public abstract class MetaAlertIntegrationTest {
 
     // Test ascending
     SortField sfAsc = new SortField();
-    sfAsc.setField(getThreatTriageField());
+    sfAsc.setField(THREAT_FIELD_DEFAULT);
     sfAsc.setSortOrder(SortOrder.ASC.getSortOrder());
     SearchRequest srAsc = new SearchRequest();
     srAsc.setQuery("*:*");
@@ -352,7 +352,7 @@ public abstract class MetaAlertIntegrationTest {
     expectedMetaAlert.put("max", 2.0d);
     expectedMetaAlert.put("count", 3);
     expectedMetaAlert.put("sum", 3.0d);
-    expectedMetaAlert.put(getThreatTriageField(), 3.0d);
+    expectedMetaAlert.put(THREAT_FIELD_DEFAULT, 3.0d);
 
     {
       // Verify alerts were successfully added to the meta alert
@@ -384,7 +384,7 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put("max", 3.0d);
       expectedMetaAlert.put("count", 4);
       expectedMetaAlert.put("sum", 6.0d);
-      expectedMetaAlert.put(getThreatTriageField(), 6.0d);
+      expectedMetaAlert.put(THREAT_FIELD_DEFAULT, 6.0d);
 
       Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
           .asList(new GetRequest("message_2", SENSOR_NAME),
@@ -434,7 +434,7 @@ public abstract class MetaAlertIntegrationTest {
     expectedMetaAlert.put("max", 3.0d);
     expectedMetaAlert.put("count", 2);
     expectedMetaAlert.put("sum", 5.0d);
-    expectedMetaAlert.put(getThreatTriageField(), 5.0d);
+    expectedMetaAlert.put(THREAT_FIELD_DEFAULT, 5.0d);
 
     {
       // Verify a list of alerts are removed from a meta alert
@@ -465,7 +465,7 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put("max", 3.0d);
       expectedMetaAlert.put("count", 1);
       expectedMetaAlert.put("sum", 3.0d);
-      expectedMetaAlert.put(getThreatTriageField(), 3.0d);
+      expectedMetaAlert.put(THREAT_FIELD_DEFAULT, 3.0d);
 
       Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays
           .asList(new GetRequest("message_0", SENSOR_NAME),
@@ -487,7 +487,7 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put("average", 0.0d);
       expectedMetaAlert.put("count", 0);
       expectedMetaAlert.put("sum", 0.0d);
-      expectedMetaAlert.put(getThreatTriageField(), 0.0d);
+      expectedMetaAlert.put(THREAT_FIELD_DEFAULT, 0.0d);
 
       // Handle the cases with non-finite Double values on a per store basis
       if (isFiniteDoubleOnly()) {
@@ -1016,7 +1016,7 @@ public abstract class MetaAlertIntegrationTest {
     metaAlert.put(Constants.GUID, guid);
     metaAlert.put(SENSOR_TYPE, METAALERT_TYPE);
     metaAlert.put(STATUS_FIELD, status.getStatusString());
-    metaAlert.put(getThreatTriageField(), 100.0d);
+    metaAlert.put(THREAT_FIELD_DEFAULT, 100.0d);
     if (alerts.isPresent()) {
       List<Map<String, Object>> alertsList = alerts.get();
       metaAlert.put(ALERT_FIELD, alertsList);
@@ -1044,10 +1044,6 @@ public abstract class MetaAlertIntegrationTest {
   }
 
   protected abstract String getMetaAlertIndex();
-
-  protected String getThreatTriageField() {
-    return THREAT_FIELD_DEFAULT;
-  }
 
   // Allow for impls to do any commit they need to do.
   protected void commit() throws IOException {
