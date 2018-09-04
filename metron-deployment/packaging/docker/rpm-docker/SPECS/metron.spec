@@ -59,6 +59,7 @@ Source12:       metron-maas-service-%{full_version}-archive.tar.gz
 Source13:       metron-alerts-%{full_version}-archive.tar.gz
 Source14:       metron-performance-%{full_version}-archive.tar.gz
 Source15:       metron-profiler-spark-%{full_version}-archive.tar.gz
+Source16:       metron-profiler-repl-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -97,6 +98,7 @@ tar -xzf %{SOURCE12} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE13} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE14} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE15} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE16} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
@@ -560,6 +562,23 @@ This package installs the Metron Profiler for Spark %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        profiler-repl
+Summary:        Metron Profiler for the Stellar REPL
+Group:          Applications/Internet
+Provides:       profiler-repl = %{version}
+
+%description    profiler-repl
+This package installs the Metron Profiler for the Stellar REPL %{metron_home}
+
+%files          profiler-repl
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/lib
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-repl-%{full_version}.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %post config
 chkconfig --add metron-management-ui
 chkconfig --add metron-alerts-ui
@@ -569,6 +588,8 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Tue Aug 21 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
+- Add Profiler for REPL
 * Tue Aug 14 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
 - Add Profiler for Spark
 * Thu Feb 1 2018 Apache Metron <dev@metron.apache.org> - 0.4.3

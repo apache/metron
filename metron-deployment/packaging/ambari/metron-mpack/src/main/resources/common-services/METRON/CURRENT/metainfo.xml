@@ -410,6 +410,9 @@
               <name>metron-profiler-spark</name>
             </package>
             <package>
+              <name>metron-profiler-repl</name>
+            </package>
+            <package>
               <name>metron-indexing</name>
             </package>
             <package>
