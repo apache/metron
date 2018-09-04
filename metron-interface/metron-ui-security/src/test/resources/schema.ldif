@@ -63,6 +63,26 @@ sn: User
 uid: user
 userPassword: password
 
+dn: uid=user1,ou=people,dc=metron,dc=apache,dc=org
+objectclass:top
+objectclass:person
+objectclass:organizationalPerson
+objectclass:inetOrgPerson
+cn: Normal
+sn: User
+uid: user1
+userPassword: password
+
+dn: uid=user2,ou=people,dc=metron,dc=apache,dc=org
+objectclass:top
+objectclass:person
+objectclass:organizationalPerson
+objectclass:inetOrgPerson
+cn: Normal
+sn: User
+uid: user2
+userPassword: password
+
 dn: cn=admin,ou=groups,dc=metron,dc=apache,dc=org
 objectClass: groupOfNames
 objectClass: top
@@ -75,3 +95,5 @@ objectClass: top
 cn: user
 member: uid=admin,ou=people,dc=metron,dc=apache,dc=org
 member: uid=user,ou=people,dc=metron,dc=apache,dc=org
+member: uid=user1,ou=people,dc=metron,dc=apache,dc=org
+member: uid=user2,ou=people,dc=metron,dc=apache,dc=org
