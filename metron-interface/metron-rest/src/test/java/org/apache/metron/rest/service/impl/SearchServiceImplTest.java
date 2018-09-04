@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 import static org.apache.metron.common.Constants.SENSOR_TYPE_FIELD_PROPERTY;
 import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
 import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
@@ -119,7 +120,7 @@ public class SearchServiceImplTest {
 
     SearchRequest expectedSearchRequest = new SearchRequest();
     expectedSearchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
-    expectedSearchRequest.setFacetFields(Arrays.asList("source:type", "ip_src_addr", "ip_dst_addr"));
+    expectedSearchRequest.setFacetFields(Arrays.asList(SENSOR_TYPE, "ip_src_addr", "ip_dst_addr"));
     verify(dao).search(eq(expectedSearchRequest));
   }
 
@@ -206,7 +207,7 @@ public class SearchServiceImplTest {
     List<String> defaultFields = searchService.getDefaultFacetFields();
 
     List<String> expectedFields = new ArrayList<>();
-    expectedFields.add("source:type");
+    expectedFields.add(SENSOR_TYPE);
     expectedFields.add("ip_src_addr");
 
     assertEquals(expectedFields, defaultFields);

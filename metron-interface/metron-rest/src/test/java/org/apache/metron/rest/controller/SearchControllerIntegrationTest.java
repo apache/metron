@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.controller;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.hamcrest.Matchers.hasSize;
@@ -132,19 +133,19 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(5))
-            .andExpect(jsonPath("$.results[0].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[0].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[0].source.timestamp").value(5))
-            .andExpect(jsonPath("$.results[1].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[1].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[1].source.timestamp").value(4))
-            .andExpect(jsonPath("$.results[2].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[2].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[2].source.timestamp").value(3))
-            .andExpect(jsonPath("$.results[3].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[3].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[3].source.timestamp").value(2))
-            .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[4].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[4].source.timestamp").value(1))
             .andExpect(jsonPath("$.facetCounts.*", hasSize(2)))
-            .andExpect(jsonPath("$.facetCounts.source:type.*", hasSize(1)))
-            .andExpect(jsonPath("$.facetCounts.source:type['bro']").value(5))
+            .andExpect(jsonPath("$.facetCounts." + SENSOR_TYPE + ".*", hasSize(1)))
+            .andExpect(jsonPath("$.facetCounts." + SENSOR_TYPE + "['bro']").value(5))
             .andExpect(jsonPath("$.facetCounts.ip_src_addr.*", hasSize(2)))
             .andExpect(jsonPath("$.facetCounts.ip_src_addr['192.168.1.1']").value(3))
             .andExpect(jsonPath("$.facetCounts.ip_src_addr['192.168.1.2']").value(1))
@@ -210,36 +211,36 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(10))
-            .andExpect(jsonPath("$.results[0].source.source:type").value("snort"))
+            .andExpect(jsonPath("$.results[0].source." + SENSOR_TYPE).value("snort"))
             .andExpect(jsonPath("$.results[0].source.timestamp").value(10))
-            .andExpect(jsonPath("$.results[1].source.source:type").value("snort"))
+            .andExpect(jsonPath("$.results[1].source." + SENSOR_TYPE).value("snort"))
             .andExpect(jsonPath("$.results[1].source.timestamp").value(9))
-            .andExpect(jsonPath("$.results[2].source.source:type").value("snort"))
+            .andExpect(jsonPath("$.results[2].source." + SENSOR_TYPE).value("snort"))
             .andExpect(jsonPath("$.results[2].source.timestamp").value(8))
-            .andExpect(jsonPath("$.results[3].source.source:type").value("snort"))
+            .andExpect(jsonPath("$.results[3].source." + SENSOR_TYPE).value("snort"))
             .andExpect(jsonPath("$.results[3].source.timestamp").value(7))
-            .andExpect(jsonPath("$.results[4].source.source:type").value("snort"))
+            .andExpect(jsonPath("$.results[4].source." + SENSOR_TYPE).value("snort"))
             .andExpect(jsonPath("$.results[4].source.timestamp").value(6))
-            .andExpect(jsonPath("$.results[5].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[5].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[5].source.timestamp").value(5))
-            .andExpect(jsonPath("$.results[6].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[6].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[6].source.timestamp").value(4))
-            .andExpect(jsonPath("$.results[7].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[7].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[7].source.timestamp").value(3))
-            .andExpect(jsonPath("$.results[8].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[8].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[8].source.timestamp").value(2))
-            .andExpect(jsonPath("$.results[9].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[9].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[9].source.timestamp").value(1));
 
     this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.filterQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(3))
-            .andExpect(jsonPath("$.results[0].source.source:type").value("snort"))
+            .andExpect(jsonPath("$.results[0].source." + SENSOR_TYPE).value("snort"))
             .andExpect(jsonPath("$.results[0].source.timestamp").value(9))
-            .andExpect(jsonPath("$.results[1].source.source:type").value("snort"))
+            .andExpect(jsonPath("$.results[1].source." + SENSOR_TYPE).value("snort"))
             .andExpect(jsonPath("$.results[1].source.timestamp").value(7))
-            .andExpect(jsonPath("$.results[2].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[2].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[2].source.timestamp").value(1));
 
 
@@ -262,26 +263,26 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(10))
-            .andExpect(jsonPath("$.results[0].source.source:type").value("snort"))
+            .andExpect(jsonPath("$.results[0].source." + SENSOR_TYPE).value("snort"))
             .andExpect(jsonPath("$.results[0].source.timestamp").value(6))
-            .andExpect(jsonPath("$.results[1].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[1].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[1].source.timestamp").value(5))
-            .andExpect(jsonPath("$.results[2].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[2].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[2].source.timestamp").value(4));
 
     this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.indexQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(5))
-            .andExpect(jsonPath("$.results[0].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[0].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[0].source.timestamp").value(5))
-            .andExpect(jsonPath("$.results[1].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[1].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[1].source.timestamp").value(4))
-            .andExpect(jsonPath("$.results[2].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[2].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[2].source.timestamp").value(3))
-            .andExpect(jsonPath("$.results[3].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[3].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[3].source.timestamp").value(2))
-            .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[4].source." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.results[4].source.timestamp").value(1));
 
     this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.exceededMaxResultsQuery))
@@ -373,7 +374,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
     sourceTypeCounts.put("bro", 5L);
     facetCounts.put("ip_src_addr", ipSrcAddrCounts);
     facetCounts.put("ip_src_port", ipSrcPortCounts);
-    facetCounts.put("source:type", sourceTypeCounts);
+    facetCounts.put(SENSOR_TYPE, sourceTypeCounts);
 
     InMemoryDao.setFacetCounts(facetCounts);
   }

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.controller;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -106,7 +107,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
      "guid" : "bro_2",
      "sensorType" : "bro",
      "replacement" : {
-       "source:type": "bro",
+       "metron_sensor_type": "bro",
        "guid" : "bro_2",
        "ip_src_addr":"192.168.1.2",
        "ip_src_port": 8009,
@@ -160,7 +161,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
     try {
      result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.source:type").value("bro"))
+            .andExpect(jsonPath("$." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.guid").value(guid))
             .andExpect(jsonPath("$.project").doesNotExist())
             .andExpect(jsonPath("$.timestamp").value(2))
@@ -181,7 +182,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
     this.mockMvc.perform(post(searchUrl + "/findOne").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(findMessage0))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.source:type").value("bro"))
+            .andExpect(jsonPath("$." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.guid").value(guid))
             .andExpect(jsonPath("$.project").value("metron"))
             .andExpect(jsonPath("$.timestamp").value(2))
@@ -203,7 +204,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
     this.mockMvc.perform(post(searchUrl + "/findOne").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(findMessage0))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.source:type").value("bro"))
+            .andExpect(jsonPath("$." + SENSOR_TYPE).value("bro"))
             .andExpect(jsonPath("$.guid").value(guid))
             .andExpect(jsonPath("$.project").doesNotExist())
             .andExpect(jsonPath("$.timestamp").value(200))
