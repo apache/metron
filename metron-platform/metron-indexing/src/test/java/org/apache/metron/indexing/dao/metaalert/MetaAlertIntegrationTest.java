@@ -1014,7 +1014,7 @@ public abstract class MetaAlertIntegrationTest {
       Optional<List<Map<String, Object>>> alerts) {
     Map<String, Object> metaAlert = new HashMap<>();
     metaAlert.put(Constants.GUID, guid);
-    metaAlert.put(getSourceTypeField(), METAALERT_TYPE);
+    metaAlert.put(SENSOR_TYPE, METAALERT_TYPE);
     metaAlert.put(STATUS_FIELD, status.getStatusString());
     metaAlert.put(getThreatTriageField(), 100.0d);
     if (alerts.isPresent()) {
@@ -1044,8 +1044,6 @@ public abstract class MetaAlertIntegrationTest {
   }
 
   protected abstract String getMetaAlertIndex();
-
-  protected abstract String getSourceTypeField();
 
   protected String getThreatTriageField() {
     return THREAT_FIELD_DEFAULT;

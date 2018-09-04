@@ -369,11 +369,6 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   }
 
   @Override
-  protected String getSourceTypeField() {
-    return Constants.SENSOR_TYPE;
-  }
-
-  @Override
   protected void commit() throws IOException {
     try {
       List<String> collections = solr.getSolrClient().listCollections();

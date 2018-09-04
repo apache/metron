@@ -357,11 +357,6 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   }
 
   @Override
-  protected String getSourceTypeField() {
-    return ElasticsearchMetaAlertDao.SOURCE_TYPE_FIELD;
-  }
-
-  @Override
   protected void setEmptiedMetaAlertField(Map<String, Object> docMap) {
     docMap.put(METAALERT_FIELD, new ArrayList<>());
   }
