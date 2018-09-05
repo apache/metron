@@ -20,7 +20,7 @@
 // https://github.com/angular/protractor/blob/master/docs/referenceConf.js
 
 /*global jasmine */
-var SpecReporter = require('jasmine-spec-reporter').SpecReporter;
+const { SpecReporter } = require('jasmine-spec-reporter');
 
 exports.config = {
   allScriptsTimeout: 15000,
@@ -54,14 +54,10 @@ exports.config = {
     defaultTimeoutInterval: 50000,
     includeStackTrace: true
   },
-  beforeLaunch: function() {
-    require('ts-node').register({
-      project: 'e2e'
-    });
-  },
-  onPrepare: function() {
+  beforeLaunch: function () { require('ts-node/register') },
+  onPrepare: function () {
 
-    jasmine.getEnv().addReporter(new SpecReporter({spec: {displayStacktrace: true}}));
+    jasmine.getEnv().addReporter(new SpecReporter({ spec: { displayStacktrace: true } }));
 
     return new Promise(function(resolve, reject) {
       var cleanMetronUpdateTable = require('./e2e/utils/clean_metron_update_table').cleanMetronUpdateTable;

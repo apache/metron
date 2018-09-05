@@ -17,7 +17,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import {Router, ActivatedRoute} from '@angular/router';
-import {Observable} from 'rxjs/Rx';
+import {forkJoin as observableForkJoin} from 'rxjs';
 
 import {ConfigureTableService} from '../../service/configure-table.service';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
@@ -82,7 +82,7 @@ export class ConfigureTableComponent implements OnInit {
   }
 
   ngOnInit() {
-    Observable.forkJoin(
+    observableForkJoin(
       this.clusterMetaDataService.getDefaultColumns(),
       this.searchService.getColumnMetaData(),
       this.configureTableService.getTableMetadata()
