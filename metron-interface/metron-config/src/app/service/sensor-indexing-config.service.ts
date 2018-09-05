@@ -15,44 +15,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions, Response} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
-import {IndexingConfigurations} from '../model/sensor-indexing-config';
-import {HttpUtil} from '../util/httpUtil';
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+
+import { IndexingConfigurations } from '../model/sensor-indexing-config';
+import { HttpUtil } from '../util/httpUtil';
+import { IAppConfig } from '../app.config.interface';
+import { APP_CONFIG } from '../app.config';
+import { RestError } from '../model/rest-error';
 
 @Injectable()
 export class SensorIndexingConfigService {
   url = this.config.apiEndpoint + '/sensor/indexing/config';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
-  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
-  }
+  constructor(
+    private http: HttpClient,
+    @Inject(APP_CONFIG) private config: IAppConfig
+  ) {}
 
-  public post(name: string, sensorIndexingConfig: IndexingConfigurations): Observable<IndexingConfigurations> {
-    return this.http.post(this.url + '/' + name, JSON.stringify(sensorIndexingConfig),
-                          new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+  public post(
+    name: string,
+    sensorIndexingConfig: IndexingConfigurations
+  ): Observable<IndexingConfigurations> {
+    return this.http
+      .post(this.url + '/' + name, JSON.stringify(sensorIndexingConfig))
+      .pipe(
+        map(HttpUtil.extractData),
+        catchError(HttpUtil.handleError)
+      );
   }
 
   public get(name: string): Observable<IndexingConfigurations> {
-    return this.http.get(this.url + '/' + name, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(this.url + '/' + name).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
   public getAll(): Observable<IndexingConfigurations[]> {
-    return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(this.url).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
-  public deleteSensorIndexingConfig(name: string): Observable<Response> {
-    return this.http.delete(this.url + '/' + name, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .catch(HttpUtil.handleError);
+  public deleteSensorIndexingConfig(
+    name: string
+  ): Observable<Object | RestError> {
+    return this.http
+      .delete(this.url + '/' + name)
+      .pipe(catchError(HttpUtil.handleError));
   }
-
 }

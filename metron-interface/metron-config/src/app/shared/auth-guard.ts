@@ -22,7 +22,7 @@ import {
   ActivatedRouteSnapshot,
   RouterStateSnapshot
 } from '@angular/router';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { AuthenticationService } from '../service/authentication.service';
 
 @Injectable()
