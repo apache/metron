@@ -27,9 +27,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -67,13 +70,19 @@ public class Syslog5424Parser extends BasicParser {
       }
 
       String originalString = new String(rawMessage);
-      JSONObject jsonObject = new JSONObject(syslogParser.parseLine(originalString));
+      List<JSONObject> returnList = new ArrayList<>();
+      try (Reader reader = new BufferedReader(new StringReader(originalString))) {
+        syslogParser.parseLines(reader, (m) -> {
+          JSONObject jsonObject = new JSONObject(m);
+          // be sure to put in the original string, and the timestamp.
+          // we wil just copy over the timestamp from the syslog
+          jsonObject.put("original_string", originalString);
+          setTimestamp(jsonObject);
+          returnList.add(jsonObject);
+        });
 
-      // be sure to put in the original string, and the timestamp.
-      // we wil just copy over the timestamp from the syslog
-      jsonObject.put("original_string", originalString);
-      setTimestamp(jsonObject);
-      return Collections.singletonList(jsonObject);
+        return returnList;
+      }
     } catch (Exception e) {
       String message = "Unable to parse " + new String(rawMessage) + ": " + e.getMessage();
       LOG.error(message, e);

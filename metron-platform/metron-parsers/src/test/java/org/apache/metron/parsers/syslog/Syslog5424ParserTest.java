@@ -101,28 +101,23 @@ public class Syslog5424ParserTest {
     parser.configure(config);
 
     List<JSONObject> output = parser.parse(line.getBytes());
-    Assert.assertNotNull(output);
-    Assert.assertEquals(1, output.size());
-    JSONObject message = output.get(0);
-    Assert.assertEquals(expectedVersion, message.get(SyslogFieldKeys.HEADER_VERSION.getField()));
-    Assert.assertEquals(expectedMessage, message.get(SyslogFieldKeys.MESSAGE.getField()));
-    Assert.assertEquals(expectedAppName, message.get(SyslogFieldKeys.HEADER_APPNAME.getField()));
-    Assert.assertEquals(expectedHostName, message.get(SyslogFieldKeys.HEADER_HOSTNAME.getField()));
-    Assert.assertEquals(expectedPri, message.get(SyslogFieldKeys.HEADER_PRI.getField()));
-    Assert.assertEquals(expectedSeverity, message.get(SyslogFieldKeys.HEADER_PRI_SEVERITY.getField()));
-    Assert.assertEquals(expectedFacility, message.get(SyslogFieldKeys.HEADER_PRI_FACILITY.getField()));
-    Assert.assertEquals(expectedProcId, message.get(SyslogFieldKeys.HEADER_PROCID.getField()));
-    Assert.assertEquals(expectedTimestamp, message.get(SyslogFieldKeys.HEADER_TIMESTAMP.getField()));
-    msgIdChecker.accept(message);
+  }
 
-    // Structured
-    Assert.assertEquals(expectedIUT1, message.get(String.format(SyslogFieldKeys.STRUCTURED_ELEMENT_ID_PNAME_FMT.getField(), "exampleSDID@32473", "iut")));
-    Assert.assertEquals(expectedEventSource1, message.get(String.format(SyslogFieldKeys.STRUCTURED_ELEMENT_ID_PNAME_FMT.getField(), "exampleSDID@32473", "eventSource")));
-    Assert.assertEquals(expectedEventID1, message.get(String.format(SyslogFieldKeys.STRUCTURED_ELEMENT_ID_PNAME_FMT.getField(), "exampleSDID@32473", "eventID")));
-
-    Assert.assertEquals(expectedIUT2, message.get(String.format(SyslogFieldKeys.STRUCTURED_ELEMENT_ID_PNAME_FMT.getField(), "exampleSDID@32480", "iut")));
-    Assert.assertEquals(expectedEventSource2, message.get(String.format(SyslogFieldKeys.STRUCTURED_ELEMENT_ID_PNAME_FMT.getField(), "exampleSDID@32480", "eventSource")));
-    Assert.assertEquals(expectedEventID2, message.get(String.format(SyslogFieldKeys.STRUCTURED_ELEMENT_ID_PNAME_FMT.getField(), "exampleSDID@32480", "eventID")));
+  @Test
+  public void testReadMultiLine() throws Exception {
+    Syslog5424Parser parser = new Syslog5424Parser();
+    Map<String, Object> config = new HashMap<>();
+    config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.DASH.name());
+    parser.configure(config);
+    StringBuilder builder = new StringBuilder();
+    builder
+            .append(SYSLOG_LINE_ALL)
+            .append("\n")
+            .append(SYSLOG_LINE_MISSING)
+            .append("\n")
+            .append(SYSLOG_LINE_ALL);
+    List<JSONObject> output = parser.parse(builder.toString().getBytes());
+    Assert.assertEquals(3,output.size());
   }
 
   @Test
