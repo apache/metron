@@ -44,7 +44,7 @@ Alerts that are contained in a a meta alert are generally excluded from search r
 * Elasticsearch or Solr should have some alerts populated by Metron topologies, depending on which real-time store is enabled
 * The Management UI should be installed (which includes [Express](https://expressjs.com/))
 * The alerts can be populated using Full Dev or any other setup
-* UI is developed using angular4 and uses angular-cli
+* UI is developed using Angular 6 and uses Angular CLI. 
 * nvm (or a similar node verison manager) should be installed. The node version required for this project is listed in the [.nvmrc](https://github.com/creationix/nvm#nvmrc) file.
 
 ## Installation
