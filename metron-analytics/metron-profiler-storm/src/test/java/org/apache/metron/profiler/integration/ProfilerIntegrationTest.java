@@ -20,12 +20,7 @@
 
 package org.apache.metron.profiler.integration;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.serializers.FieldSerializer;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -45,26 +40,16 @@ import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.storm.Config;
-import org.apache.storm.serialization.KryoTupleDeserializer;
-import org.apache.storm.serialization.KryoTupleSerializer;
-import org.apache.storm.serialization.KryoValuesDeserializer;
-import org.apache.storm.serialization.KryoValuesSerializer;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.TupleImpl;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -74,7 +59,6 @@ import static com.google.code.tempusfugit.temporal.Timeout.timeout;
 import static com.google.code.tempusfugit.temporal.WaitFor.waitOrTimeout;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -82,8 +66,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
-  private static final String TEST_RESOURCES = "../../metron-analytics/metron-profiler/src/test";
-  private static final String FLUX_PATH = "../metron-profiler/src/main/flux/profiler/remote.yaml";
+  private static final String TEST_RESOURCES = "../../metron-analytics/metron-profiler-storm/src/test";
+  private static final String FLUX_PATH = "src/main/flux/profiler/remote.yaml";
 
   public static final long startAt = 10;
   public static final String entity = "10.0.0.1";
