@@ -18,7 +18,7 @@
  *
  */
 
-package org.apache.metron.profiler.bolt;
+package org.apache.metron.profiler.storm;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;

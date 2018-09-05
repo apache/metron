@@ -18,16 +18,13 @@
  *
  */
 
-package org.apache.metron.profiler.bolt;
+package org.apache.metron.profiler.storm;
 
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.profiler.DefaultMessageRouter;
 import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.MessageRouter;
-import org.apache.metron.profiler.clock.Clock;
-import org.apache.metron.profiler.clock.ClockFactory;
-import org.apache.metron.profiler.clock.DefaultClockFactory;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -45,7 +42,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * The Storm bolt responsible for filtering incoming messages and directing

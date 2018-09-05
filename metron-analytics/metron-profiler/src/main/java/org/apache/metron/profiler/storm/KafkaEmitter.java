@@ -17,7 +17,7 @@
  *
  */
 
-package org.apache.metron.profiler.bolt;
+package org.apache.metron.profiler.storm;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ClassUtils;

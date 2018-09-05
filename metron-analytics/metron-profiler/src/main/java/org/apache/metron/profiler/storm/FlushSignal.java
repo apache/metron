@@ -16,39 +16,36 @@
  *  limitations under the License.
  *
  */
-package org.apache.metron.profiler.bolt;
+
+package org.apache.metron.profiler.storm;
 
 /**
- * Signals that a flush should occur.
- *
- * <p>The flush signal can be turned on or off like a switch as needed.  Most useful for testing.
+ * Signals when it is time to flush a profile.
  */
-public class ManualFlushSignal implements FlushSignal {
+public interface FlushSignal {
 
-  private boolean flushNow = false;
+  /**
+   * Returns true, if it is time to flush.
+   *
+   * @return True if time to flush.  Otherwise, false.
+   */
+  boolean isTimeToFlush();
 
-  public void setFlushNow(boolean flushNow) {
-    this.flushNow = flushNow;
-  }
+  /**
+   * Update the signaller with a known timestamp.
+   *
+   * @param timestamp A timestamp expected to be epoch milliseconds
+   */
+  void update(long timestamp);
 
-  @Override
-  public boolean isTimeToFlush() {
-    return flushNow;
-  }
+  /**
+   * Reset the signaller.
+   */
+  void reset();
 
-  @Override
-  public void update(long timestamp) {
-    // nothing to do
-  }
-
-  @Override
-  public void reset() {
-    // nothing to do.
-  }
-
-  @Override
-  public long currentTimeMillis() {
-    // not needed
-    return 0;
-  }
+  /**
+   * Returns the current time in epoch milliseconds.
+   * @return The current time in epoch milliseconds.
+   */
+  long currentTimeMillis();
 }

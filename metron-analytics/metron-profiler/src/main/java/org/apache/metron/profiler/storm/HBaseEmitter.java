@@ -16,7 +16,7 @@
  *  limitations under the License.
  *
  */
-package org.apache.metron.profiler.bolt;
+package org.apache.metron.profiler.storm;
 
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.storm.task.OutputCollector;

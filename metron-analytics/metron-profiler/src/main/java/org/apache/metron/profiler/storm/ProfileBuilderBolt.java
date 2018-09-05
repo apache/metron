@@ -18,7 +18,7 @@
  *
  */
 
-package org.apache.metron.profiler.bolt;
+package org.apache.metron.profiler.storm;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.curator.RetryPolicy;
@@ -62,10 +62,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
-import static org.apache.metron.profiler.bolt.ProfileSplitterBolt.ENTITY_TUPLE_FIELD;
-import static org.apache.metron.profiler.bolt.ProfileSplitterBolt.MESSAGE_TUPLE_FIELD;
-import static org.apache.metron.profiler.bolt.ProfileSplitterBolt.PROFILE_TUPLE_FIELD;
-import static org.apache.metron.profiler.bolt.ProfileSplitterBolt.TIMESTAMP_TUPLE_FIELD;
+import static org.apache.metron.profiler.storm.ProfileSplitterBolt.ENTITY_TUPLE_FIELD;
+import static org.apache.metron.profiler.storm.ProfileSplitterBolt.MESSAGE_TUPLE_FIELD;
+import static org.apache.metron.profiler.storm.ProfileSplitterBolt.PROFILE_TUPLE_FIELD;
+import static org.apache.metron.profiler.storm.ProfileSplitterBolt.TIMESTAMP_TUPLE_FIELD;
 
 /**
  * A Storm bolt that is responsible for building a profile.
@@ -361,7 +361,7 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
 
     // keep track of time
     activeFlushSignal.update(timestamp);
-    
+
     // distribute the message
     MessageRoute route = new MessageRoute(definition, entity, message, timestamp);
     synchronized (messageDistributor) {

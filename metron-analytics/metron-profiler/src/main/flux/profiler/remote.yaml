@@ -44,7 +44,7 @@ components:
             - "${profiler.hbase.column.family}"
 
     -   id: "hbaseMapper"
-        className: "org.apache.metron.profiler.bolt.ProfileHBaseMapper"
+        className: "org.apache.metron.profiler.storm.ProfileHBaseMapper"
         properties:
             - name: "rowKeyBuilder"
               ref: "rowKeyBuilder"
@@ -113,10 +113,10 @@ components:
                 args: [ref: "kafkaWriterProps"]
 
     -   id: "kafkaEmitter"
-        className: "org.apache.metron.profiler.bolt.KafkaEmitter"
+        className: "org.apache.metron.profiler.storm.KafkaEmitter"
 
     -   id: "hbaseEmitter"
-        className: "org.apache.metron.profiler.bolt.HBaseEmitter"
+        className: "org.apache.metron.profiler.storm.HBaseEmitter"
 
     -   id: "windowDuration"
         className: "org.apache.storm.topology.base.BaseWindowedBolt$Duration"
@@ -140,12 +140,12 @@ spouts:
 bolts:
 
     -   id: "splitterBolt"
-        className: "org.apache.metron.profiler.bolt.ProfileSplitterBolt"
+        className: "org.apache.metron.profiler.storm.ProfileSplitterBolt"
         constructorArgs:
             - "${kafka.zk}"
 
     -   id: "builderBolt"
-        className: "org.apache.metron.profiler.bolt.ProfileBuilderBolt"
+        className: "org.apache.metron.profiler.storm.ProfileBuilderBolt"
         configMethods:
             - name: "withZookeeperUrl"
               args: ["${kafka.zk}"]
