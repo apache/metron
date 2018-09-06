@@ -74,6 +74,12 @@ import static org.apache.metron.profiler.bolt.ProfileSplitterBolt.TIMESTAMP_TUPL
  * <p>This bolt maintains the state required to build a Profile.  When the window
  * period expires, the data is summarized as a {@link ProfileMeasurement}, all state is
  * flushed, and the {@link ProfileMeasurement} is emitted.
+ *
+ * <p>There are two mechanisms that will cause a profile to flush. As new messages arrive,
+ * time is advanced. The splitter bolt attaches a timestamp to each message (which can be
+ * either event or system time.)  This advances time and leads to profile measurements
+ * being flushed. Alternatively, if no messages arrive to advance time, then the "time-to-live"
+ * mechanism will flush a profile after no messages have been received for some period of time.
  */
 public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
 

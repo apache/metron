@@ -127,94 +127,53 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Multiline
   private static String kryoSerializers;
 
-  /**
-   * The Profiler can generate profiles based on processing time.  With processing time,
-   * the Profiler builds profiles based on when the telemetry is processed.
-   *
-   * <p>Not defining a 'timestampField' within the Profiler configuration tells the Profiler
-   * to use processing time.
-   *
-   * <p>There are two mechanisms that will cause a profile to flush.
-   *
-   * (1) As new messages arrive, time is advanced. The splitter bolt attaches a timestamp to each
-   * message (which can be either event or system time.)  This advances time and leads to profile
-   * measurements being flushed.
-   *
-   * (2) If no messages arrive to advance time, then the "time-to-live" mechanism will flush a profile
-   * after a period of time.
-   *
-   * <p>This test specifically tests the *first* mechanism where time is advanced by incoming messages.
-   */
   @Test
   public void testProcessingTime() throws Exception {
+    uploadConfigToZookeeper(TEST_RESOURCES + "/config/zookeeper/processing-time-test");
 
-    // upload the config to zookeeper
-    uploadConfig(TEST_RESOURCES + "/config/zookeeper/processing-time-test");
-
-    // start the topology and write test messages to kafka
+    // start the topology and write 3 test messages to kafka
     fluxComponent.submitTopology();
-
-    // the messages that will be applied to the profile
     kafkaComponent.writeMessages(inputTopic, message1);
     kafkaComponent.writeMessages(inputTopic, message2);
     kafkaComponent.writeMessages(inputTopic, message3);
 
     // retrieve the profile measurement using PROFILE_GET
     String profileGetExpression = "PROFILE_GET('processing-time-test', '10.0.0.1', PROFILE_FIXED('5', 'MINUTES'))";
-    List<Integer> actuals = execute(profileGetExpression, List.class);
+    List<Integer> measurements = execute(profileGetExpression, List.class);
 
-    // storm needs at least one message to close its event window
+    // need to keep checking for measurements until the profiler has flushed one out
     int attempt = 0;
-    while(actuals.size() == 0 && attempt++ < 10) {
+    while(measurements.size() == 0 && attempt++ < 10) {
 
       // wait for the profiler to flush
       long sleep = windowDurationMillis;
       LOG.debug("Waiting {} millis for profiler to flush", sleep);
       Thread.sleep(sleep);
 
-      // write another message to advance time.  this ensures that we are testing the 'normal' flush mechanism.
+      // write another message to advance time. this ensures we are testing the 'normal' flush mechanism.
       // if we do not send additional messages to advance time, then it is the profile TTL mechanism which
       // will ultimately flush the profile
       kafkaComponent.writeMessages(inputTopic, message2);
 
-      // retrieve the profile measurement using PROFILE_GET
-      actuals = execute(profileGetExpression, List.class);
+      // try again to retrieve the profile measurement using PROFILE_GET
+      measurements = execute(profileGetExpression, List.class);
     }
 
-    // the profile should count at least 3 messages
-    assertTrue(actuals.size() > 0);
-    assertTrue(actuals.get(0) >= 3);
+    // expect to see only 1 measurement, but could be more (one for each period) depending on
+    // how long we waited for the flush to occur
+    assertTrue(measurements.size() > 0);
+
+    // the profile should have counted at least 3 messages; the 3 test messages that were sent.
+    // the count could be higher due to the test messages we sent to advance time.
+    assertTrue(measurements.get(0) >= 3);
   }
 
-  /**
-   * The Profiler can generate profiles based on processing time.  With processing time,
-   * the Profiler builds profiles based on when the telemetry is processed.
-   *
-   * <p>Not defining a 'timestampField' within the Profiler configuration tells the Profiler
-   * to use processing time.
-   *
-   * <p>There are two mechanisms that will cause a profile to flush.
-   *
-   * (1) As new messages arrive, time is advanced. The splitter bolt attaches a timestamp to each
-   * message (which can be either event or system time.)  This advances time and leads to profile
-   * measurements being flushed.
-   *
-   * (2) If no messages arrive to advance time, then the "time to live" mechanism will flush a profile
-   * after a period of time.
-   *
-   * <p>This test specifically tests the *second* mechanism when a profile is flushed by the
-   * "time to live" mechanism.
-   */
   @Test
   public void testProcessingTimeWithTimeToLiveFlush() throws Exception {
+    uploadConfigToZookeeper(TEST_RESOURCES + "/config/zookeeper/processing-time-test");
 
-    // upload the config to zookeeper
-    uploadConfig(TEST_RESOURCES + "/config/zookeeper/processing-time-test");
-
-    // start the topology and write test messages to kafka
+    // start the topology and write 3 test messages to kafka
     fluxComponent.submitTopology();
-
-    // the messages that will be applied to the profile
     kafkaComponent.writeMessages(inputTopic, message1);
     kafkaComponent.writeMessages(inputTopic, message2);
     kafkaComponent.writeMessages(inputTopic, message3);
@@ -228,11 +187,11 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // retrieve the profile measurement using PROFILE_GET
     String profileGetExpression = "PROFILE_GET('processing-time-test', '10.0.0.1', PROFILE_FIXED('5', 'MINUTES'))";
-    List<Integer> actuals = execute(profileGetExpression, List.class);
+    List<Integer> measurements = execute(profileGetExpression, List.class);
 
-    // storm needs at least one message to close its event window
+    // need to keep checking for measurements until the profiler has flushed one out
     int attempt = 0;
-    while(actuals.size() == 0 && attempt++ < 10) {
+    while(measurements.size() == 0 && attempt++ < 10) {
 
       // wait for the profiler to flush
       sleep = windowDurationMillis;
@@ -242,27 +201,21 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       // do not write additional messages to advance time. this ensures that we are testing the "time to live"
       // flush mechanism. the TTL setting defines when the profile will be flushed
 
-      // retrieve the profile measurement using PROFILE_GET
-      actuals = execute(profileGetExpression, List.class);
+      // try again to retrieve the profile measurement
+      measurements = execute(profileGetExpression, List.class);
     }
 
-    // the profile should count 3 messages
-    assertTrue(actuals.size() > 0);
-    assertEquals(3, actuals.get(0).intValue());
+    // expect to see only 1 measurement, but could be more (one for each period) depending on
+    // how long we waited for the flush to occur
+    assertTrue(measurements.size() > 0);
+
+    // the profile should have counted 3 messages; the 3 test messages that were sent
+    assertEquals(3, measurements.get(0).intValue());
   }
 
-  /**
-   * The Profiler can generate profiles using event time.  With event time processing,
-   * the Profiler uses timestamps contained in the source telemetry.
-   *
-   * <p>Defining a 'timestampField' within the Profiler configuration tells the Profiler
-   * from which field the timestamp should be extracted.
-   */
   @Test
   public void testEventTime() throws Exception {
-
-    // upload the profiler config to zookeeper
-    uploadConfig(TEST_RESOURCES + "/config/zookeeper/event-time-test");
+    uploadConfigToZookeeper(TEST_RESOURCES + "/config/zookeeper/event-time-test");
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -274,9 +227,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     kafkaComponent.writeMessages(inputTopic, getMessage("192.168.66.1", timestamp));
     kafkaComponent.writeMessages(inputTopic, getMessage("192.168.138.158", timestamp));
 
-    // create the 'window' that looks up to 5 hours before the last timestamp contained in the telemetry
-    assign("lastTimestamp", "1530978728982L");
-    assign("window", "PROFILE_WINDOW('from 5 hours ago', lastTimestamp)");
+    // create the 'window' that looks up to 5 hours before the max timestamp contained in the test data
+    assign("maxTimestamp", "1530978728982L");
+    assign("window", "PROFILE_WINDOW('from 5 hours ago', maxTimestamp)");
 
     // wait until the profile flushes both periods.  the first period will flush immediately as subsequent messages
     // advance time.  the next period contains all of the remaining messages, so there are no other messages to
@@ -311,9 +264,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void testProfileWithStatsObject() throws Exception {
-
-    // upload the profiler config to zookeeper
-    uploadConfig(TEST_RESOURCES + "/config/zookeeper/profile-with-stats");
+    uploadConfigToZookeeper(TEST_RESOURCES + "/config/zookeeper/profile-with-stats");
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -324,9 +275,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     waitOrTimeout(() -> profilerTable.getPutLog().size() > 0, timeout(seconds(90)));
 
     // validate the measurements written by the batch profiler using `PROFILE_GET`
-    // the 'window' looks up to 5 hours before the last timestamp contained in the telemetry
-    assign("lastTimestamp", "1530978728982L");
-    assign("window", "PROFILE_WINDOW('from 5 hours ago', lastTimestamp)");
+    // the 'window' looks up to 5 hours before the max timestamp contained in the test data
+    assign("maxTimestamp", "1530978728982L");
+    assign("window", "PROFILE_WINDOW('from 5 hours ago', maxTimestamp)");
 
     // retrieve the stats stored by the profiler
     List results = execute("PROFILE_GET('profile-with-stats', 'global', window)", List.class);
@@ -493,7 +444,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * @param path The path on the local filesystem to the config values.
    * @throws Exception
    */
-  public void uploadConfig(String path) throws Exception {
+  public void uploadConfigToZookeeper(String path) throws Exception {
     configUploadComponent
             .withGlobalConfiguration(path)
             .withProfilerConfiguration(path)
