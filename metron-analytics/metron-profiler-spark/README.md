@@ -22,8 +22,8 @@ This project allows profiles to be executed using [Apache Spark](https://spark.a
 * [Introduction](#introduction)
 * [Getting Started](#getting-started)
 * [Installation](#installation)
-* [Configuring the Profiler](#configuring-the-profiler)
 * [Running the Profiler](#running-the-profiler)
+* [Configuring the Profiler](#configuring-the-profiler)
 
 ## Introduction
 
@@ -133,6 +133,73 @@ The Batch Profiler requires Spark version 2.3.0+.
     find ./ -name "metron-profiler-spark*.deb"
     ```
 
+## Running the Profiler
+
+A script located at `$METRON_HOME/bin/start_batch_profiler.sh` has been provided to simplify running the Batch Profiler.  This script makes the following assumptions.
+
+  * The script builds the profiles defined in `$METRON_HOME/config/zookeeper/profiler.json`.
+
+  * The properties defined in `$METRON_HOME/config/batch-profiler.properties` are passed to both the Profiler and Spark.  You can define both Spark and Profiler properties in this same file.
+
+  * The script assumes that Spark is installed at `/usr/hdp/current/spark2-client`.  This can be overridden if you define an environment variable called `SPARK_HOME` prior to executing the script.
+
+### Advanced Usage
+
+The Batch Profiler may also be started using `spark-submit` as follows.  See the Spark Documentation for more information about [`spark-submit`](https://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit).
+
+```
+${SPARK_HOME}/bin/spark-submit \
+    --class org.apache.metron.profiler.spark.cli.BatchProfilerCLI \
+    --properties-file ${SPARK_PROPS_FILE} \
+    ${METRON_HOME}/lib/metron-profiler-spark-*.jar \
+    --config ${PROFILER_PROPS_FILE} \
+    --profiles ${PROFILES_FILE}
+```
+
+The Batch Profiler accepts the following arguments when run from the command line as shown above.  All arguments following the Profiler jar are passed to the Profiler.  All argument preceeding the Profiler jar are passed to Spark.
+
+| Argument         | Description
+|---               |---
+| -p, --profiles   | The path to a file containing the profile definitions.
+| -c, --config     | The path to the profiler properties file.
+| -g, --globals    | The path to a properties file containing global properties.
+| -h, --help       | Print the help text.
+
+### Spark Execution
+
+Spark supports a number of different [cluster managers](https://spark.apache.org/docs/latest/cluster-overview.html#cluster-manager-types).  The underlying cluster manager is transparent to the Profiler.  To run the Profiler on a particular cluster manager, it is just a matter of setting the appropriate options as defined in the Spark documentation.
+
+#### Local Mode
+
+By default, the Batch Profiler instructs Spark to run in local mode.  This will run all of the Spark execution components within a single JVM.  This mode is only useful for testing with a limited set of data.
+
+`$METRON_HOME/config/batch-profiler.properties`
+```
+spark.master=local
+```
+
+#### Spark on YARN
+
+To run the Profiler using [Spark on YARN](https://spark.apache.org/docs/latest/running-on-yarn.html#running-spark-on-yarn), at a minimum edit the value of `spark.master` as shown. In many cases it also makes sense to set the YARN [deploy mode](https://spark.apache.org/docs/latest/running-on-yarn.html#launching-spark-on-yarn) to `cluster`.
+
+`$METRON_HOME/config/batch-profiler.properties`
+```
+spark.master=yarn
+spark.submit.deployMode=cluster
+```
+
+See the Spark documentation for information on how to further control the execution of Spark on YARN.  Any of [these properties](http://spark.apache.org/docs/latest/running-on-yarn.html#spark-properties) can be added to the Profiler properties file.
+
+The following command can be useful to review the logs generated when the Profiler is executed on YARN.
+```
+yarn logs -applicationId <application-id>
+```
+
+#### Kerberos
+
+See the Spark documentation for information on running the Batch Profiler in a [secure, kerberized cluster](https://spark.apache.org/docs/latest/running-on-yarn.html#running-in-a-secure-cluster).
+
+
 ## Configuring the Profiler
 
 By default, the configuration for the Batch Profiler is stored in the local filesystem at `$METRON_HOME/config/batch-profiler.properties`.
@@ -151,7 +218,7 @@ You can store both settings for the Profiler along with settings for Spark in th
 
 ### `profiler.batch.input.path`
 
-*Default*: hdfs://localhost:9000/apps/metron/indexing/indexed/*/*
+*Default*: hdfs://localhost:9000/apps/metron/indexing/indexed/\*/\*
 
 The path to the input data read by the Batch Profiler.
 
@@ -194,26 +261,3 @@ The name of the HBase table that profile data is written to.  The Profiler expec
 *Default*: P
 
 The column family used to store profile data in HBase.
-
-## Running the Profiler
-
-A script located at `$METRON_HOME/bin/start_batch_profiler.sh` has been provided to simplify running the Batch Profiler.  The Batch Profiler may also be started as follows using the `spark-submit` script.
-
-```
-${SPARK_HOME}/bin/spark-submit \
-    --class org.apache.metron.profiler.spark.cli.BatchProfilerCLI \
-    --properties-file ${SPARK_PROPS_FILE} \
-    ${PROFILER_JAR} \
-    --config ${PROFILER_PROPS_FILE} \
-    --profiles ${PROFILES_FILE}
-```
-
-The Batch Profiler also accepts the following command line arguments when run from the command line.
-
-| Argument         | Description
-|---               |---
-| -p, --profiles   | The path to a file containing the profile definitions.
-| -c, --config     | The path to the profiler properties file.
-| -g, --globals    | The path to a properties file containing global properties.
-| -h, --help       | Print the help text.
-
