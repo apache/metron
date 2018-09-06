@@ -299,7 +299,7 @@ if [ "$PRACTICE_RUN" = true ]; then
   printf "svn add %s-RC%s\n" "$CORE_VERSION" "$RC_NUM"
   printf "svn commit -m \"Adding artifacts for Metron %s-RC%s\"\n" "$CORE_VERSION" "$RC_NUM"
 else
-  printf "Adding artifacts for Metron ${CORE_VERSION}-RC${RC_NUM} to dev SVN"
+  printf "Adding artifacts for Metron ${CORE_VERSION}-RC${RC_NUM} to dev SVN\n"
   svn add "${CORE_VERSION}-RC{$RC_NUM}"
   svn commit -m "Adding artifacts for Metron ${CORE_VERSION}-RC${RC_NUM}" 
 fi
