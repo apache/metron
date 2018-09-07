@@ -36,12 +36,12 @@ import java.util.function.Supplier;
 public enum BatchProfilerCLIOptions {
 
   PROFILE_DEFN_FILE(() -> {
-    Option o = new Option("p", "profiles", true, "Path to a file containing profile definitions.");
+    Option o = new Option("p", "profiles", true, "Path to the profile definitions.");
     o.setRequired(true);
     return o;
   }),
 
-  CONFIGURATION_FILE(() -> {
+  PROFILER_PROPS_FILE(() -> {
     Option o = new Option("c", "config", true, "Path to the profiler properties file.");
     o.setRequired(false);
     return o;
@@ -49,6 +49,12 @@ public enum BatchProfilerCLIOptions {
 
   GLOBALS_FILE(() -> {
     Option o = new Option("g", "globals", true, "Path to the Stellar global config file.");
+    o.setRequired(false);
+    return o;
+  }),
+
+  READER_PROPS_FILE(() -> {
+    Option o = new Option("r", "reader", true, "Path to properties for the DataFrameReader.");
     o.setRequired(false);
     return o;
   }),

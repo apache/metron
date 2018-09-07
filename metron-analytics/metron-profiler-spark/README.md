@@ -160,10 +160,27 @@ The Batch Profiler accepts the following arguments when run from the command lin
 
 | Argument         | Description
 |---               |---
-| -p, --profiles   | The path to a file containing the profile definitions.
-| -c, --config     | The path to the profiler properties file.
-| -g, --globals    | The path to a properties file containing global properties.
+| -p, --profiles   | Path to the profile definitions.
+| -c, --config     | Path to the profiler properties file.
+| -g, --globals    | Path to the Stellar global config file.
+| -r, --reader     | Path to properties for the DataFrameReader.
 | -h, --help       | Print the help text.
+
+#### `--profiles`
+
+The path to a file containing the profile definition in JSON.
+
+#### `--config`
+
+The path to a file containing key-value properties for the Profiler. This file would contain the properties described under [Configuring the Profiler](#configuring-the-profiler).
+
+#### `--globals`
+
+The path to a file containing key-value properties that define the global properties. This can be used to customize how certain Stellar functions behave during execution.
+
+#### `--reader`
+
+The path to a file containing key-value properties that are passed to the DataFrameReader when reading the input telemetry. This allows additional customization for how the input telemetry is read. 
 
 ### Spark Execution
 

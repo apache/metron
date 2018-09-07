@@ -28,13 +28,18 @@ import org.apache.metron.profiler.client.stellar.WindowLookback;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.spark.SparkConf;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -82,7 +87,11 @@ public class BatchProfilerIntegrationTest {
   private static String profileJson;
   private static SparkSession spark;
   private Properties profilerProperties;
+  private Properties readerProperties;
   private StellarStatefulExecutor executor;
+
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
 
   @BeforeClass
   public static void setupSpark() {
@@ -105,11 +114,8 @@ public class BatchProfilerIntegrationTest {
 
   @Before
   public void setup() {
+    readerProperties = new Properties();
     profilerProperties = new Properties();
-
-    // the input telemetry is read from the local filesystem
-    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
-    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
 
     // the output will be written to a mock HBase table
     String tableName = HBASE_TABLE_NAME.get(profilerProperties, String.class);
@@ -147,15 +153,81 @@ public class BatchProfilerIntegrationTest {
    * produced will center around this date.
    */
   @Test
-  public void testBatchProfiler() throws Exception {
-    // run the batch profiler
-    BatchProfiler profiler = new BatchProfiler();
-    profiler.run(spark, profilerProperties, getGlobals(), getProfile());
+  public void testBatchProfilerWithJSON() throws Exception {
+    // the input telemetry is text/json stored in the local filesystem
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
+    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
 
-    // validate the measurements written by the batch profiler using `PROFILE_GET`
-    // the 'window' looks up to 5 hours before the last timestamp contained in the telemetry
-    assign("lastTimestamp", "1530978728982L");
-    assign("window", "PROFILE_WINDOW('from 5 hours ago', lastTimestamp)");
+    BatchProfiler profiler = new BatchProfiler();
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+
+    validateProfiles();
+  }
+
+  @Test
+  public void testBatchProfilerWithORC() throws Exception {
+    // re-write the test data as ORC
+    String pathToORC = tempFolder.getRoot().getAbsolutePath();
+    spark.read()
+            .format("text")
+            .load("src/test/resources/telemetry.json")
+            .as(Encoders.STRING())
+            .write()
+            .mode("overwrite")
+            .format("org.apache.spark.sql.execution.datasources.orc")
+            .save(pathToORC);
+
+    // tell the profiler to use the ORC input data
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), pathToORC);
+    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "org.apache.spark.sql.execution.datasources.orc");
+
+    BatchProfiler profiler = new BatchProfiler();
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+
+    validateProfiles();
+  }
+
+  @Test
+  public void testBatchProfilerWithCSV() throws Exception {
+
+    // re-write the test data as a CSV with a header record
+    String pathToCSV = tempFolder.getRoot().getAbsolutePath();
+    spark.read()
+            .format("text")
+            .load("src/test/resources/telemetry.json")
+            .as(Encoders.STRING())
+            .write()
+            .mode("overwrite")
+            .option("header", "true")
+            .format("csv")
+            .save(pathToCSV);
+
+    // tell the profiler to use the CSV input data
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), pathToCSV);
+    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "csv");
+
+    // set a reader property; tell the reader to expect a header
+    readerProperties.put("header", "true");
+
+    BatchProfiler profiler = new BatchProfiler();
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+
+    validateProfiles();
+  }
+
+  /**
+   * Validates the profiles that were built.
+   *
+   * These tests use the Batch Profiler to seed two profiles with archived telemetry.  The first profile
+   * called 'count-by-ip', counts the number of messages by 'ip_src_addr'.  The second profile called
+   * 'total-count', counts the total number of messages.
+   */
+  private void validateProfiles() {
+    // the max timestamp in the data is around July 7, 2018
+    assign("maxTimestamp", "1530978728982L");
+
+    // the 'window' looks up to 5 hours before the max timestamp
+    assign("window", "PROFILE_WINDOW('from 5 hours ago', maxTimestamp)");
 
     // there are 26 messages where ip_src_addr = 192.168.66.1
     assertTrue(execute("[26] == PROFILE_GET('count-by-ip', '192.168.66.1', window)", Boolean.class));

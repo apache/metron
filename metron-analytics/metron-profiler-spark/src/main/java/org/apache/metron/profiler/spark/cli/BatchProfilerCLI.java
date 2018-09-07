@@ -37,9 +37,10 @@ import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.Properties;
 
-import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.CONFIGURATION_FILE;
+import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.PROFILER_PROPS_FILE;
 import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.GLOBALS_FILE;
 import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.PROFILE_DEFN_FILE;
+import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.READER_PROPS_FILE;
 import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.parse;
 
 /**
@@ -54,7 +55,8 @@ import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.parse
  *     metron-profiler-spark-<version>.jar \
  *     --config profiler.properties \
  *     --globals global.properties \
- *     --profiles profiles.json
+ *     --profiles profiles.json \
+ *     --reader reader.properties
  * }</pre>
  */
 public class BatchProfilerCLI implements Serializable {
@@ -63,6 +65,7 @@ public class BatchProfilerCLI implements Serializable {
 
   public static Properties globals;
   public static Properties profilerProps;
+  public static Properties readerProps;
   public static ProfilerConfig profiles;
 
   public static void main(String[] args) throws IOException, org.apache.commons.cli.ParseException {
@@ -71,6 +74,7 @@ public class BatchProfilerCLI implements Serializable {
     profilerProps = handleProfilerProperties(commandLine);
     globals = handleGlobals(commandLine);
     profiles = handleProfileDefinitions(commandLine);
+    readerProps = handleReaderProperties(commandLine);
 
     // the batch profiler must use 'event time'
     if(!profiles.getTimestampField().isPresent()) {
@@ -88,7 +92,7 @@ public class BatchProfilerCLI implements Serializable {
             .getOrCreate();
 
     BatchProfiler profiler = new BatchProfiler();
-    long count = profiler.run(spark, profilerProps, globals, profiles);
+    long count = profiler.run(spark, profilerProps, globals, readerProps, profiles);
     LOG.info("Profiler produced {} profile measurement(s)", count);
   }
 
@@ -117,13 +121,31 @@ public class BatchProfilerCLI implements Serializable {
    */
   private static Properties handleProfilerProperties(CommandLine commandLine) throws IOException {
     Properties config = new Properties();
-    if(CONFIGURATION_FILE.has(commandLine)) {
-      String propertiesPath = CONFIGURATION_FILE.get(commandLine);
+    if(PROFILER_PROPS_FILE.has(commandLine)) {
+      String propertiesPath = PROFILER_PROPS_FILE.get(commandLine);
 
       LOG.info("Loading profiler properties from '{}'", propertiesPath);
       config.load(new FileInputStream(propertiesPath));
 
-      LOG.info("Properties = {}", config.toString());
+      LOG.info("Profiler properties = {}", config.toString());
+    }
+    return config;
+  }
+
+  /**
+   * Load the properties for the {@link org.apache.spark.sql.DataFrameReader}.
+   *
+   * @param commandLine The command line.
+   */
+  private static Properties handleReaderProperties(CommandLine commandLine) throws IOException {
+    Properties config = new Properties();
+    if(READER_PROPS_FILE.has(commandLine)) {
+      String readerPropsPath = READER_PROPS_FILE.get(commandLine);
+
+      LOG.info("Loading reader properties from '{}'", readerPropsPath);
+      config.load(new FileInputStream(readerPropsPath));
+
+      LOG.info("Reader properties = {}", config.toString());
     }
     return config;
   }
@@ -170,5 +192,9 @@ public class BatchProfilerCLI implements Serializable {
 
   public static ProfilerConfig getProfiles() {
     return profiles;
+  }
+
+  public static Properties getReaderProps() {
+    return readerProps;
   }
 }
