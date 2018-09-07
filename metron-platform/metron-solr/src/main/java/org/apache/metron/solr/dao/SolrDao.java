@@ -124,30 +124,30 @@ public class SolrDao implements IndexDao {
   }
 
   @Override
-  public void update(Document update, Optional<String> index) throws IOException {
-    this.solrUpdateDao.update(update, index);
+  public Document update(Document update, Optional<String> index) throws IOException {
+    return this.solrUpdateDao.update(update, index);
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
-    this.solrUpdateDao.batchUpdate(updates);
+  public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+    return this.solrUpdateDao.batchUpdate(updates);
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
-    this.solrUpdateDao.addCommentToAlert(request);
+  public Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    return this.solrUpdateDao.addCommentToAlert(request);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
-    this.solrUpdateDao.removeCommentFromAlert(request);
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    return this.solrUpdateDao.removeCommentFromAlert(request);
   }
 
   @Override
-  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+  public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
       Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
-    solrUpdateDao.patch(retrieveLatestDao, request, timestamp);
+    return solrUpdateDao.patch(retrieveLatestDao, request, timestamp);
   }
 
   @Override
@@ -156,15 +156,15 @@ public class SolrDao implements IndexDao {
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest)
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
-    this.solrUpdateDao.addCommentToAlert(request, latest);
+    return this.solrUpdateDao.addCommentToAlert(request, latest);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
-    this.solrUpdateDao.removeCommentFromAlert(request, latest);
+    return this.solrUpdateDao.removeCommentFromAlert(request, latest);
   }
 
   /**

@@ -336,6 +336,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/supervisors`](#get-apiv1stormsupervisors)|
 | [ `PATCH /api/v1/update/patch`](#patch-apiv1updatepatch)|
 | [ `PUT /api/v1/update/replace`](#put-apiv1updatereplace)|
+| [ `POST /api/v1/update/add/comment`](#put-apiv1updateaddcomment)|
+| [ `POST /api/v1/update/remove/comment`](#put-apiv1updateremovecomment)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
 ### `POST /api/v1/alerts/ui/escalate`
@@ -963,6 +965,20 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
         ```
   * Returns:
     * 200 - Current user
+    
+### `POST /api/v1/update/add/comment`
+  * Description: Add a comment to an alert
+  * Input:
+    * request - Comment add request
+  * Returns:
+    * 200 - Returns the complete alert document with comments added.
+    
+### `POST /api/v1/update/remove/comment`
+  * Description: Remove a comment from an alert
+  * Input:
+    * request - Comment remove request
+  * Returns:
+    * 200 - Returns the complete alert document with comments removed.
 
 ### `GET /api/v1/user`
   * Description: Retrieves the current user

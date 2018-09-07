@@ -56,7 +56,7 @@ public class SolrUpdateDao implements UpdateDao {
   }
 
   @Override
-  public void update(Document update, Optional<String> rawIndex) throws IOException {
+  public Document update(Document update, Optional<String> rawIndex) throws IOException {
     Document newVersion = update;
     // Handle any case where we're given comments in Map form, instead of raw String
     Object commentsObj = update.getDocument().get(COMMENTS_FIELD);
@@ -79,10 +79,11 @@ public class SolrUpdateDao implements UpdateDao {
     } catch (SolrServerException e) {
       throw new IOException(e);
     }
+    return newVersion;
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     // updates with a collection specified
     Map<String, Collection<SolrInputDocument>> solrCollectionUpdates = new HashMap<>();
     Set<String> collectionsUpdated = new HashSet<>();
@@ -117,18 +118,19 @@ public class SolrUpdateDao implements UpdateDao {
     } catch (SolrServerException e) {
       throw new IOException(e);
     }
+    return updates;
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+  public Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
-    addCommentToAlert(request, latest);
+    return addCommentToAlert(request, latest);
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
     if (latest == null) {
-      return;
+      return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -149,21 +151,21 @@ public class SolrUpdateDao implements UpdateDao {
 
     Document newVersion = new Document(latest);
     newVersion.getDocument().put(COMMENTS_FIELD, commentStrs);
-    update(newVersion, Optional.empty());
+    return update(newVersion, Optional.empty());
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request)
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request)
       throws IOException {
     Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
-    removeCommentFromAlert(request, latest);
+    return removeCommentFromAlert(request, latest);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
     if (latest == null) {
-      return;
+      return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -172,7 +174,7 @@ public class SolrUpdateDao implements UpdateDao {
     // Can't remove anything if there's nothing there
     if (commentMap == null) {
       LOG.debug("Provided alert had no comments to be able to remove from");
-      return;
+      return null;
     }
     List<Map<String, Object>> originalComments = new ArrayList<>(commentMap);
     List<AlertComment> comments = new ArrayList<>();
@@ -186,7 +188,7 @@ public class SolrUpdateDao implements UpdateDao {
         .collect(Collectors.toList());
     Document newVersion = new Document(latest);
     newVersion.getDocument().put(COMMENTS_FIELD, commentsAsJson);
-    update(newVersion, Optional.empty());
+    return update(newVersion, Optional.empty());
   }
 
   public void convertCommentsToRaw(Map<String,Object> source) {

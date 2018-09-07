@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,19 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.indexing;
 
-import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
-import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.apache.metron.rest.RestException;
 
-public interface UpdateService {
+import java.io.IOException;
+import java.util.List;
 
-  Document patch(PatchRequest request) throws RestException, OriginalNotFoundException;
-  Document replace(ReplaceRequest request) throws RestException;
-  Document addComment(CommentAddRemoveRequest request) throws RestException;
-  Document removeComment(CommentAddRemoveRequest request) throws RestException;
+public class InMemoryMetaAlertRetrieveLatestDao implements MetaAlertRetrieveLatestDao {
+
+  private IndexDao indexDao;
+
+  public InMemoryMetaAlertRetrieveLatestDao(IndexDao indexDao) {
+    this.indexDao = indexDao;
+  }
+
+  @Override
+  public Document getLatest(String guid, String sensorType) throws IOException {
+    return indexDao.getLatest(guid, sensorType);
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
+    return indexDao.getAllLatest(getRequests);
+  }
 }

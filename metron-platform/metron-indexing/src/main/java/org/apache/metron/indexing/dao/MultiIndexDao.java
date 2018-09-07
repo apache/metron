@@ -58,7 +58,7 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public void update(final Document update, Optional<String> index) throws IOException {
+  public Document update(final Document update, Optional<String> index) throws IOException {
     List<String> exceptions =
     indices.parallelStream().map(dao -> {
       try {
@@ -71,10 +71,11 @@ public class MultiIndexDao implements IndexDao {
     if(exceptions.size() > 0) {
       throw new IOException(Joiner.on("\n").join(exceptions));
     }
+    return update;
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     List<String> exceptions =
         indices.parallelStream().map(dao -> {
           try {
@@ -87,6 +88,7 @@ public class MultiIndexDao implements IndexDao {
     if (exceptions.size() > 0) {
       throw new IOException(Joiner.on("\n").join(exceptions));
     }
+    return updates;
   }
 
   @Override
@@ -101,18 +103,26 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+  public Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = getLatest(request.getGuid(), request.getSensorType());
-    addCommentToAlert(request, latest);
+    return addCommentToAlert(request, latest);
   }
 
-
+  /**
+   * Adds comments to an alert.  Updates are written to each Dao in parallel with the assumption that all updates
+   * are identical.  The first update to be applied is returned as the current version of the alert with comments added.
+   * @param request Request to add comments
+   * @param latest The latest version of the alert the comments will be added to.
+   * @return The complete alert document with comments added.
+   * @throws IOException
+   */
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    final List<Document> newVersions = new ArrayList<>();
     List<String> exceptions =
         indices.parallelStream().map(dao -> {
           try {
-            dao.addCommentToAlert(request, latest);
+            newVersions.add(dao.addCommentToAlert(request, latest));
             return null;
           } catch (Throwable e) {
             return dao.getClass() + ": " + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e);
@@ -121,20 +131,30 @@ public class MultiIndexDao implements IndexDao {
     if (exceptions.size() > 0) {
       throw new IOException(Joiner.on("\n").join(exceptions));
     }
+    return newVersions.get(0);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = getLatest(request.getGuid(), request.getSensorType());
-    removeCommentFromAlert(request, latest);
+    return removeCommentFromAlert(request, latest);
   }
 
+  /**
+   * Removes comments from an alert.  Updates are written to each Dao in parallel with the assumption that all updates
+   * are identical.  The first update to be applied is returned as the current version of the alert with comments removed.
+   * @param request Request to remove comments
+   * @param latest The latest version of the alert the comments will be removed from.
+   * @return The complete alert document with comments removed.
+   * @throws IOException
+   */
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    final List<Document> newVersions = new ArrayList<>();
     List<String> exceptions =
         indices.parallelStream().map(dao -> {
           try {
-            dao.removeCommentFromAlert(request, latest);
+            newVersions.add(dao.removeCommentFromAlert(request, latest));
             return null;
           } catch (Throwable e) {
             return dao.getClass() + ": " + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e);
@@ -143,6 +163,7 @@ public class MultiIndexDao implements IndexDao {
     if (exceptions.size() > 0) {
       throw new IOException(Joiner.on("\n").join(exceptions));
     }
+    return newVersions.get(0);
   }
 
   private static class DocumentContainer {

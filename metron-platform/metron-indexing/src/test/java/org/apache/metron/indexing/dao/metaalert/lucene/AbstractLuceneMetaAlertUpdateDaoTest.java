@@ -54,12 +54,10 @@ import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.PatchRequest;
@@ -157,43 +155,49 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
     }
 
     @Override
-    public void update(Document update, Optional<String> index) {
-    }
-
-    @Override
-    public void addCommentToAlert(CommentAddRemoveRequest request) {
-    }
-
-    @Override
-    public void removeCommentFromAlert(CommentAddRemoveRequest request) {
-    }
-
-    @Override
-    public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
-    }
-
-    @Override
-    public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
-    }
-
-    @Override
-    public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
-        Optional<Long> timestamp) {
-    }
-
-    @Override
-    public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request) {
+    public Document update(Document update, Optional<String> index) {
       return null;
     }
 
     @Override
-    public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) {
-      return false;
+    public Document addCommentToAlert(CommentAddRemoveRequest request) {
+      return null;
     }
 
     @Override
-    public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status) {
-      return false;
+    public Document removeCommentFromAlert(CommentAddRemoveRequest request) {
+      return null;
+    }
+
+    @Override
+    public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+      return null;
+    }
+
+    @Override
+    public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
+      return null;
+    }
+
+    @Override
+    public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+        Optional<Long> timestamp) {
+      return null;
+    }
+
+    @Override
+    public Document createMetaAlert(MetaAlertCreateRequest request) {
+      return null;
+    }
+
+    @Override
+    public Document addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) {
+      return null;
+    }
+
+    @Override
+    public Document updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status) {
+      return null;
     }
   }
 

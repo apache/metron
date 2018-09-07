@@ -30,10 +30,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
@@ -80,15 +78,16 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
    * @param retrieveLatestDao DAO to retrieve the item to be patched
    * @param request The patch request.
    * @param timestamp Optionally a timestamp to set. If not specified then current time is used.
+   * @return The patched document
    * @throws OriginalNotFoundException If no original document is found to patch.
    * @throws IOException If an error occurs performing the patch.
    */
   @Override
-  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+  public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
       Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
     if (isPatchAllowed(request)) {
-      updateDao.patch(retrieveLatestDao, request, timestamp);
+      return updateDao.patch(retrieveLatestDao, request, timestamp);
     } else {
       throw new IllegalArgumentException(
           "Meta alert patches are not allowed for /alert or /status paths.  "
@@ -97,7 +96,7 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) {
+  public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) {
     throw new UnsupportedOperationException("Meta alerts do not allow for bulk updates");
   }
 
@@ -170,21 +169,51 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
     return updates;
   }
 
+  /**
+   * Adds alerts to a metaalert, based on a list of GetRequests provided for retrieval.
+   * @param metaAlertGuid The GUID of the metaalert to be given new children.
+   * @param alertRequests GetRequests for the appropriate alerts to add.
+   * @return The updated metaalert with alerts added.
+   */
+  @Override
+  public Document addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
+          throws IOException {
+
+    Document metaAlert = retrieveLatestDao
+            .getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
+    if (MetaAlertStatus.ACTIVE.getStatusString()
+            .equals(metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD))) {
+      Iterable<Document> alerts = retrieveLatestDao.getAllLatest(alertRequests);
+      Map<Document, Optional<String>> updates = buildAddAlertToMetaAlertUpdates(metaAlert, alerts);
+      update(updates);
+      return metaAlert;
+    } else {
+      throw new IllegalStateException("Adding alerts to an INACTIVE meta alert is not allowed");
+    }
+  }
+
+  /**
+   * Removes alerts from a metaalert, based on a list of GetRequests provided for retrieval.
+   * @param metaAlertGuid The GUID of the metaalert to remove children from.
+   * @param alertRequests A list of GetReqests that will provide the alerts to remove
+   * @return The updated metaalert with alerts removed.
+   * @throws IllegalStateException If the metaalert is inactive.
+   */
   @Override
   @SuppressWarnings("unchecked")
-  public boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
-      throws IOException {
+  public Document removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
+      throws IOException, IllegalStateException {
     Document metaAlert = retrieveLatestDao
         .getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
     if (metaAlert == null) {
-      return false;
+      return null;
     }
     if (MetaAlertStatus.ACTIVE.getStatusString()
         .equals(metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD))) {
       Iterable<Document> alerts = retrieveLatestDao.getAllLatest(alertRequests);
       Map<Document, Optional<String>> updates = buildRemoveAlertsFromMetaAlert(metaAlert, alerts);
       update(updates);
-      return updates.size() != 0;
+      return metaAlert;
     } else {
       throw new IllegalStateException("Removing alerts from an INACTIVE meta alert is not allowed");
     }
@@ -213,7 +242,7 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
   }
 
   @Override
-  public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
+  public Document updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
       throws IOException {
     Document metaAlert = retrieveLatestDao
         .getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
@@ -231,7 +260,7 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
       Map<Document, Optional<String>> updates = buildStatusChangeUpdates(metaAlert, alerts, status);
       update(updates);
     }
-    return metaAlertUpdated;
+    return metaAlert;
   }
 
   /**
