@@ -18,7 +18,7 @@
  *
  */
 
-package org.apache.metron.profiler.integration;
+package org.apache.metron.profiler.storm.integration;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.Cell;

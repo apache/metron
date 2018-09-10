@@ -17,7 +17,7 @@
  *  limitations under the License.
  *
  */
-package org.apache.metron.profiler.integration;
+package org.apache.metron.profiler.storm.integration;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;

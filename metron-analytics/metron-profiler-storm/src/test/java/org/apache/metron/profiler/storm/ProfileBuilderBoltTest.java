@@ -25,7 +25,7 @@ import org.apache.metron.common.configuration.profiler.ProfilerConfigurations;
 import org.apache.metron.profiler.MessageDistributor;
 import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.metron.profiler.integration.MessageBuilder;
+import org.apache.metron.profiler.storm.integration.MessageBuilder;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
