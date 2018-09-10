@@ -20,7 +20,7 @@
         <artifactId>metron-analytics</artifactId>
         <version>0.5.1</version>
     </parent>
-    <artifactId>metron-profiler</artifactId>
+    <artifactId>metron-profiler-storm</artifactId>
     <url>https://metron.apache.org/</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
