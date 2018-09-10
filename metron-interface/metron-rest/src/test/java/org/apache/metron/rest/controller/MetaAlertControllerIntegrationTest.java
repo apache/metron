@@ -20,7 +20,9 @@ package org.apache.metron.rest.controller;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -163,6 +165,26 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
         .andExpect(jsonPath("$.results[0].source.count").value(3.0))
         .andExpect(jsonPath("$.results[1].source.guid").value("meta_1"))
         .andExpect(jsonPath("$.results[1].source.count").value(1.0));
+  }
+
+  @Test
+  public void shouldCreateMetaAlert() throws Exception {
+    ResultActions result = this.mockMvc.perform(
+            post(metaalertUrl + "/create")
+                    .with(httpBasic(user, password)).with(csrf())
+                    .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
+                    .content(create));
+    result.andExpect(status().isOk())
+            .andExpect(jsonPath("$.guid", notNullValue()))
+            .andExpect(jsonPath("$.timestamp", greaterThan(0L)))
+            .andExpect(jsonPath("$.sensorType").value(MetaAlertConstants.METAALERT_TYPE))
+            .andExpect(jsonPath("$.document.timestamp", greaterThan(0L)))
+            .andExpect(jsonPath("$.document['source.type']").value(MetaAlertConstants.METAALERT_TYPE))
+            .andExpect(jsonPath("$.document.status").value("active"))
+            .andExpect(jsonPath("$.document.groups[0]").value("group_one"))
+            .andExpect(jsonPath("$.document.groups[1]").value("group_two"))
+            .andExpect(jsonPath("$.document.metron_alert[0].guid").value("bro_1"))
+            .andExpect(jsonPath("$.document.metron_alert[1].guid").value("snort_2"));
   }
 
   @Test

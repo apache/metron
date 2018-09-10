@@ -55,8 +55,13 @@ public class InMemoryMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao
     // Retrieve the documents going into the meta alert and build it
     Iterable<Document> alerts = indexDao.getAllLatest(alertRequests);
 
-    return buildCreateDocument(alerts, request.getGroups(),
+    Document metaAlert = buildCreateDocument(alerts, request.getGroups(),
             MetaAlertConstants.ALERT_FIELD);
+
+    metaAlert.getDocument()
+            .put(getConfig().getSourceTypeField(), MetaAlertConstants.METAALERT_TYPE);
+
+    return metaAlert;
   }
 
   @Override
