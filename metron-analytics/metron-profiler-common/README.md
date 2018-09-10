@@ -43,13 +43,13 @@ There are three separate ports of the Profiler that share this common code base.
 
 1. [Deploy your profile](../metron-profiler-storm/README.md#getting-started) to Storm to maintain a low-latency profile over a streaming data set.
 
-1. [Retrieve your profile data](../metron-profiler-client/README.md) using the Stellar API so that you can build enrichments, alert on abnormalities
+1. [Retrieve your profile data](../metron-profiler-client/README.md) using the Stellar API so that you can build enrichments, alert on abnormalities.
 
 1. Explore more ways to create [profiles](#more-examples).
 
 ## Profiles
 
-Let's start with a simple example. The following profile maintains a count of the number of telemetry messages for each IP source address.  A counter is initialized to 0, then incremented each time a message is received for a give IP source address.  At regular intervals the count is flushed and stored. Over time this results in a time series describing the amount of telemetry received for each IP source address.
+Let's start with a simple example. The following profile maintains a count of the number of telemetry messages for each IP source address.  A counter is initialized to 0, then incremented each time a message is received for a given IP source address.  At regular intervals the count is flushed and stored. Over time this results in a time series describing the amount of telemetry received for each IP source address.
 
 ```
 {
