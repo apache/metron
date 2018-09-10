@@ -17,7 +17,7 @@ limitations under the License.
 -->
 # Metron Profiler for Spark
 
-This project allows profiles to be executed using [Apache Spark](https://spark.apache.org). This is a port of the Profiler to Spark.
+This project allows profiles to be executed using [Apache Spark](https://spark.apache.org). This is a port of the Profiler to Spark that allows you to backfill profiles using archived telemetry.
 
 * [Introduction](#introduction)
 * [Getting Started](#getting-started)
@@ -27,9 +27,9 @@ This project allows profiles to be executed using [Apache Spark](https://spark.a
 
 ## Introduction
 
-Using the [Streaming Profiler](../metron-profiler/README.md) in [Apache Storm](http://storm.apache.org) allows you to create profiles based on the stream of telemetry being captured, enriched, triaged, and indexed by Metron. This does not allow you to create a profile based on telemetry that was captured in the past.  
+Using the [Streaming Profiler](../metron-profiler-storm/README.md) in [Apache Storm](http://storm.apache.org) allows you to create profiles based on the stream of telemetry being captured, enriched, triaged, and indexed by Metron. This does not allow you to create a profile based on telemetry that was captured in the past.  
 
-There are many cases where you might want to produce a profile from telemetry in the past.  This is referred to as "profile seeding".
+There are many cases where you might want to produce a profile from telemetry in the past.  This is referred to as profile seeding or backfilling.
 
 * As a Security Data Scientist, I want to understand the historical behaviors and trends of a profile so that I can determine if the profile has predictive value for model building.
 
@@ -39,11 +39,9 @@ The Batch Profiler running in [Apache Spark](https://spark.apache.org) allows yo
 
 The portion of a profile produced by the Batch Profiler should be indistinguishable from the portion created by the Streaming Profiler.  Consumers of the profile should not care how the profile was generated.  Using the Streaming Profiler together with the Batch Profiler allows you to create a complete profile over a wide range of time.
 
-For an introduction to the Profiler and Profiler concepts, see the [Profiler README](../metron-profiler/README.md).
+For an introduction to the Profiler, see the [Profiler README](../metron-profiler-common/README.md).
 
 ## Getting Started
-
-
 
 1. Create a profile definition by editing `$METRON_HOME/config/zookeeper/profiler.json` as follows.  
 
@@ -95,8 +93,6 @@ The Batch Profiler package is installed automatically when installing Metron usi
 
 The Batch Profiler requires Spark version 2.3.0+.
 
-### Packages
-
 #### Build the RPM
 
 1. Build Metron.
@@ -115,7 +111,7 @@ The Batch Profiler requires Spark version 2.3.0+.
     find ./ -name "metron-profiler-spark*.rpm"
     ```
 
-### Build the DEB
+#### Build the DEB
 
 1. Build Metron.
     ```
@@ -151,7 +147,7 @@ You can store both settings for the Profiler along with settings for Spark in th
 
 ### `profiler.batch.input.path`
 
-*Default*: hdfs://localhost:9000/apps/metron/indexing/indexed/*/*
+*Default*: "hdfs://localhost:9000/apps/metron/indexing/indexed/*/*"
 
 The path to the input data read by the Batch Profiler.
 
