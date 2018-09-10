@@ -28,10 +28,8 @@ import org.apache.metron.profiler.client.stellar.WindowLookback;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.spark.SparkConf;
-import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
 import org.junit.AfterClass;
@@ -189,7 +187,6 @@ public class BatchProfilerIntegrationTest {
 
   @Test
   public void testBatchProfilerWithCSV() throws Exception {
-
     // re-write the test data as a CSV with a header record
     String pathToCSV = tempFolder.getRoot().getAbsolutePath();
     spark.read()
