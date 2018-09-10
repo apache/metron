@@ -162,7 +162,7 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-analytics/metron-profiler/target/</directory>
+                                    <directory>${metron_dir}/metron-analytics/metron-profiler-storm/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
