@@ -30,7 +30,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 * [Start Metron](#start-metron)
 * [Push Data](#push-data)
 * [More Information](#more-information)
-* [Elasticseach X-Pack](#x-pack)
+* [Elasticseach X-Pack](#X-Pack)
 
 Setup
 -----
