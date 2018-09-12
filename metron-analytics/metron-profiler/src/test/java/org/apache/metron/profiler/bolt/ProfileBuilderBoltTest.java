@@ -263,9 +263,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     // the bolt will use the bad emitter when flushExpired() is called
     ProfileBuilderBolt bolt = (ProfileBuilderBolt) new ProfileBuilderBolt()
             .withEmitter(badEmitter)
-            .withMessageDistributor(distributor)
-            .withFlushSignal(flushSignal)
-            .withTumblingWindow(new BaseWindowedBolt.Duration(5, TimeUnit.SECONDS));
+            .withMessageDistributor(distributor);
 
     // the exception thrown by the emitter should not bubble up
     bolt.flushExpired();
