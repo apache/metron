@@ -362,7 +362,6 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
     }
 
     LOG.debug("Flushed active profiles and found {} measurement(s).", measurements.size());
-
   }
 
   /**
