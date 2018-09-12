@@ -25,7 +25,6 @@ This module provides a RESTful API for interacting with Metron.
 * A running real-time store, either Elasticsearch or Solr depending on which one is enabled
 * Java 8 installed
 * Storm CLI and Metron topology scripts (start_parser_topology.sh, start_enrichment_topology.sh, start_elasticsearch_topology.sh) installed
-* A relational database
 
 ## Installation
 
@@ -66,10 +65,6 @@ No optional parameter has a default.
 
 | Environment Variable                  | Description
 | ------------------------------------- | -----------
-| METRON_JDBC_DRIVER                    | JDBC driver class
-| METRON_JDBC_URL                       | JDBC url
-| METRON_JDBC_USERNAME                  | JDBC username
-| METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle
 | ZOOKEEPER                             | Zookeeper quorum (ex. node1:2181,node2:2181)
 | BROKERLIST                            | Kafka Broker list (ex. node1:6667,node2:6667)
 | HDFS_URL                              | HDFS url or `fs.defaultFS` Hadoop setting (ex. hdfs://node1:8020)
@@ -80,7 +75,6 @@ No optional parameter has a default.
 | METRON_LOG_DIR                        | Directory where the log file is written                           | Optional | /var/log/metron/
 | METRON_PID_FILE                       | File where the pid is written                                     | Optional | /var/run/metron/
 | METRON_REST_PORT                      | REST application port                                             | Optional | 8082
-| METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled
 | METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp
 | METRON_DEFAULT_GROK_PATH              | Defaults HDFS directory used to store grok statements             | Optional | /apps/metron/patterns
 | SECURITY_ENABLED                      | Enables Kerberos support                                          | Optional | false
@@ -96,27 +90,6 @@ No optional parameter has a default.
 
 These are set in the `/etc/default/metron` file.
 
-## Database setup
-
-The REST application persists data in a relational database and requires a dedicated database user and database (see https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html for more detail).  
-Spring uses Hibernate as the default ORM framework but another framework is needed becaused Hibernate is not compatible with the Apache 2 license.  For this reason Metron uses [EclipseLink](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support).  See the [Spring Data JPA - EclipseLink](https://github.com/spring-projects/spring-data-examples/tree/master/jpa/eclipselink) project for an example on how to configure EclipseLink in Spring.
-
-### Development
-
-The REST application comes with [embedded database support](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support) for development purposes.
-
-For example, edit these variables in `/etc/default/metron` before starting the application to configure H2:
-```
-METRON_JDBC_DRIVER="org.h2.Driver"
-METRON_JDBC_URL="jdbc:h2:file:~/metrondb"
-METRON_JDBC_USERNAME="root"
-METRON_JDBC_PLATFORM="h2"
-```
-
-### Production
-
-The REST application should be configured with a production-grade database outside of development.
-
 #### Ambari Install
 
 Installing with Ambari is recommended for production deployments.
@@ -125,48 +98,17 @@ This includes managing the PID file, directing logging, etc.
 
 #### Manual Install
 
-The following configures the application for MySQL:
-
-1. Install MySQL if not already available (this example uses version 5.7, installation instructions can be found [here](https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html))
-
-1. Create a metron user and REST database and permission the user for that database:
-    ```
-    CREATE USER 'metron'@'node1' IDENTIFIED BY 'Myp@ssw0rd';
-    CREATE DATABASE IF NOT EXISTS metronrest;
-    GRANT ALL PRIVILEGES ON metronrest.* TO 'metron'@'node1';
-    ```
-
-1. Create the security tables as described in the [Spring Security Guide](https://docs.spring.io/spring-security/site/docs/5.0.4.RELEASE/reference/htmlsingle/#user-schema).
-
-1. Install the MySQL JDBC client onto the REST application host and configurate the METRON_JDBC_CLIENT_PATH variable:
-    ```
-    cd $METRON_HOME/lib
-    wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.41.tar.gz
-    tar xf mysql-connector-java-5.1.41.tar.gz
-    ```
-
-1. Edit these variables in `/etc/default/metron` to configure the REST application for MySQL:
-    ```
-    METRON_JDBC_DRIVER="com.mysql.jdbc.Driver"
-    METRON_JDBC_URL="jdbc:mysql://mysql_host:3306/metronrest"
-    METRON_JDBC_USERNAME="metron"
-    METRON_JDBC_PLATFORM="mysql"
-    METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
-    ```
-
 1. Switch to the metron user
     ```
     sudo su - metron
     ```
 
-1. Start the REST API. Adjust the password as necessary.
+1. Start the REST API.
     ```
     set -o allexport;
     source /etc/default/metron;
     set +o allexport;
-    export METRON_JDBC_PASSWORD='Myp@ssw0rd';
     $METRON_HOME/bin/metron-rest.sh
-    unset METRON_JDBC_PASSWORD;
     ```
 
 ## Usage
@@ -177,12 +119,39 @@ The REST application can be accessed with the Swagger UI at http://host:port/swa
 
 ### Authentication
 
-The metron-rest module uses [Spring Security](http://projects.spring.io/spring-security/) for authentication and stores user credentials in the relational database configured above.  The required tables are created automatically the first time the application is started so that should be done first.  For example (continuing the MySQL example above), users can be added by connecting to MySQL and running:
+The metron-rest module uses [Spring Security](http://projects.spring.io/spring-security/) for authentication, and supports LDAP based authentication and [Knox SSO](https://knox.apache.org/books/knox-1-1-0/user-guide.html#KnoxSSO+Setup+and+Configuration) based authentication using jwt tokens.
+
+To configure LDAP based application add the following to the rest_application.yml file (note, this would usually be done via the Ambari configuration interface):
+
 ```
-use metronrest;
-insert into users (username, password, enabled) values ('your_username','your_password',1);
-insert into authorities (username, authority) values ('your_username', 'ROLE_USER');
+ldap:
+  provider:
+    url: ldap://node1:33389
+    userdn: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
+    password: admin-password
+  user: 
+    dn.patterns: uid={0},ou=people,dc=hadoop,dc=apache,dc=org
+    passwordAttribute: userPassword
+    searchBase: ou=people,dc=hadoop,dc=apache,dc=org
+    searchFilter: ""
+  group:
+    searchBase: ou=groups,dc=hadoop,dc=apache,dc=org
+    searchFilter: "member={0}"
+    roleAttribute: "cn"
 ```
+
+This example assumes you are using the Demo LDAP server provided by the Knox project, running on a host call node1 (as in full dev) on port 33389.
+
+To configure the use of Knox SSO, add: 
+
+```
+knox:
+  sso:
+    url: 'https://{gateway_host}:{gateway_port}/gateway/knoxsso/api/v1/websso'
+    pubkey: '<public key from your Knox gateway server>'
+```
+
+This would usually be done with through Ambari.
 
 ### Kerberos
 

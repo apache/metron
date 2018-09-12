@@ -19,37 +19,21 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${project.basedir}/dist</directory>
-      <outputDirectory>/web/alerts-ui</outputDirectory>
-      <excludes>
-        <exclude>**/.npmignore</exclude>
-      </excludes>
-      <fileMode>0644</fileMode>
-    </fileSet>
-    <fileSet>
-      <directory>${project.basedir}/scripts</directory>
-      <outputDirectory>web/expressjs</outputDirectory>
+      <directory>${project.basedir}/target</directory>
       <includes>
-        <include>alerts-server.js</include>
+        <include>${project.artifactId}-${project.version}.jar</include>
       </includes>
-      <fileMode>0644</fileMode>
+      <outputDirectory>lib</outputDirectory>
+      <useDefaultExcludes>true</useDefaultExcludes>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/scripts</directory>
+      <directory>${project.basedir}/src/main/scripts</directory>
+      <includes>
+        <include>metron-alerts.sh</include>
+      </includes>
       <outputDirectory>bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
-      <includes>
-        <include>metron-alerts-ui</include>
-      </includes>
-      <fileMode>0755</fileMode>
-      <lineEnding>unix</lineEnding>
       <filtered>true</filtered>
     </fileSet>
   </fileSets>
-  <files>
-    <file>
-      <source>src/favicon.ico</source>
-      <outputDirectory>/web/alerts-ui</outputDirectory>
-    </file>
-  </files>
 </assembly>

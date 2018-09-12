@@ -1,0 +1,99 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: 1
+
+dn: dc=org
+objectclass: domain
+objectclass: top
+dc: org
+
+dn: dc=apache,dc=org
+objectclass: domain
+objectclass: top
+dc: apache
+
+dn: dc=metron,dc=apache,dc=org
+objectclass: dcObject
+objectclass: domain
+objectclass: top
+dc: metron
+
+dn: ou=people,dc=metron,dc=apache,dc=org
+objectclass:top
+objectclass:organizationalUnit
+ou: people
+
+dn: ou=groups,dc=metron,dc=apache,dc=org
+objectclass:top
+objectclass:organizationalUnit
+ou: groups
+
+dn: uid=admin,ou=people,dc=metron,dc=apache,dc=org
+objectclass:top
+objectclass:person
+objectclass:organizationalPerson
+objectclass:inetOrgPerson
+cn: Admin
+sn: User
+uid: admin
+userPassword: password
+
+
+dn: uid=user,ou=people,dc=metron,dc=apache,dc=org
+objectclass:top
+objectclass:person
+objectclass:organizationalPerson
+objectclass:inetOrgPerson
+cn: Normal
+sn: User
+uid: user
+userPassword: password
+
+dn: uid=user1,ou=people,dc=metron,dc=apache,dc=org
+objectclass:top
+objectclass:person
+objectclass:organizationalPerson
+objectclass:inetOrgPerson
+cn: Normal
+sn: User
+uid: user1
+userPassword: password
+
+dn: uid=user2,ou=people,dc=metron,dc=apache,dc=org
+objectclass:top
+objectclass:person
+objectclass:organizationalPerson
+objectclass:inetOrgPerson
+cn: Normal
+sn: User
+uid: user2
+userPassword: password
+
+dn: cn=admin,ou=groups,dc=metron,dc=apache,dc=org
+objectClass: groupOfNames
+objectClass: top
+cn: admin
+member: uid=admin,ou=people,dc=metron,dc=apache,dc=org
+
+dn: cn=user,ou=groups,dc=metron,dc=apache,dc=org
+objectClass: groupOfNames
+objectClass: top
+cn: user
+member: uid=admin,ou=people,dc=metron,dc=apache,dc=org
+member: uid=user,ou=people,dc=metron,dc=apache,dc=org
+member: uid=user1,ou=people,dc=metron,dc=apache,dc=org
+member: uid=user2,ou=people,dc=metron,dc=apache,dc=org

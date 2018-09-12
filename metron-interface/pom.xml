@@ -39,11 +39,24 @@
         </license>
     </licenses>
     <modules>
+        <module>metron-ui-security</module>
+        <module>metron-ui-host</module>
         <module>metron-config</module>
+        <module>metron-config-host</module>
         <module>metron-alerts</module>
+        <module>metron-alerts-host</module>
         <module>metron-rest</module>
         <module>metron-rest-client</module>
     </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <spring-cloud.version>Finchley.RELEASE</spring-cloud.version>
+        <spring.boot.version>2.0.1.RELEASE</spring.boot.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
