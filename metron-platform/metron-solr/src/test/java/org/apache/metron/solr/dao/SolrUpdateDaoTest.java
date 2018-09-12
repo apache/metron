@@ -39,10 +39,12 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.UpdateDaoTest;
 import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.apache.metron.indexing.util.IndexingCacheUtil;
 import org.apache.metron.solr.matcher.SolrInputDocumentListMatcher;
 import org.apache.metron.solr.matcher.SolrInputDocumentMatcher;
@@ -51,19 +53,14 @@ import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CollectionAdminRequest.class})
-public class SolrUpdateDaoTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
+public class SolrUpdateDaoTest extends UpdateDaoTest {
 
   private SolrClient client;
   private SolrRetrieveLatestDao solrRetrieveLatestDao;
@@ -237,5 +234,10 @@ public class SolrUpdateDaoTest {
     // Add the patch to our original document
     latest.getDocument().put("project", "metron");
     assertEquals(actual, latest);
+  }
+
+  @Override
+  public UpdateDao getUpdateDao() {
+    return solrUpdateDao;
   }
 }

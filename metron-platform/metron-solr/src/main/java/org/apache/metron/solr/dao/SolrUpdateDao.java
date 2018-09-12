@@ -129,8 +129,9 @@ public class SolrUpdateDao implements UpdateDao {
 
   @Override
   public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    if (latest == null) {
-      return null;
+    if (latest == null || latest.getDocument() == null) {
+      throw new IOException(String.format("Unable to add comment. Document with guid %s cannot be found.",
+              request.getGuid()));
     }
 
     @SuppressWarnings("unchecked")
@@ -164,8 +165,9 @@ public class SolrUpdateDao implements UpdateDao {
   @Override
   public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
-    if (latest == null) {
-      return null;
+    if (latest == null || latest.getDocument() == null) {
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s cannot be found.",
+              request.getGuid()));
     }
 
     @SuppressWarnings("unchecked")
@@ -173,8 +175,8 @@ public class SolrUpdateDao implements UpdateDao {
         .get(COMMENTS_FIELD);
     // Can't remove anything if there's nothing there
     if (commentMap == null) {
-      LOG.debug("Provided alert had no comments to be able to remove from");
-      return null;
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s has no comments.",
+              request.getGuid()));
     }
     List<Map<String, Object>> originalComments = new ArrayList<>(commentMap);
     List<AlertComment> comments = new ArrayList<>();

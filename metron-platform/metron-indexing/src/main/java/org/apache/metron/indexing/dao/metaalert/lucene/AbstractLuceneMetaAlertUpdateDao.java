@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,6 +32,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
@@ -178,12 +181,20 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
   @Override
   public Document addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
           throws IOException {
-
     Document metaAlert = retrieveLatestDao
             .getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
+    if (metaAlert == null) {
+      throw new IOException(String.format("Unable to add alerts to meta alert.  Meta alert with guid %s cannot be found.",
+              metaAlertGuid));
+    }
     if (MetaAlertStatus.ACTIVE.getStatusString()
             .equals(metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD))) {
       Iterable<Document> alerts = retrieveLatestDao.getAllLatest(alertRequests);
+      Set<String> missingAlerts = getMissingAlerts(alertRequests, alerts);
+      if (!missingAlerts.isEmpty()) {
+        throw new IOException(String.format("Unable to add alerts to meta alert.  Alert with guid %s cannot be found.",
+                missingAlerts.iterator().next()));
+      }
       Map<Document, Optional<String>> updates = buildAddAlertToMetaAlertUpdates(metaAlert, alerts);
       update(updates);
       return metaAlert;
@@ -206,11 +217,17 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
     Document metaAlert = retrieveLatestDao
         .getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
     if (metaAlert == null) {
-      return null;
+      throw new IOException(String.format("Unable to remove alerts from meta alert.  Meta alert with guid %s cannot be found.",
+              metaAlertGuid));
     }
     if (MetaAlertStatus.ACTIVE.getStatusString()
         .equals(metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD))) {
       Iterable<Document> alerts = retrieveLatestDao.getAllLatest(alertRequests);
+      Set<String> missingAlerts = getMissingAlerts(alertRequests, alerts);
+      if (!missingAlerts.isEmpty()) {
+        throw new IOException(String.format("Unable to remove alerts from meta alert.  Alert with guid %s cannot be found.",
+                missingAlerts.iterator().next()));
+      }
       Map<Document, Optional<String>> updates = buildRemoveAlertsFromMetaAlert(metaAlert, alerts);
       update(updates);
       return metaAlert;
@@ -246,6 +263,10 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
       throws IOException {
     Document metaAlert = retrieveLatestDao
         .getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
+    if (metaAlert == null) {
+      throw new IOException(String.format("Unable to update meta alert status.  Meta alert with guid %s cannot be found.",
+              metaAlertGuid));
+    }
     String currentStatus = (String) metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD);
     boolean metaAlertUpdated = !status.getStatusString().equals(currentStatus);
     if (metaAlertUpdated) {
@@ -361,6 +382,15 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
     } else if (updates.size() > 1) {
       updateDao.batchUpdate(updates);
     } // else we have no updates, so don't do anything
+  }
+
+  protected Set<String> getMissingAlerts(List<GetRequest> alertRequests, Iterable<Document> results) throws IOException {
+    Set<String> requestGuids = alertRequests.stream().map(GetRequest::getGuid).collect(Collectors.toSet());
+    Set<String> resultGuids = StreamSupport.stream(results.spliterator(), false)
+            .map(Document::getGuid).collect(Collectors.toSet());
+    Set<String> missingGuids = new HashSet<>(requestGuids);
+    missingGuids.removeAll(resultGuids);
+    return missingGuids;
   }
 
 }

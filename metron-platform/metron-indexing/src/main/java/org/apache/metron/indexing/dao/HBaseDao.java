@@ -291,7 +291,8 @@ public class HBaseDao implements IndexDao {
   @SuppressWarnings("unchecked")
   public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
     if (latest == null || latest.getDocument() == null) {
-      throw new IOException("Unable to add comment to document that doesn't exist");
+      throw new IOException(String.format("Unable to add comment. Document with guid %s cannot be found.",
+              request.getGuid()));
     }
 
     List<Map<String, Object>> comments = (List<Map<String, Object>>) latest.getDocument()
@@ -327,12 +328,14 @@ public class HBaseDao implements IndexDao {
   public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
     if (latest == null || latest.getDocument() == null) {
-      throw new IOException("Unable to remove comment document that doesn't exist");
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s cannot be found.",
+              request.getGuid()));
     }
     List<Map<String, Object>> commentMap = (List<Map<String, Object>>) latest.getDocument().get(COMMENTS_FIELD);
     // Can't remove anything if there's nothing there
     if (commentMap == null) {
-      return null;
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s has no comments.",
+              request.getGuid()));
     }
     List<Map<String, Object>> originalComments = new ArrayList<>(commentMap);
     List<AlertComment> comments = new ArrayList<>();

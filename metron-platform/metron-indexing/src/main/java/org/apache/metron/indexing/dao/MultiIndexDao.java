@@ -118,20 +118,16 @@ public class MultiIndexDao implements IndexDao {
    */
   @Override
   public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    final List<Document> newVersions = new ArrayList<>();
-    List<String> exceptions =
-        indices.parallelStream().map(dao -> {
-          try {
-            newVersions.add(dao.addCommentToAlert(request, latest));
-            return null;
-          } catch (Throwable e) {
-            return dao.getClass() + ": " + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e);
-          }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
-    if (exceptions.size() > 0) {
-      throw new IOException(Joiner.on("\n").join(exceptions));
-    }
-    return newVersions.get(0);
+    List<DocumentContainer> output =
+            indices.parallelStream().map(dao -> {
+              try {
+                return new DocumentContainer(dao.addCommentToAlert(request, latest));
+              } catch (Throwable e) {
+                return new DocumentContainer(e);
+              }
+            }).collect(Collectors.toList());
+
+    return getDocument(output);
   }
 
   @Override
@@ -150,20 +146,16 @@ public class MultiIndexDao implements IndexDao {
    */
   @Override
   public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    final List<Document> newVersions = new ArrayList<>();
-    List<String> exceptions =
-        indices.parallelStream().map(dao -> {
-          try {
-            newVersions.add(dao.removeCommentFromAlert(request, latest));
-            return null;
-          } catch (Throwable e) {
-            return dao.getClass() + ": " + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e);
-          }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
-    if (exceptions.size() > 0) {
-      throw new IOException(Joiner.on("\n").join(exceptions));
-    }
-    return newVersions.get(0);
+    List<DocumentContainer> output =
+            indices.parallelStream().map(dao -> {
+              try {
+                return new DocumentContainer(dao.removeCommentFromAlert(request, latest));
+              } catch (Throwable e) {
+                return new DocumentContainer(e);
+              }
+            }).collect(Collectors.toList());
+
+    return getDocument(output);
   }
 
   private static class DocumentContainer {
@@ -235,7 +227,6 @@ public class MultiIndexDao implements IndexDao {
 
   @Override
   public Document getLatest(final String guid, String sensorType) throws IOException {
-    Document ret = null;
     List<DocumentContainer> output =
             indices.parallelStream().map(dao -> {
       try {
@@ -245,25 +236,7 @@ public class MultiIndexDao implements IndexDao {
       }
     }).collect(Collectors.toList());
 
-    List<String> error = new ArrayList<>();
-    for(DocumentContainer dc : output) {
-      if(dc.getException().isPresent()) {
-        Throwable e = dc.getException().get();
-        error.add(e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
-      }
-      else {
-        if(dc.getDocument().isPresent()) {
-          Document d = dc.getDocument().get();
-          if(ret == null || ret.getTimestamp() < d.getTimestamp()) {
-            ret = d;
-          }
-        }
-      }
-    }
-    if(error.size() > 0) {
-      throw new IOException(Joiner.on("\n").join(error));
-    }
-    return ret;
+    return getDocument(output);
   }
 
   @Override
@@ -302,5 +275,28 @@ public class MultiIndexDao implements IndexDao {
 
   public List<IndexDao> getIndices() {
     return indices;
+  }
+
+  private Document getDocument(List<DocumentContainer> documentContainers) throws IOException {
+    Document ret = null;
+    List<String> error = new ArrayList<>();
+    for(DocumentContainer dc : documentContainers) {
+      if(dc.getException().isPresent()) {
+        Throwable e = dc.getException().get();
+        error.add(e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
+      }
+      else {
+        if(dc.getDocument().isPresent()) {
+          Document d = dc.getDocument().get();
+          if(ret == null || ret.getTimestamp() < d.getTimestamp()) {
+            ret = d;
+          }
+        }
+      }
+    }
+    if(error.size() > 0) {
+      throw new IOException(Joiner.on("\n").join(error));
+    }
+    return ret;
   }
 }

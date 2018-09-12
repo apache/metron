@@ -122,8 +122,9 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   @Override
   @SuppressWarnings("unchecked")
   public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    if (latest == null) {
-      return null;
+    if (latest == null || latest.getDocument() == null) {
+      throw new IOException(String.format("Unable to add comment. Document with guid %s cannot be found.",
+              request.getGuid()));
     }
     List<Map<String, Object>> commentsField = (List<Map<String, Object>>) latest.getDocument()
         .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
@@ -148,12 +149,17 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   @Override
   @SuppressWarnings("unchecked")
   public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    if (latest == null) {
-      return null;
+    if (latest == null || latest.getDocument() == null) {
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s cannot be found.",
+              request.getGuid()));
     }
-    List<Map<String, Object>> commentsField = (List<Map<String, Object>>) latest.getDocument()
-        .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
-    List<Map<String, Object>> originalComments = new ArrayList<>(commentsField);
+    List<Map<String, Object>> commentMap = (List<Map<String, Object>>) latest.getDocument().get(COMMENTS_FIELD);
+    // Can't remove anything if there's nothing there
+    if (commentMap == null) {
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s has no comments.",
+              request.getGuid()));
+    }
+    List<Map<String, Object>> originalComments = new ArrayList<>(commentMap);
 
     List<AlertComment> alertComments = new ArrayList<>();
     for (Map<String, Object> commentRaw : originalComments) {

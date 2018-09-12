@@ -189,16 +189,6 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
     public Document createMetaAlert(MetaAlertCreateRequest request) {
       return null;
     }
-
-    @Override
-    public Document addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) {
-      return null;
-    }
-
-    @Override
-    public Document updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status) {
-      return null;
-    }
   }
 
   /**
@@ -764,6 +754,30 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
 
     // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
     UUID.fromString((String) actualDocument.get(Constants.GUID));
+  }
+
+  @Test
+  public void addAlertsToMetaAlertShouldThrowExceptionOnMissingMetaAlert() throws Exception {
+    thrown.expect(IOException.class);
+    thrown.expectMessage("Unable to add alerts to meta alert.  Meta alert with guid some_guid cannot be found.");
+
+    dao.addAlertsToMetaAlert("some_guid", new ArrayList<>());
+  }
+
+  @Test
+  public void removeAlertsFromMetaAlertShouldThrowExceptionOnMissingMetaAlert() throws Exception {
+    thrown.expect(IOException.class);
+    thrown.expectMessage("Unable to remove alerts from meta alert.  Meta alert with guid some_guid cannot be found.");
+
+    dao.removeAlertsFromMetaAlert("some_guid", new ArrayList<>());
+  }
+
+  @Test
+  public void updateMetaAlertStatusShouldThrowExceptionOnMissingMetaAlert() throws Exception {
+    thrown.expect(IOException.class);
+    thrown.expectMessage("Unable to update meta alert status.  Meta alert with guid some_guid cannot be found.");
+
+    dao.updateMetaAlertStatus("some_guid", MetaAlertStatus.INACTIVE);
   }
 
   // Utility method to manage comparing update maps
