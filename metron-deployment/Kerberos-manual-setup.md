@@ -650,10 +650,6 @@ X-Pack
                     <groupId>log4j</groupId>
                     <artifactId>log4j</artifactId>
                   </exclusion>
-                  <exclusion> <!-- this is causing a weird build error if not excluded - Error creating shaded jar: null: IllegalArgumentException -->
-                        <groupId>org.apache.logging.log4j</groupId>
-                        <artifactId>log4j-api</artifactId>
-                    </exclusion>
                 </exclusions>
               </dependency>
         </dependencies>
@@ -662,7 +658,7 @@ X-Pack
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>2.4.3</version>
+                    <version>3.2.0</version>
                     <configuration>
                         <createDependencyReducedPom>true</createDependencyReducedPom>
                     </configuration>
