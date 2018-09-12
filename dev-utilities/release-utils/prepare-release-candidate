@@ -19,11 +19,11 @@
 # Creates and sets up the actual release artifacts into dev
 # See https://cwiki.apache.org/confluence/display/METRON/Release+Process
 
-# define constants
-# Git repos
 
 set -eo pipefail
 
+# define constants
+# Git repos
 METRON_REPO_NAME="metron"
 BRO_PLUGIN_REPO_NAME="metron-bro-plugin-kafka"
 METRON_UPSTREAM="https://git-wip-us.apache.org/repos/asf/${METRON_REPO_NAME}.git"
@@ -31,6 +31,7 @@ BRO_PLUGIN_UPSTREAM="https://git-wip-us.apache.org/repos/asf/${BRO_PLUGIN_REPO_N
 
 DEV_REPO="https://dist.apache.org/repos/dist/dev/metron"
 RELEASE_REPO=" https://dist.apache.org/repos/dist/release/metron"
+PLUGIN_GIT_REPO="https://git-wip-us.apache.org/repos/asf/metron-bro-plugin-kafka.git"
 
 RC_PREFIX=rc
 TAG_POSTFIX="-release"
@@ -305,6 +306,6 @@ else
   # TODO fix dirs for core vs plugin
   #cd "$WORKDIR/dev/metron/"
   #svn add "${CORE_VERSION}-RC{$RC_NUM}"
-  #svn commit -m "Adding artifacts for Metron ${CORE_VERSION}-RC${RC_NUM}" 
+  #svn commit -m "Adding artifacts for Metron ${CORE_VERSION}-RC${RC_NUM}"
 fi
 
