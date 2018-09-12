@@ -19,6 +19,7 @@ package org.apache.metron.rest.controller;
 
 import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.apache.metron.ui.EmbeddedLdap.EMBEDDED_LDAP_PROFILE;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -55,7 +56,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles(TEST_PROFILE)
+@ActiveProfiles({TEST_PROFILE, EMBEDDED_LDAP_PROFILE})
 public class SearchControllerIntegrationTest extends DaoControllerTest {
 
   /**

@@ -336,6 +336,21 @@
             <artifactId>reflections</artifactId>
             <version>${global_reflections_version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.directory.server</groupId>
+            <artifactId>apacheds-all</artifactId>
+            <version>1.5.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-ui-security</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>test</scope>
+            <type>test-jar</type>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
