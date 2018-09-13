@@ -72,12 +72,34 @@ public class FixedFrequencyFlushSignal implements FlushSignal {
    */
   @Override
   public void update(long timestamp) {
+    if(LOG.isWarnEnabled()) {
+      checkIfOutOfOrder(timestamp);
+    }
+
     if(timestamp < minTime) {
       minTime = timestamp;
     }
 
     if(timestamp > maxTime) {
       maxTime = timestamp;
+    }
+  }
+
+  /**
+   * Checks if the timestamp is significantly out-of-order.
+   *
+   * @param timestamp The last timestamp.
+   */
+  private void checkIfOutOfOrder(long timestamp) {
+    // do not warn if this is the first timestamp we've seen, which will always be 'out-of-order'
+    if (maxTime > Long.MIN_VALUE) {
+
+      long outOfOrderBy = maxTime - timestamp;
+      if (Math.abs(outOfOrderBy) > flushFrequency) {
+        LOG.warn("Timestamp out-of-order by {} ms. This may indicate a problem in the data. " +
+                        "timestamp={}, maxKnown={}, flushFreq={} ms",
+                outOfOrderBy, timestamp, maxTime, flushFrequency);
+      }
     }
   }
 
