@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.bolt;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -361,7 +362,6 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
     }
 
     LOG.debug("Flushed active profiles and found {} measurement(s).", measurements.size());
-
   }
 
   /**
@@ -372,15 +372,21 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
    * that their state is not lost.
    */
   protected void flushExpired() {
+    List<ProfileMeasurement> measurements = null;
+    try {
+      // flush the expired profiles
+      synchronized (messageDistributor) {
+        measurements = messageDistributor.flushExpired();
+        emitMeasurements(measurements);
+      }
 
-    // flush the expired profiles
-    List<ProfileMeasurement> measurements;
-    synchronized (messageDistributor) {
-      measurements = messageDistributor.flushExpired();
-      emitMeasurements(measurements);
+    } catch(Throwable t) {
+      // need to catch the exception, otherwise subsequent executions would be suppressed.
+      // see java.util.concurrent.ScheduledExecutorService#scheduleAtFixedRate
+      LOG.error("Failed to flush expired profiles", t);
     }
 
-    LOG.debug("Flushed expired profiles and found {} measurement(s).", measurements.size());
+    LOG.debug("Flushed expired profiles and found {} measurement(s).", CollectionUtils.size(measurements));
   }
 
   /**
