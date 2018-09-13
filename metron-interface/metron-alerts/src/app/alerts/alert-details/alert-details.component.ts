@@ -18,7 +18,7 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment/moment';
-import {Subscription} from 'rxjs/Rx';
+import {Subscription} from 'rxjs';
 
 import {SearchService} from '../../service/search.service';
 import {UpdateService} from '../../service/update.service';

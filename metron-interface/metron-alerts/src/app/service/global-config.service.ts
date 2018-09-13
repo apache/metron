@@ -1,3 +1,5 @@
+
+import {catchError, map} from 'rxjs/operators';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,28 +17,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions, Response, ResponseOptions} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import {HttpUtil} from '../utils/httpUtil';
 
 @Injectable()
 export class GlobalConfigService {
   url = 'api/v1/global/config';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
   private globalConfig = {};
 
-  constructor(private http: Http) {}
+  constructor(private http: HttpClient) {}
 
   public get(): Observable<{}> {
-    return this.http.get(this.url , new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map((res: Response): any => {
-        let body = res.json();
+    return this.http.get(this.url).pipe(
+      map((res): any => {
+        let body = res;
         let globalConfig = this.setDefaults(body);
         return globalConfig || {};
-      })
-      .catch(HttpUtil.handleError);
+      }),
+      catchError(HttpUtil.handleError));
   }
 
   private setDefaults(globalConfig) {

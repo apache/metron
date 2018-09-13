@@ -17,7 +17,7 @@
  */
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import {Router} from '@angular/router';
-import { Subscription } from 'rxjs/Rx';
+import { Subscription } from 'rxjs';
 
 import {MetaAlertService} from '../../service/meta-alert.service';
 import {UpdateService} from '../../service/update.service';

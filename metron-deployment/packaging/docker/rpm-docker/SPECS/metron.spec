@@ -519,7 +519,7 @@ This package installs the Metron Alerts UI %{metron_home}
 %attr(0755,root,root) %{metron_home}/web/expressjs/alerts-server.js
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/favicon.ico
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/index.html
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.bundle.css
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/styles.*.css
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.js
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.ttf
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.svg
@@ -546,6 +546,8 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Thu Aug 30 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
+- Update compiled css file name for Alerts UI
 * Thu Feb 1 2018 Apache Metron <dev@metron.apache.org> - 0.4.3
 - Add Solr install script to Solr RPM
 * Tue Sep 25 2017 Apache Metron <dev@metron.apache.org> - 0.4.2
