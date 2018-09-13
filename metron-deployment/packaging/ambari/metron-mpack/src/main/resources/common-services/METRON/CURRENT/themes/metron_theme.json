@@ -420,6 +420,54 @@
                 }
               ]
             }
+          },
+          {
+            "name": "security",
+            "display-name": "Security",
+            "layout": {
+              "tab-columns": "2",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-security-ldap",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-security-ldap",
+                      "display-name": "LDAP",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-security-sso",
+                  "row-index": "0",
+                  "column-index": "1",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-security-sso",
+                      "display-name": "Knox SSO",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
           }
         ]
       }
@@ -764,30 +812,6 @@
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-rest-env/metron_jdbc_url",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/metron_jdbc_driver",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/metron_jdbc_username",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/metron_jdbc_password",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/metron_jdbc_platform",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/metron_jdbc_client_path",
-          "subsection-name": "subsection-rest"
-        },
-        {
           "config": "metron-rest-env/metron_default_grok_path",
           "subsection-name": "subsection-rest"
         },
@@ -826,7 +850,20 @@
         {
           "config": "metron-alerts-ui-env/metron_alerts_ui_port",
           "subsection-name": "subsection-alerts-ui"
-        }
+        },
+        { "config": "metron-security-env/metron.ldap.url", "subsection-name": "subsection-security-ldap" },
+        { "config": "metron-security-env/metron.ldap.bind.dn", "subsection-name": "subsection-security-ldap" },
+        { "config": "metron-security-env/metron.ldap.bind.password", "subsection-name": "subsection-security-ldap" },
+        { "config": "metron-security-env/metron.ldap.user.dnpattern", "subsection-name": "subsection-security-ldap" },
+        { "config": "metron-security-env/metron.ldap.user.password", "subsection-name": "subsection-security-ldap" },
+        { "config": "metron-security-env/metron.ldap.user.searchbase", "subsection-name": "subsection-security-ldap" },
+        { "config": "metron-security-env/metron.ldap.user.searchfilter", "subsection-name": "subsection-security-ldap" },
+        { "config": "metron-security-env/metron.ldap.group.searchbase", "subsection-name": "subsection-security-ldap" },
+        { "config": "metron-security-env/metron.ldap.group.searchfilter", "subsection-name": "subsection-security-ldap" },
+        { "config": "metron-security-env/metron.ldap.group.roleattribute", "subsection-name": "subsection-security-ldap" },
+        { "config": "metron-security-env/metron.sso.enabled", "subsection-name": "subsection-security-sso" },
+        { "config": "metron-security-env/metron.sso.providerurl", "subsection-name": "subsection-security-sso" },
+        { "config": "metron-security-env/metron.sso.publicKey", "subsection-name": "subsection-security-sso" }
       ]
     },
     "widgets": [
@@ -1349,42 +1386,6 @@
         }
       },
       {
-        "config": "metron-rest-env/metron_jdbc_url",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-rest-env/metron_jdbc_driver",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-rest-env/metron_jdbc_username",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-rest-env/metron_jdbc_password",
-        "widget": {
-          "type": "password"
-        }
-      },
-      {
-        "config": "metron-rest-env/metron_jdbc_platform",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-rest-env/metron_jdbc_client_path",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
         "config": "metron-rest-env/metron_default_grok_path",
         "widget": {
           "type": "text-field"
@@ -1431,7 +1432,20 @@
         "widget": {
           "type": "text-field"
         }
-      }
+      },
+      { "config": "metron-security-env/metron.ldap.url", "widget": { "type": "text-field"}},
+      { "config": "metron-security-env/metron.ldap.bind.dn", "widget": { "type": "text-field"}},
+      { "config": "metron-security-env/metron.ldap.bind.password", "widget": { "type": "password"}},
+      { "config": "metron-security-env/metron.ldap.user.dnpattern", "widget": { "type": "text-field"}},
+      { "config": "metron-security-env/metron.ldap.user.password", "widget": { "type": "text-field"}},
+      { "config": "metron-security-env/metron.ldap.user.searchbase", "widget": { "type": "text-field"}},
+      { "config": "metron-security-env/metron.ldap.user.searchfilter", "widget": { "type": "text-field"}},
+      { "config": "metron-security-env/metron.ldap.group.searchbase", "widget": { "type": "text-field"}},
+      { "config": "metron-security-env/metron.ldap.group.searchfilter", "widget": { "type": "text-field"}},
+      { "config": "metron-security-env/metron.ldap.group.roleattribute", "widget": { "type": "text-field"}},
+      { "config": "metron-security-env/metron.sso.enabled", "widget": { "type": "toggle"}},
+      { "config": "metron-security-env/metron.sso.providerurl", "widget": { "type": "text-field"}},
+      { "config": "metron-security-env/metron.sso.publicKey", "widget": { "type": "text-area"}}
     ]
   }
 }

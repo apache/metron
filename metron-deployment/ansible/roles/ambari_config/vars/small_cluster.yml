@@ -37,6 +37,7 @@ metron_parsers : [METRON_PARSERS]
 metron_rest: [METRON_REST]
 metron_management_ui: [METRON_MANAGEMENT_UI]
 metron_alerts_ui: [METRON_ALERTS_UI]
+knox: [KNOX_GATEWAY]
 
 master_1_components: "{{ hadoop_master | union(hadoop_clients) | union(es_slave) }}"
 master_1_host:
@@ -49,7 +50,7 @@ metron_components: >
     union(kafka_broker) | union(hbase_slave) | union(hadoop_clients) }}
 metron_host:
   - "{{ groups.metron[0] }}"
-web_components: "{{ kibana_master | union(es_master) }}"
+web_components: "{{ kibana_master | union(es_master) | union(knox)}}"
 web_host:
   - "{{ groups.web[0] }}"
 slave_components: "{{ hadoop_slave | union(storm_slave) | union(kafka_broker) | union(hbase_slave) | union(hadoop_clients) }}"
@@ -104,18 +105,14 @@ configurations:
       zen_discovery_ping_unicast_hosts: "[ {{ groups.web[0] }}, {{ groups.search | join(', ') }} ]"
       gateway_recover_after_data_nodes: 1
       network_host: "[ _local_, {{ elasticsearch_network_interface }} ]"
+  - knox-env:
+      knox_master_secret: "knox"
 
 required_configurations:
   - metron-env:
       storm_rest_addr: "http://{{ groups.ambari_slave[1] }}:8744"
       es_hosts: "{{ groups.web[0] }},{{ groups.search | join(',') }}"
       zeppelin_server_url: "{{ groups.zeppelin[0] }}"
-  - metron-rest-env:
-      metron_jdbc_driver: "org.h2.Driver"
-      metron_jdbc_url: "jdbc:h2:file:~/metrondb"
-      metron_jdbc_username: "root"
-      metron_jdbc_password: "root"
-      metron_jdbc_platform: "h2"
   - kibana-env:
       kibana_pid_dir: /var/run/kibana
       kibana_es_url: http://{{ groups.web[0] }}:9200

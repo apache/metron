@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,24 +15,4 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-
-- include: iptables-centos.yml
-  static: no
-  when: ansible_distribution == "CentOS"
-
-- include: iptables-ubuntu.yml
-  static: no
-  when: ansible_distribution == "Ubuntu"
-
-- include: hostname.yml
-
-- include: ambari-repo-centos.yml
-  static: no
-  when: ansible_distribution == "CentOS"
-
-- include: ambari-repo-ubuntu.yml
-  static: no
-  when: ansible_distribution == "Ubuntu"
-
-- include: logrotate.yml
+cat /root/$1/$1.cert.pem | grep -v 'CERTIFICATE' | paste -sd "" -

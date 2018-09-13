@@ -15,23 +15,4 @@
 #  limitations under the License.
 #
 ---
-
-- include: iptables-centos.yml
-  static: no
-  when: ansible_distribution == "CentOS"
-
-- include: iptables-ubuntu.yml
-  static: no
-  when: ansible_distribution == "Ubuntu"
-
-- include: hostname.yml
-
-- include: ambari-repo-centos.yml
-  static: no
-  when: ansible_distribution == "CentOS"
-
-- include: ambari-repo-ubuntu.yml
-  static: no
-  when: ansible_distribution == "Ubuntu"
-
-- include: logrotate.yml
+knox_master_password: knoxmaster

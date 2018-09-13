@@ -42,52 +42,6 @@
             <empty-value-valid>true</empty-value-valid>
         </value-attributes>
     </property>
-    <property require-input="true">
-        <name>metron_jdbc_driver</name>
-        <value></value>
-        <description>Class name of the JDBC Driver used by Metron</description>
-        <display-name>Metron JDBC Driver</display-name>
-    </property>
-    <property require-input="true">
-        <name>metron_jdbc_url</name>
-        <value></value>
-        <description>JDBC Connection URL used by Metron</description>
-        <display-name>Metron JDBC URL</display-name>
-    </property>
-    <property require-input="true">
-        <name>metron_jdbc_username</name>
-        <value></value>
-        <description>Metron JDBC Username</description>
-        <display-name>Metron JDBC username</display-name>
-    </property>
-    <property require-input="true">
-        <name>metron_jdbc_password</name>
-        <value></value>
-        <property-type>PASSWORD</property-type>
-        <description>Metron JDBC Password</description>
-        <display-name>Metron JDBC password</display-name>
-        <value-attributes>
-            <type>password</type>
-            <overridable>false</overridable>
-            <hidden>METRON_CLIENT</hidden>
-        </value-attributes>
-        <on-ambari-upgrade add="true"/>
-    </property>
-    <property>
-        <name>metron_jdbc_platform</name>
-        <value></value>
-        <description>Database platform used by Metron.  One of: hsqldb, h2, oracle, mysql, postgresql</description>
-        <display-name>Metron JDBC platform</display-name>
-    </property>
-    <property>
-        <name>metron_jdbc_client_path</name>
-        <description>Path to JDBC jar for selected platform</description>
-        <display-name>Metron JDBC client path</display-name>
-        <value/>
-        <value-attributes>
-            <empty-value-valid>true</empty-value-valid>
-        </value-attributes>
-    </property>
     <property>
         <name>metron_temp_grok_path</name>
         <description>Temporary HDFS file path where grok patterns are written during testing</description>
@@ -168,4 +122,58 @@
         <description>The field name where the threat triage score can be found in the search indices. This setting primarily affects the Alerts UI.</description>
         <value>threat:triage:score</value>
     </property>
+
+    <!-- SSL settings -->
+    <property>
+        <name>server.ssl.key-store</name>
+        <value></value>
+        <display-name>Keystore File</display-name>
+        <description>Keystore file location</description>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+
+    <property>
+        <name>server.ssl.key-store-password</name>
+        <value></value>
+        <display-name>Keystore password</display-name>
+        <property-type>PASSWORD</property-type>
+        <description>Keystore password</description>
+        <value-attributes>
+            <type>password</type>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+        <on-ambari-upgrade add="true" />
+    </property>
+
+    <property>
+        <name>server.ssl.keyStoreType</name>
+        <value>JKS</value>
+        <display-name>Keystore Type</display-name>
+        <description>Keystore file format (JKS, PKCS12)</description>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>JKS</value>
+                </entry>
+                <entry>
+                    <value>PKCS12</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+
+    <property>
+        <name>server.ssl.keyAlias</name>
+        <value></value>
+        <display-name>Key alias</display-name>
+        <description>Alias name for server certificate in keystore</description>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+
 </configuration>

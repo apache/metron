@@ -16,8 +16,69 @@
 # limitations under the License.
 #}
 
-port: {{metron_management_ui_port}}
+spring:
+  application:
+    name: metron-config
 
-rest:
-  host: {{metron_rest_host}}
-  port: {{metron_rest_port}}
+metron:
+  version: 0.5.1
+
+logging:
+  level:
+    root: WARN
+
+server:
+  port: {{metron_management_ui_port}}
+  session:
+    cookie:
+      secure: false
+      name: METRONCONFIGSESSION
+{% if metron_alerts_ssl %}
+  ssl:
+    key-store: {{metron_config_ssl_keystore}}
+    key-store-password: ${METRON_KEYSTORE_PASSWORD} 
+    key-store-type: {{metron_config_ssl_keystoretype}}
+    key-alias: {{metron_config_ssl_keyalias}}
+security:
+  require-ssl: true
+{% endif %}
+
+zuul:
+  routes:
+    rest:
+      path: /api/v1/**
+      url: http://{{metron_rest_host}}:{{metron_rest_port}}/api/v1/
+      sensitiveHeaders: Cookie,Set-Cookie
+
+proxy:
+  auth:
+    routes:
+      rest: passthru
+
+ribbon:
+  ConnectTimeout: 3000
+  ReadTimeout: 60000
+
+ldap:
+  provider:
+    url: {{ldap_url}}
+    userdn: {{ldap_userdn}}
+    password: {{ldap_password}}
+  user:
+    dn.patterns: {{ldap_user_pattern}}
+    passwordAttribute: {{ldap_user_password}}
+    searchBase: {{ldap_user_searchbase}}
+    searchFilter: {{ldap_user_searchfilter}}
+  group:
+    searchBase: {{ldap_group_searchbase}}
+    searchFilter: {{ldap_group_searchfilter}}
+    roleAttribute: {{ldap_group_role}}
+
+{% if knox_sso_enabled %}
+knox:
+  sso:
+    url: {{knox_sso_url}}
+    cookie: {{knox_sso_cookie}}
+    originalurl: {{knox_sso_originalurl}}
+    pubkey: {{knox_sso_pubkey}}
+{% endif %}

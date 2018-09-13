@@ -37,11 +37,13 @@ metron_parsers : [METRON_PARSERS]
 metron_rest: [METRON_REST]
 metron_management_ui: [METRON_MANAGEMENT_UI]
 metron_alerts_ui: [METRON_ALERTS_UI]
+knox: [KNOX_GATEWAY]
 
 metron_components: >
   {{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(hbase_master) | union(hadoop_slave) | union(zookeeper_slave) |
   union(storm_slave) | union(kafka_broker) | union(hbase_slave) | union(kibana_master) | union(metron_indexing) | union(metron_profiler) |
-  union(metron_enrichment_master) | union(metron_parsers) | union(metron_rest) | union(metron_management_ui) | union(metron_alerts_ui) | union(es_master)  }}
+  union(metron_enrichment_master) | union(metron_parsers) | union(metron_rest) | union(metron_management_ui) | union(metron_alerts_ui) | 
+  union(es_master) | union(knox) }}
 
 cluster_name: "metron_cluster"
 blueprint_name: "metron_blueprint"
@@ -111,6 +113,112 @@ configurations:
       gateway_recover_after_data_nodes: 1
       network_host: "[ _local_, {{ elasticsearch_network_interface }} ]"
       masters_also_are_datanodes: "1"
+  - metron-management-ui-env:
+      metron_config_jvmopts: -Xms32m -Xmx128g
+  - metron-alerts-ui-env:
+      metron_alerts_jvmopts: -Xms32m -Xmx128g
+  - metron-security-env:
+      metron.sso.providerurl: https://{{ ambari_host }}:8443/gateway/knoxsso/api/v1/websso
+      metron.sso.enabled: true
+      metron.sso.publicKey: "{{ knox_public_key.stdout }}"
+      metron.ldap.url: ldap://{{ ambari_host }}:33389
+      metron.ldap.bind.dn: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
+      metron.ldap.bind.password: admin-password
+      metron.ldap.user.dnpattern: uid={0},ou=people,dc=hadoop,dc=apache,dc=org
+      metron.ldap.user.searchbase: ou=people,dc=hadoop,dc=apache,dc=org
+      metron.ldap.user.password: userPassword
+      metron.ldap.group.searchbase: ou=groups,dc=hadoop,dc=apache,dc=org
+      metron.ldap.group.searchfilter: member={0}
+      metron.ldap.group.roleattribute: cn
+  - knox-env:
+      knox_master_secret: "{{ knox_master_password }}"
+  - knoxsso-topology:
+      content: |
+        <topology>
+          <gateway>
+            <provider>
+              <role>webappsec</role>
+              <name>WebAppSec</name>
+              <enabled>true</enabled>
+              <param>
+                <name>xframe.options.enabled</name>
+                <value>true</value>
+              </param>
+            </provider>
+            <provider>
+              <role>authentication</role>
+              <name>ShiroProvider</name>
+              <enabled>true</enabled>
+              <param>
+                <name>sessionTimeout</name>
+                <value>30</value>
+              </param>
+              <param>
+                <name>redirectToUrl</name>
+                <value>/gateway/knoxsso/knoxauth/login.html</value>
+              </param>
+              <param>
+                <name>restrictedCookies</name>
+                <value>rememberme,WWW-Authenticate</value>
+              </param>
+              <param>
+                <name>main.ldapRealm</name>
+                <value>org.apache.hadoop.gateway.shirorealm.KnoxLdapRealm</value>
+              </param>
+              <param>
+                <name>main.ldapContextFactory</name>
+                <value>org.apache.hadoop.gateway.shirorealm.KnoxLdapContextFactory</value>
+              </param>
+              <param>
+                <name>main.ldapRealm.contextFactory</name>
+                <value>$ldapContextFactory</value>
+              </param>
+              <param>
+                <name>main.ldapRealm.userDnTemplate</name>
+                <value>uid={0},ou=people,dc=hadoop,dc=apache,dc=org</value>
+              </param>
+              <param>
+                <name>main.ldapRealm.contextFactory.url</name>
+                <value>ldap://localhost:33389</value>
+              </param>
+              <param>
+                <name>main.ldapRealm.authenticationCachingEnabled</name>
+                <value>false</value>
+              </param>
+              <param>
+                <name>main.ldapRealm.contextFactory.authenticationMechanism</name>
+                <value>simple</value>
+              </param>
+              <param>
+                <name>urls./**</name>
+                <value>authcBasic</value>
+              </param>
+            </provider>
+            <provider>
+              <role>identity-assertion</role>
+              <name>Default</name>
+              <enabled>true</enabled>
+            </provider>
+          </gateway>
+          <application>
+            <name>knoxauth</name>
+          </application>
+          <service>
+            <role>KNOXSSO</role>
+            <param>
+              <name>knoxsso.cookie.secure.only</name>
+              <value>false</value>
+            </param>
+            <param>
+              <name>knoxsso.token.ttl</name>
+              <value>36000000</value>
+            </param>
+            <param>
+              <name>knoxsso.redirect.whitelist.regex</name>
+              <value>^https?:\/\/({{ ambari_host }}):[0-9].*$</value>
+            </param>
+          </service>
+        </topology>
 
 required_configurations:
   - metron-env:
@@ -118,12 +226,6 @@ required_configurations:
       es_hosts: "{{ groups.search | join(',') }}"
       zeppelin_server_url: "{{ groups.zeppelin[0] }}:9995"
       solr_zookeeper_url: "{{ groups.search[0] }}:9983"
-  - metron-rest-env:
-      metron_jdbc_driver: "org.h2.Driver"
-      metron_jdbc_url: "jdbc:h2:file:~/metrondb"
-      metron_jdbc_username: "root"
-      metron_jdbc_password: "root"
-      metron_jdbc_platform: "h2"
   - kibana-env:
       kibana_pid_dir: /var/run/kibana
       kibana_es_url: http://{{ groups.search[0] }}:9200

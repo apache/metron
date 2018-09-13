@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+    <property>
+        <name>metron.ldap.url</name>
+        <display-name>LDAP URL</display-name>
+        <value>ldap://localhost:33369</value>
+        <description>LDAP Server URL</description>
+        <value-attributes>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.ldap.user.dnpattern</name>
+        <value>uid={0},ou=people,dc=hadoop,dc=apache,dc=org</value>
+        <display-name>User dn pattern</display-name>
+        <description>LDAP user DN</description>
+        <value-attributes>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.ldap.group.searchbase</name>
+        <display-name>Group Search Base</display-name>
+        <value>ou=groups,dc=hadoop,dc=apache,dc=org</value>
+        <description>LDAP group searchbase</description>
+        <value-attributes>
+            <overridable>false</overridable>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.ldap.group.searchfilter</name>
+        <display-name>Group Search Filter</display-name>
+        <value></value>
+        <description>LDAP group search filter</description>
+        <value-attributes>
+            <overridable>false</overridable>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.ldap.user.searchfilter</name>
+        <display-name>User Search Filter</display-name>
+        <value></value>
+        <description>Search filter used for Bind Authentication</description>
+        <value-attributes>
+            <overridable>false</overridable>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.ldap.user.password</name>
+        <value>userPassword</value>
+        <display-name>User password attribute</display-name>
+        <description>LDAP attribute for the user password</description>
+        <value-attributes>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.ldap.group.roleattribute</name>
+        <value>cn</value>
+        <description>LDAP group role attribute</description>
+        <value-attributes>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.ldap.bind.dn</name>
+        <display-name>Bind User</display-name>
+        <value></value>
+        <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. </description>
+        <value-attributes>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.ldap.bind.password</name>
+        <display-name>Bind User Password</display-name>
+        <value></value>
+        <property-type>PASSWORD</property-type>
+        <description>Password for the account that can search for users</description>
+        <value-attributes>
+            <type>password</type>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+
+    <property>
+        <name>metron.sso.enabled</name>
+        <display-name>Enable Metron SSO</display-name>
+        <value>false</value>
+        <description>Turn on to enable integration with KnoxSSO</description>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>true</value>
+                    <label>Enabled</label>
+                </entry>
+                <entry>
+                    <value>false</value>
+                    <label>Off</label>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.sso.providerurl</name>
+        <display-name>SSO provider url</display-name>
+        <value></value>
+        <description>Example: https://KNOX_HOST:KNOX_PORT/gateway/TOPOLOGY_NAME/knoxsso/api/v1/websso</description>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.sso.publicKey</name>
+        <display-name>SSO public key</display-name>
+        <value></value>
+        <description>Public key for SSO cookie verification</description>
+        <value-attributes>
+            <type>multiLine</type>
+            <empty-value-valid>true</empty-value-valid>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.sso.cookiename</name>
+        <display-name>SSO cookiename</display-name>
+        <value>hadoop-jwt</value>
+        <description>Parameter name for SSO cookie</description>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron.sso.query.param.originalurl</name>
+        <display-name>SSO query param</display-name>
+        <value>originalUrl</value>
+        <description>Query name for appending original url in SSO url</description>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+
+</configuration>

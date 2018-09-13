@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,21 +15,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-#
-# for CentOS...
-#
-- name: Install Nodejs repo on CentOS
-  shell: curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
-  args:
-    warn: false
-  when: ansible_distribution == "CentOS"
 
-#
-# for Ubuntu...
-#
-- name: Install Nodejs repo on Ubuntu
-  shell: curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-  args:
-    warn: false
-  when: ansible_distribution == "Ubuntu"
+/usr/hdp/current/knox-server/bin/gateway.sh stop
+
+/usr/hdp/current/knox-server/bin/knoxcli.sh create-master --force --value $KNOX_PASSWORD
+
+rm /usr/hdp/current/knox-server/data/security/keystores/*
+cp /root/gateway.jks /usr/hdp/current/knox-server/data/security/keystores/
+
+/usr/hdp/current/knox-server/bin/knoxcli.sh create-alias gateway-identity-passphrase --value $KNOX_PASSWORD
+

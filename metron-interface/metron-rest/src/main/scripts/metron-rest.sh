@@ -17,10 +17,6 @@
 # limitations under the License.
 #
 
-if [ -z "${METRON_JDBC_PASSWORD}" ]; then
-    echo "METRON_JDBC_PASSWORD unset. Exiting."
-    exit 1
-fi
 ## Join a list by a character
 function join_by {
   local IFS="$1"
@@ -95,10 +91,6 @@ if [ ${METRON_SPRING_PROFILES_ACTIVE} ]; then
     METRON_PROFILES_ACTIVE=" --spring.profiles.active=${METRON_SPRING_PROFILES_ACTIVE}"
     echo "METRON_PROFILES_ACTIVE=${METRON_PROFILES_ACTIVE}"
     METRON_SPRING_OPTIONS+=${METRON_PROFILES_ACTIVE}
-fi
-
-if [ ${METRON_JDBC_CLIENT_PATH} ]; then
-    METRON_REST_CLASSPATH+=":${METRON_JDBC_CLIENT_PATH}"
 fi
 
 # Use metron-elasticsearch uber jar by default

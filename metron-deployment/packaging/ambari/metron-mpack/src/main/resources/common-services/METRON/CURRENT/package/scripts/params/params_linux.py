@@ -35,6 +35,8 @@ from resource_management.libraries.functions import StackFeature
 
 import status_params
 
+import re
+
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -57,12 +59,6 @@ metron_alerts_ui_host = status_params.metron_alerts_ui_host
 metron_alerts_ui_port = status_params.metron_alerts_ui_port
 metron_jvm_flags = config['configurations']['metron-rest-env']['metron_jvm_flags']
 metron_spring_profiles_active = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
-metron_jdbc_driver = config['configurations']['metron-rest-env']['metron_jdbc_driver']
-metron_jdbc_url = config['configurations']['metron-rest-env']['metron_jdbc_url']
-metron_jdbc_username = config['configurations']['metron-rest-env']['metron_jdbc_username']
-metron_jdbc_password = config['configurations']['metron-rest-env']['metron_jdbc_password']
-metron_jdbc_platform = config['configurations']['metron-rest-env']['metron_jdbc_platform']
-metron_jdbc_client_path = config['configurations']['metron-rest-env']['metron_jdbc_client_path']
 metron_spring_options = config['configurations']['metron-rest-env']['metron_spring_options']
 metron_escalation_topic = config['configurations']['metron-rest-env']['metron_escalation_topic']
 metron_config_path = metron_home + '/config'
@@ -262,8 +258,60 @@ if security_enabled:
     if 'solr-config-env' in config['configurations']:
         solr_principal_name = solr_principal_name.replace('_HOST', hostname_lowercase)
 
+# SSO and LDAP
+ldap_url = config['configurations']['metron-security-env']['metron.ldap.url']
+ldap_userdn = config['configurations']['metron-security-env']['metron.ldap.bind.dn']
+ldap_password = config['configurations']['metron-security-env']['metron.ldap.bind.password']
+ldap_user_pattern = config['configurations']['metron-security-env']['metron.ldap.user.dnpattern']
+ldap_user_password = config['configurations']['metron-security-env']['metron.ldap.user.password']
+ldap_user_dnbase = config['configurations']['metron-security-env']['metron.ldap.user.basedn']
+ldap_user_searchbase = config['configurations']['metron-security-env']['metron.ldap.user.searchbase']
+ldap_user_searchfilter = config['configurations']['metron-security-env']['metron.ldap.user.searchfilter']
+ldap_group_searchbase = config['configurations']['metron-security-env']['metron.ldap.group.searchbase']
+ldap_group_searchfilter = config['configurations']['metron-security-env']['metron.ldap.group.searchfilter']
+ldap_group_role = config['configurations']['metron-security-env']['metron.ldap.group.roleattribute']
+
+knox_sso_enabled = config['configurations']['metron-security-env']['metron.sso.enabled']
+knox_sso_url = config['configurations']['metron-security-env']['metron.sso.providerurl']
+knox_sso_cookie = config['configurations']['metron-security-env']['metron.sso.cookiename']
+knox_sso_pubkey = re.sub(r'\s+', '', config['configurations']['metron-security-env']['metron.sso.publicKey'])
+knox_sso_originalurl = config['configurations']['metron-security-env']['metron.sso.query.param.originalurl']
+
+# SSL
+
+metron_rest_ssl_keystore = config['configurations']['metron-rest-env']['server.ssl.key-store']
+# Password will be passed in environment
+metron_rest_ssl_password = config['configurations']['metron-rest-env']['server.ssl.key-store-password']
+metron_rest_ssl_keystoretype = config['configurations']['metron-rest-env']['server.ssl.keyStoreType']
+metron_rest_ssl_keyalias = config['configurations']['metron-rest-env']['server.ssl.keyAlias']
+
+metron_rest_ssl = metron_rest_ssl_keystore != ""
+
+metron_alerts_ssl_keystore = config['configurations']['metron-alerts-ui-env']['server.ssl.key-store']
+# Password will be passed in environment
+metron_alerts_ssl_password = config['configurations']['metron-alerts-ui-env']['server.ssl.key-store-password']
+metron_alerts_ssl_keystoretype = config['configurations']['metron-alerts-ui-env']['server.ssl.keyStoreType']
+metron_alerts_ssl_keyalias = config['configurations']['metron-alerts-ui-env']['server.ssl.keyAlias']
+
+metron_alerts_ssl = metron_alerts_ssl_keystore != ""
+
+metron_config_ssl_keystore = config['configurations']['metron-management-ui-env']['server.ssl.key-store']
+# Password will be passed in environment 
+metron_config_ssl_password = config['configurations']['metron-management-ui-env']['server.ssl.key-store-password']
+metron_config_ssl_keystoretype = config['configurations']['metron-management-ui-env']['server.ssl.keyStoreType']
+metron_config_ssl_keyalias = config['configurations']['metron-management-ui-env']['server.ssl.keyAlias']
+
+metron_config_ssl = metron_config_ssl_keystore != ""
+
+# Alerts UI
+metron_alerts_pid_dir = config['configurations']['metron-alerts-ui-env']['metron_alerts_pid_dir']
+metron_alerts_jvmopts = config['configurations']['metron-alerts-ui-env']['metron_alerts_jvmopts']
+
 # Management UI
+metron_config_pid_dir = config['configurations']['metron-management-ui-env']['metron_config_pid_dir']
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
+metron_management_ui_port = config['configurations']['metron-management-ui-env'] ['metron_management_ui_port']
+metron_config_jvmopts = config['configurations']['metron-management-ui-env']['metron_config_jvmopts']
 
 # REST
 metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']
