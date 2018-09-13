@@ -68,6 +68,14 @@ RESOURCE_LIST=(
     metron-platform/metron-indexing/indexing_arch.png
     metron-platform/metron-enrichment/enrichment_arch.png
     metron-analytics/metron-maas-service/maas_arch.png
+    metron-contrib/metron-performance/performance_measurement.png
+    use-cases/forensic_clustering/find_alerts.png
+    use-cases/forensic_clustering/clustered.png
+    use-cases/parser_chaining/message_routing_high_level.svg
+    use-cases/parser_chaining/aggregated_parser_chaining_flow.svg
+    use-cases/typosquat_detection/squid_search.png
+    use-cases/typosquat_detection/drill_down.png
+    metron-platform/metron-enrichment/unified_enrichment_arch.svg
 )
 
 ## This is a list of duples, flattened into a bash array.  Even fields are relative paths to a .md file
@@ -89,7 +97,16 @@ HREF_REWRITE_LIST=(
     metron-platform/metron-indexing/README.md 's#(indexing_arch.png)#(../../images/indexing_arch.png)#g'
     metron-platform/metron-job/README.md 's#(metron-job_state_statechart_diagram.svg)#(../../images/metron-job_state_statechart_diagram.svg)#g'
     metron-platform/metron-parsers/README.md 's#(parser_arch.png)#(../../images/parser_arch.png)#g'
+    metron-platform/metron-parsers/ParserChaining.md 's#(../../use-cases/parser_chaining/message_routing_high_level.svg)#(../../images/message_routing_high_level.svg)#g'
     metron-analytics/metron-maas-service/README.md 's#(maas_arch.png)#(../../images/maas_arch.png)#g'
+    metron-contrib/metron-performance/README.md 's#(performance_measurement.png)#(../../images/performance_measurement.png)#g'
+    use-cases/forensic_clustering/README.md 's#(find_alerts.png)#(../../images/find_alerts.png)#g'
+    use-cases/forensic_clustering/README.md 's#(clustered.png)#(../../images/clustered.png)#g'
+    use-cases/parser_chaining/README.md 's#(message_routing_high_level.svg)#(../../images/message_routing_high_level.svg)#g'
+    use-cases/parser_chaining/README.md 's#(aggregated_parser_chaining_flow.svg)#(../../images/aggregated_parser_chaining_flow.svg)#g'
+    use-cases/typosquat_detection/README.md 's#(squid_search.png)#(../../images/squid_search.png)#g'
+    use-cases/typosquat_detection/README.md 's#(drill_down.png)#(../../images/drill_down.png)#g'
+    metron-platform/metron-enrichment/README.md 's#(unified_enrichment_arch.svg)#(../../images/unified_enrichment_arch.svg)#g'
 )
 
 TEMPLATES_DIR="$METRON_SOURCE/site-book/src/site/src-resources/templates"
