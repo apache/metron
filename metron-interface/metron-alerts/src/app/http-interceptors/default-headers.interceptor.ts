@@ -15,18 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
-
-import {ColumnMetadata} from '../model/column-metadata';
-import {DataSource} from './data-source';
+import { Injectable } from '@angular/core';
+import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest} from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable()
-export class ClusterMetaDataService {
+export class DefaultHeadersInterceptor implements HttpInterceptor {
 
-  constructor(private dataSource: DataSource) {}
-
-  getDefaultColumns(): Observable<ColumnMetadata[]> {
-    return this.dataSource.getDefaultAlertTableColumnNames();
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Clone the request and replace the original headers with
+    // cloned headers, updated with the authorization.
+    const authReq = req.clone({
+      setHeaders: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}
+    });
+    return next.handle(authReq);
   }
+
 }

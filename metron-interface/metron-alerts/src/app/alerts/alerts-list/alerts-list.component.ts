@@ -1,3 +1,5 @@
+
+import {forkJoin as observableForkJoin} from 'rxjs';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +19,7 @@
  */
 import {Component, OnInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
-import {Observable, Subscription} from 'rxjs/Rx';
+import {Subscription} from 'rxjs';
 
 import {Alert} from '../../model/alert';
 import {SearchService} from '../../service/search.service';
@@ -157,7 +159,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   getAlertColumnNames(resetPaginationForSearch: boolean) {
-    Observable.forkJoin(
+    observableForkJoin(
         this.configureTableService.getTableMetadata(),
         this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {

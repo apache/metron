@@ -17,7 +17,7 @@
  */
 
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnInit, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs/Rx';
+import { Subscription } from 'rxjs';
 
 import {Pagination} from '../../../model/pagination';
 import {SortEvent} from '../../../shared/metron-table/metron-table.directive';
