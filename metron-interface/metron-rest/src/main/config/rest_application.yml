@@ -13,14 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-spring:
-  datasource:
-      driverClassName: ${METRON_JDBC_DRIVER}
-      url: ${METRON_JDBC_URL}
-      username: ${METRON_JDBC_USERNAME}
-      password: ${METRON_JDBC_PASSWORD}
-      platform: ${METRON_JDBC_PLATFORM}
-      continue-on-error: true
 
 zookeeper:
   url: ${ZOOKEEPER}

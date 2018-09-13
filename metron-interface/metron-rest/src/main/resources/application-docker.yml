@@ -19,17 +19,6 @@ docker:
   compose:
     path: ../../metron-docker/compose/docker-compose.yml
 
-spring:
-  datasource:
-      driverClassName: org.h2.Driver
-      url: jdbc:h2:file:./metrondb
-      username: root
-      password: root
-      platform: h2
-  jpa:
-    hibernate:
-      ddl-auto: update
-
 zookeeper:
   url:  ${docker.host.address}:2181
 

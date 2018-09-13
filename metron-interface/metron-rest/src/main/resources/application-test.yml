@@ -14,15 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 spring:
-  datasource:
-      driverClassName: org.h2.Driver
-      url: jdbc:h2:mem:testdb
-      username: sa
-      password:
-      platform: h2
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
   main:
     banner-mode: 'off'
 
