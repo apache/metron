@@ -92,30 +92,7 @@ public class FixedFrequencyFlushSignalTest {
     signal.update(3000);
     assertFalse(signal.isTimeToFlush());
   }
-
-  @Test
-  public void testSignificantlyOutOfOrder() {
-    int flushFreq = 40_000;
-    FixedFrequencyFlushSignal signal = new FixedFrequencyFlushSignal(flushFreq);
-
-    signal.update(50_000);
-    signal.update(60_000);
-    signal.update(70_000);
-    signal.update(80_000);
-
-    // significantly out-of-order
-    signal.update(10_000);
-
-    signal.reset();
-    signal.update(10_000);
-    signal.update(11_000);
-    signal.update(12_000);
-    signal.update(13_000);
-
-    // significantly out-of-order
-    signal.update(65_000);
-  }
-
+  
   @Test
   public void testTimestampsDescending() {
     int flushFreq = 3000;
