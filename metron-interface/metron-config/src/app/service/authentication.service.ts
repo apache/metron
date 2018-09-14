@@ -21,72 +21,49 @@ import {Router} from '@angular/router';
 import {Observable}     from 'rxjs/Observable';
 import {IAppConfig} from '../app.config.interface';
 import {APP_CONFIG} from '../app.config';
+import {CookieService} from 'ng2-cookies';
 
 @Injectable()
 export class AuthenticationService {
 
-  private static USER_NOT_VERIFIED: string = 'USER-NOT-VERIFIED';
-  private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
-  loginUrl: string = this.config.apiEndpoint + '/user';
-  logoutUrl: string = '/logout';
+  private currentUser: Observable<string>;
+  userUrl: string = this.config.apiEndpoint + '/user';
+  ssoCookie: string = 'hadoop-jwt';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  constructor(private http: Http, private router: Router, @Inject(APP_CONFIG) private config: IAppConfig) {
-    this.init();
+  constructor(private http: Http,
+              private router: Router,
+              @Inject(APP_CONFIG) private config: IAppConfig,
+              private cookieService: CookieService) {
+     this.init();
   }
 
   public init() {
-      this.getCurrentUser(new RequestOptions({headers: new Headers(this.defaultHeaders)})).subscribe((response: Response) => {
-        this.currentUser = response.text();
-        if (this.currentUser) {
+      this.currentUser = this.getCurrentUser(new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+        .map(result => {
           this.onLoginEvent.emit(true);
-        }
-      }, error => {
-        this.onLoginEvent.emit(false);
-      });
-  }
-
-  public login(username: string, password: string, onError): void {
-    let loginHeaders: Headers = new Headers(this.defaultHeaders);
-    loginHeaders.append('authorization', 'Basic ' + btoa(username + ':' + password));
-    let loginOptions: RequestOptions = new RequestOptions({headers: loginHeaders});
-    this.getCurrentUser(loginOptions).subscribe((response: Response) => {
-        this.currentUser = response.text();
-        this.router.navigateByUrl('/sensors');
-        this.onLoginEvent.emit(true);
-      },
-      error => {
-        onError(error);
-      });
-  }
-
-  public logout(): void {
-    this.http.post(this.logoutUrl, {}, new RequestOptions({headers: new Headers(this.defaultHeaders)})).subscribe(response => {
-        this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
-        this.onLoginEvent.emit(false);
-        this.router.navigateByUrl('/login');
-      },
-      error => {
-        console.log(error);
-      });
-  }
-
-  public checkAuthentication() {
-    if (!this.isAuthenticated()) {
-      this.router.navigateByUrl('/login');
-    }
+          return result.text();
+        }, error => {
+          this.onLoginEvent.emit(false);
+        });
   }
 
   public getCurrentUser(options: RequestOptions): Observable<Response> {
-    return this.http.get(this.loginUrl, options);
+    return this.http.get(this.userUrl, options);
   }
 
-  public isAuthenticationChecked(): boolean {
-    return this.currentUser !== AuthenticationService.USER_NOT_VERIFIED;
+  public getCurrentUserName(): Observable<string> {
+    return this.currentUser;
   }
 
-  public isAuthenticated(): boolean {
-    return this.currentUser !== AuthenticationService.USER_NOT_VERIFIED && this.currentUser != null;
+  private logoutUrl(originalUrl: string): string {
+    return `/logout?originalUrl=${originalUrl}`;
+  }
+
+  public logout() {
+    // clear the authentication cookie
+    this.cookieService.delete(this.ssoCookie);
+    window.location.href = this.logoutUrl(window.location.href);
   }
 }

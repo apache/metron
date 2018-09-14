@@ -17,6 +17,7 @@
  */
 import {Inject} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {RouterTestingModule} from '@angular/router/testing';
 import {ResponseOptions, RequestOptions, Response, Http} from '@angular/http';
 import {Router} from '@angular/router';
 import {Observable} from 'rxjs/Observable';
@@ -25,26 +26,14 @@ import {AuthenticationService} from './service/authentication.service';
 import {AppModule} from './app.module';
 import {APP_CONFIG, METRON_REST_CONFIG} from './app.config';
 import {IAppConfig} from './app.config.interface';
+import {CookieService} from 'ng2-cookies';
 
-class MockAuthenticationService extends AuthenticationService {
-
-  constructor(private http2: Http, private router2: Router, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, router2, config2);
-  }
-
-  public checkAuthentication() {
-  }
-
+class MockAuthenticationService {
   public getCurrentUser(options: RequestOptions): Observable<Response> {
     return Observable.create(observer => {
       observer.next(new Response(new ResponseOptions({body: 'test'})));
       observer.complete();
     });
-  }
-}
-
-class MockRouter {
-  navigateByUrl(url: string) {
   }
 }
 
@@ -55,14 +44,13 @@ describe('App: Static', () => {
   let authenticationService: AuthenticationService;
 
   beforeEach(async(() => {
-
     TestBed.configureTestingModule({
-      imports: [AppModule],
+      imports: [AppModule, RouterTestingModule.withRoutes([])],
       providers: [
         {provide: Http},
         {provide: AuthenticationService, useClass: MockAuthenticationService},
-        {provide: Router, useClass: MockRouter},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG},  
+        CookieService
       ]
     }).compileComponents()
       .then(() => {
@@ -74,16 +62,6 @@ describe('App: Static', () => {
 
   it('should create the app', () => {
     expect(comp).toBeTruthy();
-  });
-
-  it('should return true/false from loginevent and loggedIn should be set', () => {
-
-    expect(comp.loggedIn).toEqual(false);
-    authenticationService.onLoginEvent.emit(true);
-    expect(comp.loggedIn).toEqual(true);
-    authenticationService.onLoginEvent.emit(false);
-    expect(comp.loggedIn).toEqual(false);
-
   });
 
 });

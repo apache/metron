@@ -18,10 +18,9 @@
 import { ModuleWithProviders }  from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import {SensorParserConfigComponent} from './sensor-parser-config.component';
-import {AuthGuard} from '../../shared/auth-guard';
 
 const routes: Routes = [
-  { path: 'sensors-config/:id', component: SensorParserConfigComponent, canActivate: [AuthGuard], outlet: 'dialog'}
+  { path: 'sensors-config/:id', component: SensorParserConfigComponent, outlet: 'dialog'}
 ];
 
 export const routing: ModuleWithProviders = RouterModule.forChild(routes);

@@ -23,7 +23,7 @@
 
   <div class="form-inline pull-right">
     <i class="fa fa-user " style="padding-left: 11px" aria-hidden="true"></i>
-    <div *ngIf="authenticationService.currentUser != null" class="fa logout">Logged in as {{authenticationService.currentUser}} - <span class="logout-link" (click)="authenticationService.logout()">Logout</span></div>
+    <div *ngIf="authenticationService.currentUser != null" class="fa logout">Logged in as {{ authenticationService.currentUser | async }} - <span class="logout-link" (click)="authenticationService.logout()">Logout</span></div>
   </div>
 
 </nav>

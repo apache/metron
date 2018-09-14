@@ -44,7 +44,7 @@ import 'rxjs/add/observable/of';
 import {HdfsService} from '../../service/hdfs.service';
 import {RestError} from '../../model/rest-error';
 import {RiskLevelRule} from '../../model/risk-level-rule';
-
+import {CookieService} from 'ng2-cookies';
 
 class MockRouter {
   navigateByUrl(url: string) {}
@@ -361,8 +361,8 @@ class MockHdfsService extends HdfsService {
 
 class MockAuthenticationService extends AuthenticationService {
 
-  constructor(private http2: Http, private router2: Router, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, router2, config2);
+  constructor(private http2: Http, private router2: Router, @Inject(APP_CONFIG) private config2: IAppConfig, cookie2: CookieService) {
+    super(http2, router2, config2, cookie2);
   }
 
   public getCurrentUser(options: RequestOptions): Observable<Response> {
@@ -535,7 +535,8 @@ describe('Component: SensorParserConfig', () => {
         {provide: Router, useClass: MockRouter},
         {provide: AuthenticationService, useClass: MockAuthenticationService},
         {provide: SensorEnrichmentConfigService, useClass: MockSensorEnrichmentConfigService},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG},
+        {provide: CookieService }
       ]
     }).compileComponents()
       .then(() => {

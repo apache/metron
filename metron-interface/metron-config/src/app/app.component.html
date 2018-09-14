@@ -13,13 +13,13 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div class="container-fluid header" *ngIf="loggedIn">
+<div class="container-fluid header">
   <metron-config-navbar></metron-config-navbar>
 </div>
-<div [ngClass]="{'container-fluid body-fill px-0': loggedIn, 'fill': !loggedIn}">
-  <div [ngClass]="{'card-group ': loggedIn}" class="fill">
-    <div  *ngIf="loggedIn" class="card fill navigation" ><metron-config-vertical-navbar></metron-config-vertical-navbar></div>
-    <div [ngClass]="{'card  fill content px-0 ' : loggedIn , 'fill': !loggedIn}"><router-outlet></router-outlet></div>
+<div class="container-fluid body-fill px-0">
+  <div class="card-group fill">
+    <div class="card fill navigation"><metron-config-vertical-navbar></metron-config-vertical-navbar></div>
+    <div class="card fill content px-0"><router-outlet></router-outlet></div>
   </div>
 </div>
-<router-outlet name="dialog" ></router-outlet>
+<router-outlet name="dialog"></router-outlet>

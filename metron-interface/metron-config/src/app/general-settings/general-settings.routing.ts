@@ -17,11 +17,10 @@
  */
 import { ModuleWithProviders }  from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import {AuthGuard} from '../shared/auth-guard';
 import {GeneralSettingsComponent} from './general-settings.component';
 
 const routes: Routes = [
-  { path: 'general-settings', component: GeneralSettingsComponent, canActivate: [AuthGuard]}
+  { path: 'general-settings', component: GeneralSettingsComponent }
 ];
 
 export const routing: ModuleWithProviders = RouterModule.forChild(routes);
