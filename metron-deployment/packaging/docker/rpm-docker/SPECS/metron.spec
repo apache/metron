@@ -51,7 +51,7 @@ Source4:        metron-solr-%{full_version}-archive.tar.gz
 Source5:        metron-enrichment-%{full_version}-archive.tar.gz
 Source6:        metron-indexing-%{full_version}-archive.tar.gz
 Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
-Source8:        metron-profiler-%{full_version}-archive.tar.gz
+Source8:        metron-profiler-storm-%{full_version}-archive.tar.gz
 Source9:        metron-rest-%{full_version}-archive.tar.gz
 Source10:       metron-config-%{full_version}-archive.tar.gz
 Source11:       metron-management-%{full_version}-archive.tar.gz
@@ -403,7 +403,7 @@ This package installs the Metron Profiler for Storm %{metron_home}
 %{metron_home}/config/profiler.properties
 %{metron_home}/bin/start_profiler_topology.sh
 %{metron_home}/flux/profiler/remote.yaml
-%attr(0644,root,root) %{metron_home}/lib/metron-profiler-%{full_version}-uber.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-storm-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
