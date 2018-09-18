@@ -25,8 +25,7 @@ import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapPagination } from '../model/pcap-pagination';
 import { By } from '../../../../node_modules/@angular/platform-browser';
 import { PcapRequest } from '../model/pcap.request';
-import { defer } from 'rxjs/observable/defer';
-import { Observable } from 'rxjs/Observable';
+import { of, defer } from 'rxjs';
 import { RestError } from '../../model/rest-error';
 
 @Component({
@@ -82,7 +81,7 @@ describe('PcapPanelComponent', () => {
   beforeEach(() => {
     pcapService = TestBed.get(PcapService);
     pcapService.getRunningJob = jasmine.createSpy('getRunningJob')
-            .and.returnValue(Observable.of([]));
+            .and.returnValue(of([]));
     fixture = TestBed.createComponent(PcapPanelComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -479,7 +478,7 @@ describe('PcapPanelComponent', () => {
     );
 
     const restError = new RestError();
-    restError.responseCode = 404;
+    restError.status = 404;
     pcapService.getPackets = jasmine.createSpy('getPackets').and.returnValue(
             defer(() => Promise.reject(restError))
     );
@@ -509,7 +508,7 @@ describe('PcapPanelComponent', () => {
     );
 
     const restError = new RestError();
-    restError.responseCode = 500;
+    restError.status = 500;
     restError.message = 'error message';
     pcapService.getPackets = jasmine.createSpy('getPackets').and.returnValue(
             defer(() => Promise.reject(restError))

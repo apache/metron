@@ -20,7 +20,7 @@ import { TestBed, async, ComponentFixture } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { Component } from '@angular/core';
 import { AuthenticationService } from './service/authentication.service';
-import { Observable } from 'rxjs';
+import { of } from 'rxjs';
 
 @Component({ selector: 'router-outlet', template: '' })
 class RouterOutletStubComponent {}
@@ -32,7 +32,7 @@ describe('AppComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       providers: [
-        { provide: AuthenticationService, useValue: { onLoginEvent: Observable.of(true) } }
+        { provide: AuthenticationService, useValue: { onLoginEvent: of(true) } }
       ],
       declarations: [
         AppComponent,

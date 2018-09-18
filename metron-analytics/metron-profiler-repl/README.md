@@ -17,7 +17,8 @@ limitations under the License.
 -->
 # Metron Profiler for the Stellar REPL
 
-This project allows profiles to be executed within the Stellar REPL. This is a port of the Profiler to run in the Stellar REPL.
+This project allows profiles to be executed within the Stellar REPL. This is a port of the Profiler to the Stellar REPL that allows profiles to be tested and debugged within a controlled environment.
+
 
 * [Introduction](#introduction)
 * [Getting Started](#getting-started)
@@ -27,7 +28,7 @@ This project allows profiles to be executed within the Stellar REPL. This is a p
 
 Creating and refining profiles is an iterative process.  Iterating against a live stream of data is slow, difficult and error prone.  Running the Profiler in the Stellar REPL provides a controlled and isolated execution environment to create, refine and troubleshoot profiles.
 
-For an introduction to the Profiler, see the [Profiler README](../metron-profiler/README.md).
+For an introduction to the Profiler, see the [Profiler README](../metron-profiler-common/README.md).
 
 ## Getting Started
 
@@ -132,7 +133,7 @@ This section describes how to get started using the Profiler in the Stellar REPL
 	  Profiler{1 profile(s), 10 messages(s), 10 route(s)}
 	```
 
-1. After you are satisfied with your profile, the next step is to deploy the profile against the live stream of telemetry being capture by Metron. This involves deploying the profile to either the [Storm Profiler](../metron-profiler/README.md) or the [Spark Profiler](../metron-profiler-spark/README.md).
+1. After you are satisfied with your profile, the next step is to deploy the profile against the live stream of telemetry being capture by Metron. This involves deploying the profile to either the [Storm Profiler](../metron-profiler-storm/README.md) or the [Spark Profiler](../metron-profiler-spark/README.md).
 
 
 ## Installation

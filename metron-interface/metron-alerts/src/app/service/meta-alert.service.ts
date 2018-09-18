@@ -1,3 +1,5 @@
+
+import {map, catchError} from 'rxjs/operators';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,16 +18,12 @@
  * limitations under the License.
  */
 import {Injectable} from '@angular/core';
-import {Headers, RequestOptions} from '@angular/http';
-import {Subject}    from 'rxjs/Subject';
-import {Observable} from 'rxjs/Rx';
-import 'rxjs/add/observable/interval';
-import 'rxjs/add/operator/switchMap';
-import 'rxjs/add/operator/onErrorResumeNext';
+import {Subject}    from 'rxjs';
+import {Observable} from 'rxjs';
 
 import {HttpUtil} from '../utils/httpUtil';
 import {Alert} from '../model/alert';
-import {Http} from '@angular/http';
+import { HttpClient } from '@angular/common/http';
 import {MetaAlertCreateRequest} from '../model/meta-alert-create-request';
 import {MetaAlertAddRemoveRequest} from '../model/meta-alert-add-remove-request';
 
@@ -34,9 +32,8 @@ export class MetaAlertService {
   private _selectedAlerts: Alert[];
   alertChangedSource = new Subject<MetaAlertAddRemoveRequest>();
   alertChanged$ = this.alertChangedSource.asObservable();
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
-  constructor(private http: Http) {
+  constructor(private http: HttpClient) {
   }
 
   get selectedAlerts(): Alert[] {
@@ -49,40 +46,40 @@ export class MetaAlertService {
 
   public create(metaAlertCreateRequest: MetaAlertCreateRequest): Observable<{}> {
     let url = '/api/v1/metaalert/create';
-    return this.http.post(url, metaAlertCreateRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-    .catch(HttpUtil.handleError);
+    return this.http.post(url, metaAlertCreateRequest).pipe(
+    catchError(HttpUtil.handleError));
   }
 
   public addAlertsToMetaAlert(metaAlertAddRemoveRequest: MetaAlertAddRemoveRequest) {
     let url = '/api/v1/metaalert/add/alert';
-    return this.http.post(url, metaAlertAddRemoveRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-    .catch(HttpUtil.handleError)
-    .map(result => {
+    return this.http.post(url, metaAlertAddRemoveRequest).pipe(
+    catchError(HttpUtil.handleError),
+    map(result => {
         this.alertChangedSource.next(metaAlertAddRemoveRequest);
       return result;
-    });
+    }));
   }
 
   public  removeAlertsFromMetaAlert(metaAlertAddRemoveRequest: MetaAlertAddRemoveRequest) {
     let url = '/api/v1/metaalert/remove/alert';
-    return this.http.post(url, metaAlertAddRemoveRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-    .catch(HttpUtil.handleError)
-    .map(result => {
+    return this.http.post(url, metaAlertAddRemoveRequest).pipe(
+    catchError(HttpUtil.handleError),
+    map(result => {
       this.alertChangedSource.next(metaAlertAddRemoveRequest);
       return result;
-    });
+    }));
   }
 
   public updateMetaAlertStatus(guid: string, status: string) {
     let url = `/api/v1/metaalert/update/status/${guid}/${status}`;
-    return this.http.post(url, {}, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-    .catch(HttpUtil.handleError)
-    .map(result => {
+    return this.http.post(url, {}).pipe(
+    catchError(HttpUtil.handleError),
+    map(result => {
       let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
       metaAlertAddRemoveRequest.metaAlertGuid = guid;
       metaAlertAddRemoveRequest.alerts = null;
       this.alertChangedSource.next(metaAlertAddRemoveRequest);
       return result;
-    });
+    }));
   }
 }
