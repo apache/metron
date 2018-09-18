@@ -1,0 +1,95 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+$popover-button-color-confirm: #006EA0;
+$popover-button-border-color-confirm: $popover-button-color-confirm;
+
+$popover-button-color-cancel: #333333;
+$popover-button-border-color-cancel: #0F6F9E;
+
+$popover-background-color: #0C3B43;
+$popover-border-color: #1B596C;
+
+.confirm-popover {
+  background-color: $popover-background-color;
+  border: 1px solid $popover-border-color;
+  color: #999999;
+
+  & .btn {
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  & .btn-default {
+    background-color: $popover-button-color-cancel;
+    border-color: $popover-button-border-color-cancel;
+    color: #32ABDF;
+
+    &:hover {
+      background-color: #004b6d;
+    }
+  }
+
+  & .btn-danger {
+    background-color: $popover-button-color-confirm;
+    border-color: $popover-button-border-color-confirm;
+    color: white;
+
+    &:hover {
+      background-color: #004b6d;
+      border-color: #004b6d;
+    }
+  }
+
+
+  &.popover-top {
+    &::before {
+      border-top-color: $popover-border-color;
+    }
+    &::after {
+      border-top-color: $popover-background-color;
+      bottom: -9px;
+    }
+  }
+  &.popover-right {
+    &::before {
+      border-right-color: $popover-border-color;
+    }
+    &::after {
+      border-right-color: $popover-background-color;
+      left: -9px;
+    }
+  }
+  &.popover-bottom {
+    &::before {
+      border-bottom-color: $popover-border-color;
+    }
+    &::after {
+      border-bottom-color: $popover-background-color;
+      top: -9px;
+    }
+  }
+  &.popover-left {
+    &::before {
+      border-left-color: $popover-border-color;
+    }
+    &::after {
+      border-left-color: $popover-background-color;
+      right: -9px;
+    }
+  }
+}

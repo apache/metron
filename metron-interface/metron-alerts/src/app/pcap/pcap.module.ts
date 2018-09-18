@@ -29,6 +29,7 @@ import { PcapPanelComponent } from './pcap-panel/pcap-panel.component';
 import { PcapPacketLineComponent } from './pcap-packet-line/pcap-packet-line.component';
 import { PcapPaginationComponent } from './pcap-pagination/pcap-pagination.component';
 import { PcapService } from './service/pcap.service';
+import { ConfirmationPopoverModule } from 'angular-confirmation-popover';
 
 @NgModule({
   imports: [
@@ -37,7 +38,8 @@ import { PcapService } from './service/pcap.service';
     FormsModule,
     HttpClientModule,
     ReactiveFormsModule,
-    DatePickerModule
+    DatePickerModule,
+    ConfirmationPopoverModule.forRoot()
   ],
   declarations: [
     PcapListComponent,

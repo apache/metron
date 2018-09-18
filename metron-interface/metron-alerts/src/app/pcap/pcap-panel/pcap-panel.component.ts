@@ -46,6 +46,7 @@ export class PcapPanelComponent implements OnInit, OnDestroy {
   pagination: PcapPagination = new PcapPagination();
   savedPcapRequest: {};
   errorMsg: string;
+  cancelConfirmMessage = 'Are you sure want to cancel the running query?';
 
   constructor(private pcapService: PcapService) { }
 
