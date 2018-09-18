@@ -25,7 +25,8 @@ import { ColumnNameTranslatePipe } from '../../shared/pipes/column-name-translat
 import { Router } from '@angular/router';
 import { SaveSearchService } from '../../service/save-search.service';
 import { MetronDialogBox } from '../../shared/metron-dialog-box';
-import { Observable } from 'rxjs';
+import { of } from 'rxjs';
+
 
 describe('SavedSearchesComponent', () => {
   let component: SavedSearchesComponent;
@@ -36,12 +37,12 @@ describe('SavedSearchesComponent', () => {
       providers: [
         { provide: Router, useValue: {} },
         { provide: SaveSearchService, useValue: {
-          listSavedSearches: jasmine.createSpy('listSavedSearches').and.returnValue(Observable.of([])),
-          listRecentSearches: jasmine.createSpy('listRecentSearches').and.returnValue(Observable.of([])),
+          listSavedSearches: jasmine.createSpy('listSavedSearches').and.returnValue(of([])),
+          listRecentSearches: jasmine.createSpy('listRecentSearches').and.returnValue(of([])),
         } },
         MetronDialogBox
       ],
-      declarations: [ 
+      declarations: [
         SavedSearchesComponent,
         CollapseComponent,
         CenterEllipsesPipe,

@@ -44,8 +44,8 @@ Alerts that are contained in a a meta alert are generally excluded from search r
 * Elasticsearch or Solr should have some alerts populated by Metron topologies, depending on which real-time store is enabled
 * The Management UI should be installed (which includes [Express](https://expressjs.com/))
 * The alerts can be populated using Full Dev or any other setup
-* UI is developed using angular4 and uses angular-cli
-* node.JS >= 7.8.0
+* UI is developed using Angular 6 and uses Angular CLI. 
+* nvm (or a similar node verison manager) should be installed. The node version required for this project is listed in the [.nvmrc](https://github.com/creationix/nvm#nvmrc) file.
 
 ## Installation
 
@@ -122,11 +122,19 @@ The application will be available at http://host:4201 assuming the port is set t
 
 ## Development Setup
 
-1. Install all the dependent node_modules using the following command
+1. Switch to the correct node version and install all the dependent node_modules using the following commands
     ```
     cd metron/metron-interface/metron-alerts
-    npm install
+    nvm use
+    npm ci
     ```
+
+    You're probably wondering why we use the `ci` command instead of `install`. By design, `npm install` will change the lock file every time it is ran. This happens whether or not dependencies have a new release or not because `npm install` still updates a unique identifier within the lock file.
+
+    To prevent the lock file from being changed, run the `ci` command. This installs the modules listed in the lock file without updating it. The only case when you should run `npm install` is when you want to add a new dependency to the application. You can update dependencies with the `npm update` command.
+
+    `nvm use` will ensure your local node version matches the one specified in the `.nvmrc` file. It doesn't necessarily mean that you'll have an npm version installed which includes the `ci` command. Make sure you have the latest npm version which comes with the `ci` command.
+
 1. UI can be run by using the following command
     ```
     ./scripts/start-dev.sh

@@ -22,7 +22,7 @@ This module provides a user interface for management functions in Metron.
 ## Prerequisites
 
 * A network accessible Metron REST application
-* nodejs v6.9+ (nodejs can be installed on Full Dev with `curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - && yum install -y nodejs`)
+* nvm (or a similar node verison manager) should be installed. The node version required for this project is listed in the [.nvmrc](https://github.com/creationix/nvm#nvmrc) file.
 
 ## Installation
 
@@ -92,10 +92,11 @@ The application will be available at http://host:4200 assuming the port is set t
 
 The Management UI can also be started in development mode.  This allows changes to web assets to be seen interactively.
 
-1. Install the application with dev dependencies:
+1. Switch to the correct node version and install all the dependent node_modules using the following commands:
 
     ```
     cd metron-interface/metron-config
+    nvm use
     npm install
     ```
 
