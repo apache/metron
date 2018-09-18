@@ -16,6 +16,7 @@ limitations under the License.
 
 import os.path
 from resource_management.core.source import Template
+from resource_management.core.source import InlineTemplate
 from resource_management.core.resources.system import Directory, File
 from resource_management.core import global_lock
 from resource_management.core.logger import Logger
@@ -46,7 +47,7 @@ def storm_security_setup(params):
                   )
 
         File(ambari_format('{client_jaas_path}'),
-             content=Template('client_jaas.conf.j2'),
+             content=InlineTemplate(params.metron_client_jaas_conf_template),
              owner=params.metron_user,
              group=params.metron_group,
              mode=0755
@@ -80,4 +81,3 @@ def kinit(kinit_path_local, keytab_path, principal_name, execute_user=None):
             Execute(kinitcmd, user=execute_user)
     finally:
         kinit_lock.release()
-
