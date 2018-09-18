@@ -510,6 +510,7 @@
         <config-type>kafka-broker</config-type>
         <config-type>kafka-env</config-type>
         <config-type>zeppelin-config</config-type>
+        <config-type>metron-client-jaas-conf</config-type>
       </configuration-dependencies>
       <restartRequiredAfterChange>true</restartRequiredAfterChange>
       <quickLinksConfigurations>
