@@ -56,10 +56,12 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.metron.profiler.storm.ProfileSplitterBolt.ENTITY_TUPLE_FIELD;
@@ -73,6 +75,12 @@ import static org.apache.metron.profiler.storm.ProfileSplitterBolt.TIMESTAMP_TUP
  * <p>This bolt maintains the state required to build a Profile.  When the window
  * period expires, the data is summarized as a {@link ProfileMeasurement}, all state is
  * flushed, and the {@link ProfileMeasurement} is emitted.
+ *
+ * <p>There are two mechanisms that will cause a profile to flush. As new messages arrive,
+ * time is advanced. The splitter bolt attaches a timestamp to each message (which can be
+ * either event or system time.)  This advances time and leads to profile measurements
+ * being flushed. Alternatively, if no messages arrive to advance time, then the "time-to-live"
+ * mechanism will flush a profile after no messages have been received for some period of time.
  */
 public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
 
@@ -283,16 +291,47 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
             .build();
   }
 
+  /**
+   * Logs information about the {@link TupleWindow}.
+   *
+   * @param window The tuple window.
+   */
+  private void log(TupleWindow window) {
+    // summarize the newly received tuples
+    LongSummaryStatistics received = window.get()
+            .stream()
+            .map(tuple -> getField(TIMESTAMP_TUPLE_FIELD, tuple, Long.class))
+            .collect(Collectors.summarizingLong(Long::longValue));
+
+    LOG.debug("Tuple(s) received; count={}, min={}, max={}, range={} ms",
+            received.getCount(),
+            received.getMin(),
+            received.getMax(),
+            received.getMax() - received.getMin());
+
+    if (window.getExpired().size() > 0) {
+      // summarize the expired tuples
+      LongSummaryStatistics expired = window.getExpired()
+              .stream()
+              .map(tuple -> getField(TIMESTAMP_TUPLE_FIELD, tuple, Long.class))
+              .collect(Collectors.summarizingLong(Long::longValue));
+
+      LOG.debug("Tuple(s) expired; count={}, min={}, max={}, range={} ms, lag={} ms",
+              expired.getCount(),
+              expired.getMin(),
+              expired.getMax(),
+              expired.getMax() - expired.getMin(),
+              received.getMin() - expired.getMin());
+    }
+  }
+
   @Override
   public void execute(TupleWindow window) {
-
-    LOG.debug("Tuple window contains {} tuple(s), {} expired, {} new",
-            CollectionUtils.size(window.get()),
-            CollectionUtils.size(window.getExpired()),
-            CollectionUtils.size(window.getNew()));
+    if(LOG.isDebugEnabled()) {
+      log(window);
+    }
 
     try {
-
       // handle each tuple in the window
       for(Tuple tuple : window.get()) {
         handleMessage(tuple);
@@ -304,7 +343,6 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
       }
 
     } catch (Throwable e) {
-
       LOG.error("Unexpected error", e);
       collector.reportError(e);
     }
@@ -324,7 +362,6 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
     }
 
     LOG.debug("Flushed active profiles and found {} measurement(s).", measurements.size());
-
   }
 
   /**
@@ -335,15 +372,21 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
    * that their state is not lost.
    */
   protected void flushExpired() {
+    List<ProfileMeasurement> measurements = null;
+    try {
+      // flush the expired profiles
+      synchronized (messageDistributor) {
+        measurements = messageDistributor.flushExpired();
+        emitMeasurements(measurements);
+      }
 
-    // flush the expired profiles
-    List<ProfileMeasurement> measurements;
-    synchronized (messageDistributor) {
-      measurements = messageDistributor.flushExpired();
-      emitMeasurements(measurements);
+    } catch(Throwable t) {
+      // need to catch the exception, otherwise subsequent executions would be suppressed.
+      // see java.util.concurrent.ScheduledExecutorService#scheduleAtFixedRate
+      LOG.error("Failed to flush expired profiles", t);
     }
 
-    LOG.debug("Flushed expired profiles and found {} measurement(s).", measurements.size());
+    LOG.debug("Flushed expired profiles and found {} measurement(s).", CollectionUtils.size(measurements));
   }
 
   /**

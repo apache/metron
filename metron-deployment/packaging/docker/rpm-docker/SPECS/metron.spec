@@ -51,7 +51,7 @@ Source4:        metron-solr-%{full_version}-archive.tar.gz
 Source5:        metron-enrichment-%{full_version}-archive.tar.gz
 Source6:        metron-indexing-%{full_version}-archive.tar.gz
 Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
-Source8:        metron-profiler-%{full_version}-archive.tar.gz
+Source8:        metron-profiler-storm-%{full_version}-archive.tar.gz
 Source9:        metron-rest-%{full_version}-archive.tar.gz
 Source10:       metron-config-%{full_version}-archive.tar.gz
 Source11:       metron-management-%{full_version}-archive.tar.gz
@@ -403,7 +403,7 @@ This package installs the Metron Profiler for Storm %{metron_home}
 %{metron_home}/config/profiler.properties
 %{metron_home}/bin/start_profiler_topology.sh
 %{metron_home}/flux/profiler/remote.yaml
-%attr(0644,root,root) %{metron_home}/lib/metron-profiler-%{full_version}-uber.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-storm-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -523,7 +523,7 @@ This package installs the Metron Alerts UI %{metron_home}
 %attr(0755,root,root) %{metron_home}/web/expressjs/alerts-server.js
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/favicon.ico
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/index.html
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.bundle.css
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/styles.*.css
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.js
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.ttf
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.svg
@@ -588,7 +588,9 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
-* Tue Aug 21 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
+* Thu Aug 30 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
+- Update compiled css file name for Alerts UI
+* Tue Aug 21 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
 - Add Profiler for REPL
 * Tue Aug 14 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
 - Add Profiler for Spark

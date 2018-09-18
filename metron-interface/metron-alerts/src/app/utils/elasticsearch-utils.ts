@@ -36,7 +36,7 @@ export class ElasticsearchUtils {
      } catch (e) {}
   }
 
-  public static extractColumnNameData(res: Response): ColumnMetadata[] {
+  public static extractColumnNameData(res): ColumnMetadata[] {
     let response: any = res || {};
     let columnMetadata: ColumnMetadata[] = [];
     let seen: string[] = [];
@@ -54,7 +54,7 @@ export class ElasticsearchUtils {
     return columnMetadata;
   }
 
-  public static extractAlertsData(res: Response): SearchResponse {
+  public static extractAlertsData(res): SearchResponse {
     let response: any = res || {};
     let searchResponse: SearchResponse = new SearchResponse();
     searchResponse.total = response['hits']['total'];

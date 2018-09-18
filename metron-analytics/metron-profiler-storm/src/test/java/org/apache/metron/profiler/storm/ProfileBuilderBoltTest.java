@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -245,6 +246,27 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     verify(outputCollector, times(1)).emit(eq("destination1"), any());
     verify(outputCollector, times(1)).emit(eq("destination2"), any());
     verify(outputCollector, times(1)).emit(eq("destination3"), any());
+  }
+
+  @Test
+  public void testExceptionWhenFlushingExpiredProfiles() throws Exception {
+    // create an emitter that will throw an exception when emit() called
+    ProfileMeasurementEmitter badEmitter = mock(ProfileMeasurementEmitter.class);
+    doThrow(new RuntimeException("flushExpired() should catch this exception"))
+            .when(badEmitter)
+            .emit(any(), any());
+
+    // create a distributor that will return a profile measurement
+    MessageDistributor distributor = mock(MessageDistributor.class);
+    when(distributor.flushExpired()).thenReturn(Collections.singletonList(measurement));
+
+    // the bolt will use the bad emitter when flushExpired() is called
+    ProfileBuilderBolt bolt = (ProfileBuilderBolt) new ProfileBuilderBolt()
+            .withEmitter(badEmitter)
+            .withMessageDistributor(distributor);
+
+    // the exception thrown by the emitter should not bubble up
+    bolt.flushExpired();
   }
 
   /**

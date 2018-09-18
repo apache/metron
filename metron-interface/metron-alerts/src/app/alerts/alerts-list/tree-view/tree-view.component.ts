@@ -17,7 +17,7 @@
  */
 
 import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy, Input } from '@angular/core';
-import {Subscription, Observable} from 'rxjs/Rx';
+import {Subscription, Observable} from 'rxjs';
 
 import {TableViewComponent} from '../table-view/table-view.component';
 import {SearchResponse} from '../../../model/search-response';
