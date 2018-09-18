@@ -386,6 +386,8 @@ bolt_hdfs_rotation_policy_units = config['configurations']['metron-indexing-env'
 bolt_hdfs_rotation_policy_count = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_count']
 
 # Pcap
+metron_pcap_topology = 'pcap'
+pcap_input_topic = 'pcap'
 pcap_base_path = config['configurations']['metron-rest-env']['pcap_base_path']
 pcap_base_interim_result_path = config['configurations']['metron-rest-env']['pcap_base_interim_result_path']
 pcap_final_output_path = config['configurations']['metron-rest-env']['pcap_final_output_path']
@@ -394,6 +396,8 @@ pcap_yarn_queue = config['configurations']['metron-rest-env']['pcap_yarn_queue']
 pcap_finalizer_threadpool_size= config['configurations']['metron-rest-env']['pcap_finalizer_threadpool_size']
 pcap_configured_flag_file = status_params.pcap_configured_flag_file
 pcap_perm_configured_flag_file = status_params.pcap_perm_configured_flag_file
+pcap_acl_configured_flag_file = status_params.pcap_acl_configured_flag_file
+
 
 # MapReduce
 metron_user_hdfs_dir = '/user/' + metron_user
