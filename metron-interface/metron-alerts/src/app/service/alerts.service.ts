@@ -16,21 +16,20 @@
  * limitations under the License.
  */
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
+import {Observable} from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import {Alert} from '../model/alert';
-import {Http, Headers, RequestOptions} from '@angular/http';
+import { HttpClient } from '@angular/common/http';
 import {HttpUtil} from '../utils/httpUtil';
+import { RestError } from '../model/rest-error';
 
 @Injectable()
 export class AlertsService {
 
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  constructor(private http: HttpClient) {}
 
-  constructor(private http: Http) {
-  }
-
-  public escalate(alerts: Alert[]): Observable<null> {
-    return this.http.post('/api/v1/alerts/ui/escalate', alerts, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-    .catch(HttpUtil.handleError);
+  public escalate(alerts: Alert[]): Observable<Object | RestError> {
+    return this.http.post('/api/v1/alerts/ui/escalate', alerts).pipe(
+    catchError(HttpUtil.handleError));
   }
 }

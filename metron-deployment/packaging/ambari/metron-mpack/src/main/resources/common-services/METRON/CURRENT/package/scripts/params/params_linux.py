@@ -259,6 +259,8 @@ if security_enabled:
     kafka_principal_name = kafka_principal_raw.replace('_HOST', hostname_lowercase)
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
 
+    metron_client_jaas_conf_template = config['configurations']['metron-client-jaas-conf']['content']
+
     nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']
     # Check wether Solr mpack is installed
     if 'solr-config-env' in config['configurations']:

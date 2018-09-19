@@ -175,10 +175,10 @@ public class DefaultMessageDistributor implements MessageDistributor {
    */
   @Override
   public List<ProfileMeasurement> flush() {
+    LOG.debug("About to flush active profiles");
 
     // cache maintenance needed here to ensure active profiles will expire
-    activeCache.cleanUp();
-    expiredCache.cleanUp();
+    cacheMaintenance();
 
     List<ProfileMeasurement> measurements = flushCache(activeCache);
     return measurements;
@@ -200,10 +200,10 @@ public class DefaultMessageDistributor implements MessageDistributor {
    */
   @Override
   public List<ProfileMeasurement> flushExpired() {
+    LOG.debug("About to flush expired profiles");
 
     // cache maintenance needed here to ensure active profiles will expire
-    activeCache.cleanUp();
-    expiredCache.cleanUp();
+    cacheMaintenance();
 
     // flush all expired profiles
     List<ProfileMeasurement> measurements = flushCache(expiredCache);
@@ -212,6 +212,16 @@ public class DefaultMessageDistributor implements MessageDistributor {
     expiredCache.invalidateAll();
 
     return measurements;
+  }
+
+  /**
+   * Performs cache maintenance on both the active and expired caches.
+   */
+  private void cacheMaintenance() {
+    activeCache.cleanUp();
+    expiredCache.cleanUp();
+
+    LOG.debug("Cache maintenance complete: activeCacheSize={}, expiredCacheSize={}", activeCache.size(), expiredCache.size());
   }
 
   /**
