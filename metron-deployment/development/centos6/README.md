@@ -90,16 +90,85 @@ Connecting to the host through SSH is as simple as running the following command
 vagrant ssh
 ```
 
-### Working with Metron
+### Advanced Deployments
 
-In addition to re-running the entire provisioning play book, you may now re-run an individual Ansible tag or a collection of tags in the following ways.  The following commands will re-run the `sensor-stubs` role on the Vagrant image. This will install and start the sensor stub components.
+In addition to running the entire provisioning play book, you can also use Ansible tags to limit the scope of what is deployed or deploy specific components.
 
-```
-vagrant --ansible-tags="sensor-stubs" provision
-```
+If you have already built Metron, you can skip the build step when deploying the development environment.
 
-Tags are listed in the playbooks, some frequently used tags:
-+ `hdp-install` - Install HDP
-+ `hdp-deploy` - Deploy and Start HDP Services (will start all Hadoop Services)
-+ `sensors` - Deploy and start the sensors.
-+ `sensor-stubs` - Deploy and start the sensor stubs.
+  1. Deploy the development environment without re-building Metron.
+    ```
+    vagrant --ansible-skip-tags="build,sensors,pcap" up
+    ```
+
+If you want to deploy the components required to generate and capture network packets.
+
+  1. Deploy the development environment.
+    ```
+    vagrant up
+    ```
+
+  1. Deploy the additional components to replay and capture packets.
+    ```
+    vagrant --ansible-tags="pcap" provision
+    ```
+
+  1. Stop the Parser, Enrichment, Indexing, and Profiler topologies to free-up resources.
+
+  1. Connect to the development VM.
+    ```
+    vagrant ssh
+    sudo su -
+    source /etc/default/metron
+    ```
+
+  1. Install Wireshark.
+    ```
+    yum -y install wireshark
+    ```
+
+  1. Start the Packet Replay service.
+    ```
+    service pcap-replay start
+    ```
+
+  1. Start Pycapa which captures those packets and pushes them to Kafka.
+    ```
+    service pycapa start
+    ```
+
+  1. Start the Pcap topology.
+    ```
+    $METRON_HOME/bin/start_pcap_topology.sh
+    ```
+
+If you want to deploy Bro, Snort, and YAF in your development environment, run the following commands.
+
+  1. Deploy the development environment.
+    ```
+    vagrant up
+    ```
+
+  1. Deploy the additional sensors.
+    ```
+    vagrant --ansible-tags="sensors" provision
+    ```
+
+  1. Connect to the development VM.
+    ```
+    vagrant ssh
+    sudo su -
+    ```
+
+  1. Stop the Sensor Stubs.
+    ```
+    service sensor-stubs stop
+    ```
+
+  1. Start the Packet Replay service.
+    ```
+    service pcap-replay start
+    ```
+
+  1. Ensure that each of the sensors are running.
+
