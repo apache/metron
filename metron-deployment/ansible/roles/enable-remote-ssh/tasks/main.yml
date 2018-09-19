@@ -15,10 +15,19 @@
 #  limitations under the License.
 #
 ---
-- hosts: all
-  roles:
-    - { role: libselinux-python, tags: libselinux-python }
-    - { role: enable-swap,       tags: enable-swap }
-    - { role: enable-remote-ssh, tags: enable-remote-ssh }
+- name: Comment password auth no
+  lineinfile:
+    dest: "{{ sshd_config_file }}"
+    regexp: "^PasswordAuthentication no"
+    line: "#PasswordAuthentication no"
 
-- include: ../../../ansible/playbooks/metron_full_install.yml
+- name: Uncomment password auth yes
+  lineinfile:
+    dest: "{{ sshd_config_file }}"
+    regexp: "^#PasswordAuthentication yes"
+    line: "PasswordAuthentication yes"
+
+- name: Restart service sshd, in all cases
+  service:
+    name: sshd
+    state: restarted
