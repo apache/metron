@@ -1,8 +1,25 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Metron Interfaces
 
-The Metron UIs are built as two Angular applications, one for a configuration use case and persona (metron-config), the other for a SOC analyst processing alerts (metron-alerts). The UIs should be secured with LDAP based authentication, and can be configured with SSL and KnoxSSO support as required. 
+The Metron UIs are built as two Angular applications, one for a configuration use case and persona (metron-config), the other for a SOC analyst processing alerts (metron-alerts). The UIs should be secured with LDAP based authentication, and can be configured with SSL and KnoxSSO support as required.
 
-There are a number of common utility packages, which are based on [Spring Boot](https://spring.io/projects/spring-boot). 
+There are a number of common utility packages, which are based on [Spring Boot](https://spring.io/projects/spring-boot).
 
 ![Module Structure](metron-1663-package-dependency.png)
 
@@ -24,10 +41,10 @@ The JWT token only provide a user name principal. LDAP configuration is required
 
 If KnoxSSO is configured un-authenticated requests will be redirected to the KnoxURL configured in yaml. If not configured, then the application will support HTTP Basic authentication using LDAP as a backend store for user credentials and will authenticate the user directly.
 
-In the case of a simple static request, the process flow is as follows: 
+In the case of a simple static request, the process flow is as follows:
 
 ![Authentication a static resource request](metron-1663-request-process-ui.png)
 
-When the request from the front-end is for a REST api endpoint, it is proxied through Zuul as shown in this process: 
+When the request from the front-end is for a REST api endpoint, it is proxied through Zuul as shown in this process:
 
 ![Authentication and Proxying a REST call](metron-1663-request-process-proxy-rest.png)
