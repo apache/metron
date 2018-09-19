@@ -131,6 +131,14 @@ The Batch Profiler requires Spark version 2.3.0+.
 
 ## Running the Profiler
 
+* [Usage](#usage)
+* [Advanced Usage](#advanced-usage)
+* [Spark Execution](#spark-execution)
+* [Kerberos](#kerberos)
+* [Input Formats](#input-formats)
+
+### Usage
+
 A script located at `$METRON_HOME/bin/start_batch_profiler.sh` has been provided to simplify running the Batch Profiler.  This script makes the following assumptions.
 
   * The script builds the profiles defined in `$METRON_HOME/config/zookeeper/profiler.json`.
@@ -156,10 +164,27 @@ The Batch Profiler accepts the following arguments when run from the command lin
 
 | Argument         | Description
 |---               |---
-| -p, --profiles   | The path to a file containing the profile definitions.
-| -c, --config     | The path to the profiler properties file.
-| -g, --globals    | The path to a properties file containing global properties.
+| -p, --profiles   | Path to the profile definitions.
+| -c, --config     | Path to the profiler properties file.
+| -g, --globals    | Path to the Stellar global config file.
+| -r, --reader     | Path to properties for the DataFrameReader.
 | -h, --help       | Print the help text.
+
+#### `--profiles`
+
+The path to a file containing the profile definition in JSON.
+
+#### `--config`
+
+The path to a file containing key-value properties for the Profiler. This file would contain the properties described under [Configuring the Profiler](#configuring-the-profiler).
+
+#### `--globals`
+
+The path to a file containing key-value properties that define the global properties. This can be used to customize how certain Stellar functions behave during execution.
+
+#### `--reader`
+
+The path to a file containing key-value properties that are passed to the DataFrameReader when reading the input telemetry. This allows additional customization for how the input telemetry is read.
 
 ### Spark Execution
 
@@ -191,9 +216,23 @@ The following command can be useful to review the logs generated when the Profil
 yarn logs -applicationId <application-id>
 ```
 
-#### Kerberos
+### Kerberos
 
 See the Spark documentation for information on running the Batch Profiler in a [secure, kerberized cluster](https://spark.apache.org/docs/latest/running-on-yarn.html#running-in-a-secure-cluster).
+
+### Input Formats
+
+The Profiler can consume archived telemetry stored in a variety of input formats.  By default, it is configured to consume the text/json that Metron archives in HDFS. This is often not the best format for archiving telemetry.  If you choose a different format, you should be able to configure the Profiler to consume it by doing the following.
+
+1. Edit [`profiler.batch.input.format`](#profilerbatchinputformat) and [`profiler.batch.input.path`](#profilerbatchinputpath) as needed.  For example, to read ORC you might do the following.
+
+  `$METRON_HOME/config/batch-profiler.properties`
+  ```
+  profiler.batch.input.format=org.apache.spark.sql.execution.datasources.orc
+  profiler.batch.input.path=hdfs://localhost:9000/apps/metron/indexing/orc/\*/\*
+  ```
+
+1. If additional options are required for your input format, then use the [`--reader`](#--reader) command-line argument when launching the Batch Profiler as [described here](#advanced-usage).
 
 
 ## Configuring the Profiler

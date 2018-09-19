@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -54,25 +55,29 @@ public class BatchProfiler implements Serializable {
    * Execute the Batch Profiler.
    *
    * @param spark The spark session.
-   * @param properties The profiler configuration properties.
+   * @param profilerProps The profiler configuration properties.
+   * @param globalProperties The Stellar global properties.
+   * @param readerProps The properties passed to the {@link org.apache.spark.sql.DataFrameReader}.
    * @param profiles The profile definitions.
    * @return The number of profile measurements produced.
    */
   public long run(SparkSession spark,
-                  Properties properties,
+                  Properties profilerProps,
                   Properties globalProperties,
+                  Properties readerProps,
                   ProfilerConfig profiles) {
 
     LOG.debug("Building {} profile(s)", profiles.getProfiles().size());
     Map<String, String> globals = Maps.fromProperties(globalProperties);
 
-    String inputFormat = TELEMETRY_INPUT_FORMAT.get(properties, String.class);
-    String inputPath = TELEMETRY_INPUT_PATH.get(properties, String.class);
+    String inputFormat = TELEMETRY_INPUT_FORMAT.get(profilerProps, String.class);
+    String inputPath = TELEMETRY_INPUT_PATH.get(profilerProps, String.class);
     LOG.debug("Loading telemetry from '{}'", inputPath);
 
     // fetch the archived telemetry
     Dataset<String> telemetry = spark
             .read()
+            .options(Maps.fromProperties(readerProps))
             .format(inputFormat)
             .load(inputPath)
             .as(Encoders.STRING());
@@ -85,13 +90,13 @@ public class BatchProfiler implements Serializable {
 
     // build the profiles
     Dataset<ProfileMeasurementAdapter> measurements = routes
-            .groupByKey(new GroupByPeriodFunction(properties), Encoders.STRING())
-            .mapGroups(new ProfileBuilderFunction(properties, globals), Encoders.bean(ProfileMeasurementAdapter.class));
+            .groupByKey(new GroupByPeriodFunction(profilerProps), Encoders.STRING())
+            .mapGroups(new ProfileBuilderFunction(profilerProps, globals), Encoders.bean(ProfileMeasurementAdapter.class));
     LOG.debug("Produced {} profile measurement(s)", measurements.cache().count());
 
     // write the profile measurements to HBase
     long count = measurements
-            .mapPartitions(new HBaseWriterFunction(properties), Encoders.INT())
+            .mapPartitions(new HBaseWriterFunction(profilerProps), Encoders.INT())
             .agg(sum("value"))
             .head()
             .getLong(0);
