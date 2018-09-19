@@ -25,7 +25,7 @@ This project fully automates the provisioning and deployment of Apache Metron an
 * [Explore Metron](#explore-metron)
 * [Advanced Deployments](#advanced-deployments)
 
-### Prerequisites
+## Prerequisites
 
 Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.
 
@@ -46,7 +46,7 @@ Running the following script can help validate whether you have all the prerequi
   metron-deployment/scripts/platform-info.sh
   ```
 
-#### How do I install these on MacOS?
+### How do I install these on MacOS?
 
 Any platform that supports these tools is suitable, but the following instructions cover installation on macOS.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
 
@@ -63,7 +63,7 @@ Any platform that supports these tools is suitable, but the following instructio
     open /Applications/Docker.app
     ```
 
-### Deploy Metron
+## Deploy Metron
 
 1. Ensure that the Docker service is running.
 
@@ -80,7 +80,7 @@ Any platform that supports these tools is suitable, but the following instructio
     vagrant provision
     ```
 
-### Explore Metron
+## Explore Metron
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
 
@@ -92,11 +92,11 @@ Connecting to the host through SSH is as simple as running the following command
   vagrant ssh
   ```
 
-### Advanced Deployments
+## Advanced Deployments
 
 In addition to running the entire provisioning play book, you can also use Ansible tags to limit the scope of what is deployed or deploy specific components.
 
-#### Avoid an Extra Build
+### Avoid an Extra Build
 
 If you have already built Metron, you can skip the build step when deploying the development environment.
 
@@ -105,7 +105,7 @@ If you have already built Metron, you can skip the build step when deploying the
       vagrant --ansible-skip-tags="build,sensors,pcap" up
       ```
 
-#### Deploy Packet Capture
+### Deploy Packet Capture
 
 If you want to deploy the components required to generate and capture network packets.
 
@@ -148,7 +148,7 @@ If you want to deploy the components required to generate and capture network pa
       $METRON_HOME/bin/start_pcap_topology.sh
       ```
 
-#### Deploy Sensors
+### Deploy Sensors
 
 If you want to deploy Bro, Snort, and YAF in your development environment, run the following commands.
 
