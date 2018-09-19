@@ -20,12 +20,14 @@ Metron on CentOS 6
 
 This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized host running CentOS 6.
 
-Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.
-
-Getting Started
----------------
+* [Prerequisites](#prerequisites)
+* [Deploy Metron](#deploy-metron)
+* [Explore Metron](#explore-metron)
+* [Advanced Deployments](#advanced-deployments)
 
 ### Prerequisites
+
+Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.
 
 The computer used to deploy Apache Metron will need to have the following components installed.
 
@@ -86,89 +88,95 @@ Navigate to the following resources to explore your newly minted Apache Metron e
 * [Ambari](http://node1:8080) credentials: admin/admin
 
 Connecting to the host through SSH is as simple as running the following command.
-```
-vagrant ssh
-```
+  ```
+  vagrant ssh
+  ```
 
 ### Advanced Deployments
 
 In addition to running the entire provisioning play book, you can also use Ansible tags to limit the scope of what is deployed or deploy specific components.
 
+#### Avoid an Extra Build
+
 If you have already built Metron, you can skip the build step when deploying the development environment.
 
   1. Deploy the development environment without re-building Metron.
-    ```
-    vagrant --ansible-skip-tags="build,sensors,pcap" up
-    ```
+      ```
+      vagrant --ansible-skip-tags="build,sensors,pcap" up
+      ```
+
+#### Deploy Packet Capture
 
 If you want to deploy the components required to generate and capture network packets.
 
   1. Deploy the development environment.
-    ```
-    vagrant up
-    ```
+      ```
+      vagrant up
+      ```
 
   1. Deploy the additional components to replay and capture packets.
-    ```
-    vagrant --ansible-tags="pcap" provision
-    ```
+      ```
+      vagrant --ansible-tags="pcap" provision
+      ```
 
   1. Stop the Parser, Enrichment, Indexing, and Profiler topologies to free-up resources.
 
   1. Connect to the development VM.
-    ```
-    vagrant ssh
-    sudo su -
-    source /etc/default/metron
-    ```
+      ```
+      vagrant ssh
+      sudo su -
+      source /etc/default/metron
+      ```
 
   1. Install Wireshark.
-    ```
-    yum -y install wireshark
-    ```
+      ```
+      yum -y install wireshark
+      ```
 
   1. Start the Packet Replay service.
-    ```
-    service pcap-replay start
-    ```
+      ```
+      service pcap-replay start
+      ```
 
   1. Start Pycapa which captures those packets and pushes them to Kafka.
-    ```
-    service pycapa start
-    ```
+      ```
+      service pycapa start
+      ```
 
   1. Start the Pcap topology.
-    ```
-    $METRON_HOME/bin/start_pcap_topology.sh
-    ```
+      ```
+      $METRON_HOME/bin/start_pcap_topology.sh
+      ```
+
+#### Deploy Sensors
 
 If you want to deploy Bro, Snort, and YAF in your development environment, run the following commands.
 
   1. Deploy the development environment.
-    ```
-    vagrant up
-    ```
+      ```
+      vagrant up
+      ```
 
   1. Deploy the additional sensors.
-    ```
-    vagrant --ansible-tags="sensors" provision
-    ```
+      ```
+      vagrant --ansible-tags="sensors" provision
+      ```
 
   1. Connect to the development VM.
-    ```
-    vagrant ssh
-    sudo su -
-    ```
+      ```
+      vagrant ssh
+      sudo su -
+      ```
 
   1. Stop the Sensor Stubs.
-    ```
-    service sensor-stubs stop
-    ```
+      ```
+      service sensor-stubs stop
+      ```
 
   1. Start the Packet Replay service.
-    ```
-    service pcap-replay start
-    ```
+      ```
+      service pcap-replay start
+      ```
 
   1. Ensure that each of the sensors are running.
 
