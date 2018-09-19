@@ -37,7 +37,7 @@
   roles:
     - { role: ambari_gather_facts,    tags: ['always'] }
     - { role: tap_interface,          tags: ['tap'] }
-    - { role: pycapa,                 tags: ['pycapa'] }
+    - { role: pcap_replay,            tags: ['pcap-replay'] }
     - { role: bro,                    tags: ['bro'] }
     - { role: snort,                  tags: ['snort'] }
     - { role: yaf,                    tags: ['yaf'] }
@@ -45,6 +45,19 @@
     - { role: sensor-test-mode,       tags: ['sensor-test-mode'] }
   tags:
     - sensors
+
+#
+# deploys all components required to simulate and then capture packets
+#
+- hosts: sensors
+  become: true
+  roles:
+    - { role: ambari_gather_facts }
+    - { role: tap_interface }
+    - { role: pcap_replay }
+    - { role: pycapa }
+  tags:
+    - pcap
 
 #
 # sensor stubs - rather than deploying the sensors, deploy ligher weight

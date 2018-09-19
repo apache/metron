@@ -17,4 +17,5 @@
 ---
 - include: dependencies.yml
 - include: tcpreplay.yml
+- include: pcap.yml
 - include: service.yml

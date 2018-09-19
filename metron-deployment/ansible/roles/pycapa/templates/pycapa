@@ -29,7 +29,9 @@ LOGFILE="{{ pycapa_log }}"
 EXTRA_ARGS="${@:2}"
 DAEMON_PATH="{{ pycapa_home }}"
 
-export LD_LIBRARY_PATH={{ python27_home }}/usr/lib64
+LIBRDKAKFA_LIB={{ librdkafka_home }}/lib
+PYTHON27_LIB={{ python27_home }}/usr/lib64
+export LD_LIBRARY_PATH=$PYTHON27_LIB:$LIBRDKAKFA_LIB
 
 case "$1" in
 
@@ -47,8 +49,8 @@ case "$1" in
     DAEMON_PATH="{{ pycapa_home }}"
     DAEMON="{{ pycapa_bin }}/pycapa"
     DAEMONOPTS+=" --producer "
-    DAEMONOPTS+=" --kafka {{ kafka_broker_url }}"
-    DAEMONOPTS+=" --topic {{ pycapa_topic }}"
+    DAEMONOPTS+=" --kafka-broker {{ kafka_broker_url }}"
+    DAEMONOPTS+=" --kafka-topic {{ pycapa_topic }}"
     DAEMONOPTS+=" --interface {{ pycapa_sniff_interface }}"
     DAEMONOPTS+=" $EXTRA_ARGS"
 

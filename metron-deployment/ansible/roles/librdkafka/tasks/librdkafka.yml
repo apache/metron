@@ -15,7 +15,7 @@
 #  limitations under the License.
 #
 ---
-- name: Download librdkafka
+- name: "Download librdkafka {{ librdkafka_version }}"
   get_url:
     url: "{{ librdkafka_url }}"
     dest: "/tmp/librdkafka-{{ librdkafka_version }}.tar.gz"
