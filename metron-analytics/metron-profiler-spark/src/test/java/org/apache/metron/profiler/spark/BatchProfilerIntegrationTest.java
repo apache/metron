@@ -38,8 +38,11 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,6 +54,8 @@ import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PRO
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_COLUMN_FAMILY;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_NAME;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_BEGIN;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_END;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_FORMAT;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_PATH;
 import static org.junit.Assert.assertTrue;
@@ -60,6 +65,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class BatchProfilerIntegrationTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   /**
    * {
    *   "timestampField": "timestamp",
@@ -212,6 +218,54 @@ public class BatchProfilerIntegrationTest {
     validateProfiles();
   }
 
+  @Test
+  public void testBatchProfilerWithEndTimeConstraint() throws Exception {
+    // the input telemetry is text/json stored in the local filesystem
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
+    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
+
+    // there are 40 messages before "2018-07-07T15:51:48Z" in the test data
+    profilerProperties.put(TELEMETRY_INPUT_BEGIN.getKey(), "");
+    profilerProperties.put(TELEMETRY_INPUT_END.getKey(), "2018-07-07T15:51:48Z");
+
+    BatchProfiler profiler = new BatchProfiler();
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+
+    // the max timestamp in the data is around July 7, 2018
+    assign("maxTimestamp", "1530978728982L");
+
+    // the 'window' looks up to 5 hours before the max timestamp
+    assign("window", "PROFILE_WINDOW('from 5 hours ago', maxTimestamp)");
+
+    assertTrue(execute("[12] == PROFILE_GET('count-by-ip', '192.168.66.1', window)", Boolean.class));
+    assertTrue(execute("[28] == PROFILE_GET('count-by-ip', '192.168.138.158', window)", Boolean.class));
+    assertTrue(execute("[40] == PROFILE_GET('total-count', 'total', window)", Boolean.class));
+  }
+
+  @Test
+  public void testBatchProfilerWithBeginTimeConstraint() throws Exception {
+    // the input telemetry is text/json stored in the local filesystem
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
+    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
+
+    // there are 60 messages after "2018-07-07T15:51:48Z" in the test data
+    profilerProperties.put(TELEMETRY_INPUT_BEGIN.getKey(), "2018-07-07T15:51:48Z");
+    profilerProperties.put(TELEMETRY_INPUT_END.getKey(), "");
+
+    BatchProfiler profiler = new BatchProfiler();
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+
+    // the max timestamp in the data is around July 7, 2018
+    assign("maxTimestamp", "1530978728982L");
+
+    // the 'window' looks up to 5 hours before the max timestamp
+    assign("window", "PROFILE_WINDOW('from 5 hours ago', maxTimestamp)");
+
+    assertTrue(execute("[14] == PROFILE_GET('count-by-ip', '192.168.66.1', window)", Boolean.class));
+    assertTrue(execute("[46] == PROFILE_GET('count-by-ip', '192.168.138.158', window)", Boolean.class));
+    assertTrue(execute("[60] == PROFILE_GET('total-count', 'total', window)", Boolean.class));
+  }
+
   /**
    * Validates the profiles that were built.
    *
@@ -263,6 +317,8 @@ public class BatchProfilerIntegrationTest {
    * @return The result of executing the Stellar expression.
    */
   private <T> T execute(String expression, Class<T> clazz) {
-    return executor.execute(expression, Collections.emptyMap(), clazz);
+    T results = executor.execute(expression, Collections.emptyMap(), clazz);
+    LOG.debug("{} = {}", expression, results);
+    return results;
   }
 }

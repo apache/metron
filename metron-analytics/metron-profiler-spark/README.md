@@ -245,6 +245,8 @@ You can store both settings for the Profiler along with settings for Spark in th
 |---                                                                            |---
 | [`profiler.batch.input.path`](#profilerbatchinputpath)                        | The path to the input data read by the Batch Profiler.
 | [`profiler.batch.input.format`](#profilerbatchinputformat)                    | The format of the input data read by the Batch Profiler.
+| [`profiler.batch.input.begin`](#profilerbatchinputend)                        | Only messages with a timestamp after this will be profiled.
+| [`profiler.batch.input.end`](#profilerbatchinputbegin)                        | Only messages with a timestamp before this will be profiled.
 | [`profiler.period.duration`](#profilerperiodduration)                         | The duration of each profile period.  
 | [`profiler.period.duration.units`](#profilerperioddurationunits)              | The units used to specify the [`profiler.period.duration`](#profilerperiodduration).
 | [`profiler.hbase.salt.divisor`](#profilerhbasesaltdivisor)                    | A salt is prepended to the row key to help prevent hot-spotting.
@@ -262,6 +264,18 @@ The path to the input data read by the Batch Profiler.
 *Default*: text
 
 The format of the input data read by the Batch Profiler.
+
+### `profiler.batch.input.begin`
+
+*Default*: undefined
+
+Only messages with a timestamp after this will be profiled. By default, no time constraint is defined. The value is expected to follow the [ISO-8601 instant format](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT); 2011-12-03T10:15:30Z.
+
+### `profiler.batch.input.end`
+
+*Default*: undefined
+
+Only messages with a timestamp before this will be profiled. By default, no time constraint is defined. The value is expected to follow the [ISO-8601 instant format](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT); 2011-12-03T10:15:30Z.
 
 ### `profiler.period.duration`
 

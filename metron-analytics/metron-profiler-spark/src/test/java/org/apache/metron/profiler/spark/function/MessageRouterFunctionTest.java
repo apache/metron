@@ -31,14 +31,17 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Tests the {@link MessageRouterFunction}.
  */
 public class MessageRouterFunctionTest {
 
+  private Long messageTimestamp = 1537468508360L;
+
   /**
-   * { "ip_src_addr": "192.168.1.22" }
+   * { "ip_src_addr": "192.168.1.22", "timestamp": 1537468508360 }
    */
   @Multiline
   private String goodMessage;
@@ -48,9 +51,15 @@ public class MessageRouterFunctionTest {
    */
   private String badMessage;
 
+  /**
+   * { "ip_src_addr": "192.168.1.22" }
+   */
+  @Multiline
+  private String messageNoTimestamp;
+
   @Test
   public void testFindRoutes() throws Exception {
-    MessageRouterFunction function = new MessageRouterFunction(oneProfile(), getGlobals());
+    MessageRouterFunction function = new MessageRouterFunction(profile(), getGlobals());
     Iterator<MessageRoute> iter = function.call(goodMessage);
 
     List<MessageRoute> routes = Lists.newArrayList(iter);
@@ -58,14 +67,20 @@ public class MessageRouterFunctionTest {
     Assert.assertEquals("profile1", routes.get(0).getProfileDefinition().getProfile());
   }
 
-  /**
-   * A bad or invalid message should return no routes.
-   */
+  @Test(expected = IllegalStateException.class)
+  public void testWithSystemTime() throws Exception {
+    MessageRouterFunction function = new MessageRouterFunction(profileWithSystemTime(), getGlobals());
+    Iterator<MessageRoute> iter = function.call(goodMessage);
+
+    Assert.fail("Exception expected as system time is not supported.");
+  }
+
   @Test
   public void testWithBadMessage() throws Exception {
-    MessageRouterFunction function = new MessageRouterFunction(oneProfile(), getGlobals());
+    MessageRouterFunction function = new MessageRouterFunction(profile(), getGlobals());
     Iterator<MessageRoute> iter = function.call(badMessage);
 
+    // an invalid message should return no routes
     List<MessageRoute> routes = Lists.newArrayList(iter);
     Assert.assertEquals(0, routes.size());
   }
@@ -81,7 +96,88 @@ public class MessageRouterFunctionTest {
     Assert.assertEquals("profile2", routes.get(1).getProfileDefinition().getProfile());
   }
 
-  private ProfilerConfig oneProfile() {
+  @Test
+  public void testWithNoTimestampInMessage() throws Exception {
+    MessageRouterFunction function = new MessageRouterFunction(profile(), getGlobals());
+    Iterator<MessageRoute> iter = function.call(messageNoTimestamp);
+
+    // with no timestamp, the message should be ignored
+    List<MessageRoute> routes = Lists.newArrayList(iter);
+    Assert.assertEquals(0, routes.size());
+  }
+
+  @Test
+  public void testMessageFilteredByBegin() throws Exception {
+    MessageRouterFunction function = new MessageRouterFunction(profile(), getGlobals())
+            .withBegin(messageTimestamp + 1000);
+    Iterator<MessageRoute> iter = function.call(goodMessage);
+
+    // the message should be filtered because it is before `beginAt`
+    List<MessageRoute> routes = Lists.newArrayList(iter);
+    Assert.assertEquals(0, routes.size());
+  }
+
+  @Test
+  public void testMessageNotFilteredByBegin() throws Exception {
+    MessageRouterFunction function = new MessageRouterFunction(profile(), getGlobals())
+            .withBegin(messageTimestamp - 1000);
+    Iterator<MessageRoute> iter = function.call(goodMessage);
+
+    // the message should NOT be filtered because it is after 'beginAt'
+    List<MessageRoute> routes = Lists.newArrayList(iter);
+    Assert.assertEquals(1, routes.size());
+  }
+
+  @Test
+  public void testMessageFilteredByEnd() throws Exception {
+    MessageRouterFunction function = new MessageRouterFunction(profile(), getGlobals())
+            .withEnd(messageTimestamp - 1000);
+    Iterator<MessageRoute> iter = function.call(goodMessage);
+
+    // the message should be filtered because it is after 'endAt'
+    List<MessageRoute> routes = Lists.newArrayList(iter);
+    Assert.assertEquals(0, routes.size());
+  }
+
+  @Test
+  public void testMessageNotFilteredByEnd() throws Exception {
+    MessageRouterFunction function = new MessageRouterFunction(profile(), getGlobals())
+            .withEnd(messageTimestamp + 1000);
+    Iterator<MessageRoute> iter = function.call(goodMessage);
+
+    // the message should NOT be filtered because it is before 'endAt'
+    List<MessageRoute> routes = Lists.newArrayList(iter);
+    Assert.assertEquals(1, routes.size());
+  }
+
+  @Test
+  public void testMessageFilteredByBeginAndEnd() throws Exception {
+    MessageRouterFunction function = new MessageRouterFunction(profile(), getGlobals())
+            .withBegin(messageTimestamp + 1000)
+            .withEnd(messageTimestamp + 2000);
+    Iterator<MessageRoute> iter = function.call(goodMessage);
+
+    // the message should be filtered because it is outside of [beginAt, endAt]
+    List<MessageRoute> routes = Lists.newArrayList(iter);
+    Assert.assertEquals(0, routes.size());
+  }
+
+  @Test
+  public void testMessageNotFilteredByBeginAndEnd() throws Exception {
+    MessageRouterFunction function = new MessageRouterFunction(profile(), getGlobals())
+            .withBegin(messageTimestamp - 1000)
+            .withEnd(messageTimestamp + 1000);
+    Iterator<MessageRoute> iter = function.call(goodMessage);
+
+    // the message should NOT be filtered because it is after 'endAt'
+    List<MessageRoute> routes = Lists.newArrayList(iter);
+    Assert.assertEquals(1, routes.size());
+  }
+
+  /**
+   * Creates a profiler definition, using event time, and containing one profile.
+   */
+  private ProfilerConfig profile() {
     ProfileConfig profile = new ProfileConfig()
             .withProfile("profile1")
             .withForeach("ip_src_addr")
@@ -89,9 +185,13 @@ public class MessageRouterFunctionTest {
             .withResult("count");
 
     return new ProfilerConfig()
-            .withProfile(profile);
+            .withProfile(profile)
+            .withTimestampField(Optional.of("timestamp"));
   }
 
+  /**
+   * Creates a profiler definition, using event time, and containing two profiles.
+   */
   private ProfilerConfig twoProfiles() {
     ProfileConfig profile1 = new ProfileConfig()
             .withProfile("profile1")
@@ -105,7 +205,22 @@ public class MessageRouterFunctionTest {
             .withResult("count");
     return new ProfilerConfig()
             .withProfile(profile1)
-            .withProfile(profile2);
+            .withProfile(profile2)
+            .withTimestampField(Optional.of("timestamp"));
+  }
+
+  /**
+   * Creates a profiler definition using system time.
+   */
+  private ProfilerConfig profileWithSystemTime() {
+    ProfileConfig profile = new ProfileConfig()
+            .withProfile("profile1")
+            .withForeach("ip_src_addr")
+            .withUpdate("count", "count + 1")
+            .withResult("count");
+
+    return new ProfilerConfig()
+            .withProfile(profile);
   }
 
   private Map<String, String> getGlobals() {
