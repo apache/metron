@@ -6,3 +6,4 @@ hdfs.properties.j2
 enrichment.properties.j2
 enrichment-splitjoin.properties.j2
 enrichment-unified.properties.j2
+pcap.properties.j2

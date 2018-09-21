@@ -193,7 +193,7 @@
             <timeout>600</timeout>
           </commandScript>
           <configuration-dependencies>
-            <config-type>metron-rest-env</config-type>
+            <config-type>metron-pcap-env</config-type>
           </configuration-dependencies>
         </component>
 
@@ -324,6 +324,7 @@
           <configuration-dependencies>
             <config-type>metron-indexing-env</config-type>
             <config-type>metron-rest-env</config-type>
+            <config-type>metron-pcap-env</config-type>
           </configuration-dependencies>
         </component>
 
