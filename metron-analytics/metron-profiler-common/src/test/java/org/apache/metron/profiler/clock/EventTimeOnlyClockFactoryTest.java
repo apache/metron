@@ -42,7 +42,6 @@ public class EventTimeOnlyClockFactoryTest {
 
   @Test
   public void testCreateEventTimeClock() {
-
     // configure the profiler to use event time
     ProfilerConfig config = new ProfilerConfig();
     config.setTimestampField(Optional.of("timestamp"));
@@ -54,7 +53,6 @@ public class EventTimeOnlyClockFactoryTest {
 
   @Test(expected = IllegalStateException.class)
   public void testCreateProcessingTimeClock() {
-
     // the profiler uses processing time by default
     ProfilerConfig config = new ProfilerConfig();
     clockFactory.createClock(config);
