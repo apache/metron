@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { throwError as observableThrowError, Observable } from 'rxjs';
+import { throwError, Observable } from 'rxjs';
 
 import { RestError } from '../model/rest-error';
 
@@ -43,6 +43,6 @@ export class HttpUtil {
       restError = new RestError();
       restError.status = 404;
     }
-    return observableThrowError(restError);
+    return throwError(restError);
   }
 }
