@@ -19,10 +19,10 @@
 
   <ul class="nav">
     <li class="nav-item">
-      <a [routerLink]="['/sensors']"  class="nav-link" [ngClass]="{'active': isActive(['/', '/sensors'])}" href="#">Sensors</a>
+      <a [routerLink]="['/sensors']"  class="nav-link" routerLinkActive="active" href="#">Sensors</a>
     </li>
     <li class="nav-item">
-      <a [routerLink]="['/general-settings']"  class="nav-link" [ngClass]="{'active': isActive(['/general-settings'])}" href="#">General Settings</a>
+      <a [routerLink]="['/general-settings']"  class="nav-link" routerLinkActive="active" href="#">General Settings</a>
     </li>
   </ul>
 
