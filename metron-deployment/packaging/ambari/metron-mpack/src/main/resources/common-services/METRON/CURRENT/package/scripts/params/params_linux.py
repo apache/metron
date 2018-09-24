@@ -389,8 +389,8 @@ bolt_hdfs_rotation_policy_units = config['configurations']['metron-indexing-env'
 bolt_hdfs_rotation_policy_count = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_count']
 
 # PCAP
-metron_pcap_topology = 'pcap'
-pcap_input_topic = 'pcap'
+metron_pcap_topology = config['configurations']['metron-pcap-env']['spout_kafka_topic_pcap']
+pcap_input_topic = config['configurations']['metron-pcap-env']['spout_kafka_topic_pcap']
 pcap_base_path = config['configurations']['metron-pcap-env']['pcap_base_path']
 pcap_base_interim_result_path = config['configurations']['metron-pcap-env']['pcap_base_interim_result_path']
 pcap_final_output_path = config['configurations']['metron-pcap-env']['pcap_final_output_path']

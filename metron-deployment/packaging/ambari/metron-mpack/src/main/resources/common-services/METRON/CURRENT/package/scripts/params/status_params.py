@@ -119,8 +119,8 @@ metron_principal_name = config['configurations']['metron-env']['metron_principal
 metron_keytab_path = config['configurations']['metron-env']['metron_service_keytab']
 
 # Pcap
-metron_pcap_topology = 'pcap'
-pcap_input_topic = 'pcap'
+metron_pcap_topology = config['configurations']['metron-pcap-env']['spout_kafka_topic_pcap']
+pcap_input_topic = config['configurations']['metron-pcap-env']['spout_kafka_topic_pcap']
 pcap_configured_flag_file = metron_zookeeper_config_path + '/../metron_pcap_configured'
 pcap_perm_configured_flag_file = metron_zookeeper_config_path + '/../metron_pcap_perm_configured'
 pcap_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_pcap_acl_configured'
