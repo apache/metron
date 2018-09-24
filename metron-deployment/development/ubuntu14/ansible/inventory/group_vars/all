@@ -46,6 +46,7 @@ pycapa_home: "/opt/pycapa"
 snort_version: "2.9.8.0-1"
 snort_alert_csv_path: "/var/log/snort/alert.csv"
 threat_intel_bulk_load: False
+elasticsearch_hosts: "localhost"
 
 # data directories - only required to override defaults
 zookeeper_data_dir: "/data1/hadoop/zookeeper"
