@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
-import {Http} from '@angular/http';
-import {Subject} from 'rxjs/Subject';
+import {Observable} from 'rxjs';
+import { Subject } from 'rxjs';
 import {ColumnMetadata} from '../model/column-metadata';
 import {TableMetadata} from '../model/table-metadata';
 import {DataSource} from './data-source';
@@ -29,8 +28,7 @@ export class ConfigureTableService {
   private tableChangedSource = new Subject<string>();
   tableChanged$ = this.tableChangedSource.asObservable();
 
-  constructor(private http: Http,
-              private dataSource: DataSource) {}
+  constructor(private dataSource: DataSource) {}
 
   fireTableChanged() {
     this.tableChangedSource.next('table changed');

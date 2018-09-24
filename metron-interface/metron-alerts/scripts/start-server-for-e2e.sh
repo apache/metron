@@ -16,4 +16,4 @@
 #  limitations under the License.
 #
 SCRIPTS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-$SCRIPTS_ROOT/../node_modules/@angular/cli/bin/ng serve -environment e2e --proxy-config proxy.conf.json $@
+$SCRIPTS_ROOT/../node_modules/@angular/cli/bin/ng serve --configuration e2e --proxy-config proxy.conf.json --aot $@

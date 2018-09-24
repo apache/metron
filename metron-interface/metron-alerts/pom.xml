@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-interface</artifactId>
-        <version>0.5.1</version>
+        <version>0.6.0</version>
     </parent>
     <artifactId>metron-alerts</artifactId>
     <url>https://metron.apache.org/</url>
@@ -26,7 +26,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <node.version>v9.11.1</node.version>
-        <npm.version>5.8.0</npm.version>
+        <npm.version>6.2.0</npm.version>
     </properties>
     <dependencies>
     </dependencies>
@@ -52,17 +52,17 @@
                     </execution>
                     <execution>
                         <phase>generate-resources</phase>
-                        <id>npm install</id>
+                        <id>npm ci</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
                         <configuration>
-                            <arguments>install</arguments>
+                            <arguments>ci</arguments>
                         </configuration>
                     </execution>
                     <execution>
                         <phase>generate-resources</phase>
-                        <id>ng build</id>
+                        <id>npm run build</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
@@ -72,12 +72,12 @@
                     </execution>
                     <execution>
                         <phase>test</phase>
-                        <id>npm test</id>
+                        <id>npm testCI</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
                         <configuration>
-                            <arguments>test</arguments>
+                            <arguments>run testCI</arguments>
                         </configuration>
                     </execution>
                 </executions>

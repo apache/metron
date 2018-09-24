@@ -21,9 +21,9 @@ import { PcapService } from '../service/pcap.service';
 import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
-import { Subscription } from 'rxjs/Rx';
+import { Subscription } from 'rxjs';
 import { PcapPagination } from '../model/pcap-pagination';
-import { RestError } from "../../model/rest-error";
+import { RestError } from '../../model/rest-error';
 
 @Component({
   selector: 'app-pcap-panel',
@@ -32,20 +32,21 @@ import { RestError } from "../../model/rest-error";
 })
 export class PcapPanelComponent implements OnInit, OnDestroy {
 
-  @Input() pdml: Pdml = null;
-  @Input() pcapRequest: PcapRequest;
-  @Input() resetPaginationForSearch: boolean;
+  pdml: Pdml = null;
+  pcapRequest: PcapRequest;
+  resetPaginationForSearch: boolean;
 
   statusSubscription: Subscription;
   cancelSubscription: Subscription;
   submitSubscription: Subscription;
   getSubscription: Subscription;
-  queryRunning: boolean = false;
+  queryRunning = false;
   queryId: string;
-  progressWidth: number = 0;
+  progressWidth = 0;
   pagination: PcapPagination = new PcapPagination();
   savedPcapRequest: {};
   errorMsg: string;
+  cancelConfirmMessage = 'Are you sure want to cancel the running query?';
 
   constructor(private pcapService: PcapService) { }
 
@@ -113,7 +114,7 @@ export class PcapPanelComponent implements OnInit, OnDestroy {
       this.pcapService.getPackets(this.queryId, this.pagination.selectedPage).toPromise().then(pdml => {
         this.pdml = pdml;
       }, (error: RestError) => {
-        if (error.responseCode === 404) {
+        if (error.status === 404) {
           this.errorMsg = 'No results returned';
         } else {
           this.errorMsg = `Response message: ${error.message}. Something went wrong retrieving pdml results!`;
