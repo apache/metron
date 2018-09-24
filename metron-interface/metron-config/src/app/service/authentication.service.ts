@@ -18,17 +18,17 @@
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { ReplaySubject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { IAppConfig } from '../app.config.interface';
 import { APP_CONFIG } from '../app.config';
 
 @Injectable()
 export class AuthenticationService {
-  private static USER_NOT_VERIFIED: string = 'USER-NOT-VERIFIED';
+  private static USER_NOT_VERIFIED = 'USER-NOT-VERIFIED';
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
   loginUrl: string = this.config.apiEndpoint + '/user';
-  logoutUrl: string = '/logout';
-  onLoginEvent: ReplaySubject<boolean> = new ReplaySubject<boolean>();
+  logoutUrl = '/logout';
+  onLoginEvent: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(
     private http: HttpClient,
