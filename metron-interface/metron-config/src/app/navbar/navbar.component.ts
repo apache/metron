@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AuthenticationService } from '../service/authentication.service';
 import { Subscription } from 'rxjs';
 
@@ -24,7 +24,7 @@ import { Subscription } from 'rxjs';
   templateUrl: 'navbar.html',
   styleUrls: ['navbar.component.scss']
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
   currentUser;
   authService: Subscription;
 
@@ -32,9 +32,8 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit() {
     this.authService = this.authenticationService
-      .getCurrentUser()
+      .getCurrentUser({ responseType: 'text' })
       .subscribe(r => {
-        console.log('current user' + this.currentUser);
         this.currentUser = r;
       });
   }
