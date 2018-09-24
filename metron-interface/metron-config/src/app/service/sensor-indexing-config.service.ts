@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Injectable, Inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -24,7 +24,6 @@ import { IndexingConfigurations } from '../model/sensor-indexing-config';
 import { HttpUtil } from '../util/httpUtil';
 import { IAppConfig } from '../app.config.interface';
 import { APP_CONFIG } from '../app.config';
-import { RestError } from '../model/rest-error';
 
 @Injectable()
 export class SensorIndexingConfigService {
@@ -63,9 +62,9 @@ export class SensorIndexingConfigService {
 
   public deleteSensorIndexingConfig(
     name: string
-  ): Observable<Object | RestError> {
+  ) {
     return this.http
-      .delete(this.url + '/' + name)
-      .pipe(catchError(HttpUtil.handleError));
+      .delete<{}>(this.url + '/' + name)
+      .pipe<HttpResponse<{}>>(catchError(HttpUtil.handleError));
   }
 }

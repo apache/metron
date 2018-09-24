@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 import { Injectable, Inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { SensorEnrichmentConfig } from '../model/sensor-enrichment-config';
 import { HttpUtil } from '../util/httpUtil';
 import { IAppConfig } from '../app.config.interface';
 import { APP_CONFIG } from '../app.config';
-import { RestError } from '../model/rest-error';
 
 @Injectable()
 export class SensorEnrichmentConfigService {
@@ -60,10 +59,10 @@ export class SensorEnrichmentConfigService {
     );
   }
 
-  public deleteSensorEnrichments(name: string): Observable<Object | RestError> {
+  public deleteSensorEnrichments(name: string) {
     return this.http
-      .delete(this.url + '/' + name)
-      .pipe(catchError(HttpUtil.handleError));
+      .delete<Observable<{}>>(this.url + '/' + name)
+      .pipe<HttpResponse<{}>>(catchError(HttpUtil.handleError));
   }
 
   public getAvailableEnrichments(): Observable<string[]> {

@@ -22,7 +22,6 @@ import { map, catchError } from 'rxjs/operators';
 import { HttpUtil } from '../util/httpUtil';
 import { IAppConfig } from '../app.config.interface';
 import { APP_CONFIG } from '../app.config';
-import { RestError } from '../model/rest-error';
 
 @Injectable()
 export class HdfsService {
@@ -51,7 +50,7 @@ export class HdfsService {
     );
   }
 
-  public post(path: string, contents: string): Observable<Object | RestError> {
+  public post(path: string, contents: string): any {
     let options: HttpParams = new HttpParams();
     options.set('path', path);
     return this.http
@@ -59,7 +58,7 @@ export class HdfsService {
       .pipe(catchError(HttpUtil.handleError));
   }
 
-  public deleteFile(path: string): Observable<Object | RestError> {
+  public deleteFile(path: string): any {
     let options: HttpParams = new HttpParams();
     options.set('path', path);
     return this.http

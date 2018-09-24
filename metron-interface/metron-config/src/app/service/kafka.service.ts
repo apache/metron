@@ -48,7 +48,7 @@ export class KafkaService {
     );
   }
 
-  public list(): Observable<string[]> {
+  public list(): Observable<KafkaTopic[]> {
     return this.http.get(this.url).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
