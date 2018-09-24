@@ -7,8 +7,10 @@
     "types": [
       "jquery",
       "bootstrap",
-      "ace"
-    ]
+      "ace",
+      "node"
+    ],
+    "typeRoots": [ "../node_modules/@types" ]
   },
   "exclude": [
     "test.ts",
