@@ -21,6 +21,7 @@ package org.apache.metron.profiler.bolt;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.metron.common.Constants;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Responsible for emitting a {@link ProfileMeasurement} to an output stream that will
@@ -134,6 +136,7 @@ public class KafkaEmitter implements ProfileMeasurementEmitter, Serializable {
     message.put("timestamp", System.currentTimeMillis());
     message.put("source.type", sourceType);
     message.put("is_alert", "true");
+    message.put(Constants.GUID, UUID.randomUUID().toString());
     return message;
   }
 
