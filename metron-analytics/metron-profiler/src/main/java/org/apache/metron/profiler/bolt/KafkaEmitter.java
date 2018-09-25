@@ -44,6 +44,14 @@ public class KafkaEmitter implements ProfileMeasurementEmitter, Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  public static final String PROFILE_FIELD = "profile";
+  public static final String ENTITY_FIELD = "entity";
+  public static final String PERIOD_ID_FIELD = "period";
+  public static final String PERIOD_START_FIELD = "period.start";
+  public static final String PERIOD_END_FIELD = "period.end";
+  public static final String TIMESTAMP_FIELD = "timestamp";
+  public static final String ALERT_FIELD = "is_alert";
+
   /**
    * The stream identifier used for this destination;
    */
@@ -128,14 +136,14 @@ public class KafkaEmitter implements ProfileMeasurementEmitter, Serializable {
   private JSONObject createMessage(ProfileMeasurement measurement) {
 
     JSONObject message = new JSONObject();
-    message.put("profile", measurement.getDefinition().getProfile());
-    message.put("entity", measurement.getEntity());
-    message.put("period", measurement.getPeriod().getPeriod());
-    message.put("period.start", measurement.getPeriod().getStartTimeMillis());
-    message.put("period.end", measurement.getPeriod().getEndTimeMillis());
-    message.put("timestamp", System.currentTimeMillis());
-    message.put("source.type", sourceType);
-    message.put("is_alert", "true");
+    message.put(PROFILE_FIELD, measurement.getDefinition().getProfile());
+    message.put(ENTITY_FIELD, measurement.getEntity());
+    message.put(PERIOD_ID_FIELD, measurement.getPeriod().getPeriod());
+    message.put(PERIOD_START_FIELD, measurement.getPeriod().getStartTimeMillis());
+    message.put(PERIOD_END_FIELD, measurement.getPeriod().getEndTimeMillis());
+    message.put(TIMESTAMP_FIELD, System.currentTimeMillis());
+    message.put(Constants.SENSOR_TYPE, sourceType);
+    message.put(ALERT_FIELD, "true");
     message.put(Constants.GUID, UUID.randomUUID().toString());
     return message;
   }
@@ -159,6 +167,10 @@ public class KafkaEmitter implements ProfileMeasurementEmitter, Serializable {
 
   public void setStreamId(String streamId) {
     this.streamId = streamId;
+  }
+
+  public String getSourceType() {
+    return sourceType;
   }
 
   public void setSourceType(String sourceType) {

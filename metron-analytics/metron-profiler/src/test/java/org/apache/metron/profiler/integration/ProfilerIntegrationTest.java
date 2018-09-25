@@ -40,6 +40,8 @@ import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.storm.Config;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -62,6 +64,13 @@ import java.util.concurrent.TimeUnit;
 import static com.google.code.tempusfugit.temporal.Duration.seconds;
 import static com.google.code.tempusfugit.temporal.Timeout.timeout;
 import static com.google.code.tempusfugit.temporal.WaitFor.waitOrTimeout;
+import static org.apache.metron.profiler.bolt.KafkaEmitter.ALERT_FIELD;
+import static org.apache.metron.profiler.bolt.KafkaEmitter.ENTITY_FIELD;
+import static org.apache.metron.profiler.bolt.KafkaEmitter.PERIOD_END_FIELD;
+import static org.apache.metron.profiler.bolt.KafkaEmitter.PERIOD_ID_FIELD;
+import static org.apache.metron.profiler.bolt.KafkaEmitter.PERIOD_START_FIELD;
+import static org.apache.metron.profiler.bolt.KafkaEmitter.PROFILE_FIELD;
+import static org.apache.metron.profiler.bolt.KafkaEmitter.TIMESTAMP_FIELD;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
@@ -285,18 +294,35 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     assertTrue(results.get(0) instanceof OnlineStatisticsProvider);
   }
 
-  /**
-   * Generates an error message for if the byte comparison fails.
-   *
-   * @param expected The expected value.
-   * @param actual The actual value.
-   * @return
-   * @throws UnsupportedEncodingException
-   */
-  private String failMessage(byte[] expected, byte[] actual) throws UnsupportedEncodingException {
-    return String.format("expected '%s', got '%s'",
-              new String(expected, "UTF-8"),
-              new String(actual, "UTF-8"));
+  @Test
+  public void testProfileWithTriageResult() throws Exception {
+    uploadConfigToZookeeper(TEST_RESOURCES + "/config/zookeeper/triage-result");
+
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    List<String> telemetry = FileUtils.readLines(new File("src/test/resources/telemetry.json"));
+    kafkaComponent.writeMessages(inputTopic, telemetry);
+
+    // wait until the triage message is output to kafka
+    waitOrTimeout(() -> kafkaComponent.readMessages(outputTopic).size() > 0, timeout(seconds(90)));
+
+    List<byte[]> outputMessages = kafkaComponent.readMessages(outputTopic);
+    assertEquals(1, outputMessages.size());
+
+    // validate the triage message
+    JSONObject message = (JSONObject) new JSONParser().parse(new String(outputMessages.get(0), "UTF-8"));
+    assertEquals("profile-with-triage", message.get(PROFILE_FIELD));
+    assertEquals("global",              message.get(ENTITY_FIELD));
+    assertEquals(76548935L,             message.get(PERIOD_ID_FIELD));
+    assertEquals(1530978700000L,        message.get(PERIOD_START_FIELD));
+    assertEquals(1530978720000L,        message.get(PERIOD_END_FIELD));
+    assertEquals("profiler",            message.get(Constants.SENSOR_TYPE));
+    assertEquals("true",                message.get(ALERT_FIELD));
+    assertEquals(1.0,                   message.get("min"));
+    assertEquals(1.0,                   message.get("max"));
+    assertEquals(1.0,                   message.get("mean"));
+    assertTrue(message.containsKey(TIMESTAMP_FIELD));
+    assertTrue(message.containsKey(Constants.GUID));
   }
 
   private static String getMessage(String ipSource, long timestamp) {
@@ -471,7 +497,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    */
   private <T> T execute(String expression, Class<T> clazz) {
     T results = executor.execute(expression, Collections.emptyMap(), clazz);
-
     LOG.debug("{} = {}", expression, results);
     return results;
   }
