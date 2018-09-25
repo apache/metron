@@ -123,9 +123,9 @@ describe('SensorParserConfigService', () => {
       });
     req[0] = mockBackend.expectOne('/api/v1/sensor/parser/config/bro1');
     req[1] = mockBackend.expectOne('/api/v1/sensor/parser/config/bro2');
-    req.map(e => {
-      expect(e.request.method).toBe('DELETE');
-      e.flush(parsedMessage);
+    req.map(r => {
+      expect(r.request.method).toBe('DELETE');
+      r.flush(parsedMessage);
     });
   });
 });
