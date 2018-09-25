@@ -86,12 +86,9 @@ describe('AuthenticationService', () => {
     });
 
     it('logout', () => {
-      let responseMessageSuccess = true;
       spyOn(router, 'navigateByUrl');
-
-      // jasmine.createSpyObj('ValueService', ['getValue']);
-
       spyOn(authenticationService.onLoginEvent, 'next');
+
       authenticationService.logout();
       const req = mockBackend.match('/logout');
       const req2 = mockBackend.expectOne('/api/v1/user');

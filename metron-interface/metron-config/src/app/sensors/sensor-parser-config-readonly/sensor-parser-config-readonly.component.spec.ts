@@ -280,7 +280,6 @@ describe('Component: SensorParserConfigReadonly', () => {
       providers: [
         { provide: HttpClient },
         { provide: ActivatedRoute, useClass: MockActivatedRoute },
-        // {provide: AuthenticationService, useClass: MockAuthenticationService},
         {
           provide: SensorEnrichmentConfigService,
           useClass: MockSensorEnrichmentConfigService
