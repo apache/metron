@@ -267,15 +267,20 @@ The format of the input data read by the Batch Profiler.
 
 ### `profiler.batch.input.begin`
 
-*Default*: undefined
+*Default*: undefined; no time constraint
 
-Only messages with a timestamp after this will be profiled. By default, no time constraint is defined. The value is expected to follow the [ISO-8601 instant format](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT); 2011-12-03T10:15:30Z.
+Only messages with a timestamp equal to or after this will be profiled. The Profiler will only profiles messages with a timestamp in [`profiler.batch.input.begin`, `profiler.batch.input.end`] inclusive.
+
+By default, no time constraint is defined. The value is expected to follow the [ISO-8601 instant format](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT); 2011-12-03T10:15:30Z.
+
 
 ### `profiler.batch.input.end`
 
-*Default*: undefined
+*Default*: undefined; no time constraint
 
-Only messages with a timestamp before this will be profiled. By default, no time constraint is defined. The value is expected to follow the [ISO-8601 instant format](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT); 2011-12-03T10:15:30Z.
+Only messages with a timestamp before or equal to this will be profiled. The Profiler will only profiles messages with a timestamp in [`profiler.batch.input.begin`, `profiler.batch.input.end`] inclusive.
+
+By default, no time constraint is defined. The value is expected to follow the [ISO-8601 instant format](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT); 2011-12-03T10:15:30Z.
 
 ### `profiler.period.duration`
 
