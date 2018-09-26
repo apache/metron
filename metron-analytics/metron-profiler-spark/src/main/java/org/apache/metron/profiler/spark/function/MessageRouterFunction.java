@@ -27,6 +27,7 @@ import org.apache.metron.profiler.clock.Clock;
 import org.apache.metron.profiler.clock.ClockFactory;
 import org.apache.metron.profiler.clock.EventTimeOnlyClockFactory;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -58,9 +59,9 @@ public class MessageRouterFunction implements FlatMapFunction<String, MessageRou
   private ProfilerConfig profilerConfig;
 
   /**
-   * Responsible for creating the {@link Clock}.
+   * A clock that can extract time from the messages received.
    */
-  private ClockFactory clockFactory;
+  private Clock clock;
 
   /**
    * Only messages with a timestamp after this will be routed.
@@ -75,9 +76,9 @@ public class MessageRouterFunction implements FlatMapFunction<String, MessageRou
   public MessageRouterFunction(ProfilerConfig profilerConfig, Map<String, String> globals) {
     this.profilerConfig = profilerConfig;
     this.globals = globals;
-    this.clockFactory = new EventTimeOnlyClockFactory();
     this.begin = Long.MIN_VALUE;
     this.end = Long.MAX_VALUE;
+    withClockFactory(new EventTimeOnlyClockFactory());
   }
 
   /**
@@ -101,7 +102,6 @@ public class MessageRouterFunction implements FlatMapFunction<String, MessageRou
     if(message.isPresent()) {
 
       // extract the timestamp from the message
-      Clock clock = clockFactory.createClock(profilerConfig);
       Optional<Long> timestampOpt = clock.currentTimeMillis(message.get());
       if (timestampOpt.isPresent()) {
 
@@ -149,6 +149,19 @@ public class MessageRouterFunction implements FlatMapFunction<String, MessageRou
   }
 
   /**
+   * Defines the {@link ClockFactory} used to create the {@link Clock}.
+   *
+   * <p>Calling this method is only needed to override the default behavior.
+   *
+   * @param clockFactory The factory to use for creating the {@link Clock}.
+   * @return The message router function.
+   */
+  public MessageRouterFunction withClockFactory(ClockFactory clockFactory) {
+    this.clock = clockFactory.createClock(profilerConfig);
+    return this;
+  }
+
+  /**
    * Parses the raw JSON of a message.
    *
    * @param json The raw JSON to parse.
@@ -176,7 +189,7 @@ public class MessageRouterFunction implements FlatMapFunction<String, MessageRou
    * @param value The value to pretty print.
    * @return
    */
-  private String prettyPrint(Long value) {
+  private static String prettyPrint(Long value) {
     String result;
     if(value == Long.MIN_VALUE) {
       result = "MIN";
