@@ -34,10 +34,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_BEGIN;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_END;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_FORMAT;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_PATH;
 import static org.apache.spark.sql.functions.sum;
@@ -50,6 +52,12 @@ import static org.apache.spark.sql.functions.sum;
 public class BatchProfiler implements Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  private TimestampParser timestampParser;
+
+  public BatchProfiler() {
+    this.timestampParser = new TimestampParser();
+  }
 
   /**
    * Execute the Batch Profiler.
@@ -69,7 +77,6 @@ public class BatchProfiler implements Serializable {
 
     LOG.debug("Building {} profile(s)", profiles.getProfiles().size());
     Map<String, String> globals = Maps.fromProperties(globalProperties);
-
     String inputFormat = TELEMETRY_INPUT_FORMAT.get(profilerProps, String.class);
     String inputPath = TELEMETRY_INPUT_PATH.get(profilerProps, String.class);
     LOG.debug("Loading telemetry from '{}'", inputPath);
@@ -85,7 +92,7 @@ public class BatchProfiler implements Serializable {
 
     // find all routes for each message
     Dataset<MessageRoute> routes = telemetry
-            .flatMap(new MessageRouterFunction(profiles, globals), Encoders.bean(MessageRoute.class));
+            .flatMap(messageRouterFunction(profilerProps, profiles, globals), Encoders.bean(MessageRoute.class));
     LOG.debug("Generated {} message route(s)", routes.cache().count());
 
     // build the profiles
@@ -103,5 +110,30 @@ public class BatchProfiler implements Serializable {
     LOG.debug("{} profile measurement(s) written to HBase", count);
 
     return count;
+  }
+
+  /**
+   * Builds the function that performs message routing.
+   *
+   * @param profilerProps The profiler configuration properties.
+   * @param profiles The profile definitions.
+   * @param globals The Stellar global properties.
+   * @return A {@link MessageRouterFunction}.
+   */
+  private MessageRouterFunction messageRouterFunction(
+          Properties profilerProps,
+          ProfilerConfig profiles,
+          Map<String, String> globals) {
+    MessageRouterFunction routerFunction = new MessageRouterFunction(profiles, globals);
+
+    // an optional time constraint to limit how far back to look for telemetry
+    Optional<Long> beginAt = timestampParser.parse(TELEMETRY_INPUT_BEGIN.get(profilerProps, String.class));
+    beginAt.ifPresent(begin -> routerFunction.withBegin(begin));
+
+    // an optional time constraint to limit the most recent telemetry
+    Optional<Long> endAt = timestampParser.parse(TELEMETRY_INPUT_END.get(profilerProps, String.class));
+    endAt.ifPresent(end -> routerFunction.withEnd(end));
+
+    return routerFunction;
   }
 }

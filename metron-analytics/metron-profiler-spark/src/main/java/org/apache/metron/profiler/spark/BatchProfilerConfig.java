@@ -46,7 +46,11 @@ public enum BatchProfilerConfig {
 
   TELEMETRY_INPUT_FORMAT("profiler.batch.input.format", "text", String.class),
 
-  TELEMETRY_INPUT_PATH("profiler.batch.input.path", "hdfs://localhost:9000/apps/metron/indexing/indexed/*/*", String.class);
+  TELEMETRY_INPUT_PATH("profiler.batch.input.path", "hdfs://localhost:9000/apps/metron/indexing/indexed/*/*", String.class),
+
+  TELEMETRY_INPUT_BEGIN("profiler.batch.input.begin", "", String.class),
+
+  TELEMETRY_INPUT_END("profiler.batch.input.end", "", String.class);
 
   /**
    * The key for the configuration value.

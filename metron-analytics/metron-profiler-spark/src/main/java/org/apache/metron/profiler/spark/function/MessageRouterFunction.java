@@ -23,7 +23,11 @@ import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.profiler.DefaultMessageRouter;
 import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.MessageRouter;
+import org.apache.metron.profiler.clock.Clock;
+import org.apache.metron.profiler.clock.ClockFactory;
+import org.apache.metron.profiler.clock.EventTimeOnlyClockFactory;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -54,9 +58,27 @@ public class MessageRouterFunction implements FlatMapFunction<String, MessageRou
    */
   private ProfilerConfig profilerConfig;
 
+  /**
+   * A clock that can extract time from the messages received.
+   */
+  private Clock clock;
+
+  /**
+   * Only messages with a timestamp after this will be routed.
+   */
+  private Long begin;
+
+  /**
+   * Only messages with a timestamp before this will be routed.
+   */
+  private Long end;
+
   public MessageRouterFunction(ProfilerConfig profilerConfig, Map<String, String> globals) {
     this.profilerConfig = profilerConfig;
     this.globals = globals;
+    this.begin = Long.MIN_VALUE;
+    this.end = Long.MAX_VALUE;
+    withClockFactory(new EventTimeOnlyClockFactory());
   }
 
   /**
@@ -70,8 +92,7 @@ public class MessageRouterFunction implements FlatMapFunction<String, MessageRou
    */
   @Override
   public Iterator<MessageRoute> call(String jsonMessage) throws Exception {
-    List<MessageRoute> routes;
-
+    List<MessageRoute> routes = Collections.emptyList();
     JSONParser parser = new JSONParser();
     Context context = TaskUtils.getContext(globals);
     MessageRouter router = new DefaultMessageRouter(context);
@@ -80,17 +101,64 @@ public class MessageRouterFunction implements FlatMapFunction<String, MessageRou
     Optional<JSONObject> message = toMessage(jsonMessage, parser);
     if(message.isPresent()) {
 
-      // find all routes
-      routes = router.route(message.get(), profilerConfig, context);
-      LOG.trace("Found {} route(s) for a message", routes.size());
+      // extract the timestamp from the message
+      Optional<Long> timestampOpt = clock.currentTimeMillis(message.get());
+      if (timestampOpt.isPresent()) {
+
+        // timestamp must be in [begin, end]
+        Long timestamp = timestampOpt.get();
+        if(timestamp >= begin && timestamp <= end) {
+          routes = router.route(message.get(), profilerConfig, context);
+          LOG.trace("Found {} route(s) for a message", routes.size());
+
+        } else {
+          LOG.trace("Ignoring message; timestamp={} not in [{},{}]", timestamp, prettyPrint(begin), prettyPrint(end));
+        }
+
+      } else {
+        LOG.trace("No timestamp in message. Message will be ignored.");
+      }
 
     } else {
-      // the message is not valid and must be ignored
-      routes = Collections.emptyList();
-      LOG.trace("No route possible. Unable to parse message.");
+      LOG.trace("Unable to parse message. Message will be ignored");
     }
 
     return routes.iterator();
+  }
+
+  /**
+   * Set a time constraint.
+   *
+   * @param begin Only messages with a timestamp after this will be routed.
+   * @return The message router function
+   */
+  public MessageRouterFunction withBegin(Long begin) {
+    this.begin = begin;
+    return this;
+  }
+
+  /**
+   * Set a time constraint.
+   *
+   * @param end Only messages with a timestamp before this will be routed.
+   * @return The message router function
+   */
+  public MessageRouterFunction withEnd(Long end) {
+    this.end = end;
+    return this;
+  }
+
+  /**
+   * Defines the {@link ClockFactory} used to create the {@link Clock}.
+   *
+   * <p>Calling this method is only needed to override the default behavior.
+   *
+   * @param clockFactory The factory to use for creating the {@link Clock}.
+   * @return The message router function.
+   */
+  public MessageRouterFunction withClockFactory(ClockFactory clockFactory) {
+    this.clock = clockFactory.createClock(profilerConfig);
+    return this;
   }
 
   /**
@@ -109,5 +177,27 @@ public class MessageRouterFunction implements FlatMapFunction<String, MessageRou
       LOG.warn(String.format("Unable to parse message, message will be ignored; message='%s'", json), e);
       return Optional.empty();
     }
+  }
+
+  /**
+   * Pretty prints a Long value for use when logging these values.
+   *
+   * <p>Long.MIN_VALUE and Long.MAX_VALUE will occur frequently and is difficult to grok in the logs.  Instead
+   * Long.MIN_VALUE is rendered as "MIN". Long.MAX_VALUE is srendered as "MAX". All other values are rendered
+   * directly.
+   *
+   * @param value The value to pretty print.
+   * @return
+   */
+  private static String prettyPrint(Long value) {
+    String result;
+    if(value == Long.MIN_VALUE) {
+      result = "MIN";
+    } else if(value == Long.MAX_VALUE) {
+      result = "MAX";
+    } else {
+      result = value.toString();
+    }
+    return result;
   }
 }
