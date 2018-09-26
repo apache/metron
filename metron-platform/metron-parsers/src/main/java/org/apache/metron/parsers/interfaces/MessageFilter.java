@@ -21,5 +21,5 @@ import org.apache.metron.stellar.dsl.Context;
 
 public interface MessageFilter<T> extends Configurable{
 
-	boolean emitTuple(T message, Context context);
+	boolean emit(T message, Context context);
 }
