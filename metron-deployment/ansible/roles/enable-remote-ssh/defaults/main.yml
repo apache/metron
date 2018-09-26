@@ -15,10 +15,4 @@
 #  limitations under the License.
 #
 ---
-- hosts: all
-  roles:
-    - { role: libselinux-python, tags: libselinux-python }
-    - { role: enable-swap,       tags: enable-swap }
-    - { role: enable-remote-ssh, tags: enable-remote-ssh }
-
-- include: ../../../ansible/playbooks/metron_full_install.yml
+sshd_config_file: /etc/ssh/sshd_config
