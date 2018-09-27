@@ -118,41 +118,16 @@ public class AlertsUIServiceImplTest {
 
     // create an alert along with the expected escalation message that is sent to kafka
     final Map<String, Object> alert1 = mapOf(field, value1);
-    String escalationMessage1 = escalatedMessage(field, value1, user1, clock.currentTimeMillis());
+    String escalationMessage1 = escalationMessage(field, value1, user1, clock.currentTimeMillis());
 
     final Map<String, Object> alert2 = mapOf(field, value2);
-    String escalationMessage2 = escalatedMessage(field, value2, user1, clock.currentTimeMillis());
+    String escalationMessage2 = escalationMessage(field, value2, user1, clock.currentTimeMillis());
 
     // escalate the alerts and validate
     alertsUIService.escalateAlerts(Arrays.asList(alert1, alert2));
     verify(kafkaService).produceMessage(escalationTopic, escalationMessage1);
     verify(kafkaService).produceMessage(escalationTopic, escalationMessage2);
     verifyZeroInteractions(kafkaService);
-  }
-
-  private Map<String, Object> mapOf(String key, Object value) {
-    Map<String, Object> map = new HashMap<>();
-    map.put(key, value);
-    return map;
-  }
-
-  /**
-   * Defines what the message sent to Kafka should look-like when an alert is escalated.
-   *
-   * @param field The field name.
-   * @param value The value of the field.
-   * @param user The user who escalated the alert.
-   * @param timestamp When the alert was escalated.
-   * @return The escalated message.
-   */
-  private String escalatedMessage(String field, String value, String user, Long timestamp) {
-    return String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%d}",
-            field,
-            value,
-            MetronRestConstants.METRON_ESCALATION_USER_FIELD,
-            user,
-            MetronRestConstants.METRON_ESCALATION_TIMESTAMP_FIELD,
-            timestamp);
   }
 
   @Test
@@ -213,5 +188,30 @@ public class AlertsUIServiceImplTest {
 
     verify(userSettingsClient, times(2)).delete(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE);
     verifyNoMoreInteractions(userSettingsClient);
+  }
+
+  /**
+   * Defines what the message sent to Kafka should look-like when an alert is escalated.
+   *
+   * @param field The field name.
+   * @param value The value of the field.
+   * @param user The user who escalated the alert.
+   * @param timestamp When the alert was escalated.
+   * @return The escalated message.
+   */
+  private String escalationMessage(String field, String value, String user, Long timestamp) {
+    return String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%d}",
+            field,
+            value,
+            MetronRestConstants.METRON_ESCALATION_USER_FIELD,
+            user,
+            MetronRestConstants.METRON_ESCALATION_TIMESTAMP_FIELD,
+            timestamp);
+  }
+
+  private Map<String, Object> mapOf(String key, Object value) {
+    Map<String, Object> map = new HashMap<>();
+    map.put(key, value);
+    return map;
   }
 }
