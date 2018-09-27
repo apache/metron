@@ -78,7 +78,7 @@ public class AlertsUIServiceImpl implements AlertsUIService {
     String user = SecurityUtils.getCurrentUser();
     String topic = environment.getProperty(KAFKA_TOPICS_ESCALATION_PROPERTY);
     Long now = clock.currentTimeMillis();
-    LOG.debug("Escalating {} alert(s): user={}, topic={}, timestamp={}", alerts.size(), user, topic, now);
+    LOG.info("Escalating {} alert(s): user={}, topic={}, timestamp={}", alerts.size(), user, topic, now);
 
     try {
       for (Map<String, Object> alert : alerts) {
