@@ -17,8 +17,9 @@
  */
 import { Component, OnInit, ViewChild, ElementRef, OnChanges, SimpleChanges, Input, Output, EventEmitter } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import * as moment from 'moment/moment';
 import * as Pikaday from 'pikaday-time';
+import { DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
+import { endOfDay, format } from 'date-fns';
 
 @Component({
   selector: 'app-date-picker',
@@ -52,7 +53,8 @@ export class DatePickerComponent implements OnInit, OnChanges, ControlValueAcces
       showSeconds: true,
       use24hour: true,
       onSelect: function() {
-        _datePickerComponent.dateStr = this.getMoment().format('YYYY-MM-DD HH:mm:ss');
+        // hint: inside this scope, `this` is the Pickaday instance
+        _datePickerComponent.dateStr = format(this.getDate(), DEFAULT_TIMESTAMP_FORMAT);
         setTimeout(() => {
           _datePickerComponent.dateChange.emit(_datePickerComponent.dateStr);
           if (_datePickerComponent.onChange) {
@@ -104,7 +106,7 @@ export class DatePickerComponent implements OnInit, OnChanges, ControlValueAcces
       this.dateStr = this.defaultDateStr;
     }
     this.picker.setMinDate(new Date(this.minDate));
-    this.picker.setDate(moment(this.minDate).endOf('day').format('YYYY-MM-DD HH:mm:ss'));
+    this.picker.setDate(format(endOfDay(this.minDate), DEFAULT_TIMESTAMP_FORMAT));
   }
 
   toggleDatePicker($event) {
