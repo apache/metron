@@ -18,11 +18,11 @@
 import {Component, Input, Output, EventEmitter, OnChanges, OnInit, OnDestroy, SimpleChanges} from '@angular/core';
 import { FormGroup, FormControl, Validators, ValidationErrors } from '@angular/forms';
 
-import * as moment from 'moment/moment';
 import { DEFAULT_START_TIME, DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
 
 import { PcapRequest } from '../model/pcap.request';
 import { Observable, Subscription, merge } from 'rxjs';
+import{ format } from 'date-fns';
 
 function validateStartDate(formControl: FormControl): ValidationErrors | null {
   if (!formControl.parent) {
@@ -50,12 +50,12 @@ function validateEndDate(formControl: FormControl): ValidationErrors | null {
 }
 
 function transformPcapRequestToFormGroupValue(model: PcapRequest): PcapFilterFormValue {
-  const startTimeStr = moment(model.startTimeMs > 0 ? model.startTimeMs : DEFAULT_START_TIME).format(DEFAULT_TIMESTAMP_FORMAT);
-  let endTimeStr = moment(model.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
+  const startTimeStr = format(model.startTimeMs > 0 ? model.startTimeMs : DEFAULT_START_TIME, DEFAULT_TIMESTAMP_FORMAT);
+  let endTimeStr = format(model.endTimeMs, DEFAULT_TIMESTAMP_FORMAT);
   if (isNaN((new Date(model.endTimeMs).getTime()))) {
-    endTimeStr = moment(DEFAULT_END_TIME).format(DEFAULT_TIMESTAMP_FORMAT);
+    endTimeStr = format(DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT);
   } else {
-    endTimeStr = moment(model.endTimeMs).format(DEFAULT_TIMESTAMP_FORMAT);
+    endTimeStr = format(model.endTimeMs, DEFAULT_TIMESTAMP_FORMAT);
   }
 
   return {
@@ -114,8 +114,8 @@ export class PcapFiltersComponent implements OnInit, OnChanges, OnDestroy {
   private dateRangeChangeSubscription: Subscription;
 
   filterForm = new FormGroup({
-    startTime: new FormControl(moment(DEFAULT_START_TIME).format(DEFAULT_TIMESTAMP_FORMAT), validateStartDate),
-    endTime: new FormControl(moment(DEFAULT_END_TIME).format(DEFAULT_TIMESTAMP_FORMAT), validateEndDate),
+    startTime: new FormControl(format(DEFAULT_START_TIME, DEFAULT_TIMESTAMP_FORMAT), validateStartDate),
+    endTime: new FormControl(format(DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT), validateEndDate),
     ipSrcAddr: new FormControl('', Validators.pattern(this.validIp)),
     ipSrcPort: new FormControl('', Validators.pattern(this.validPort)),
     ipDstAddr: new FormControl('', Validators.pattern(this.validIp)),
