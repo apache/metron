@@ -30,7 +30,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 * [Start Metron](#start-metron)
 * [Push Data](#push-data)
 * [More Information](#more-information)
-* [Elasticseach X-Pack](#x-pack)
+* [Elasticseach X-Pack](#X-Pack)
 
 Setup
 -----
@@ -568,7 +568,7 @@ X-Pack
     Add the `es.client.settings` to global.json
 
     ```
-    /usr/metron/0.5.1/config/zookeeper/global.json ->
+    $METRON_HOME/config/zookeeper/global.json ->
 
       "es.client.settings" : {
           "es.client.class" : "org.elasticsearch.xpack.client.PreBuiltXPackTransportClient",
@@ -650,10 +650,6 @@ X-Pack
                     <groupId>log4j</groupId>
                     <artifactId>log4j</artifactId>
                   </exclusion>
-                  <exclusion> <!-- this is causing a weird build error if not excluded - Error creating shaded jar: null: IllegalArgumentException -->
-                        <groupId>org.apache.logging.log4j</groupId>
-                        <artifactId>log4j-api</artifactId>
-                    </exclusion>
                 </exclusions>
               </dependency>
         </dependencies>
@@ -662,7 +658,7 @@ X-Pack
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>2.4.3</version>
+                    <version>3.2.0</version>
                     <configuration>
                         <createDependencyReducedPom>true</createDependencyReducedPom>
                     </configuration>
@@ -728,7 +724,8 @@ X-Pack
 1. Once you've built the `elasticsearch-xpack-shaded-5.6.2.jar`, it needs to be made available to Storm when you submit the topology. Create a contrib directory for indexing and put the jar file in this directory.
 
     ```
-    /usr/metron/0.5.1/indexing_contrib/elasticsearch-xpack-shaded-5.6.2.jar
+    mkdir $METRON_HOME/indexing_contrib
+    cp elasticsearch-xpack-shaded-5.6.2.jar $METRON_HOME/indexing_contrib/elasticsearch-xpack-shaded-5.6.2.jar
     ```
 
 1. Now you can restart the Elasticsearch topology. Note, you should perform this step manually, as follows.

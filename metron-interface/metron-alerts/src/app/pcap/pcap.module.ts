@@ -15,15 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpModule } from '@angular/http';
 
 import { routing } from './pcap.routing';
-
 import { DatePickerModule } from '../shared/date-picker/date-picker.module';
-
 import { PcapListComponent } from './pcap-list/pcap-list.component';
 import { PcapPacketComponent } from './pcap-packet/pcap-packet.component';
 import { PcapFiltersComponent } from './pcap-filters/pcap-filters.component';
@@ -31,15 +29,17 @@ import { PcapPanelComponent } from './pcap-panel/pcap-panel.component';
 import { PcapPacketLineComponent } from './pcap-packet-line/pcap-packet-line.component';
 import { PcapPaginationComponent } from './pcap-pagination/pcap-pagination.component';
 import { PcapService } from './service/pcap.service';
+import { ConfirmationPopoverModule } from 'angular-confirmation-popover';
 
 @NgModule({
   imports: [
     routing,
     CommonModule,
     FormsModule,
+    HttpClientModule,
     ReactiveFormsModule,
-    HttpModule,
     DatePickerModule,
+    ConfirmationPopoverModule.forRoot()
   ],
   declarations: [
     PcapListComponent,
@@ -49,7 +49,7 @@ import { PcapService } from './service/pcap.service';
     PcapPacketLineComponent,
     PcapPaginationComponent
   ],
-  exports: [ PcapPanelComponent ],
-  providers: [ PcapService ]
+  exports: [PcapPanelComponent],
+  providers: [PcapService]
 })
 export class PcapModule {}
