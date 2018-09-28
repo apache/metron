@@ -159,6 +159,45 @@
         </component>
 
         <component>
+          <name>METRON_PCAP</name>
+          <displayName>Metron PCAP</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>KAFKA/KAFKA_BROKER</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/pcap_master.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <configuration-dependencies>
+            <config-type>metron-rest-env</config-type>
+          </configuration-dependencies>
+        </component>
+
+        <component>
           <name>METRON_INDEXING</name>
           <displayName>Metron Indexing</displayName>
           <category>MASTER</category>
@@ -404,7 +443,13 @@
               <name>metron-enrichment</name>
             </package>
             <package>
-              <name>metron-profiler</name>
+              <name>metron-profiler-storm</name>
+            </package>
+            <package>
+              <name>metron-profiler-spark</name>
+            </package>
+            <package>
+              <name>metron-profiler-repl</name>
             </package>
             <package>
               <name>metron-indexing</name>
