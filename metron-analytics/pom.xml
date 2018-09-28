@@ -43,9 +43,11 @@
 		<module>metron-maas-service</module>
 		<module>metron-maas-common</module>
 		<module>metron-statistics</module>
-		<module>metron-profiler</module>
+		<module>metron-profiler-storm</module>
 		<module>metron-profiler-client</module>
 		<module>metron-profiler-common</module>
+		<module>metron-profiler-spark</module>
+		<module>metron-profiler-repl</module>
     </modules>
 	<dependencies>
 		<dependency>

@@ -235,7 +235,7 @@ public class DefaultProfileBuilderTest {
       assertTrue(m.isPresent());
 
       // validate the profile period
-      ProfilePeriod expected = new ProfilePeriod(timestamp, 10, TimeUnit.MINUTES);
+      ProfilePeriod expected = ProfilePeriod.fromTimestamp(timestamp, 10, TimeUnit.MINUTES);
       assertEquals(expected, m.get().getPeriod());
     }
     {
@@ -248,7 +248,7 @@ public class DefaultProfileBuilderTest {
       assertTrue(m.isPresent());
 
       // validate the profile period
-      ProfilePeriod expected = new ProfilePeriod(timestamp, 10, TimeUnit.MINUTES);
+      ProfilePeriod expected = ProfilePeriod.fromTimestamp(timestamp, 10, TimeUnit.MINUTES);
       assertEquals(expected, m.get().getPeriod());
     }
   }
@@ -314,7 +314,7 @@ public class DefaultProfileBuilderTest {
 
     // setup
     long timestamp = 1503081070340L;
-    ProfilePeriod period = new ProfilePeriod(timestamp, 10, TimeUnit.MINUTES);
+    ProfilePeriod period = ProfilePeriod.fromTimestamp(timestamp, 10, TimeUnit.MINUTES);
     definition = JSONUtils.INSTANCE.load(testStateAvailableToGroupBy, ProfileConfig.class);
     builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)

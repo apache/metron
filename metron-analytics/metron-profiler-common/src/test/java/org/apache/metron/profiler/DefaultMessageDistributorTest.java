@@ -123,10 +123,10 @@ public class DefaultMessageDistributorTest {
     long timestamp = 100;
     ProfileConfig definition = createDefinition(profileOne);
     String entity = (String) messageOne.get("ip_src_addr");
-    MessageRoute route = new MessageRoute(definition, entity);
+    MessageRoute route = new MessageRoute(definition, entity, messageOne, timestamp);
 
     // distribute one message and flush
-    distributor.distribute(messageOne, timestamp, route, context);
+    distributor.distribute(route, context);
     List<ProfileMeasurement> measurements = distributor.flush();
 
     // expect one measurement coming from one profile
@@ -144,12 +144,12 @@ public class DefaultMessageDistributorTest {
     String entity = (String) messageOne.get("ip_src_addr");
 
     // distribute one message to the first profile
-    MessageRoute routeOne = new MessageRoute(createDefinition(profileOne), entity);
-    distributor.distribute(messageOne, timestamp, routeOne, context);
+    MessageRoute routeOne = new MessageRoute(createDefinition(profileOne), entity, messageOne, timestamp);
+    distributor.distribute(routeOne, context);
 
     // distribute another message to the second profile, but same entity
-    MessageRoute routeTwo = new MessageRoute(createDefinition(profileTwo), entity);
-    distributor.distribute(messageOne, timestamp, routeTwo, context);
+    MessageRoute routeTwo = new MessageRoute(createDefinition(profileTwo), entity, messageOne, timestamp);
+    distributor.distribute(routeTwo, context);
 
     // expect 2 measurements; 1 for each profile
     List<ProfileMeasurement> measurements = distributor.flush();
@@ -164,13 +164,13 @@ public class DefaultMessageDistributorTest {
 
     // distribute one message
     String entityOne = (String) messageOne.get("ip_src_addr");
-    MessageRoute routeOne = new MessageRoute(createDefinition(profileOne), entityOne);
-    distributor.distribute(messageOne, timestamp, routeOne, context);
+    MessageRoute routeOne = new MessageRoute(createDefinition(profileOne), entityOne, messageOne, timestamp);
+    distributor.distribute(routeOne, context);
 
     // distribute another message with a different entity
     String entityTwo = (String) messageTwo.get("ip_src_addr");
-    MessageRoute routeTwo =  new MessageRoute(createDefinition(profileTwo), entityTwo);
-    distributor.distribute(messageTwo, timestamp, routeTwo, context);
+    MessageRoute routeTwo =  new MessageRoute(createDefinition(profileTwo), entityTwo, messageTwo, timestamp);
+    distributor.distribute(routeTwo, context);
 
     // expect 2 measurements; 1 for each entity
     List<ProfileMeasurement> measurements = distributor.flush();
@@ -190,7 +190,7 @@ public class DefaultMessageDistributorTest {
     // setup
     ProfileConfig definition = createDefinition(profileOne);
     String entity = (String) messageOne.get("ip_src_addr");
-    MessageRoute route = new MessageRoute(definition, entity);
+    MessageRoute route = new MessageRoute(definition, entity, messageOne, System.currentTimeMillis());
     distributor = new DefaultMessageDistributor(
             periodDurationMillis,
             profileTimeToLiveMillis,
@@ -198,7 +198,7 @@ public class DefaultMessageDistributorTest {
             ticker);
 
     // distribute one message
-    distributor.distribute(messageOne, 1000000, route, context);
+    distributor.distribute(route, context);
 
     // advance time to just shy of the profile TTL
     ticker.advanceTime(profileTimeToLiveMillis - 1000, MILLISECONDS);
@@ -220,7 +220,7 @@ public class DefaultMessageDistributorTest {
     // setup
     ProfileConfig definition = createDefinition(profileOne);
     String entity = (String) messageOne.get("ip_src_addr");
-    MessageRoute route = new MessageRoute(definition, entity);
+    MessageRoute route = new MessageRoute(definition, entity, messageOne, System.currentTimeMillis());
     distributor = new DefaultMessageDistributor(
             periodDurationMillis,
             profileTimeToLiveMillis,
@@ -228,7 +228,7 @@ public class DefaultMessageDistributorTest {
             ticker);
 
     // distribute one message
-    distributor.distribute(messageOne, 100000, route, context);
+    distributor.distribute(route, context);
 
     // advance time to just beyond the period duration
     ticker.advanceTime(profileTimeToLiveMillis + 1000, MILLISECONDS);
@@ -251,7 +251,7 @@ public class DefaultMessageDistributorTest {
     // setup
     ProfileConfig definition = createDefinition(profileOne);
     String entity = (String) messageOne.get("ip_src_addr");
-    MessageRoute route = new MessageRoute(definition, entity);
+    MessageRoute route = new MessageRoute(definition, entity, messageOne, System.currentTimeMillis());
     distributor = new DefaultMessageDistributor(
             periodDurationMillis,
             profileTimeToLiveMillis,
@@ -259,7 +259,7 @@ public class DefaultMessageDistributorTest {
             ticker);
 
     // distribute one message
-    distributor.distribute(messageOne, 1000000, route, context);
+    distributor.distribute(route, context);
 
     // advance time a couple of hours
     ticker.advanceTime(2, HOURS);
