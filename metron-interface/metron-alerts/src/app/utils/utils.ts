@@ -15,17 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as moment from 'moment/moment';
-
 import { DEFAULT_START_TIME, DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT, META_ALERTS_SENSOR_TYPE } from './constants';
 import { Alert } from '../model/alert';
 import { DateFilterValue } from '../model/date-filter-value';
 import { PcapRequest } from '../pcap/model/pcap.request';
 import { PcapFilterFormValue } from '../pcap/pcap-filters/pcap-filters.component';
 import { FormGroup } from '@angular/forms';
+import {
+  subMinutes,
+  subHours,
+  subDays,
+  subWeeks,
+  subMonths,
+  subYears,
+  startOfDay,
+  startOfWeek,
+  startOfMonth,
+  startOfYear,
+  endOfDay,
+  endOfWeek,
+  endOfMonth,
+  endOfYear,
+  format
+} from 'date-fns';
 
 export class Utils {
-  
+
   public static escapeESField(field: string): string {
     return field.replace(/:/g, '\\:');
   }
@@ -75,133 +90,136 @@ export class Utils {
   }
 
   public static timeRangeToDisplayStr(range:string) {
-    let toDate = '';
-    let fromDate = '';
+    let toDate;
+    let fromDate;
 
     switch (range) {
       case 'last-7-days':
-        fromDate = moment().subtract(7, 'days').local().format();
-        toDate = moment().local().format();
+        fromDate = subDays(Date.now(), 7);
+        toDate = Date.now();
         break;
       case 'last-30-days':
-        fromDate = moment().subtract(30, 'days').local().format();
-        toDate = moment().local().format();
+        fromDate = subDays(Date.now(), 30);
+        toDate = Date.now();
         break;
       case 'last-60-days':
-        fromDate = moment().subtract(60, 'days').local().format();
-        toDate = moment().local().format();
+        fromDate = subDays(Date.now(), 60);
+        toDate = Date.now();
         break;
       case 'last-90-days':
-        fromDate = moment().subtract(90, 'days').local().format();
-        toDate = moment().local().format();
+        fromDate = subDays(Date.now(), 90);
+        toDate = Date.now();
         break;
       case 'last-6-months':
-        fromDate = moment().subtract(6, 'months').local().format();
-        toDate = moment().local().format();
+        fromDate = subMonths(Date.now(), 6);
+        toDate = Date.now();
         break;
       case 'last-1-year':
-        fromDate = moment().subtract(1, 'year').local().format();
-        toDate = moment().local().format();
+        fromDate = subYears(Date.now(), 1);
+        toDate = Date.now();
         break;
       case 'last-2-years':
-        fromDate = moment().subtract(2, 'years').local().format();
-        toDate = moment().local().format();
+        fromDate = subYears(Date.now(), 2);
+        toDate = Date.now();
         break;
       case 'last-5-years':
-        fromDate = moment().subtract(5, 'years').local().format();
-        toDate = moment().local().format();
+        fromDate = subYears(Date.now(), 5);
+        toDate = Date.now();
         break;
       case 'all-time':
-        fromDate = '1970-01-01T05:30:00+05:30';
-        toDate = '2100-01-01T05:30:00+05:30';
+        fromDate = '1970-01-01';
+        toDate = '2100-01-01';
         break;
       case 'yesterday':
-        fromDate = moment().subtract(1, 'days').startOf('day').local().format();
-        toDate = moment().subtract(1, 'days').endOf('day').local().format();
+        fromDate = startOfDay(subDays(Date.now(), 1));
+        toDate = endOfDay(subDays(Date.now(), 1));
         break;
       case 'day-before-yesterday':
-        fromDate = moment().subtract(2, 'days').startOf('day').local().format();
-        toDate = moment().subtract(2, 'days').endOf('day').local().format();
+        fromDate = startOfDay(subDays(Date.now(), 2));
+        toDate = endOfDay(subDays(Date.now(), 2));
         break;
       case 'this-day-last-week':
-        fromDate = moment().subtract(7, 'days').startOf('day').local().format();
-        toDate = moment().subtract(7, 'days').endOf('day').local().format();
+        fromDate = startOfDay(subDays(Date.now(), 7));
+        toDate = endOfDay(subDays(Date.now(), 7));
         break;
       case 'previous-week':
-        fromDate = moment().subtract(1, 'weeks').startOf('week').local().format();
-        toDate = moment().subtract(1, 'weeks').endOf('week').local().format();
+        fromDate = startOfWeek(subWeeks(Date.now(), 1));
+        toDate = endOfWeek(subWeeks(Date.now(), 1));
         break;
       case 'previous-month':
-        fromDate = moment().subtract(1, 'months').startOf('month').local().format();
-        toDate = moment().subtract(1, 'months').endOf('month').local().format();
+        fromDate = startOfMonth(subMonths(Date.now(), 1));
+        toDate = endOfMonth(subMonths(Date.now(), 1));
         break;
       case 'previous-year':
-        fromDate = moment().subtract(1, 'years').startOf('year').local().format();
-        toDate = moment().subtract(1, 'years').endOf('year').local().format();
+        fromDate = startOfYear(subYears(Date.now(), 1));
+        toDate = endOfYear(subYears(Date.now(), 1));
         break;
       case 'today':
-        fromDate = moment().startOf('day').local().format();
-        toDate = moment().endOf('day').local().format();
+        fromDate = startOfDay(Date.now());
+        toDate = endOfDay(Date.now());
         break;
       case 'today-so-far':
-        fromDate = moment().startOf('day').local().format();
-        toDate = moment().local().format();
+        fromDate = startOfDay(Date.now());
+        toDate = Date.now();
         break;
       case 'this-week':
-        fromDate = moment().startOf('week').local().format();
-        toDate = moment().endOf('week').local().format();
+        fromDate = startOfWeek(Date.now());
+        toDate = endOfWeek(Date.now());
         break;
       case 'this-week-so-far':
-        fromDate = moment().startOf('week').local().format();
-        toDate = moment().local().format();
+        fromDate = startOfWeek(Date.now());
+        toDate = Date.now();
         break;
       case 'this-month':
-        fromDate = moment().startOf('month').local().format();
-        toDate = moment().endOf('month').local().format();
+        fromDate = startOfMonth(Date.now());
+        toDate = endOfMonth(Date.now());
         break;
       case 'this-year':
-        fromDate = moment().startOf('year').local().format();
-        toDate = moment().endOf('year').local().format();
+        fromDate = startOfYear(Date.now());
+        toDate = endOfYear(Date.now());
         break;
       case 'last-5-minutes':
-        fromDate = moment().subtract(5, 'minutes').local().format();
-        toDate = moment().local().format();
+        fromDate = subMinutes(Date.now(), 5);
+        toDate = Date.now();
         break;
       case 'last-15-minutes':
-        fromDate = moment().subtract(15, 'minutes').local().format();
-        toDate = moment().local().format();
+        fromDate = subMinutes(Date.now(), 15);
+        toDate = Date.now();
         break;
       case 'last-30-minutes':
-        fromDate = moment().subtract(30, 'minutes').local().format();
-        toDate = moment().local().format();
+        fromDate = subMinutes(Date.now(), 30);
+        toDate = Date.now();
         break;
       case 'last-1-hour':
-        fromDate = moment().subtract(60, 'minutes').local().format();
-        toDate = moment().local().format();
+        fromDate = subMinutes(Date.now(), 60);
+        toDate = Date.now();
         break;
       case 'last-3-hours':
-        fromDate = moment().subtract(3, 'hours').local().format();
-        toDate = moment().local().format();
+        fromDate = subHours(Date.now(), 3);
+        toDate = Date.now();
         break;
       case 'last-6-hours':
-        fromDate = moment().subtract(6, 'hours').local().format();
-        toDate = moment().local().format();
+        fromDate = subHours(Date.now(), 6);
+        toDate = Date.now();
         break;
       case 'last-12-hours':
-        fromDate = moment().subtract(12, 'hours').local().format();
-        toDate = moment().local().format();
+        fromDate = subHours(Date.now(), 12);
+        toDate = Date.now();
         break;
       case 'last-24-hours':
-        fromDate = moment().subtract(24, 'hours').local().format();
-        toDate = moment().local().format();
+        fromDate = subHours(Date.now(), 24);
+        toDate = Date.now();
         break;
       default:
         return null;
     }
 
-    toDate = moment(toDate).format(DEFAULT_TIMESTAMP_FORMAT);
-    fromDate = moment(fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
+    toDate = format(toDate, DEFAULT_TIMESTAMP_FORMAT);
+    fromDate = format(fromDate, DEFAULT_TIMESTAMP_FORMAT);
 
-    return {toDate: toDate, fromDate: fromDate};
+    return {
+      fromDate,
+      toDate
+    };
   }
 }
