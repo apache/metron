@@ -32,9 +32,9 @@ import { RestError } from '../../model/rest-error';
 })
 export class PcapPanelComponent implements OnInit, OnDestroy {
 
-  @Input() pdml: Pdml = null;
-  @Input() pcapRequest: PcapRequest;
-  @Input() resetPaginationForSearch: boolean;
+  pdml: Pdml = null;
+  pcapRequest: PcapRequest;
+  resetPaginationForSearch: boolean;
 
   statusSubscription: Subscription;
   cancelSubscription: Subscription;
@@ -46,6 +46,7 @@ export class PcapPanelComponent implements OnInit, OnDestroy {
   pagination: PcapPagination = new PcapPagination();
   savedPcapRequest: {};
   errorMsg: string;
+  cancelConfirmMessage = 'Are you sure want to cancel the running query?';
 
   constructor(private pcapService: PcapService) { }
 

@@ -19,7 +19,22 @@
     <div class="progress pcap-progress-background">
       <div class="progress-bar progress-bar-animated pcap-progress" role="progressbar" attr.aria-valuenow="{{progressWidth}}" aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'width': progressWidth + '%'}">{{progressWidth}}%</div>
     </div>
-    <button data-qe-id="pcap-cancel-query-button" class="pcap-cancel-query-button btn btn-primary btn-sm" (click)="cancelQuery()" [disabled]="!queryId"></button>
+    <button
+      mwlConfirmationPopover
+      [popoverMessage]="cancelConfirmMessage"
+      placement="left"
+      (confirm)="cancelQuery()"
+      cancelText="No"
+      confirmText="Yes"
+      confirmButtonType="danger"
+      appendToBody="true"
+      popoverClass="pcap-cancel-query-confirm-popover confirm-popover"
+
+      data-qe-id="pcap-cancel-query-button"
+      class="pcap-cancel-query-button btn btn-primary btn-sm"
+      [disabled]="!queryId"
+    >
+    </button>
   </div>
   <div *ngIf="errorMsg" class="alert alert-danger" role="alert" data-qe-id="error">
     {{ errorMsg }}
