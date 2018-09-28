@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Component, OnInit, ViewChild, ElementRef, HostListener, EventEmitter, Output, Input, OnChanges, SimpleChanges} from '@angular/core';
-import * as moment from 'moment/moment';
+import { format } from 'date-fns';
 
 import {Filter} from '../../model/filter';
 import {
@@ -96,8 +96,8 @@ export class TimeRangeComponent implements OnChanges {
         foundQuickRange = true;
         this.selectedTimeRangeValue = key;
         if (this.selectedTimeRange.dateFilterValue) {
-          this.toDateStr = moment(this.selectedTimeRange.dateFilterValue.toDate).format(DEFAULT_TIMESTAMP_FORMAT);
-          this.fromDateStr = moment(this.selectedTimeRange.dateFilterValue.fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
+          this.toDateStr = format(this.selectedTimeRange.dateFilterValue.toDate, DEFAULT_TIMESTAMP_FORMAT);
+          this.fromDateStr = format(this.selectedTimeRange.dateFilterValue.fromDate, DEFAULT_TIMESTAMP_FORMAT);
 
           this.datePickerFromDate = '';
           this.datePickerToDate = '';
@@ -108,9 +108,9 @@ export class TimeRangeComponent implements OnChanges {
     if (!foundQuickRange) {
       this.selectedTimeRangeValue = CUSTOMM_DATE_RANGE_LABEL;
       this.toDateStr = this.selectedTimeRange.dateFilterValue.toDate !== null ?
-                        moment(this.selectedTimeRange.dateFilterValue.toDate).format(DEFAULT_TIMESTAMP_FORMAT) :
+                        format(this.selectedTimeRange.dateFilterValue.toDate, DEFAULT_TIMESTAMP_FORMAT) :
                         'now';
-      this.fromDateStr = moment(this.selectedTimeRange.dateFilterValue.fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
+      this.fromDateStr = format(this.selectedTimeRange.dateFilterValue.fromDate, DEFAULT_TIMESTAMP_FORMAT);
 
       this.datePickerFromDate = this.fromDateStr;
       this.datePickerToDate = this.selectedTimeRange.dateFilterValue.toDate !== null ? this.toDateStr : '';
@@ -146,8 +146,8 @@ export class TimeRangeComponent implements OnChanges {
   applyCustomDate() {
     this.hideDatePicker();
     this.selectedTimeRangeValue = CUSTOMM_DATE_RANGE_LABEL;
-    this.toDateStr = this.datePickerToDate.length > 0  ? moment(this.datePickerToDate).format(DEFAULT_TIMESTAMP_FORMAT) : 'now';
-    this.fromDateStr = moment(this.datePickerFromDate).format(DEFAULT_TIMESTAMP_FORMAT);
+    this.toDateStr = this.datePickerToDate.length > 0  ? format(this.datePickerToDate, DEFAULT_TIMESTAMP_FORMAT) : 'now';
+    this.fromDateStr = format(this.datePickerFromDate, DEFAULT_TIMESTAMP_FORMAT);
 
     let toDate = this.datePickerToDate.length > 0 ? new Date(this.toDateStr).getTime() : null;
     let fromDate = new Date(this.fromDateStr).getTime();
