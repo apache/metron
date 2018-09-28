@@ -21,6 +21,8 @@ package org.apache.metron.profiler.clock;
 
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 
+import java.io.Serializable;
+
 /**
  * Creates a {@link Clock} based on the profiler configuration.
  *
@@ -29,7 +31,7 @@ import org.apache.metron.common.configuration.profiler.ProfilerConfig;
  *
  * <p>The default implementation of a {@link ClockFactory}.
  */
-public class DefaultClockFactory implements ClockFactory {
+public class DefaultClockFactory implements ClockFactory, Serializable {
 
   /**
    * @param config The profiler configuration.
