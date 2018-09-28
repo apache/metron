@@ -19,7 +19,7 @@ import { async, inject, TestBed } from '@angular/core/testing';
 import { AuthenticationService } from '../service/authentication.service';
 import { LoginComponent } from './login.component';
 import { ActivatedRoute, Params } from '@angular/router';
-import { Observable } from 'rxjs';
+import { of } from 'rxjs';
 
 class MockAuthenticationService {
   public login(username: string, password: string, onError): void {
@@ -34,7 +34,7 @@ class MockAuthenticationService {
 }
 
 class MockActivedRoutes {
-  queryParams: Observable<Params> = Observable.of({
+  queryParams = of({
     sessionExpired: false
   })
 }

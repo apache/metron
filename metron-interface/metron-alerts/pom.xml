@@ -62,7 +62,7 @@
                     </execution>
                     <execution>
                         <phase>generate-resources</phase>
-                        <id>ng build</id>
+                        <id>npm run build</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
@@ -72,12 +72,12 @@
                     </execution>
                     <execution>
                         <phase>test</phase>
-                        <id>npm test</id>
+                        <id>npm testCI</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
                         <configuration>
-                            <arguments>test</arguments>
+                            <arguments>run testCI</arguments>
                         </configuration>
                     </execution>
                 </executions>
