@@ -26,7 +26,7 @@ import { PcapFiltersComponent } from './pcap-filters.component';
 import { DatePickerModule } from '../../shared/date-picker/date-picker.module';
 import { PcapRequest } from '../model/pcap.request';
 import { DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
-import * as moment from 'moment/moment';
+import { addDays, format } from 'date-fns';
 
 describe('PcapFiltersComponent', () => {
   let component: PcapFiltersComponent;
@@ -455,7 +455,7 @@ describe('PcapFiltersComponent', () => {
       expect(component.filterForm.get('endTime').valid).toBe(true);
 
       component.filterForm.patchValue({
-        endTime: moment(new Date()).add(2, 'days').format(DEFAULT_TIMESTAMP_FORMAT)
+        endTime: format(addDays(Date.now(), 2), DEFAULT_TIMESTAMP_FORMAT)
       });
 
       expect(component.filterForm.get('endTime').valid).toBe(false);
