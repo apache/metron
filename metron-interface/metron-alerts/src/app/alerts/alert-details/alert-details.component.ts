@@ -17,7 +17,6 @@
  */
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import * as moment from 'moment/moment';
 import {Subscription} from 'rxjs';
 
 import {SearchService} from '../../service/search.service';
@@ -33,6 +32,7 @@ import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
 import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {GlobalConfigService} from '../../service/global-config.service';
+import {distanceInWordsToNow} from 'date-fns';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -108,8 +108,11 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   setComments(alertComments) {
-    this.alertCommentsWrapper = alertComments.map(alertComment =>
-        new AlertCommentWrapper(alertComment, moment(new Date(alertComment.timestamp)).fromNow()));
+    this.alertCommentsWrapper = alertComments.map(comment => {
+      const dateOfComment = new Date(comment.timestamp);
+      const distanceInWords = distanceInWordsToNow(dateOfComment, { addSuffix: true });
+      return new AlertCommentWrapper(comment, distanceInWords);
+    });
   }
 
   getAlertState(alertStatus) {
