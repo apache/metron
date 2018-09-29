@@ -591,7 +591,7 @@ chkconfig --del metron-alerts-ui
 %changelog
 * Thu Aug 30 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
 - Update compiled css file name for Alerts UI
-* Fri Aug 24 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
+* Fri Aug 24 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
 - Add syslog5424 parser
 * Tue Aug 21 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
 - Add Profiler for REPL
