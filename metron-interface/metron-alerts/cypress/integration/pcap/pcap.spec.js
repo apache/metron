@@ -1,5 +1,8 @@
 /// <reference types="Cypress" />
 
+// TODO: integrate with Travis
+// https://dzone.com/articles/running-cypress-tests-in-an-angular-project-with-t
+
 context('PCAP Tab', () => {
 
   beforeEach(() => {
@@ -80,5 +83,78 @@ context('PCAP Tab', () => {
     cy.wait('@jobStatusCheck');
 
     cy.contains('75%').should('be.visible');
+  });
+
+  it.only('getting pcap json', () => {
+    cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
+    cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
+    cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
+
+    cy.contains('PCAP').click();
+    cy.get('[data-qe-id="submit-button"]').click();
+    
+    cy.wait('@statusCheck');
+
+    cy.wait('@gettingPdml').its('url').should('include', '/api/v1/pcap/job_1537878471649_0001/pdml?page=1');
+  });
+
+
+  it.only('rendering pcap table', () => {
+    cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
+    cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
+    cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
+
+    cy.contains('PCAP').click();
+    cy.get('[data-qe-id="submit-button"]').click();
+    
+    cy.wait('@statusCheck');
+
+    cy.wait('@gettingPdml').its('url').should('include', '/api/v1/pcap/job_1537878471649_0001/pdml?page=1');
+  });
+
+  it.only('showing pcap details', () => {});
+
+  it.only('navigating accross pages', () => {});
+
+  it.only('downloading pdml', () => {});
+
+
+  it('cancelling (kill) pcap query job', () => {
+    cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
+    cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-01.json').as('jobStatusCheck');
+    cy.route('DELETE', '/api/v1/pcap/kill/*', 'fixture:pcap.status-02.json').as('killJob');
+
+    cy.contains('PCAP').click();
+    cy.get('[data-qe-id="submit-button"]').click();
+    
+    cy.wait('@jobStatusCheck');
+
+    cy.get('[data-qe-id="pcap-cancel-query-button"]').click();
+    cy.contains('Yes').click();
+
+    cy.wait('@killJob').its('url').should('include', '/api/v1/pcap/kill/job_1537878471649_0001');
+  });
+
+  it('showing filter validation messages', () => {
+    cy.contains('PCAP').click();
+
+    cy.get('[data-qe-id="ip-src-addr"]').type('aaa.bbb.111.000');
+    cy.get('[data-qe-id="ip-dst-addr"]').type('ccc.ddd.222.000');
+    cy.get('[data-qe-id="ip-src-port"]').type('99999');
+    cy.get('[data-qe-id="ip-dst-port"]').type('aaaa');
+    
+    cy.get('.pcap-search-validation-errors').should('be.visible');
+    cy.get('.pcap-search-validation-errors li').should('have.length', 4);
+  });
+
+  it('showing date validation messages', () => {
+    cy.contains('PCAP').click();
+
+    cy.get('[data-qe-id="end-time"]').click();
+    cy.get('.pika-select-year').select('2015');
+    cy.get('[data-day="11"] > .pika-button').click();
+    
+    cy.get('.pcap-search-validation-errors').should('be.visible');
+    cy.get('.pcap-search-validation-errors li').should('have.length', 1);
   });
 })
