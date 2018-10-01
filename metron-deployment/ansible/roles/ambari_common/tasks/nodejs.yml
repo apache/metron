@@ -19,16 +19,18 @@
 # for CentOS...
 #
 - name: Install Nodejs repo on CentOS
-  shell: curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
+  shell: curl -sL https://rpm.nodesource.com/setup_6.x | bash -
   args:
     warn: false
   when: ansible_distribution == "CentOS"
+  become: true
 
 #
 # for Ubuntu...
 #
 - name: Install Nodejs repo on Ubuntu
-  shell: curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+  shell: curl -sL https://deb.nodesource.com/setup_6.x | bash -
   args:
     warn: false
   when: ansible_distribution == "Ubuntu"
+  become: true

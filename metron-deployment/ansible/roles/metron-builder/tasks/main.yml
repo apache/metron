@@ -26,10 +26,8 @@
 - include: clean.yml
 - include: build.yml
 
-- include: build-rpms.yml
-  static: no
+- include_tasks: build-rpms.yml
   when: ansible_distribution == "CentOS"
 
-- include: build-debs.yml
-  static: no
+- include_tasks: build-debs.yml
   when: ansible_distribution == "Ubuntu"

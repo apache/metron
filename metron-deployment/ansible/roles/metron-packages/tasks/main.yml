@@ -32,21 +32,17 @@
 # repository or whether it can be left empty.  copying the packages can be a
 # time consuming operation on a large cluster, so it avoided unless required.
 #
-- include: copy_packages_centos.yml
-  static: no
+- include_tasks: copy_packages_centos.yml
   when: ansible_distribution == "CentOS" and packages_required == true
 
-- include: copy_packages_ubuntu.yml
-  static: no
+- include_tasks: copy_packages_ubuntu.yml
   when: ansible_distribution == "Ubuntu" and packages_required == true
 
 #
 # create the local repository
 #
-- include: create_repo_centos.yml
-  static: no
+- include_tasks: create_repo_centos.yml
   when: ansible_distribution == "CentOS"
 
-- include: create_repo_ubuntu.yml
-  static: no
+- include_tasks: create_repo_ubuntu.yml
   when: ansible_distribution == "Ubuntu"
