@@ -64,7 +64,7 @@ class ParserCommands:
 
     def __get_aggr_parsers(self, params):
         """
-        Fetches the list of batched (and regular) parsers and returns a list.
+        Fetches the list of aggregated (and regular) parsers and returns a list.
         If the input list of parsers were "bro,snort,yaf", "bro,snort" and yaf, for example,
         then this method will return ["bro,snort,yaf", "bro,snort", "yaf"]
         :param params:
@@ -76,10 +76,10 @@ class ParserCommands:
             parserList.append(name.strip(','))
         return [s.translate(None, "'[]") for s in filter(None, parserList)]
 
-    def get_parser_batch_topology_names(self, params):
+    def get_parser_aggr_topology_names(self, params):
         """
-        Returns the names of regular and batched topologies as they would run in storm
-        A batch (or aggregated) topology has the naming convention of 'parserA__parserB'.
+        Returns the names of regular and aggregated topologies as they would run in storm
+        An aggregated topology has the naming convention of 'parserA__parserB'.
         For example, a list of parsers like ["bro,snort", yaf] will be returned as ["bro__snort", "yaf"]
         :param params:
         :return: List containing the names of parser topologies
@@ -174,7 +174,7 @@ class ParserCommands:
     def stop_parser_topologies(self, env):
         Logger.info('Stopping parsers')
 
-        running_parsers = set(self.get_parser_batch_topology_names(self.__params)) & self.get_running_topology_names(env)
+        running_parsers = set(self.get_parser_aggr_topology_names(self.__params)) & self.get_running_topology_names(env)
         Logger.info('Parsers that need stopped: ' + str(running_parsers))
 
         for parser in running_parsers:
@@ -231,7 +231,7 @@ class ParserCommands:
         env.set_params(self.__params)
         all_running = True
         topologies = metron_service.get_running_topologies(self.__params)
-        for parser in self.get_parser_batch_topology_names(self.__params):
+        for parser in self.get_parser_aggr_topology_names(self.__params):
             parser_found = False
             is_running = False
             if parser in topologies:
