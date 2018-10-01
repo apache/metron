@@ -158,6 +158,7 @@ This package installs the Metron Parser files
 %{metron_home}/config/zookeeper/parsers/jsonMapWrappedQuery.json
 %{metron_home}/config/zookeeper/parsers/snort.json
 %{metron_home}/config/zookeeper/parsers/squid.json
+%{metron_home}/config/zookeeper/parsers/syslog5424.json
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
 %{metron_home}/config/zookeeper/parsers/asa.json
@@ -590,6 +591,8 @@ chkconfig --del metron-alerts-ui
 %changelog
 * Thu Aug 30 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
 - Update compiled css file name for Alerts UI
+* Fri Aug 24 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
+- Add syslog5424 parser
 * Tue Aug 21 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
 - Add Profiler for REPL
 * Tue Aug 14 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
