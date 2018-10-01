@@ -160,10 +160,8 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
    */
   @Override
   public Optional<ProfileMeasurement> flush() {
-
     Optional<ProfileMeasurement> result;
-    ProfilePeriod period = new ProfilePeriod(maxTimestamp, periodDurationMillis, TimeUnit.MILLISECONDS);
-
+    ProfilePeriod period = ProfilePeriod.fromTimestamp(maxTimestamp, periodDurationMillis, TimeUnit.MILLISECONDS);
     try {
       // execute the 'profile' expression
       String profileExpression = definition
