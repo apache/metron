@@ -25,6 +25,10 @@ import org.apache.metron.indexing.dao.update.Document;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * This class is needed to compose an InMemoryMetaAlertUpdateDao implementation.  This allows the
+ * InMemoryMetaAlertUpdateDao class to extend AbstractLuceneMetaAlertUpdateDao and reuse common logic in that class.
+ */
 public class InMemoryMetaAlertRetrieveLatestDao implements MetaAlertRetrieveLatestDao {
 
   private IndexDao indexDao;

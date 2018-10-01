@@ -158,7 +158,7 @@ public class MultiIndexDao implements IndexDao {
     return getDocument(output);
   }
 
-  private static class DocumentContainer {
+  protected static class DocumentContainer {
     private Optional<Document> d = Optional.empty();
     private Optional<Throwable> t = Optional.empty();
     public DocumentContainer(Document d) {
@@ -284,14 +284,13 @@ public class MultiIndexDao implements IndexDao {
       if(dc.getException().isPresent()) {
         Throwable e = dc.getException().get();
         error.add(e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
-      }
-      else {
-        if(dc.getDocument().isPresent()) {
-          Document d = dc.getDocument().get();
-          if(ret == null || ret.getTimestamp() < d.getTimestamp()) {
-            ret = d;
-          }
+      } else if(dc.getDocument().isPresent()) {
+        Document d = dc.getDocument().get();
+        if(ret == null || ret.getTimestamp() < d.getTimestamp()) {
+          ret = d;
         }
+      } else {
+        throw new IllegalStateException("Expected either document or exception; got neither");
       }
     }
     if(error.size() > 0) {

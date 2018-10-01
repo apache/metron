@@ -28,6 +28,9 @@ import org.junit.rules.ExpectedException;
 import java.io.IOException;
 import java.util.HashMap;
 
+/**
+ * The tests in this class are common among all UpdateDao implementations.
+ */
 public abstract class UpdateDaoTest {
 
   @Rule

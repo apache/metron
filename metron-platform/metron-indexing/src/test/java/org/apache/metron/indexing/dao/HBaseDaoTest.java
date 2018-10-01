@@ -21,6 +21,10 @@ package org.apache.metron.indexing.dao;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.junit.Before;
 
+/**
+ * This class returns the HBaseDao implementation to be used in UpdateDaoTest.  UpdateDaoTest contains a
+ * common set of tests that all Dao implementations must pass.
+ */
 public class HBaseDaoTest extends UpdateDaoTest{
 
   private HBaseDao dao;

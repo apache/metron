@@ -58,6 +58,11 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+/**
+ * This class contains tests specific to the SolrUpdateDao implementation.  It also returns the SolrUpdateDao
+ * implementation to be used in UpdateDaoTest.  UpdateDaoTest contains a common set of tests that all Dao
+ * implementations must pass.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CollectionAdminRequest.class})
 public class SolrUpdateDaoTest extends UpdateDaoTest {

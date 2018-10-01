@@ -26,6 +26,10 @@ import org.junit.Before;
 
 import static org.mockito.Mockito.mock;
 
+/**
+ * This class returns the ElasticsearchUpdateDao implementation to be used in UpdateDaoTest.  UpdateDaoTest contains a
+ * common set of tests that all Dao implementations must pass.
+ */
 public class ElasticsearchUpdateDaoTest extends UpdateDaoTest {
 
   private TransportClient client;
