@@ -37,7 +37,7 @@ public enum ElasticsearchWriterConfig {
    *
    * <p>By default, the document identifier is set to the message GUID.
    */
-  DOC_ID_SOURCE_FIELD("es.doc.id.source.field", Constants.GUID, String.class);
+  DOC_ID_SOURCE_FIELD("es.document.id", Constants.GUID, String.class);
 
   /**
    * The key for the configuration value.

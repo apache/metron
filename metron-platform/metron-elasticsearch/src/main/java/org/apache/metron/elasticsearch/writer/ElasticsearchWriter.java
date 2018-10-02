@@ -75,7 +75,6 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
   @Override
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
-
     // writer settings
     FieldNameConverter fieldNameConverter = FieldNameConverters.create(sensorType, configurations);
     final String indexPostfix = dateFormat.format(new Date());
@@ -86,6 +85,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     BulkRequestBuilder bulkRequest = client.prepareBulk();
     for(JSONObject message: messages) {
 
+      // clone the message to use as the document that will be indexed
       JSONObject esDoc = new JSONObject();
       for(Object k : message.keySet()){
         copyField(k.toString(), message, esDoc, fieldNameConverter);
@@ -100,7 +100,6 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
         String docId = (String) esDoc.get(docIdSourceField);
         if(docId != null) {
           indexRequestBuilder.setId(docId);
-
         } else {
           LOG.warn("Message is missing document ID source field; document ID not set; sourceField={}", docIdSourceField);
         }
