@@ -124,12 +124,15 @@ context('PCAP Tab', () => {
     cy.get('[data-qe-id="submit-button"]').click();
     
     cy.wait('@statusCheck');
-
     cy.wait('@gettingPdml');
 
     cy.get('app-pcap-list table').should('be.visible');
+    cy.contains('General information').should('not.be.visible');
+    
     cy.get(':nth-child(3) > .timestamp').click();
-    // TODO: CONTINUE ASSERTING DETAILS ARE VISIBLE
+    
+    cy.contains('General information').should('be.visible');
+    cy.get('[data-qe-id="proto"]').should('have.length', 6);
   });
 
   it('navigating accross pages', () => {});
