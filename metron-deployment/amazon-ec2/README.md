@@ -38,7 +38,7 @@ Getting Started
 
 The host used to deploy Apache Metron will need the following software tools installed.  The following versions are known to work as of the time of this writing, but by no means are these the only working versions.
 
-  - Ansible 2.0.0.2, 2.2.2.0, or 2.5.0
+  - Ansible 2.4.0+
   - Python 2.7.11
   - Maven 3.3.9  
 
