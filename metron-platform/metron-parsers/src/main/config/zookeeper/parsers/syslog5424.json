@@ -1,0 +1,7 @@
+{
+  "parserClassName":"org.apache.metron.parsers.syslog.Syslog5424Parser",
+  "sensorTopic":"syslog5424",
+  "parserConfig": {
+    "nilPolicy": "DASH"
+  }
+}

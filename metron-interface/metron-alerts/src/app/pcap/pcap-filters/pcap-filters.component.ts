@@ -22,7 +22,7 @@ import * as moment from 'moment/moment';
 import { DEFAULT_START_TIME, DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
 
 import { PcapRequest } from '../model/pcap.request';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, merge } from 'rxjs';
 
 function validateStartDate(formControl: FormControl): ValidationErrors | null {
   if (!formControl.parent) {
@@ -128,7 +128,8 @@ export class PcapFiltersComponent implements OnInit, OnChanges, OnDestroy {
   subscribeToDateRangeChanges(callback: () => void): Subscription {
     const startTimeChanges: Observable<string> = this.filterForm.get('startTime').valueChanges;
     const endTimeChanges: Observable<string> = this.filterForm.get('endTime').valueChanges;
-    return startTimeChanges.merge(endTimeChanges).subscribe(callback);
+    const mergedChanges = merge(startTimeChanges, endTimeChanges);
+    return mergedChanges.subscribe(callback);
   }
 
   forceValidateDateRangeFields() {

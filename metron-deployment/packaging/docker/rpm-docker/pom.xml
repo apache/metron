@@ -21,11 +21,11 @@
     <artifactId>metron-rpm</artifactId>
     <packaging>pom</packaging>
     <name>metron-rpm</name>
-    <version>0.5.1</version>
+    <version>0.6.0</version>
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-deployment</artifactId>
-        <version>0.5.1</version>
+        <version>0.6.0</version>
         <relativePath>../../..</relativePath>
     </parent>
     <description>RPM Builder for Apache Metron</description>
@@ -162,7 +162,19 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-analytics/metron-profiler/target/</directory>
+                                    <directory>${metron_dir}/metron-analytics/metron-profiler-storm/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-analytics/metron-profiler-spark/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-analytics/metron-profiler-repl/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

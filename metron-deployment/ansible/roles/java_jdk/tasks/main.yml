@@ -15,10 +15,8 @@
 #  limitations under the License.
 #
 ---
-- include: install_jdk_centos.yml
-  static: no
+- include_tasks: install_jdk_centos.yml
   when: ansible_distribution == "CentOS"
 
-- include: install_jdk_ubuntu.yml
-  static: no
+- include_tasks: install_jdk_ubuntu.yml
   when: ansible_distribution == "Ubuntu"

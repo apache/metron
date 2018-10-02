@@ -1,3 +1,4 @@
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,34 +16,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Response} from '@angular/http';
-import {Observable}     from 'rxjs/Observable';
+import {HttpErrorResponse} from '@angular/common/http';
 import {RestError} from '../model/rest-error';
+import {throwError as observableThrowError, Observable} from 'rxjs';
 
 export class HttpUtil {
 
-  public static extractString(res: Response): string {
-    let text: string = res.text();
+  public static extractString(res: HttpErrorResponse): string {
+    let text: string = res.toString();
     return text || '';
   }
 
-  public static extractData(res: Response): any {
-    let body = res.json();
+  public static extractData(res: HttpErrorResponse): any {
+    let body = res;
     return body || {};
   }
 
-  public static handleError(res: Response): Observable<RestError> {
+  public static handleError(res: HttpErrorResponse): Observable<RestError> {
     // In a real world app, we might use a remote logging infrastructure
     // We'd also dig deeper into the error to get a better message
     let restError: RestError;
     if (res.status === 401) {
       window.location.assign('/login?sessionExpired=true');
     } else if (res.status !== 404) {
-      restError = res.json();
+      restError = res;
     } else {
       restError = new RestError();
-      restError.responseCode = 404;
+      restError.status = 404;
     }
-    return Observable.throw(restError);
+    return observableThrowError(restError);
   }
 }
