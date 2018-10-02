@@ -115,7 +115,7 @@ context('PCAP Tab', () => {
     cy.get(':nth-child(3) > .timestamp').should('contain', '1458240269.414664000 Mar 17, 2016 18:44:29.414664000 UTC');
   });
 
-  it.only('showing pcap details', () => {
+  it('showing pcap details', () => {
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
     cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
     cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
@@ -128,16 +128,50 @@ context('PCAP Tab', () => {
 
     cy.get('app-pcap-list table').should('be.visible');
     cy.contains('General information').should('not.be.visible');
-    
+
     cy.get(':nth-child(3) > .timestamp').click();
     
     cy.contains('General information').should('be.visible');
     cy.get('[data-qe-id="proto"]').should('have.length', 6);
   });
 
-  it('navigating accross pages', () => {});
+  it('navigating accross pages', () => {
+    cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
+    cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
+    cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
 
-  it('downloading pdml', () => {});
+    cy.contains('PCAP').click();
+    cy.get('[data-qe-id="submit-button"]').click();
+    
+    cy.wait('@statusCheck');
+    cy.wait('@gettingPdml');
+
+    cy.contains('Page 1 of 2').should('be.visible');
+    
+    cy.get('.fa-chevron-right').click();
+
+    cy.wait('@gettingPdml').its('url').should('include', '?page=2');
+  });
+
+  it('downloading pdml', () => {
+    cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
+    cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
+    cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
+    // cy.route('GET', '/api/v1/pcap/*/pdml*').as('download');
+
+    cy.contains('PCAP').click();
+    cy.get('[data-qe-id="submit-button"]').click();
+    
+    cy.wait('@statusCheck');
+    cy.wait('@gettingPdml');
+
+    cy.contains('Download').should('be.visible');
+    cy.get('[href="/api/v1/pcap/job_1537878471649_0001/raw?page=1"]').should('be.visible');
+
+    cy.get('.fa-chevron-right').click();
+
+    cy.get('[href="/api/v1/pcap/job_1537878471649_0001/raw?page=2"]').should('be.visible');
+  });
 
 
   it('cancelling (kill) pcap query job', () => {
