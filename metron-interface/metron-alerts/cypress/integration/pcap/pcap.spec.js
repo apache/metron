@@ -85,7 +85,7 @@ context('PCAP Tab', () => {
     cy.contains('75%').should('be.visible');
   });
 
-  it.only('getting pcap json', () => {
+  it('getting pcap json', () => {
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
     cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
     cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
@@ -99,7 +99,7 @@ context('PCAP Tab', () => {
   });
 
 
-  it.only('rendering pcap table', () => {
+  it('rendering pcap table', () => {
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
     cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
     cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
@@ -109,14 +109,32 @@ context('PCAP Tab', () => {
     
     cy.wait('@statusCheck');
 
-    cy.wait('@gettingPdml').its('url').should('include', '/api/v1/pcap/job_1537878471649_0001/pdml?page=1');
+    cy.wait('@gettingPdml');
+
+    cy.get('app-pcap-list table').should('be.visible');
+    cy.get(':nth-child(3) > .timestamp').should('contain', '1458240269.414664000 Mar 17, 2016 18:44:29.414664000 UTC');
   });
 
-  it.only('showing pcap details', () => {});
+  it.only('showing pcap details', () => {
+    cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
+    cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
+    cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
 
-  it.only('navigating accross pages', () => {});
+    cy.contains('PCAP').click();
+    cy.get('[data-qe-id="submit-button"]').click();
+    
+    cy.wait('@statusCheck');
 
-  it.only('downloading pdml', () => {});
+    cy.wait('@gettingPdml');
+
+    cy.get('app-pcap-list table').should('be.visible');
+    cy.get(':nth-child(3) > .timestamp').click();
+    // TODO: CONTINUE ASSERTING DETAILS ARE VISIBLE
+  });
+
+  it('navigating accross pages', () => {});
+
+  it('downloading pdml', () => {});
 
 
   it('cancelling (kill) pcap query job', () => {
