@@ -22,6 +22,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
+import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
@@ -154,7 +155,7 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
     Long ts = 0L;
     String doc = hit.getSourceAsString();
     String sourceType = toSourceType(hit.getType());
-    String guid = (String) hit.getSource().get(Constants.GUID);
+    String guid = ElasticsearchUtils.getGUID(hit);
     try {
       return Optional.of(new Document(doc, guid, sourceType, ts));
     } catch (IOException e) {

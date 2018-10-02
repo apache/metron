@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -901,16 +902,15 @@ public abstract class SearchIntegrationTest {
     SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
+
     List<SearchResult> results = response.getResults();
-    for (int i = 0; i < 5; ++i) {
+    Assert.assertEquals(10, response.getResults().size());
+
+    // validate the source fields contained in the search response
+    for (int i = 0; i < 10; ++i) {
       Map<String, Object> source = results.get(i).getSource();
-      Assert.assertEquals(1, source.size());
-      Assert.assertNotNull(source.get("ip_src_addr"));
-    }
-    for (int i = 5; i < 10; ++i) {
-      Map<String, Object> source = results.get(i).getSource();
-      Assert.assertEquals(1, source.size());
-      Assert.assertNotNull(source.get("ip_src_addr"));
+      Assert.assertNotNull(source.get(Constants.Fields.SRC_ADDR.getName()));
+      Assert.assertNotNull(source.get(Constants.GUID));
     }
   }
 
@@ -923,7 +923,7 @@ public abstract class SearchIntegrationTest {
     for (int i = 0; i < 5; ++i) {
       Map<String, Object> source = results.get(i).getSource();
       Assert.assertEquals(1, source.size());
-      Assert.assertEquals(source.get("guid"), "bro_" + (i + 1));
+      Assert.assertEquals(source.get(Constants.GUID), "bro_" + (i + 1));
     }
   }
 
