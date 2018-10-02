@@ -413,8 +413,8 @@ public class ElasticsearchUtils {
       throw new IllegalStateException(String.format(template, searchHit.getIndex(), searchHit.getId()));
 
     } else {
-      String template = "Missing expected field; field=%s, index=%s, docId=%s, fields=%s";
-      throw new IllegalStateException(String.format(template, GUID, searchHit.getIndex(), searchHit.getId(), searchHit.getSource().keySet()));
+      String template = "Missing expected field; field=%s, index=%s, docId=%s";
+      throw new IllegalStateException(String.format(template, GUID, searchHit.getIndex(), searchHit.getId()));
     }
 
     return guid;
