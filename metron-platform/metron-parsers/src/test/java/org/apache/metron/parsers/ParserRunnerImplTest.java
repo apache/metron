@@ -60,8 +60,8 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ParserRunner.class, ReflectionUtils.class, Filters.class})
-public class ParserRunnerTest {
+@PrepareForTest({ParserRunnerImpl.class, ReflectionUtils.class, Filters.class})
+public class ParserRunnerImplTest {
 
   @Rule
   public final ExpectedException exception = ExpectedException.none();
@@ -112,7 +112,7 @@ public class ParserRunnerTest {
   private MessageParser<JSONObject> broParser;
   private MessageParser<JSONObject> snortParser;
   private MessageFilter<JSONObject> stellarFilter;
-  private ParserRunner parserRunner;
+  private ParserRunnerImpl parserRunner;
 
 
   @Before
@@ -123,7 +123,7 @@ public class ParserRunnerTest {
     parserConfigurations.updateSensorParserConfig("bro", broConfig);
     parserConfigurations.updateSensorParserConfig("snort", snortConfig);
     parserConfigurations.updateGlobalConfig(JSONUtils.INSTANCE.load(globalConfigString, JSONUtils.MAP_SUPPLIER));
-    parserRunner = new ParserRunner(new HashSet<>(Arrays.asList("bro", "snort")));
+    parserRunner = new ParserRunnerImpl(new HashSet<>(Arrays.asList("bro", "snort")));
     broParser = mock(MessageParser.class);
     snortParser = mock(MessageParser.class);
     stellarFilter = mock(StellarFilter.class);
@@ -163,32 +163,38 @@ public class ParserRunnerTest {
   }
 
   @Test
+  public void shouldThrowExceptionOnEmptyStellarContext() {
+    exception.expect(IllegalStateException.class);
+    exception.expectMessage("A stellar context must be set before initializing the ParserRunner.");
+
+    parserRunner.init(() -> parserConfigurations, null);
+  }
+
+  @Test
   public void shouldThrowExceptionOnMissingSensorParserConfig() {
     exception.expect(IllegalStateException.class);
     exception.expectMessage("Could not initialize parsers.  Cannot find config for sensor test.");
 
-    parserRunner = new ParserRunner(new HashSet<String>() {{
+    parserRunner = new ParserRunnerImpl(new HashSet<String>() {{
       add("test");
     }});
 
     parserRunner.setOnSuccess(parserResult -> {});
     parserRunner.setOnError(parserResult -> {});
-    parserRunner.init(null, () -> parserConfigurations);
+    parserRunner.init(() -> parserConfigurations, mock(Context.class));
   }
 
   @Test
   public void shouldInit() throws Exception {
-    CuratorFramework client = mock(CuratorFramework.class);
+    Context stellarContext = mock(Context.class);
     Map<String, Object> broParserConfig = parserConfigurations.getSensorParserConfig("bro").getParserConfig();
     Map<String, Object> snortParserConfig = parserConfigurations.getSensorParserConfig("snort").getParserConfig();
 
-    parserRunner.init(client, () -> parserConfigurations);
+    parserRunner.init(() -> parserConfigurations, stellarContext);
 
     {
-      // Verify Stellar initialization
-      Assert.assertNotNull(parserRunner.getStellarContext().getCapability(Context.Capabilities.ZOOKEEPER_CLIENT));
-      Assert.assertNotNull(parserRunner.getStellarContext().getCapability(Context.Capabilities.GLOBAL_CONFIG));
-      Assert.assertNotNull(parserRunner.getStellarContext().getCapability(Context.Capabilities.STELLAR_CONFIG));
+      // Verify Stellar context
+      Assert.assertEquals(stellarContext, parserRunner.getStellarContext());
     }
 
     Map<String, ParserComponent> sensorToParserComponentMap = parserRunner.getSensorToParserComponentMap();

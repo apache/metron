@@ -37,7 +37,7 @@ import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.MessageWriter;
-import org.apache.metron.parsers.ParserRunner;
+import org.apache.metron.parsers.ParserRunnerImpl;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
@@ -290,7 +290,7 @@ public class ParserTopologyBuilder {
       writerConfigs.put(sensorType, writerHandler);
     }
 
-    return new ParserBolt(zookeeperUrl, new ParserRunner(new HashSet<>(sensorTypeToParserConfig.keySet())), writerConfigs);
+    return new ParserBolt(zookeeperUrl, new ParserRunnerImpl(new HashSet<>(sensorTypeToParserConfig.keySet())), writerConfigs);
   }
 
   /**

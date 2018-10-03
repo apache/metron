@@ -24,25 +24,21 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+
 import org.apache.commons.lang.SerializationUtils;
-import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.parsers.ParserRunner;
+import org.apache.metron.parsers.ParserRunnerImpl;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
-import org.apache.metron.parsers.topology.ParserComponent;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
@@ -125,7 +121,7 @@ public class ParserDriver implements Serializable {
     config.updateSensorParserConfig(this.sensorType, SensorParserConfig.fromBytes(parserConfig.getBytes()));
     config.updateGlobalConfig(JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER));
 
-    parserRunner = new ParserRunner(new HashSet<String>() {{
+    parserRunner = new ParserRunnerImpl(new HashSet<String>() {{
       add(sensorType);
     }});
   }

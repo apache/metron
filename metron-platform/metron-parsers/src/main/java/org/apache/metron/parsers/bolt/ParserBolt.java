@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.common.configuration.ParserConfigurations;
@@ -38,6 +39,9 @@ import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.parsers.ParserResult;
 import org.apache.metron.parsers.ParserRunner;
+import org.apache.metron.stellar.common.CachingStellarProcessor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration;
 import org.apache.metron.writer.WriterToBulkWriter;
 import org.apache.metron.writer.bolt.BatchTimeoutHelper;
@@ -196,7 +200,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     messageGetStrategy = MessageGetters.DEFAULT_BYTES_FROM_POSITION.get();
     this.collector = collector;
     this.parserRunner.setOnError(this::onError);
-    this.parserRunner.init(client, this::getConfigurations);
+    this.parserRunner.init(this::getConfigurations, initializeStellar());
 
     // Need to prep all sensors
     for (Map.Entry<String, WriterHandler> entry: sensorToWriterMap.entrySet()) {
@@ -260,6 +264,30 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       handleError(sensorType, originalMessage, tuple, ex, collector);
       collector.ack(tuple);
     }
+  }
+
+  protected Context initializeStellar() {
+    Map<String, Object> cacheConfig = new HashMap<>();
+    for (String sensorType: this.parserRunner.getSensorTypes()) {
+      SensorParserConfig config = getSensorParserConfig(sensorType);
+
+      if (config != null) {
+        cacheConfig.putAll(config.getCacheConfig());
+      }
+    }
+    Cache<CachingStellarProcessor.Key, Object> cache = CachingStellarProcessor.createCache(cacheConfig);
+
+    Context.Builder builder = new Context.Builder()
+            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+            .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
+            .with(Context.Capabilities.STELLAR_CONFIG, () -> getConfigurations().getGlobalConfig())
+            ;
+    if(cache != null) {
+      builder = builder.with(Context.Capabilities.CACHE, () -> cache);
+    }
+    Context stellarContext = builder.build();
+    StellarFunctions.initialize(stellarContext);
+    return stellarContext;
   }
 
   protected void handleTickTuple(Tuple tuple) {

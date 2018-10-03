@@ -25,7 +25,8 @@ import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.parsers.ParserResult;
-import org.apache.metron.parsers.ParserRunner;
+import org.apache.metron.parsers.ParserRunnerImpl;
+import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
@@ -50,9 +51,11 @@ import java.util.function.Supplier;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,7 +69,7 @@ public class ParserBoltTest extends BaseBoltTest {
   private Tuple t1;
 
   @Mock
-  private ParserRunner parserRunner;
+  private ParserRunnerImpl parserRunner;
 
   @Mock
   private WriterHandler writerHandler;
@@ -77,7 +80,10 @@ public class ParserBoltTest extends BaseBoltTest {
   @Mock
   private MessageGetStrategy messageGetStrategy;
 
-  private class MockParserRunner extends ParserRunner {
+  @Mock
+  private Context stellarContext;
+
+  private class MockParserRunner extends ParserRunnerImpl {
 
     private boolean isInvalid = false;
     private RawMessage rawMessage;
@@ -184,7 +190,7 @@ public class ParserBoltTest extends BaseBoltTest {
     }});
     ParserConfigurations parserConfigurations = mock(ParserConfigurations.class);
 
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserRunner, new HashMap<String, WriterHandler>() {{
+    ParserBolt parserBolt = spy(new ParserBolt("zookeeperUrl", parserRunner, new HashMap<String, WriterHandler>() {{
       put("yaf", writerHandler);
     }}) {
 
@@ -200,7 +206,8 @@ public class ParserBoltTest extends BaseBoltTest {
       public ParserConfigurations getConfigurations() {
         return parserConfigurations;
       }
-    };
+    });
+    doReturn(stellarContext).when(parserBolt).initializeStellar();
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setZKCache(cache);
@@ -208,7 +215,7 @@ public class ParserBoltTest extends BaseBoltTest {
     parserBolt.prepare(stormConf, topologyContext, outputCollector);
 
     verify(parserRunner, times(1)).setOnError(any(Consumer.class));
-    verify(parserRunner, times(1)).init(eq(client), any(Supplier.class));
+    verify(parserRunner, times(1)).init(any(Supplier.class), eq(stellarContext));
     verify(yafConfig, times(1)).init();
     Map<String, String> topicToSensorMap = parserBolt.getTopicToSensorMap();
     Assert.assertEquals(1, topicToSensorMap.size());
