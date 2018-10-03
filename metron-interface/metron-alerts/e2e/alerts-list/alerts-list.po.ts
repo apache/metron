@@ -17,7 +17,6 @@
  */
 
 import {browser, element, by, protractor, ElementArrayFinder} from 'protractor';
-import * as moment from 'moment/moment';
 import {
   waitForElementVisibility, waitForElementPresence, waitForElementInVisibility,
   waitForText, waitForCssClass, waitForCssClassNotToBePresent, waitForTextChange,
@@ -496,8 +495,8 @@ export class MetronAlertsPage {
 
     let retArr = [timeRangetext];
     let dateStr = timeRangeValue.split(' to ');
-    let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-    let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+    let fromTime = (new Date(dateStr[0])).getTime();
+    let toTime = (new Date(dateStr[1])).getTime();
     retArr.push((toTime - fromTime) + '');
     return retArr;
   }
