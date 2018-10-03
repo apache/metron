@@ -61,16 +61,24 @@ roll daily.
 
 ### `es.document.id`
 
-This property defines the message field that is used to define the document ID when a message is indexed by Elasticsearch. This allows a user to customize the identifier that is used by Elasticsearch when indexing documents.
+This property sets the message field that is used to define the document ID when a message is indexed by Elasticsearch. 
 
-* By default, Metron's GUID field will be used as the source of the document ID. Using a randomized UUID like Java's UUID.randomUUID() can negatively impact Elasticsearch performance.
+* To allow Elasticsearch to define its own document id, this property should be set to a blank or empty string. The client will not set the document ID and Elasticsearch will define its own.
 
-* To allow Elasticsearch to define its own document id, this property should be set to a blank or empty string. In this case, the document ID will not be set by the client and Elasticsearch will define its own.
+* In most cases allowing Elasticsearch to define the document ID is the most performant option. This is the default behavior.
 
-* If a user wants to set their own custom document ID, they can create an enrichment that defines a new message field; for example called `my_document_id`. They should then use this new message field to set the Elasticsearch document ID.
+* Metron versions 0.6.0 and earlier defined the document ID using the Metron GUID, which is a randomized UUID using Java's `UUID.randomUUID()`. Using a randomized UUID can negatively impact Elasticsearch indexing performance. To maintain backwards compatibility with legacy versions of Metron use the following setting.
+
+    ```
+    es.document.id = guid
+    ``` 
+
+* To use a custom document ID, create an enrichment that defines a new message field; for example one called `my_document_id`. Then use this field to set the document ID as follows. This will set the document ID to the value of the message field `my_document_id`.
     ```
     es.document.id = my_document_id
     ```
+
+* If a message does not contain the `es.document.id` field, a warning is issued and no document ID is set by the client.
 
 ## Upgrading to 5.6.2
 

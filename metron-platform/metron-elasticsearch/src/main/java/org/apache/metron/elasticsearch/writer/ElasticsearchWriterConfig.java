@@ -34,10 +34,8 @@ public enum ElasticsearchWriterConfig {
    *
    * <p>If defined, the value of the specified message field is set as the Elasticsearch doc ID. If
    * this field is undefined or blank, then the document identifier is not set.
-   *
-   * <p>By default, the document identifier is set to the message GUID.
    */
-  DOC_ID_SOURCE_FIELD("es.document.id", Constants.GUID, String.class);
+  DOC_ID_SOURCE_FIELD("es.document.id", "", String.class);
 
   /**
    * The key for the configuration value.

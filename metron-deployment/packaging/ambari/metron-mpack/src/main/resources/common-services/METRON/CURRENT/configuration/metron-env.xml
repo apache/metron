@@ -124,7 +124,7 @@
     <property>
         <name>es_document_id</name>
         <description>Message field containing the Elasticsearch document ID</description>
-        <value>guid</value>
+        <value></value>
         <display-name>Elasticsearch Document ID Source Field</display-name>
         <value-attributes>
             <empty-value-valid>true</empty-value-valid>
