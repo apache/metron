@@ -898,23 +898,6 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void queries_fields() throws Exception {
-    SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
-    SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(10, response.getTotal());
-
-    List<SearchResult> results = response.getResults();
-    Assert.assertEquals(10, response.getResults().size());
-
-    // validate the source fields contained in the search response
-    for (int i = 0; i < 10; ++i) {
-      Map<String, Object> source = results.get(i).getSource();
-      Assert.assertNotNull(source.get(Constants.Fields.SRC_ADDR.getName()));
-      Assert.assertNotNull(source.get(Constants.GUID));
-    }
-  }
-
-  @Test
   public void sort_by_guid() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortByGuidQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
