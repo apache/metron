@@ -17,7 +17,7 @@
  */
 import { Component, OnInit, ViewChild, ElementRef, OnChanges, SimpleChanges, Input, Output, EventEmitter } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import * as Pikaday from 'pikaday-time';
+import * as Pikaday from '@ruffle1986/pikaday-time';
 import { DEFAULT_TIMESTAMP_FORMAT } from '../../utils/constants';
 import { endOfDay, format } from 'date-fns';
 
