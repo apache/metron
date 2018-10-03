@@ -49,6 +49,24 @@ data emitted from any parser, we will need to adjust the downstream
 parsers to extract the enveloped data from the JSON blob and treat it as
 the data to parse.
 
+# Aggregated Parsers with Parser Chaining
+Chained parsers can be run as aggregated parsers. These parsers continue to use the sensor specific Kafka topics, and do not do internal routing to the appropriate sensor.
+
+Say, there were three sensors (`bro`, `snort` and `yaf`). Instead of creating a topology per sensor, all 3 can be run in a single aggregated parser. It is also possible to aggregate a subset of these parsers (e.g. run `bro` as it's own topology, and aggregate the other 2).
+
+The step to start an aggregated parsers then becomes
+```
+$METRON_HOME/bin/start_parser_topology.sh -k $BROKERLIST -z $ZOOKEEPER -s bro,snort,yaf
+```
+
+which will result in a single storm topology named `bro__snort__yaf` to run.
+
+Aggregated parsers can be specified using the Ambari Metron config as well under Services -> Metron -> Configs -> 'Parsers' tab -> 'Metron Parsers' field. The grouping is configured by enclosing the desired parsers in double quotes.
+
+Some examples of specifying aggregated parsers are as follows:
+* "bro,snort,yaf" --> Will start a single topology named `bro__snort__yaf`
+* "ciscopixA,ciscopixB",yaf,"squid,ciscopixC" --> Will start three topologies viz. `ciscopixA__ciscopixB`, `yaf` and `squid__ciscopixC`
+
 # Architecting a Parser Chaining Solution in Metron
 
 Currently the approach to fulfill this requirement involves a couple

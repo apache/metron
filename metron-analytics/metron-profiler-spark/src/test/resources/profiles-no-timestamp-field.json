@@ -1,0 +1,12 @@
+{
+  "profiles": [
+    {
+      "profile": "hello-world",
+      "onlyif":  "exists(ip_src_addr)",
+      "foreach": "ip_src_addr",
+      "init":    { "count": "0" },
+      "update":  { "count": "count + 1" },
+      "result":  "count"
+    }
+  ]
+}

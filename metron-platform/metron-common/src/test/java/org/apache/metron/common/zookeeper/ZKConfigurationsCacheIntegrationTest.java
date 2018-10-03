@@ -119,7 +119,7 @@ public class ZKConfigurationsCacheIntegrationTest {
   @Multiline
   public static String globalConfig;
 
-  public static File profilerDir = new File("../../metron-analytics/metron-profiler/src/test/config/zookeeper");
+  public static File profilerDir = new File("../../metron-analytics/metron-profiler-storm/src/test/config/zookeeper");
   public ConfigurationsCache cache;
 
   public ZKServerComponent zkComponent;
