@@ -45,7 +45,8 @@
 		<module>metron-common</module>
 		<module>metron-enrichment</module>
 		<module>metron-solr</module>
-		<module>metron-parsers</module>
+		<module>metron-parsers-common</module>
+		<module>metron-storm-parsers</module>
  		<module>metron-job</module>
 		<module>metron-pcap-backend</module>
 		<module>metron-data-management</module>

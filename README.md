@@ -132,7 +132,7 @@ component and Apache Kafka as the unified data bus.
 
 Some high level links to the relevant subparts of the architecture, for
 more information:
-* [Parsers](metron-platform/metron-parsers) : Parsing data from kafka into the Metron data model and passing it downstream to Enrichment.  
+* [Parsers](metron-platform/metron-parsers-common) : Parsing data from kafka into the Metron data model and passing it downstream to Enrichment.  
 * [Enrichment](metron-platform/metron-enrichment) : Enriching data post-parsing and providing the ability to tag a message as an alert and assign a risk triage level via a custom rule language.
 * [Indexing](metron-platform/metron-indexing) : Indexing the data post-enrichment into HDFS, Elasticsearch or Solr.
 
