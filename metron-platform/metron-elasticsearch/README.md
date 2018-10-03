@@ -59,6 +59,19 @@ For instance, an `es.date.format` of `yyyy.MM.dd.HH` would have the consequence 
 roll hourly, whereas an `es.date.format` of `yyyy.MM.dd` would have the consequence that the indices would
 roll daily.
 
+### `es.document.id`
+
+This property defines the message field that is used to define the document ID when a message is indexed by Elasticsearch. This allows a user to customize the identifier that is used by Elasticsearch when indexing documents.
+
+* By default, Metron's GUID field will be used as the source of the document ID. Using a randomized UUID like Java's UUID.randomUUID() can negatively impact Elasticsearch performance.
+
+* To allow Elasticsearch to define its own document id, this property should be set to a blank or empty string. In this case, the document ID will not be set by the client and Elasticsearch will define its own.
+
+* If a user wants to set their own custom document ID, they can create an enrichment that defines a new message field; for example called `my_document_id`. They should then use this new message field to set the Elasticsearch document ID.
+    ```
+    es.document.id = my_document_id
+    ```
+
 ## Upgrading to 5.6.2
 
 Users should be prepared to re-index when migrating from Elasticsearch 2.3.3 to 5.6.2. There are a number of template changes, most notably around
@@ -303,7 +316,7 @@ We'll want to put the template back into Elasticsearch:
 curl -XPUT "http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index" -d @${SENSOR}.template
 ```
 
-To update existing indexes, update Elasticsearch mappings with the new field for each sensor. 
+To update existing indexes, update Elasticsearch mappings with the new field for each sensor.
 
 ```
 curl -XPUT "http://${ELASTICSEARCH}:9200/${SENSOR}_index*/_mapping/${SENSOR}_doc" -d '
@@ -322,7 +335,7 @@ rm ${SENSOR}.template
 
 The stock set of Elasticsearch templates for bro, snort, yaf, error index and meta index are installed automatically during the first time install and startup of Metron Indexing service.
 
-It is possible that Elasticsearch service is not available when the Metron Indexing Service startup, in that case the Elasticsearch template will not be installed. 
+It is possible that Elasticsearch service is not available when the Metron Indexing Service startup, in that case the Elasticsearch template will not be installed.
 
 For such a scenario, an Admin can have the template installed in two ways:
 
