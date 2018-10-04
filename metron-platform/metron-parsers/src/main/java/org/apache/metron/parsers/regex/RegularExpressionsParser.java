@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  *
  * <pre>
  * <code>
- * "recordTypeRegex": "kernel|syslog",
+ * "convertCamelCaseToUnderScore": true,
  * "recordTypeRegex": "(?&lt;process&gt;(?&lt;=\\s)\\b(kernel|syslog)\\b(?=\\[|:))",
  * "messageHeaderRegex": "(?&lt;syslogpriority&gt;(?&lt;=^&lt;)\\d{1,4}(?=&gt;)).*?(?&lt;timestamp>(?&lt;=&gt;)[A-Za-z]{3}\\s{1,2}\\d{1,2}\\s\\d{1,2}:\\d{1,2}:\\d{1,2}(?=\\s)).*?(?&lt;syslogHost&gt;(?&lt;=\\s).*?(?=\\s))",
  * "fields": [
@@ -61,11 +61,11 @@ import org.slf4j.LoggerFactory;
  * </code>
  * </pre>
  *
- * Note: messageHeaderRegex and recordTypeRegex could be specified as lists also e.g.
+ * Note: messageHeaderRegex could be specified as lists also e.g.
  *
  * <pre>
  * <code>
- * "recordTypeRegex": [
+ * "messageHeaderRegex": [
  * "regular expression 1",
  * "regular expression 2"
  * ]
@@ -81,7 +81,7 @@ import org.slf4j.LoggerFactory;
  *
  * <pre>
  * recordTypeRegex : used to specify a regular expression to distinctly identify a record type.
- * syslogRegex :  used to specify a regular expression to extract fields from a message part which is common across all the messages.
+ * messageHeaderRegex :  used to specify a regular expression to extract fields from a message part which is common across all the messages.
  * e.g. rhel logs looks like
  * <code>
  * <7>Jun 26 16:18:01 hostName kernel: SELinux: initialized (dev tmpfs, type tmpfs), uses transition SIDs
@@ -90,14 +90,14 @@ import org.slf4j.LoggerFactory;
  * </pre>
  *
  * Here message structure (<7>Jun 26 16:18:01 hostName kernel) is common across all messages.
- * Hence syslogRegex could be used to extract fields from this part.
+ * Hence messageHeaderRegex could be used to extract fields from this part.
  *
  * fields : json list of objects containing recordType and regex. regex could be a further list e.g.
  *
  * <pre>
  * <code>
  * "regex":  [ "record type specific regular expression 1",
- * "record type specific regular expression 2"]
+ *             "record type specific regular expression 2"]
  *
  * </code>
  * </pre>

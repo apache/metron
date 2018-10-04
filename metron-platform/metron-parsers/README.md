@@ -70,7 +70,7 @@ There are two general types types of parsers:
     ```json
     "convertCamelCaseToUnderScore": true, 
     "recordTypeRegex": "kernel|syslog",
-    "messageHeaderRegex": "(<syslogpriority>(<=^&lt;)\\d{1,4}(?=>)).*?(<timestamp>(<=>)[A-Za-z] {3}\\s{1,2}\\d{1,2}\\s\\d{1,2}:\\d{1,2}:\\d{1,2}(?=\\s)).*?(<syslogHost>(<=\\s).*?(?=\\s))",
+    "messageHeaderRegex": "(<syslogPriority>(<=^&lt;)\\d{1,4}(?=>)).*?(<timestamp>(<=>)[A-Za-z] {3}\\s{1,2}\\d{1,2}\\s\\d{1,2}:\\d{1,2}:\\d{1,2}(?=\\s)).*?(<syslogHost>(<=\\s).*?(?=\\s))",
     "fields": [
       {
         "recordType": "kernel",
@@ -82,9 +82,9 @@ There are two general types types of parsers:
       }
     ]
     ```
-    **Note**: messageHeaderRegex, recordTypeRegex and regex (withing fields) could be specified as lists also e.g.
+    **Note**: messageHeaderRegex and regex (withing fields) could be specified as lists also e.g.
     ```json
-        "recordTypeRegex": [
+        "messageHeaderRegex": [
         "regular expression 1",
         "regular expression 2"
         ]
