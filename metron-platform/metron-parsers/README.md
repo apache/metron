@@ -50,7 +50,64 @@ There are two general types types of parsers:
        This is using the default value for `wrapEntityName` if that property is not set.
     * `wrapEntityName` : Sets the name to use when wrapping JSON using `wrapInEntityArray`.  The `jsonpQuery` should reference this name.
     * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.  
+  * Regular Expressions Parser
+    * `recordTypeRegex` : A regular expression to uniquely identify a record type.
+    * `messageHeaderRegex` : A regular expression used to extract fields from a message part which is common across all the messages.
+    * `convertCamelCaseToUnderScore` : If this property is set to true, this parser will automatically convert all the camel case property names to underscore seperated. 
+        For example, following convertions will automatically happen:
 
+        ```
+        ipSrcAddr -> ip_src_addr
+        ipDstAddr -> ip_dst_addr
+        ipSrcPort -> ip_src_port
+        ```
+        Note this property may be necessary, because java does not support underscores in the named group names. So in case your property naming conventions requires underscores in property names, use this property.
+        
+    * `fields` : A json list of maps contaning a record type to regular expression mapping.
+    
+    A complete configuration example would look like:
+    
+    ```json
+    "convertCamelCaseToUnderScore": true, 
+    "recordTypeRegex": "kernel|syslog",
+    "messageHeaderRegex": "(<syslogpriority>(<=^&lt;)\\d{1,4}(?=>)).*?(<timestamp>(<=>)[A-Za-z] {3}\\s{1,2}\\d{1,2}\\s\\d{1,2}:\\d{1,2}:\\d{1,2}(?=\\s)).*?(<syslogHost>(<=\\s).*?(?=\\s))",
+    "fields": [
+      {
+        "recordType": "kernel",
+        "regex": ".*(<eventInfo>(<=\\]|\\w\\:).*?(?=$))"
+      },
+      {
+        "recordType": "syslog",
+        "regex": ".*(<processid>(<=PID\\s=\\s).*?(?=\\sLine)).*(<filePath>(<=64\\s)\/([A-Za-z0-9_-]+\/)+(?=\\w))        (<fileName>.*?(?=\")).*(<eventInfo>(<=\").*?(?=$))"
+      }
+    ]
+    ```
+    **Note**: messageHeaderRegex, recordTypeRegex and regex (withing fields) could be specified as lists also e.g.
+    ```json
+        "recordTypeRegex": [
+        "regular expression 1",
+        "regular expression 2"
+        ]
+    ```
+    Where **regular expression 1** are valid regular expressions and may have named
+    groups, which would be extracted into fields. This list will be evaluated in order until a
+    matching regular expression is found.
+    
+    **recordTypeRegex** can be a more advanced regular expression containing named goups. For example
+ 
+    "recordTypeRegex": "(&lt;process&gt;(<=\\s)\\b(kernel|syslog)\\b(?=\\[|:))"
+    
+    Here all the named goups (process in above example) will be extracted as fields.
+    
+    **regex** within a field could be a list of regular expressions also. In this case all regular expressions in the list will be attempted to match until a match is found. Once a full match is found remaining regular expressions are ignored.
+ 
+    ```json
+        "regex":  [ "record type specific regular expression 1",
+                    "record type specific regular expression 2"]
+
+    ```
+    
+    
 ## Parser Error Routing
 
 Currently, we have a few mechanisms for either deferring processing of
