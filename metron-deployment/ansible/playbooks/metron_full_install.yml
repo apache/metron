@@ -15,29 +15,23 @@
 #  limitations under the License.
 #
 ---
-- hosts: all
-  pre_tasks:
-    - name: Verify Ansible Version
-      fail: msg="Metron Requires Ansible 2.0.0.2, 2.2.2.0, or 2.5.0, current version is {{ ansible_version }}"
-      when: "ansible_version.full | version_compare('2.2.2.0', '!=') and ansible_version.full | version_compare('2.0.0.2', '!=') and ansible_version.full | version_compare('2.5.0', '!=')"
-
-- include: metron_build.yml
+- import_playbook: metron_build.yml
   tags:
     - build
 
-- include: solr_install.yml
+- import_playbook: solr_install.yml
   tags:
     - solr
 
-- include: ambari_install.yml
+- import_playbook: ambari_install.yml
   tags:
     - ambari
 
-- include: metron_install.yml
+- import_playbook: metron_install.yml
   tags:
     - metron
 
-- include: sensor_install.yml
+- import_playbook: sensor_install.yml
 
 #
 # deployment report

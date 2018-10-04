@@ -53,6 +53,9 @@ public class MetronRestConstants {
   public static final String KAFKA_BROKER_URL_SPRING_PROPERTY = "kafka.broker.url";
   public static final String KAFKA_TOPICS_ESCALATION_PROPERTY = "kafka.topics.escalation";
 
+  public static final String METRON_ESCALATION_USER_FIELD = "metron_escalation_user";
+  public static final String METRON_ESCALATION_TIMESTAMP_FIELD = "metron_escalation_timestamp";
+
   public static final String KERBEROS_ENABLED_SPRING_PROPERTY = "kerberos.enabled";
   public static final String KERBEROS_PRINCIPLE_SPRING_PROPERTY = "kerberos.principal";
   public static final String KERBEROS_KEYTAB_SPRING_PROPERTY = "kerberos.keytab";
