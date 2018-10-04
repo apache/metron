@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -79,16 +80,6 @@ public class ParserRunnerImpl implements ParserRunner, Serializable {
   }
 
   @Override
-  public void setOnSuccess(Consumer<ParserResult> onSuccess) {
-    this.onSuccess = onSuccess;
-  }
-
-  @Override
-  public void setOnError(Consumer<MetronError> onError) {
-    this.onError = onError;
-  }
-
-  @Override
   public void init(Supplier<ParserConfigurations> parserConfigSupplier, Context stellarContext) {
     if (parserConfigSupplier == null) {
       throw new IllegalStateException("A parser config supplier must be set before initializing the ParserRunner.");
@@ -101,26 +92,28 @@ public class ParserRunnerImpl implements ParserRunner, Serializable {
   }
 
   @Override
-  public void execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations) {
-    if (onSuccess == null) {
-      throw new IllegalStateException("An onSuccess function must be set before parsing a message.");
-    }
-    if (onError == null) {
-      throw new IllegalStateException("An onError function must be set before parsing a message.");
-    }
+  public List<ParserResult> execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations) {
+    List<ParserResult> parserResults;
     SensorParserConfig sensorParserConfig = parserConfigurations.getSensorParserConfig(sensorType);
     if (sensorParserConfig != null) {
       MessageParser<JSONObject> parser = sensorToParserComponentMap.get(sensorType).getMessageParser();
       List<JSONObject> messages = parser.parseOptional(rawMessage.getMessage()).orElse(Collections.emptyList());
-      messages.forEach(message -> processMessage(sensorType, message, rawMessage, parser, parserConfigurations));
+      parserResults = messages.stream()
+              .map(message -> processMessage(sensorType, message, rawMessage, parser, parserConfigurations))
+              .filter(Optional::isPresent)
+              .map(Optional::get).collect(Collectors.toList());
+    } else {
+      throw new IllegalStateException(String.format("Could not execute parser.  Cannot find configuration for sensor %s.",
+              sensorType));
     }
+    return parserResults;
   }
 
   private void initializeParsers(Supplier<ParserConfigurations> parserConfigSupplier) {
     sensorToParserComponentMap = new HashMap<>();
     for(String sensorType: sensorTypes) {
       if (parserConfigSupplier.get().getSensorParserConfig(sensorType) == null) {
-        throw new IllegalStateException(String.format("Could not initialize parsers.  Cannot find config for sensor %s.",
+        throw new IllegalStateException(String.format("Could not initialize parsers.  Cannot find configuration for sensor %s.",
                 sensorType));
       }
 
@@ -145,7 +138,10 @@ public class ParserRunnerImpl implements ParserRunner, Serializable {
   }
 
   @SuppressWarnings("unchecked")
-  protected void processMessage(String sensorType, JSONObject message, RawMessage rawMessage, MessageParser<JSONObject> parser, ParserConfigurations parserConfigurations) {
+  protected Optional<ParserResult> processMessage(String sensorType, JSONObject message, RawMessage rawMessage,
+                                                  MessageParser<JSONObject> parser,
+                                                  ParserConfigurations parserConfigurations) {
+    Optional<ParserResult> parserResult = Optional.empty();
     SensorParserConfig sensorParserConfig = parserConfigurations.getSensorParserConfig(sensorType);
     sensorParserConfig.getRawMessageStrategy().mergeMetadata(
             message,
@@ -177,11 +173,12 @@ public class ParserRunnerImpl implements ParserRunner, Serializable {
         if (errorFields != null && !errorFields.isEmpty()) {
           error.withErrorFields(errorFields);
         }
-        onError.accept(error);
+        parserResult = Optional.of(new ParserResult(sensorType, error, rawMessage.getMessage()));
       } else {
-        onSuccess.accept(new ParserResult(sensorType, message, rawMessage.getMessage()));
+        parserResult = Optional.of((new ParserResult(sensorType, message, rawMessage.getMessage())));
       }
     }
+    return parserResult;
   }
 
   private void applyFieldTransformations(JSONObject message, Map<String, Object> metadata, SensorParserConfig sensorParserConfig) {

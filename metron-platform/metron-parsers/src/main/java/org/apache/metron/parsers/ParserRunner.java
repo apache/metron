@@ -18,20 +18,17 @@
 package org.apache.metron.parsers;
 
 import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.stellar.dsl.Context;
 
+import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public interface ParserRunner {
 
   Set<String> getSensorTypes();
-  void setOnSuccess(Consumer<ParserResult> onSuccess);
-  void setOnError(Consumer<MetronError> onError);
   void init(Supplier<ParserConfigurations> parserConfigSupplier, Context stellarContext);
-  void execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations);
+  List<ParserResult> execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations);
 
 }

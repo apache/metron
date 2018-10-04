@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers;
 
+import org.apache.metron.common.error.MetronError;
 import org.json.simple.JSONObject;
 
 import java.util.Arrays;
@@ -26,11 +27,18 @@ public class ParserResult {
 
   private String sensorType;
   private JSONObject message;
+  private MetronError error;
   private byte[] originalMessage;
 
   public ParserResult(String sensorType, JSONObject message, byte[] originalMessage) {
     this.sensorType = sensorType;
     this.message = message;
+    this.originalMessage = originalMessage;
+  }
+
+  public ParserResult(String sensorType, MetronError error, byte[] originalMessage) {
+    this.sensorType = sensorType;
+    this.error = error;
     this.originalMessage = originalMessage;
   }
 
@@ -42,8 +50,16 @@ public class ParserResult {
     return message;
   }
 
+  public MetronError getError() {
+    return error;
+  }
+
   public byte[] getOriginalMessage() {
     return originalMessage;
+  }
+
+  public boolean isError() {
+    return error != null;
   }
 
   @Override
@@ -53,6 +69,7 @@ public class ParserResult {
     ParserResult parserResult = (ParserResult) o;
     return Objects.equals(sensorType, parserResult.getSensorType()) &&
             Objects.equals(message, parserResult.getMessage()) &&
+            Objects.equals(error, parserResult.getError()) &&
             Arrays.equals(originalMessage, parserResult.getOriginalMessage());
   }
 }

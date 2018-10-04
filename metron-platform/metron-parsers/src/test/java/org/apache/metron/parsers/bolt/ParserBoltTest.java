@@ -41,9 +41,11 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -94,17 +96,19 @@ public class ParserBoltTest extends BaseBoltTest {
     }
 
     @Override
-    public void execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations) {
+    public List<ParserResult> execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations) {
+      List<ParserResult> parserResults = new ArrayList<>();
       this.rawMessage = rawMessage;
       if (!isInvalid) {
-        onSuccess.accept(new ParserResult(sensorType, message, rawMessage.getMessage()));
+        parserResults.add(new ParserResult(sensorType, message, rawMessage.getMessage()));
       } else {
         MetronError error = new MetronError()
                 .withErrorType(Constants.ErrorType.PARSER_INVALID)
                 .withSensorType(Collections.singleton(sensorType))
                 .addRawMessage(message);
-        onError.accept(error);
+        parserResults.add(new ParserResult(sensorType, error, rawMessage.getMessage()));
       }
+      return parserResults;
     }
 
     protected void setInvalid(boolean isInvalid) {
@@ -214,7 +218,6 @@ public class ParserBoltTest extends BaseBoltTest {
 
     parserBolt.prepare(stormConf, topologyContext, outputCollector);
 
-    verify(parserRunner, times(1)).setOnError(any(Consumer.class));
     verify(parserRunner, times(1)).init(any(Supplier.class), eq(stellarContext));
     verify(yafConfig, times(1)).init();
     Map<String, String> topicToSensorMap = parserBolt.getTopicToSensorMap();
@@ -338,7 +341,6 @@ public class ParserBoltTest extends BaseBoltTest {
       }
     };
 
-    mockParserRunner.setOnError(parserBolt::onError);
     parserBolt.setMessageGetStrategy(messageGetStrategy);
     parserBolt.setOutputCollector(outputCollector);
     parserBolt.setTopicToSensorMap(new HashMap<String, String>() {{
