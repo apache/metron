@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -127,7 +126,7 @@ public class MultiIndexDao implements IndexDao {
               }
             }).collect(Collectors.toList());
 
-    return getDocument(output);
+    return getLatestDocument(output);
   }
 
   @Override
@@ -155,7 +154,7 @@ public class MultiIndexDao implements IndexDao {
               }
             }).collect(Collectors.toList());
 
-    return getDocument(output);
+    return getLatestDocument(output);
   }
 
   protected static class DocumentContainer {
@@ -236,7 +235,7 @@ public class MultiIndexDao implements IndexDao {
       }
     }).collect(Collectors.toList());
 
-    return getDocument(output);
+    return getLatestDocument(output);
   }
 
   @Override
@@ -277,25 +276,38 @@ public class MultiIndexDao implements IndexDao {
     return indices;
   }
 
-  private Document getDocument(List<DocumentContainer> documentContainers) throws IOException {
-    Document ret = null;
+  /**
+   * Returns the most recent {@link Document} from a list of {@link DocumentContainer}s.
+   *
+   * @param documentContainers A list of containers; each retrieved from a separate index.
+   * @return The latest {@link Document} found.
+   * @throws IOException If any of the {@link DocumentContainer}s contain an exception.
+   */
+  private Document getLatestDocument(List<DocumentContainer> documentContainers) throws IOException {
+    Document latestDocument = null;
     List<String> error = new ArrayList<>();
+
     for(DocumentContainer dc : documentContainers) {
       if(dc.getException().isPresent()) {
+        // collect each exception; multiple can occur, one in each index
         Throwable e = dc.getException().get();
         error.add(e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
+
       } else if(dc.getDocument().isPresent()) {
         Document d = dc.getDocument().get();
-        if(ret == null || ret.getTimestamp() < d.getTimestamp()) {
-          ret = d;
+        // is this the latest document so far?
+        if(latestDocument == null || latestDocument.getTimestamp() < d.getTimestamp()) {
+          latestDocument = d;
         }
+
       } else {
-        throw new IllegalStateException("Expected either document or exception; got neither");
+        // no document was found in the index
       }
     }
     if(error.size() > 0) {
+      // report all of the errors encountered
       throw new IOException(Joiner.on("\n").join(error));
     }
-    return ret;
+    return latestDocument;
   }
 }
