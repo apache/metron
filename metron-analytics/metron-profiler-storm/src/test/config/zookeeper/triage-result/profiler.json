@@ -1,0 +1,20 @@
+{
+  "profiles": [
+    {
+      "profile": "profile-with-triage",
+      "foreach": "'global'",
+      "update": {
+        "stats": "STATS_ADD(stats, 1)"
+      },
+      "result": {
+        "profile": "stats",
+        "triage": {
+          "min": "STATS_MIN(stats)",
+          "max": "STATS_MAX(stats)",
+          "mean": "STATS_MEAN(stats)"
+        }
+      }
+    }
+  ],
+  "timestampField": "timestamp"
+}
