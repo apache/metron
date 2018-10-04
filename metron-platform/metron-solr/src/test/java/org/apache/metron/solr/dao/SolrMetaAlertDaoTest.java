@@ -86,31 +86,38 @@ public class SolrMetaAlertDaoTest {
       }
 
       @Override
-      public void update(Document update, Optional<String> index) {
+      public Document update(Document update, Optional<String> index) {
+        return null;
       }
 
       @Override
-      public void batchUpdate(Map<Document, Optional<String>> updates) {
+      public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) {
+        return null;
       }
 
       @Override
-      public void addCommentToAlert(CommentAddRemoveRequest request) {
+      public Document addCommentToAlert(CommentAddRemoveRequest request) {
+        return null;
       }
 
       @Override
-      public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+      public Document removeCommentFromAlert(CommentAddRemoveRequest request) {
+        return null;
       }
 
       @Override
-      public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+      public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+        return null;
       }
 
       @Override
-      public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
+      public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
+        return null;
       }
 
       @Override
-      public void patch(RetrieveLatestDao dao, PatchRequest request, Optional<Long> timestamp) {
+      public Document patch(RetrieveLatestDao dao, PatchRequest request, Optional<Long> timestamp) {
+        return null;
       }
 
       @Override

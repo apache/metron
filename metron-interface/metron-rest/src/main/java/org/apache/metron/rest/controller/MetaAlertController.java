@@ -24,8 +24,8 @@ import io.swagger.annotations.ApiResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertAddRemoveRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.MetaAlertService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,9 +57,9 @@ public class MetaAlertController {
   @ApiOperation(value = "Creates a new meta alert from a list of existing alerts.  "
       + "The meta alert status will initially be set to 'ACTIVE' and summary statistics "
       + "will be computed from the list of alerts.  A list of groups included in the request are also added to the meta alert.")
-  @ApiResponse(message = "The GUID of the new meta alert", code = 200)
+  @ApiResponse(message = "Returns the complete document of the created metaalert.", code = 200)
   @RequestMapping(value = "/create", method = RequestMethod.POST)
-  ResponseEntity<MetaAlertCreateResponse> create(
+  ResponseEntity<Document> create(
       @ApiParam(name = "createRequest", value = "Meta alert create request which includes a list of alert "
           + "get requests and a list of custom groups used to annotate a meta alert", required = true)
       @RequestBody  final MetaAlertCreateRequest createRequest
@@ -68,9 +68,9 @@ public class MetaAlertController {
   }
 
   @ApiOperation(value = "Adds an alert to an existing meta alert.  An alert will not be added if it is already contained in a meta alert.")
-  @ApiResponse(message = "Returns 'true' if the alert was added and 'false' if the meta alert did not change.", code = 200)
+  @ApiResponse(message = "Returns the complete metaalert document with the alerts added.", code = 200)
   @RequestMapping(value = "/add/alert", method = RequestMethod.POST)
-  ResponseEntity<Boolean> addAlertsToMetaAlert(
+  ResponseEntity<Document> addAlertsToMetaAlert(
       @ApiParam(name = "metaAlertAddRemoveRequest", value = "Meta alert add request which includes a meta alert GUID and list of alert get requests", required = true)
       @RequestBody  final MetaAlertAddRemoveRequest metaAlertAddRemoveRequest
   ) throws RestException {
@@ -78,9 +78,9 @@ public class MetaAlertController {
   }
 
   @ApiOperation(value = "Removes an alert from an existing meta alert.  If the alert to be removed is not in a meta alert, 'false' will be returned.")
-  @ApiResponse(message = "Returns 'true' if the alert was removed and 'false' if the meta alert did not change.", code = 200)
+  @ApiResponse(message = "Returns the complete metaalert document with the alerts removed.", code = 200)
   @RequestMapping(value = "/remove/alert", method = RequestMethod.POST)
-  ResponseEntity<Boolean> removeAlertsFromMetaAlert(
+  ResponseEntity<Document> removeAlertsFromMetaAlert(
       @ApiParam(name = "metaAlertAddRemoveRequest", value = "Meta alert remove request which includes a meta alert GUID and list of alert get requests", required = true)
       @RequestBody  final MetaAlertAddRemoveRequest metaAlertAddRemoveRequest
   ) throws RestException {
@@ -88,9 +88,9 @@ public class MetaAlertController {
   }
 
   @ApiOperation(value = "Updates the status of a meta alert to either 'ACTIVE' or 'INACTIVE'.")
-  @ApiResponse(message = "Returns 'true' if the status changed and 'false' if it did not.", code = 200)
+  @ApiResponse(message = "Returns the complete metaalert document with the updated status.", code = 200)
   @RequestMapping(value = "/update/status/{guid}/{status}", method = RequestMethod.POST)
-  ResponseEntity<Boolean> updateMetaAlertStatus(
+  ResponseEntity<Document> updateMetaAlertStatus(
       final @ApiParam(name = "guid", value = "Meta alert GUID", required = true)
       @PathVariable String guid,
       final @ApiParam(name = "status", value = "Meta alert status with a value of either 'ACTIVE' or 'INACTIVE'", required = true)

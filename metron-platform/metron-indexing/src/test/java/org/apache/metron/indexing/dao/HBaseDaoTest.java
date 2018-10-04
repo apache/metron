@@ -16,25 +16,26 @@
  * limitations under the License.
  */
 
-package org.apache.metron.indexing.dao.metaalert;
+package org.apache.metron.indexing.dao;
 
-public class MetaAlertCreateResponse {
-  private boolean created;
-  private String guid;
+import org.apache.metron.indexing.dao.update.UpdateDao;
+import org.junit.Before;
 
-  public boolean isCreated() {
-    return created;
+/**
+ * This class returns the HBaseDao implementation to be used in UpdateDaoTest.  UpdateDaoTest contains a
+ * common set of tests that all Dao implementations must pass.
+ */
+public class HBaseDaoTest extends UpdateDaoTest{
+
+  private HBaseDao dao;
+
+  @Before
+  public void setup() {
+    dao = new HBaseDao();
   }
 
-  public void setCreated(boolean created) {
-    this.created = created;
-  }
-
-  public String getGuid() {
-    return guid;
-  }
-
-  public void setGuid(String guid) {
-    this.guid = guid;
+  @Override
+  public UpdateDao getUpdateDao() {
+    return dao;
   }
 }
