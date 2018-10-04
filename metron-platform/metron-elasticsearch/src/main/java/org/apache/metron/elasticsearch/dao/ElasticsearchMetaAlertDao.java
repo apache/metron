@@ -26,7 +26,6 @@ import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -182,25 +181,25 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
+  public Document createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException {
     return metaAlertUpdateDao.createMetaAlert(request);
   }
 
   @Override
-  public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
+  public Document addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException {
     return metaAlertUpdateDao.addAlertsToMetaAlert(metaAlertGuid, alertRequests);
   }
 
   @Override
-  public boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
+  public Document removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException {
     return metaAlertUpdateDao.removeAlertsFromMetaAlert(metaAlertGuid, alertRequests);
   }
 
   @Override
-  public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
+  public Document updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
       throws IOException {
     return metaAlertUpdateDao.updateMetaAlertStatus(metaAlertGuid, status);
   }
@@ -216,40 +215,40 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void update(Document update, Optional<String> index) throws IOException {
-    metaAlertUpdateDao.update(update, index);
+  public Document update(Document update, Optional<String> index) throws IOException {
+    return metaAlertUpdateDao.update(update, index);
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) {
-    metaAlertUpdateDao.batchUpdate(updates);
+  public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) {
+    return metaAlertUpdateDao.batchUpdate(updates);
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
-    indexDao.addCommentToAlert(request);
+  public Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    return indexDao.addCommentToAlert(request);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
-    indexDao.removeCommentFromAlert(request);
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    return indexDao.removeCommentFromAlert(request);
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    indexDao.addCommentToAlert(request, latest);
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    return indexDao.addCommentToAlert(request, latest);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    indexDao.removeCommentFromAlert(request, latest);
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    return indexDao.removeCommentFromAlert(request, latest);
   }
 
   @Override
-  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+  public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
       Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
-    metaAlertUpdateDao.patch(retrieveLatestDao, request, timestamp);
+    return metaAlertUpdateDao.patch(retrieveLatestDao, request, timestamp);
   }
 
   public void setPageSize(int pageSize) {
