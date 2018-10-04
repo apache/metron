@@ -22,30 +22,57 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.integration.ProcessorResult;
-import org.apache.metron.parsers.ParserRunner;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StormParserDriver extends ParserDriver {
   private static final Logger LOG = LoggerFactory.getLogger(StormParserDriver.class);
+
+  public static class CollectingWriter implements MessageWriter<JSONObject> {
+
+    List<byte[]> output;
+
+    public CollectingWriter(List<byte[]> output) {
+      this.output = output;
+    }
+
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void write(String sensorType, WriterConfiguration configurations, Tuple tuple,
+        JSONObject message) throws Exception {
+      output.add(message.toJSONString().getBytes());
+    }
+
+    @Override
+    public String getName() {
+      return "collecting";
+    }
+
+    @Override
+    public void close() throws Exception {
+    }
+
+    public List<byte[]> getOutput() {
+      return output;
+    }
+  }
 
   private class ShimParserBolt extends ParserBolt {
     List<byte[]> output;
@@ -79,10 +106,6 @@ public class StormParserDriver extends ParserDriver {
     }
   }
 
-//  private ParserConfigurations config;
-//  private String sensorType;
-//  private ParserRunner parserRunner;
-
   public StormParserDriver(String sensorType, String parserConfig, String globalConfig) throws IOException {
     super(sensorType, parserConfig, globalConfig);
   }
@@ -105,5 +128,4 @@ public class StormParserDriver extends ParserDriver {
     when(ret.getBinary(eq(0))).thenReturn(record);
     return ret;
   }
-
 }

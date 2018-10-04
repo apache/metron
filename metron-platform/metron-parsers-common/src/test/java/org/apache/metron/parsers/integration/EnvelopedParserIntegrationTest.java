@@ -52,7 +52,6 @@ public abstract class EnvelopedParserIntegrationTest {
   public static String parserConfig_default;
 
   public void testEnvelopedData(ParserDriver driver) throws IOException {
-//    ParserDriver driver = new ParserDriver("test", parserConfig_default, "{}");
     Map<String, Object> inputRecord = new HashMap<String, Object>() {{
       put(Constants.Fields.ORIGINAL.getName(), "real_original_string");
       put("data", "field1_val,100");
@@ -89,9 +88,7 @@ public abstract class EnvelopedParserIntegrationTest {
   @Multiline
   public static String parserConfig_withPrefix;
 
-//  @Test
   public void testEnvelopedData_withMetadataPrefix(ParserDriver driver) throws IOException {
-//    ParserDriver driver = new ParserDriver("test", parserConfig_withPrefix, "{}");
     Map<String, Object> inputRecord = new HashMap<String, Object>() {{
       put(Constants.Fields.ORIGINAL.getName(), "real_original_string");
       put("data", "field1_val,100");
@@ -127,9 +124,7 @@ public abstract class EnvelopedParserIntegrationTest {
   @Multiline
   public static String parserConfig_nomerge;
 
-//  @Test
   public void testEnvelopedData_noMergeMetadata(ParserDriver driver) throws IOException {
-//    ParserDriver driver = new ParserDriver("test", parserConfig_nomerge, "{}");
     Map<String, Object> inputRecord = new HashMap<String, Object>() {{
       put(Constants.Fields.ORIGINAL.getName(), "real_original_string");
       put("data", "field1_val,100");
@@ -180,28 +175,20 @@ public abstract class EnvelopedParserIntegrationTest {
   @Multiline
   public static String cisco302020Config;
 
-//  @Test
-  public void testCiscoPixEnvelopingCisco302020(ParserDriver syslogDriver, ParserDriver driver) throws Exception {
+  public void testCiscoPixEnvelopingCisco302020(ParserDriver syslogDriver, ParserDriver driver)
+      throws Exception {
     byte[] envelopedData = null;
-//    {
-//      ParserDriver driver = new ParserDriver("ciscoPix", ciscoPixSyslogConfig, "{}");
-      String inputRecord = "Mar 29 2004 09:54:18: %PIX-6-302005: Built UDP connection for faddr 198.207.223.240/53337 gaddr 10.0.0.187/53 laddr 192.168.0.2/53";
-      ProcessorResult<List<byte[]>> syslogResult = syslogDriver.run(ImmutableList.of(inputRecord.getBytes()));
-      Assert.assertFalse(syslogResult.failed());
-      List<byte[]> syslogResultList = syslogResult.getResult();
-      envelopedData = syslogResultList.get(0);
-//    }
-//    {
-//      ParserDriver driver = new ParserDriver("cisco302020", cisco302020Config, "{}");
-      ProcessorResult<List<byte[]>> results = driver.run(ImmutableList.of(envelopedData));
-      Assert.assertFalse(results.failed());
-      List<byte[]> resultList = results.getResult();
-      Assert.assertEquals(1, resultList.size());
-      Map<String, Object> result = JSONUtils.INSTANCE.load(new String(resultList.get(0)), JSONUtils.MAP_SUPPLIER);
-      Assert.assertEquals("UDP", result.get("protocol"));
-      Assert.assertTrue((long)result.get("timestamp") > 1000 );
-//    }
-
+    String inputRecord = "Mar 29 2004 09:54:18: %PIX-6-302005: Built UDP connection for faddr 198.207.223.240/53337 gaddr 10.0.0.187/53 laddr 192.168.0.2/53";
+    ProcessorResult<List<byte[]>> syslogResult = syslogDriver.run(ImmutableList.of(inputRecord.getBytes()));
+    Assert.assertFalse(syslogResult.failed());
+    List<byte[]> syslogResultList = syslogResult.getResult();
+    envelopedData = syslogResultList.get(0);
+    ProcessorResult<List<byte[]>> results = driver.run(ImmutableList.of(envelopedData));
+    Assert.assertFalse(results.failed());
+    List<byte[]> resultList = results.getResult();
+    Assert.assertEquals(1, resultList.size());
+    Map<String, Object> result = JSONUtils.INSTANCE.load(new String(resultList.get(0)), JSONUtils.MAP_SUPPLIER);
+    Assert.assertEquals("UDP", result.get("protocol"));
+    Assert.assertTrue((long) result.get("timestamp") > 1000);
   }
-
 }

@@ -17,6 +17,11 @@
  */
 package org.apache.metron.parsers.integration;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.List;
 import org.apache.metron.TestConstants;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ProcessorResult;
@@ -25,14 +30,23 @@ import org.apache.metron.parsers.integration.validation.ParserDriver;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
 import org.junit.Assert;
-import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
 
 public abstract class ParserIntegrationTest extends BaseIntegrationTest {
+  // Contains the list of sensor types to be tested.
+  // See StormParserIntegerationTest for an example of how to use this in a Parameterized JUnit test
+  protected static List<String> sensorTypes = Arrays.asList(
+          "asa",
+          "bro",
+          "jsonMap",
+          "jsonMapQuery",
+          "jsonMapWrappedQuery",
+          "snort",
+          "squid",
+          "websphere",
+          "yaf",
+          "syslog5424"
+          );
+
   protected List<byte[]> inputMessages;
 
   protected String readGlobalConfig() throws IOException {
@@ -46,10 +60,8 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     return new String(Files.readAllBytes(new File(parsersRoot, sensorType + ".json").toPath()));
   }
 
-//  @Test
   public void runTest(ParserDriver driver) throws Exception {
-    String sensorType = getSensorType();
-//    ParserDriver driver = new ParserDriver(sensorType, readSensorConfig(sensorType), readGlobalConfig());
+    String sensorType = driver.getSensorType();
     inputMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.RAW));
 
     ProcessorResult<List<byte[]>> result = driver.run(inputMessages);
@@ -81,7 +93,5 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  abstract String getSensorType();
   abstract List<ParserValidation> getValidations();
-
 }
