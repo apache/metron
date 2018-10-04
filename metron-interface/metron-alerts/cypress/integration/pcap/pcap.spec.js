@@ -47,6 +47,11 @@ context('PCAP Tab', () => {
 
   it('checking running jobs on navigating to PCAP tab', () => {
     cy.contains('PCAP').click();
+    cy.wait('@runningJobs').its('url').should('include', '?state=HAPPY-HOLYDAY');
+  });
+
+  it('checking running jobs on navigating to PCAP tab', () => {
+    cy.contains('PCAP').click();
     cy.wait('@runningJobs').its('url').should('include', '?state=RUNNING');
   });
 
