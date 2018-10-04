@@ -122,7 +122,7 @@ Examples
 
 ### Deploy a new parser class
 
-After adding a new parser to metron-parsers, build Metron from the top level directory:
+After adding a new parser to metron-parsers-common, build Metron from the top level directory:
 ```
 $ cd $METRON_HOME
 $ mvn clean install -DskipTests

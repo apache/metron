@@ -87,7 +87,7 @@ up the maven project:
         -->
         <dependency>
           <groupId>org.apache.metron</groupId>
-          <artifactId>metron-parsers</artifactId>
+          <artifactId>metron-parsers-common</artifactId>
           <version>${metron_version}</version>
           <scope>provided</scope>
         </dependency>

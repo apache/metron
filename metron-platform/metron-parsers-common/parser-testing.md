@@ -35,6 +35,7 @@ test that unit of functionality.
 
 ## The Integration Test
 
+#TODO Update this
 Integration tests are more structured.  The intent is that the parser that
 you have implemented can be driven successfully from `org.apache.metron.parsers.bolt.ParserBolt`.
 
@@ -43,7 +44,7 @@ The procedure for creating a new test is as follows:
   * Override `getSensorType()` to return the sensor type to be used in the test (referred to as `${sensor_type}` at times)
   * Override `getValidations()` to indicate how you want the output of the parser to be validated (more on validations later)
   * Optionally `readSensorConfig(String sensorType)` to read the sensor config
-    * By default, we will pull this from `metron-parsers/src/main/config/zookeeper/parsers/${sensor_type}`.  Override if you want to provide your own
+    * By default, we will pull this from `metron-parsers-common/src/main/config/zookeeper/parsers/${sensor_type}`.  Override if you want to provide your own
   * Optionally `readGlobalConfig()` to return the global config
     * By default, we will pull this from `metron-integration-test/src/main/config/zookeeper/global.json)`.  Override if you want to provide your own
 * Place sample input data in `metron-integration-test/src/main/sample/data/${sensor_type}/raw`
