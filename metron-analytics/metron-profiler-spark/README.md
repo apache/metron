@@ -245,6 +245,7 @@ You can store both settings for the Profiler along with settings for Spark in th
 |---                                                                            |---
 | [`profiler.batch.input.path`](#profilerbatchinputpath)                        | The path to the input data read by the Batch Profiler.
 | [`profiler.batch.input.format`](#profilerbatchinputformat)                    | The format of the input data read by the Batch Profiler.
+| [`profiler.batch.input.reader`](#profiler.batch.input.reader)                 | The telemetry reader used to read the input data.
 | [`profiler.batch.input.begin`](#profilerbatchinputend)                        | Only messages with a timestamp after this will be profiled.
 | [`profiler.batch.input.end`](#profilerbatchinputbegin)                        | Only messages with a timestamp before this will be profiled.
 | [`profiler.period.duration`](#profilerperiodduration)                         | The duration of each profile period.  
@@ -262,6 +263,12 @@ The path to the input data read by the Batch Profiler.
 ### `profiler.batch.input.format`
 
 *Default*: text
+
+The format of the input data read by the Batch Profiler.
+
+### `profiler.batch.input.reader`
+
+*Default*: TEXT_READER
 
 The format of the input data read by the Batch Profiler.
 

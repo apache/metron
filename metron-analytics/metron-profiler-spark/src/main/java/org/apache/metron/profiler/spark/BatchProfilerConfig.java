@@ -25,6 +25,8 @@ import org.apache.metron.stellar.common.utils.ConversionUtils;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.TEXT_READER;
+
 /**
  * Defines the configuration values recognized by the Batch Profiler.
  */
@@ -44,9 +46,11 @@ public enum BatchProfilerConfig {
 
   HBASE_WRITE_DURABILITY("profiler.hbase.durability", Durability.USE_DEFAULT, Durability.class),
 
+  TELEMETRY_INPUT_READER("profiler.batch.input.reader", TEXT_READER.toString(), String.class),
+
   TELEMETRY_INPUT_FORMAT("profiler.batch.input.format", "text", String.class),
 
-  TELEMETRY_INPUT_PATH("profiler.batch.input.path", "hdfs://localhost:9000/apps/metron/indexing/indexed/*/*", String.class),
+  TELEMETRY_INPUT_PATH("profiler.batch.input.path", "hdfs://localhost:8020/apps/metron/indexing/indexed/*/*", String.class),
 
   TELEMETRY_INPUT_BEGIN("profiler.batch.input.begin", "", String.class),
 
