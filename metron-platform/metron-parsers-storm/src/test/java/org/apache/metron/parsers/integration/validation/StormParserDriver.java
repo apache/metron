@@ -25,11 +25,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.parsers.ParserRunner;
+import org.apache.metron.parsers.ParserRunnerImpl;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
 import org.apache.storm.task.OutputCollector;
@@ -44,7 +48,6 @@ public class StormParserDriver extends ParserDriver {
   public static class CollectingWriter implements MessageWriter<JSONObject> {
 
     List<byte[]> output;
-
     public CollectingWriter(List<byte[]> output) {
       this.output = output;
     }
@@ -55,8 +58,7 @@ public class StormParserDriver extends ParserDriver {
     }
 
     @Override
-    public void write(String sensorType, WriterConfiguration configurations, Tuple tuple,
-        JSONObject message) throws Exception {
+    public void write(String sensorType, WriterConfiguration configurations, Tuple tuple, JSONObject message) throws Exception {
       output.add(message.toJSONString().getBytes());
     }
 
@@ -109,6 +111,23 @@ public class StormParserDriver extends ParserDriver {
   public StormParserDriver(String sensorType, String parserConfig, String globalConfig) throws IOException {
     super(sensorType, parserConfig, globalConfig);
   }
+
+
+//  private ParserConfigurations config;
+//  private String sensorType;
+//  private ParserRunner parserRunner;
+//
+//  public ParserDriver(String sensorType, String parserConfig, String globalConfig) throws IOException {
+//    SensorParserConfig sensorParserConfig = SensorParserConfig.fromBytes(parserConfig.getBytes());
+//    this.sensorType = sensorType == null ? sensorParserConfig.getSensorTopic() : sensorType;
+//    config = new ParserConfigurations();
+//    config.updateSensorParserConfig(this.sensorType, SensorParserConfig.fromBytes(parserConfig.getBytes()));
+//    config.updateGlobalConfig(JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER));
+//
+//    parserRunner = new ParserRunnerImpl(new HashSet<String>() {{
+//      add(sensorType);
+//    }});
+//  }
 
   public ProcessorResult<List<byte[]>> run(Iterable<byte[]> in) {
     ShimParserBolt bolt = new ShimParserBolt(new ArrayList<>());

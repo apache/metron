@@ -21,9 +21,12 @@ import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
+
+import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.common.configuration.ParserConfigurations;
@@ -37,6 +40,9 @@ import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.parsers.ParserResult;
 import org.apache.metron.parsers.ParserRunner;
+import org.apache.metron.stellar.common.CachingStellarProcessor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration;
 import org.apache.metron.writer.WriterToBulkWriter;
 import org.apache.metron.writer.bolt.BatchTimeoutHelper;
@@ -63,7 +69,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private int requestedTickFreqSecs;
   private int defaultBatchTimeout;
   private int batchTimeoutDivisor = 1;
-  private int numWritten = 0;
 
   public ParserBolt( String zookeeperUrl
                    , ParserRunner parserRunner
@@ -75,7 +80,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
     // Ensure that all sensors are either bulk sensors or not bulk sensors.  Can't mix and match.
     Boolean handleAcks = null;
-    for (Entry<String, WriterHandler> entry : sensorToWriterMap.entrySet()) {
+    for (Map.Entry<String, WriterHandler> entry : sensorToWriterMap.entrySet()) {
       boolean writerHandleAck = entry.getValue().handleAck();
       if (handleAcks == null) {
         handleAcks = writerHandleAck;
@@ -194,12 +199,10 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     super.prepare(stormConf, context, collector);
     messageGetStrategy = MessageGetters.DEFAULT_BYTES_FROM_POSITION.get();
     this.collector = collector;
-    System.out.println("ParserRunner: " + parserRunner);
-    this.parserRunner.setOnError(this::onError);
-    this.parserRunner.init(client, this::getConfigurations);
+    this.parserRunner.init(this::getConfigurations, initializeStellar());
 
     // Need to prep all sensors
-    for (Entry<String, WriterHandler> entry: sensorToWriterMap.entrySet()) {
+    for (Map.Entry<String, WriterHandler> entry: sensorToWriterMap.entrySet()) {
       String sensor = entry.getKey();
 
       SensorParserConfig config = getSensorParserConfig(sensor);
@@ -234,7 +237,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       handleTickTuple(tuple);
       return;
     }
-    numWritten = 0;
     byte[] originalMessage = (byte[]) messageGetStrategy.get(tuple);
     String topic = tuple.getStringByField(FieldsConfiguration.TOPIC.getFieldName());
     String sensorType = topicToSensorMap.get(topic);
@@ -247,8 +249,21 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
               , sensorParserConfig.getReadMetadata()
               , sensorParserConfig.getRawMessageStrategyConfig()
       );
-      parserRunner.setOnSuccess(parserResult -> onSuccess(parserResult, tuple));
-      parserRunner.execute(sensorType, rawMessage, parserConfigurations);
+      List<ParserResult> parserResults = parserRunner.execute(sensorType, rawMessage, parserConfigurations);
+      int numWritten = 0;
+      for(ParserResult parserResult: parserResults) {
+        if (!parserResult.isError()) {
+          numWritten++;
+          WriterHandler writer = sensorToWriterMap.get(parserResult.getSensorType());
+          try {
+            writer.write(parserResult.getSensorType(), tuple, parserResult.getMessage(), getConfigurations(), messageGetStrategy);
+          } catch (Exception ex) {
+            handleError(parserResult.getSensorType(), parserResult.getOriginalMessage(), tuple, ex, collector);
+          }
+        } else {
+          ErrorUtils.handleError(collector, parserResult.getError());
+        }
+      }
 
       //if we are supposed to ack the tuple OR if we've never passed this tuple to the bulk writer
       //(meaning that none of the messages are valid either globally or locally)
@@ -260,6 +275,30 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       handleError(sensorType, originalMessage, tuple, ex, collector);
       collector.ack(tuple);
     }
+  }
+
+  protected Context initializeStellar() {
+    Map<String, Object> cacheConfig = new HashMap<>();
+    for (String sensorType: this.parserRunner.getSensorTypes()) {
+      SensorParserConfig config = getSensorParserConfig(sensorType);
+
+      if (config != null) {
+        cacheConfig.putAll(config.getCacheConfig());
+      }
+    }
+    Cache<CachingStellarProcessor.Key, Object> cache = CachingStellarProcessor.createCache(cacheConfig);
+
+    Context.Builder builder = new Context.Builder()
+            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+            .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
+            .with(Context.Capabilities.STELLAR_CONFIG, () -> getConfigurations().getGlobalConfig())
+            ;
+    if(cache != null) {
+      builder = builder.with(Context.Capabilities.CACHE, () -> cache);
+    }
+    Context stellarContext = builder.build();
+    StellarFunctions.initialize(stellarContext);
+    return stellarContext;
   }
 
   protected void handleTickTuple(Tuple tuple) {
@@ -287,20 +326,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
     declarer.declareStream(Constants.ERROR_STREAM, new Fields("message"));
-  }
-
-  private void onSuccess(ParserResult result, Tuple tuple) {
-    WriterHandler writer = sensorToWriterMap.get(result.getSensorType());
-    try {
-      writer.write(result.getSensorType(), tuple, result.getMessage(), getConfigurations(), messageGetStrategy);
-      numWritten++;
-    } catch (Exception ex) {
-      handleError(result.getSensorType(), result.getOriginalMessage(), tuple, ex, collector);
-    }
-  }
-
-  protected void onError(MetronError error) {
-    ErrorUtils.handleError(collector, error);
   }
 
 }

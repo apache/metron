@@ -26,6 +26,7 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.parsers.ParserRunner;
+import org.apache.metron.parsers.ParserRunnerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,7 @@ public abstract class ParserDriver implements Serializable {
         SensorParserConfig.fromBytes(parserConfig.getBytes()));
     config.updateGlobalConfig(JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER));
 
-    parserRunner = new ParserRunner(new HashSet<String>() {{
+    parserRunner = new ParserRunnerImpl(new HashSet<String>() {{
       add(sensorType);
     }});
   }

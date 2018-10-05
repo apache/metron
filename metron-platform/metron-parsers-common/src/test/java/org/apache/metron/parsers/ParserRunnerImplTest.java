@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
@@ -58,8 +57,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ParserRunner.class, ReflectionUtils.class, Filters.class})
-public class ParserRunnerTest {
+@PrepareForTest({ParserRunnerImpl.class, ReflectionUtils.class, Filters.class})
+public class ParserRunnerImplTest {
 
   @Rule
   public final ExpectedException exception = ExpectedException.none();
@@ -110,7 +109,7 @@ public class ParserRunnerTest {
   private MessageParser<JSONObject> broParser;
   private MessageParser<JSONObject> snortParser;
   private MessageFilter<JSONObject> stellarFilter;
-  private ParserRunner parserRunner;
+  private ParserRunnerImpl parserRunner;
 
 
   @Before
@@ -121,7 +120,7 @@ public class ParserRunnerTest {
     parserConfigurations.updateSensorParserConfig("bro", broConfig);
     parserConfigurations.updateSensorParserConfig("snort", snortConfig);
     parserConfigurations.updateGlobalConfig(JSONUtils.INSTANCE.load(globalConfigString, JSONUtils.MAP_SUPPLIER));
-    parserRunner = new ParserRunner(new HashSet<>(Arrays.asList("bro", "snort")));
+    parserRunner = new ParserRunnerImpl(new HashSet<>(Arrays.asList("bro", "snort")));
     broParser = mock(MessageParser.class);
     snortParser = mock(MessageParser.class);
     stellarFilter = mock(StellarFilter.class);
@@ -136,23 +135,6 @@ public class ParserRunnerTest {
   }
 
   @Test
-  public void shouldThrowExceptionOnEmptyOnSuccess() {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("An onSuccess function must be set before parsing a message.");
-
-    parserRunner.execute("bro", null, null);
-  }
-
-  @Test
-  public void shouldThrowExceptionOnEmptyOnError() {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("An onError function must be set before parsing a message.");
-
-    parserRunner.setOnSuccess(parserResult -> {});
-    parserRunner.execute("bro", null, null);
-  }
-
-  @Test
   public void shouldThrowExceptionOnEmptyParserSupplier() {
     exception.expect(IllegalStateException.class);
     exception.expectMessage("A parser config supplier must be set before initializing the ParserRunner.");
@@ -161,32 +143,48 @@ public class ParserRunnerTest {
   }
 
   @Test
-  public void shouldThrowExceptionOnMissingSensorParserConfig() {
+  public void shouldThrowExceptionOnEmptyStellarContext() {
     exception.expect(IllegalStateException.class);
-    exception.expectMessage("Could not initialize parsers.  Cannot find config for sensor test.");
+    exception.expectMessage("A stellar context must be set before initializing the ParserRunner.");
 
-    parserRunner = new ParserRunner(new HashSet<String>() {{
+    parserRunner.init(() -> parserConfigurations, null);
+  }
+
+  @Test
+  public void initShouldThrowExceptionOnMissingSensorParserConfig() {
+    exception.expect(IllegalStateException.class);
+    exception.expectMessage("Could not initialize parsers.  Cannot find configuration for sensor test.");
+
+    parserRunner = new ParserRunnerImpl(new HashSet<String>() {{
       add("test");
     }});
 
-    parserRunner.setOnSuccess(parserResult -> {});
-    parserRunner.setOnError(parserResult -> {});
-    parserRunner.init(null, () -> parserConfigurations);
+    parserRunner.init(() -> parserConfigurations, mock(Context.class));
+  }
+
+  @Test
+  public void executeShouldThrowExceptionOnMissingSensorParserConfig() {
+    exception.expect(IllegalStateException.class);
+    exception.expectMessage("Could not execute parser.  Cannot find configuration for sensor test.");
+
+    parserRunner = new ParserRunnerImpl(new HashSet<String>() {{
+      add("test");
+    }});
+
+    parserRunner.execute("test", mock(RawMessage.class), parserConfigurations);
   }
 
   @Test
   public void shouldInit() throws Exception {
-    CuratorFramework client = mock(CuratorFramework.class);
+    Context stellarContext = mock(Context.class);
     Map<String, Object> broParserConfig = parserConfigurations.getSensorParserConfig("bro").getParserConfig();
     Map<String, Object> snortParserConfig = parserConfigurations.getSensorParserConfig("snort").getParserConfig();
 
-    parserRunner.init(client, () -> parserConfigurations);
+    parserRunner.init(() -> parserConfigurations, stellarContext);
 
     {
-      // Verify Stellar initialization
-      Assert.assertNotNull(parserRunner.getStellarContext().getCapability(Context.Capabilities.ZOOKEEPER_CLIENT));
-      Assert.assertNotNull(parserRunner.getStellarContext().getCapability(Context.Capabilities.GLOBAL_CONFIG));
-      Assert.assertNotNull(parserRunner.getStellarContext().getCapability(Context.Capabilities.STELLAR_CONFIG));
+      // Verify Stellar context
+      Assert.assertEquals(stellarContext, parserRunner.getStellarContext());
     }
 
     Map<String, ParserComponent> sensorToParserComponentMap = parserRunner.getSensorToParserComponentMap();
@@ -220,8 +218,6 @@ public class ParserRunnerTest {
 
     when(broParser.parseOptional(rawMessage.getMessage())).thenReturn(Optional.of(Collections.singletonList(message)));
 
-    parserRunner.setOnSuccess(parserResult -> {});
-    parserRunner.setOnError(parserResult -> {});
     parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
       put("bro", new ParserComponent(broParser, stellarFilter));
     }});
@@ -252,14 +248,14 @@ public class ParserRunnerTest {
     when(stellarFilter.emit(expectedOutput, parserRunner.getStellarContext())).thenReturn(true);
     when(broParser.validate(expectedOutput)).thenReturn(true);
 
-    parserRunner.setOnSuccess(onSuccess);
-    parserRunner.setOnError(metronError -> Assert.fail("OnError should not have been called."));
     parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
       put("bro", new ParserComponent(broParser, stellarFilter));
     }});
-    parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
+    Optional<ParserResult> parserResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
 
-    verify(onSuccess, times(1)).accept(expectedResult);
+    Assert.assertTrue(parserResult.isPresent());
+    Assert.assertFalse("An error should not have been returned.", parserResult.get().isError());
+    Assert.assertEquals(expectedResult, parserResult.get());
     verifyNoMoreInteractions(onSuccess);
   }
 
@@ -281,14 +277,14 @@ public class ParserRunnerTest {
     when(stellarFilter.emit(expectedOutput, parserRunner.getStellarContext())).thenReturn(true);
     when(broParser.validate(expectedOutput)).thenReturn(false);
 
-    parserRunner.setOnSuccess(parserResult -> Assert.fail("OnSuccess should not have been called."));
-    parserRunner.setOnError(onError);
     parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
       put("bro", new ParserComponent(broParser, stellarFilter));
     }});
-    parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
+    Optional<ParserResult> parserResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
 
-    verify(onError, times(1)).accept(expectedMetronError);
+    Assert.assertTrue(parserResult.isPresent());
+    Assert.assertTrue("An error should have been returned.", parserResult.get().isError());
+    Assert.assertEquals(expectedMetronError, parserResult.get().getError());
     verifyNoMoreInteractions(onError);
   }
 
@@ -315,14 +311,14 @@ public class ParserRunnerTest {
     when(stellarFilter.emit(expectedOutput, parserRunner.getStellarContext())).thenReturn(true);
     when(broParser.validate(expectedOutput)).thenReturn(true);
 
-    parserRunner.setOnSuccess(parserResult -> Assert.fail("OnSuccess should not have been called."));
-    parserRunner.setOnError(onError);
     parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
       put("bro", new ParserComponent(broParser, stellarFilter));
     }});
-    parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
+    Optional<ParserResult> parserResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
 
-    verify(onError, times(1)).accept(expectedMetronError);
+    Assert.assertTrue(parserResult.isPresent());
+    Assert.assertTrue("An error should have been returned.", parserResult.get().isError());
+    Assert.assertEquals(expectedMetronError, parserResult.get().getError());
     verifyNoMoreInteractions(onError);
   }
 }
