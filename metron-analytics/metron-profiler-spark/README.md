@@ -234,25 +234,25 @@ The Profiler can consume archived telemetry stored in a variety of input formats
 
 1. If additional options are required for your input format, then use the [`--reader`](#--reader) command-line argument when launching the Batch Profiler as [described here](#advanced-usage).
 
-### Common Formats
+#### Common Formats
 
 The following examples highlight the configuration values needed to read telemetry stored in common formats.  These values should be defined in the Profiler properties (see `--config`).
 
-#### JSON
+##### JSON
 ```
 profiler.batch.input.reader=TEXT
 profiler.batch.input.format=text
 profiler.batch.input.path=/path/to/*.json
 ```
 
-#### ORC
+##### ORC
 ```
 profiler.batch.input.reader=COLUMNAR
 profiler.batch.input.format=org.apache.spark.sql.execution.datasources.orc
 profiler.batch.input.path=/path/to/orc/
 ```
 
-#### Parquet
+##### Parquet
 ```
 profiler.batch.input.reader=COLUMNAR
 profiler.batch.input.format=parquet
@@ -300,6 +300,8 @@ Defines how the input data is treated when read.  There are two options.
  * `TEXT` Consumes input data stored as raw text.  Should be used for JSON and CSV formatted input data.
  
  * `COLUMNAR` Consumes input data stored in columnar formats.  Should be used for ORC and Parquet formatted input data.
+ 
+See [Common Formats](#common-formats) for further information.
 
 ### `profiler.batch.input.begin`
 
