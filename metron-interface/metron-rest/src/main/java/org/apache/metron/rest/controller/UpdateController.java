@@ -21,6 +21,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
@@ -42,52 +43,48 @@ public class UpdateController {
   private UpdateService service;
 
   @ApiOperation(value = "Update a document with a patch")
-  @ApiResponse(message = "Nothing", code = 200)
+  @ApiResponse(message = "Returns the complete patched document.", code = 200)
   @RequestMapping(value = "/patch", method = RequestMethod.PATCH)
-  ResponseEntity<Void> patch(
+  ResponseEntity<Document> patch(
           final @ApiParam(name = "request", value = "Patch request", required = true)
                 @RequestBody
           PatchRequest request
   ) throws RestException {
     try {
-      service.patch(request);
+      return new ResponseEntity<>(service.patch(request), HttpStatus.OK);
     } catch (OriginalNotFoundException e) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    return new ResponseEntity<>(HttpStatus.OK);
   }
 
   @ApiOperation(value = "Replace a document with a full replacement")
-  @ApiResponse(message = "Nothing", code = 200)
+  @ApiResponse(message = "Returns the complete replaced document.", code = 200)
   @RequestMapping(value = "/replace", method = RequestMethod.POST)
-  ResponseEntity<Void> replace(
+  ResponseEntity<Document> replace(
           final @ApiParam(name = "request", value = "Replacement request", required = true)
                 @RequestBody
           ReplaceRequest request
   ) throws RestException {
-    service.replace(request);
-    return new ResponseEntity<>(HttpStatus.OK);
+    return new ResponseEntity<>(service.replace(request), HttpStatus.OK);
   }
 
   @ApiOperation(value = "Add a comment to an alert")
-  @ApiResponse(message = "Nothing", code = 200)
+  @ApiResponse(message = "Returns the complete alert document with comments added.", code = 200)
   @RequestMapping(value = "/add/comment", method = RequestMethod.POST)
-  ResponseEntity<Void> addCommentToAlert(
+  ResponseEntity<Document> addCommentToAlert(
       @RequestBody @ApiParam(name = "request", value = "Comment add request", required = true) final
       CommentAddRemoveRequest request
   ) throws RestException {
-    service.addComment(request);
-    return new ResponseEntity<>(HttpStatus.OK);
+    return new ResponseEntity<>(service.addComment(request), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Remove a comment to an alert")
-  @ApiResponse(message = "Nothing", code = 200)
+  @ApiOperation(value = "Remove a comment from an alert")
+  @ApiResponse(message = "Returns the complete alert document with comments removed.", code = 200)
   @RequestMapping(value = "/remove/comment", method = RequestMethod.POST)
-  ResponseEntity<Void> removeCommentFromAlert(
+  ResponseEntity<Document> removeCommentFromAlert(
       @RequestBody @ApiParam(name = "request", value = "Comment remove request", required = true) final
       CommentAddRemoveRequest request
   ) throws RestException {
-    service.removeComment(request);
-    return new ResponseEntity<>(HttpStatus.OK);
+    return new ResponseEntity<>(service.removeComment(request), HttpStatus.OK);
   }
 }
