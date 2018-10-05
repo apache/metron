@@ -51,6 +51,7 @@
     "@types/pikaday-time": "^1.4.2",
     "codelyzer": "^4.0.1",
     "compression": "^1.7.3",
+    "cypress": "^3.1.0",
     "express": "^4.16.3",
     "http-proxy-middleware": "^0.18.0",
     "jasmine-core": "~2.5.2",

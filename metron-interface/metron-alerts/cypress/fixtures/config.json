@@ -1,0 +1,23 @@
+{
+  "es.clustername":"metron",
+  "es.ip":"node1:9300",
+  "es.date.format":"yyyy.MM.dd.HH",
+  "parser.error.topic":"indexing",
+  "update.hbase.table":"metron_update",
+  "update.hbase.cf":"t",
+  "es.client.settings":{
+     "client.transport.ping_timeout":"500s"
+  },
+  "profiler.client.period.duration":"15",
+  "profiler.client.period.duration.units":"MINUTES",
+  "user.settings.hbase.table":"user_settings",
+  "user.settings.hbase.cf":"cf",
+  "bootstrap.servers":"node1:6667",
+  "source.type.field":"source:type",
+  "threat.triage.score.field":"threat:triage:score",
+  "enrichment.writer.batchSize":"15",
+  "enrichment.writer.batchTimeout":"0",
+  "profiler.writer.batchSize":"15",
+  "profiler.writer.batchTimeout":"0",
+  "geo.hdfs.file":"/apps/metron/geo/default/GeoLite2-City.mmdb.gz"
+}
