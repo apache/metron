@@ -437,7 +437,10 @@
               <name>metron-management</name>
             </package>
             <package>
-              <name>metron-parsers</name>
+              <name>metron-parsers-common</name>
+            </package>
+            <package>
+              <name>metron-parsers-storm</name>
             </package>
             <package>
               <name>metron-enrichment</name>

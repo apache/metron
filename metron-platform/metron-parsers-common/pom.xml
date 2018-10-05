@@ -286,8 +286,6 @@
                             </relocations>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>storm:storm-core:*</exclude>
-                                    <exclude>storm:storm-lib:*</exclude>
                                     <exclude>org.slf4j.impl*</exclude>
                                     <exclude>org.slf4j:slf4j-log4j*</exclude>
                                 </excludes>

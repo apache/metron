@@ -114,7 +114,7 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-storm-parsers/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-parsers-storm/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
