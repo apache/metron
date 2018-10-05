@@ -105,7 +105,7 @@ configurations:
   - metron-rest-env:
       metron_spring_profiles_active: "dev"
   - metron-parsers-env:
-      parsers: "bro,snort"
+      parsers: "\"bro,snort,yaf\""
   - elastic-site:
       index_number_of_shards: 1
       index_number_of_replicas: 0
