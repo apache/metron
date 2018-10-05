@@ -162,9 +162,9 @@ public class BatchProfilerIntegrationTest {
   @Test
   public void testBatchProfilerWithJSON() throws Exception {
     // the input telemetry is text/json stored in the local filesystem
-    readerProperties.put(TELEMETRY_INPUT_READER.getKey(), TEXT_READER.toString());
-    readerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
-    readerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), TEXT.toString());
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
+    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
 
     BatchProfiler profiler = new BatchProfiler();
     profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
@@ -185,9 +185,9 @@ public class BatchProfilerIntegrationTest {
             .save(pathToORC);
 
     // tell the profiler to use the ORC input data
-    readerProperties.put(TELEMETRY_INPUT_READER.getKey(), COLUMN_READER.toString());
-    readerProperties.put(TELEMETRY_INPUT_PATH.getKey(), pathToORC);
-    readerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "org.apache.spark.sql.execution.datasources.orc");
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), COLUMNAR.toString());
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), pathToORC);
+    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "org.apache.spark.sql.execution.datasources.orc");
 
     BatchProfiler profiler = new BatchProfiler();
     profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
@@ -208,9 +208,9 @@ public class BatchProfilerIntegrationTest {
             .save(inputPath);
 
     // tell the profiler to use the ORC input data
-    readerProperties.put(TELEMETRY_INPUT_READER.getKey(), COLUMN_READER.toString());
-    readerProperties.put(TELEMETRY_INPUT_PATH.getKey(), inputPath);
-    readerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "parquet");
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), COLUMNAR.toString());
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), inputPath);
+    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "parquet");
 
     BatchProfiler profiler = new BatchProfiler();
     profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
@@ -233,8 +233,8 @@ public class BatchProfilerIntegrationTest {
             .save(pathToCSV);
 
     // tell the profiler to use the CSV input data
-    readerProperties.put(TELEMETRY_INPUT_PATH.getKey(), pathToCSV);
-    readerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "csv");
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), pathToCSV);
+    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "csv");
 
     // set a reader property; tell the reader to expect a header
     readerProperties.put("header", "true");
@@ -248,8 +248,8 @@ public class BatchProfilerIntegrationTest {
   @Test
   public void testBatchProfilerWithEndTimeConstraint() throws Exception {
     // the input telemetry is text/json stored in the local filesystem
-    readerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
-    readerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
+    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
 
     // there are 40 messages before "2018-07-07T15:51:48Z" in the test data
     profilerProperties.put(TELEMETRY_INPUT_BEGIN.getKey(), "");
@@ -272,8 +272,8 @@ public class BatchProfilerIntegrationTest {
   @Test
   public void testBatchProfilerWithBeginTimeConstraint() throws Exception {
     // the input telemetry is text/json stored in the local filesystem
-    readerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
-    readerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
+    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
 
     // there are 60 messages after "2018-07-07T15:51:48Z" in the test data
     profilerProperties.put(TELEMETRY_INPUT_BEGIN.getKey(), "2018-07-07T15:51:48Z");

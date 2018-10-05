@@ -42,14 +42,14 @@ public class TextEncodedTelemetryReader implements TelemetryReader {
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Override
-  public Dataset<String> read(SparkSession spark, Properties properties) {
-    String inputFormat = TELEMETRY_INPUT_FORMAT.get(properties, String.class);
-    String inputPath = TELEMETRY_INPUT_PATH.get(properties, String.class);
+  public Dataset<String> read(SparkSession spark, Properties profilerProps, Properties readerProps) {
+    String inputFormat = TELEMETRY_INPUT_FORMAT.get(profilerProps, String.class);
+    String inputPath = TELEMETRY_INPUT_PATH.get(profilerProps, String.class);
     LOG.debug("Loading telemetry; inputPath={}, inputFormat={}", inputPath, inputFormat);
 
     return spark
             .read()
-            .options(Maps.fromProperties(properties))
+            .options(Maps.fromProperties(readerProps))
             .format(inputFormat)
             .load(inputPath)
             .as(Encoders.STRING());

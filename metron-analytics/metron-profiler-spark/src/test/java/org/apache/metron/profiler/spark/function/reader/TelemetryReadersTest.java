@@ -24,19 +24,19 @@ import org.apache.metron.profiler.spark.reader.TextEncodedTelemetryReader;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.apache.metron.profiler.spark.reader.TelemetryReaders.COLUMN_READER;
-import static org.apache.metron.profiler.spark.reader.TelemetryReaders.TEXT_READER;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.COLUMNAR;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.TEXT;
 
 public class TelemetryReadersTest {
 
   @Test
   public void testTextReader() {
-    Assert.assertTrue(TelemetryReaders.create(TEXT_READER.toString()) instanceof TextEncodedTelemetryReader);
+    Assert.assertTrue(TelemetryReaders.create(TEXT.toString()) instanceof TextEncodedTelemetryReader);
   }
 
   @Test
   public void testColumnReader() {
-    Assert.assertTrue(TelemetryReaders.create(COLUMN_READER.toString()) instanceof ColumnEncodedTelemetryReader);
+    Assert.assertTrue(TelemetryReaders.create(COLUMNAR.toString()) instanceof ColumnEncodedTelemetryReader);
   }
 
   @Test(expected = IllegalArgumentException.class)

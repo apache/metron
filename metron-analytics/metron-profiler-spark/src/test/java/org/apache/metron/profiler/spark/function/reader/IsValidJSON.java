@@ -16,27 +16,23 @@
  * limitations under the License.
  *
  */
+package org.apache.metron.profiler.spark.function.reader;
 
-package org.apache.metron.profiler.spark.reader;
-
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.SparkSession;
-
-import java.util.Properties;
+import org.apache.spark.api.java.function.FilterFunction;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 /**
- * A {@link TelemetryReader} is responsible for creating a {@link Dataset} containing
- * telemetry that can be consumed by the {@link org.apache.metron.profiler.spark.BatchProfiler}.
+ * A filter function that filters out invalid JSON records.
  */
-public interface TelemetryReader {
+public class IsValidJSON implements FilterFunction<String> {
 
-  /**
-   * Read in the telemetry
-   *
-   * @param spark The spark session.
-   * @param profilerProps The profiler properties.
-   * @param readerProps The properties specific to reading input data.
-   * @return A {@link Dataset} containing archived telemetry.
-   */
-  Dataset<String> read(SparkSession spark, Properties profilerProps, Properties readerProps);
+  @Override
+  public boolean call(String text) throws Exception {
+    JSONParser parser = new JSONParser();
+    JSONObject json = (JSONObject) parser.parse(text);
+
+    // all of the test data has at least 32 fields in each JSON record
+    return json.keySet().size() >= 32;
+  }
 }

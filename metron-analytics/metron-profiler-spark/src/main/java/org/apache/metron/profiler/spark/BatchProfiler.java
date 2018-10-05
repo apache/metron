@@ -83,8 +83,8 @@ public class BatchProfiler implements Serializable {
     // TODO make sure all telemetry input properties come from the same property file
 
     // fetch the archived telemetry using the input reader
-    TelemetryReader reader = TelemetryReaders.create(TELEMETRY_INPUT_READER.get(readerProps, String.class));
-    Dataset<String> telemetry = reader.read(spark, readerProps);
+    TelemetryReader reader = TelemetryReaders.create(TELEMETRY_INPUT_READER.get(profilerProps, String.class));
+    Dataset<String> telemetry = reader.read(spark, profilerProps, readerProps);
     LOG.debug("Found {} telemetry record(s)", telemetry.cache().count());
 
     // find all routes for each message

@@ -16,14 +16,14 @@ import java.util.function.Supplier;
 public enum TelemetryReaders implements TelemetryReader {
 
   /**
-   * Use a {@link TextEncodedTelemetryReader} by defining the property value as 'TEXT_READER'.
+   * Use a {@link TextEncodedTelemetryReader} by defining the property value as 'TEXT'.
    */
-  TEXT_READER(() -> new TextEncodedTelemetryReader()),
+  TEXT(() -> new TextEncodedTelemetryReader()),
 
   /**
-   * Use a {@link ColumnEncodedTelemetryReader} by defining the property value as 'COLUMN_READER'.
+   * Use a {@link ColumnEncodedTelemetryReader} by defining the property value as 'COLUMNAR'.
    */
-  COLUMN_READER(() -> new ColumnEncodedTelemetryReader());
+  COLUMNAR(() -> new ColumnEncodedTelemetryReader());
 
   static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -41,29 +41,22 @@ public enum TelemetryReaders implements TelemetryReader {
    * @throws IllegalArgumentException If the property value is invalid.
    */
   public static TelemetryReader create(String propertyValue) {
-    LOG.debug("Using telemetry reader: {}", propertyValue);
+    LOG.debug("Creating telemetry reader: telemetryReader={}", propertyValue);
     TelemetryReader reader = null;
     try {
       TelemetryReaders strategy = TelemetryReaders.valueOf(propertyValue);
       reader = strategy.supplier.get();
 
     } catch(IllegalArgumentException e) {
-      LOG.error("Unexpected telemetry reader: " + propertyValue, e);
+      LOG.error("Unexpected telemetry reader: telemetryReader=" + propertyValue, e);
       throw e;
     }
 
     return reader;
   }
 
-  /**
-   * Uses the underlying {@link TelemetryReader} to read in the input telemetry.
-   *
-   * @param spark The spark session.
-   * @param properties Additional properties for reading in the telemetry.
-   * @return A {@link TelemetryReader}.
-   */
   @Override
-  public Dataset<String> read(SparkSession spark, Properties properties) {
-    return supplier.get().read(spark, properties);
+  public Dataset<String> read(SparkSession spark, Properties profilerProps, Properties readerProps) {
+    return supplier.get().read(spark, profilerProps, readerProps);
   }
 }

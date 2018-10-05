@@ -234,6 +234,31 @@ The Profiler can consume archived telemetry stored in a variety of input formats
 
 1. If additional options are required for your input format, then use the [`--reader`](#--reader) command-line argument when launching the Batch Profiler as [described here](#advanced-usage).
 
+### Common Formats
+
+The following examples highlight the configuration values needed to read telemetry stored in common formats.  These values should be defined in the Profiler properties (see `--config`).
+
+#### JSON
+```
+profiler.batch.input.reader=TEXT
+profiler.batch.input.format=text
+profiler.batch.input.path=/path/to/*.json
+```
+
+#### ORC
+```
+profiler.batch.input.reader=COLUMNAR
+profiler.batch.input.format=org.apache.spark.sql.execution.datasources.orc
+profiler.batch.input.path=/path/to/orc/
+```
+
+#### Parquet
+```
+profiler.batch.input.reader=COLUMNAR
+profiler.batch.input.format=parquet
+profiler.batch.input.path=/path/to/parquet/
+```
+
 
 ## Configuring the Profiler
 
@@ -245,7 +270,7 @@ You can store both settings for the Profiler along with settings for Spark in th
 |---                                                                            |---
 | [`profiler.batch.input.path`](#profilerbatchinputpath)                        | The path to the input data read by the Batch Profiler.
 | [`profiler.batch.input.format`](#profilerbatchinputformat)                    | The format of the input data read by the Batch Profiler.
-| [`profiler.batch.input.reader`](#profiler.batch.input.reader)                 | The telemetry reader used to read the input data.
+| [`profiler.batch.input.reader`](#profilerbatchinputreader)                    | The telemetry reader used to read the input data.
 | [`profiler.batch.input.begin`](#profilerbatchinputend)                        | Only messages with a timestamp after this will be profiled.
 | [`profiler.batch.input.end`](#profilerbatchinputbegin)                        | Only messages with a timestamp before this will be profiled.
 | [`profiler.period.duration`](#profilerperiodduration)                         | The duration of each profile period.  
@@ -268,9 +293,13 @@ The format of the input data read by the Batch Profiler.
 
 ### `profiler.batch.input.reader`
 
-*Default*: TEXT_READER
+*Default*: TEXT
 
-The format of the input data read by the Batch Profiler.
+Defines how the input data is treated when read.  There are two options.
+
+ * `TEXT` Consumes input data stored as raw text.  Should be used for JSON and CSV formatted input data.
+ 
+ * `COLUMNAR` Consumes input data stored in columnar formats.  Should be used for ORC and Parquet formatted input data.
 
 ### `profiler.batch.input.begin`
 
