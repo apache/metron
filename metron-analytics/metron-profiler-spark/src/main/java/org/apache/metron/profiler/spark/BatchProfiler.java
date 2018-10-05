@@ -79,9 +79,7 @@ public class BatchProfiler implements Serializable {
 
     LOG.debug("Building {} profile(s)", profiles.getProfiles().size());
     Map<String, String> globals = Maps.fromProperties(globalProperties);
-
-    // TODO make sure all telemetry input properties come from the same property file
-
+    
     // fetch the archived telemetry using the input reader
     TelemetryReader reader = TelemetryReaders.create(TELEMETRY_INPUT_READER.get(profilerProps, String.class));
     Dataset<String> telemetry = reader.read(spark, profilerProps, readerProps);
