@@ -31,8 +31,8 @@ fi
 export HBASE_CONFIGS=$(hbase classpath)
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
-export STELLAR_LIB=$(find $METRON_HOME/lib/ -name metron-parsers*.jar)
-# TODO Does this cover exporting the Storm jar
+export METRON_PARSERS_PLATFORM="${METRON_PARSERS_PLATFORM:-storm}"
+export STELLAR_LIB=$(find $METRON_HOME/lib/ -name metron-parsers-${METRON_PARSERS_PLATFORM}*.jar)
 export MANAGEMENT_LIB=$(find $METRON_HOME/lib/ -name metron-management*.jar)
 export PROFILER_LIB=$(find $METRON_HOME/lib/ -name metron-profiler-repl*.jar)
 java $JVMFLAGS -cp "${CONTRIB:-$METRON_HOME/contrib/*}:$STELLAR_LIB:$MANAGEMENT_LIB:$PROFILER_LIB:$HBASE_CONFIGS" org.apache.metron.stellar.common.shell.cli.StellarShell "$@"
