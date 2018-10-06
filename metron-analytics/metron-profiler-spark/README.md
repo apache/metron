@@ -241,7 +241,6 @@ The following examples highlight the configuration values needed to read telemet
 ##### JSON
 ```
 profiler.batch.input.reader=TEXT
-profiler.batch.input.format=text
 profiler.batch.input.path=/path/to/*.json
 ```
 
