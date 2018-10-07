@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class MultiLineGrokParserTest {
+public class MultiLineWithErrorsGrokParserTest {
 
   /**
    * Test that if a byte[] with multiple lines of log is passed in
@@ -42,7 +42,7 @@ public class MultiLineGrokParserTest {
    * @throws IOException if we can't read from disk
    * @throws ParseException if we can't parse
    */
-  @Test
+  @Test(expected = RuntimeException.class)
   @SuppressWarnings("unchecked")
   public void test() throws IOException, ParseException {
 
@@ -62,7 +62,6 @@ public class MultiLineGrokParserTest {
     for (Map.Entry<String, String> e : testData.entrySet()) {
       byte[] rawMessage = e.getKey().getBytes();
       List<JSONObject> parsedList = grokParser.parse(rawMessage);
-      Assert.assertEquals(10, parsedList.size());
     }
   }
 
@@ -98,7 +97,7 @@ public class MultiLineGrokParserTest {
       List<JSONObject>  resultList = resultOptional.get().getMessages();
       Map<Object,Throwable> errorMap = resultOptional.get().getMessageThrowables();
       Assert.assertFalse(throwableOptional.isPresent());
-      Assert.assertEquals(0, errorMap.size());
+      Assert.assertEquals(3, errorMap.size());
       Assert.assertEquals(10, resultList.size());
     }
   }
@@ -108,7 +107,7 @@ public class MultiLineGrokParserTest {
 
     Map testData = new HashMap<String, String>();
     String input;
-    try (FileInputStream stream = new FileInputStream(new File("src/test/resources/logData/multi_elb_log.txt"))) {
+    try (FileInputStream stream = new FileInputStream(new File("src/test/resources/logData/multi_elb_with_errors_log.txt"))) {
       input = IOUtils.toString(stream);
     } catch (IOException ioe) {
       throw new IllegalStateException("failed to open file", ioe);

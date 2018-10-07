@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,23 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.metron.parsers.bolt;
 
 
 import com.github.benmanes.caffeine.cache.Cache;
-import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
@@ -48,6 +36,7 @@ import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.apache.metron.parsers.topology.ParserComponents;
 import org.apache.metron.stellar.common.CachingStellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
@@ -65,6 +54,20 @@ import org.apache.storm.utils.TupleUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
@@ -306,8 +309,17 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         );
         metadata = rawMessage.getMetadata();
 
-        Optional<List<JSONObject>> messages = parser.parseOptional(rawMessage.getMessage());
-        for (JSONObject message : messages.orElse(Collections.emptyList())) {
+        Optional<MessageParserResult<JSONObject>> results = parser.parseOptionalResult(rawMessage.getMessage());
+
+        // check if there is a master error
+        if (results.isPresent() && results.get().getMasterThrowable() != null) {
+          handleError(originalMessage, tuple, results.get().getMasterThrowable(), collector);
+          return;
+        }
+
+        // Handle the message results
+        List<JSONObject> messages = results.isPresent() ? results.get().getMessages() : Collections.EMPTY_LIST;
+        for (JSONObject message : messages) {
           //we want to ack the tuple in the situation where we have are not doing a bulk write
           //otherwise we want to defer to the writerComponent who will ack on bulk commit.
           WriterHandler writer = sensorToComponentMap.get(sensor).getWriter();
@@ -370,6 +382,19 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             }
           }
         }
+
+        // Handle the error results
+        Map<Object, Throwable> messageErrors = results.isPresent()
+                ? results.get().getMessageThrowables() : Collections.EMPTY_MAP;
+
+        for (Entry<Object,Throwable> entry : messageErrors.entrySet()) {
+          MetronError error = new MetronError()
+                  .withErrorType(Constants.ErrorType.PARSER_ERROR)
+                  .withThrowable(entry.getValue())
+                  .withSensorType(sensorToComponentMap.keySet())
+                  .addRawMessage(originalMessage);
+          ErrorUtils.handleError(collector, error);
+        }
       }
       //if we are supposed to ack the tuple OR if we've never passed this tuple to the bulk writer
       //(meaning that none of the messages are valid either globally or locally)
@@ -383,7 +408,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     }
   }
 
-  protected void handleError(byte[] originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
+  protected void handleError(Object originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
     MetronError error = new MetronError()
             .withErrorType(Constants.ErrorType.PARSER_ERROR)
             .withThrowable(ex)

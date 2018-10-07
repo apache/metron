@@ -125,16 +125,16 @@ public class ParserDriver implements Serializable {
     }
 
     @Override
-    protected void handleError(byte[] originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
-      errors.add(originalMessage);
+    protected void handleError(Object originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
+      errors.add((byte[])originalMessage);
       LOG.error("Error parsing message: " + ex.getMessage(), ex);
     }
 
+    @SuppressWarnings("unchecked")
     public ProcessorResult<List<byte[]>> getResults() {
       return new ProcessorResult.Builder<List<byte[]>>().withProcessErrors(errors)
                                                         .withResult(output)
                                                         .build();
-
     }
   }
 

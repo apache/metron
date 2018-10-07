@@ -27,6 +27,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +43,12 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TimeZone;
 
 
@@ -134,46 +138,73 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   @SuppressWarnings("unchecked")
   @Override
   public List<JSONObject> parse(byte[] rawMessage) {
+    Optional<MessageParserResult<JSONObject>> resultOptional = parseOptionalResult(rawMessage);
+    if (!resultOptional.isPresent()) {
+      return Collections.EMPTY_LIST;
+    }
+    Map<Object,Throwable> errors = resultOptional.get().getMessageThrowables();
+    if (!errors.isEmpty()) {
+      throw new RuntimeException(errors.entrySet().iterator().next().getValue());
+    }
+
+    return resultOptional.get().getMessages();
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public Optional<MessageParserResult<JSONObject>> parseOptionalResult(byte[] rawMessage) {
     if (grok == null) {
       init();
     }
     List<JSONObject> messages = new ArrayList<>();
+    Map<Object,Throwable> errors = new HashMap<>();
     String originalMessage = null;
     // read the incoming raw data as if it may have multiple lines of logs
     // if there is only only one line, it will just get processed.
     try (BufferedReader reader = new BufferedReader(new StringReader(new String(rawMessage, StandardCharsets.UTF_8)))) {
       while ((originalMessage = reader.readLine()) != null) {
         LOG.debug("Grok parser parsing message: {}", originalMessage);
-        Match gm = grok.match(originalMessage);
-        gm.captures();
-        JSONObject message = new JSONObject();
-        message.putAll(gm.toMap());
+        try {
+          Match gm = grok.match(originalMessage);
+          gm.captures();
+          JSONObject message = new JSONObject();
+          message.putAll(gm.toMap());
 
-        if (message.size() == 0)
-          throw new RuntimeException("Grok statement produced a null message. Original message was: "
-                  + originalMessage + " and the parsed message was: " + message + " . Check the pattern at: "
-                  + grokPath);
-
-        message.put("original_string", originalMessage);
-        for (String timeField : timeFields) {
-          String fieldValue = (String) message.get(timeField);
-          if (fieldValue != null) {
-            message.put(timeField, toEpoch(fieldValue));
+          if (message.size() == 0) {
+            Throwable rte = new RuntimeException("Grok statement produced a null message. Original message was: "
+                    + originalMessage + " and the parsed message was: " + message + " . Check the pattern at: "
+                    + grokPath);
+            errors.put(originalMessage, rte);
+            continue;
           }
+          message.put("original_string", originalMessage);
+          for (String timeField : timeFields) {
+            String fieldValue = (String) message.get(timeField);
+            if (fieldValue != null) {
+              message.put(timeField, toEpoch(fieldValue));
+            }
+          }
+          if (timestampField != null) {
+            message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
+          }
+          message.remove(patternLabel);
+          postParse(message);
+          messages.add(message);
+          LOG.debug("Grok parser parsed message: {}", message);
+        } catch (Exception e) {
+          LOG.error(e.getMessage(), e);
+          errors.put(originalMessage, e);
         }
-        if (timestampField != null) {
-          message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
-        }
-        message.remove(patternLabel);
-        postParse(message);
-        messages.add(message);
-        LOG.debug("Grok parser parsed message: {}", message);
       }
-    } catch (Exception e) {
+    } catch (IOException e) {
       LOG.error(e.getMessage(), e);
-      throw new IllegalStateException("Grok parser Error: " + e.getMessage() + " on " + originalMessage , e);
+      Exception innerException = new IllegalStateException("Grok parser Error: "
+              + e.getMessage()
+              + " on "
+              + originalMessage, e);
+      return Optional.of(new DefaultMessageParserResult<>(innerException));
     }
-    return messages;
+    return Optional.of(new DefaultMessageParserResult<>(messages, errors));
   }
 
   @Override
