@@ -52,6 +52,7 @@ public class MultiLineWithErrorsGrokParserTest {
     parserConfig.put("timestampField", getTimestampField());
     parserConfig.put("dateFormat", getDateFormat());
     parserConfig.put("timeFields", getTimeFields());
+    parserConfig.put("multiLine",getMultiLine());
 
     GrokParser grokParser = new GrokParser();
     grokParser.configure(parserConfig);
@@ -82,6 +83,7 @@ public class MultiLineWithErrorsGrokParserTest {
     parserConfig.put("timestampField", getTimestampField());
     parserConfig.put("dateFormat", getDateFormat());
     parserConfig.put("timeFields", getTimeFields());
+    parserConfig.put("multiLine",getMultiLine());
 
     GrokParser grokParser = new GrokParser();
     grokParser.configure(parserConfig);
@@ -131,6 +133,8 @@ public class MultiLineWithErrorsGrokParserTest {
       add("timestamp");
     }};
   }
+
+  public String getMultiLine() { return "true"; }
 
   public String getDateFormat() {
     return "yyyy-MM-dd'T'HH:mm:ss.S'Z'";

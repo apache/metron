@@ -312,8 +312,8 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         Optional<MessageParserResult<JSONObject>> results = parser.parseOptionalResult(rawMessage.getMessage());
 
         // check if there is a master error
-        if (results.isPresent() && results.get().getMasterThrowable() != null) {
-          handleError(originalMessage, tuple, results.get().getMasterThrowable(), collector);
+        if (results.isPresent() && results.get().getMasterThrowable().isPresent()) {
+          handleError(originalMessage, tuple, results.get().getMasterThrowable().get(), collector);
           return;
         }
 

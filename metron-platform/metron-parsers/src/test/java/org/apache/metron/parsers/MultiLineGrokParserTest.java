@@ -52,7 +52,7 @@ public class MultiLineGrokParserTest {
     parserConfig.put("timestampField", getTimestampField());
     parserConfig.put("dateFormat", getDateFormat());
     parserConfig.put("timeFields", getTimeFields());
-
+    parserConfig.put("multiLine", getMultiLine());
     GrokParser grokParser = new GrokParser();
     grokParser.configure(parserConfig);
     grokParser.init();
@@ -83,6 +83,7 @@ public class MultiLineGrokParserTest {
     parserConfig.put("timestampField", getTimestampField());
     parserConfig.put("dateFormat", getDateFormat());
     parserConfig.put("timeFields", getTimeFields());
+    parserConfig.put("multiLine", getMultiLine());
 
     GrokParser grokParser = new GrokParser();
     grokParser.configure(parserConfig);
@@ -118,6 +119,8 @@ public class MultiLineGrokParserTest {
     return testData;
 
   }
+
+  public String getMultiLine() { return "true";}
 
   public String getGrokPath() {
     return "../metron-integration-test/src/main/sample/patterns/test";

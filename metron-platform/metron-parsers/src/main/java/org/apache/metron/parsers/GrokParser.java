@@ -22,6 +22,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -58,6 +59,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   protected transient Grok grok;
   protected String grokPath;
+  protected boolean multiLine = false;
   protected String patternLabel;
   protected List<String> timeFields = new ArrayList<>();
   protected String timestampField;
@@ -68,6 +70,10 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   @SuppressWarnings("unchecked")
   public void configure(Map<String, Object> parserConfig) {
     this.grokPath = (String) parserConfig.get("grokPath");
+    String multiLineString = (String) parserConfig.get("multiLine");
+    if (!StringUtils.isBlank(multiLineString)) {
+      multiLine = Boolean.parseBoolean(multiLineString);
+    }
     this.patternLabel = (String) parserConfig.get("patternLabel");
     this.timestampField = (String) parserConfig.get("timestampField");
     List<String> timeFieldsParam = (List<String>) parserConfig.get("timeFields");
@@ -156,6 +162,14 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     if (grok == null) {
       init();
     }
+    if (multiLine) {
+      return parseMultiLine(rawMessage);
+    }
+    return parseSingleLine(rawMessage);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Optional<MessageParserResult<JSONObject>> parseMultiLine(byte[] rawMessage) {
     List<JSONObject> messages = new ArrayList<>();
     Map<Object,Throwable> errors = new HashMap<>();
     String originalMessage = null;
@@ -205,6 +219,51 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       return Optional.of(new DefaultMessageParserResult<>(innerException));
     }
     return Optional.of(new DefaultMessageParserResult<>(messages, errors));
+  }
+
+  @SuppressWarnings("unchecked")
+  private Optional<MessageParserResult<JSONObject>> parseSingleLine(byte[] rawMessage) {
+    List<JSONObject> messages = new ArrayList<>();
+    Map<Object,Throwable> errors = new HashMap<>();
+    String originalMessage = null;
+    try {
+      originalMessage = new String(rawMessage, "UTF-8");
+      LOG.debug("Grok parser parsing message: {}",originalMessage);
+      Match gm = grok.match(originalMessage);
+      gm.captures();
+      JSONObject message = new JSONObject();
+      message.putAll(gm.toMap());
+
+      if (message.size() == 0) {
+        Throwable rte = new RuntimeException("Grok statement produced a null message. Original message was: "
+                + originalMessage + " and the parsed message was: " + message + " . Check the pattern at: "
+                + grokPath);
+        errors.put(originalMessage, rte);
+      } else {
+        message.put("original_string", originalMessage);
+        for (String timeField : timeFields) {
+          String fieldValue = (String) message.get(timeField);
+          if (fieldValue != null) {
+            message.put(timeField, toEpoch(fieldValue));
+          }
+        }
+        if (timestampField != null) {
+          message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
+        }
+        message.remove(patternLabel);
+        postParse(message);
+        messages.add(message);
+        LOG.debug("Grok parser parsed message: {}", message);
+      }
+    } catch (Exception e) {
+      LOG.error(e.getMessage(), e);
+      Exception innerException = new IllegalStateException("Grok parser Error: "
+              + e.getMessage()
+              + " on "
+              + originalMessage, e);
+      return Optional.of(new DefaultMessageParserResult<>(innerException));
+    }
+    return Optional.of(new DefaultMessageParserResult<JSONObject>(messages, errors));
   }
 
   @Override
