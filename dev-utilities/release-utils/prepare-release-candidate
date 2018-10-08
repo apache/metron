@@ -24,6 +24,7 @@ set -eo pipefail
 
 # define constants
 # Git repos
+# To add a new submodule, add the repo name, upstream Git repo, and update the getrepo() selection function
 METRON_REPO_NAME="metron"
 BRO_PLUGIN_REPO_NAME="metron-bro-plugin-kafka"
 METRON_UPSTREAM="https://git-wip-us.apache.org/repos/asf/${METRON_REPO_NAME}.git"
@@ -121,7 +122,7 @@ read -p "  release candidate number: " RC_NUM
 }
 until getrcnum; do : ; done
 
-
+# Signing key
 getkey() {
   read -s -p "  signing key id in 8-byte format (e.g. BADDCAFEDEADBEEF): " SIGNING_KEY
   printf "\n"
@@ -151,6 +152,24 @@ getpractice() {
   esac
 }
 until getpractice; do : ; done
+
+getbaserev() {
+  read -p "  base revision branch or hash for release candidate (master if empty) " GIT_REF
+  GIT_REF=${GIT_REF:-master}
+
+  # check to see if we were given branch
+  git rev-parse --verify ${GIT_REF}
+  if [[ $? -ne 0 ]]; then
+    # check to see if we were given hash
+    git cat-file -t ${GIT_REF}
+    if [[ $? -ne 0 ]]; then
+      "Provided SHA is not a valid git commit hash"
+      return 1
+    fi
+  fi
+  return 0
+}
+until getbaserev; do : ; done
 
 # define default values
 TMPDIR="$HOME/tmp"
@@ -194,8 +213,9 @@ git fetch --tags
 
 # Create the release branch in the Git repo
 printf "Creating branch: %s_%s\n" "${CAPITAL_REPO}" "$VERSION"
+printf "Using git rev: %s\n" ${GIT_REF}
 cd "$GIT_DIR"
-git checkout master
+git checkout ${GIT_REF}
 git checkout -b "${CAPITAL_REPO}_${VERSION}"
 
 if [ "${PRACTICE_RUN}" = true ]; then
@@ -303,9 +323,9 @@ if [ "${PRACTICE_RUN}" = true ]; then
   printf "svn commit -m \"Adding artifacts for Metron %s-RC%s\"\n" "$VERSION" "${RC_NUM}"
 else
   printf "Adding artifacts for Metron ${VERSION}-RC${RC_NUM} to dev SVN\n"
-  # TODO fix dirs for core vs plugin
-  #cd "$WORKDIR/dev/metron/"
-  #svn add "${CORE_VERSION}-RC{$RC_NUM}"
-  #svn commit -m "Adding artifacts for Metron ${CORE_VERSION}-RC${RC_NUM}"
+  cd "$WORKDIR/dev/metron/"
+  COMMIT_DIR=$(basename ${ART_DIR})
+  # svn add ${COMMIT_DIR}
+  #svn commit -m "Adding artifacts for Metron ${COMMIT_DIR}"
 fi
 
