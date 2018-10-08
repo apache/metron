@@ -19,12 +19,15 @@
  */
 package org.apache.metron.profiler.storm.integration;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
+import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.ZKServerComponent;
 
+import java.util.Arrays;
 import java.util.Properties;
 
 import static org.apache.metron.common.configuration.ConfigurationsUtils.getClient;
@@ -41,7 +44,8 @@ public class ConfigUploadComponent implements InMemoryComponent {
 
   private Properties topologyProperties;
   private String globalConfiguration;
-  private String profilerConfiguration;
+  private String profilerConfigurationPath;
+  private ProfilerConfig profilerConfig;
 
   @Override
   public void start() throws UnableToStartException {
@@ -86,11 +90,17 @@ public class ConfigUploadComponent implements InMemoryComponent {
    * @param client The zookeeper client.
    */
   private void uploadProfilerConfig(CuratorFramework client) throws Exception {
-    if (profilerConfiguration != null) {
-      byte[] globalConfig = readProfilerConfigFromFile(profilerConfiguration);
-      if (globalConfig.length > 0) {
-        writeProfilerConfigToZookeeper(readProfilerConfigFromFile(profilerConfiguration), client);
-      }
+    byte[] configBytes = null;
+
+    if (profilerConfigurationPath != null) {
+      configBytes = readProfilerConfigFromFile(profilerConfigurationPath);
+
+    } else if(profilerConfig != null) {
+      configBytes = profilerConfig.toJSON().getBytes();
+    }
+
+    if (ArrayUtils.getLength(configBytes) > 0) {
+      writeProfilerConfigToZookeeper(configBytes, client);
     }
   }
 
@@ -117,8 +127,13 @@ public class ConfigUploadComponent implements InMemoryComponent {
     return this;
   }
 
-  public ConfigUploadComponent withProfilerConfiguration(String path) {
-    this.profilerConfiguration = path;
+  public ConfigUploadComponent withProfilerConfigurationPath(String path) {
+    this.profilerConfigurationPath = path;
+    return this;
+  }
+
+  public ConfigUploadComponent withProfilerConfiguration(ProfilerConfig profilerConfig) {
+    this.profilerConfig = profilerConfig;
     return this;
   }
 }
