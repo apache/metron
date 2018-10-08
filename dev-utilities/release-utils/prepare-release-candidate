@@ -24,7 +24,8 @@ set -eo pipefail
 
 # define constants
 # Git repos
-# To add a new submodule, add the repo name, upstream Git repo, and update the getrepo() selection function
+# To add a new submodule, add the repo name, upstream Git repo, and update the getrepo() selection function.
+# if versioning of the submodule isn't x.y.z format, retrieval of the git tag must also be adjusted.
 METRON_REPO_NAME="metron"
 BRO_PLUGIN_REPO_NAME="metron-bro-plugin-kafka"
 METRON_UPSTREAM="https://git-wip-us.apache.org/repos/asf/${METRON_REPO_NAME}.git"
@@ -88,7 +89,7 @@ if [ -z "${APACHE_EMAIL}" ]; then
 fi
 
 getcurrentversion() {
-  # version that we're building an RC for
+  # currently released version. Used for CHANGES file
   read -p "  current version: " CURRENT_VERSION
   if ! [[ "${CURRENT_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     printf "  Please enter a valid x.y.z version\n"
@@ -122,6 +123,41 @@ read -p "  release candidate number: " RC_NUM
 }
 until getrcnum; do : ; done
 
+# define default values
+TMPDIR="$HOME/tmp"
+WORKDIR="$TMPDIR/${CHOSEN_REPO}-${VERSION}"
+
+# warn the user if the working directory exists
+if [ -d "$WORKDIR" ]; then
+  read -p "  directory exists [$WORKDIR].  overwrite existing directory? [y/n] " -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    exit 1
+  fi
+fi
+
+# Clear out the existing work directory
+rm -rf "$WORKDIR"
+mkdir "$WORKDIR"
+
+getbaserev() {
+  read -p "  base revision branch or hash for release candidate (master if empty) " GIT_REF
+  GIT_REF=${GIT_REF:-master}
+
+  # check to see if we were given branch
+  git rev-parse -q --verify ${GIT_REF} >> /dev/null
+  if [[ $? -ne 0 ]]; then
+    # check to see if we were given hash
+    git cat-file -e ${GIT_REF}
+    if [[ $? -ne 0 ]]; then
+      "Unable to find git revision"
+      return 1
+    fi
+  fi
+  return 0
+}
+until getbaserev; do : ; done
+
 # Signing key
 getkey() {
   read -s -p "  signing key id in 8-byte format (e.g. BADDCAFEDEADBEEF): " SIGNING_KEY
@@ -152,41 +188,6 @@ getpractice() {
   esac
 }
 until getpractice; do : ; done
-
-getbaserev() {
-  read -p "  base revision branch or hash for release candidate (master if empty) " GIT_REF
-  GIT_REF=${GIT_REF:-master}
-
-  # check to see if we were given branch
-  git rev-parse --verify ${GIT_REF}
-  if [[ $? -ne 0 ]]; then
-    # check to see if we were given hash
-    git cat-file -t ${GIT_REF}
-    if [[ $? -ne 0 ]]; then
-      "Provided SHA is not a valid git commit hash"
-      return 1
-    fi
-  fi
-  return 0
-}
-until getbaserev; do : ; done
-
-# define default values
-TMPDIR="$HOME/tmp"
-WORKDIR="$TMPDIR/${CHOSEN_REPO}-${VERSION}"
-
-# warn the user if the working directory exists
-if [ -d "$WORKDIR" ]; then
-  read -p "  directory exists [$WORKDIR].  overwrite existing directory? [y/n] " -r
-  echo
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    exit 1
-  fi
-fi
-
-# Clear out the existing work directory
-rm -rf "$WORKDIR"
-mkdir "$WORKDIR"
 
 ## Prepare everything for building the release artifacts
 
@@ -222,7 +223,7 @@ if [ "${PRACTICE_RUN}" = true ]; then
   printf "This is a practice run. Not running <git push --set-upstream origin %s_%s>\n" "${CAPITAL_REPO}" "$VERSION"
 else
   printf "Pushing branch %s_%s\n" "${CAPITAL_REPO}" "$VERSION"
-  #git push --set-upstream origin "${BRANCH_PREFIX}_${BRANCH_VERSION}"
+  git push --set-upstream origin "${BRANCH_PREFIX}_${BRANCH_VERSION}"
 fi
 
 # Create directory for release artifacts
@@ -244,7 +245,6 @@ elif [ "${CHOSEN_REPO}" = "${BRO_PLUGIN_REPO_NAME}" ]; then
   PLUGIN_PREFIX="apache-metron-bro-plugin-kafka_"
   ARTIFACT_PREFIX="${PLUGIN_PREFIX}"
   TAG_VERSION="${CURRENT_VERSION}"
-  TAG_VERSION=$(echo ${CURRENT_VERSION} | cut -d. -f-2)
   TAG="${PLUGIN_PREFIX}${TAG_VERSION}${TAG_POSTFIX}"
   # Handle special tag case from prior release
   if [ "${TAG_VERSION}" = "0.1" ]; then
@@ -263,6 +263,7 @@ cd "$GIT_DIR"
 git checkout "${CAPITAL_REPO}_${VERSION}"
 # The branch only exists if this is not a practice run
 if [ "${PRACTICE_RUN}" = false ]; then
+  printf "Pulling latest state of branch\n"
   git pull
 fi
 git tag "${ARTIFACT}"
@@ -317,15 +318,20 @@ fi
 tar --strip-components=1 -zxvf "${ARTIFACT}.tar.gz" "${ARTIFACT}/NOTICE"
 
 # Add the directory and commit to subversion
+COMMIT_DIR=$(basename ${ART_DIR})
 if [ "${PRACTICE_RUN}" = true ]; then
   printf "This is a practice run. Not running the following commands:\n"
-  printf "svn add %s-RC%s\n" "$VERSION" "${RC_NUM}"
-  printf "svn commit -m \"Adding artifacts for Metron %s-RC%s\"\n" "$VERSION" "${RC_NUM}"
+  printf "<svn add %s>\n" ${COMMIT_DIR}
+  printf "<svn commit -m \"Adding artifacts for %s %s\"\n>" "${CHOSEN_REPO}" "${COMMIT_DIR}"
 else
   printf "Adding artifacts for Metron ${VERSION}-RC${RC_NUM} to dev SVN\n"
-  cd "$WORKDIR/dev/metron/"
-  COMMIT_DIR=$(basename ${ART_DIR})
-  # svn add ${COMMIT_DIR}
-  #svn commit -m "Adding artifacts for Metron ${COMMIT_DIR}"
+  # Metron goes in the root of the dir, submodules go in folder
+  if [ "${CHOSEN_REPO}" = "${METRON_REPO_NAME}" ]; then
+    cd "$WORKDIR/dev/metron/"
+  else
+    cd "$WORKDIR/dev/metron/${CHOSEN_REPO}"
+  fi
+  svn add ${COMMIT_DIR}
+  svn commit -m "Adding artifacts for ${CHOSEN_REPO} ${COMMIT_DIR}"
 fi
 
