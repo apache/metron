@@ -280,7 +280,7 @@ Metron depends on some internal fields being defined in sensor templates.  A fie
 }
 ```
 
-The following a list of properties that need to be defined along with their type:
+The following is a list of properties that need to be defined along with their type:
 * source:type - keyword
 * alert_status - keyword
 * metron_alert - nested
