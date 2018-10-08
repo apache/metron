@@ -41,6 +41,7 @@ import java.util.Optional;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.system.FakeClock;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.model.AlertsUIUserSettings;
 import org.apache.metron.hbase.client.UserSettingsClient;
@@ -79,9 +80,10 @@ public class AlertsUIServiceImplTest {
   private KafkaService kafkaService;
   private Environment environment;
   private UserSettingsClient userSettingsClient;
-  private AlertsUIService alertsUIService;
+  private AlertsUIServiceImpl alertsUIService;
   private String user1 = "user1";
   private String user2 = "user2";
+  private FakeClock clock;
 
   @SuppressWarnings("unchecked")
   @Before
@@ -90,6 +92,11 @@ public class AlertsUIServiceImplTest {
     environment = mock(Environment.class);
     userSettingsClient = mock(UserSettingsClient.class);
     alertsUIService = new AlertsUIServiceImpl(kafkaService, environment, userSettingsClient);
+
+    // use a fake clock for testing
+    clock = new FakeClock();
+    clock.elapseSeconds(1000);
+    alertsUIService.setClock(clock);
 
     // assume user1 is logged in for tests
     Authentication authentication = Mockito.mock(Authentication.class);
@@ -100,21 +107,26 @@ public class AlertsUIServiceImplTest {
   }
 
   @Test
-  public void produceMessageShouldProperlyProduceMessage() throws Exception {
-    String escalationTopic = "escalation";
-    final Map<String, Object> message1 = new HashMap<>();
-    message1.put("field", "value1");
-    final Map<String, Object> message2 = new HashMap<>();
-    message2.put("field", "value2");
-    List<Map<String, Object>> messages = Arrays.asList(message1, message2);
+  public void escalateAlertShouldSendMessageToKafka() throws Exception {
+    final String field = "field";
+    final String value1 = "value1";
+    final String value2 = "value2";
+
+    // define the escalation topic
+    final String escalationTopic = "escalation";
     when(environment.getProperty(MetronRestConstants.KAFKA_TOPICS_ESCALATION_PROPERTY)).thenReturn(escalationTopic);
 
-    alertsUIService.escalateAlerts(messages);
+    // create an alert along with the expected escalation message that is sent to kafka
+    final Map<String, Object> alert1 = mapOf(field, value1);
+    String escalationMessage1 = escalationMessage(field, value1, user1, clock.currentTimeMillis());
 
-    String expectedMessage1 = "{\"field\":\"value1\"}";
-    String expectedMessage2 = "{\"field\":\"value2\"}";
-    verify(kafkaService).produceMessage("escalation", expectedMessage1);
-    verify(kafkaService).produceMessage("escalation", expectedMessage2);
+    final Map<String, Object> alert2 = mapOf(field, value2);
+    String escalationMessage2 = escalationMessage(field, value2, user1, clock.currentTimeMillis());
+
+    // escalate the alerts and validate
+    alertsUIService.escalateAlerts(Arrays.asList(alert1, alert2));
+    verify(kafkaService).produceMessage(escalationTopic, escalationMessage1);
+    verify(kafkaService).produceMessage(escalationTopic, escalationMessage2);
     verifyZeroInteractions(kafkaService);
   }
 
@@ -176,5 +188,30 @@ public class AlertsUIServiceImplTest {
 
     verify(userSettingsClient, times(2)).delete(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE);
     verifyNoMoreInteractions(userSettingsClient);
+  }
+
+  /**
+   * Defines what the message sent to Kafka should look-like when an alert is escalated.
+   *
+   * @param field The field name.
+   * @param value The value of the field.
+   * @param user The user who escalated the alert.
+   * @param timestamp When the alert was escalated.
+   * @return The escalated message.
+   */
+  private String escalationMessage(String field, String value, String user, Long timestamp) {
+    return String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%d}",
+            field,
+            value,
+            MetronRestConstants.METRON_ESCALATION_USER_FIELD,
+            user,
+            MetronRestConstants.METRON_ESCALATION_TIMESTAMP_FIELD,
+            timestamp);
+  }
+
+  private Map<String, Object> mapOf(String key, Object value) {
+    Map<String, Object> map = new HashMap<>();
+    map.put(key, value);
+    return map;
   }
 }

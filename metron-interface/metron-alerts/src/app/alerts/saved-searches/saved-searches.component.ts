@@ -1,3 +1,4 @@
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +18,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import {Router} from '@angular/router';
-import {Observable} from 'rxjs/Rx';
+import {forkJoin as observableForkJoin} from 'rxjs';
 
 import {SaveSearchService} from '../../service/save-search.service';
 import {SaveSearch} from '../../model/save-search';
@@ -78,7 +79,7 @@ export class SavedSearchesComponent implements OnInit {
   }
 
   ngOnInit() {
-    Observable.forkJoin(
+    observableForkJoin(
       this.saveSearchService.listSavedSearches(),
       this.saveSearchService.listRecentSearches()
     ).subscribe((response: any) => {

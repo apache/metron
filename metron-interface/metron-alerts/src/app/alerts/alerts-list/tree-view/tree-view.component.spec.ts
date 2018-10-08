@@ -17,7 +17,7 @@
  */
 
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
 
 import { TreeViewComponent } from './tree-view.component';
 import { AlertSeverityHexagonDirective } from '../../../shared/directives/alert-severity-hexagon.directive';
@@ -39,7 +39,7 @@ describe('TreeViewComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [ HttpModule ],
+      imports: [ HttpClientModule ],
       providers: [
         SearchService,
         UpdateService,
@@ -47,7 +47,7 @@ describe('TreeViewComponent', () => {
         MetaAlertService,
         MetronDialogBox,
       ],
-      declarations: [ 
+      declarations: [
         MetronTableDirective,
         MetronSorterComponent,
         MetronTablePaginationComponent,

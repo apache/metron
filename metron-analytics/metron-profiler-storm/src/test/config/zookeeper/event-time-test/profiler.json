@@ -1,0 +1,19 @@
+{
+  "timestampField": "timestamp",
+  "profiles": [
+    {
+      "profile": "count-by-ip",
+      "foreach": "ip_src_addr",
+      "init": { "count": 0 },
+      "update": { "count" : "count + 1" },
+      "result": "count"
+    },
+    {
+      "profile": "total-count",
+      "foreach": "'total'",
+      "init": { "count": 0 },
+      "update": { "count": "count + 1" },
+      "result": "count"
+    }
+  ]
+}

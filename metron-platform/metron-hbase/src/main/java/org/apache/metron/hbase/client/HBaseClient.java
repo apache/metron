@@ -133,9 +133,11 @@ public class HBaseClient implements Closeable {
 
   /**
    * Submits all queued Mutations.
+   * @return The number of mutation submitted.
    */
-  public void mutate() {
-    Object[] result = new Object[mutations.size()];
+  public int mutate() {
+    int mutationCount = mutations.size();
+    Object[] result = new Object[mutationCount];
     try {
       table.batch(mutations, result);
       mutations.clear();
@@ -144,6 +146,8 @@ public class HBaseClient implements Closeable {
       LOG.warn("Error performing a mutation to HBase.", e);
       throw new RuntimeException(e);
     }
+
+    return mutationCount;
   }
 
   /**
