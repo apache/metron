@@ -70,6 +70,7 @@ Value: (Undefined, blank or empty string)
 * This option allows Elasticsearch to generate the document ID. 
 * The client will not set a document ID. 
 * In most cases this is the most performant option.
+* This is the default behavior.
 
 #### Option 2: Legacy Compatibility
 
