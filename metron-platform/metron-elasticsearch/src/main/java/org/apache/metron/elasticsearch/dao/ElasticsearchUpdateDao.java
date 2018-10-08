@@ -60,7 +60,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   }
 
   @Override
-  public void update(Document update, Optional<String> index) throws IOException {
+  public Document update(Document update, Optional<String> index) throws IOException {
     String indexPostfix = ElasticsearchUtils
         .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
     String sensorType = update.getSensorType();
@@ -79,10 +79,11 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     } catch (Exception e) {
       throw new IOException(e.getMessage(), e);
     }
+    return update;
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     String indexPostfix = ElasticsearchUtils
         .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
 
@@ -108,20 +109,22 @@ public class ElasticsearchUpdateDao implements UpdateDao {
       throw new IOException(
           "ElasticsearchDao upsert failed: " + bulkResponse.buildFailureMessage());
     }
+    return updates;
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+  public Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
-    addCommentToAlert(request, latest);
+    return addCommentToAlert(request, latest);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    if (latest == null) {
-      return;
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    if (latest == null || latest.getDocument() == null) {
+      throw new IOException(String.format("Unable to add comment. Document with guid %s cannot be found.",
+              request.getGuid()));
     }
     List<Map<String, Object>> commentsField = (List<Map<String, Object>>) latest.getDocument()
         .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
@@ -133,25 +136,30 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
     Document newVersion = new Document(latest);
     newVersion.getDocument().put(COMMENTS_FIELD, originalComments);
-    update(newVersion, Optional.empty());
+    return update(newVersion, Optional.empty());
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
-    removeCommentFromAlert(request, latest);
+    return removeCommentFromAlert(request, latest);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    if (latest == null) {
-      return;
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    if (latest == null || latest.getDocument() == null) {
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s cannot be found.",
+              request.getGuid()));
     }
-    List<Map<String, Object>> commentsField = (List<Map<String, Object>>) latest.getDocument()
-        .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
-    List<Map<String, Object>> originalComments = new ArrayList<>(commentsField);
+    List<Map<String, Object>> commentMap = (List<Map<String, Object>>) latest.getDocument().get(COMMENTS_FIELD);
+    // Can't remove anything if there's nothing there
+    if (commentMap == null) {
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s has no comments.",
+              request.getGuid()));
+    }
+    List<Map<String, Object>> originalComments = new ArrayList<>(commentMap);
 
     List<AlertComment> alertComments = new ArrayList<>();
     for (Map<String, Object> commentRaw : originalComments) {
@@ -170,7 +178,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
       newVersion.getDocument().remove(COMMENTS_FIELD);
     }
 
-    update(newVersion, Optional.empty());
+    return update(newVersion, Optional.empty());
   }
 
   protected String getIndexName(Document update, Optional<String> index, String indexPostFix) {

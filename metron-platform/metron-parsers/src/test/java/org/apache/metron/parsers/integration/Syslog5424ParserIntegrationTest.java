@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,26 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.parsers.integration;
 
-package org.apache.metron.indexing.dao.metaalert;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
 
-public class MetaAlertCreateResponse {
-  private boolean created;
-  private String guid;
+import java.util.ArrayList;
+import java.util.List;
 
-  public boolean isCreated() {
-    return created;
+public class Syslog5424ParserIntegrationTest extends ParserIntegrationTest {
+  @Override
+  String getSensorType() {
+    return "syslog5424";
   }
 
-  public void setCreated(boolean created) {
-    this.created = created;
-  }
-
-  public String getGuid() {
-    return guid;
-  }
-
-  public void setGuid(String guid) {
-    this.guid = guid;
+  @Override
+  List<ParserValidation> getValidations() {
+    return new ArrayList<ParserValidation>() {{
+      add(new SampleDataValidation());
+    }};
   }
 }

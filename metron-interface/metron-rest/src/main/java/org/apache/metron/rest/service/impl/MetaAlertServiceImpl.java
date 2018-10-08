@@ -23,11 +23,11 @@ import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertAddRemoveRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.MetaAlertService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ public class MetaAlertServiceImpl implements MetaAlertService {
   }
 
   @Override
-  public MetaAlertCreateResponse create(MetaAlertCreateRequest createRequest) throws RestException {
+  public Document create(MetaAlertCreateRequest createRequest) throws RestException {
     try {
       return dao.createMetaAlert(createRequest);
     } catch (InvalidCreateException | IOException e) {
@@ -65,25 +65,25 @@ public class MetaAlertServiceImpl implements MetaAlertService {
   }
 
   @Override
-  public boolean addAlertsToMetaAlert(MetaAlertAddRemoveRequest metaAlertAddRemoveRequest) throws RestException {
+  public Document addAlertsToMetaAlert(MetaAlertAddRemoveRequest metaAlertAddRemoveRequest) throws RestException {
     try {
       return dao.addAlertsToMetaAlert(metaAlertAddRemoveRequest.getMetaAlertGuid(), metaAlertAddRemoveRequest.getAlerts());
-    } catch (IOException ioe) {
-      throw new RestException(ioe.getMessage(), ioe);
+    } catch (IOException | IllegalStateException e) {
+      throw new RestException(e.getMessage(), e);
     }
   }
 
   @Override
-  public boolean removeAlertsFromMetaAlert(MetaAlertAddRemoveRequest metaAlertAddRemoveRequest) throws RestException {
+  public Document removeAlertsFromMetaAlert(MetaAlertAddRemoveRequest metaAlertAddRemoveRequest) throws RestException {
     try {
       return dao.removeAlertsFromMetaAlert(metaAlertAddRemoveRequest.getMetaAlertGuid(), metaAlertAddRemoveRequest.getAlerts());
-    } catch (IOException ioe) {
-      throw new RestException(ioe.getMessage(), ioe);
+    } catch (IOException | IllegalStateException e) {
+      throw new RestException(e.getMessage(), e);
     }
   }
 
   @Override
-  public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
+  public Document updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
       throws RestException {
     try {
       return dao.updateMetaAlertStatus(metaAlertGuid, status);

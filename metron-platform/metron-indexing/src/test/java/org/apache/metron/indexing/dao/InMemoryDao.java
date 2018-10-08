@@ -248,7 +248,7 @@ public class InMemoryDao implements IndexDao {
   }
 
   @Override
-  public void update(Document update, Optional<String> index) throws IOException {
+  public Document update(Document update, Optional<String> index) throws IOException {
     for (Map.Entry<String, List<String>> kv : BACKING_STORE.entrySet()) {
       if (kv.getKey().startsWith(update.getSensorType())) {
         for (Iterator<String> it = kv.getValue().iterator(); it.hasNext(); ) {
@@ -261,13 +261,15 @@ public class InMemoryDao implements IndexDao {
         kv.getValue().add(JSONUtils.INSTANCE.toJSON(update.getDocument(), true));
       }
     }
+    return update;
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     for (Map.Entry<Document, Optional<String>> update : updates.entrySet()) {
       update(update.getKey(), update.getValue());
     }
+    return updates;
   }
 
   @Override
@@ -293,19 +295,23 @@ public class InMemoryDao implements IndexDao {
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) {
+  public Document addCommentToAlert(CommentAddRemoveRequest request) {
+    return null;
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request) {
+    return null;
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+    return null;
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
+    return null;
   }
 
   public static void setColumnMetadata(Map<String, Map<String, FieldType>> columnMetadata) {

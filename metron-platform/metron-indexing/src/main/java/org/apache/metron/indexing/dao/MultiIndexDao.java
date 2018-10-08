@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -58,7 +57,7 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public void update(final Document update, Optional<String> index) throws IOException {
+  public Document update(final Document update, Optional<String> index) throws IOException {
     List<String> exceptions =
     indices.parallelStream().map(dao -> {
       try {
@@ -71,10 +70,11 @@ public class MultiIndexDao implements IndexDao {
     if(exceptions.size() > 0) {
       throw new IOException(Joiner.on("\n").join(exceptions));
     }
+    return update;
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     List<String> exceptions =
         indices.parallelStream().map(dao -> {
           try {
@@ -87,6 +87,7 @@ public class MultiIndexDao implements IndexDao {
     if (exceptions.size() > 0) {
       throw new IOException(Joiner.on("\n").join(exceptions));
     }
+    return updates;
   }
 
   @Override
@@ -101,51 +102,62 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+  public Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = getLatest(request.getGuid(), request.getSensorType());
-    addCommentToAlert(request, latest);
+    return addCommentToAlert(request, latest);
   }
 
-
+  /**
+   * Adds comments to an alert.  Updates are written to each Dao in parallel with the assumption that all updates
+   * are identical.  The first update to be applied is returned as the current version of the alert with comments added.
+   * @param request Request to add comments
+   * @param latest The latest version of the alert the comments will be added to.
+   * @return The complete alert document with comments added.
+   * @throws IOException
+   */
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    List<String> exceptions =
-        indices.parallelStream().map(dao -> {
-          try {
-            dao.addCommentToAlert(request, latest);
-            return null;
-          } catch (Throwable e) {
-            return dao.getClass() + ": " + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e);
-          }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
-    if (exceptions.size() > 0) {
-      throw new IOException(Joiner.on("\n").join(exceptions));
-    }
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    List<DocumentContainer> output =
+            indices.parallelStream().map(dao -> {
+              try {
+                return new DocumentContainer(dao.addCommentToAlert(request, latest));
+              } catch (Throwable e) {
+                return new DocumentContainer(e);
+              }
+            }).collect(Collectors.toList());
+
+    return getLatestDocument(output);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = getLatest(request.getGuid(), request.getSensorType());
-    removeCommentFromAlert(request, latest);
+    return removeCommentFromAlert(request, latest);
   }
 
+  /**
+   * Removes comments from an alert.  Updates are written to each Dao in parallel with the assumption that all updates
+   * are identical.  The first update to be applied is returned as the current version of the alert with comments removed.
+   * @param request Request to remove comments
+   * @param latest The latest version of the alert the comments will be removed from.
+   * @return The complete alert document with comments removed.
+   * @throws IOException
+   */
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    List<String> exceptions =
-        indices.parallelStream().map(dao -> {
-          try {
-            dao.removeCommentFromAlert(request, latest);
-            return null;
-          } catch (Throwable e) {
-            return dao.getClass() + ": " + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e);
-          }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
-    if (exceptions.size() > 0) {
-      throw new IOException(Joiner.on("\n").join(exceptions));
-    }
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    List<DocumentContainer> output =
+            indices.parallelStream().map(dao -> {
+              try {
+                return new DocumentContainer(dao.removeCommentFromAlert(request, latest));
+              } catch (Throwable e) {
+                return new DocumentContainer(e);
+              }
+            }).collect(Collectors.toList());
+
+    return getLatestDocument(output);
   }
 
-  private static class DocumentContainer {
+  protected static class DocumentContainer {
     private Optional<Document> d = Optional.empty();
     private Optional<Throwable> t = Optional.empty();
     public DocumentContainer(Document d) {
@@ -214,7 +226,6 @@ public class MultiIndexDao implements IndexDao {
 
   @Override
   public Document getLatest(final String guid, String sensorType) throws IOException {
-    Document ret = null;
     List<DocumentContainer> output =
             indices.parallelStream().map(dao -> {
       try {
@@ -224,25 +235,7 @@ public class MultiIndexDao implements IndexDao {
       }
     }).collect(Collectors.toList());
 
-    List<String> error = new ArrayList<>();
-    for(DocumentContainer dc : output) {
-      if(dc.getException().isPresent()) {
-        Throwable e = dc.getException().get();
-        error.add(e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
-      }
-      else {
-        if(dc.getDocument().isPresent()) {
-          Document d = dc.getDocument().get();
-          if(ret == null || ret.getTimestamp() < d.getTimestamp()) {
-            ret = d;
-          }
-        }
-      }
-    }
-    if(error.size() > 0) {
-      throw new IOException(Joiner.on("\n").join(error));
-    }
-    return ret;
+    return getLatestDocument(output);
   }
 
   @Override
@@ -281,5 +274,40 @@ public class MultiIndexDao implements IndexDao {
 
   public List<IndexDao> getIndices() {
     return indices;
+  }
+
+  /**
+   * Returns the most recent {@link Document} from a list of {@link DocumentContainer}s.
+   *
+   * @param documentContainers A list of containers; each retrieved from a separate index.
+   * @return The latest {@link Document} found.
+   * @throws IOException If any of the {@link DocumentContainer}s contain an exception.
+   */
+  private Document getLatestDocument(List<DocumentContainer> documentContainers) throws IOException {
+    Document latestDocument = null;
+    List<String> error = new ArrayList<>();
+
+    for(DocumentContainer dc : documentContainers) {
+      if(dc.getException().isPresent()) {
+        // collect each exception; multiple can occur, one in each index
+        Throwable e = dc.getException().get();
+        error.add(e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
+
+      } else if(dc.getDocument().isPresent()) {
+        Document d = dc.getDocument().get();
+        // is this the latest document so far?
+        if(latestDocument == null || latestDocument.getTimestamp() < d.getTimestamp()) {
+          latestDocument = d;
+        }
+
+      } else {
+        // no document was found in the index
+      }
+    }
+    if(error.size() > 0) {
+      // report all of the errors encountered
+      throw new IOException(Joiner.on("\n").join(error));
+    }
+    return latestDocument;
   }
 }

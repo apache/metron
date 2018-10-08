@@ -29,7 +29,7 @@ Getting Started
 
 The computer used to deploy Apache Metron will need to have the following components installed.
 
- - [Ansible](https://github.com/ansible/ansible) (2.0.0.2, 2.2.2.0, or 2.5.0)
+ - [Ansible](https://github.com/ansible/ansible) 2.4.0+
  - [Docker](https://www.docker.com/community-edition)
  - [Vagrant](https://www.vagrantup.com) 2.0+
  - [Vagrant Hostmanager Plugin](https://github.com/devopsgroup-io/vagrant-hostmanager)
@@ -53,10 +53,9 @@ Any platform that supports these tools is suitable, but the following instructio
 1. Run the following command in a terminal to install all of the required tools.
 
     ```
-    brew cask install vagrant virtualbox docker
+    brew cask install vagrant virtualbox docker ansible
     brew cask install caskroom/versions/java8
     brew install maven@3.3 git
-    pip install ansible==2.2.2.0
     vagrant plugin install vagrant-hostmanager
     open /Applications/Docker.app
     ```
