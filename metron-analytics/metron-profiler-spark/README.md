@@ -162,13 +162,13 @@ ${SPARK_HOME}/bin/spark-submit \
 
 The Batch Profiler accepts the following arguments when run from the command line as shown above.  All arguments following the Profiler jar are passed to the Profiler.  All argument preceeding the Profiler jar are passed to Spark.
 
-| Argument         | Description
-|---               |---
-| -p, --profiles   | Path to the profile definitions.
-| -c, --config     | Path to the profiler properties file.
-| -g, --globals    | Path to the Stellar global config file.
-| -r, --reader     | Path to properties for the DataFrameReader.
-| -h, --help       | Print the help text.
+| Argument                              | Description
+|---                                    |---
+| [`-p`, `--profiles`](#--profiles)     | Path to the profile definitions.
+| [`-c`, `--config`](#--config)         | Path to the profiler properties file.
+| [`-g`, `--globals`](#--globals)       | Path to the Stellar global config file.
+| [`-r`, `--reader`](#--reader)         | Path to properties for the DataFrameReader.
+| `-h`, `--help`                        | Print the help text.
 
 #### `--profiles`
 
@@ -236,22 +236,22 @@ The Profiler can consume archived telemetry stored in a variety of input formats
 
 #### Common Formats
 
-The following examples highlight the configuration values needed to read telemetry stored in common formats.  These values should be defined in the Profiler properties (see `--config`).
+The following examples highlight the configuration values needed to read telemetry stored in common formats.  These values should be defined in the Profiler properties (see [`--config`](#--config)).
 
 ##### JSON
 ```
 profiler.batch.input.reader=TEXT
-profiler.batch.input.path=/path/to/*.json
+profiler.batch.input.path=/path/to/json/
 ```
 
-##### ORC
+##### [Apache ORC](https://orc.apache.org/)
 ```
 profiler.batch.input.reader=COLUMNAR
 profiler.batch.input.format=org.apache.spark.sql.execution.datasources.orc
 profiler.batch.input.path=/path/to/orc/
 ```
 
-##### Parquet
+##### [Apache Parquet](http://parquet.apache.org/)
 ```
 profiler.batch.input.reader=COLUMNAR
 profiler.batch.input.format=parquet
@@ -297,9 +297,9 @@ The format of the input data read by the Batch Profiler.
 Defines how the input data is treated when read.  There are two options.
 
  * `TEXT` Consumes input data stored as raw text.  Should be used for JSON and CSV formatted input data.
- 
+
  * `COLUMNAR` Consumes input data stored in columnar formats.  Should be used for ORC and Parquet formatted input data.
- 
+
 See [Common Formats](#common-formats) for further information.
 
 ### `profiler.batch.input.begin`
