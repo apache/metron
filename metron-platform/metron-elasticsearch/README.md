@@ -61,23 +61,34 @@ roll daily.
 
 ### `es.document.id`
 
-This property sets the message field that is used to define the document ID when a message is indexed by Elasticsearch. 
+This property sets the message field that is used to define the document ID when a message is indexed by Elasticsearch.  By default, the client does not set the document ID and document ID generation is deferred to Elasticsearch. 
 
-* To allow Elasticsearch to define its own document id, this property should be set to a blank or empty string. The client will not set the document ID and Elasticsearch will define its own.
+#### Option 1: Defer to Elasticsearch
 
-* In most cases allowing Elasticsearch to define the document ID is the most performant option. This is the default behavior.
+Value: (Undefined, blank or empty string)
 
-* Metron versions 0.6.0 and earlier defined the document ID using the Metron GUID, which is a randomized UUID using Java's `UUID.randomUUID()`. Using a randomized UUID can negatively impact Elasticsearch indexing performance. To maintain backwards compatibility with legacy versions of Metron use the following setting.
+* This option allows Elasticsearch to generate the document ID. 
+* The client will not set a document ID. 
+* In most cases this is the most performant option.
 
+#### Option 2: Legacy Compatibility
+
+Value: guid
+
+* Metron versions 0.6.0 and earlier defined the document ID using the Metron GUID, which is a randomized UUID using Java's `UUID.randomUUID()`. 
+* Using a randomized UUID can negatively impact Elasticsearch indexing performance. 
+* To maintain backwards compatibility with legacy versions of Metron, set the value to `guid`.
     ```
     es.document.id = guid
     ``` 
 
-* To use a custom document ID, create an enrichment that defines a new message field; for example one called `my_document_id`. Then use this field to set the document ID as follows. This will set the document ID to the value of the message field `my_document_id`.
+#### Option 3: Custom Document ID
+
+* Advanced users can define a custom document ID.
+* Create an enrichment that defines a new message field; for example one called `my_document_id`. Use this field to set the document ID. This will set the document ID to the value of the message field `my_document_id`.
     ```
     es.document.id = my_document_id
     ```
-
 * If a message does not contain the `es.document.id` field, a warning is issued and no document ID is set by the client.
 
 ## Upgrading to 5.6.2
