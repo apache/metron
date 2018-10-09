@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+
+import org.apache.metron.elasticsearch.utils.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -52,6 +54,7 @@ import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.mapper.LegacyIpFieldMapper;
 import org.elasticsearch.index.query.IdsQueryBuilder;
@@ -88,12 +91,12 @@ public class ElasticsearchSearchDao implements SearchDao {
    */
   private static final String SORT_MISSING_FIRST = "_first";
 
-  private transient TransportClient client;
+  private transient ElasticsearchClient client;
   private AccessConfig accessConfig;
   private ElasticsearchColumnMetadataDao columnMetadataDao;
   private ElasticsearchRequestSubmitter requestSubmitter;
 
-  public ElasticsearchSearchDao(TransportClient client,
+  public ElasticsearchSearchDao(ElasticsearchClient client,
       AccessConfig accessConfig,
       ElasticsearchColumnMetadataDao columnMetadataDao,
       ElasticsearchRequestSubmitter requestSubmitter) {

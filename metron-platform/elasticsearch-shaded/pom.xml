@@ -30,6 +30,11 @@
             <version>18.0</version>
         </dependency>
         <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+            <version>4.1.13.Final</version>
+        </dependency>
+        <!--dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>transport</artifactId>
             <version>${global_elasticsearch_version}</version>
@@ -63,7 +68,24 @@
                 <artifactId>log4j</artifactId>
               </exclusion>
             </exclusions>
-          </dependency>
+          </dependency-->
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>${global_elasticsearch_version}</version>
+            <exclusions>
+                <exclusion>
+                    <!--
+                    TODO: This shouldn't be required, but the Shade services resources transformer is botching the services
+                    file in META-INF.  You should not merge before figuring out if there's a way to avoid the
+                    botched merge.  One way to do this is to create a new resources transformer that handles the merge
+                    properly.  I have NO idea if excluding this matters.
+                    -->
+                    <groupId>org.elasticsearch.plugin</groupId>
+                    <artifactId>aggs-matrix-stats-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
           <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
@@ -153,10 +175,6 @@
                                 <relocation>
                                     <pattern>io.netty</pattern>
                                     <shadedPattern>org.apache.metron.io.netty</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.apache.logging.log4j</pattern>
-                                    <shadedPattern>org.apache.metron.logging.log4j</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>

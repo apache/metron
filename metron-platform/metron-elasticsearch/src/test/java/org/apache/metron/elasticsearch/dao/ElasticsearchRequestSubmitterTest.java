@@ -18,17 +18,22 @@
 
 package org.apache.metron.elasticsearch.dao;
 
+import org.apache.metron.elasticsearch.utils.ElasticsearchClient;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.ShardSearchFailure;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.Index;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchShardTarget;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.io.IOException;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
@@ -39,21 +44,20 @@ public class ElasticsearchRequestSubmitterTest {
 
   private ElasticsearchRequestSubmitter submitter;
 
-  public ElasticsearchRequestSubmitter setup(SearchResponse response) {
+  public ElasticsearchRequestSubmitter setup(SearchResponse response) throws IOException {
 
     // mocks
-    TransportClient client = mock(TransportClient.class);
-    ActionFuture future = Mockito.mock(ActionFuture.class);
+    RestHighLevelClient highLevelClient = mock(RestHighLevelClient.class);
+    ElasticsearchClient client = new ElasticsearchClient(mock(RestClient.class), highLevelClient);
 
     // the client should return the given search response
-    when(client.search(any())).thenReturn(future);
-    when(future.actionGet()).thenReturn(response);
+    when(highLevelClient.search(any())).thenReturn(response);
 
     return new ElasticsearchRequestSubmitter(client);
   }
 
   @Test
-  public void searchShouldSucceedWhenOK() throws InvalidSearchException {
+  public void searchShouldSucceedWhenOK() throws InvalidSearchException, IOException {
 
     // mocks
     SearchResponse response = mock(SearchResponse.class);
@@ -71,7 +75,7 @@ public class ElasticsearchRequestSubmitterTest {
   }
 
   @Test(expected = InvalidSearchException.class)
-  public void searchShouldFailWhenNotOK() throws InvalidSearchException {
+  public void searchShouldFailWhenNotOK() throws InvalidSearchException, IOException {
 
     // mocks
     SearchResponse response = mock(SearchResponse.class);
@@ -88,7 +92,7 @@ public class ElasticsearchRequestSubmitterTest {
   }
 
   @Test
-  public void searchShouldHandleShardFailure() throws InvalidSearchException {
+  public void searchShouldHandleShardFailure() throws InvalidSearchException, IOException {
     // mocks
     SearchResponse response = mock(SearchResponse.class);
     SearchRequest request = new SearchRequest();

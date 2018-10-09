@@ -96,9 +96,8 @@ global_properties_template = config['configurations']['metron-env']['elasticsear
 es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
 es_hosts = config['configurations']['metron-env']['es_hosts']
 es_host_list = es_hosts.split(",")
-es_binary_port = config['configurations']['metron-env']['es_binary_port']
-es_url = ",".join([host + ":" + es_binary_port for host in es_host_list])
 es_http_port = config['configurations']['metron-env']['es_http_port']
+es_url = ",".join([host + ":" + es_http_port for host in es_host_list])
 es_http_url = es_host_list[0] + ":" + es_http_port
 es_date_format = config['configurations']['metron-env']['es_date_format']
 

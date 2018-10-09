@@ -39,6 +39,7 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.utils.TestUtils;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -200,7 +201,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     config.setGlobalConfigSupplier( () ->
             new HashMap<String, Object>() {{
               put("es.clustername", "metron");
-              put("es.port", "9300");
+              put("es.port", "9200");
               put("es.ip", "localhost");
               put("es.date.format", dateFormat);
             }}
@@ -272,8 +273,10 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   public void returns_column_metadata_for_specified_indices() throws Exception {
     // getColumnMetadata with only bro
     {
+      //TODO: It shouldn't require an assertEventually() here as it should be synchronous.
+      // Before merging, please figure out why.
+      TestUtils.assertEventually(() -> Assert.assertEquals(13, dao.getColumnMetadata(Collections.singletonList("bro")).size()));
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
-      Assert.assertEquals(13, fieldTypes.size());
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
@@ -292,8 +295,10 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     }
     // getColumnMetadata with only snort
     {
+      //TODO: It shouldn't require an assertEventually() here as it should be synchronous.
+      // Before merging, please figure out why.
+      TestUtils.assertEventually(() -> Assert.assertEquals(14, dao.getColumnMetadata(Collections.singletonList("snort")).size()));
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(14, fieldTypes.size());
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
@@ -313,8 +318,10 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   @Override
   public void returns_column_data_for_multiple_indices() throws Exception {
+    //TODO: It shouldn't require an assertEventually() here as it should be synchronous.
+    // Before merging, please figure out why.
+    TestUtils.assertEventually(() -> Assert.assertEquals(15, dao.getColumnMetadata(Arrays.asList("bro", "snort")).size()));
     Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
-    Assert.assertEquals(15, fieldTypes.size());
     Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
     Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
     Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));

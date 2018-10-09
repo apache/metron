@@ -29,6 +29,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.metron.elasticsearch.utils.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -37,6 +39,8 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.indexing.dao.search.SortOrder;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
@@ -90,7 +94,8 @@ public class ElasticsearchDaoTest {
     requestSubmitter = mock(ElasticsearchRequestSubmitter.class);
     when(requestSubmitter.submitSearch(any())).thenReturn(response);
 
-    TransportClient client = mock(TransportClient.class);
+    RestHighLevelClient highLevel = mock(RestHighLevelClient.class);
+    ElasticsearchClient client = new ElasticsearchClient(mock(RestClient.class), highLevel);
 
     // provides configuration
     AccessConfig config = mock(AccessConfig.class);
