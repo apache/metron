@@ -22,6 +22,8 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.apache.metron.elasticsearch.utils.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -38,6 +40,7 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.slf4j.Logger;
@@ -47,7 +50,7 @@ public class ElasticsearchDao implements IndexDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private transient TransportClient client;
+  private transient ElasticsearchClient client;
   private ElasticsearchSearchDao searchDao;
   private ElasticsearchUpdateDao updateDao;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
@@ -64,7 +67,7 @@ public class ElasticsearchDao implements IndexDao {
 
   private AccessConfig accessConfig;
 
-  protected ElasticsearchDao(TransportClient client,
+  protected ElasticsearchDao(ElasticsearchClient client,
       AccessConfig config,
       ElasticsearchSearchDao searchDao,
       ElasticsearchUpdateDao updateDao,
@@ -99,7 +102,7 @@ public class ElasticsearchDao implements IndexDao {
       this.client = ElasticsearchUtils
           .getClient(config.getGlobalConfigSupplier().get());
       this.accessConfig = config;
-      this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client.admin());
+      this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client);
       this.requestSubmitter = new ElasticsearchRequestSubmitter(this.client);
       this.searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao,
           requestSubmitter);
@@ -127,13 +130,13 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public Document getLatest(final String guid, final String sensorType) {
+  public Document getLatest(final String guid, final String sensorType) throws IOException {
     return retrieveLatestDao.getLatest(guid, sensorType);
   }
 
   @Override
   public Iterable<Document> getAllLatest(
-      final List<GetRequest> getRequests) {
+      final List<GetRequest> getRequests) throws IOException {
     return retrieveLatestDao.getAllLatest(getRequests);
   }
 
@@ -188,7 +191,7 @@ public class ElasticsearchDao implements IndexDao {
     return this.updateDao.removeCommentFromAlert(request, latest);
   }
 
-  protected Optional<String> getIndexName(String guid, String sensorType) {
+  protected Optional<String> getIndexName(String guid, String sensorType) throws IOException {
     return updateDao.getIndexName(guid, sensorType);
   }
 
@@ -202,7 +205,7 @@ public class ElasticsearchDao implements IndexDao {
     return searchDao.group(groupRequest, queryBuilder);
   }
 
-  public TransportClient getClient() {
+  public ElasticsearchClient getClient() {
     return this.client;
   }
 }

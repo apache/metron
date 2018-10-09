@@ -95,15 +95,6 @@
         </value-attributes>
     </property>
     <property>
-        <name>es_binary_port</name>
-        <value>9300</value>
-        <description>Elasticsearch binary port. (9300)</description>
-        <display-name>Elasticsearch Binary Port</display-name>
-        <value-attributes>
-            <empty-value-valid>true</empty-value-valid>
-        </value-attributes>
-    </property>
-    <property>
         <name>es_http_port</name>
         <value>9200</value>
         <description>Elasticsearch HTTP port. (9200)</description>

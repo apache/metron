@@ -176,7 +176,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public SearchResponse getAllMetaAlertsForAlert(String guid) throws InvalidSearchException {
+  public SearchResponse getAllMetaAlertsForAlert(String guid) throws InvalidSearchException, IOException {
     return metaAlertSearchDao.getAllMetaAlertsForAlert(guid);
   }
 

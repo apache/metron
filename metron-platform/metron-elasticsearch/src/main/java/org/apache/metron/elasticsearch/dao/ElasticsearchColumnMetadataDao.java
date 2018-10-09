@@ -18,10 +18,17 @@
 
 package org.apache.metron.elasticsearch.dao;
 
+import org.apache.metron.elasticsearch.utils.ElasticsearchClient;
+import org.apache.metron.elasticsearch.utils.FieldMapping;
+import org.apache.metron.elasticsearch.utils.FieldProperties;
 import org.apache.metron.indexing.dao.ColumnMetadataDao;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.AdminClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.slf4j.Logger;
@@ -64,12 +71,12 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
   /**
    * An Elasticsearch administrative client.
    */
-  private transient AdminClient adminClient;
+  private transient ElasticsearchClient adminClient;
 
   /**
    * @param adminClient The Elasticsearch admin client.
    */
-  public ElasticsearchColumnMetadataDao(AdminClient adminClient) {
+  public ElasticsearchColumnMetadataDao(ElasticsearchClient adminClient) {
     this.adminClient = adminClient;
   }
 
@@ -82,51 +89,40 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
 
     String[] latestIndices = getLatestIndices(indices);
     if (latestIndices.length > 0) {
-      ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings = adminClient
-              .indices()
-              .getMappings(new GetMappingsRequest().indices(latestIndices))
-              .actionGet()
-              .getMappings();
+
+     Map<String, FieldMapping>  mappings = adminClient.getMappings(latestIndices);
 
       // for each index
-      for (Object key : mappings.keys().toArray()) {
-        String indexName = key.toString();
-        ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(indexName);
+      for (Map.Entry<String, FieldMapping> kv : mappings.entrySet()) {
+        String indexName = kv.getKey();
+        FieldMapping mapping = kv.getValue();
 
         // for each mapping in the index
-        Iterator<String> mappingIterator = mapping.keysIt();
-        while (mappingIterator.hasNext()) {
-          MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
-          Map<String, Object> sourceAsMap = mappingMetaData.getSourceAsMap();
-          if (sourceAsMap.containsKey("properties")) {
-            Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) sourceAsMap.get("properties");
+        for(Map.Entry<String, FieldProperties> fieldToProperties : mapping.entrySet()) {
+          String field = fieldToProperties.getKey();
+          FieldProperties properties = fieldToProperties.getValue();
+          if (!fieldBlackList.contains(field)) {
+            FieldType type = toFieldType((String) properties.get("type"));
 
-            // for each field in the mapping
-            for (String field : map.keySet()) {
-              if (!fieldBlackList.contains(field)) {
-                FieldType type = toFieldType(map.get(field).get("type"));
+            if(!indexColumnMetadata.containsKey(field)) {
+              indexColumnMetadata.put(field, type);
 
-                if(!indexColumnMetadata.containsKey(field)) {
-                  indexColumnMetadata.put(field, type);
+              // record the last index in which a field exists, to be able to print helpful error message on type mismatch
+              previousIndices.put(field, indexName);
 
-                  // record the last index in which a field exists, to be able to print helpful error message on type mismatch
-                  previousIndices.put(field, indexName);
-
-                } else {
-                  FieldType previousType = indexColumnMetadata.get(field);
-                  if (!type.equals(previousType)) {
-                    String previousIndexName = previousIndices.get(field);
-                    LOG.error(String.format(
+            } else {
+              FieldType previousType = indexColumnMetadata.get(field);
+              if (!type.equals(previousType)) {
+                String previousIndexName = previousIndices.get(field);
+                LOG.error(String.format(
                         "Field type mismatch: %s.%s has type %s while %s.%s has type %s.  Defaulting type to %s.",
                         indexName, field, type.getFieldType(),
                         previousIndexName, field, previousType.getFieldType(),
                         FieldType.OTHER.getFieldType()));
-                    indexColumnMetadata.put(field, FieldType.OTHER);
+                indexColumnMetadata.put(field, FieldType.OTHER);
 
-                    // the field is defined in multiple indices with different types; ignore the field as type has been set to OTHER
-                    fieldBlackList.add(field);
-                  }
-                }
+                // the field is defined in multiple indices with different types; ignore the field as type has been set to OTHER
+                fieldBlackList.add(field);
               }
             }
           }
@@ -166,15 +162,11 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
    * @param includeIndices The base names of the indices to include
    * @return The latest version of a set of indices.
    */
-  String[] getLatestIndices(List<String> includeIndices) {
+  String[] getLatestIndices(List<String> includeIndices) throws IOException {
     LOG.debug("Getting latest indices; indices={}", includeIndices);
     Map<String, String> latestIndices = new HashMap<>();
-    String[] indices = adminClient
-            .indices()
-            .prepareGetIndex()
-            .setFeatures()
-            .get()
-            .getIndices();
+
+    String[] indices = adminClient.getIndices();
 
     for (String index : indices) {
       int prefixEnd = index.indexOf(INDEX_NAME_DELIMITER);
