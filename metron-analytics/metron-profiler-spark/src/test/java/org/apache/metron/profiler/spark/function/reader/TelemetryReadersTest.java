@@ -25,18 +25,60 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.COLUMNAR;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.JSON;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.ORC;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.PARQUET;
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.TEXT;
 
 public class TelemetryReadersTest {
 
   @Test
+  public void testJsonReader() {
+    String key = JSON.toString();
+    Assert.assertTrue(TelemetryReaders.create(key) instanceof TextEncodedTelemetryReader);
+  }
+
+  @Test
+  public void testJsonReaderLowerCase() {
+    String key = JSON.toString().toLowerCase();
+    Assert.assertTrue(TelemetryReaders.create(key) instanceof TextEncodedTelemetryReader);
+  }
+
+  @Test
+  public void testOrcReader() {
+    String key = ORC.toString();
+    Assert.assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
+  }
+
+
+  @Test
+  public void testOrcReaderLowerCase() {
+    String key = ORC.toString().toLowerCase();
+    Assert.assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
+  }
+
+  @Test
+  public void testParquetReader() {
+    String key = PARQUET.toString();
+    Assert.assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
+  }
+
+  @Test
+  public void testParquetReaderLowerCase() {
+    String key = PARQUET.toString().toLowerCase();
+    Assert.assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
+  }
+
+  @Test
   public void testTextReader() {
-    Assert.assertTrue(TelemetryReaders.create(TEXT.toString()) instanceof TextEncodedTelemetryReader);
+    String key = TEXT.toString();
+    Assert.assertTrue(TelemetryReaders.create(key) instanceof TextEncodedTelemetryReader);
   }
 
   @Test
   public void testColumnReader() {
-    Assert.assertTrue(TelemetryReaders.create(COLUMNAR.toString()) instanceof ColumnEncodedTelemetryReader);
+    String key = COLUMNAR.toString();
+    Assert.assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
   }
 
   @Test(expected = IllegalArgumentException.class)

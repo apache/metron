@@ -41,10 +41,36 @@ public class TextEncodedTelemetryReader implements TelemetryReader {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  /**
+   * The input format to use when reading telemetry.
+   */
+  private String inputFormat;
+
+  /**
+   * Creates a {@link TextEncodedTelemetryReader}.
+   *
+   * <p>The input format used to read the telemetry is defined by the
+   * BatchProfilerConfig.TELEMETRY_INPUT_PATH property.
+   */
+  public TextEncodedTelemetryReader() {
+    this.inputFormat = null;
+  }
+
+  /**
+   * Creates a {@link TextEncodedTelemetryReader}.
+   *
+   * @param inputFormat The input format to use when reading telemetry.
+   */
+  public TextEncodedTelemetryReader(String inputFormat) {
+    this.inputFormat = inputFormat;
+  }
+
   @Override
   public Dataset<String> read(SparkSession spark, Properties profilerProps, Properties readerProps) {
-    String inputFormat = TELEMETRY_INPUT_FORMAT.get(profilerProps, String.class);
     String inputPath = TELEMETRY_INPUT_PATH.get(profilerProps, String.class);
+    if(inputFormat == null) {
+      inputFormat = TELEMETRY_INPUT_FORMAT.get(profilerProps, String.class);
+    }
     LOG.debug("Loading telemetry; inputPath={}, inputFormat={}", inputPath, inputFormat);
 
     return spark

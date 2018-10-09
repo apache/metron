@@ -240,21 +240,19 @@ The following examples highlight the configuration values needed to read telemet
 
 ##### JSON
 ```
-profiler.batch.input.reader=TEXT
+profiler.batch.input.reader=json
 profiler.batch.input.path=/path/to/json/
 ```
 
 ##### [Apache ORC](https://orc.apache.org/)
 ```
-profiler.batch.input.reader=COLUMNAR
-profiler.batch.input.format=org.apache.spark.sql.execution.datasources.orc
+profiler.batch.input.reader=orc
 profiler.batch.input.path=/path/to/orc/
 ```
 
 ##### [Apache Parquet](http://parquet.apache.org/)
 ```
-profiler.batch.input.reader=COLUMNAR
-profiler.batch.input.format=parquet
+profiler.batch.input.reader=parquet
 profiler.batch.input.path=/path/to/parquet/
 ```
 

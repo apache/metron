@@ -19,6 +19,7 @@
 
 package org.apache.metron.profiler.spark.reader;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.SparkSession;
 import org.slf4j.Logger;
@@ -33,6 +34,33 @@ import java.util.function.Supplier;
  * {@link org.apache.metron.profiler.spark.BatchProfilerConfig#TELEMETRY_INPUT_READER}.
  */
 public enum TelemetryReaders implements TelemetryReader {
+
+  /**
+   * A {@link TelemetryReader} that is able to consume text/json formatted data.
+   *
+   * <p>This serves as a configuration short-cut for users. The user only needs to define the
+   * {@link org.apache.metron.profiler.spark.BatchProfilerConfig#TELEMETRY_INPUT_READER} property
+   * with this value to consume text/json.
+   */
+  JSON(() -> new TextEncodedTelemetryReader("text")),
+
+  /**
+   * A {@link TelemetryReader} that is able to consume Apache ORC formatted data.
+   *
+   * <p>This serves as a configuration short-cut for users. The user only needs to define the
+   * {@link org.apache.metron.profiler.spark.BatchProfilerConfig#TELEMETRY_INPUT_READER} property
+   * with this value to consume Apache ORC formatted data.
+   */
+  ORC(() -> new ColumnEncodedTelemetryReader("org.apache.spark.sql.execution.datasources.orc")),
+
+  /**
+   * A {@link TelemetryReader} that is able to consume Apache Parquet formatted data.
+   *
+   * <p>This serves as a configuration short-cut for users. The user only needs to define the
+   * {@link org.apache.metron.profiler.spark.BatchProfilerConfig#TELEMETRY_INPUT_READER} property
+   * with this value to consume Apache Parquet formatted data.
+   */
+  PARQUET(() -> new ColumnEncodedTelemetryReader("parquet")),
 
   /**
    * Use a {@link TextEncodedTelemetryReader} by defining the property value as 'TEXT'.
@@ -63,7 +91,8 @@ public enum TelemetryReaders implements TelemetryReader {
     LOG.debug("Creating telemetry reader: telemetryReader={}", propertyValue);
     TelemetryReader reader = null;
     try {
-      TelemetryReaders strategy = TelemetryReaders.valueOf(propertyValue);
+      String key = StringUtils.upperCase(propertyValue);
+      TelemetryReaders strategy = TelemetryReaders.valueOf(key);
       reader = strategy.supplier.get();
 
     } catch(IllegalArgumentException e) {

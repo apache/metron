@@ -162,9 +162,8 @@ public class BatchProfilerIntegrationTest {
   @Test
   public void testBatchProfilerWithJSON() throws Exception {
     // the input telemetry is text/json stored in the local filesystem
-    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), TEXT.toString());
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), JSON.toString());
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
-    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
 
     BatchProfiler profiler = new BatchProfiler();
     profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
@@ -185,9 +184,8 @@ public class BatchProfilerIntegrationTest {
             .save(pathToORC);
 
     // tell the profiler to use the ORC input data
-    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), COLUMNAR.toString());
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), ORC.toString());
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), pathToORC);
-    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "org.apache.spark.sql.execution.datasources.orc");
 
     BatchProfiler profiler = new BatchProfiler();
     profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
@@ -208,9 +206,8 @@ public class BatchProfilerIntegrationTest {
             .save(inputPath);
 
     // tell the profiler to use the ORC input data
-    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), COLUMNAR.toString());
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), PARQUET.toString());
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), inputPath);
-    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "parquet");
 
     BatchProfiler profiler = new BatchProfiler();
     profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());

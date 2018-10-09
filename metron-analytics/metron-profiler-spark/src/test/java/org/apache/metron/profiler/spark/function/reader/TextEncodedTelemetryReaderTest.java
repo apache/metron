@@ -20,12 +20,9 @@ package org.apache.metron.profiler.spark.function.reader;
 
 import org.apache.metron.profiler.spark.reader.TelemetryReaders;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.function.FilterFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;

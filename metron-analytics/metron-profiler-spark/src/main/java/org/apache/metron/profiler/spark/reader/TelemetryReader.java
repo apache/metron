@@ -22,13 +22,14 @@ package org.apache.metron.profiler.spark.reader;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.SparkSession;
 
+import java.io.Serializable;
 import java.util.Properties;
 
 /**
  * A {@link TelemetryReader} is responsible for creating a {@link Dataset} containing
  * telemetry that can be consumed by the {@link org.apache.metron.profiler.spark.BatchProfiler}.
  */
-public interface TelemetryReader {
+public interface TelemetryReader extends Serializable {
 
   /**
    * Read in the telemetry
