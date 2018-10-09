@@ -125,8 +125,8 @@ public class ParserDriver implements Serializable {
     }
 
     @Override
-    protected void handleError(Object originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
-      errors.add((byte[])originalMessage);
+    protected void handleError(byte[] originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
+      errors.add(originalMessage);
       LOG.error("Error parsing message: " + ex.getMessage(), ex);
     }
 
