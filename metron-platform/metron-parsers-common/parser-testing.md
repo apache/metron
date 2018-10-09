@@ -35,24 +35,15 @@ test that unit of functionality.
 
 ## The Integration Test
 
-#TODO Update this
-Integration tests are more structured.  The intent is that the parser that
-you have implemented can be driven successfully from `org.apache.metron.parsers.bolt.ParserBolt`.
+Integration tests are more structured.  The intent is that the parser that you have implemented can be driven successfully from the appropriate driver, e.g. `org.apache.metron.parsers.bolt.ParserBolt` for Storm.
 
-The procedure for creating a new test is as follows:
-* Create an integration test that extends `org.apache.metron.parsers.integration.ParserIntegrationTest`
-  * Override `getSensorType()` to return the sensor type to be used in the test (referred to as `${sensor_type}` at times)
-  * Override `getValidations()` to indicate how you want the output of the parser to be validated (more on validations later)
-  * Optionally `readSensorConfig(String sensorType)` to read the sensor config
-    * By default, we will pull this from `metron-parsers-common/src/main/config/zookeeper/parsers/${sensor_type}`.  Override if you want to provide your own
-  * Optionally `readGlobalConfig()` to return the global config
-    * By default, we will pull this from `metron-integration-test/src/main/config/zookeeper/global.json)`.  Override if you want to provide your own
-* Place sample input data in `metron-integration-test/src/main/sample/data/${sensor_type}/raw`
-  * It should be one line per input record.
-* Place expected output based on sample data in `metron-integration-test/src/main/sample/data/${sensor_type}/parsed`
-  * Line `k` in the expected data should match with line `k`
+To add a new test, just add it to the list of sensorTypes in `org.apache.metron.parsers.integration.ParserIntegrationTest`.
 
-The way these tests function is by creating a `ParserBolt` instance with your specified global configuration and
+To setup the tests for a new platform, extend `ParserIntegrationTest`, e.g. as in `org.apache.metron.parsers.integration.StormParserIntegrationTests`. This should be a parameterized test, so that each sensorType gets its own test.  Use `StormParserIntegrationTests` as a template for the new platform's class.  The test method should just setup the appropriate `ParserDriver` implementation, and simply call back into the parent to run the test.
+
+Customized versions of the tests can be added by extending `ParserIntegrationTest` and performing additional setup or validations as needed.
+
+The way these tests function is by running the `ParserDriver` instance with your specified global configuration and
 sensor configuration.  It will then send your specified sample input data in line-by-line.  It will then
 perform some basic sanity validation:
 * Ensure no errors were logged
@@ -67,22 +58,3 @@ conforms (excluding timestamp).
 
 If you have special validations required, you may implement your own and return an instance of that in the `getValidations()`
 method of your Integration Test.
-
-### Sample Integration Test
-
-A sample integration test for the `snort` parser is as follows:
-```
-public class SnortIntegrationTest extends ParserIntegrationTest {
-  @Override
-  String getSensorType() {
-    return "snort";
-  }
-
-  @Override
-  List<ParserValidation> getValidations() {
-    return new ArrayList<ParserValidation>() {{
-      add(new SampleDataValidation());
-    }};
-  }
-}
-```
