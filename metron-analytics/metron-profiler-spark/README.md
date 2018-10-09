@@ -266,8 +266,8 @@ You can store both settings for the Profiler along with settings for Spark in th
 | Setting                                                                       | Description
 |---                                                                            |---
 | [`profiler.batch.input.path`](#profilerbatchinputpath)                        | The path to the input data read by the Batch Profiler.
-| [`profiler.batch.input.format`](#profilerbatchinputformat)                    | The format of the input data read by the Batch Profiler.
 | [`profiler.batch.input.reader`](#profilerbatchinputreader)                    | The telemetry reader used to read the input data.
+| [`profiler.batch.input.format`](#profilerbatchinputformat)                    | The format of the input data read by the Batch Profiler.
 | [`profiler.batch.input.begin`](#profilerbatchinputend)                        | Only messages with a timestamp after this will be profiled.
 | [`profiler.batch.input.end`](#profilerbatchinputbegin)                        | Only messages with a timestamp before this will be profiled.
 | [`profiler.period.duration`](#profilerperiodduration)                         | The duration of each profile period.  
@@ -282,23 +282,25 @@ You can store both settings for the Profiler along with settings for Spark in th
 
 The path to the input data read by the Batch Profiler.
 
-### `profiler.batch.input.format`
-
-*Default*: text
-
-The format of the input data read by the Batch Profiler.
-
 ### `profiler.batch.input.reader`
 
 *Default*: TEXT
 
-Defines how the input data is treated when read.  There are two options.
+Defines how the input data is treated when read.  The value is not case sensitive so `JSON` and `json` are equivalent.
 
- * `TEXT` Consumes input data stored as raw text.  Should be used for JSON and CSV formatted input data.
-
- * `COLUMNAR` Consumes input data stored in columnar formats.  Should be used for ORC and Parquet formatted input data.
+ * `json`: Read text/json formatted telemetry
+ * `orc`: Read [Apache ORC](https://orc.apache.org/) formatted telemetry
+ * `parquet`: Read [Apache Parquet](http://parquet.apache.org/) formatted telemetry
+ * `text` Consumes input data stored as raw text. Should be defined along with [`profiler.batch.input.format`](#profilerbatchinputformat). Only use if the input format is not directly supported like `json`.
+ * `columnar` Consumes input data stored in columnar formats. Should be defined along with [`profiler.batch.input.format`](#profilerbatchinputformat).  Only use if the input format is not directly supported like `json`.
 
 See [Common Formats](#common-formats) for further information.
+
+### `profiler.batch.input.format`
+
+*Default*: text
+
+The format of the input data read by the Batch Profiler. This is optional and not required in most cases. For example, this property is not required when [`profiler.batch.input.reader`](#profilerbatchinputreader)  is `json`, `orc`, or `parquet`.
 
 ### `profiler.batch.input.begin`
 
