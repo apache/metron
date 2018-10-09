@@ -45,6 +45,25 @@ if [ -f $CONFIG_FILE ]; then
   echo "  ...using settings from $CONFIG_FILE"
 fi
 
+# apache id of committer (you)
+if [ -z "${APACHE_NAME}" ]; then
+  read -p "  your apache userid [${APACHE_NAME}]: " INPUT
+  [ -n "$INPUT" ] && APACHE_NAME=$INPUT
+
+  # write setting to config file
+  echo "APACHE_NAME=$APACHE_NAME" >> $CONFIG_FILE
+fi
+
+# apache email addr of committer (you)
+if [ -z "${APACHE_EMAIL}" ]; then
+  APACHE_EMAIL=${APACHE_NAME}@apache.org
+  read -p "  your apache email [${APACHE_EMAIL}]: " INPUT
+  [ -n "$INPUT" ] && APACHE_EMAIL=$INPUT
+
+  # write setting to config file, so it is not needed next time
+  echo "APACHE_EMAIL=$APACHE_EMAIL" >> $CONFIG_FILE
+fi
+
 # which repo?  metron or metron-bro-plugin-kafka
 getrepo() {
   echo "    [1] ${METRON_REPO_NAME}"
@@ -68,25 +87,6 @@ until getrepo; do :; done
 CHOSEN_REPO=$(basename ${UPSTREAM%%.git})
 # Need the capitalized version of the repos some naming
 CAPITAL_REPO="$(tr '[:lower:]' '[:upper:]' <<< ${CHOSEN_REPO:0:1})${CHOSEN_REPO:1}"
-
-# apache id of committer (you)
-if [ -z "${APACHE_NAME}" ]; then
-  read -p "  your apache userid [${APACHE_NAME}]: " INPUT
-  [ -n "$INPUT" ] && APACHE_NAME=$INPUT
-
-  # write setting to config file
-  echo "APACHE_NAME=$APACHE_NAME" >> $CONFIG_FILE
-fi
-
-# apache email addr of committer (you)
-if [ -z "${APACHE_EMAIL}" ]; then
-  APACHE_EMAIL=${APACHE_NAME}@apache.org
-  read -p "  your apache email [${APACHE_EMAIL}]: " INPUT
-  [ -n "$INPUT" ] && APACHE_EMAIL=$INPUT
-
-  # write setting to config file, so it is not needed next time
-  echo "APACHE_EMAIL=$APACHE_EMAIL" >> $CONFIG_FILE
-fi
 
 getcurrentversion() {
   # currently released version. Used for CHANGES file
@@ -141,7 +141,7 @@ rm -rf "$WORKDIR"
 mkdir "$WORKDIR"
 
 getbaserev() {
-  read -p "  base revision branch or hash for release candidate (master if empty) " GIT_REF
+  read -p "  base revision branch or hash for release candidate [master]: " GIT_REF
   GIT_REF=${GIT_REF:-master}
 
   # check to see if we were given branch
@@ -322,7 +322,7 @@ COMMIT_DIR=$(basename ${ART_DIR})
 if [ "${PRACTICE_RUN}" = true ]; then
   printf "This is a practice run. Not running the following commands:\n"
   printf "<svn add %s>\n" ${COMMIT_DIR}
-  printf "<svn commit -m \"Adding artifacts for %s %s\"\n>" "${CHOSEN_REPO}" "${COMMIT_DIR}"
+  printf "<svn commit -m \"Adding artifacts for %s %s\">\n" "${CHOSEN_REPO}" "${COMMIT_DIR}"
 else
   printf "Adding artifacts for Metron ${VERSION}-RC${RC_NUM} to dev SVN\n"
   # Metron goes in the root of the dir, submodules go in folder
