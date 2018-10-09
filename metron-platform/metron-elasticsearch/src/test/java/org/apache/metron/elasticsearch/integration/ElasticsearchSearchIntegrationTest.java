@@ -19,12 +19,12 @@ package org.apache.metron.elasticsearch.integration;
 
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
@@ -56,135 +56,11 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   private static String indexDir = "target/elasticsearch_search";
   private static String dateFormat = "yyyy.MM.dd.HH";
+  private static String broTemplatePath = "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/bro_index.template";
+  private static String snortTemplatePath = "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/snort_index.template";
   private static final int MAX_RETRIES = 10;
   private static final int SLEEP_MS = 500;
   protected static IndexDao dao;
-
-  /**
-   * {
-   * "bro_doc": {
-   *   "properties": {
-   *     "source:type": {
-   *        "type": "text",
-   *        "fielddata" : "true"
-   *     },
-   *     "guid" : {
-   *        "type" : "keyword"
-   *     },
-   *     "ip_src_addr": {
-   *        "type": "ip"
-   *     },
-   *     "ip_src_port": {
-   *        "type": "integer"
-   *     },
-   *     "long_field": {
-   *        "type": "long"
-   *     },
-   *     "timestamp": {
-   *        "type": "date",
-   *        "format": "epoch_millis"
-   *      },
-   *     "latitude" : {
-   *        "type": "float"
-   *      },
-   *     "score": {
-   *        "type": "double"
-   *     },
-   *     "is_alert": {
-   *        "type": "boolean"
-   *     },
-   *     "location_point": {
-   *        "type": "geo_point"
-   *     },
-   *     "bro_field": {
-   *        "type": "text",
-   *        "fielddata" : "true"
-   *     },
-   *     "ttl": {
-   *        "type": "text",
-   *        "fielddata" : "true"
-   *     },
-   *     "alert": {
-   *         "type": "nested"
-   *     }
-   *   }
-   *  }
-   * }
-   */
-  @Multiline
-  private static String broTypeMappings;
-
-  /**
-   * {
-   *  "snort_doc": {
-   *     "properties": {
-   *        "source:type": {
-   *          "type": "text",
-   *          "fielddata" : "true"
-   *        },
-   *        "guid" : {
-   *          "type" : "keyword"
-   *        },
-   *        "ip_src_addr": {
-   *          "type": "ip"
-   *        },
-   *        "ip_src_port": {
-   *          "type": "integer"
-   *        },
-   *        "long_field": {
-   *          "type": "long"
-   *        },
-   *        "timestamp": {
-   *          "type": "date",
-   *          "format": "epoch_millis"
-   *        },
-   *        "latitude" : {
-   *          "type": "float"
-   *        },
-   *        "score": {
-   *          "type": "double"
-   *        },
-   *        "is_alert": {
-   *          "type": "boolean"
-   *        },
-   *        "location_point": {
-   *          "type": "geo_point"
-   *        },
-   *        "snort_field": {
-   *          "type": "integer"
-   *        },
-   *        "ttl": {
-   *          "type": "integer"
-   *        },
-   *        "alert": {
-   *           "type": "nested"
-   *        },
-   *        "threat:triage:score": {
-   *           "type": "float"
-   *        }
-   *      }
-   *    }
-   * }
-   */
-  @Multiline
-  private static String snortTypeMappings;
-
-  /**
-   * {
-   * "bro_doc_default": {
-   *   "dynamic_templates": [{
-   *     "strings": {
-   *       "match_mapping_type": "string",
-   *       "mapping": {
-   *         "type": "text"
-   *       }
-   *     }
-   *   }]
-   *  }
-   * }
-   */
-  @Multiline
-  private static String broDefaultStringMappings;
 
   @BeforeClass
   public static void setup() throws Exception {
@@ -221,13 +97,17 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     return es;
   }
 
-  protected static void loadTestData() throws ParseException {
+  protected static void loadTestData() throws ParseException, IOException {
     ElasticSearchComponent es = (ElasticSearchComponent) indexComponent;
+
+    JSONObject broTemplate = JSONUtils.INSTANCE.load(new File(broTemplatePath), JSONObject.class);
+    addTestFieldMappings(broTemplate, "bro_doc");
     es.getClient().admin().indices().prepareCreate("bro_index_2017.01.01.01")
-        .addMapping("bro_doc", broTypeMappings)
-        .addMapping("bro_doc_default", broDefaultStringMappings).get();
+        .addMapping("bro_doc", JSONUtils.INSTANCE.toJSON(broTemplate.get("mappings"), false)).get();
+    JSONObject snortTemplate = JSONUtils.INSTANCE.load(new File(snortTemplatePath), JSONObject.class);
+    addTestFieldMappings(snortTemplate, "snort_doc");
     es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
-        .addMapping("snort_doc", snortTypeMappings).get();
+        .addMapping("snort_doc", JSONUtils.INSTANCE.toJSON(snortTemplate.get("mappings"), false)).get();
 
     BulkRequestBuilder bulkRequest = es.getClient().prepareBulk()
         .setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
@@ -259,6 +139,27 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     }
   }
 
+  /**
+   * Add test fields to a template with defined types in case they are not defined in the sensor template shipped with Metron.
+   * This is useful for testing certain cases, for example faceting on fields of various types.
+   * @param template
+   * @param docType
+   */
+  private static void addTestFieldMappings(JSONObject template, String docType) {
+    Map mappings = (Map) template.get("mappings");
+    Map docTypeJSON = (Map) mappings.get(docType);
+    Map properties = (Map) docTypeJSON.get("properties");
+    Map<String, String> longType = new HashMap<>();
+    longType.put("type", "long");
+    properties.put("long_field", longType);
+    Map<String, String> floatType = new HashMap<>();
+    floatType.put("type", "float");
+    properties.put("latitude", floatType);
+    Map<String, String> doubleType = new HashMap<>();
+    doubleType.put("type", "double");
+    properties.put("score", doubleType);
+  }
+
   @Test
   public void bad_facet_query_throws_exception() throws Exception {
     thrown.expect(InvalidSearchException.class);
@@ -275,12 +176,13 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     {
       //TODO: It shouldn't require an assertEventually() here as it should be synchronous.
       // Before merging, please figure out why.
-      TestUtils.assertEventually(() -> Assert.assertEquals(13, dao.getColumnMetadata(Collections.singletonList("bro")).size()));
+      TestUtils.assertEventually(() -> Assert.assertEquals(262, dao.getColumnMetadata(Collections.singletonList("bro")).size()));
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ttl"));
+      Assert.assertEquals(262, fieldTypes.size());
+      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("method"));
+      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
+      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
@@ -288,21 +190,20 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
       Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ttl"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("location_point"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("metron_alert"));
     }
     // getColumnMetadata with only snort
     {
       //TODO: It shouldn't require an assertEventually() here as it should be synchronous.
       // Before merging, please figure out why.
-      TestUtils.assertEventually(() -> Assert.assertEquals(14, dao.getColumnMetadata(Collections.singletonList("snort")).size()));
+      TestUtils.assertEventually(() -> Assert.assertEquals(32, dao.getColumnMetadata(Collections.singletonList("snort")).size()));
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
+      Assert.assertEquals(32, fieldTypes.size());
+      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("sig_generator"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
+      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
@@ -310,9 +211,9 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
       Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("location_point"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("metron_alert"));
     }
   }
 
@@ -320,24 +221,33 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   public void returns_column_data_for_multiple_indices() throws Exception {
     //TODO: It shouldn't require an assertEventually() here as it should be synchronous.
     // Before merging, please figure out why.
-    TestUtils.assertEventually(() -> Assert.assertEquals(15, dao.getColumnMetadata(Arrays.asList("bro", "snort")).size()));
+    TestUtils.assertEventually(() -> Assert.assertEquals(277, dao.getColumnMetadata(Arrays.asList("bro", "snort")).size()));
     Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
+    Assert.assertEquals(277, fieldTypes.size());
+
+    // Ensure internal Metron fields are properly defined
     Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
+    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
+    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
+    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("alert_status"));
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("metron_alert"));
+
     Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
     Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
     Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
     Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
     Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
     Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
+    Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("suppress_for"));
     Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-    //NOTE: This is because the field is in both bro and snort and they have different types.
+
+    // Ensure a field defined only in bro is included
+    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("method"));
+    // Ensure a field defined only in snort is included
+    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("sig_generator"));
+    // Ensure fields in both bro and snort have type OTHER because they have different types
     Assert.assertEquals(FieldType.OTHER, fieldTypes.get("ttl"));
-    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("msg"));
   }
 
   @Test
