@@ -284,7 +284,7 @@ The path to the input data read by the Batch Profiler.
 
 ### `profiler.batch.input.reader`
 
-*Default*: TEXT
+*Default*: json
 
 Defines how the input data is treated when read.  The value is not case sensitive so `JSON` and `json` are equivalent.
 

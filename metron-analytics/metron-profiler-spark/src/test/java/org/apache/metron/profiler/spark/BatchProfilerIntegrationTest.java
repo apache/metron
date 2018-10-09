@@ -230,7 +230,9 @@ public class BatchProfilerIntegrationTest {
             .save(pathToCSV);
 
     // tell the profiler to use the CSV input data
+    // CSV is an example of needing to define both the reader and the input format
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), pathToCSV);
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), "text");
     profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "csv");
 
     // set a reader property; tell the reader to expect a header
