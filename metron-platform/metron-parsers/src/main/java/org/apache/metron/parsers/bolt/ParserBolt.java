@@ -408,7 +408,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     }
   }
 
-  protected void handleError(Object originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
+  protected void handleError(byte[] originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
     MetronError error = new MetronError()
             .withErrorType(Constants.ErrorType.PARSER_ERROR)
             .withThrowable(ex)

@@ -44,7 +44,7 @@ public class MultiLineGrokParserTest {
    */
   @Test
   @SuppressWarnings("unchecked")
-  public void test() throws IOException, ParseException {
+  public void testLegacyInterfaceReturnsMultiline() throws IOException, ParseException {
 
     Map<String, Object> parserConfig = new HashMap<>();
     parserConfig.put("grokPath", getGrokPath());
@@ -75,7 +75,7 @@ public class MultiLineGrokParserTest {
    */
   @Test
   @SuppressWarnings("unchecked")
-  public void testOptionalResult() throws IOException, ParseException {
+  public void testOptionalResultReturnsMultiline() throws IOException, ParseException {
 
     Map<String, Object> parserConfig = new HashMap<>();
     parserConfig.put("grokPath", getGrokPath());
