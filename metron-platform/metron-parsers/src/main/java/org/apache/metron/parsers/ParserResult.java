@@ -72,4 +72,13 @@ public class ParserResult {
             Objects.equals(error, parserResult.getError()) &&
             Arrays.equals(originalMessage, parserResult.getOriginalMessage());
   }
+
+  @Override
+  public int hashCode() {
+    int result = sensorType != null ? sensorType.hashCode() : 0;
+    result = 31 * result + (message != null ? message.hashCode() : 0);
+    result = 31 * result + (error != null ? error.hashCode() : 0);
+    result = 31 * result + (originalMessage != null ? Arrays.hashCode(originalMessage) : 0);
+    return result;
+  }
 }
