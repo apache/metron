@@ -162,13 +162,13 @@ ${SPARK_HOME}/bin/spark-submit \
 
 The Batch Profiler accepts the following arguments when run from the command line as shown above.  All arguments following the Profiler jar are passed to the Profiler.  All argument preceeding the Profiler jar are passed to Spark.
 
-| Argument         | Description
-|---               |---
-| -p, --profiles   | Path to the profile definitions.
-| -c, --config     | Path to the profiler properties file.
-| -g, --globals    | Path to the Stellar global config file.
-| -r, --reader     | Path to properties for the DataFrameReader.
-| -h, --help       | Print the help text.
+| Argument                              | Description
+|---                                    |---
+| [`-p`, `--profiles`](#--profiles)     | Path to the profile definitions.
+| [`-c`, `--config`](#--config)         | Path to the profiler properties file.
+| [`-g`, `--globals`](#--globals)       | Path to the Stellar global config file.
+| [`-r`, `--reader`](#--reader)         | Path to properties for the DataFrameReader.
+| `-h`, `--help`                        | Print the help text.
 
 #### `--profiles`
 
@@ -234,6 +234,28 @@ The Profiler can consume archived telemetry stored in a variety of input formats
 
 1. If additional options are required for your input format, then use the [`--reader`](#--reader) command-line argument when launching the Batch Profiler as [described here](#advanced-usage).
 
+#### Common Formats
+
+The following examples highlight the configuration values needed to read telemetry stored in common formats.  These values should be defined in the Profiler properties (see [`--config`](#--config)).
+
+##### JSON
+```
+profiler.batch.input.reader=json
+profiler.batch.input.path=/path/to/json/
+```
+
+##### [Apache ORC](https://orc.apache.org/)
+```
+profiler.batch.input.reader=orc
+profiler.batch.input.path=/path/to/orc/
+```
+
+##### [Apache Parquet](http://parquet.apache.org/)
+```
+profiler.batch.input.reader=parquet
+profiler.batch.input.path=/path/to/parquet/
+```
+
 
 ## Configuring the Profiler
 
@@ -244,6 +266,7 @@ You can store both settings for the Profiler along with settings for Spark in th
 | Setting                                                                       | Description
 |---                                                                            |---
 | [`profiler.batch.input.path`](#profilerbatchinputpath)                        | The path to the input data read by the Batch Profiler.
+| [`profiler.batch.input.reader`](#profilerbatchinputreader)                    | The telemetry reader used to read the input data.
 | [`profiler.batch.input.format`](#profilerbatchinputformat)                    | The format of the input data read by the Batch Profiler.
 | [`profiler.batch.input.begin`](#profilerbatchinputend)                        | Only messages with a timestamp after this will be profiled.
 | [`profiler.batch.input.end`](#profilerbatchinputbegin)                        | Only messages with a timestamp before this will be profiled.
@@ -259,11 +282,25 @@ You can store both settings for the Profiler along with settings for Spark in th
 
 The path to the input data read by the Batch Profiler.
 
+### `profiler.batch.input.reader`
+
+*Default*: json
+
+Defines how the input data is treated when read.  The value is not case sensitive so `JSON` and `json` are equivalent.
+
+ * `json`: Read text/json formatted telemetry
+ * `orc`: Read [Apache ORC](https://orc.apache.org/) formatted telemetry
+ * `parquet`: Read [Apache Parquet](http://parquet.apache.org/) formatted telemetry
+ * `text` Consumes input data stored as raw text. Should be defined along with [`profiler.batch.input.format`](#profilerbatchinputformat). Only use if the input format is not directly supported like `json`.
+ * `columnar` Consumes input data stored in columnar formats. Should be defined along with [`profiler.batch.input.format`](#profilerbatchinputformat).  Only use if the input format is not directly supported like `json`.
+
+See [Common Formats](#common-formats) for further information.
+
 ### `profiler.batch.input.format`
 
 *Default*: text
 
-The format of the input data read by the Batch Profiler.
+The format of the input data read by the Batch Profiler. This is optional and not required in most cases. For example, this property is not required when [`profiler.batch.input.reader`](#profilerbatchinputreader)  is `json`, `orc`, or `parquet`.
 
 ### `profiler.batch.input.begin`
 

@@ -58,7 +58,10 @@ import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INP
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_END;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_FORMAT;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_PATH;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_READER;
 import static org.junit.Assert.assertTrue;
+
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.*;
 
 /**
  * An integration test for the {@link BatchProfiler}.
@@ -159,8 +162,8 @@ public class BatchProfilerIntegrationTest {
   @Test
   public void testBatchProfilerWithJSON() throws Exception {
     // the input telemetry is text/json stored in the local filesystem
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), JSON.toString());
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
-    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "text");
 
     BatchProfiler profiler = new BatchProfiler();
     profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
@@ -170,20 +173,41 @@ public class BatchProfilerIntegrationTest {
 
   @Test
   public void testBatchProfilerWithORC() throws Exception {
-    // re-write the test data as ORC
+    // re-write the test data as column-oriented ORC
     String pathToORC = tempFolder.getRoot().getAbsolutePath();
     spark.read()
-            .format("text")
+            .format("json")
             .load("src/test/resources/telemetry.json")
-            .as(Encoders.STRING())
             .write()
             .mode("overwrite")
             .format("org.apache.spark.sql.execution.datasources.orc")
             .save(pathToORC);
 
     // tell the profiler to use the ORC input data
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), ORC.toString());
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), pathToORC);
-    profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "org.apache.spark.sql.execution.datasources.orc");
+
+    BatchProfiler profiler = new BatchProfiler();
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+
+    validateProfiles();
+  }
+
+  @Test
+  public void testBatchProfilerWithParquet() throws Exception {
+    // re-write the test data as column-oriented ORC
+    String inputPath = tempFolder.getRoot().getAbsolutePath();
+    spark.read()
+            .format("json")
+            .load("src/test/resources/telemetry.json")
+            .write()
+            .mode("overwrite")
+            .format("parquet")
+            .save(inputPath);
+
+    // tell the profiler to use the ORC input data
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), PARQUET.toString());
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), inputPath);
 
     BatchProfiler profiler = new BatchProfiler();
     profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
@@ -206,7 +230,9 @@ public class BatchProfilerIntegrationTest {
             .save(pathToCSV);
 
     // tell the profiler to use the CSV input data
+    // CSV is an example of needing to define both the reader and the input format
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), pathToCSV);
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), "text");
     profilerProperties.put(TELEMETRY_INPUT_FORMAT.getKey(), "csv");
 
     // set a reader property; tell the reader to expect a header
