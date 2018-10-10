@@ -244,17 +244,4 @@ public class GrokWebSphereParserTest {
 		assertEquals("trans 191)  admindefaultsystem*): ntp-service 'NTP Service' - Operational state down:", parsedJSON.get("message"));
 	}
 	
-	
-	@Test(expected=RuntimeException.class)
-	public void testParseEmptyLine() throws Exception {
-		
-		//Set up parser, attempt to parse malformed message
-		GrokWebSphereParser parser = new GrokWebSphereParser();
-		parser.configure(parserConfig);
-		String testString = "";
-		UnitTestHelper.setLog4jLevel(GrokParser.class, Level.FATAL);
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		UnitTestHelper.setLog4jLevel(GrokParser.class, Level.ERROR);
-	}
-		
 }

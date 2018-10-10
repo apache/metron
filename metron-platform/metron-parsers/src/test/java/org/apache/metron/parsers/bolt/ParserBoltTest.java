@@ -56,6 +56,7 @@ import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
 import org.apache.metron.parsers.BasicParser;
+import org.apache.metron.parsers.DefaultMessageParserResult;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.topology.ParserComponents;
@@ -254,7 +255,7 @@ public class ParserBoltTest extends BaseBoltTest {
     parsedMessage.put("guid", "this-is-unique-identifier-for-tuple");
     List<JSONObject> messageList = new ArrayList<>();
     messageList.add(parsedMessage);
-    when(parser.parseOptional(sampleBinary)).thenReturn(Optional.of(messageList));
+    when(parser.parseOptionalResult(sampleBinary)).thenReturn(Optional.of(new DefaultMessageParserResult<>(messageList)));
     when(parser.validate(parsedMessage)).thenReturn(true);
     parserBolt.execute(tuple);
 
@@ -303,7 +304,7 @@ public class ParserBoltTest extends BaseBoltTest {
     final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"source.type\":\"" + sensorType + "\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
     final JSONObject finalMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"source.type\":\"" + sensorType + "\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
     when(tuple.getBinary(0)).thenReturn(sampleBinary);
-    when(parser.parseOptional(sampleBinary)).thenReturn(Optional.of(messages));
+    when(parser.parseOptionalResult(sampleBinary)).thenReturn(Optional.of(new DefaultMessageParserResult<>(messages)));
     when(parser.validate(eq(messages.get(0)))).thenReturn(true);
     when(parser.validate(eq(messages.get(1)))).thenReturn(false);
     parserBolt.execute(tuple);
@@ -358,9 +359,9 @@ public class ParserBoltTest extends BaseBoltTest {
     when(successResponse.getSuccesses()).thenReturn(ImmutableList.of(t1));
     when(batchWriter.write(any(), any(), any(), any())).thenReturn(successResponse);
     when(parser.validate(any())).thenReturn(true);
-    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject(new HashMap<String, Object>() {{
+    when(parser.parseOptionalResult(any())).thenReturn(Optional.of(new DefaultMessageParserResult<>(ImmutableList.of(new JSONObject(new HashMap<String, Object>() {{
       put("field1", "blah");
-    }}))));
+    }})))));
     parserBolt.execute(t1);
     verify(batchWriter, times(1)).write(any(), any(), any(), any());
     verify(outputCollector, times(1)).ack(t1);
@@ -543,7 +544,7 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
-    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
+    when(parser.parseOptionalResult(any())).thenReturn(Optional.of(new DefaultMessageParserResult<>(ImmutableList.of(new JSONObject()))));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
     int oneLessThanDefaultBatchSize = ParserConfigurations.DEFAULT_KAFKA_BATCH_SIZE - 1;
     BulkWriterResponse response = new BulkWriterResponse();
@@ -624,7 +625,7 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
-    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
+    when(parser.parseOptionalResult(any())).thenReturn(Optional.of(new DefaultMessageParserResult<>(ImmutableList.of(new JSONObject()))));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
     Set<Tuple> tuples = Stream.of(t1, t2, t3, t4, t5).collect(Collectors.toSet());
     BulkWriterResponse response = new BulkWriterResponse();
@@ -671,7 +672,7 @@ public class ParserBoltTest extends BaseBoltTest {
 
     doThrow(new Exception()).when(batchWriter).write(any(), any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
-    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
+    when(parser.parseOptionalResult(any())).thenReturn(Optional.of(new DefaultMessageParserResult<>(ImmutableList.of(new JSONObject()))));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
     parserBolt.execute(t1);
     parserBolt.execute(t2);
