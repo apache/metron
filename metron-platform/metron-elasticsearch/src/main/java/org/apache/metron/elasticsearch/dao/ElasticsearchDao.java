@@ -138,34 +138,34 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public void update(Document update, Optional<String> index) throws IOException {
-    updateDao.update(update, index);
+  public Document update(Document update, Optional<String> index) throws IOException {
+    return updateDao.update(update, index);
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
-    updateDao.batchUpdate(updates);
+  public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+    return updateDao.batchUpdate(updates);
   }
 
   @Override
-  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request, Optional<Long> timestamp)
+  public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request, Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
-    updateDao.patch(retrieveLatestDao, request, timestamp);
+    return updateDao.patch(retrieveLatestDao, request, timestamp);
   }
 
   @Override
-  public void replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException {
-    updateDao.replace(request, timestamp);
+  public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException {
+    return updateDao.replace(request, timestamp);
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
-    updateDao.addCommentToAlert(request);
+  public Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    return updateDao.addCommentToAlert(request);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
-    updateDao.removeCommentFromAlert(request);
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    return updateDao.removeCommentFromAlert(request);
   }
 
   @Override
@@ -179,13 +179,13 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    this.updateDao.addCommentToAlert(request, latest);
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    return this.updateDao.addCommentToAlert(request, latest);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    this.updateDao.removeCommentFromAlert(request, latest);
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    return this.updateDao.removeCommentFromAlert(request, latest);
   }
 
   protected Optional<String> getIndexName(String guid, String sensorType) {

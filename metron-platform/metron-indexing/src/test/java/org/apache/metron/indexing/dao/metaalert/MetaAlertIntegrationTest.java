@@ -278,11 +278,40 @@ public abstract class MetaAlertIntegrationTest {
         }});
         setGroups(Collections.singletonList("group"));
       }};
-      MetaAlertCreateResponse metaAlertCreateResponse = metaDao
+
+      Document actualMetaAlert = metaDao
           .createMetaAlert(metaAlertCreateRequest);
+
+      // Build expected metaAlert after alerts are added
+      Map<String, Object> expectedMetaAlert = new HashMap<>();
+
+      expectedMetaAlert.put(Constants.GUID, actualMetaAlert.getGuid());
+      expectedMetaAlert.put(getSourceTypeField(), METAALERT_TYPE);
+      expectedMetaAlert.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
+      // Verify the proper alerts were added
+      @SuppressWarnings("unchecked")
+      List<Map<String, Object>> metaAlertAlerts = new ArrayList<>();
+      // Alert 0 is already in the metaalert. Add alerts 1 and 2.
+      Map<String, Object> expectedAlert1 = alerts.get(1);
+      expectedAlert1.put(METAALERT_FIELD, Collections.singletonList(actualMetaAlert.getGuid()));
+      metaAlertAlerts.add(expectedAlert1);
+      Map<String, Object> expectedAlert2 = alerts.get(2);
+      expectedAlert2.put(METAALERT_FIELD, Collections.singletonList(actualMetaAlert.getGuid()));
+      metaAlertAlerts.add(expectedAlert2);
+      expectedMetaAlert.put(ALERT_FIELD, metaAlertAlerts);
+
+      // Verify the counts were properly updated
+      expectedMetaAlert.put("average", 1.5d);
+      expectedMetaAlert.put("min", 1.0d);
+      expectedMetaAlert.put("median", 1.5d);
+      expectedMetaAlert.put("max", 2.0d);
+      expectedMetaAlert.put("count", 2);
+      expectedMetaAlert.put("sum", 3.0d);
+      expectedMetaAlert.put(getThreatTriageField(), 3.0d);
       {
         // Verify metaAlert was created
-        findCreatedDoc(metaAlertCreateResponse.getGuid(), METAALERT_TYPE);
+        assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
+        findCreatedDoc(actualMetaAlert.getGuid(), METAALERT_TYPE);
       }
       {
         // Verify alert 0 was not updated with metaalert field
@@ -294,14 +323,14 @@ public abstract class MetaAlertIntegrationTest {
         // Verify alert 1 was properly updated with metaalert field
         Map<String, Object> expectedAlert = new HashMap<>(alerts.get(1));
         expectedAlert
-            .put(METAALERT_FIELD, Collections.singletonList(metaAlertCreateResponse.getGuid()));
+            .put(METAALERT_FIELD, Collections.singletonList(actualMetaAlert.getGuid()));
         findUpdatedDoc(expectedAlert, "message_1", SENSOR_NAME);
       }
       {
         // Verify alert 2 was properly updated with metaalert field
         Map<String, Object> expectedAlert = new HashMap<>(alerts.get(2));
         expectedAlert
-            .put(METAALERT_FIELD, Collections.singletonList(metaAlertCreateResponse.getGuid()));
+            .put(METAALERT_FIELD, Collections.singletonList(actualMetaAlert.getGuid()));
         findUpdatedDoc(expectedAlert, "message_2", SENSOR_NAME);
       }
     }
@@ -355,17 +384,19 @@ public abstract class MetaAlertIntegrationTest {
 
     {
       // Verify alerts were successfully added to the meta alert
-      Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
-          .asList(new GetRequest("message_1", SENSOR_NAME),
-              new GetRequest("message_2", SENSOR_NAME))));
+      Document actualMetaAlert = metaDao.addAlertsToMetaAlert("meta_alert", Arrays
+              .asList(new GetRequest("message_1", SENSOR_NAME),
+                      new GetRequest("message_2", SENSOR_NAME)));
+      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
     {
       // Verify False when alerts are already in a meta alert and no new alerts are added
-      Assert.assertFalse(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
-          .asList(new GetRequest("message_0", SENSOR_NAME),
-              new GetRequest("message_1", SENSOR_NAME))));
+      Document actualMetaAlert = metaDao.addAlertsToMetaAlert("meta_alert", Arrays
+              .asList(new GetRequest("message_0", SENSOR_NAME),
+                      new GetRequest("message_1", SENSOR_NAME)));
+      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -385,9 +416,10 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put("sum", 6.0d);
       expectedMetaAlert.put(getThreatTriageField(), 6.0d);
 
-      Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
-          .asList(new GetRequest("message_2", SENSOR_NAME),
-              new GetRequest("message_3", SENSOR_NAME))));
+      Document actualMetaAlert = metaDao.addAlertsToMetaAlert("meta_alert", Arrays
+              .asList(new GetRequest("message_2", SENSOR_NAME),
+                      new GetRequest("message_3", SENSOR_NAME)));
+      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
   }
@@ -437,17 +469,19 @@ public abstract class MetaAlertIntegrationTest {
 
     {
       // Verify a list of alerts are removed from a meta alert
-      Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays
-          .asList(new GetRequest("message_0", SENSOR_NAME),
-              new GetRequest("message_1", SENSOR_NAME))));
+      Document actualMetaAlert = metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays
+              .asList(new GetRequest("message_0", SENSOR_NAME),
+                      new GetRequest("message_1", SENSOR_NAME)));
+      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
     {
       // Verify False when alerts are not present in a meta alert and no alerts are removed
-      Assert.assertFalse(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays
-          .asList(new GetRequest("message_0", SENSOR_NAME),
-              new GetRequest("message_1", SENSOR_NAME))));
+      Document actualMetaAlert = metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays
+              .asList(new GetRequest("message_0", SENSOR_NAME),
+                      new GetRequest("message_1", SENSOR_NAME)));
+      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -466,9 +500,10 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put("sum", 3.0d);
       expectedMetaAlert.put(getThreatTriageField(), 3.0d);
 
-      Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays
-          .asList(new GetRequest("message_0", SENSOR_NAME),
-              new GetRequest("message_2", SENSOR_NAME))));
+      Document actualMetaAlert = metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays
+              .asList(new GetRequest("message_0", SENSOR_NAME),
+                      new GetRequest("message_2", SENSOR_NAME)));
+      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -587,11 +622,11 @@ public abstract class MetaAlertIntegrationTest {
 
     {
       // Verify status changed to inactive and child alerts are updated
-      Assert.assertTrue(metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.INACTIVE));
-
       Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
       expectedMetaAlert.put(STATUS_FIELD, MetaAlertStatus.INACTIVE.getStatusString());
 
+      Document actualMetaAlert = metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.INACTIVE);
+      Assert.assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
 
       for (int i = 0; i < numChildAlerts; ++i) {
@@ -610,11 +645,11 @@ public abstract class MetaAlertIntegrationTest {
 
     {
       // Verify status changed to active and child alerts are updated
-      Assert.assertTrue(metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.ACTIVE));
-
       Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
       expectedMetaAlert.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
 
+      Document actualMetaAlert = metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.ACTIVE);
+      Assert.assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
 
       for (int i = 0; i < numChildAlerts; ++i) {
@@ -629,11 +664,15 @@ public abstract class MetaAlertIntegrationTest {
         // Make sure to handle the guid offset from creation
         findUpdatedDoc(expectedAlert, "message_" + (i + numChildAlerts), SENSOR_NAME);
       }
-
+    }
+    {
       {
         // Verify status changed to current status has no effect
-        Assert.assertFalse(metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.ACTIVE));
+        Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
+        expectedMetaAlert.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
 
+        Document actualMetaAlert = metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.ACTIVE);
+        Assert.assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
         findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
 
         for (int i = 0; i < numChildAlerts; ++i) {
@@ -983,6 +1022,30 @@ public abstract class MetaAlertIntegrationTest {
       }
     }
     throw new OriginalNotFoundException("Count not find guids after " + MAX_RETRIES + "tries");
+  }
+
+  @SuppressWarnings("unchecked")
+  protected void assertEquals(Map<String, Object> expected, Map<String, Object> actual) {
+    Assert.assertEquals(expected.get(Constants.GUID), actual.get(Constants.GUID));
+    Assert.assertEquals(expected.get(getSourceTypeField()), actual.get(getSourceTypeField()));
+    Double actualThreatTriageField = actual.get(getThreatTriageField()) instanceof Float ?
+            ((Float) actual.get(getThreatTriageField())).doubleValue() : (Double) actual.get(getThreatTriageField());
+    Assert.assertEquals(expected.get(getThreatTriageField()), actualThreatTriageField);
+
+    List<Map<String, Object>> expectedAlerts = (List<Map<String, Object>>) expected.get(ALERT_FIELD);
+    List<Map<String, Object>> actualAlerts = (List<Map<String, Object>>) actual.get(ALERT_FIELD);
+    expectedAlerts.sort(Comparator.comparing(o -> ((String) o.get(Constants.GUID))));
+    actualAlerts.sort(Comparator.comparing(o -> ((String) o.get(Constants.GUID))));
+    Assert.assertEquals(expectedAlerts, actualAlerts);
+    Assert.assertEquals(expected.get(STATUS_FIELD), actual.get(STATUS_FIELD));
+    Assert.assertEquals(expected.get("average"), actual.get("average"));
+    Assert.assertEquals(expected.get("min"), actual.get("min"));
+    Assert.assertEquals(expected.get("median"), actual.get("median"));
+    Assert.assertEquals(expected.get("max"), actual.get("max"));
+    Integer actualCountField = actual.get("count") instanceof Long ? ((Long) actual.get("count")).intValue() :
+            (Integer) actual.get("count");
+    Assert.assertEquals(expected.get("count"), actualCountField);
+    Assert.assertEquals(expected.get("sum"), actual.get("sum"));
   }
 
   protected List<Map<String, Object>> buildAlerts(int count) {

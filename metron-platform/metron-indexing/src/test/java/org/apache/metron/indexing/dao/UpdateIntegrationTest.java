@@ -18,7 +18,6 @@ import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,13 +98,14 @@ public abstract class UpdateIntegrationTest {
         put("new-field", "metron");
       }};
       String guid = "" + message0.get(Constants.GUID);
-      getDao().replace(new ReplaceRequest(){{
+      Document update = getDao().replace(new ReplaceRequest(){{
         setReplacement(message0);
         setGuid(guid);
         setSensorType(SENSOR_NAME);
         setIndex(getIndexName());
       }}, Optional.empty());
 
+      Assert.assertEquals(message0, update.getDocument());
       Assert.assertEquals(1, getMockHTable().size());
       findUpdatedDoc(message0, guid, SENSOR_NAME);
       {
@@ -138,12 +138,13 @@ public abstract class UpdateIntegrationTest {
         put("new-field", "metron2");
       }};
       String guid = "" + message0.get(Constants.GUID);
-      getDao().replace(new ReplaceRequest(){{
+      Document update = getDao().replace(new ReplaceRequest(){{
         setReplacement(message0);
         setGuid(guid);
         setSensorType(SENSOR_NAME);
         setIndex(getIndexName());
       }}, Optional.empty());
+      Assert.assertEquals(message0, update.getDocument());
       Assert.assertEquals(1, getMockHTable().size());
       Document doc = getDao().getLatest(guid, SENSOR_NAME);
       Assert.assertEquals(message0, doc.getDocument());
@@ -184,33 +185,40 @@ public abstract class UpdateIntegrationTest {
     fields.put("source.type", SENSOR_NAME);
 
     Document document = new Document(fields, "add_comment", SENSOR_NAME, 1526306463050L);
-    getDao().update(document, Optional.of(SENSOR_NAME));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-
-    addAlertComment("add_comment", "New Comment", "test_user", 1526306463050L);
-    // Ensure we have the first comment
+    {
+      Document update = getDao().update(document, Optional.of(SENSOR_NAME));
+      Assert.assertEquals(document, update);
+      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    }
     ArrayList<AlertComment> comments = new ArrayList<>();
-    comments.add(new AlertComment("New Comment", "test_user", 1526306463050L));
-    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-        Collectors.toList()));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    {
+      Document update = addAlertComment("add_comment", "New Comment", "test_user", 1526306463050L);
+      // Ensure we have the first comment
+      comments.add(new AlertComment("New Comment", "test_user", 1526306463050L));
+      document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
+              Collectors.toList()));
+      Assert.assertEquals(document, update);
+      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    }
+    {
+      List<Map<String, Object>> patchList = new ArrayList<>();
+      Map<String, Object> patch = new HashMap<>();
+      patch.put("op", "add");
+      patch.put("path", "/project");
+      patch.put("value", "metron");
+      patchList.add(patch);
 
-    List<Map<String, Object>> patchList = new ArrayList<>();
-    Map<String, Object> patch = new HashMap<>();
-    patch.put("op", "add");
-    patch.put("path", "/project");
-    patch.put("value", "metron");
-    patchList.add(patch);
+      PatchRequest pr = new PatchRequest();
+      pr.setGuid("add_comment");
+      pr.setIndex(SENSOR_NAME);
+      pr.setSensorType(SENSOR_NAME);
+      pr.setPatch(patchList);
+      Document update = getDao().patch(getDao(), pr, Optional.of(1526306463050L));
 
-    PatchRequest pr = new PatchRequest();
-    pr.setGuid("add_comment");
-    pr.setIndex(SENSOR_NAME);
-    pr.setSensorType(SENSOR_NAME);
-    pr.setPatch(patchList);
-    getDao().patch(getDao(), pr, Optional.of(new Date().getTime()));
-
-    document.getDocument().put("project", "metron");
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+      document.getDocument().put("project", "metron");
+      Assert.assertEquals(document, update);
+      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    }
   }
 
   @Test
@@ -221,48 +229,60 @@ public abstract class UpdateIntegrationTest {
     fields.put("source.type", SENSOR_NAME);
 
     Document document = new Document(fields, "add_comment", SENSOR_NAME, 1526401584951L);
-    getDao().update(document, Optional.of(SENSOR_NAME));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-
-    addAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
-    // Ensure we have the first comment
+    {
+      Document update = getDao().update(document, Optional.of(SENSOR_NAME));
+      Assert.assertEquals(document, update);
+      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    }
     ArrayList<AlertComment> comments = new ArrayList<>();
-    comments.add(new AlertComment("New Comment", "test_user", 1526401584951L));
-    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-        Collectors.toList()));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    {
+      Document update = addAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
+      // Ensure we have the first comment
 
-    addAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
-    // Ensure we have the second comment
-    comments.add(new AlertComment("New Comment 2", "test_user_2", 1526401584952L));
-    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-        Collectors.toList()));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-
-    removeAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
-    // Ensure we only have the first comments
-    comments = new ArrayList<>();
-    comments.add(new AlertComment(commentOne));
-    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-        Collectors.toList()));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-
-    removeAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
-    // Ensure we have no comments
-    document.getDocument().remove(COMMENTS_FIELD);
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+      comments.add(new AlertComment("New Comment", "test_user", 1526401584951L));
+      document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
+              Collectors.toList()));
+      Assert.assertEquals(document, update);
+      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    }
+    {
+      Document update = addAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
+      // Ensure we have the second comment
+      comments.add(new AlertComment("New Comment 2", "test_user_2", 1526401584952L));
+      document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
+              Collectors.toList()));
+      Assert.assertEquals(document, update);
+      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    }
+    {
+      Document update = removeAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
+      // Ensure we only have the first comments
+      comments = new ArrayList<>();
+      comments.add(new AlertComment(commentOne));
+      document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
+              Collectors.toList()));
+      Assert.assertEquals(document, update);
+      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    }
+    {
+      Document update = removeAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
+      // Ensure we have no comments
+      document.getDocument().remove(COMMENTS_FIELD);
+      Assert.assertEquals(document, update);
+      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    }
   }
 
-  protected void addAlertComment(String guid, String comment, String username, long timestamp)
+  protected Document addAlertComment(String guid, String comment, String username, long timestamp)
       throws IOException {
     CommentAddRemoveRequest request = buildAlertRequest(guid, comment, username, timestamp);
-    getDao().addCommentToAlert(request);
+    return getDao().addCommentToAlert(request);
   }
 
-  protected void removeAlertComment(String guid, String comment, String username, long timestamp)
+  protected Document removeAlertComment(String guid, String comment, String username, long timestamp)
       throws IOException {
     CommentAddRemoveRequest request = buildAlertRequest(guid, comment, username, timestamp);
-    getDao().removeCommentFromAlert(request);
+    return getDao().removeCommentFromAlert(request);
   }
 
   private CommentAddRemoveRequest buildAlertRequest(String guid, String comment, String username,

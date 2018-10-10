@@ -22,6 +22,7 @@ package org.apache.metron.profiler.storm;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -148,6 +149,7 @@ public class KafkaEmitterTest {
     assertEquals(measurement.getPeriod().getEndTimeMillis(),      actual.get("period.end"));
     assertEquals("profiler",                                      actual.get("source.type"));
     assertNotNull(actual.get("timestamp"));
+    assertNotNull(actual.get(Constants.GUID));
 
     // validate that the triage value has been added
     assertEquals(measurement.getTriageValues().get("triage-key"), actual.get("triage-key"));
@@ -214,6 +216,8 @@ public class KafkaEmitterTest {
     assertEquals(measurement.getPeriod().getStartTimeMillis(),    actual.get("period.start"));
     assertEquals(measurement.getPeriod().getEndTimeMillis(),      actual.get("period.end"));
     assertEquals("profiler",                                      actual.get("source.type"));
+    assertNotNull(actual.get("timestamp"));
+    assertNotNull(actual.get(Constants.GUID));
 
     // the invalid expression should be skipped and not included in the message
     assertFalse(actual.containsKey("invalid"));

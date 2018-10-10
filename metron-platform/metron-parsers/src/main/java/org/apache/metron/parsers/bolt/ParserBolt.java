@@ -271,6 +271,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       if (!sensorToWriterMap.get(sensorType).handleAck() || numWritten == 0) {
         collector.ack(tuple);
       }
+
     } catch (Throwable ex) {
       handleError(sensorType, originalMessage, tuple, ex, collector);
       collector.ack(tuple);

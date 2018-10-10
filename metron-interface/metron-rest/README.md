@@ -221,7 +221,7 @@ The REST application uses a Java Process object to call out to the `pcap_to_pdml
 Out of the box it is a simple wrapper around the tshark command to transform raw pcap data to PDML.  However it can be extended to do additional processing as long as the expected input/output is maintained.
 REST will supply the script with raw pcap data through standard in and expects PDML data serialized as XML.
 
-Pcap query jobs can be configured for submission to a YARN queue.  This setting is exposed as the Spring property `pcap.yarn.queue`.  If configured, the REST application will set the `mapreduce.job.queuename` Hadoop property to that value.
+Pcap query jobs can be configured for submission to a YARN queue.  This setting is exposed as the Spring property `pcap.yarn.queue` and can be set in the PCAP tab under Metron service -> Configs in Ambari.  If configured, the REST application will set the `mapreduce.job.queuename` Hadoop property to that value.
 It is highly recommended that a dedicated YARN queue be created and configured for Pcap queries to prevent a job from consuming too many cluster resources.  More information about setting up YARN queues can be found [here](https://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/CapacityScheduler.html#Setting_up_queues).
 
 Pcap query results are stored in HDFS.  The location of query results when run through the REST app is determined by a couple factors.  The root of Pcap query results defaults to `/apps/metron/pcap/output` but can be changed with the 
@@ -234,7 +234,7 @@ periodically delete files and directories under the Pcap query results root.
 
 Users should also be mindful of date ranges used in queries so they don't produce result sets that are too large.  Currently there are no limits enforced on date ranges.
 
-Queries can also be configured on a global level for setting the number of results per page via a Spring property `pcap.page.size`. By default, this value is set to 10 pcaps per page, but you may choose to set this value higher
+Queries can also be configured on a global level for setting the number of results per page via a Spring property `pcap.page.size`. This property can be set in the PCAP tab under Metron service -> Configs, in Ambari. By default, this value is set to 10 pcaps per page, but you may choose to set this value higher
 based on observing frequenetly-run query result sizes. This setting works in conjunction with the property for setting finalizer threadpool size when optimizing query performance.
 
 Pcap query jobs have a finalization routine that writes their results out to HDFS in pages. Depending on the size of your pcaps, the number or results typically returned, page sizing (described above), and available CPU cores for running
@@ -336,6 +336,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/supervisors`](#get-apiv1stormsupervisors)|
 | [ `PATCH /api/v1/update/patch`](#patch-apiv1updatepatch)|
 | [ `PUT /api/v1/update/replace`](#put-apiv1updatereplace)|
+| [ `POST /api/v1/update/add/comment`](#put-apiv1updateaddcomment)|
+| [ `POST /api/v1/update/remove/comment`](#put-apiv1updateremovecomment)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
 ### `POST /api/v1/alerts/ui/escalate`
@@ -963,6 +965,20 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
         ```
   * Returns:
     * 200 - Current user
+    
+### `POST /api/v1/update/add/comment`
+  * Description: Add a comment to an alert
+  * Input:
+    * request - Comment add request
+  * Returns:
+    * 200 - Returns the complete alert document with comments added.
+    
+### `POST /api/v1/update/remove/comment`
+  * Description: Remove a comment from an alert
+  * Input:
+    * request - Comment remove request
+  * Returns:
+    * 200 - Returns the complete alert document with comments removed.
 
 ### `GET /api/v1/user`
   * Description: Retrieves the current user

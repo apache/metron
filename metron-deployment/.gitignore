@@ -1,3 +1,4 @@
 keys/
 .vagrant
 *.retry
+*.pyc
