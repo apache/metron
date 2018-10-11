@@ -19,13 +19,31 @@
 
 package org.apache.metron.elasticsearch.integration;
 
-import static org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao.METAALERTS_INDEX;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_DOC;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.ImmutableList;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
+import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
+import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertIntegrationTest;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SortField;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -41,30 +59,15 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableList;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
-import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
-import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
-import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertIntegrationTest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.search.SortField;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import static org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao.METAALERTS_INDEX;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_CLUSTER;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_DATE_FORMAT;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_IP;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_PORT;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_DOC;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
 
 @RunWith(Parameterized.class)
 public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
@@ -143,10 +146,10 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     AccessConfig accessConfig = new AccessConfig();
     Map<String, Object> globalConfig = new HashMap<String, Object>() {
       {
-        put("es.clustername", "metron");
-        put("es.port", "9300");
-        put("es.ip", "localhost");
-        put("es.date.format", DATE_FORMAT);
+        put(ELASTICSEARCH_CLUSTER.getKey(), "metron");
+        put(ELASTICSEARCH_PORT.getKey(), "9300");
+        put(ELASTICSEARCH_IP.getKey(), "localhost");
+        put(ELASTICSEARCH_DATE_FORMAT.getKey(), DATE_FORMAT);
       }
     };
     accessConfig.setMaxSearchResults(1000);

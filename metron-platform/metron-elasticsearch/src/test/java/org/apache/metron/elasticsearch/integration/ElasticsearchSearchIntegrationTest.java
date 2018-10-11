@@ -17,13 +17,6 @@
  */
 package org.apache.metron.elasticsearch.integration;
 
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
@@ -50,6 +43,18 @@ import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_CLUSTER;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_DATE_FORMAT;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_IP;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_PORT;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
@@ -199,10 +204,10 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     config.setMaxSearchGroups(100);
     config.setGlobalConfigSupplier( () ->
             new HashMap<String, Object>() {{
-              put("es.clustername", "metron");
-              put("es.port", "9300");
-              put("es.ip", "localhost");
-              put("es.date.format", dateFormat);
+              put(ELASTICSEARCH_CLUSTER.getKey(), "metron");
+              put(ELASTICSEARCH_PORT.getKey(), "9300");
+              put(ELASTICSEARCH_IP.getKey(), "localhost");
+              put(ELASTICSEARCH_DATE_FORMAT.getKey(), dateFormat);
             }}
     );
 

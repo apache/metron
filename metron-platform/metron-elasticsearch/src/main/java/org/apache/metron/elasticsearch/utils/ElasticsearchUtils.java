@@ -17,6 +17,7 @@
  */
 package org.apache.metron.elasticsearch.utils;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -58,23 +59,18 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.metron.common.Constants.GUID;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_CLIENT_CLASS;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_CLUSTER;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_DATE_FORMAT;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_IP;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_PORT;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_XPACK_PASSWORD_FILE;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_XPACK_USERNAME;
 
 public class ElasticsearchUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String ES_CLIENT_CLASS_DEFAULT = "org.elasticsearch.transport.client.PreBuiltTransportClient";
-  private static final String PWD_FILE_CONFIG_KEY = "es.xpack.password.file";
-  private static final String USERNAME_CONFIG_KEY = "es.xpack.username";
   private static final String TRANSPORT_CLIENT_USER_KEY = "xpack.security.user";
-
-  /**
-   * Defines which message field, the document identifier is set to.
-   *
-   * <p>If defined, the value of the specified message field is set as the Elasticsearch doc ID. If
-   * this field is undefined or blank, then the document identifier is not set.
-   */
-  public static final String DOC_ID_SOURCE_FIELD = "es.document.id";
-  public static final String DOC_ID_SOURCE_FIELD_DEFAULT = "";
 
   private static ThreadLocal<Map<String, SimpleDateFormat>> DATE_FORMAT_CACHE
           = ThreadLocal.withInitial(() -> new HashMap<>());
@@ -94,7 +90,7 @@ public class ElasticsearchUtils {
   }
 
   public static SimpleDateFormat getIndexFormat(Map<String, Object> globalConfig) {
-    String format = (String) globalConfig.get("es.date.format");
+    String format = ELASTICSEARCH_DATE_FORMAT.get(globalConfig, String.class);
     return DATE_FORMAT_CACHE.get().computeIfAbsent(format, SimpleDateFormat::new);
   }
 
@@ -142,7 +138,10 @@ public class ElasticsearchUtils {
    */
   public static TransportClient getClient(Map<String, Object> globalConfiguration) {
     Set<String> customESSettings = new HashSet<>();
-    customESSettings.addAll(Arrays.asList("es.client.class", USERNAME_CONFIG_KEY, PWD_FILE_CONFIG_KEY));
+    customESSettings.addAll(Arrays.asList(
+            ELASTICSEARCH_CLIENT_CLASS.getKey(),
+            ELASTICSEARCH_XPACK_USERNAME.getKey(),
+            ELASTICSEARCH_XPACK_PASSWORD_FILE.getKey()));
     Settings.Builder settingsBuilder = Settings.builder();
     Map<String, String> esSettings = getEsSettings(globalConfiguration);
     for (Map.Entry<String, String> entry : esSettings.entrySet()) {
@@ -152,7 +151,7 @@ public class ElasticsearchUtils {
         settingsBuilder.put(key, value);
       }
     }
-    settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
+    settingsBuilder.put("cluster.name", ELASTICSEARCH_CLUSTER.get(globalConfiguration));
     settingsBuilder.put("client.transport.ping_timeout", esSettings.getOrDefault("client.transport.ping_timeout","500s"));
     setXPackSecurityOrNone(settingsBuilder, esSettings);
 
@@ -182,25 +181,34 @@ public class ElasticsearchUtils {
   }
 
   /*
+
    * Append Xpack security settings (if any)
    */
+
+  /**
+   * Define X-Pack security settings, if required.
+   *
+   * @param settingsBuilder The X-pack security settings are appended to this.
+   * @param esSettings The Elasticsearch settings.
+   */
   private static void setXPackSecurityOrNone(Settings.Builder settingsBuilder, Map<String, String> esSettings) {
+    if(ELASTICSEARCH_XPACK_PASSWORD_FILE.isStringDefined(esSettings)) {
+      LOG.info("Setting X-Pack security settings");
 
-    if (esSettings.containsKey(PWD_FILE_CONFIG_KEY)) {
-
-      if (!esSettings.containsKey(USERNAME_CONFIG_KEY) || StringUtils.isEmpty(esSettings.get(USERNAME_CONFIG_KEY))) {
-        throw new IllegalArgumentException("X-pack username is required and cannot be empty");
-      }
-
-      settingsBuilder.put(
-         TRANSPORT_CLIENT_USER_KEY,
-         esSettings.get(USERNAME_CONFIG_KEY) + ":" + getPasswordFromFile(esSettings.get(PWD_FILE_CONFIG_KEY))
-      );
+      String username = ELASTICSEARCH_XPACK_USERNAME.getString(esSettings);
+      String password = getPasswordFromFile(ELASTICSEARCH_XPACK_PASSWORD_FILE.getString(esSettings));
+      settingsBuilder.put(TRANSPORT_CLIENT_USER_KEY, Joiner.on(":").join(username, password));
     }
   }
 
-  /*
-   * Single password on first line
+  /**
+   * Retrieve the X-Pack password from a file in HDFS.
+   *
+   * <p>The file must contain a single password on the first line.
+   *
+   * @param hdfsPath The path to the password file in HDFS.
+   * @return The password stored in the file.
+   * @throws IllegalArgumentException If unable to read the password from the file.
    */
   private static String getPasswordFromFile(String hdfsPath) {
     List<String> lines = null;
@@ -223,12 +231,11 @@ public class ElasticsearchUtils {
    * @param esSettings client type to instantiate
    * @return client with provided settings
    */
-  private static TransportClient createTransportClient(Settings settings,
-      Map<String, String> esSettings) {
-    String esClientClassName = (String) esSettings
-        .getOrDefault("es.client.class", ES_CLIENT_CLASS_DEFAULT);
-    return ReflectionUtils
-        .createInstance(esClientClassName, new Class[]{Settings.class, Class[].class},
+  private static TransportClient createTransportClient(Settings settings, Map<String, String> esSettings) {
+    String esClientClassName = ELASTICSEARCH_CLIENT_CLASS.getString(esSettings);
+    return ReflectionUtils.createInstance(
+            esClientClassName,
+            new Class[]{Settings.class, Class[].class},
             new Object[]{settings, new Class[0]});
   }
 
@@ -242,8 +249,8 @@ public class ElasticsearchUtils {
   }
 
   protected static List<HostnamePort> getIps(Map<String, Object> globalConfiguration) {
-    Object ipObj = globalConfiguration.get("es.ip");
-    Object portObj = globalConfiguration.get("es.port");
+    Object ipObj = ELASTICSEARCH_IP.get(globalConfiguration, Object.class);
+    Object portObj = ELASTICSEARCH_PORT.get(globalConfiguration, Object.class);
     if(ipObj == null) {
       return Collections.emptyList();
     }

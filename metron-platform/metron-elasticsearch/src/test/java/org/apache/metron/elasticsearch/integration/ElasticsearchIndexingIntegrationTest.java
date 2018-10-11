@@ -18,7 +18,6 @@
 package org.apache.metron.elasticsearch.integration;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.field.DeDotFieldNameConverter;
 import org.apache.metron.common.field.FieldNameConverter;
 import org.apache.metron.common.field.FieldNameConverters;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
@@ -38,6 +37,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_CLUSTER;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_IP;
+import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.ELASTICSEARCH_PORT;
 
 public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTest {
 
@@ -114,9 +117,9 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
 
   @Override
   public void setAdditionalProperties(Properties topologyProperties) {
-    topologyProperties.setProperty("es.clustername", "metron");
-    topologyProperties.setProperty("es.port", "9300");
-    topologyProperties.setProperty("es.ip", "localhost");
+    topologyProperties.setProperty(ELASTICSEARCH_CLUSTER.getKey(), "metron");
+    topologyProperties.setProperty(ELASTICSEARCH_PORT.getKey(), "9300");
+    topologyProperties.setProperty(ELASTICSEARCH_IP.getKey(), "localhost");
     topologyProperties.setProperty("ra_indexing_writer_class_name", "org.apache.metron.elasticsearch.writer.ElasticsearchWriter");
     topologyProperties.setProperty("ra_indexing_kafka_start", "UNCOMMITTED_EARLIEST");
     topologyProperties.setProperty("ra_indexing_workers", "1");
