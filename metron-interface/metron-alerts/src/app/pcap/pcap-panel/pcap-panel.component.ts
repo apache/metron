@@ -149,7 +149,6 @@ export class PcapPanelComponent implements OnInit, OnDestroy {
         this.queryId = '';
         this.queryRunning = false;
       }, (error: any) => {
-        this.subscriptions['cancelSubscription'].unsubscribe();
         this.queryId = '';
         this.errorMsg = `Response message: ${error.message}. Something went wrong with the cancellation!`;
         this.queryRunning = false;
