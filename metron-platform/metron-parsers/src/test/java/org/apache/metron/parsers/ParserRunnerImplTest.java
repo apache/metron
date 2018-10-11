@@ -18,7 +18,6 @@
 package org.apache.metron.parsers;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
@@ -30,7 +29,9 @@ import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.filters.StellarFilter;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.apache.metron.parsers.topology.ParserComponent;
+import org.apache.metron.parsers.ParserRunnerImpl.ProcessResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
@@ -49,8 +50,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -217,21 +219,87 @@ public class ParserRunnerImplTest {
   public void shouldExecute() {
     parserRunner = spy(parserRunner);
     RawMessage rawMessage = new RawMessage("raw_message".getBytes(), new HashMap<>());
-    JSONObject message = new JSONObject();
+    JSONObject parsedMessage1 = new JSONObject();
+    parsedMessage1.put("field", "parsedMessage1");
+    JSONObject parsedMessage2 = new JSONObject();
+    parsedMessage2.put("field", "parsedMessage2");
+    Object rawMessage1 = new RawMessage("raw_message1".getBytes(), new HashMap<>());
+    Object rawMessage2 = new RawMessage("raw_message2".getBytes(), new HashMap<>());
+    Throwable throwable1 = mock(Throwable.class);
+    Throwable throwable2 = mock(Throwable.class);
+    MessageParserResult<JSONObject> messageParserResult = new DefaultMessageParserResult<>(Arrays.asList(parsedMessage1, parsedMessage2),
+            new HashMap<Object, Throwable>(){{
+              put(rawMessage1, throwable1);
+              put(rawMessage2, throwable2);
+            }});
+    JSONObject processedMessage = new JSONObject();
+    processedMessage.put("field", "processedMessage1");
+    MetronError processedError = new MetronError().withMessage("processedError");
+    ProcessResult processedMessageResult = mock(ProcessResult.class);
+    ProcessResult processedErrorResult = mock(ProcessResult.class);
 
-    when(broParser.parseOptional(rawMessage.getMessage())).thenReturn(Optional.of(Collections.singletonList(message)));
+    when(broParser.parseOptionalResult(rawMessage.getMessage())).thenReturn(Optional.of(messageParserResult));
+    when(processedMessageResult.getMessage()).thenReturn(processedMessage);
+    when(processedErrorResult.isError()).thenReturn(true);
+    when(processedErrorResult.getError()).thenReturn(processedError);
+    doReturn(Optional.of(processedMessageResult)).when(parserRunner)
+            .processMessage("bro", parsedMessage1, rawMessage, broParser, parserConfigurations);
+    doReturn(Optional.of(processedErrorResult)).when(parserRunner)
+            .processMessage("bro", parsedMessage2, rawMessage, broParser, parserConfigurations);
+
+    MetronError expectedParseError1 = new MetronError()
+            .withErrorType(Constants.ErrorType.PARSER_ERROR)
+            .withThrowable(throwable1)
+            .withSensorType(Collections.singleton("bro"))
+            .addRawMessage(rawMessage1);
+    MetronError expectedParseError2 = new MetronError()
+            .withErrorType(Constants.ErrorType.PARSER_ERROR)
+            .withThrowable(throwable2)
+            .withSensorType(Collections.singleton("bro"))
+            .addRawMessage(rawMessage2);
 
     parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
       put("bro", new ParserComponent(broParser, stellarFilter));
     }});
-    parserRunner.execute("bro", rawMessage, parserConfigurations);
+    ParserRunnerResults<JSONObject> parserRunnerResults = parserRunner.execute("bro", rawMessage, parserConfigurations);
 
-    verify(parserRunner, times(1))
-            .processMessage("bro", message, rawMessage, broParser, parserConfigurations);
+    Assert.assertEquals(1, parserRunnerResults.getMessages().size());
+    Assert.assertTrue(parserRunnerResults.getMessages().contains(processedMessage));
+    Assert.assertEquals(3, parserRunnerResults.getErrors().size());
+    Assert.assertTrue(parserRunnerResults.getErrors().contains(processedError));
+    Assert.assertTrue(parserRunnerResults.getErrors().contains(expectedParseError1));
+    Assert.assertTrue(parserRunnerResults.getErrors().contains(expectedParseError2));
   }
 
   @Test
-  public void shouldReturnParserResultOnProcessMessage() {
+  public void shouldExecuteWithMasterThrowable() {
+    parserRunner = spy(parserRunner);
+    RawMessage rawMessage = new RawMessage("raw_message".getBytes(), new HashMap<>());
+    Throwable masterThrowable = mock(Throwable.class);
+    MessageParserResult<JSONObject> messageParserResult = new DefaultMessageParserResult<>(masterThrowable);
+
+
+    when(broParser.parseOptionalResult(rawMessage.getMessage())).thenReturn(Optional.of(messageParserResult));
+
+    parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
+      put("bro", new ParserComponent(broParser, stellarFilter));
+    }});
+    ParserRunnerResults<JSONObject> parserRunnerResults = parserRunner.execute("bro", rawMessage, parserConfigurations);
+
+    verify(parserRunner, times(0))
+            .processMessage(any(), any(), any(), any(), any());
+
+    MetronError expectedError = new MetronError()
+            .withErrorType(Constants.ErrorType.PARSER_ERROR)
+            .withThrowable(masterThrowable)
+            .withSensorType(Collections.singleton("bro"))
+            .addRawMessage(rawMessage.getMessage());
+    Assert.assertEquals(1, parserRunnerResults.getErrors().size());
+    Assert.assertTrue(parserRunnerResults.getErrors().contains(expectedError));
+  }
+
+  @Test
+  public void shouldPopulateMessagesOnProcessMessage() {
     JSONObject inputMessage = new JSONObject();
     inputMessage.put("guid", "guid");
     inputMessage.put("ip_src_addr", "192.168.1.1");
@@ -239,14 +307,11 @@ public class ParserRunnerImplTest {
     inputMessage.put("field1", "value");
     RawMessage rawMessage = new RawMessage("raw_message".getBytes(), new HashMap<>());
 
-    Consumer<ParserResult> onSuccess = mock(Consumer.class);
     JSONObject expectedOutput  = new JSONObject();
     expectedOutput.put("guid", "guid");
     expectedOutput.put("source.type", "bro");
     expectedOutput.put("ip_src_addr", "192.168.1.1");
     expectedOutput.put("ip_dst_addr", "192.168.1.2");
-
-    ParserResult expectedResult = new ParserResult("bro", expectedOutput, rawMessage.getMessage());
 
     when(stellarFilter.emit(expectedOutput, parserRunner.getStellarContext())).thenReturn(true);
     when(broParser.validate(expectedOutput)).thenReturn(true);
@@ -254,12 +319,12 @@ public class ParserRunnerImplTest {
     parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
       put("bro", new ParserComponent(broParser, stellarFilter));
     }});
-    Optional<ParserResult> parserResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
 
-    Assert.assertTrue(parserResult.isPresent());
-    Assert.assertFalse("An error should not have been returned.", parserResult.get().isError());
-    Assert.assertEquals(expectedResult, parserResult.get());
-    verifyNoMoreInteractions(onSuccess);
+    Optional<ParserRunnerImpl.ProcessResult> processResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
+
+    Assert.assertTrue(processResult.isPresent());
+    Assert.assertFalse(processResult.get().isError());
+    Assert.assertEquals(expectedOutput, processResult.get().getMessage());
   }
 
   @Test
@@ -268,7 +333,6 @@ public class ParserRunnerImplTest {
     inputMessage.put("guid", "guid");
     RawMessage rawMessage = new RawMessage("raw_message".getBytes(), new HashMap<>());
 
-    Consumer<MetronError> onError = mock(Consumer.class);
     JSONObject expectedOutput  = new JSONObject();
     expectedOutput.put("guid", "guid");
     expectedOutput.put("source.type", "bro");
@@ -283,12 +347,12 @@ public class ParserRunnerImplTest {
     parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
       put("bro", new ParserComponent(broParser, stellarFilter));
     }});
-    Optional<ParserResult> parserResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
 
-    Assert.assertTrue(parserResult.isPresent());
-    Assert.assertTrue("An error should have been returned.", parserResult.get().isError());
-    Assert.assertEquals(expectedMetronError, parserResult.get().getError());
-    verifyNoMoreInteractions(onError);
+    Optional<ParserRunnerImpl.ProcessResult> processResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
+
+    Assert.assertTrue(processResult.isPresent());
+    Assert.assertTrue(processResult.get().isError());
+    Assert.assertEquals(expectedMetronError, processResult.get().getError());
   }
 
   @Test
@@ -299,7 +363,6 @@ public class ParserRunnerImplTest {
     inputMessage.put("ip_dst_addr", "test");
     RawMessage rawMessage = new RawMessage("raw_message".getBytes(), new HashMap<>());
 
-    Consumer<MetronError> onError = mock(Consumer.class);
     JSONObject expectedOutput  = new JSONObject();
     expectedOutput.put("guid", "guid");
     expectedOutput.put("ip_src_addr", "test");
@@ -317,11 +380,11 @@ public class ParserRunnerImplTest {
     parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
       put("bro", new ParserComponent(broParser, stellarFilter));
     }});
-    Optional<ParserResult> parserResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
 
-    Assert.assertTrue(parserResult.isPresent());
-    Assert.assertTrue("An error should have been returned.", parserResult.get().isError());
-    Assert.assertEquals(expectedMetronError, parserResult.get().getError());
-    verifyNoMoreInteractions(onError);
+    Optional<ParserRunnerImpl.ProcessResult> processResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
+
+    Assert.assertTrue(processResult.isPresent());
+    Assert.assertTrue(processResult.get().isError());
+    Assert.assertEquals(expectedMetronError, processResult.get().getError());
   }
 }

@@ -24,7 +24,8 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.metadata.RawMessage;
-import org.apache.metron.parsers.ParserResult;
+import org.apache.metron.parsers.DefaultParserRunnerResults;
+import org.apache.metron.parsers.ParserRunnerResults;
 import org.apache.metron.parsers.ParserRunnerImpl;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration;
@@ -41,13 +42,10 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.mockito.Matchers.any;
@@ -96,19 +94,19 @@ public class ParserBoltTest extends BaseBoltTest {
     }
 
     @Override
-    public List<ParserResult> execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations) {
-      List<ParserResult> parserResults = new ArrayList<>();
+    public ParserRunnerResults<JSONObject> execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations) {
+      DefaultParserRunnerResults parserRunnerResults = new DefaultParserRunnerResults();
       this.rawMessage = rawMessage;
       if (!isInvalid) {
-        parserResults.add(new ParserResult(sensorType, message, rawMessage.getMessage()));
+        parserRunnerResults.addMessage(message);
       } else {
         MetronError error = new MetronError()
                 .withErrorType(Constants.ErrorType.PARSER_INVALID)
                 .withSensorType(Collections.singleton(sensorType))
                 .addRawMessage(message);
-        parserResults.add(new ParserResult(sensorType, error, rawMessage.getMessage()));
+        parserRunnerResults.addError(error);
       }
-      return parserResults;
+      return parserRunnerResults;
     }
 
     protected void setInvalid(boolean isInvalid) {
