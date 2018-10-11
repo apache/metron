@@ -20,6 +20,7 @@ package org.apache.metron.parsers.syslog;
 
 import com.github.palindromicity.syslog.NilPolicy;
 import com.github.palindromicity.syslog.dsl.SyslogFieldKeys;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class Syslog5424ParserTest {
@@ -118,6 +120,28 @@ public class Syslog5424ParserTest {
             .append(SYSLOG_LINE_ALL);
     List<JSONObject> output = parser.parse(builder.toString().getBytes());
     Assert.assertEquals(3,output.size());
+  }
+
+  @Test
+  public void testReadMultiLineWithErrors() throws Exception {
+    Syslog5424Parser parser = new Syslog5424Parser();
+    Map<String, Object> config = new HashMap<>();
+    config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.DASH.name());
+    parser.configure(config);
+    StringBuilder builder = new StringBuilder();
+    builder
+            .append("HEREWEGO!!!!\n")
+            .append(SYSLOG_LINE_ALL)
+            .append("\n")
+            .append(SYSLOG_LINE_MISSING)
+            .append("\n")
+            .append("BOOM!\n")
+            .append(SYSLOG_LINE_ALL)
+            .append("\nOHMY!");
+    Optional<MessageParserResult<JSONObject>> output = parser.parseOptionalResult(builder.toString().getBytes());
+    Assert.assertTrue(output.isPresent());
+    Assert.assertEquals(3,output.get().getMessages().size());
+    Assert.assertEquals(3,output.get().getMessageThrowables().size());
   }
 
   @Test
