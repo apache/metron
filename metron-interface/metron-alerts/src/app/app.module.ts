@@ -47,6 +47,9 @@ import {MetaAlertsModule} from './alerts/meta-alerts/meta-alerts.module';
 import {SearchService} from './service/search.service';
 import { GlobalConfigService } from './service/global-config.service';
 import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.interceptor';
+import { DialogService } from './service/dialog.service';
+import { MetronDialogComponent } from './shared/metron-dialog/metron-dialog.component';
+
 
 
 import {PcapModule} from './pcap/pcap.module';
@@ -57,7 +60,8 @@ export function initConfig(config: ColumnNamesService) {
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    MetronDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -88,7 +92,9 @@ export function initConfig(config: ColumnNamesService) {
               ColumnNamesService,
               UpdateService,
               MetaAlertService,
-              GlobalConfigService],
+              GlobalConfigService,
+              DialogService,
+            ],
   bootstrap: [AppComponent]
 })
 

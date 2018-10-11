@@ -1,0 +1,23 @@
+<div>
+  <div *ngIf="showModal" class="metron-dialog modal show" [class.block]="showModal" data-backdrop="static">
+    <div class="modal-dialog modal-sm" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="modal-title"><b> {{ dialogType }}</b></span>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true" (click)="cancel()">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>{{ message }}</p>
+        </div>
+        <div class="modal-footer">
+          <button *ngIf="dialogType === 'Error'" type="button" class="btn btn-all_ports" (click)="cancel()">OK</button>
+          <button *ngIf="dialogType !== 'Error'" type="button" class="btn btn-all_ports" (click)="confirm()">OK</button>
+          <button *ngIf="dialogType !== 'Error'"type="button" class="btn btn-mine_shaft_2" data-dismiss="modal" (click)="cancel()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show" *ngIf="showModal"></div>
+</div>
