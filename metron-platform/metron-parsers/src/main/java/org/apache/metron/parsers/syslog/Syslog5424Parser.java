@@ -74,6 +74,11 @@ public class Syslog5424Parser extends BasicParser {
     if (!resultOptional.isPresent()) {
       return Collections.EMPTY_LIST;
     }
+
+    if (resultOptional.get().getMasterThrowable() != null && resultOptional.get().getMasterThrowable().isPresent()) {
+      throw (IllegalStateException)resultOptional.get().getMasterThrowable().get();
+    }
+
     Map<Object,Throwable> errors = resultOptional.get().getMessageThrowables();
     if (!errors.isEmpty()) {
       throw new IllegalStateException(errors.entrySet().iterator().next().getValue());

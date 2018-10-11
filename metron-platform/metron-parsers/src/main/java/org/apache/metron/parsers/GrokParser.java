@@ -148,9 +148,14 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     if (!resultOptional.isPresent()) {
       return Collections.EMPTY_LIST;
     }
+
+    if (resultOptional.get().getMasterThrowable() != null && resultOptional.get().getMasterThrowable().isPresent()) {
+      throw (IllegalStateException)resultOptional.get().getMasterThrowable().get();
+    }
+
     Map<Object,Throwable> errors = resultOptional.get().getMessageThrowables();
     if (!errors.isEmpty()) {
-      throw new RuntimeException(errors.entrySet().iterator().next().getValue());
+      throw new IllegalStateException(errors.entrySet().iterator().next().getValue());
     }
 
     return resultOptional.get().getMessages();
