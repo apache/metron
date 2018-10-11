@@ -4,7 +4,6 @@ import { BehaviorSubject } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-
 export class DialogParams {
   show = false;
   message = '';
@@ -33,9 +32,9 @@ export class DialogService {
   confirm(message: string, dialogType = DialogType.Confirmation) {
     this.confirmed.next(ConfirmationType.Initial);
     this.message.next({
-      'message': message,
-      'show': true,
-      'dialogType': dialogType,
+      message: message,
+      show: true,
+      dialogType: dialogType
     });
     return this.confirmed$;
   }
@@ -47,5 +46,4 @@ export class DialogService {
   cancel() {
     this.confirmed.next(ConfirmationType.Rejected);
   }
-
 }
