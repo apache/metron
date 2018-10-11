@@ -368,7 +368,6 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     if (count > MAX_ALERTS_IN_META_ALERTS) {
       let errorMessage = 'Meta Alert cannot have more than ' + MAX_ALERTS_IN_META_ALERTS +' alerts within it';
       this.dialogService.confirm(errorMessage, DialogType.Error);
-      // this.metronDialogBox.showConfirmationMessage(errorMessage, DialogType.Error).subscribe((response) => {});
       return false;
     }
     return true;
@@ -431,11 +430,6 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     if (this.canCreateMetaAlert(group.total)) {
       let confirmationMsg = 'Do you wish to create a meta alert with ' +
                             (group.total === 1 ? ' alert' : group.total + ' selected alerts') + '?';
-      // this.metronDialogBox.showConfirmationMessage(confirmationMsg).subscribe((response) => {
-      //   if (response) {
-      //     this.doCreateMetaAlert(group, index);
-      //   }
-      // });
       let confirmedSubscription = this.dialogService.confirm(confirmationMsg).subscribe(r => {
         if (r === 'Confirmed') {
           this.doCreateMetaAlert(group, index);
