@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+
+import org.apache.metron.common.Constants;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -73,6 +75,8 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.metron.common.Constants.GUID;
 
 public class ElasticsearchSearchDao implements SearchDao {
 
@@ -284,19 +288,29 @@ public class ElasticsearchSearchDao implements SearchDao {
         .toArray(value -> new String[indices.size()]);
   }
 
-  private SearchResult getSearchResult(SearchHit searchHit, List<String> fields) {
-    SearchResult searchResult = new SearchResult();
-    searchResult.setId(searchHit.getId());
+  /**
+   * Transforms a {@link SearchHit} to a {@link SearchResult}.
+   *
+   * @param searchHit The result of a search request.
+   * @param fieldsToKeep The source fields to keep.  All others are excluded.  If null, all source fields are kept.
+   * @return A search result.
+   */
+  private SearchResult getSearchResult(SearchHit searchHit, List<String> fieldsToKeep) {
+
     Map<String, Object> source;
-    if (fields != null) {
-      Map<String, Object> resultSourceAsMap = searchHit.getSourceAsMap();
+    if (fieldsToKeep != null) {
       source = new HashMap<>();
-      fields.forEach(field -> {
-        source.put(field, resultSourceAsMap.get(field));
+      // must always keep the GUID
+      fieldsToKeep.add(Constants.GUID);
+      fieldsToKeep.forEach(field -> {
+        source.put(field, searchHit.getSourceAsMap().get(field));
       });
     } else {
       source = searchHit.getSource();
     }
+
+    SearchResult searchResult = new SearchResult();
+    searchResult.setId(ElasticsearchUtils.getGUID(searchHit));
     searchResult.setSource(source);
     searchResult.setScore(searchHit.getScore());
     searchResult.setIndex(searchHit.getIndex());
