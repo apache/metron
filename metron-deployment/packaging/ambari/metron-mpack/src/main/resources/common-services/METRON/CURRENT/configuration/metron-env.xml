@@ -122,6 +122,15 @@
         </value-attributes>
     </property>
     <property>
+        <name>es_document_id</name>
+        <description>Message field containing the Elasticsearch document ID</description>
+        <value></value>
+        <display-name>Elasticsearch Document ID Source Field</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
         <name>solr_zookeeper_url</name>
         <value>{{zookeeper_quorum}}</value>
         <description>Comma delimited list of Zookeeper Urls: zkhost1:2181,zkhost1:2181</description>

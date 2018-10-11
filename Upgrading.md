@@ -16,8 +16,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 # Upgrading
+
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
+
+## 0.6.0 to 0.6.1
+
+### [METRON-1801 Allow Customization of Elasticsearch Document ID](https://issues.apache.org/jira/browse/METRON-1801)
+
+A global property named `es.document.id` was added to define the field from which the document ID is set when a message is indexed by Elasticsearch. To allow Elasticsearch to define its own document id, this property should be set to a blank or empty string. The client will not set the document ID and Elasticsearch will define its own. In most cases allowing Elasticsearch to define the document ID is the most performant option. This is now the default behavior.
+
+Metron versions 0.6.0 and earlier defined the document ID using the Metron GUID, which is a randomized UUID using Java's `UUID.randomUUID()`. Using a randomized UUID can negatively impact Elasticsearch indexing performance. To maintain backwards compatibility with legacy versions of Metron use the following global property setting.
+
+    ```
+    es.document.id = guid
+    ```
 
 ## 0.4.2 to 0.5.0
 
@@ -89,7 +102,7 @@ For a more detailed description, please see metron-platform/metron-elasticsearch
 
 ### Description
 
-In the 0.4.2 release, 
+In the 0.4.2 release,
 
 ## 0.3.1 to 0.4.0
 
@@ -107,7 +120,7 @@ This effectively limits the build environment to Docker supported [platforms](ht
 #### Description
 
 As of 0.3.0 the indexing configuration
-* Is held in the enrichment configuration for a sensor 
+* Is held in the enrichment configuration for a sensor
 * Has properties which control every writers (i.e. HDFS, solr or elasticsearch).
 
 In the 0.3.1 release, this configuration has been broken out
@@ -136,7 +149,7 @@ You would create a file to configure each writer for sensor `foo` called `$METRO
     "batchSize" : 100,
     "enabled" : true
   },
-  "hdfs" : { 
+  "hdfs" : {
     "index" : "foo",
     "batchSize" : 100,
     "enabled" : true
@@ -151,7 +164,7 @@ You would create a file to configure each writer for sensor `foo` called `$METRO
 As of 0.3.0, threat triage rules were defined as a simple Map associating a Stellar expression with a score.
 As of 0.3.1, due to the fact that there may be many threat triage rules, we have made the rules more complex.
 To help organize these, we have made the threat triage objects in their own right that contain optional name and optional comment fields.
-   
+
 This essentially makes the risk level rules slightly more complex.  The format goes from:
 ```
 "riskLevelRules" : {
@@ -169,7 +182,7 @@ to:
      }
 ]
 ```
-   
+
 #### Migration
 
 For every sensor enrichment configuration, you will need to migrate the `riskLevelRules` section
