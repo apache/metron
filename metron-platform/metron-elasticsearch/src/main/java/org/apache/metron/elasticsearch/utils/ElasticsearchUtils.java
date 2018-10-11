@@ -17,27 +17,9 @@
  */
 package org.apache.metron.elasticsearch.utils;
 
-import static java.lang.String.format;
-import static org.apache.metron.common.Constants.GUID;
-
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.HDFSUtils;
@@ -55,9 +37,27 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
+import static org.apache.metron.common.Constants.GUID;
 
 public class ElasticsearchUtils {
 
@@ -67,6 +67,14 @@ public class ElasticsearchUtils {
   private static final String USERNAME_CONFIG_KEY = "es.xpack.username";
   private static final String TRANSPORT_CLIENT_USER_KEY = "xpack.security.user";
 
+  /**
+   * Defines which message field, the document identifier is set to.
+   *
+   * <p>If defined, the value of the specified message field is set as the Elasticsearch doc ID. If
+   * this field is undefined or blank, then the document identifier is not set.
+   */
+  public static final String DOC_ID_SOURCE_FIELD = "es.document.id";
+  public static final String DOC_ID_SOURCE_FIELD_DEFAULT = "";
 
   private static ThreadLocal<Map<String, SimpleDateFormat>> DATE_FORMAT_CACHE
           = ThreadLocal.withInitial(() -> new HashMap<>());

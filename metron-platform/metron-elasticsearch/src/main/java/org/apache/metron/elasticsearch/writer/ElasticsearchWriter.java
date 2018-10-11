@@ -45,7 +45,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.metron.elasticsearch.writer.ElasticsearchWriterConfig.DOC_ID_SOURCE_FIELD;
+import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.DOC_ID_SOURCE_FIELD;
+import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.DOC_ID_SOURCE_FIELD_DEFAULT;
 
 /**
  * A {@link BulkMessageWriter} that writes messages to Elasticsearch.
@@ -80,7 +81,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     final String indexPostfix = dateFormat.format(new Date());
     final String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
     final String docType = sensorType + "_doc";
-    final String docIdSourceField = DOC_ID_SOURCE_FIELD.get(configurations.getGlobalConfig(), String.class);
+    final String docIdSourceField = (String) configurations.getGlobalConfig().getOrDefault(DOC_ID_SOURCE_FIELD, DOC_ID_SOURCE_FIELD_DEFAULT);
 
     BulkRequestBuilder bulkRequest = client.prepareBulk();
     for(JSONObject message: messages) {
