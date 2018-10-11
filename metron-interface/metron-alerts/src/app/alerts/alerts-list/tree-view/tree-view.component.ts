@@ -203,7 +203,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     return this.searchService.search(searchRequest).subscribe(results => {
       this.setData(selectedGroup, results);
     }, error => {
-      this.metronDialogBox.showConfirmationMessage(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
+      this.dialogService.confirm(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
     });
   }
 
