@@ -242,6 +242,7 @@ client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_
 enrichment_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 profiler_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 indexing_topology_worker_childopts = client_jaas_arg if security_enabled else ''
+pcap_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 metron_jvm_flags += (' ' + client_jaas_arg) if security_enabled else ''
 topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
 # Needed for storm.config, because it needs Java String
@@ -388,18 +389,32 @@ bolt_hdfs_rotation_policy = config['configurations']['metron-indexing-env']['bol
 bolt_hdfs_rotation_policy_units = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_units']
 bolt_hdfs_rotation_policy_count = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_count']
 
-# Pcap
-metron_pcap_topology = 'pcap'
-pcap_input_topic = 'pcap'
-pcap_base_path = config['configurations']['metron-rest-env']['pcap_base_path']
-pcap_base_interim_result_path = config['configurations']['metron-rest-env']['pcap_base_interim_result_path']
-pcap_final_output_path = config['configurations']['metron-rest-env']['pcap_final_output_path']
-pcap_page_size = config['configurations']['metron-rest-env']['pcap_page_size']
-pcap_yarn_queue = config['configurations']['metron-rest-env']['pcap_yarn_queue']
-pcap_finalizer_threadpool_size= config['configurations']['metron-rest-env']['pcap_finalizer_threadpool_size']
+# PCAP
+metron_pcap_topology = status_params.metron_pcap_topology
+pcap_input_topic = status_params.pcap_input_topic
+pcap_base_path = config['configurations']['metron-pcap-env']['pcap_base_path']
+pcap_base_interim_result_path = config['configurations']['metron-pcap-env']['pcap_base_interim_result_path']
+pcap_final_output_path = config['configurations']['metron-pcap-env']['pcap_final_output_path']
+pcap_page_size = config['configurations']['metron-pcap-env']['pcap_page_size']
+pcap_yarn_queue = config['configurations']['metron-pcap-env']['pcap_yarn_queue']
+pcap_finalizer_threadpool_size= config['configurations']['metron-pcap-env']['pcap_finalizer_threadpool_size']
 pcap_configured_flag_file = status_params.pcap_configured_flag_file
 pcap_perm_configured_flag_file = status_params.pcap_perm_configured_flag_file
 pcap_acl_configured_flag_file = status_params.pcap_acl_configured_flag_file
+pcap_topology_workers = config['configurations']['metron-pcap-env']['pcap_topology_workers']
+if not len(pcap_topology_worker_childopts) == 0:
+    pcap_topology_worker_childopts += ' '
+pcap_topology_worker_childopts += config['configurations']['metron-pcap-env']['pcap_topology_worker_childopts']
+spout_kafka_topic_pcap = config['configurations']['metron-pcap-env']['spout_kafka_topic_pcap']
+hdfs_sync_every = config['configurations']['metron-pcap-env']['hdfs_sync_every']
+hdfs_replication_factor = config['configurations']['metron-pcap-env']['hdfs_replication_factor']
+kafka_pcap_start = config['configurations']['metron-pcap-env']['kafka_pcap_start']
+kafka_pcap_numpackets = config['configurations']['metron-pcap-env']['kafka_pcap_numpackets']
+kafka_pcap_maxtimems = config['configurations']['metron-pcap-env']['kafka_pcap_maxtimems']
+kafka_pcap_tsscheme = config['configurations']['metron-pcap-env']['kafka_pcap_tsscheme']
+kafka_pcap_out = config['configurations']['metron-pcap-env']['kafka_pcap_out']
+kafka_pcap_ts_granularity = config['configurations']['metron-pcap-env']['kafka_pcap_ts_granularity']
+kafka_spout_parallelism = config['configurations']['metron-pcap-env']['kafka_spout_parallelism']
 
 
 # MapReduce

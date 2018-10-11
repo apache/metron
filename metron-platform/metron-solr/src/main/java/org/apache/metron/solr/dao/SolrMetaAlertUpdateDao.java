@@ -28,11 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertUpdateDao;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
@@ -71,7 +69,7 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
   }
 
   @Override
-  public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
+  public Document createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException {
     List<GetRequest> alertRequests = request.getAlerts();
     if (request.getAlerts().isEmpty()) {
@@ -120,11 +118,8 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
       // Kick off any updates.
       update(updates);
 
-      MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
-      createResponse.setCreated(true);
-      createResponse.setGuid(metaAlert.getGuid());
       solrClient.commit(METAALERTS_COLLECTION);
-      return createResponse;
+      return metaAlert;
     } catch (IOException | SolrServerException e) {
       throw new InvalidCreateException("Unable to create meta alert", e);
     }
@@ -135,10 +130,11 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
    * Updates a document in Solr for a given collection.  Collection is not optional for Solr.
    * @param update The update to be run
    * @param collection The index to be updated. Mandatory for Solr
+   * @return The updated document.
    * @throws IOException Thrown when an error occurs during the write.
    */
   @Override
-  public void update(Document update, Optional<String> collection) throws IOException {
+  public Document update(Document update, Optional<String> collection) throws IOException {
     if (MetaAlertConstants.METAALERT_TYPE.equals(update.getSensorType())) {
       // We've been passed an update to the meta alert.
       throw new UnsupportedOperationException("Meta alerts cannot be directly updated");
@@ -181,28 +177,30 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
     } catch (SolrServerException e) {
       throw new IOException("Unable to update document", e);
     }
+
+    return update;
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
-    getUpdateDao().addCommentToAlert(request);
+  public Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    return getUpdateDao().addCommentToAlert(request);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
-    getUpdateDao().removeCommentFromAlert(request);
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    return getUpdateDao().removeCommentFromAlert(request);
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest)
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
-    getUpdateDao().addCommentToAlert(request, latest);
+    return getUpdateDao().addCommentToAlert(request, latest);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
-    getUpdateDao().removeCommentFromAlert(request, latest);
+    return getUpdateDao().removeCommentFromAlert(request, latest);
   }
 
   protected boolean replaceAlertInMetaAlert(Document metaAlert, Document alert) {
@@ -215,9 +213,8 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
   }
 
   @Override
-  public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
-      throws IOException {
-    boolean success;
+  public Document addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
+      throws IOException, IllegalStateException {
     Document metaAlert = getRetrieveLatestDao()
         .getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
     if (MetaAlertStatus.ACTIVE.getStatusString()
@@ -225,7 +222,6 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
       Iterable<Document> alerts = getRetrieveLatestDao().getAllLatest(alertRequests);
       Map<Document, Optional<String>> updates = buildAddAlertToMetaAlertUpdates(metaAlert, alerts);
       update(updates);
-      success = updates.size() != 0;
     } else {
       throw new IllegalStateException("Adding alerts to an INACTIVE meta alert is not allowed");
     }
@@ -234,6 +230,6 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
     } catch (SolrServerException e) {
       throw new IOException("Unable to commit alerts to metaalert: " + metaAlertGuid, e);
     }
-    return success;
+    return metaAlert;
   }
 }

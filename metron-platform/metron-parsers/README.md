@@ -29,10 +29,12 @@ There are two general types types of parsers:
   * Grok parser: `org.apache.metron.parsers.GrokParser` with possible `parserConfig` entries of 
     * `grokPath` : The path in HDFS (or in the Jar) to the grok statement
     * `patternLabel` : The pattern label to use from the grok statement
+    * `multiLine` : The raw data passed in should be handled as a long with multiple lines, with each line to be parsed separately. This setting's valid values are 'true' or 'false'.  The default if unset is 'false'. When set the parser will handle multiple lines with successfully processed lines emitted normally, and lines with errors sent to the error topic.
     * `timestampField` : The field to use for timestamp
     * `timeFields` : A list of fields to be treated as time
     * `dateFormat` : The date format to use to parse the time fields
     * `timezone` : The timezone to use. `UTC` is default.
+    * The Grok parser supports either 1 line to parse per incoming message, or incoming messages with multiple log lines, and will produce a json message per line
   * CSV Parser: `org.apache.metron.parsers.csv.CSVParser` with possible `parserConfig` entries of
     * `timestampFormat` : The date format of the timestamp to use.  If unspecified, the parser assumes the timestamp is ms since unix epoch.
     * `columns` : A map of column names you wish to extract from the CSV to their offsets (e.g. `{ 'name' : 1, 'profession' : 3}`  would be a column map for extracting the 2nd and 4th columns from a CSV)
@@ -513,9 +515,13 @@ Java parser adapters are intended for higher-velocity topologies and are not eas
 * org.apache.metron.parsers.syslog.Syslog5424Parser : Parse Syslog RFC 5424 messages
 
 ### Grok Parser Adapters
-Grok parser adapters are designed primarly for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recombiled in order to make changes to them.  An example of a Grok perser is:
+Grok parser adapters are designed primarily for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recompiled in order to make changes to them.  Example of a Grok parsers are:
 
-* org.apache.metron.parsers.GrokParser
+* org.apache.metron.parsers.GrokParser and org.apache.metron.parsers.websphere.GrokWebSphereParser
+
+Parsers that derive from GrokParser typically allow the GrokParser to parse the messages, and then override the methods for postParse to do further parsing.
+When this is the case, and the Parser has not overridden `parse(byte[])` or `parseResultOptional(byte[])` these parsers will gain support for treating byte[] input as multiple lines, with each line parsed as a separate message ( and returned as such).
+This is enabled by using the `"multiline":"true"` Parser configuration option.
 
 For more information on the Grok project please refer to the following link:
 

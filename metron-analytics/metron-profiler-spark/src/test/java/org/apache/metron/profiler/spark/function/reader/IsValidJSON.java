@@ -7,34 +7,32 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
+package org.apache.metron.profiler.spark.function.reader;
 
-package org.apache.metron.indexing.dao.metaalert;
+import org.apache.spark.api.java.function.FilterFunction;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-public class MetaAlertCreateResponse {
-  private boolean created;
-  private String guid;
+/**
+ * A filter function that filters out invalid JSON records.
+ */
+public class IsValidJSON implements FilterFunction<String> {
 
-  public boolean isCreated() {
-    return created;
-  }
+  @Override
+  public boolean call(String text) throws Exception {
+    JSONParser parser = new JSONParser();
+    JSONObject json = (JSONObject) parser.parse(text);
 
-  public void setCreated(boolean created) {
-    this.created = created;
-  }
-
-  public String getGuid() {
-    return guid;
-  }
-
-  public void setGuid(String guid) {
-    this.guid = guid;
+    // all of the test data has at least 32 fields in each JSON record
+    return json.keySet().size() >= 32;
   }
 }

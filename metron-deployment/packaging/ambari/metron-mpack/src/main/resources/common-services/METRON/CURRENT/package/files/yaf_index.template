@@ -123,6 +123,9 @@
         "source:type": {
           "type": "keyword"
         },
+        "alert_status": {
+          "type": "keyword"
+        },
         "ip_dst_addr": {
           "type": "ip"
         },

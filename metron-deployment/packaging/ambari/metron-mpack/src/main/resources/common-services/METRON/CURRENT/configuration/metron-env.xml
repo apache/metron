@@ -139,17 +139,21 @@
             <empty-value-valid>true</empty-value-valid>
         </value-attributes>
     </property>
-    <property require-input = "true">
+    <property>
         <name>storm_rest_addr</name>
         <display-name>Storm Rest Server Address</display-name>
         <description>URL of Storm UI (http://storm.ui.hostname:8744). If no protocol is provided, http is assumed.</description>
-        <value></value>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
-    <property require-input = "true">
+    <property >
         <name>zeppelin_server_url</name>
         <display-name>Zeppelin Server Address</display-name>
         <description>URL of Zeppelin (zeppelin.server.addr:zeppelin.server.port)</description>
-        <value></value>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
     <property>
         <name>metron_principal_name</name>

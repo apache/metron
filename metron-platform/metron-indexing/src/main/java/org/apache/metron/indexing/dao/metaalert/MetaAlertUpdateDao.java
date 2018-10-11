@@ -59,31 +59,31 @@ public interface MetaAlertUpdateDao extends UpdateDao {
    * retrieved using the DAO abstractions.
    *
    * @param request A request object containing get requests for alerts to be added and a list of groups
-   * @return A response indicating success or failure along with the GUID of the new meta alert
+   * @return The complete document of the created metaalert.
    * @throws InvalidCreateException If a malformed create request is provided
    * @throws IOException If a problem occurs during communication
    */
-  MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
+  Document createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException;
 
   /**
    * Adds alerts to a metaalert, based on a list of GetRequests provided for retrieval.
    * @param metaAlertGuid The GUID of the metaalert to be given new children.
    * @param alertRequests GetRequests for the appropriate alerts to add.
-   * @return True if metaalert is modified, false otherwise.
+   * @return The complete metaalert document with the alerts added.
    */
-  boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
-      throws IOException;
+  Document addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
+      throws IOException, IllegalStateException;
 
   /**
    * Removes alerts from a metaalert
    * @param metaAlertGuid The metaalert guid to be affected.
    * @param alertRequests A list of GetReqests that will provide the alerts to remove
-   * @return True if there are updates, false otherwise
+   * @return The complete metaalert document with the alerts removed.
    * @throws IOException If an error is thrown during retrieal.
    */
-  boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
-      throws IOException;
+  Document removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
+      throws IOException, IllegalStateException;
 
   /**
    * Removes a metaalert link from a given alert. An nonexistent link performs no change.
@@ -115,10 +115,10 @@ public interface MetaAlertUpdateDao extends UpdateDao {
    *
    * @param metaAlertGuid The GUID of the meta alert
    * @param status A status value of 'active' or 'inactive'
-   * @return True or false depending on if the status was changed
+   * @return The complete metaalert document with the updated status.
    * @throws IOException if an error occurs during the update.
    */
-  boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
+  Document updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
       throws IOException;
 
   /**

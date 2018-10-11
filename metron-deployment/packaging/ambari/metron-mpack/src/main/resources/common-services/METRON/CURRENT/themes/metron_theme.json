@@ -420,6 +420,34 @@
                 }
               ]
             }
+          },
+          {
+            "name": "metron-pcap",
+            "display-name": "PCAP",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-pcap",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-pcap",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
           }
         ]
       }
@@ -824,24 +852,72 @@
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-rest-env/pcap_page_size",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/pcap_yarn_queue",
-          "subsection-name": "subsection-rest"
-        },
-        {
-          "config": "metron-rest-env/pcap_finalizer_threadpool_size",
-          "subsection-name": "subsection-rest"
-        },
-        {
           "config": "metron-management-ui-env/metron_management_ui_port",
           "subsection-name": "subsection-management-ui"
         },
         {
           "config": "metron-alerts-ui-env/metron_alerts_ui_port",
           "subsection-name": "subsection-alerts-ui"
+        },
+        {
+          "config": "metron-pcap-env/pcap_topology_workers",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/pcap_topology_worker_childopts",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/spout_kafka_topic_pcap",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/hdfs_sync_every",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/hdfs_replication_factor",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/kafka_pcap_start",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/kafka_pcap_numpackets",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/kafka_pcap_maxtimems",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/kafka_pcap_tsscheme",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/kafka_pcap_out",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/kafka_pcap_ts_granularity",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/kafka_spout_parallelism",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+        "config": "metron-pcap-env/pcap_page_size",
+        "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/pcap_yarn_queue",
+          "subsection-name": "subsection-pcap"
+        },
+        {
+          "config": "metron-pcap-env/pcap_finalizer_threadpool_size",
+          "subsection-name": "subsection-pcap"
         }
       ]
     },
@@ -1443,19 +1519,19 @@
         }
       },
       {
-        "config": "metron-rest-env/pcap_page_size",
+        "config": "metron-pcap-env/pcap_page_size",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-rest-env/pcap_yarn_queue",
+        "config": "metron-pcap-env/pcap_yarn_queue",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-rest-env/pcap_finalizer_threadpool_size",
+        "config": "metron-pcap-env/pcap_finalizer_threadpool_size",
         "widget": {
           "type": "text-field"
         }
@@ -1468,6 +1544,78 @@
       },
       {
         "config": "metron-alerts-ui-env/metron_alerts_ui_port",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-pcap-env/pcap_topology_workers",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-pcap-env/pcap_topology_worker_childopts",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-pcap-env/spout_kafka_topic_pcap",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-pcap-env/hdfs_sync_every",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-pcap-env/hdfs_replication_factor",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-pcap-env/kafka_pcap_start",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-pcap-env/kafka_pcap_numpackets",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-pcap-env/kafka_pcap_maxtimems",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-pcap-env/kafka_pcap_tsscheme",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-pcap-env/kafka_pcap_out",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-pcap-env/kafka_pcap_ts_granularity",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-pcap-env/kafka_spout_parallelism",
         "widget": {
           "type": "text-field"
         }

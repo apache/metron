@@ -181,7 +181,7 @@ fi
 
 if [ -n "$BRO" ]; then
 
-  METRON_KAFKA_BRO_ASSEMBLY="$METRON_RC_DIST/apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz"
+  METRON_KAFKA_BRO_ASSEMBLY="$METRON_RC_DIST/apache-metron-bro-plugin-kafka_$BRO_VERSION-$RC.tar.gz"
   METRON_KAFKA_BRO_ASSEMBLY_ASC="$METRON_KAFKA_BRO_ASSEMBLY.asc"
 
   echo "Downloading $METRON_KAFKA_BRO_ASSEMBLY"
@@ -214,12 +214,12 @@ fi
 if [ -n "$BRO" ]; then
 
   echo "Verifying Bro Kafka Plugin Assembly"
-  if ! gpg --verify ./"apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz.asc" "apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz" ; then
+  if ! gpg --verify ./"apache-metron-bro-plugin-kafka_$BRO_VERSION-$RC.tar.gz.asc" "apache-metron-bro-plugin-kafka_$BRO_VERSION-$RC.tar.gz" ; then
     echo "[ERROR] failed to verify Bro Kafka Plugin Assembly"
     exit 1
   fi
 
-  if ! tar -xzf "apache-metron-bro-plugin-kafka_$BRO_VERSION.tar.gz" ; then
+  if ! tar -xzf "apache-metron-bro-plugin-kafka_$BRO_VERSION-$RC.tar.gz" ; then
     echo "[ERROR] failed to unpack  Bro Kafka Plugin Assembly"
     exit 1
   fi
