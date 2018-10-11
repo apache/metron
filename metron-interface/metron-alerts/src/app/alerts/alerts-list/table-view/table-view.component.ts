@@ -34,6 +34,7 @@ import {MetaAlertService} from '../../../service/meta-alert.service';
 import {MetaAlertAddRemoveRequest} from '../../../model/meta-alert-add-remove-request';
 import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
+import { DialogService } from '../../../service/dialog.service';
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -57,6 +58,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   globalConfig: {} = {};
   globalConfigService: GlobalConfigService;
   configSubscription: Subscription;
+  dialogService: DialogService;
 
   @Input() alerts: Alert[] = [];
   @Input() queryBuilder: QueryBuilder;
@@ -75,12 +77,14 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
               metronDialogBox: MetronDialogBox,
               updateService: UpdateService,
               metaAlertService: MetaAlertService,
-              globalConfigService: GlobalConfigService) {
+              globalConfigService: GlobalConfigService,
+              dialogService: DialogService) {
     this.searchService = searchService;
     this.metronDialogBox = metronDialogBox;
     this.updateService = updateService;
     this.metaAlertService = metaAlertService;
     this.globalConfigService = globalConfigService;
+    this.dialogService = dialogService;
   }
 
   ngOnInit() {

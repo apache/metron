@@ -37,12 +37,19 @@ import {UpdateService} from '../../../service/update.service';
 import {PatchRequest} from '../../../model/patch-request';
 import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
+import { DialogService, ConfirmationType } from '../../../service/dialog.service';
 
 @Component({
   selector: 'app-tree-view',
   templateUrl: './tree-view.component.html',
   styleUrls: ['./tree-view.component.scss']
 })
+
+// export enum ConfirmationType {
+//   Initial,
+//   Confirmed,
+//   Rejected
+// }
 
 export class TreeViewComponent extends TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
@@ -53,13 +60,15 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   treeGroupSubscriptionMap: {[key: string]: TreeAlertsSubscription } = {};
   alertsChangedSubscription: Subscription;
   configSubscription: Subscription;
+  dialogService: DialogService
 
   constructor(searchService: SearchService,
               metronDialogBox: MetronDialogBox,
               updateService: UpdateService,
               metaAlertService: MetaAlertService,
-              globalConfigService: GlobalConfigService) {
-    super(searchService, metronDialogBox, updateService, metaAlertService, globalConfigService);
+              globalConfigService: GlobalConfigService,
+              dialogService: DialogService) {
+    super(searchService, metronDialogBox, updateService, metaAlertService, globalConfigService, dialogService);
   }
 
   addAlertChangedListner() {
@@ -358,7 +367,8 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   canCreateMetaAlert(count: number) {
     if (count > MAX_ALERTS_IN_META_ALERTS) {
       let errorMessage = 'Meta Alert cannot have more than ' + MAX_ALERTS_IN_META_ALERTS +' alerts within it';
-      this.metronDialogBox.showConfirmationMessage(errorMessage, DialogType.Error).subscribe((response) => {});
+      this.dialogService.confirm(errorMessage, DialogType.Error);
+      // this.metronDialogBox.showConfirmationMessage(errorMessage, DialogType.Error).subscribe((response) => {});
       return false;
     }
     return true;
@@ -421,9 +431,17 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     if (this.canCreateMetaAlert(group.total)) {
       let confirmationMsg = 'Do you wish to create a meta alert with ' +
                             (group.total === 1 ? ' alert' : group.total + ' selected alerts') + '?';
-      this.metronDialogBox.showConfirmationMessage(confirmationMsg).subscribe((response) => {
-        if (response) {
+      // this.metronDialogBox.showConfirmationMessage(confirmationMsg).subscribe((response) => {
+      //   if (response) {
+      //     this.doCreateMetaAlert(group, index);
+      //   }
+      // });
+      let confirmedSubscription = this.dialogService.confirm(confirmationMsg).subscribe(r => {
+        if (r === 'Confirmed') {
           this.doCreateMetaAlert(group, index);
+        }
+        if (r !== 'Initial') {
+          confirmedSubscription.unsubscribe();
         }
       });
     }
