@@ -73,6 +73,8 @@ public class SquidParserTest extends GrokParserTest {
 
   }
 
+  @Override
+  public String getMultiLine() { return "false"; }
 
   @Override
   public String getGrokPath() {

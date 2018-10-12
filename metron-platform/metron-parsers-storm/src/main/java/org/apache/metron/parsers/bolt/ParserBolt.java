@@ -21,7 +21,6 @@ import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -38,8 +37,8 @@ import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.parsers.ParserResult;
 import org.apache.metron.parsers.ParserRunner;
+import org.apache.metron.parsers.ParserRunnerResults;
 import org.apache.metron.stellar.common.CachingStellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -53,6 +52,7 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.utils.TupleUtils;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private OutputCollector collector;
-  private ParserRunner parserRunner;
+  private ParserRunner<JSONObject> parserRunner;
   private Map<String, WriterHandler> sensorToWriterMap;
   private Map<String, String> topicToSensorMap = new HashMap<>();
 
@@ -249,21 +249,12 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
               , sensorParserConfig.getReadMetadata()
               , sensorParserConfig.getRawMessageStrategyConfig()
       );
-      List<ParserResult> parserResults = parserRunner.execute(sensorType, rawMessage, parserConfigurations);
-      int numWritten = 0;
-      for(ParserResult parserResult: parserResults) {
-        if (!parserResult.isError()) {
-          numWritten++;
-          WriterHandler writer = sensorToWriterMap.get(parserResult.getSensorType());
-          try {
-            writer.write(parserResult.getSensorType(), tuple, parserResult.getMessage(), getConfigurations(), messageGetStrategy);
-          } catch (Exception ex) {
-            handleError(parserResult.getSensorType(), parserResult.getOriginalMessage(), tuple, ex, collector);
-          }
-        } else {
-          ErrorUtils.handleError(collector, parserResult.getError());
-        }
-      }
+      ParserRunnerResults<JSONObject> parserRunnerResults = parserRunner.execute(sensorType, rawMessage, parserConfigurations);
+      long numWritten = parserRunnerResults.getMessages().stream()
+              .map(message -> handleMessage(sensorType, originalMessage, tuple, message, collector))
+              .filter(result -> result)
+              .count();
+      parserRunnerResults.getErrors().forEach(error -> ErrorUtils.handleError(collector, error));
 
       //if we are supposed to ack the tuple OR if we've never passed this tuple to the bulk writer
       //(meaning that none of the messages are valid either globally or locally)
@@ -271,6 +262,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       if (!sensorToWriterMap.get(sensorType).handleAck() || numWritten == 0) {
         collector.ack(tuple);
       }
+
     } catch (Throwable ex) {
       handleError(sensorType, originalMessage, tuple, ex, collector);
       collector.ack(tuple);
@@ -311,6 +303,17 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
               "This should have been caught in the writerHandler.  If you see this, file a JIRA", e);
     } finally {
       collector.ack(tuple);
+    }
+  }
+
+  protected boolean handleMessage(String sensorType, byte[] originalMessage, Tuple tuple, JSONObject message, OutputCollector collector) {
+    WriterHandler writer = sensorToWriterMap.get(sensorType);
+    try {
+      writer.write(sensorType, tuple, message, getConfigurations(), messageGetStrategy);
+      return true;
+    } catch (Exception ex) {
+      handleError(sensorType, originalMessage, tuple, ex, collector);
+      return false;
     }
   }
 

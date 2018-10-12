@@ -17,21 +17,6 @@
  */
 package org.apache.metron.parsers;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.FieldTransformer;
-import org.apache.metron.common.configuration.FieldValidator;
-import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.error.MetronError;
-import org.apache.metron.common.message.metadata.RawMessage;
-import org.apache.metron.common.utils.ReflectionUtils;
-import org.apache.metron.parsers.filters.Filters;
-import org.apache.metron.parsers.interfaces.MessageFilter;
-import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.metron.stellar.dsl.Context;
-import org.json.simple.JSONObject;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,10 +30,54 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.FieldTransformer;
+import org.apache.metron.common.configuration.FieldValidator;
+import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.message.metadata.RawMessage;
+import org.apache.metron.common.utils.ReflectionUtils;
+import org.apache.metron.parsers.filters.Filters;
+import org.apache.metron.parsers.interfaces.MessageFilter;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
+import org.apache.metron.stellar.dsl.Context;
+import org.json.simple.JSONObject;
 
-public class ParserRunnerImpl implements ParserRunner, Serializable {
+/**
+ * The default implemention of a ParserRunner.
+ */
+public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable {
 
-  protected transient Consumer<ParserResult> onSuccess;
+  class ProcessResult {
+
+    private JSONObject message;
+    private MetronError error;
+
+    public ProcessResult(JSONObject message) {
+      this.message = message;
+    }
+
+    public ProcessResult(MetronError error) {
+      this.error = error;
+    }
+
+    public JSONObject getMessage() {
+      return message;
+    }
+
+    public MetronError getError() {
+      return error;
+    }
+
+    public boolean isError() {
+      return error != null;
+    }
+  }
+
+  protected transient Consumer<ParserRunnerResults> onSuccess;
   protected transient Consumer<MetronError> onError;
 
   private HashSet<String> sensorTypes;
@@ -90,24 +119,65 @@ public class ParserRunnerImpl implements ParserRunner, Serializable {
     initializeParsers(parserConfigSupplier);
   }
 
+  /**
+   * Parses messages with the appropriate MessageParser based on sensor type.  The resulting list of messages are then
+   * post-processed and added to the ParserRunnerResults message list.  Any errors that happen during post-processing are
+   * added to the ParserRunnerResults error list.  Any exceptions (including a master exception) thrown by the MessageParser
+   * are also added to the ParserRunnerResults error list.
+   *
+   * @param sensorType Sensor type of the message
+   * @param rawMessage Raw message including metadata
+   * @param parserConfigurations Parser configurations
+   * @return ParserRunnerResults containing a list of messages and a list of errors
+   */
   @Override
-  public List<ParserResult> execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations) {
-    List<ParserResult> parserResults;
+  public ParserRunnerResults<JSONObject> execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations) {
+    DefaultParserRunnerResults parserRunnerResults = new DefaultParserRunnerResults();
     SensorParserConfig sensorParserConfig = parserConfigurations.getSensorParserConfig(sensorType);
     if (sensorParserConfig != null) {
       MessageParser<JSONObject> parser = sensorToParserComponentMap.get(sensorType).getMessageParser();
-      List<JSONObject> messages = parser.parseOptional(rawMessage.getMessage()).orElse(Collections.emptyList());
-      parserResults = messages.stream()
-              .map(message -> processMessage(sensorType, message, rawMessage, parser, parserConfigurations))
-              .filter(Optional::isPresent)
-              .map(Optional::get).collect(Collectors.toList());
+      Optional<MessageParserResult<JSONObject>> optionalMessageParserResult = parser.parseOptionalResult(rawMessage.getMessage());
+      if (optionalMessageParserResult.isPresent()) {
+        MessageParserResult<JSONObject> messageParserResult = optionalMessageParserResult.get();
+
+        // Process each message returned from the MessageParser
+        messageParserResult.getMessages().forEach(message -> {
+                  Optional<ProcessResult> processResult = processMessage(sensorType, message, rawMessage, parser, parserConfigurations);
+                  if (processResult.isPresent()) {
+                    if (processResult.get().isError()) {
+                      parserRunnerResults.addError(processResult.get().getError());
+                    } else {
+                      parserRunnerResults.addMessage(processResult.get().getMessage());
+                    }
+                  }
+                });
+
+        // If a master exception is thrown by the MessageParser, wrap it with a MetronError and add it to the list of errors
+        messageParserResult.getMasterThrowable().ifPresent(throwable -> parserRunnerResults.addError(new MetronError()
+                .withErrorType(Constants.ErrorType.PARSER_ERROR)
+                .withThrowable(throwable)
+                .withSensorType(Collections.singleton(sensorType))
+                .addRawMessage(rawMessage.getMessage())));
+
+        // If exceptions are thrown by the MessageParser, wrap them with MetronErrors and add them to the list of errors
+        parserRunnerResults.addErrors(messageParserResult.getMessageThrowables().entrySet().stream().map(entry -> new MetronError()
+                .withErrorType(Constants.ErrorType.PARSER_ERROR)
+                .withThrowable(entry.getValue())
+                .withSensorType(Collections.singleton(sensorType))
+                .addRawMessage(entry.getKey())).collect(Collectors.toList()));
+      }
     } else {
       throw new IllegalStateException(String.format("Could not execute parser.  Cannot find configuration for sensor %s.",
               sensorType));
     }
-    return parserResults;
+    return parserRunnerResults;
   }
 
+  /**
+   * Initializes MessageParsers and MessageFilters for sensor types configured in this ParserRunner.  Objects are created
+   * using reflection and the MessageParser configure and init methods are called.
+   * @param parserConfigSupplier Parser configurations
+   */
   private void initializeParsers(Supplier<ParserConfigurations> parserConfigSupplier) {
     sensorToParserComponentMap = new HashMap<>();
     for(String sensorType: sensorTypes) {
@@ -136,11 +206,29 @@ public class ParserRunnerImpl implements ParserRunner, Serializable {
     }
   }
 
+  /**
+   * Post-processes parsed messages by:
+   * <ul>
+   *   <li>Applying field transformations defined in the sensor parser config</li>
+   *   <li>Filtering messages using the configured MessageFilter class</li>
+   *   <li>Validating messages using the MessageParser validate method</li>
+   * </ul>
+   * If a message is successfully processed a message is returned in a ProcessResult.  If a message fails
+   * validation, a MetronError object is created and returned in a ProcessResult.  If a message is
+   * filtered out an empty Optional is returned.
+   *
+   * @param sensorType Sensor type of the message
+   * @param message Message parsed by the MessageParser
+   * @param rawMessage Raw message including metadata
+   * @param parser MessageParser for the sensor type
+   * @param parserConfigurations Parser configurations
+   */
   @SuppressWarnings("unchecked")
-  protected Optional<ParserResult> processMessage(String sensorType, JSONObject message, RawMessage rawMessage,
+  protected Optional<ProcessResult> processMessage(String sensorType, JSONObject message, RawMessage rawMessage,
                                                   MessageParser<JSONObject> parser,
-                                                  ParserConfigurations parserConfigurations) {
-    Optional<ParserResult> parserResult = Optional.empty();
+                                                  ParserConfigurations parserConfigurations
+                                                  ) {
+    Optional<ProcessResult> processResult = Optional.empty();
     SensorParserConfig sensorParserConfig = parserConfigurations.getSensorParserConfig(sensorType);
     sensorParserConfig.getRawMessageStrategy().mergeMetadata(
             message,
@@ -149,7 +237,7 @@ public class ParserRunnerImpl implements ParserRunner, Serializable {
             sensorParserConfig.getRawMessageStrategyConfig()
     );
     message.put(Constants.SENSOR_TYPE, sensorType);
-    applyFieldTransformations(message, rawMessage.getMetadata(), sensorParserConfig);
+    applyFieldTransformations(message, rawMessage, sensorParserConfig);
     if (!message.containsKey(Constants.GUID)) {
       message.put(Constants.GUID, UUID.randomUUID().toString());
     }
@@ -172,15 +260,21 @@ public class ParserRunnerImpl implements ParserRunner, Serializable {
         if (errorFields != null && !errorFields.isEmpty()) {
           error.withErrorFields(errorFields);
         }
-        parserResult = Optional.of(new ParserResult(sensorType, error, rawMessage.getMessage()));
+        processResult = Optional.of(new ProcessResult(error));
       } else {
-        parserResult = Optional.of((new ParserResult(sensorType, message, rawMessage.getMessage())));
+        processResult = Optional.of(new ProcessResult(message));
       }
     }
-    return parserResult;
+    return processResult;
   }
 
-  private void applyFieldTransformations(JSONObject message, Map<String, Object> metadata, SensorParserConfig sensorParserConfig) {
+  /**
+   * Applies Stellar field transformations defined in the sensor parser config.
+   * @param message Message parsed by the MessageParser
+   * @param rawMessage Raw message including metadata
+   * @param sensorParserConfig Sensor parser config
+   */
+  private void applyFieldTransformations(JSONObject message, RawMessage rawMessage, SensorParserConfig sensorParserConfig) {
     for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
       if (handler != null) {
         if (!sensorParserConfig.getMergeMetadata()) {
@@ -189,7 +283,7 @@ public class ParserRunnerImpl implements ParserRunner, Serializable {
                   message,
                   stellarContext,
                   sensorParserConfig.getParserConfig(),
-                  metadata
+                  rawMessage.getMetadata()
           );
         } else {
           handler.transformAndUpdate(

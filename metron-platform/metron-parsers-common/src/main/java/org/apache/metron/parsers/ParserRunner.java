@@ -19,16 +19,42 @@ package org.apache.metron.parsers;
 
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.message.metadata.RawMessage;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.apache.metron.stellar.dsl.Context;
 
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public interface ParserRunner {
+/**
+ * A ParserRunner is responsible for initializing MessageParsers and parsing messages with the appropriate MessageParser.
+ * The information needed to initialize a MessageParser is supplied by the parser config supplier.  After the parsers
+ * are initialized, the execute method can then be called for each message and will return a ParserRunnerResults object
+ * that contains a list of parsed messages and/or a list of errors.
+ * @param <T> The type of a successfully parsed message.
+ */
+public interface ParserRunner<T> {
 
+  /**
+   * Return a list of all sensor types that can be parsed with this ParserRunner.
+   * @return Sensor types
+   */
   Set<String> getSensorTypes();
+
+  /**
+   *
+   * @param parserConfigSupplier Supplies parser configurations
+   * @param stellarContext Stellar context used to apply Stellar functions during field transformations
+   */
   void init(Supplier<ParserConfigurations> parserConfigSupplier, Context stellarContext);
-  List<ParserResult> execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations);
+
+  /**
+   * Parses a message and either returns the message or an error.
+   * @param sensorType Sensor type of the message
+   * @param rawMessage Raw message including metadata
+   * @param parserConfigurations Parser configurations
+   * @return ParserRunnerResults containing a list of messages and a list of errors
+   */
+  ParserRunnerResults<T> execute(String sensorType, RawMessage rawMessage, ParserConfigurations parserConfigurations);
 
 }
