@@ -50,24 +50,6 @@ public interface MessageParser<T> extends Configurable {
   }
 
   /**
-   * Take raw data and convert it to messages.  Each raw message may produce multiple messages and therefore
-   * multiple errors.  A {@link MessageParserResult} is returned, which will have both the messages produced
-   * and the errors.
-   * @param parseMessage the raw bytes of the message
-   * @return Optional of {@link MessageParserResult}
-   */
-  default Optional<MessageParserResult<T>> parseOptionalResult(byte[] parseMessage) {
-    List<T> list = new ArrayList<>();
-    try {
-      Optional<List<T>> optionalMessages = parseOptional(parseMessage);
-      optionalMessages.ifPresent(list::addAll);
-    } catch (Throwable t) {
-      return Optional.of(new DefaultMessageParserResult<>(t));
-    }
-    return Optional.of(new DefaultMessageParserResult<T>(list));
-  }
-
-  /**
    * Validate the message to ensure that it's correct.
    * @param message the message to validate
    * @return true if the message is valid, false if not

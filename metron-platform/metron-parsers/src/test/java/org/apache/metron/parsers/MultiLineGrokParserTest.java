@@ -61,7 +61,10 @@ public class MultiLineGrokParserTest {
     Map<String, String> testData = getTestData();
     for (Map.Entry<String, String> e : testData.entrySet()) {
       byte[] rawMessage = e.getKey().getBytes();
-      List<JSONObject> parsedList = grokParser.parse(rawMessage);
+      Optional<MessageParserResult<JSONObject>> resultOptional = grokParser.parseOptionalResult(rawMessage);
+      Assert.assertNotNull(resultOptional);
+      Assert.assertTrue(resultOptional.isPresent());
+      List<JSONObject> parsedList = resultOptional.get().getMessages();
       Assert.assertEquals(10, parsedList.size());
     }
   }

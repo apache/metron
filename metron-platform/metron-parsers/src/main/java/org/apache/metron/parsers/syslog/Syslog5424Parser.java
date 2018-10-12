@@ -27,12 +27,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.parsers.DefaultMessageParserResult;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
+import org.apache.metron.parsers.interfaces.MultilineMessageParser;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Serializable;
 import java.io.StringReader;
+import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -47,7 +52,8 @@ import java.util.Optional;
 /**
  * Parser for well structured RFC 5424 messages.
  */
-public class Syslog5424Parser extends BasicParser {
+public class Syslog5424Parser implements MultilineMessageParser<JSONObject>, Serializable {
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String NIL_POLICY_CONFIG = "nilPolicy";
   private transient SyslogParser syslogParser;
 
@@ -67,24 +73,19 @@ public class Syslog5424Parser extends BasicParser {
   public void init() {
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  public List<JSONObject> parse(byte[] rawMessage) {
-    Optional<MessageParserResult<JSONObject>> resultOptional = parseOptionalResult(rawMessage);
-    if (!resultOptional.isPresent()) {
-      return Collections.EMPTY_LIST;
+  public boolean validate(JSONObject message) {
+    JSONObject value = message;
+    if (!(value.containsKey("original_string"))) {
+      LOG.trace("[Metron] Message does not have original_string: {}", message);
+      return false;
+    } else if (!(value.containsKey("timestamp"))) {
+      LOG.trace("[Metron] Message does not have timestamp: {}", message);
+      return false;
+    } else {
+      LOG.trace("[Metron] Message conforms to schema: {}", message);
+      return true;
     }
-
-    if (resultOptional.get().getMasterThrowable() != null && resultOptional.get().getMasterThrowable().isPresent()) {
-      throw (IllegalStateException)resultOptional.get().getMasterThrowable().get();
-    }
-
-    Map<Object,Throwable> errors = resultOptional.get().getMessageThrowables();
-    if (!errors.isEmpty()) {
-      throw new IllegalStateException(errors.entrySet().iterator().next().getValue());
-    }
-
-    return resultOptional.get().getMessages();
   }
 
   @Override
