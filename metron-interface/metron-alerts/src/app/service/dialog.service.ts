@@ -4,6 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
+
 export class DialogParams {
   show = false;
   message = '';
@@ -23,9 +24,7 @@ export enum ConfirmationType {
 
 export class DialogService {
   message = new BehaviorSubject<DialogParams>(new DialogParams());
-  message$ = this.message.asObservable();
   confirmed = new BehaviorSubject<ConfirmationType>(ConfirmationType.Initial);
-  confirmed$ = this.confirmed.asObservable();
 
   constructor() {}
 
@@ -36,7 +35,7 @@ export class DialogService {
       show: true,
       dialogType: dialogType
     });
-    return this.confirmed$;
+    return this.confirmed;
   }
 
   approve() {
