@@ -15,6 +15,6 @@
 #  limitations under the License.
 #
 ---
-librdkafka_version: 0.9.4
-librdkafka_url: https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz
+librdkafka_version: 0.11.5
+librdkafka_url: https://github.com/edenhill/librdkafka/archive/v0.11.5.tar.gz
 librdkafka_home: /usr/local
