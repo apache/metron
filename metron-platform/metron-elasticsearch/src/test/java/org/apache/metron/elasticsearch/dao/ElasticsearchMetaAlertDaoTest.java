@@ -19,8 +19,6 @@
 package org.apache.metron.elasticsearch.dao;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -43,13 +41,6 @@ import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -88,11 +79,13 @@ public class ElasticsearchMetaAlertDaoTest {
       }
 
       @Override
-      public void update(Document update, Optional<String> index) {
+      public Document update(Document update, Optional<String> index) {
+        return update;
       }
 
       @Override
-      public void batchUpdate(Map<Document, Optional<String>> updates) {
+      public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) {
+        return updates;
       }
 
       @Override
@@ -101,19 +94,23 @@ public class ElasticsearchMetaAlertDaoTest {
       }
 
       @Override
-      public void addCommentToAlert(CommentAddRemoveRequest request) {
+      public Document addCommentToAlert(CommentAddRemoveRequest request) {
+        return null;
       }
 
       @Override
-      public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+      public Document removeCommentFromAlert(CommentAddRemoveRequest request) {
+        return null;
       }
 
       @Override
-      public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+      public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+        return null;
       }
 
       @Override
-      public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
+      public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
+        return null;
       }
     };
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();

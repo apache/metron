@@ -16,23 +16,20 @@
 #
 ---
 
-- include: iptables-centos.yml
-  static: no
+- include_tasks: iptables-centos.yml
   when: ansible_distribution == "CentOS"
 
-- include: iptables-ubuntu.yml
-  static: no
+- include_tasks: iptables-ubuntu.yml
   when: ansible_distribution == "Ubuntu"
 
 - include: hostname.yml
 
-- include: ambari-repo-centos.yml
-  static: no
+- include_tasks: ambari-repo-centos.yml
   when: ansible_distribution == "CentOS"
 
-- include: ambari-repo-ubuntu.yml
-  static: no
+- include_tasks: ambari-repo-ubuntu.yml
   when: ansible_distribution == "Ubuntu"
 
 - include: nodejs.yml
+
 - include: logrotate.yml

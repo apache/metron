@@ -92,4 +92,5 @@ public abstract class GrokParserTest {
   public abstract List<String> getTimeFields();
   public abstract String getDateFormat();
   public abstract String getTimestampField();
+  public abstract String getMultiLine();
 }

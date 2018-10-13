@@ -50,6 +50,13 @@ class Pcap(Script):
 
         commands = PcapCommands(params)
 
+        Logger.info("Running PCAP configure")
+        File(format("{metron_config_path}/pcap.properties"),
+            content=Template("pcap.properties.j2"),
+            owner=params.metron_user,
+            group=params.metron_group
+            )
+
         if not commands.is_configured():
             commands.init_kafka_topics()
             commands.init_hdfs_dir()

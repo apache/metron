@@ -57,7 +57,9 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
     KEY("key", record -> record.key()),
     VALUE("value", record -> record.value()),
     PARTITION("partition", record -> record.partition()),
-    TOPIC("topic", record -> record.topic())
+    OFFSET("offset", record -> record.offset()),
+    TOPIC("topic", record -> record.topic()),
+    TIMESTAMP("timestamp", record -> record.timestamp())
     ;
     String fieldName;
     Function<ConsumerRecord,Object> recordExtractor;

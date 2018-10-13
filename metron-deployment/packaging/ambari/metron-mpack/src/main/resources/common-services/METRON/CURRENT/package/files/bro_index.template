@@ -133,6 +133,9 @@
         "source:type": {
           "type": "keyword"
         },
+        "alert_status": {
+          "type": "keyword"
+        },
         /*
          * Widely-used Bro fields (potentially renamed during Metron ingest)
          */

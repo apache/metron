@@ -69,6 +69,9 @@ public class YafParserTest extends GrokParserTest {
   }
 
   @Override
+  public String getMultiLine() { return "false"; }
+
+  @Override
   public String getGrokPath() {
     return "../metron-parsers/src/main/resources/patterns/yaf";
   }

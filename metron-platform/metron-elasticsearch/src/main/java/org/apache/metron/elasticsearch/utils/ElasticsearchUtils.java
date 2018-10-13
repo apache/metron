@@ -17,26 +17,9 @@
  */
 package org.apache.metron.elasticsearch.utils;
 
-import static java.lang.String.format;
-
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.HDFSUtils;
@@ -53,9 +36,28 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
+import static org.apache.metron.common.Constants.GUID;
 
 public class ElasticsearchUtils {
 
@@ -65,6 +67,14 @@ public class ElasticsearchUtils {
   private static final String USERNAME_CONFIG_KEY = "es.xpack.username";
   private static final String TRANSPORT_CLIENT_USER_KEY = "xpack.security.user";
 
+  /**
+   * Defines which message field, the document identifier is set to.
+   *
+   * <p>If defined, the value of the specified message field is set as the Elasticsearch doc ID. If
+   * this field is undefined or blank, then the document identifier is not set.
+   */
+  public static final String DOC_ID_SOURCE_FIELD = "es.document.id";
+  public static final String DOC_ID_SOURCE_FIELD_DEFAULT = "";
 
   private static ThreadLocal<Map<String, SimpleDateFormat>> DATE_FORMAT_CACHE
           = ThreadLocal.withInitial(() -> new HashMap<>());
@@ -373,16 +383,48 @@ public class ElasticsearchUtils {
    * @param searchResponse An Elasticsearch SearchHit to be converted.
    * @return The list of SearchResults for the SearchHit
    */
-  protected static List<SearchResult> getSearchResults(
-      org.elasticsearch.action.search.SearchResponse searchResponse) {
-    return Arrays.stream(searchResponse.getHits().getHits()).map(searchHit -> {
-          SearchResult searchResult = new SearchResult();
-          searchResult.setId(searchHit.getId());
-          searchResult.setSource(searchHit.getSource());
-          searchResult.setScore(searchHit.getScore());
-          searchResult.setIndex(searchHit.getIndex());
-          return searchResult;
-        }
-    ).collect(Collectors.toList());
+  protected static List<SearchResult> getSearchResults(org.elasticsearch.action.search.SearchResponse searchResponse) {
+    SearchHit[] searchHits = searchResponse.getHits().getHits();
+    return Arrays.stream(searchHits)
+            .map(hit -> toSearchResult(hit))
+            .collect(Collectors.toList());
+  }
+
+  /**
+   * Transforms a {@link SearchHit} to a {@link SearchResult}.
+   *
+   * @param searchHit The search hit to transform.
+   * @return A {@link SearchResult} representing the {@link SearchHit}.
+   */
+  protected static SearchResult toSearchResult(SearchHit searchHit) {
+    SearchResult searchResult = new SearchResult();
+    searchResult.setId(getGUID(searchHit));
+    searchResult.setSource(searchHit.getSource());
+    searchResult.setScore(searchHit.getScore());
+    searchResult.setIndex(searchHit.getIndex());
+    return searchResult;
+  }
+
+  /**
+   * Retrieves the Metron GUID from a {@link SearchHit}.
+   *
+   * @param searchHit The search hit containing a Metron GUID.
+   * @return The Metron GUID.
+   */
+  public static String getGUID(SearchHit searchHit) {
+    String guid;
+    if(searchHit.hasSource() && searchHit.getSource().containsKey(GUID)) {
+      guid = (String) searchHit.getSource().get(GUID);
+
+    } else if(!searchHit.hasSource()) {
+      String template = "No source found, has it been disabled in the mapping? index=%s, docId=%s";
+      throw new IllegalStateException(String.format(template, searchHit.getIndex(), searchHit.getId()));
+
+    } else {
+      String template = "Missing expected field; field=%s, index=%s, docId=%s";
+      throw new IllegalStateException(String.format(template, GUID, searchHit.getIndex(), searchHit.getId()));
+    }
+
+    return guid;
   }
 }

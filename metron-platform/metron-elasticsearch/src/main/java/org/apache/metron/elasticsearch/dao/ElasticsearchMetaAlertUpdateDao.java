@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.lucene.search.join.ScoreMode;
 import org.apache.metron.common.Constants;
@@ -38,8 +37,6 @@ import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
@@ -82,7 +79,7 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
 
   @Override
   @SuppressWarnings("unchecked")
-  public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
+  public Document createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException {
     List<GetRequest> alertRequests = request.getAlerts();
     if (request.getAlerts().isEmpty()) {
@@ -134,39 +131,14 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
       // Kick off any updates.
       update(updates);
 
-      MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
-      createResponse.setCreated(true);
-      createResponse.setGuid(metaAlert.getGuid());
-      return createResponse;
+      return metaAlert;
     } catch (IOException ioe) {
       throw new InvalidCreateException("Unable to create meta alert", ioe);
     }
   }
 
-  /**
-   * Adds alerts to a metaalert, based on a list of GetRequests provided for retrieval.
-   * @param metaAlertGuid The GUID of the metaalert to be given new children.
-   * @param alertRequests GetRequests for the appropriate alerts to add.
-   * @return True if metaalert is modified, false otherwise.
-   */
-  public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
-      throws IOException {
-
-    Document metaAlert = retrieveLatestDao
-        .getLatest(metaAlertGuid, MetaAlertConstants.METAALERT_TYPE);
-    if (MetaAlertStatus.ACTIVE.getStatusString()
-        .equals(metaAlert.getDocument().get(MetaAlertConstants.STATUS_FIELD))) {
-      Iterable<Document> alerts = retrieveLatestDao.getAllLatest(alertRequests);
-      Map<Document, Optional<String>> updates = buildAddAlertToMetaAlertUpdates(metaAlert, alerts);
-      update(updates);
-      return updates.size() != 0;
-    } else {
-      throw new IllegalStateException("Adding alerts to an INACTIVE meta alert is not allowed");
-    }
-  }
-
   @Override
-  public void update(Document update, Optional<String> index) throws IOException {
+  public Document update(Document update, Optional<String> index) throws IOException {
     if (MetaAlertConstants.METAALERT_TYPE.equals(update.getSensorType())) {
       // We've been passed an update to the meta alert.
       throw new UnsupportedOperationException("Meta alerts cannot be directly updated");
@@ -195,29 +167,31 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
 
       // Run the alert's update
       elasticsearchDao.batchUpdate(updates);
+
+      return update;
     }
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
-    getUpdateDao().addCommentToAlert(request);
+  public Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+    return getUpdateDao().addCommentToAlert(request);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
-    getUpdateDao().removeCommentFromAlert(request);
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
+    return getUpdateDao().removeCommentFromAlert(request);
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest)
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
-    getUpdateDao().addCommentToAlert(request, latest);
+    return getUpdateDao().addCommentToAlert(request, latest);
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
-    getUpdateDao().removeCommentFromAlert(request, latest);
+    return getUpdateDao().removeCommentFromAlert(request, latest);
   }
 
   /**
@@ -243,12 +217,11 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
   }
 
 
-  protected boolean replaceAlertInMetaAlert(Document metaAlert, Document alert) {
+  protected void replaceAlertInMetaAlert(Document metaAlert, Document alert) {
     boolean metaAlertUpdated = removeAlertsFromMetaAlert(metaAlert,
         Collections.singleton(alert.getGuid()));
     if (metaAlertUpdated) {
       addAlertsToMetaAlert(metaAlert, Collections.singleton(alert));
     }
-    return metaAlertUpdated;
   }
 }

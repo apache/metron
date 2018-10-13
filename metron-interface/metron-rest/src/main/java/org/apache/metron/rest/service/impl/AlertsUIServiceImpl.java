@@ -19,25 +19,31 @@ package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.metron.common.system.Clock;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.hbase.client.UserSettingsClient;
+import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.AlertsUIUserSettings;
+import org.apache.metron.rest.security.SecurityUtils;
+import org.apache.metron.rest.service.AlertsUIService;
+import org.apache.metron.rest.service.KafkaService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.rest.MetronRestConstants;
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.AlertsUIUserSettings;
-import org.apache.metron.hbase.client.UserSettingsClient;
-import org.apache.metron.rest.security.SecurityUtils;
-import org.apache.metron.rest.service.AlertsUIService;
-import org.apache.metron.rest.service.KafkaService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
+import static org.apache.metron.rest.MetronRestConstants.KAFKA_TOPICS_ESCALATION_PROPERTY;
+import static org.apache.metron.rest.MetronRestConstants.METRON_ESCALATION_TIMESTAMP_FIELD;
+import static org.apache.metron.rest.MetronRestConstants.METRON_ESCALATION_USER_FIELD;
 
 /**
  * The default service layer implementation of {@link AlertsUIService}.
@@ -47,6 +53,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AlertsUIServiceImpl implements AlertsUIService {
 
+  static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String ALERT_USER_SETTING_TYPE = "metron-alerts-ui";
   public static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
           new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
@@ -54,6 +61,7 @@ public class AlertsUIServiceImpl implements AlertsUIService {
   private Environment environment;
   private final KafkaService kafkaService;
   private UserSettingsClient userSettingsClient;
+  private Clock clock;
 
   @Autowired
   public AlertsUIServiceImpl(final KafkaService kafkaService,
@@ -62,15 +70,25 @@ public class AlertsUIServiceImpl implements AlertsUIService {
     this.kafkaService = kafkaService;
     this.environment = environment;
     this.userSettingsClient = userSettingsClient;
+    this.clock = new Clock();
   }
 
   @Override
   public void escalateAlerts(List<Map<String, Object>> alerts) throws RestException {
+    String user = SecurityUtils.getCurrentUser();
+    String topic = environment.getProperty(KAFKA_TOPICS_ESCALATION_PROPERTY);
+    Long now = clock.currentTimeMillis();
+    LOG.info("Escalating {} alert(s): user={}, topic={}, timestamp={}", alerts.size(), user, topic, now);
+
     try {
       for (Map<String, Object> alert : alerts) {
-        kafkaService.produceMessage(
-            environment.getProperty(MetronRestConstants.KAFKA_TOPICS_ESCALATION_PROPERTY),
-            JSONUtils.INSTANCE.toJSON(alert, false));
+        // attribute the escalation to the current user
+        alert.put(METRON_ESCALATION_USER_FIELD, user);
+        alert.put(METRON_ESCALATION_TIMESTAMP_FIELD, now);
+
+        // serialize the alert and push it to the escalation topic
+        String message = JSONUtils.INSTANCE.toJSON(alert, false);
+        kafkaService.produceMessage(topic, message);
       }
     } catch (JsonProcessingException e) {
       throw new RestException(e);
@@ -127,5 +145,16 @@ public class AlertsUIServiceImpl implements AlertsUIService {
       success = false;
     }
     return success;
+  }
+
+  /**
+   * Set the {@link Clock} used by this service.
+   *
+   * <p>Calling this method is only needed to override the default behavior. This is useful when testing.
+   *
+   * @param clock
+   */
+  public void setClock(Clock clock) {
+    this.clock = clock;
   }
 }

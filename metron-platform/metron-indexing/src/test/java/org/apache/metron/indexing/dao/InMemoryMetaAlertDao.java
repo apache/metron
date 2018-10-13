@@ -18,26 +18,24 @@
 
 package org.apache.metron.indexing.dao;
 
-import static org.apache.metron.common.Constants.GUID;
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 
-import com.google.common.collect.ImmutableList;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.InMemoryMetaAlertRetrieveLatestDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
-import org.apache.metron.indexing.dao.metaalert.MetaScores;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertUpdateDao;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
@@ -46,20 +44,19 @@ import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 public class InMemoryMetaAlertDao implements MetaAlertDao {
 
-  public static Map<String, Collection<String>> METAALERT_STORE = new HashMap<>();
+  public static final String METAALERT_INDEX = "metaalert_index";
 
   private IndexDao indexDao;
+  private MetaAlertRetrieveLatestDao metaAlertRetrieveLatestDao;
+  private MetaAlertUpdateDao metaAlertUpdateDao;
   private int pageSize = 10;
 
   /**
@@ -97,6 +94,24 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   @Override
   public void init(IndexDao indexDao, Optional<String> threatSort) {
     this.indexDao = indexDao;
+    this.metaAlertRetrieveLatestDao = new InMemoryMetaAlertRetrieveLatestDao(indexDao);
+    Supplier<Map<String, Object>> globalConfigSupplier = () -> new HashMap<>();
+    MetaAlertConfig config = new MetaAlertConfig(
+            METAALERT_INDEX,
+            null,
+            globalConfigSupplier
+    ) {
+      @Override
+      protected String getDefaultThreatTriageField() {
+        return MetaAlertConstants.THREAT_FIELD_DEFAULT;
+      }
+
+      @Override
+      protected String getDefaultSourceTypeField() {
+        return SENSOR_TYPE;
+      }
+    };
+    this.metaAlertUpdateDao = new InMemoryMetaAlertUpdateDao(indexDao, metaAlertRetrieveLatestDao, config, -1);
     // Ignore threatSort for test.
   }
 
@@ -112,12 +127,12 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void update(Document update, Optional<String> index) throws IOException {
-    indexDao.update(update, index);
+  public Document update(Document update, Optional<String> index) throws IOException {
+    return indexDao.update(update, index);
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) {
+  public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) {
     throw new UnsupportedOperationException("InMemoryMetaAlertDao can't do bulk updates");
   }
 
@@ -128,19 +143,23 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request) {
+  public Document addCommentToAlert(CommentAddRemoveRequest request) {
+    return null;
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request) {
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request) {
+    return null;
   }
 
   @Override
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) {
+    return null;
   }
 
   @Override
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) {
+    return null;
   }
 
   @Override
@@ -149,15 +168,15 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+  public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
       Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
-    indexDao.patch(retrieveLatestDao, request, timestamp);
+    return indexDao.patch(retrieveLatestDao, request, timestamp);
   }
 
   @Override
-  public void replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException {
-    indexDao.replace(request, timestamp);
+  public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException {
+    return indexDao.replace(request, timestamp);
   }
 
   @Override
@@ -174,145 +193,29 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
 
   @SuppressWarnings("unchecked")
   @Override
-  public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
-      throws InvalidCreateException {
-    List<GetRequest> alertRequests = request.getAlerts();
-    if (alertRequests.isEmpty()) {
-      MetaAlertCreateResponse response = new MetaAlertCreateResponse();
-      response.setCreated(false);
-      return response;
-    }
-    // Build meta alert json.  Give it a reasonable GUID
-    JSONObject metaAlert = new JSONObject();
-    String metaAlertGuid =
-        "meta_" + (InMemoryDao.BACKING_STORE.get(getMetaAlertIndex()).size() + 1);
-    metaAlert.put(GUID, metaAlertGuid);
-
-    JSONArray groupsArray = new JSONArray();
-    groupsArray.addAll(request.getGroups());
-    metaAlert.put(MetaAlertConstants.GROUPS_FIELD, groupsArray);
-
-    // Retrieve the alert for each guid
-    // For the purpose of testing, we're just using guids for the alerts field and grabbing the scores.
-    JSONArray alertArray = new JSONArray();
-    List<Double> threatScores = new ArrayList<>();
-    Collection<String> alertGuids = new ArrayList<>();
-    for (GetRequest alertRequest : alertRequests) {
-      SearchRequest searchRequest = new SearchRequest();
-      searchRequest.setIndices(ImmutableList.of(alertRequest.getIndex().get()));
-      searchRequest.setQuery("guid:" + alertRequest.getGuid());
-      try {
-        SearchResponse searchResponse = search(searchRequest);
-        List<SearchResult> searchResults = searchResponse.getResults();
-        if (searchResults.size() > 1) {
-          throw new InvalidCreateException(
-              "Found more than one result for: " + alertRequest.getGuid() + ". Values: "
-                  + searchResults
-          );
-        }
-
-        if (searchResults.size() == 1) {
-          SearchResult result = searchResults.get(0);
-          alertArray.add(result.getSource());
-          Double threatScore = Double
-              .parseDouble(
-                  result.getSource().getOrDefault(MetaAlertConstants.THREAT_FIELD_DEFAULT, "0")
-                      .toString());
-
-          threatScores.add(threatScore);
-        }
-      } catch (InvalidSearchException e) {
-        throw new InvalidCreateException("Unable to find guid: " + alertRequest.getGuid(), e);
-      }
-      alertGuids.add(alertRequest.getGuid());
-    }
-
-    metaAlert.put(MetaAlertConstants.ALERT_FIELD, alertArray);
-    metaAlert.putAll(new MetaScores(threatScores).getMetaScores());
-    metaAlert.put(MetaAlertConstants.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
-
-    // Add the alert to the store, but make sure not to overwrite existing results
-    InMemoryDao.BACKING_STORE.get(getMetaAlertIndex()).add(metaAlert.toJSONString());
-
-    METAALERT_STORE.put(metaAlertGuid, new HashSet<>(alertGuids));
-
-    MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
-    createResponse.setGuid(metaAlertGuid);
-    createResponse.setCreated(true);
-    return createResponse;
+  public Document createMetaAlert(MetaAlertCreateRequest request)
+      throws InvalidCreateException, IOException {
+    return metaAlertUpdateDao.createMetaAlert(request);
   }
 
   @Override
-  public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) {
-    Collection<String> currentAlertGuids = METAALERT_STORE.get(metaAlertGuid);
-    if (currentAlertGuids == null) {
-      return false;
-    }
-    Collection<String> alertGuids = alertRequests.stream().map(GetRequest::getGuid)
-        .collect(Collectors.toSet());
-    boolean added = currentAlertGuids.addAll(alertGuids);
-    if (added) {
-      METAALERT_STORE.put(metaAlertGuid, currentAlertGuids);
-    }
-    return added;
+  public Document addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) throws IOException {
+    return metaAlertUpdateDao.addAlertsToMetaAlert(metaAlertGuid, alertRequests);
   }
 
   @Override
-  public boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) {
-    Collection<String> currentAlertGuids = METAALERT_STORE.get(metaAlertGuid);
-    if (currentAlertGuids == null) {
-      return false;
-    }
-    Collection<String> alertGuids = alertRequests.stream().map(GetRequest::getGuid)
-        .collect(Collectors.toSet());
-    boolean removed = currentAlertGuids.removeAll(alertGuids);
-    if (removed) {
-      METAALERT_STORE.put(metaAlertGuid, currentAlertGuids);
-    }
-    return removed;
+  public Document removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests) throws IOException {
+    return metaAlertUpdateDao.removeAlertsFromMetaAlert(metaAlertGuid, alertRequests);
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
+  public Document updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
       throws IOException {
-    boolean statusChanged = false;
-    List<String> metaAlerts = InMemoryDao.BACKING_STORE.get(getMetaAlertIndex());
-    for (String metaAlert : metaAlerts) {
-      JSONObject metaAlertJSON = JSONUtils.INSTANCE.load(metaAlert, JSONObject.class);
-      if (metaAlertGuid.equals(metaAlertJSON.get(GUID))) {
-        statusChanged = !status.getStatusString()
-            .equals(metaAlertJSON.get(MetaAlertConstants.STATUS_FIELD));
-        if (statusChanged) {
-          metaAlertJSON.put(MetaAlertConstants.STATUS_FIELD, status.getStatusString());
-          metaAlerts.remove(metaAlert);
-          metaAlerts.add(metaAlertJSON.toJSONString());
-          InMemoryDao.BACKING_STORE.put(getMetaAlertIndex(), metaAlerts);
-        }
-        break;
-      }
-    }
-    return statusChanged;
-  }
-
-  public int getPageSize() {
-    return pageSize;
-  }
-
-  public void setPageSize(int pageSize) {
-    this.pageSize = pageSize;
-  }
-
-  public String getMetAlertSensorName() {
-    return MetaAlertConstants.METAALERT_TYPE;
-  }
-
-  public String getMetaAlertIndex() {
-    return "metaalert_index";
+    return metaAlertUpdateDao.updateMetaAlertStatus(metaAlertGuid, status);
   }
 
   public static void clear() {
     InMemoryDao.clear();
-    METAALERT_STORE.clear();
   }
 }

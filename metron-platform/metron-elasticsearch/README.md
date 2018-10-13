@@ -59,6 +59,39 @@ For instance, an `es.date.format` of `yyyy.MM.dd.HH` would have the consequence 
 roll hourly, whereas an `es.date.format` of `yyyy.MM.dd` would have the consequence that the indices would
 roll daily.
 
+### `es.document.id`
+
+This property sets the message field that is used to define the document ID when a message is indexed by Elasticsearch.  By default, the client does not set the document ID and document ID generation is deferred to Elasticsearch. 
+
+#### Option 1: Defer to Elasticsearch
+
+Value: (Undefined, blank or empty string)
+
+* This option allows Elasticsearch to generate the document ID. 
+* The client will not set a document ID. 
+* In most cases this is the most performant option.
+* This is the default behavior.
+
+#### Option 2: Legacy Compatibility
+
+Value: guid
+
+* Metron versions 0.6.0 and earlier defined the document ID using the Metron GUID, which is a randomized UUID using Java's `UUID.randomUUID()`. 
+* Using a randomized UUID can negatively impact Elasticsearch indexing performance. 
+* To maintain backwards compatibility with legacy versions of Metron, set the value to `guid`.
+    ```
+    es.document.id = guid
+    ``` 
+
+#### Option 3: Custom Document ID
+
+* Advanced users can define a custom document ID.
+* Create an enrichment that defines a new message field; for example one called `my_document_id`. Use this field to set the document ID. This will set the document ID to the value of the message field `my_document_id`.
+    ```
+    es.document.id = my_document_id
+    ```
+* If a message does not contain the `es.document.id` field, a warning is issued and no document ID is set by the client.
+
 ## Upgrading to 5.6.2
 
 Users should be prepared to re-index when migrating from Elasticsearch 2.3.3 to 5.6.2. There are a number of template changes, most notably around
@@ -269,9 +302,27 @@ Notes on other settings for types in ES
 * [https://www.elastic.co/guide/en/elasticsearch/reference/5.6/breaking_50_mapping_changes.html](https://www.elastic.co/guide/en/elasticsearch/reference/5.6/breaking_50_mapping_changes.html)
 * [https://www.elastic.co/blog/strings-are-dead-long-live-strings](https://www.elastic.co/blog/strings-are-dead-long-live-strings)
 
+### Metron Properties
+
+Metron depends on some internal fields being defined in sensor templates.  A field is defined in Elasticsearch by adding an entry to the `properties` section of the template:
+```
+"properties": {
+  "metron_field": {
+    "type": "keyword"
+  }
+}
+```
+
+The following is a list of properties that need to be defined along with their type:
+* source:type - keyword
+* alert_status - keyword
+* metron_alert - nested
+
 ## Using Metron with Elasticsearch 5.6.2
 
-There is a requirement that all sensors templates have a nested `metron_alert` field defined.  This field is a dummy field.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
+Although infrequent sometimes an internal field is added in Metron and existing templates must be updated.  The following steps outlines how to do this, using `metron_alert` as an example.
+
+With the addition of the meta alert feature, there is a requirement that all sensors templates have a nested `metron_alert` field defined.  This field is a dummy field.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
 
 Without this field, an error will be thrown during ALL searches (including from UIs, resulting in no alerts being found for any sensor). This error will be found in the REST service's logs.
 
@@ -303,7 +354,7 @@ We'll want to put the template back into Elasticsearch:
 curl -XPUT "http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index" -d @${SENSOR}.template
 ```
 
-To update existing indexes, update Elasticsearch mappings with the new field for each sensor. 
+To update existing indexes, update Elasticsearch mappings with the new field for each sensor.
 
 ```
 curl -XPUT "http://${ELASTICSEARCH}:9200/${SENSOR}_index*/_mapping/${SENSOR}_doc" -d '
@@ -322,7 +373,7 @@ rm ${SENSOR}.template
 
 The stock set of Elasticsearch templates for bro, snort, yaf, error index and meta index are installed automatically during the first time install and startup of Metron Indexing service.
 
-It is possible that Elasticsearch service is not available when the Metron Indexing Service startup, in that case the Elasticsearch template will not be installed. 
+It is possible that Elasticsearch service is not available when the Metron Indexing Service startup, in that case the Elasticsearch template will not be installed.
 
 For such a scenario, an Admin can have the template installed in two ways:
 
