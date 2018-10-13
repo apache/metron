@@ -45,6 +45,7 @@ import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {MetaAlertService} from '../../service/meta-alert.service';
 import {Facets} from '../../model/facets';
 import { GlobalConfigService } from '../../service/global-config.service';
+import { DialogService } from 'app/service/dialog.service';
 
 @Component({
   selector: 'app-alerts-list',
@@ -90,7 +91,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private saveSearchService: SaveSearchService,
               private metronDialogBox: MetronDialogBox,
               private metaAlertsService: MetaAlertService,
-              private globalConfigService: GlobalConfigService) {
+              private globalConfigService: GlobalConfigService,
+              private dialogService: DialogService) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
@@ -339,7 +341,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.setData(results);
     }, error => {
       this.setData(new SearchResponse());
-      this.metronDialogBox.showConfirmationMessage(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
+      this.dialogService.confirm(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
     });
 
     this.tryStartPolling();

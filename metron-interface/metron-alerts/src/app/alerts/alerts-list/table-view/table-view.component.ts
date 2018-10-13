@@ -263,18 +263,24 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   deleteOneAlertFromMetaAlert($event, alert: Alert, metaAlertIndex: number) {
-    this.metronDialogBox.showConfirmationMessage('Do you wish to remove the alert from the meta alert?').subscribe(response => {
-      if (response) {
+    let confirmedSubscription = this.dialogService.confirm('Do you wish to remove the alert from the meta alert?').subscribe(r => {
+      if (r === 'Confirmed') {
         this.doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex);
+      }
+      if (r !== 'Initial') {
+        confirmedSubscription.unsubscribe();
       }
     });
     $event.stopPropagation();
   }
 
   deleteMetaAlert($event, alert: Alert) {
-    this.metronDialogBox.showConfirmationMessage('Do you wish to remove all the alerts from meta alert?').subscribe(response => {
-      if (response) {
+    let confirmedSubscription = this.dialogService.confirm('Do you wish to remove all the alerts from meta alert?').subscribe(r => {
+      if (r === 'Confirmed') {
         this.doDeleteMetaAlert(alert);
+      }
+      if (r !== 'Initial') {
+        confirmedSubscription.unsubscribe();
       }
     });
     $event.stopPropagation();
