@@ -20,6 +20,7 @@ package org.apache.metron.parsers.syslog;
 
 import com.github.palindromicity.syslog.NilPolicy;
 import com.github.palindromicity.syslog.dsl.SyslogFieldKeys;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class Syslog5424ParserTest {
@@ -87,7 +89,7 @@ public class Syslog5424ParserTest {
     });
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test()
   public void testNotValid() {
     test(null, "not valid", (message) -> Assert.assertTrue(false));
   }
@@ -100,7 +102,7 @@ public class Syslog5424ParserTest {
     }
     parser.configure(config);
 
-    List<JSONObject> output = parser.parse(line.getBytes());
+    parser.parseOptionalResult(line.getBytes());
   }
 
   @Test
@@ -116,8 +118,33 @@ public class Syslog5424ParserTest {
             .append(SYSLOG_LINE_MISSING)
             .append("\n")
             .append(SYSLOG_LINE_ALL);
-    List<JSONObject> output = parser.parse(builder.toString().getBytes());
-    Assert.assertEquals(3,output.size());
+    Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(builder.toString().getBytes());
+    Assert.assertNotNull(resultOptional);
+    Assert.assertTrue(resultOptional.isPresent());
+    List<JSONObject> parsedList = resultOptional.get().getMessages();
+    Assert.assertEquals(3,parsedList.size());
+  }
+
+  @Test
+  public void testReadMultiLineWithErrors() throws Exception {
+    Syslog5424Parser parser = new Syslog5424Parser();
+    Map<String, Object> config = new HashMap<>();
+    config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.DASH.name());
+    parser.configure(config);
+    StringBuilder builder = new StringBuilder();
+    builder
+            .append("HEREWEGO!!!!\n")
+            .append(SYSLOG_LINE_ALL)
+            .append("\n")
+            .append(SYSLOG_LINE_MISSING)
+            .append("\n")
+            .append("BOOM!\n")
+            .append(SYSLOG_LINE_ALL)
+            .append("\nOHMY!");
+    Optional<MessageParserResult<JSONObject>> output = parser.parseOptionalResult(builder.toString().getBytes());
+    Assert.assertTrue(output.isPresent());
+    Assert.assertEquals(3,output.get().getMessages().size());
+    Assert.assertEquals(3,output.get().getMessageThrowables().size());
   }
 
   @Test
@@ -126,21 +153,29 @@ public class Syslog5424ParserTest {
     Map<String, Object> config = new HashMap<>();
     config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.DASH.name());
     parser.configure(config);
-    List<JSONObject> output = parser.parse(SYSLOG_LINE_MISSING_DATE.getBytes());
-    String timeStampString = output.get(0).get("timestamp").toString();
+    Optional<MessageParserResult<JSONObject>> output  = parser.parseOptionalResult(SYSLOG_LINE_MISSING_DATE.getBytes());
+    Assert.assertNotNull(output);
+    Assert.assertTrue(output.isPresent());
+    String timeStampString = output.get().getMessages().get(0).get("timestamp").toString();
     DateTimeFormatter.ISO_DATE_TIME.parse(timeStampString);
     config.clear();
     config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.NULL.name());
     parser.configure(config);
-    output = parser.parse(SYSLOG_LINE_MISSING_DATE.getBytes());
-    timeStampString = output.get(0).get("timestamp").toString();
+    output = parser.parseOptionalResult(SYSLOG_LINE_MISSING_DATE.getBytes());
+    Assert.assertNotNull(output);
+    Assert.assertTrue(output.isPresent());
+    timeStampString = output.get().getMessages().get(0).get("timestamp").toString();
     DateTimeFormatter.ISO_DATE_TIME.parse(timeStampString);
 
     config.clear();
     config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.OMIT.name());
     parser.configure(config);
-    output = parser.parse(SYSLOG_LINE_MISSING_DATE.getBytes());
-    timeStampString = output.get(0).get("timestamp").toString();
+
+    output = parser.parseOptionalResult(SYSLOG_LINE_MISSING_DATE.getBytes());
+    Assert.assertNotNull(output);
+    Assert.assertTrue(output.isPresent());
+
+    timeStampString = output.get().getMessages().get(0).get("timestamp").toString();
     DateTimeFormatter.ISO_DATE_TIME.parse(timeStampString);
   }
 }
