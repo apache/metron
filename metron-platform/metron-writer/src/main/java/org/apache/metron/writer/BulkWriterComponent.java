@@ -118,12 +118,15 @@ public class BulkWriterComponent<MESSAGE_T> {
 
   public void error(String sensorType, Throwable e, Iterable<Tuple> tuples, MessageGetStrategy messageGetStrategy) {
     LOG.error(format("Failing %d tuple(s); sensorType=%s", Iterables.size(tuples), sensorType), e);
-    MetronError error = new MetronError()
-            .withSensorType(Collections.singleton(sensorType))
-            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
-            .withThrowable(e);
-    tuples.forEach(t -> error.addRawMessage(messageGetStrategy.get(t)));
-    handleError(tuples, error);
+    tuples.forEach(t -> {
+      MetronError error = new MetronError()
+              .withSensorType(Collections.singleton(sensorType))
+              .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+              .withThrowable(e);
+      error.addRawMessage(messageGetStrategy.get(t));
+      handleError(tuples, error);
+            });
+
   }
 
   /**

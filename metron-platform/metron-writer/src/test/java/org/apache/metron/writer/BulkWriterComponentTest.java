@@ -127,9 +127,12 @@ public class BulkWriterComponentTest {
   @Test
   public void writeShouldProperlyHandleWriterErrors() throws Exception {
     Throwable e = new Exception("test exception");
-    MetronError error = new MetronError()
+    MetronError expectedError1 = new MetronError()
             .withSensorType(Collections.singleton(sensorType))
-            .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Arrays.asList(message1, message2));
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Collections.singletonList(message1));
+    MetronError expectedError2 = new MetronError()
+            .withSensorType(Collections.singleton(sensorType))
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Collections.singletonList(message2));
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllErrors(e, tupleList);
 
@@ -140,7 +143,8 @@ public class BulkWriterComponentTest {
     bulkWriterComponent.write(sensorType, tuple2, message2, bulkMessageWriter, configurations, messageGetStrategy);
 
     verifyStatic(times(1));
-    ErrorUtils.handleError(collector, error);
+    ErrorUtils.handleError(collector, expectedError1);
+    ErrorUtils.handleError(collector, expectedError2);
   }
 
   @Test
@@ -161,9 +165,12 @@ public class BulkWriterComponentTest {
   @Test
   public void writeShouldProperlyHandleWriterException() throws Exception {
     Throwable e = new Exception("test exception");
-    MetronError error = new MetronError()
+    MetronError expectedError1 = new MetronError()
             .withSensorType(Collections.singleton(sensorType))
-            .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Arrays.asList(message1, message2));
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Collections.singletonList(message1));
+    MetronError expectedError2 = new MetronError()
+            .withSensorType(Collections.singleton(sensorType))
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Collections.singletonList(message2));
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllErrors(e, tupleList);
 
@@ -174,7 +181,8 @@ public class BulkWriterComponentTest {
     bulkWriterComponent.write(sensorType, tuple2, message2, bulkMessageWriter, configurations, messageGetStrategy);
 
     verifyStatic(times(1));
-    ErrorUtils.handleError(collector, error);
+    ErrorUtils.handleError(collector, expectedError1);
+    ErrorUtils.handleError(collector, expectedError2);
   }
 
   @Test
