@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.fs.Path;
@@ -33,6 +34,8 @@ import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
+import org.apache.metron.parsers.interfaces.MultilineMessageParser;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
@@ -138,13 +141,53 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     } else if (sensorParserConfig.getParserClassName() == null) {
       throw new RestException("SensorParserConfig must have a parserClassName");
     } else {
-      MessageParser<JSONObject> parser;
+      MultilineMessageParser<JSONObject> parser;
+      Object parserObject;
       try {
-        parser = (MessageParser<JSONObject>) Class.forName(sensorParserConfig.getParserClassName())
+        parserObject = Class.forName(sensorParserConfig.getParserClassName())
             .newInstance();
       } catch (Exception e) {
         throw new RestException(e.toString(), e.getCause());
       }
+
+      if (!(parserObject instanceof MultilineMessageParser)) {
+        parser = new MultilineMessageParser<JSONObject>() {
+
+          @Override
+          @SuppressWarnings("unchecked")
+          public void configure(Map<String, Object> config)  {
+            ((MessageParser<JSONObject>)parserObject).configure(config);
+          }
+
+          @Override
+          @SuppressWarnings("unchecked")
+          public void init() {
+            ((MessageParser<JSONObject>)parserObject).init();
+          }
+
+          @Override
+          @SuppressWarnings("unchecked")
+          public boolean validate(JSONObject message) {
+            return ((MessageParser<JSONObject>)parserObject).validate(message);
+          }
+
+          @Override
+          @SuppressWarnings("unchecked")
+          public List<JSONObject> parse(byte[] message) {
+            return ((MessageParser<JSONObject>)parserObject).parse(message);
+          }
+
+          @Override
+          @SuppressWarnings("unchecked")
+          public Optional<List<JSONObject>> parseOptional(byte[] message) {
+            return ((MessageParser<JSONObject>)parserObject).parseOptional(message);
+          }
+        };
+      } else {
+        parser = (MultilineMessageParser<JSONObject>)parserObject;
+      }
+
+
       Path temporaryGrokPath = null;
       if (isGrokConfig(sensorParserConfig)) {
         String name = parseMessageRequest.getSensorParserConfig().getSensorTopic();
@@ -152,13 +195,27 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
         sensorParserConfig.getParserConfig()
             .put(MetronRestConstants.GROK_PATH_KEY, new Path(temporaryGrokPath, name).toString());
       }
+
       parser.configure(sensorParserConfig.getParserConfig());
       parser.init();
-      JSONObject results = parser.parse(parseMessageRequest.getSampleData().getBytes()).get(0);
+
+      Optional<MessageParserResult<JSONObject>> result = parser.parseOptionalResult(parseMessageRequest.getSampleData().getBytes());
+      if (!result.isPresent()) {
+        throw new RestException("Unknown error parsing sample data");
+      }
+
+      if (result.get().getMasterThrowable().isPresent()) {
+        throw new RestException("Error parsing sample data",result.get().getMasterThrowable().get());
+      }
+
+      if (result.get().getMessages().isEmpty()) {
+        throw new RestException("No results from parsing sample data");
+      }
+
       if (isGrokConfig(sensorParserConfig) && temporaryGrokPath != null) {
         grokService.deleteTemporary();
       }
-      return results;
+      return result.get().getMessages().get(0);
     }
   }
 

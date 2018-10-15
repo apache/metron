@@ -17,29 +17,7 @@
  */
 package org.apache.metron.parsers.bolt;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.google.common.collect.ImmutableList;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -55,10 +33,10 @@ import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
-import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.parsers.DefaultMessageParserResult;
 import org.apache.metron.parsers.interfaces.MessageFilter;
-import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
+import org.apache.metron.parsers.interfaces.MultilineMessageParser;
 import org.apache.metron.parsers.topology.ParserComponents;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.test.bolt.BaseBoltTest;
@@ -72,10 +50,33 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 public class ParserBoltTest extends BaseBoltTest {
 
   @Mock
-  private MessageParser<JSONObject> parser;
+  private MultilineMessageParser<JSONObject> parser;
 
   @Mock
   private MessageWriter<JSONObject> writer;
@@ -210,7 +211,7 @@ public class ParserBoltTest extends BaseBoltTest {
     byte[] sampleBinary = "some binary message".getBytes();
 
     when(tuple.getBinary(0)).thenReturn(sampleBinary);
-    when(parser.parseOptional(sampleBinary)).thenReturn(null);
+    when(parser.parseOptionalResult(sampleBinary)).thenReturn(null);
     parserBolt.execute(tuple);
     verify(parser, times(0)).validate(any());
     verify(writer, times(0)).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), any());
@@ -405,9 +406,9 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
-    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject(new HashMap<String, Object>() {{
+    when(parser.parseOptionalResult(any())).thenReturn(Optional.of(new DefaultMessageParserResult<>(ImmutableList.of(new JSONObject(new HashMap<String, Object>() {{
       put("field2", "blah");
-    }}))));
+    }})))));
     parserBolt.execute(t1);
     verify(batchWriter, times(0)).write(any(), any(), any(), any());
     verify(outputCollector, times(1)).ack(t1);
@@ -437,26 +438,36 @@ public class ParserBoltTest extends BaseBoltTest {
     String sensorType = "dummy";
     RecordingWriter recordingWriter = new RecordingWriter();
     //create a parser which acts like a basic parser but returns no timestamp field.
-    BasicParser dummyParser = new BasicParser() {
-      @Override
-      public void init() {
-
-      }
-
-      @Override
-      public List<JSONObject> parse(byte[] rawMessage) {
-        return ImmutableList.of(new JSONObject() {{
-                put("data", "foo");
-                put("timestampstr", "2016-01-05 17:02:30");
-                put("original_string", "blah");
-              }});
-      }
-
+    MultilineMessageParser<JSONObject> dummyParser = new MultilineMessageParser<JSONObject>() {
       @Override
       public void configure(Map<String, Object> config) {
+      }
 
+      @Override
+      public void init() {
+      }
+
+      @Override
+      public boolean validate(JSONObject message) {
+        Object timestampObject = message.get(Constants.Fields.TIMESTAMP.getName());
+        if (timestampObject instanceof Long) {
+          Long timestamp = (Long) timestampObject;
+          return timestamp > 0;
+        }
+        return false;
+      }
+
+      @Override
+      @SuppressWarnings("unchecked")
+      public Optional<MessageParserResult<JSONObject>> parseOptionalResult(byte[] rawMessage) {
+        return Optional.of(new DefaultMessageParserResult<>(ImmutableList.of(new JSONObject() {{
+          put("data", "foo");
+          put("timestampstr", "2016-01-05 17:02:30");
+          put("original_string", "blah");
+        }})));
       }
     };
+
     Map<String, ParserComponents> parserMap = Collections.singletonMap(
         sensorType,
         new ParserComponents(
@@ -502,7 +513,7 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
-    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
+    when(parser.parseOptionalResult(any())).thenReturn(Optional.of(new DefaultMessageParserResult<>(ImmutableList.of(new JSONObject()))));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
     BulkWriterResponse response = new BulkWriterResponse();
     Tuple[] uniqueTuples = new Tuple[ParserConfigurations.DEFAULT_KAFKA_BATCH_SIZE];
@@ -592,7 +603,7 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
-    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
+    when(parser.parseOptionalResult(any())).thenReturn(Optional.of(new DefaultMessageParserResult<>(ImmutableList.of(new JSONObject()))));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
     BulkWriterResponse response = new BulkWriterResponse();
     response.addSuccess(t1);

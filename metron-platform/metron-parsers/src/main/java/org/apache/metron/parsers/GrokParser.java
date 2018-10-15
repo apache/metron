@@ -29,6 +29,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
+import org.apache.metron.parsers.interfaces.MultilineMessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,7 @@ import java.util.Optional;
 import java.util.TimeZone;
 
 
-public class GrokParser implements MessageParser<JSONObject>, Serializable {
+public class GrokParser implements MultilineMessageParser<JSONObject>, Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -139,21 +140,6 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       LOG.error(e.getMessage(), e);
       throw new RuntimeException("Grok parser Error: " + e.getMessage(), e);
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public List<JSONObject> parse(byte[] rawMessage) {
-    Optional<MessageParserResult<JSONObject>> resultOptional = parseOptionalResult(rawMessage);
-    if (!resultOptional.isPresent()) {
-      return Collections.EMPTY_LIST;
-    }
-    Map<Object,Throwable> errors = resultOptional.get().getMessageThrowables();
-    if (!errors.isEmpty()) {
-      throw new RuntimeException(errors.entrySet().iterator().next().getValue());
-    }
-
-    return resultOptional.get().getMessages();
   }
 
   @SuppressWarnings("unchecked")
