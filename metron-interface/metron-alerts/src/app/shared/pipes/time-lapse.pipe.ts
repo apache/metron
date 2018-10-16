@@ -17,19 +17,19 @@
  */
 
 import { Pipe, PipeTransform } from '@angular/core';
-import * as moment from 'moment/moment';
+import { distanceInWordsToNow } from 'date-fns';
 
 @Pipe({
   name: 'timeLapse'
 })
 export class TimeLapsePipe implements PipeTransform {
 
-  transform(value: any): any {
+  transform(value: any): string {
     if (isNaN(value)) {
       return '';
     }
 
-    return moment(new Date(value)).fromNow();
+    return distanceInWordsToNow(new Date(value), { addSuffix: true });
   }
 
 }
