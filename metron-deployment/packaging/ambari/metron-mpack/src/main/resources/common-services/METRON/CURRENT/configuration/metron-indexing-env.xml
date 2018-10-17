@@ -146,7 +146,7 @@
     <property>
         <name>ra_indexing_topology_max_spout_pending</name>
         <description>Indexing Topology Spout Max Pending Tuples</description>
-        <value/>
+        <value>300</value>
         <display-name>Indexing Max Pending for Random Access</display-name>
         <value-attributes>
             <empty-value-valid>true</empty-value-valid>
@@ -155,7 +155,7 @@
      <property>
         <name>batch_indexing_topology_max_spout_pending</name>
         <description>Indexing Topology Spout Max Pending Tuples</description>
-        <value/>
+        <value>300</value>
         <display-name>Indexing Max Pending for HDFS</display-name>
         <value-attributes>
             <empty-value-valid>true</empty-value-valid>

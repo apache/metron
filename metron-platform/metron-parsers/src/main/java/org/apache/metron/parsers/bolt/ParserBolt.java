@@ -37,6 +37,7 @@ import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
+import org.apache.metron.parsers.interfaces.MultilineMessageParser;
 import org.apache.metron.parsers.topology.ParserComponents;
 import org.apache.metron.stellar.common.CachingStellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
@@ -307,9 +308,43 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             , sensorParserConfig.getReadMetadata()
             , sensorParserConfig.getRawMessageStrategyConfig()
         );
+
         metadata = rawMessage.getMetadata();
 
-        Optional<MessageParserResult<JSONObject>> results = parser.parseOptionalResult(rawMessage.getMessage());
+        MultilineMessageParser mmp = null;
+        if (!(parser instanceof MultilineMessageParser)) {
+          mmp = new MultilineMessageParser<JSONObject>() {
+
+            @Override
+            public void configure(Map<String, Object> config) {
+              parser.configure(config);
+            }
+
+            @Override
+            public void init() {
+              parser.init();
+            }
+
+            @Override
+            public boolean validate(JSONObject message) {
+              return parser.validate(message);
+            }
+
+            @Override
+            public List<JSONObject> parse(byte[] message) {
+              return parser.parse(message);
+            }
+
+            @Override
+            public Optional<List<JSONObject>> parseOptional(byte[] message) {
+              return parser.parseOptional(message);
+            }
+          };
+        } else {
+          mmp = (MultilineMessageParser) parser;
+        }
+
+        Optional<MessageParserResult<JSONObject>> results = mmp.parseOptionalResult(rawMessage.getMessage());
 
         // check if there is a master error
         if (results.isPresent() && results.get().getMasterThrowable().isPresent()) {
