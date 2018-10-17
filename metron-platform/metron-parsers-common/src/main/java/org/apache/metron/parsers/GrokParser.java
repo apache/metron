@@ -143,21 +143,6 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   @SuppressWarnings("unchecked")
   @Override
-  public List<JSONObject> parse(byte[] rawMessage) {
-    Optional<MessageParserResult<JSONObject>> resultOptional = parseOptionalResult(rawMessage);
-    if (!resultOptional.isPresent()) {
-      return Collections.EMPTY_LIST;
-    }
-    Map<Object,Throwable> errors = resultOptional.get().getMessageThrowables();
-    if (!errors.isEmpty()) {
-      throw new RuntimeException(errors.entrySet().iterator().next().getValue());
-    }
-
-    return resultOptional.get().getMessages();
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
   public Optional<MessageParserResult<JSONObject>> parseOptionalResult(byte[] rawMessage) {
     if (grok == null) {
       init();

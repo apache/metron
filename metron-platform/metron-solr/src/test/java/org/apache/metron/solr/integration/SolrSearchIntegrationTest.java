@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
@@ -33,6 +34,7 @@ import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
@@ -221,6 +223,23 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
 
     // Field that doesn't exist
     Assert.assertEquals(null, fieldTypes.get("fake.field"));
+  }
+
+  @Test
+  public void queries_fields() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
+    SearchResponse response = getIndexDao().search(request);
+    Assert.assertEquals(10, response.getTotal());
+
+    List<SearchResult> results = response.getResults();
+    Assert.assertEquals(10, response.getResults().size());
+
+    // validate the source fields contained in the search response
+    for (int i = 0; i < 10; ++i) {
+      Map<String, Object> source = results.get(i).getSource();
+      Assert.assertNotNull(source);
+      Assert.assertNotNull(source.get(Constants.Fields.SRC_ADDR.getName()));
+    }
   }
 
   @Test

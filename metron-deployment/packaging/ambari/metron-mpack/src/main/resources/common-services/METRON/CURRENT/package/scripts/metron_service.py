@@ -83,6 +83,11 @@ def elasticsearch_global_config_patches():
         "op": "add",
         "path": "/es.date.format",
         "value": "{{es_date_format}}"
+    },
+    {
+        "op": "add",
+        "path": "/es.document.id",
+        "value": "{{es_document_id}}"
     }
   """
 
