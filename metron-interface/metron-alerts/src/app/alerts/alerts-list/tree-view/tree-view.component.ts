@@ -27,7 +27,6 @@ import {GroupResponse} from '../../../model/group-response';
 import {GroupResult} from '../../../model/group-result';
 import {SortField} from '../../../model/sort-field';
 import {Sort} from '../../../utils/enums';
-import {DialogType} from '../../../shared/metron-dialog-box';
 import {ElasticsearchUtils} from '../../../utils/elasticsearch-utils';
 import {SearchRequest} from '../../../model/search-request';
 import {MetaAlertCreateRequest} from '../../../model/meta-alert-create-request';
@@ -38,6 +37,7 @@ import {PatchRequest} from '../../../model/patch-request';
 import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { DialogService } from '../../../service/dialog.service';
+import { DialogType } from 'app/model/dialog-type';
 
 @Component({
   selector: 'app-tree-view',

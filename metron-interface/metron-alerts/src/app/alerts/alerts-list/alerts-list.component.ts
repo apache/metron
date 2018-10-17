@@ -33,7 +33,6 @@ import {SaveSearchService} from '../../service/save-search.service';
 import {RefreshInterval} from '../configure-rows/configure-rows-enums';
 import {SaveSearch} from '../../model/save-search';
 import {TableMetadata} from '../../model/table-metadata';
-import {MetronDialogBox, DialogType} from '../../shared/metron-dialog-box';
 import {AlertSearchDirective} from '../../shared/directives/alert-search.directive';
 import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
@@ -46,6 +45,7 @@ import {MetaAlertService} from '../../service/meta-alert.service';
 import {Facets} from '../../model/facets';
 import { GlobalConfigService } from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
+import { DialogType } from 'app/model/dialog-type';
 
 @Component({
   selector: 'app-alerts-list',
@@ -89,7 +89,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private alertsService: AlertsService,
               private clusterMetaDataService: ClusterMetaDataService,
               private saveSearchService: SaveSearchService,
-              private metronDialogBox: MetronDialogBox,
               private metaAlertsService: MetaAlertService,
               private globalConfigService: GlobalConfigService,
               private dialogService: DialogService) {

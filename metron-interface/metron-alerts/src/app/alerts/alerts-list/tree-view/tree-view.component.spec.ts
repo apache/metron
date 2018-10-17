@@ -28,7 +28,6 @@ import { ColumnNameTranslatePipe } from '../../../shared/pipes/column-name-trans
 import { AlertSeverityDirective } from '../../../shared/directives/alert-severity.directive';
 import { MetronTablePaginationComponent } from '../../../shared/metron-table/metron-table-pagination/metron-table-pagination.component';
 import { SearchService } from '../../../service/search.service';
-import { MetronDialogBox } from '../../../shared/metron-dialog-box';
 import { UpdateService } from '../../../service/update.service';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { MetaAlertService } from '../../../service/meta-alert.service';
@@ -46,7 +45,6 @@ describe('TreeViewComponent', () => {
         UpdateService,
         GlobalConfigService,
         MetaAlertService,
-        MetronDialogBox,
         DialogService
       ],
       declarations: [
