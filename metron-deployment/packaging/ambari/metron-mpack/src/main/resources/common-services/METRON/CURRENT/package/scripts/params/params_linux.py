@@ -267,6 +267,20 @@ if security_enabled:
     if 'solr-config-env' in config['configurations']:
         solr_principal_name = solr_principal_name.replace('_HOST', hostname_lowercase)
 
+# LDAP
+metron_ldap_url = config['configurations']['metron-security-env']['metron.ldap.url']
+metron_ldap_userdn = config['configurations']['metron-security-env']['metron.ldap.bind.dn']
+metron_ldap_password = config['configurations']['metron-security-env']['metron.ldap.bind.password']
+metron_ldap_user_pattern = config['configurations']['metron-security-env']['metron.ldap.user.dnpattern']
+metron_ldap_user_password = config['configurations']['metron-security-env']['metron.ldap.user.password']
+metron_ldap_user_dnbase = config['configurations']['metron-security-env']['metron.ldap.user.basedn']
+metron_ldap_user_searchbase = config['configurations']['metron-security-env']['metron.ldap.user.searchbase']
+metron_ldap_user_searchfilter = config['configurations']['metron-security-env']['metron.ldap.user.searchfilter']
+metron_ldap_group_searchbase = config['configurations']['metron-security-env']['metron.ldap.group.searchbase']
+metron_ldap_group_searchfilter = config['configurations']['metron-security-env']['metron.ldap.group.searchfilter']
+metron_ldap_group_role = config['configurations']['metron-security-env']['metron.ldap.group.roleattribute']
+metron_ldap = metron_ldap_url != ""
+
 # Management UI
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
 
