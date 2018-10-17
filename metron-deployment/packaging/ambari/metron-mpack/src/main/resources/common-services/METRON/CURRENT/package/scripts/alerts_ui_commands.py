@@ -23,6 +23,7 @@ from resource_management.core.resources.system import Execute, File
 
 import metron_service
 
+
 # Wrap major operations and functionality in this class
 class AlertsUICommands:
     __params = None

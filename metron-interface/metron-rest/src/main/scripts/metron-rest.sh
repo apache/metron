@@ -17,8 +17,8 @@
 # limitations under the License.
 #
 
-if [ -z "${METRON_JDBC_PASSWORD}" ]; then
-    echo "METRON_JDBC_PASSWORD unset. Exiting."
+if [ -z "${METRON_JDBC_PASSWORD}" ] && [ -z "${METRON_LDAP_PASSWORD}" ]; then
+    echo "Authentication password unset. Exiting."
     exit 1
 fi
 ## Join a list by a character
@@ -35,6 +35,7 @@ METRON_REST_PORT=8082
 METRON_SYSCONFIG="${METRON_SYSCONFIG:-/etc/default/metron}"
 METRON_LOG_DIR="${METRON_LOG_DIR:-/var/log/metron}"
 METRON_PID_FILE="${METRON_PID_FILE:-/var/run/metron/metron-rest.pid}"
+
 PARSER_CONTRIB=${PARSER_CONTRIB:-$METRON_HOME/parser_contrib}
 INDEXING_CONTRIB=${INDEXING_CONTRIB:-$METRON_HOME/indexing_contrib}
 PARSER_LIB=$(find $METRON_HOME/lib/ -name metron-parsers*.jar)

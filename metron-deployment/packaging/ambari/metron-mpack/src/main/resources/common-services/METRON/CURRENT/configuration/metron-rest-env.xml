@@ -35,32 +35,29 @@
     </property>
     <property>
         <name>metron_spring_profiles_active</name>
-        <description>Active Spring profiles</description>
+        <description>Active Spring profiles. 'jdbc' is the default profiler for authentication. 'ldap' can is also available.</description>
         <display-name>Active Spring profiles</display-name>
-        <value/>
-        <value-attributes>
-            <empty-value-valid>true</empty-value-valid>
-        </value-attributes>
+        <value>jdbc</value>
     </property>
-    <property require-input="true">
+    <property>
         <name>metron_jdbc_driver</name>
         <value></value>
         <description>Class name of the JDBC Driver used by Metron</description>
         <display-name>Metron JDBC Driver</display-name>
     </property>
-    <property require-input="true">
+    <property>
         <name>metron_jdbc_url</name>
         <value></value>
         <description>JDBC Connection URL used by Metron</description>
         <display-name>Metron JDBC URL</display-name>
     </property>
-    <property require-input="true">
+    <property>
         <name>metron_jdbc_username</name>
         <value></value>
         <description>Metron JDBC Username</description>
         <display-name>Metron JDBC username</display-name>
     </property>
-    <property require-input="true">
+    <property>
         <name>metron_jdbc_password</name>
         <value></value>
         <property-type>PASSWORD</property-type>
