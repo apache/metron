@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { ConfirmationType } from '../model/confirmation-type';
+import { DialogType } from '../model/dialog-type';
 
 @Injectable({
   providedIn: 'root'
@@ -9,17 +11,6 @@ export class DialogParams {
   show = false;
   message = '';
   dialogType = DialogType.Confirmation;
-}
-
-export enum DialogType {
-  Confirmation,
-  Error
-}
-
-export enum ConfirmationType {
-  Initial = 'Initial',
-  Confirmed = 'Confirmed',
-  Rejected = 'Rejected'
 }
 
 export class DialogService {

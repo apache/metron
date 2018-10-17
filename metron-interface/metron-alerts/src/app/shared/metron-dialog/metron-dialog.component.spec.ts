@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { MetronDialogComponent } from './metron-dialog.component';
-import { DialogService, DialogType } from 'app/service/dialog.service';
+import { DialogService } from 'app/service/dialog.service';
+import { DialogType } from 'app/model/dialog-type';
 
 describe('MetronDialogComponent', () => {
   let component: MetronDialogComponent;
