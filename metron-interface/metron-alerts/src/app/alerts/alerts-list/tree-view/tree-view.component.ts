@@ -37,19 +37,13 @@ import {UpdateService} from '../../../service/update.service';
 import {PatchRequest} from '../../../model/patch-request';
 import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
-import { DialogService, ConfirmationType } from '../../../service/dialog.service';
+import { DialogService } from '../../../service/dialog.service';
 
 @Component({
   selector: 'app-tree-view',
   templateUrl: './tree-view.component.html',
   styleUrls: ['./tree-view.component.scss']
 })
-
-// export enum ConfirmationType {
-//   Initial,
-//   Confirmed,
-//   Rejected
-// }
 
 export class TreeViewComponent extends TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
