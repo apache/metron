@@ -39,6 +39,7 @@ public interface MessageParser<T> extends Configurable {
    * @param rawMessage the raw bytes of the message
    * @return If null is returned, this is treated as an empty list.
    */
+  @Deprecated
   default List<T> parse(byte[] rawMessage) {
     throw new NotImplementedException("parse is not implemented");
   }
@@ -48,6 +49,7 @@ public interface MessageParser<T> extends Configurable {
    * @param parseMessage the raw bytes of the message
    * @return If null is returned, this is treated as an empty list.
    */
+  @Deprecated
   default Optional<List<T>> parseOptional(byte[] parseMessage) {
     return Optional.ofNullable(parse(parseMessage));
   }
@@ -60,14 +62,16 @@ public interface MessageParser<T> extends Configurable {
    * @return Optional of {@link MessageParserResult}
    */
   default Optional<MessageParserResult<T>> parseOptionalResult(byte[] parseMessage) {
-    List<T> list = new ArrayList<>();
+    Optional<MessageParserResult<T>> result = Optional.empty();
     try {
       Optional<List<T>> optionalMessages = parseOptional(parseMessage);
-      optionalMessages.ifPresent(list::addAll);
+      if (optionalMessages.isPresent()) {
+        result = Optional.of(new DefaultMessageParserResult<>(optionalMessages.get()));
+      }
     } catch (Throwable t) {
       return Optional.of(new DefaultMessageParserResult<>(t));
     }
-    return Optional.of(new DefaultMessageParserResult<T>(list));
+    return result;
   }
 
   /**
