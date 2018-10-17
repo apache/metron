@@ -32,6 +32,7 @@ import { MetronDialogBox } from '../../../shared/metron-dialog-box';
 import { UpdateService } from '../../../service/update.service';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { MetaAlertService } from '../../../service/meta-alert.service';
+import { DialogService } from 'app/service/dialog.service';
 
 describe('TreeViewComponent', () => {
   let component: TreeViewComponent;
@@ -46,6 +47,7 @@ describe('TreeViewComponent', () => {
         GlobalConfigService,
         MetaAlertService,
         MetronDialogBox,
+        DialogService
       ],
       declarations: [
         MetronTableDirective,

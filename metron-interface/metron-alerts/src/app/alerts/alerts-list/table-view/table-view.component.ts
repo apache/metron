@@ -24,7 +24,6 @@ import {SortEvent} from '../../../shared/metron-table/metron-table.directive';
 import {ColumnMetadata} from '../../../model/column-metadata';
 import {Alert} from '../../../model/alert';
 import {SearchService} from '../../../service/search.service';
-import {MetronDialogBox} from '../../../shared/metron-dialog-box';
 import {QueryBuilder} from '../query-builder';
 import {Sort} from '../../../utils/enums';
 import {Filter} from '../../../model/filter';
@@ -51,7 +50,6 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   searchService: SearchService;
   updateService: UpdateService;
   isStatusFieldPresent = false;
-  metronDialogBox: MetronDialogBox;
   metaAlertService: MetaAlertService;
   metaAlertsDisplayState: {[key: string]: MetronAlertDisplayState} = {};
   metronAlertDisplayState = MetronAlertDisplayState;
@@ -74,13 +72,11 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   @Output() onSelectedAlertsChange = new EventEmitter< Alert[]>();
 
   constructor(searchService: SearchService,
-              metronDialogBox: MetronDialogBox,
               updateService: UpdateService,
               metaAlertService: MetaAlertService,
               globalConfigService: GlobalConfigService,
               dialogService: DialogService) {
     this.searchService = searchService;
-    this.metronDialogBox = metronDialogBox;
     this.updateService = updateService;
     this.metaAlertService = metaAlertService;
     this.globalConfigService = globalConfigService;

@@ -27,7 +27,7 @@ import {GroupResponse} from '../../../model/group-response';
 import {GroupResult} from '../../../model/group-result';
 import {SortField} from '../../../model/sort-field';
 import {Sort} from '../../../utils/enums';
-import {MetronDialogBox, DialogType} from '../../../shared/metron-dialog-box';
+import {DialogType} from '../../../shared/metron-dialog-box';
 import {ElasticsearchUtils} from '../../../utils/elasticsearch-utils';
 import {SearchRequest} from '../../../model/search-request';
 import {MetaAlertCreateRequest} from '../../../model/meta-alert-create-request';
@@ -63,12 +63,11 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   dialogService: DialogService
 
   constructor(searchService: SearchService,
-              metronDialogBox: MetronDialogBox,
               updateService: UpdateService,
               metaAlertService: MetaAlertService,
               globalConfigService: GlobalConfigService,
               dialogService: DialogService) {
-    super(searchService, metronDialogBox, updateService, metaAlertService, globalConfigService, dialogService);
+    super(searchService, updateService, metaAlertService, globalConfigService, dialogService);
   }
 
   addAlertChangedListner() {
