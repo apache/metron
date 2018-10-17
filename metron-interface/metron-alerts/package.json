@@ -12,6 +12,7 @@
     "pree2e": "webdriver-manager update",
     "e2e": "protractor-flake --protractor-path=./node_modules/.bin/protractor --max-attempts=3 -- ./protractor.conf.js",
     "cypress:run": "cypress run", 
+    "cypress:open": "cypress open", 
     "cypress:ci": "run-p --race start cypress:run"
   },
   "private": true,
