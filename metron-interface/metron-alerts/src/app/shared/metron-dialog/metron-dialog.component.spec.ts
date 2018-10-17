@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MetronDialogComponent } from './metron-dialog.component';
 import { DialogService, DialogType } from 'app/service/dialog.service';
 
-fdescribe('MetronDialogComponent', () => {
+describe('MetronDialogComponent', () => {
   let component: MetronDialogComponent;
   let fixture: ComponentFixture<MetronDialogComponent>;
   let dialogService: DialogService;
