@@ -22,9 +22,9 @@ import {forkJoin as observableForkJoin} from 'rxjs';
 
 import {SaveSearchService} from '../../service/save-search.service';
 import {SaveSearch} from '../../model/save-search';
-import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {NUM_SAVED_SEARCH} from '../../utils/constants';
 import {CollapseComponentData, CollapseComponentDataItems} from '../../shared/collapse/collapse-component-data';
+import { DialogService } from 'app/service/dialog.service';
 
 @Component({
   selector: 'app-saved-searches',
@@ -39,7 +39,7 @@ export class SavedSearchesComponent implements OnInit {
   recentSearches: CollapseComponentData = new CollapseComponentData();
   constructor(private router: Router,
               private saveSearchService: SaveSearchService,
-              private metronDialog: MetronDialogBox) {
+              private dialogService: DialogService) {
   }
 
   doDeleteRecentSearch(selectedSearch: SaveSearch) {
@@ -62,18 +62,24 @@ export class SavedSearchesComponent implements OnInit {
 
   deleteRecentSearch($event) {
     let selectedSearch = this.recentSearcheObj.find(savedSearch => savedSearch.name === $event.key);
-    this.metronDialog.showConfirmationMessage('Do you wish to delete recent search ' + selectedSearch.name).subscribe((result: boolean) => {
-      if (result) {
+    let confirmedSubscription = this.dialogService.confirm('Do you wish to delete recent search ' + selectedSearch.name).subscribe(r => {
+      if (r === 'Confirmed') {
         this.doDeleteRecentSearch(selectedSearch);
+      }
+      if (r !== 'Initial') {
+        confirmedSubscription.unsubscribe();
       }
     });
   }
 
   deleteSearch($event) {
     let selectedSearch = this.searches.find(savedSearch => savedSearch.name === $event.key);
-    this.metronDialog.showConfirmationMessage('Do you wish to delete saved search ' + selectedSearch.name).subscribe((result: boolean) => {
-      if (result) {
+    let confirmedSubscription = this.dialogService.confirm('Do you wish to delete saved search ' + selectedSearch.name).subscribe(r => {
+      if (r === 'Confirmed') {
         this.doDeleteSearch(selectedSearch);
+      }
+      if (r !== 'Initial') {
+        confirmedSubscription.unsubscribe();
       }
     });
   }
