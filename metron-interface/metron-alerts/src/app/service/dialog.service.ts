@@ -28,7 +28,7 @@ export class DialogService {
 
   constructor() {}
 
-  confirm(message: string, dialogType = DialogType.Confirmation) {
+  confirm(message: string, dialogType = DialogType.Confirmation): BehaviorSubject<ConfirmationType> {
     this.confirmed.next(ConfirmationType.Initial);
     this.message.next({
       message: message,
