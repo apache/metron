@@ -33,8 +33,11 @@ import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.apache.metron.parsers.topology.ParserComponent;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -78,6 +81,8 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
       return error != null;
     }
   }
+
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected transient Consumer<ParserRunnerResults> onSuccess;
   protected transient Consumer<MetronError> onError;
@@ -181,6 +186,7 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
    * @param parserConfigSupplier Parser configurations
    */
   private void initializeParsers(Supplier<ParserConfigurations> parserConfigSupplier) {
+    LOG.info("Initializing parsers...");
     sensorToParserComponentMap = new HashMap<>();
     for(String sensorType: sensorTypes) {
       if (parserConfigSupplier.get().getSensorParserConfig(sensorType) == null) {
@@ -189,6 +195,10 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
       }
 
       SensorParserConfig parserConfig = parserConfigSupplier.get().getSensorParserConfig(sensorType);
+
+      LOG.info("Creating parser for sensor {} with parser class = {} and filter class = {} ",
+              sensorType, parserConfig.getParserClassName(), parserConfig.getFilterClassName());
+
       // create message parser
       MessageParser<JSONObject> parser = ReflectionUtils
               .createInstance(parserConfig.getParserClassName());
@@ -202,6 +212,7 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
                 parserConfig.getParserConfig()
         );
       }
+
       parser.configure(parserConfig.getParserConfig());
       parser.init();
       sensorToParserComponentMap.put(sensorType, new ParserComponent(parser, filter));
