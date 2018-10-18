@@ -167,10 +167,14 @@ public class BulkWriterComponentTest {
     Throwable e = new Exception("test exception");
     MetronError expectedError1 = new MetronError()
             .withSensorType(Collections.singleton(sensorType))
-            .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Collections.singletonList(message1));
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+            .withThrowable(e)
+            .withRawMessages(Collections.singletonList(message1));
     MetronError expectedError2 = new MetronError()
             .withSensorType(Collections.singleton(sensorType))
-            .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Collections.singletonList(message2));
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+            .withThrowable(e)
+            .withRawMessages(Collections.singletonList(message2));
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllErrors(e, tupleList);
 
@@ -190,10 +194,14 @@ public class BulkWriterComponentTest {
     Throwable e = new Exception("test exception");
     MetronError error1 = new MetronError()
             .withSensorType(Collections.singleton("sensor1"))
-            .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Collections.singletonList(message1));
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+            .withThrowable(e)
+            .withRawMessages(Collections.singletonList(message1));
     MetronError error2 = new MetronError()
             .withSensorType(Collections.singleton("sensor2"))
-            .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Collections.singletonList(message2));
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+            .withThrowable(e)
+            .withRawMessages(Collections.singletonList(message2));
 
     BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(collector);
     bulkWriterComponent.write("sensor1", tuple1, message1, bulkMessageWriter, configurations, messageGetStrategy);

@@ -124,7 +124,7 @@ public class BulkWriterComponent<MESSAGE_T> {
               .withErrorType(Constants.ErrorType.INDEXING_ERROR)
               .withThrowable(e);
       error.addRawMessage(messageGetStrategy.get(t));
-      handleError(tuples, error);
+      handleError(Collections.singleton(t), error);
             });
 
   }
