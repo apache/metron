@@ -140,24 +140,24 @@ public class BulkWriterComponent<MESSAGE_T> {
    * <p>Without a valid message, the JSON message cannot be added to the error.
    *
    * @param e The exception that occurred.
-   * @param tuples The tuples to error that may not contain valid messages.
+   * @param tuple The tuple to error that may not contain a valid message.
    */
-  public void error(Throwable e, Iterable<Tuple> tuples) {
-    LOG.error(format("Failing %d tuple(s)", Iterables.size(tuples)), e);
+  public void error(Throwable e, Tuple tuple) {
+    LOG.error("Failing tuple", e);
     MetronError error = new MetronError()
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
             .withThrowable(e);
-    handleError(tuples, error);
+    handleError(tuple, error);
   }
 
   /**
    * Errors a set of tuples.
    *
-   * @param tuples The tuples to error.
+   * @param tuple The tuple to error.
    * @param error
    */
-  private void handleError(Iterable<Tuple> tuples, MetronError error) {
-    tuples.forEach(t -> collector.ack(t));
+  private void handleError(Tuple tuple, MetronError error) {
+    collector.ack(tuple);
     ErrorUtils.handleError(collector, error);
   }
 
