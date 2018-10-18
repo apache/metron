@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,11 +21,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.metron.common.Constants;
@@ -37,12 +37,10 @@ import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.MessageWriter;
+import org.apache.metron.parsers.ParserRunnerImpl;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
-import org.apache.metron.parsers.filters.Filters;
-import org.apache.metron.parsers.interfaces.MessageFilter;
-import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.topology.config.ValueSupplier;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
 import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
@@ -268,29 +266,14 @@ public class ParserTopologyBuilder {
                                               Optional<String> securityProtocol,
                                               ParserConfigurations configs,
                                               Optional<String> outputTopic) {
-
-    Map<String, ParserComponents> parserBoltConfigs = new HashMap<>();
+    Map<String, WriterHandler> writerConfigs = new HashMap<>();
     for( Entry<String, SensorParserConfig> entry : sensorTypeToParserConfig.entrySet()) {
       String sensorType = entry.getKey();
       SensorParserConfig parserConfig = entry.getValue();
-      // create message parser
-      MessageParser<JSONObject> parser = ReflectionUtils
-          .createInstance(parserConfig.getParserClassName());
-      parser.configure(parserConfig.getParserConfig());
-
-      // create message filter
-      MessageFilter<JSONObject> filter = null;
-      if (!StringUtils.isEmpty(parserConfig.getFilterClassName())) {
-        filter = Filters.get(
-            parserConfig.getFilterClassName(),
-            parserConfig.getParserConfig()
-        );
-      }
 
       // create a writer
       AbstractWriter writer;
       if (parserConfig.getWriterClassName() == null) {
-
         // if not configured, use a sensible default
         writer = createKafkaWriter(brokerUrl, zookeeperUrl, securityProtocol)
             .withTopic(outputTopic.orElse(Constants.ENRICHMENT_TOPIC));
@@ -304,16 +287,10 @@ public class ParserTopologyBuilder {
 
       // create a writer handler
       WriterHandler writerHandler = createWriterHandler(writer);
-
-      ParserComponents components = new ParserComponents(
-         parser,
-         filter,
-         writerHandler
-      );
-      parserBoltConfigs.put(sensorType, components);
+      writerConfigs.put(sensorType, writerHandler);
     }
 
-    return new ParserBolt(zookeeperUrl, parserBoltConfigs);
+    return new ParserBolt(zookeeperUrl, new ParserRunnerImpl(new HashSet<>(sensorTypeToParserConfig.keySet())), writerConfigs);
   }
 
   /**

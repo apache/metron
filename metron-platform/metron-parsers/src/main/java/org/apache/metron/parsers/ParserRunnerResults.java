@@ -15,11 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.parsers.interfaces;
+package org.apache.metron.parsers;
 
-import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.common.error.MetronError;
 
-public interface MessageFilter<T> extends Configurable{
+import java.util.List;
 
-	boolean emit(T message, Context context);
+/**
+ * Container for the results of parsing a message with a ParserRunner.
+ * @param <T> The type of a successfully parsed message.
+ */
+public interface ParserRunnerResults<T> {
+
+  List<T> getMessages();
+
+  List<MetronError> getErrors();
 }
