@@ -258,4 +258,9 @@ public class DateFunctionsTest {
   public void testDateFormatNull() {
     Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzz', nada, 'EST')");
   }
+
+  @Test(expected = ParseException.class)
+  public void testDateFormatInvalid() {
+    Object result = run("DATE_FORMAT('INVALID DATE FORMAT', epoch, 'EST')");
+  }
 }
