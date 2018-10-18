@@ -81,7 +81,7 @@ describe('MetronDialogComponent', () => {
 
   it('should execute cancel() when the cancel button is clicked', () => {
     dialogService.confirm('');
-    const cancelSpy = spyOn(component, 'cancel');
+    const cancelSpy = spyOn(component, 'cancel').and.callThrough();
     fixture.detectChanges();
 
     const cancelButton = fixture.nativeElement.querySelector(
@@ -89,11 +89,12 @@ describe('MetronDialogComponent', () => {
     );
     cancelButton.click();
     expect(cancelSpy).toHaveBeenCalled();
+    expect(component.showModal).toBe(false);
   });
 
   it('should execute confirm() when the ok button is clicked', () => {
     dialogService.confirm('');
-    const confirmSpy = spyOn(component, 'confirm');
+    const confirmSpy = spyOn(component, 'confirm').and.callThrough();
     fixture.detectChanges();
 
     const confirmButton = fixture.nativeElement.querySelector(
@@ -101,6 +102,7 @@ describe('MetronDialogComponent', () => {
     );
     confirmButton.click();
     expect(confirmSpy).toHaveBeenCalled();
+    expect(component.showModal).toBe(false);
   });
 
   it('should only display a cancel() button when the dialog type is Error', () => {
