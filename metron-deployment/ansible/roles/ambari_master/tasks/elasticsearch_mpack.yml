@@ -21,6 +21,6 @@
     dest: /tmp
 
 - name: Install Elasticsearch MPack on Ambari Host
-  shell: ambari-server install-mpack --mpack=/tmp/elasticsearch_mpack-{{ ambari_mpack_version }}.tar.gz
+  shell: "ambari-server install-mpack --mpack={{ elasticsearch_mpack_name }}"
   args:
-    creates: /var/lib/ambari-server/resources/mpacks/elasticsearch-ambari.mpack-{{ ambari_mpack_version }}/addon-services
+    creates: /var/lib/ambari-server/resources/mpacks/elasticsearch-ambari.mpack-{{ elasticsearch_mpack_version }}/addon-services
