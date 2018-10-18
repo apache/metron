@@ -87,13 +87,13 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
   protected transient Consumer<ParserRunnerResults> onSuccess;
   protected transient Consumer<MetronError> onError;
 
-  private HashSet<String> sensorTypes;
+  private Set<String> sensorTypes;
   private Map<String, ParserComponent> sensorToParserComponentMap;
 
   // Stellar variables
   private transient Context stellarContext;
 
-  public ParserRunnerImpl(HashSet<String> sensorTypes) {
+  public ParserRunnerImpl(Set<String> sensorTypes) {
     this.sensorTypes = sensorTypes;
   }
 
