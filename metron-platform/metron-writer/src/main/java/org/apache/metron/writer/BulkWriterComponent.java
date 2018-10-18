@@ -40,6 +40,7 @@ import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,10 +123,13 @@ public class BulkWriterComponent<MESSAGE_T> {
       MetronError error = new MetronError()
               .withSensorType(Collections.singleton(sensorType))
               .withErrorType(Constants.ErrorType.INDEXING_ERROR)
-              .withThrowable(e);
-      error.addRawMessage(messageGetStrategy.get(t));
-      handleError(Collections.singleton(t), error);
-            });
+              .withThrowable(e)
+              .addRawMessage(messageGetStrategy.get(t));
+      collector.emit(Constants.ERROR_STREAM, new Values(error.getJSONObject()));
+      collector.ack(t);
+    });
+    // there is only one error to report for all of the failed tuples
+    collector.reportError(e);
 
   }
 

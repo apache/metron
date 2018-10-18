@@ -18,10 +18,12 @@
 package org.apache.metron.writer;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -36,8 +38,10 @@ import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
@@ -142,9 +146,14 @@ public class BulkWriterComponentTest {
     bulkWriterComponent.write(sensorType, tuple1, message1, bulkMessageWriter, configurations, messageGetStrategy);
     bulkWriterComponent.write(sensorType, tuple2, message2, bulkMessageWriter, configurations, messageGetStrategy);
 
-    verifyStatic(times(1));
-    ErrorUtils.handleError(collector, expectedError1);
-    ErrorUtils.handleError(collector, expectedError2);
+    verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
+            new Values(argThat(new MetronErrorJSONMatcher(expectedError1.getJSONObject()))));
+    verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
+            new Values(argThat(new MetronErrorJSONMatcher(expectedError2.getJSONObject()))));
+    verify(collector, times(1)).ack(tuple1);
+    verify(collector, times(1)).ack(tuple2);
+    verify(collector, times(1)).reportError(e);
+    verifyNoMoreInteractions(collector);
   }
 
   @Test
@@ -184,9 +193,14 @@ public class BulkWriterComponentTest {
     bulkWriterComponent.write(sensorType, tuple1, message1, bulkMessageWriter, configurations, messageGetStrategy);
     bulkWriterComponent.write(sensorType, tuple2, message2, bulkMessageWriter, configurations, messageGetStrategy);
 
-    verifyStatic(times(1));
-    ErrorUtils.handleError(collector, expectedError1);
-    ErrorUtils.handleError(collector, expectedError2);
+    verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
+            new Values(argThat(new MetronErrorJSONMatcher(expectedError1.getJSONObject()))));
+    verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
+            new Values(argThat(new MetronErrorJSONMatcher(expectedError2.getJSONObject()))));
+    verify(collector, times(1)).ack(tuple1);
+    verify(collector, times(1)).ack(tuple2);
+    verify(collector, times(1)).reportError(e);
+    verifyNoMoreInteractions(collector);
   }
 
   @Test
@@ -208,9 +222,14 @@ public class BulkWriterComponentTest {
     bulkWriterComponent.write("sensor2", tuple2, message2, bulkMessageWriter, configurations, messageGetStrategy);
     bulkWriterComponent.errorAll(e, messageGetStrategy);
 
-    verifyStatic(times(1));
-    ErrorUtils.handleError(collector, error1);
-    ErrorUtils.handleError(collector, error2);
+    verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
+            new Values(argThat(new MetronErrorJSONMatcher(error1.getJSONObject()))));
+    verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
+            new Values(argThat(new MetronErrorJSONMatcher(error2.getJSONObject()))));
+    verify(collector, times(1)).ack(tuple1);
+    verify(collector, times(1)).ack(tuple2);
+    verify(collector, times(2)).reportError(e);
+    verifyNoMoreInteractions(collector);
 
     bulkWriterComponent.write("sensor1", tuple1, message1, bulkMessageWriter, configurations, messageGetStrategy);
     verify(bulkMessageWriter, times(0)).write(sensorType, configurations, Collections.singletonList(tuple1), Collections.singletonList(message1));
