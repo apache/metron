@@ -20,7 +20,7 @@ package org.apache.metron.elasticsearch.dao;
 
 import static org.mockito.Mockito.mock;
 
-import org.apache.metron.elasticsearch.utils.ElasticsearchClient;
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.UpdateDaoTest;
 import org.apache.metron.indexing.dao.update.UpdateDao;

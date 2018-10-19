@@ -23,62 +23,54 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.text.SimpleDateFormat;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.utils.HDFSUtils;
-import org.apache.metron.common.utils.ReflectionUtils;
-import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.elasticsearch.config.ElasticsearchClientConfig;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
-import org.apache.metron.netty.utils.NettyRuntimeWrapper;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.bytes.BytesReference;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.query.QuerySearchRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ElasticsearchUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String ES_CLIENT_CLASS_DEFAULT = "org.elasticsearch.transport.client.PreBuiltTransportClient";
-  private static final String PWD_FILE_CONFIG_KEY = "es.xpack.password.file";
-  private static final String USERNAME_CONFIG_KEY = "es.xpack.username";
-  private static final String TRANSPORT_CLIENT_USER_KEY = "xpack.security.user";
-
-
   private static ThreadLocal<Map<String, SimpleDateFormat>> DATE_FORMAT_CACHE
           = ThreadLocal.withInitial(() -> new HashMap<>());
 
@@ -137,143 +129,146 @@ public class ElasticsearchUtils {
   }
 
   /**
-   * Instantiates an Elasticsearch client based on es.client.class, if set. Defaults to
-   * org.elasticsearch.transport.client.PreBuiltTransportClient.
+   * Instantiates an Elasticsearch client
    *
    * @param globalConfiguration Metron global config
-   * @return
+   * @return new es client
    */
   public static ElasticsearchClient getClient(Map<String, Object> globalConfiguration) {
-    Map<String, String> esSettings = getEsSettings(globalConfiguration);
-    Optional<Map.Entry<String, String>> credentials = getCredentials(esSettings);
-    Set<String> customESSettings = new HashSet<>();
+    ElasticsearchClientConfig esClientConfig = new ElasticsearchClientConfig(getEsSettings(globalConfiguration));
 
+    String scheme = esClientConfig.isSSLEnabled() ? "https" : "http";
+    RestClientBuilder builder = getRestClientBuilder(globalConfiguration, scheme);
 
-    RestClientBuilder builder = null;
-    List<HostnamePort> hps = getIps(globalConfiguration);
-    {
-      HttpHost[] posts = new HttpHost[hps.size()];
-      int i = 0;
-      for (HostnamePort hp : hps) {
-        posts[i++] = new HttpHost(hp.hostname, hp.port);
-      }
-      builder = RestClient.builder(posts);
-    }
-    if(credentials.isPresent()) {
-      final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-      credentialsProvider.setCredentials(AuthScope.ANY,
-              new UsernamePasswordCredentials(credentials.get().getKey(), credentials.get().getValue()));
-      builder = builder.setHttpClientConfigCallback(
-              httpAsyncClientBuilder -> httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
-      );
-    }
+    RestClientBuilder.RequestConfigCallback reqCallback = reqConfigBuilder -> {
+      setupConnectionTimeouts(reqConfigBuilder, esClientConfig);
+      return reqConfigBuilder;
+    };
+    builder.setRequestConfigCallback(reqCallback);
+    builder.setMaxRetryTimeoutMillis(esClientConfig.getMaxRetryTimeoutMillis());
+
+    RestClientBuilder.HttpClientConfigCallback httpClientConfigCallback = clientBuilder -> {
+      setupNumConnectionThreads(clientBuilder, esClientConfig);
+      setupAuthentication(clientBuilder, esClientConfig);
+      setupConnectionEncryption(clientBuilder, esClientConfig);
+      return clientBuilder;
+    };
+    builder.setHttpClientConfigCallback(httpClientConfigCallback);
+
     RestClient lowLevelClient = builder.build();
     RestHighLevelClient client = new RestHighLevelClient(lowLevelClient);
     return new ElasticsearchClient(lowLevelClient, client);
-
-    /*customESSettings.addAll(Arrays.asList("es.client.class", USERNAME_CONFIG_KEY, PWD_FILE_CONFIG_KEY));
-    Settings.Builder settingsBuilder = Settings.builder();
-    for (Map.Entry<String, String> entry : esSettings.entrySet()) {
-      String key = entry.getKey();
-      String value = entry.getValue();
-      if (!customESSettings.contains(key)) {
-        settingsBuilder.put(key, value);
-      }
-    }
-    settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
-    settingsBuilder.put("client.transport.ping_timeout", esSettings.getOrDefault("client.transport.ping_timeout","500s"));
-    setXPackSecurityOrNone(settingsBuilder, esSettings);
-
-    try {
-      LOG.info("Number of available processors in Netty: {}", NettyRuntimeWrapper.availableProcessors());
-      // Netty sets available processors statically and if an attempt is made to set it more than
-      // once an IllegalStateException is thrown by NettyRuntime.setAvailableProcessors(NettyRuntime.java:87)
-      // https://discuss.elastic.co/t/getting-availableprocessors-is-already-set-to-1-rejecting-1-illegalstateexception-exception/103082
-      // https://discuss.elastic.co/t/elasticsearch-5-4-1-availableprocessors-is-already-set/88036
-      System.setProperty("es.set.netty.runtime.available.processors", "false");
-      TransportClient client = createTransportClient(settingsBuilder.build(), esSettings);
-      for (HostnamePort hp : getIps(globalConfiguration)) {
-        client.addTransportAddress(
-                new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
-        );
-      }
-      return client;
-    } catch (UnknownHostException exception) {
-      throw new RuntimeException(exception);
-    }*/
   }
 
-  private static Map<String, String> getEsSettings(Map<String, Object> config) {
-    return ConversionUtils
-        .convertMap((Map<String, Object>) config.getOrDefault("es.client.settings", new HashMap<String, Object>()),
-            String.class);
+  private static Map<String, Object> getEsSettings(Map<String, Object> globalConfig) {
+    return (Map<String, Object>) globalConfig.getOrDefault("es.client.settings", new HashMap<String, Object>());
   }
 
-  private static Optional<Map.Entry<String, String>> getCredentials(Map<String, String> esSettings) {
-    Optional<Map.Entry<String, String>> ret = Optional.empty();
-    if (esSettings.containsKey(PWD_FILE_CONFIG_KEY)) {
-
-      if (!esSettings.containsKey(USERNAME_CONFIG_KEY) || StringUtils.isEmpty(esSettings.get(USERNAME_CONFIG_KEY))) {
-        throw new IllegalArgumentException("X-pack username is required and cannot be empty");
-      }
-      String user = esSettings.get(USERNAME_CONFIG_KEY);
-      String password = esSettings.containsKey(PWD_FILE_CONFIG_KEY)?esSettings.get(getPasswordFromFile(esSettings.get(PWD_FILE_CONFIG_KEY))):null;
-      if(user != null && password != null) {
-        return Optional.of(new AbstractMap.SimpleImmutableEntry<String, String>(user, password));
-      }
+  private static RestClientBuilder getRestClientBuilder(Map<String, Object> globalConfiguration,
+      String scheme) {
+    List<HostnamePort> hps = getIps(globalConfiguration);
+    HttpHost[] posts = new HttpHost[hps.size()];
+    int i = 0;
+    for (HostnamePort hp : hps) {
+      posts[i++] = new HttpHost(hp.hostname, hp.port, scheme);
     }
-    return ret;
-  }
-
-  /*
-   * Append Xpack security settings (if any)
-   */
-  private static void setXPackSecurityOrNone(Settings.Builder settingsBuilder, Map<String, String> esSettings) {
-
-    if (esSettings.containsKey(PWD_FILE_CONFIG_KEY)) {
-
-      if (!esSettings.containsKey(USERNAME_CONFIG_KEY) || StringUtils.isEmpty(esSettings.get(USERNAME_CONFIG_KEY))) {
-        throw new IllegalArgumentException("X-pack username is required and cannot be empty");
-      }
-
-      settingsBuilder.put(
-         TRANSPORT_CLIENT_USER_KEY,
-         esSettings.get(USERNAME_CONFIG_KEY) + ":" + getPasswordFromFile(esSettings.get(PWD_FILE_CONFIG_KEY))
-      );
-    }
-  }
-
-  /*
-   * Single password on first line
-   */
-  private static String getPasswordFromFile(String hdfsPath) {
-    List<String> lines = null;
-    try {
-      lines = HDFSUtils.readFile(hdfsPath);
-    } catch (IOException e) {
-      throw new IllegalArgumentException(
-          format("Unable to read XPack password file from HDFS location '%s'", hdfsPath), e);
-    }
-    if (lines.size() == 0) {
-      throw new IllegalArgumentException(format("No password found in file '%s'", hdfsPath));
-    }
-    return lines.get(0);
+    return RestClient.builder(posts);
   }
 
   /**
-   * Constructs ES transport client from the provided ES settings additional es config
+   * Modifies request config builder with connection and socket timeouts.
+   * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_timeouts.html
    *
-   * @param settings client settings
-   * @param esSettings client type to instantiate
-   * @return client with provided settings
+   * @param reqConfigBuilder builder to modify
+   * @param esClientConfig pull timeout settings from this config
    */
-  private static TransportClient createTransportClient(Settings settings,
-      Map<String, String> esSettings) {
-    String esClientClassName = (String) esSettings
-        .getOrDefault("es.client.class", ES_CLIENT_CLASS_DEFAULT);
-    return ReflectionUtils
-        .createInstance(esClientClassName, new Class[]{Settings.class, Class[].class},
-            new Object[]{settings, new Class[0]});
+  private static void setupConnectionTimeouts(Builder reqConfigBuilder,
+      ElasticsearchClientConfig esClientConfig) {
+    reqConfigBuilder.setConnectTimeout(esClientConfig.getConnectTimeoutMillis());
+    reqConfigBuilder.setSocketTimeout(esClientConfig.getSocketTimeoutMillis());
+  }
+
+  /**
+   * Modifies client builder with setting for num connection threads. Default is ES client default,
+   * which is 1 to num processors per the documentation.
+   * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_number_of_threads.html
+   *
+   * @param clientBuilder builder to modify
+   * @param esClientConfig pull num threads property from config
+   */
+  private static void setupNumConnectionThreads(HttpAsyncClientBuilder clientBuilder,
+      ElasticsearchClientConfig esClientConfig) {
+    if (esClientConfig.getNumClientConnectionThreads().isPresent()) {
+      Integer numThreads = esClientConfig.getNumClientConnectionThreads().get();
+      LOG.info("Setting number of client connection threads: {}", numThreads);
+      clientBuilder.setDefaultIOReactorConfig(IOReactorConfig.custom()
+          .setIoThreadCount(numThreads).build());
+    }
+  }
+
+  /**
+   * Modifies client builder with settings for authentication with X-Pack.
+   * Note, we do not expose the ability to disable preemptive authentication.
+   * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_basic_authentication.html
+   *
+   * @param clientBuilder builder to modify
+   * @param esClientConfig pull credentials property from config
+   */
+  private static void setupAuthentication(HttpAsyncClientBuilder clientBuilder, ElasticsearchClientConfig esClientConfig) {
+    Optional<Entry<String, String>> credentials = esClientConfig.getCredentials();
+    if (credentials.isPresent()) {
+      LOG.info(
+          "Found auth credentials - setting up user/pass authenticated client connection for ES.");
+      final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+      UsernamePasswordCredentials upcredentials = new UsernamePasswordCredentials(
+          credentials.get().getKey(), credentials.get().getValue());
+      credentialsProvider.setCredentials(AuthScope.ANY, upcredentials);
+      clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+    } else {
+      LOG.info(
+          "Elasticsearch client credentials not provided. Defaulting to non-authenticated client connection.");
+    }
+  }
+
+  /**
+   * Modify client builder with connection encryption details (SSL) if applicable.
+   * If ssl.enabled=true, sets up SSL connection. If enabled, keystore.path is required. User can
+   * also optionally set keystore.password and keystore.type.
+   * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_encrypted_communication.html
+   *
+   * @param clientBuilder builder to modify
+   * @param esClientConfig pull connection encryption details from config
+   */
+  private static void setupConnectionEncryption(HttpAsyncClientBuilder clientBuilder,
+      ElasticsearchClientConfig esClientConfig) {
+    if (esClientConfig.isSSLEnabled()) {
+      LOG.info("Configuring client for SSL connection.");
+      if (!esClientConfig.getKeyStorePath().isPresent()) {
+        throw new IllegalStateException("KeyStore path must be provided for SSL connection.");
+      }
+      KeyStore truststore;
+      try {
+        truststore = KeyStore.getInstance(esClientConfig.getKeyStoreType());
+      } catch (KeyStoreException e) {
+        throw new IllegalStateException(
+            "Unable to get keystore type '" + esClientConfig.getKeyStoreType() + "'", e);
+      }
+      Optional<String> optKeyStorePass = esClientConfig.getKeyStorePassword();
+      char[] keyStorePass = optKeyStorePass.map(String::toCharArray).orElse(null);
+      try (InputStream is = Files.newInputStream(esClientConfig.getKeyStorePath().get())) {
+        truststore.load(is, keyStorePass);
+      } catch (IOException | NoSuchAlgorithmException | CertificateException e) {
+        throw new IllegalStateException(
+            "Unable to load keystore from path '" + esClientConfig.getKeyStorePath().get() + "'",
+            e);
+      }
+      try {
+        SSLContextBuilder sslBuilder = SSLContexts.custom().loadTrustMaterial(truststore, null);
+        clientBuilder.setSSLContext(sslBuilder.build());
+      } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+        throw new IllegalStateException("Unable to load truststore.", e);
+      }
+    }
   }
 
   public static class HostnamePort {
