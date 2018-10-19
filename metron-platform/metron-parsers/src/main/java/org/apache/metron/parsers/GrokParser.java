@@ -29,7 +29,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
-import org.apache.metron.parsers.interfaces.MultilineMessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +53,7 @@ import java.util.Optional;
 import java.util.TimeZone;
 
 
-public class GrokParser implements MultilineMessageParser<JSONObject>, Serializable {
+public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

@@ -20,12 +20,10 @@ package org.apache.metron.rest.service.impl;
 import static org.apache.metron.rest.MetronRestConstants.GROK_CLASS_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.configuration.ConfigurationType;
@@ -35,18 +33,14 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
-import org.apache.metron.parsers.interfaces.MultilineMessageParser;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.metron.rest.util.ParserIndex;
-import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
-import org.reflections.Reflections;
-import org.reflections.util.ConfigurationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -141,53 +135,13 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     } else if (sensorParserConfig.getParserClassName() == null) {
       throw new RestException("SensorParserConfig must have a parserClassName");
     } else {
-      MultilineMessageParser<JSONObject> parser;
-      Object parserObject;
+      MessageParser<JSONObject> parser;
       try {
-        parserObject = Class.forName(sensorParserConfig.getParserClassName())
+        parser = (MessageParser<JSONObject>) Class.forName(sensorParserConfig.getParserClassName())
             .newInstance();
       } catch (Exception e) {
         throw new RestException(e.toString(), e.getCause());
       }
-
-      if (!(parserObject instanceof MultilineMessageParser)) {
-        parser = new MultilineMessageParser<JSONObject>() {
-
-          @Override
-          @SuppressWarnings("unchecked")
-          public void configure(Map<String, Object> config)  {
-            ((MessageParser<JSONObject>)parserObject).configure(config);
-          }
-
-          @Override
-          @SuppressWarnings("unchecked")
-          public void init() {
-            ((MessageParser<JSONObject>)parserObject).init();
-          }
-
-          @Override
-          @SuppressWarnings("unchecked")
-          public boolean validate(JSONObject message) {
-            return ((MessageParser<JSONObject>)parserObject).validate(message);
-          }
-
-          @Override
-          @SuppressWarnings("unchecked")
-          public List<JSONObject> parse(byte[] message) {
-            return ((MessageParser<JSONObject>)parserObject).parse(message);
-          }
-
-          @Override
-          @SuppressWarnings("unchecked")
-          public Optional<List<JSONObject>> parseOptional(byte[] message) {
-            return ((MessageParser<JSONObject>)parserObject).parseOptional(message);
-          }
-        };
-      } else {
-        parser = (MultilineMessageParser<JSONObject>)parserObject;
-      }
-
-
       Path temporaryGrokPath = null;
       if (isGrokConfig(sensorParserConfig)) {
         String name = parseMessageRequest.getSensorParserConfig().getSensorTopic();
@@ -195,7 +149,6 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
         sensorParserConfig.getParserConfig()
             .put(MetronRestConstants.GROK_PATH_KEY, new Path(temporaryGrokPath, name).toString());
       }
-
       parser.configure(sensorParserConfig.getParserConfig());
       parser.init();
 
