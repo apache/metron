@@ -33,6 +33,7 @@ import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
 import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {GlobalConfigService} from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
+import { ConfirmationType } from 'app/model/confirmation-type';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -250,7 +251,7 @@ export class AlertDetailsComponent implements OnInit {
     }
 
     const confirmedSubscription = this.dialogService.confirm(commentText).subscribe(r => {
-      if (r === 'Confirmed') {
+      if (r === ConfirmationType.Confirmed) {
         let deletedCommentWrapper = this.alertCommentsWrapper.splice(index, 1)[0];
         let commentRequest = new CommentAddRemoveRequest();
         commentRequest.guid = this.alertSource.guid;

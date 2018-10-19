@@ -21,6 +21,7 @@ import {Router} from '@angular/router';
 import {SaveSearchService} from '../../service/save-search.service';
 import {SaveSearch} from '../../model/save-search';
 import { DialogService } from 'app/service/dialog.service';
+import { ConfirmationType } from 'app/model/confirmation-type';
 
 @Component({
   selector: 'app-save-search',
@@ -69,7 +70,7 @@ export class SaveSearchComponent implements OnInit {
   update() {
     let message = 'A Search with the name \'' + this.saveSearch.name + '\' already exist do you wish to override it?';
     const confirmedSubscription = this.dialogService.confirm(message).subscribe(r => {
-      if (r === 'Confirmed') {
+      if (r === ConfirmationType.Confirmed) {
         this.saveSearch.searchRequest = this.saveSearchService.queryBuilder.searchRequest;
         this.saveSearchService.updateSearch(this.saveSearch).subscribe(() => { this.goBack(); }, error => {});
       }

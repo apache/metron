@@ -25,6 +25,7 @@ import {SaveSearch} from '../../model/save-search';
 import {NUM_SAVED_SEARCH} from '../../utils/constants';
 import {CollapseComponentData, CollapseComponentDataItems} from '../../shared/collapse/collapse-component-data';
 import { DialogService } from 'app/service/dialog.service';
+import { ConfirmationType } from 'app/model/confirmation-type';
 
 @Component({
   selector: 'app-saved-searches',
@@ -63,7 +64,7 @@ export class SavedSearchesComponent implements OnInit {
   deleteRecentSearch($event) {
     let selectedSearch = this.recentSearcheObj.find(savedSearch => savedSearch.name === $event.key);
     const confirmedSubscription = this.dialogService.confirm('Do you wish to delete recent search ' + selectedSearch.name).subscribe(r => {
-      if (r === 'Confirmed') {
+      if (r === ConfirmationType.Confirmed) {
         this.doDeleteRecentSearch(selectedSearch);
       }
       if (r !== 'Initial') {
@@ -75,7 +76,7 @@ export class SavedSearchesComponent implements OnInit {
   deleteSearch($event) {
     let selectedSearch = this.searches.find(savedSearch => savedSearch.name === $event.key);
     const confirmedSubscription = this.dialogService.confirm('Do you wish to delete saved search ' + selectedSearch.name).subscribe(r => {
-      if (r === 'Confirmed') {
+      if (r === ConfirmationType.Confirmed) {
         this.doDeleteSearch(selectedSearch);
       }
       if (r !== 'Initial') {

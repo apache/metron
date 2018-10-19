@@ -38,6 +38,7 @@ import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { DialogService } from '../../../service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
+import { ConfirmationType } from 'app/model/confirmation-type';
 
 @Component({
   selector: 'app-tree-view',
@@ -424,7 +425,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
       let confirmationMsg = 'Do you wish to create a meta alert with ' +
                             (group.total === 1 ? ' alert' : group.total + ' selected alerts') + '?';
       const confirmedSubscription = this.dialogService.confirm(confirmationMsg).subscribe(r => {
-        if (r === 'Confirmed') {
+        if (r === ConfirmationType.Confirmed) {
           this.doCreateMetaAlert(group, index);
         }
         if (r !== 'Initial') {

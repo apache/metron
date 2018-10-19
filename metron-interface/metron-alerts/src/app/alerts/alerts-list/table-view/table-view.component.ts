@@ -34,6 +34,7 @@ import {MetaAlertAddRemoveRequest} from '../../../model/meta-alert-add-remove-re
 import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { DialogService } from '../../../service/dialog.service';
+import { ConfirmationType } from 'app/model/confirmation-type';
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -260,7 +261,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
   deleteOneAlertFromMetaAlert($event, alert: Alert, metaAlertIndex: number) {
     const confirmedSubscription = this.dialogService.confirm('Do you wish to remove the alert from the meta alert?').subscribe(r => {
-      if (r === 'Confirmed') {
+      if (r === ConfirmationType.Confirmed) {
         this.doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex);
       }
       if (r !== 'Initial') {
@@ -272,7 +273,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
   deleteMetaAlert($event, alert: Alert) {
     const confirmedSubscription = this.dialogService.confirm('Do you wish to remove all the alerts from meta alert?').subscribe(r => {
-      if (r === 'Confirmed') {
+      if (r === ConfirmationType.Confirmed) {
         this.doDeleteMetaAlert(alert);
       }
       if (r !== 'Initial') {
