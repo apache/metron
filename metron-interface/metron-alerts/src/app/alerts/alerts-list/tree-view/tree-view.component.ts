@@ -423,7 +423,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     if (this.canCreateMetaAlert(group.total)) {
       let confirmationMsg = 'Do you wish to create a meta alert with ' +
                             (group.total === 1 ? ' alert' : group.total + ' selected alerts') + '?';
-      let confirmedSubscription = this.dialogService.confirm(confirmationMsg).subscribe(r => {
+      const confirmedSubscription = this.dialogService.confirm(confirmationMsg).subscribe(r => {
         if (r === 'Confirmed') {
           this.doCreateMetaAlert(group, index);
         }

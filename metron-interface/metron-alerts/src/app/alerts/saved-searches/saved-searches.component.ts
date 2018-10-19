@@ -62,7 +62,7 @@ export class SavedSearchesComponent implements OnInit {
 
   deleteRecentSearch($event) {
     let selectedSearch = this.recentSearcheObj.find(savedSearch => savedSearch.name === $event.key);
-    let confirmedSubscription = this.dialogService.confirm('Do you wish to delete recent search ' + selectedSearch.name).subscribe(r => {
+    const confirmedSubscription = this.dialogService.confirm('Do you wish to delete recent search ' + selectedSearch.name).subscribe(r => {
       if (r === 'Confirmed') {
         this.doDeleteRecentSearch(selectedSearch);
       }
@@ -74,7 +74,7 @@ export class SavedSearchesComponent implements OnInit {
 
   deleteSearch($event) {
     let selectedSearch = this.searches.find(savedSearch => savedSearch.name === $event.key);
-    let confirmedSubscription = this.dialogService.confirm('Do you wish to delete saved search ' + selectedSearch.name).subscribe(r => {
+    const confirmedSubscription = this.dialogService.confirm('Do you wish to delete saved search ' + selectedSearch.name).subscribe(r => {
       if (r === 'Confirmed') {
         this.doDeleteSearch(selectedSearch);
       }

@@ -249,7 +249,7 @@ export class AlertDetailsComponent implements OnInit {
       commentText += ' \'' + this.alertCommentsWrapper[index].alertComment.comment + '\'';
     }
 
-    let confirmedSubscription = this.dialogService.confirm(commentText).subscribe(r => {
+    const confirmedSubscription = this.dialogService.confirm(commentText).subscribe(r => {
       if (r === 'Confirmed') {
         let deletedCommentWrapper = this.alertCommentsWrapper.splice(index, 1)[0];
         let commentRequest = new CommentAddRemoveRequest();
