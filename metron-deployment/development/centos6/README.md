@@ -97,8 +97,18 @@ In addition to re-running the entire provisioning play book, you may now re-run 
 vagrant --ansible-tags="sensor-stubs" provision
 ```
 
-Tags are listed in the playbooks, some frequently used tags:
+Tags are listed in the playbooks.  Here are some frequently used tags:
 + `hdp-install` - Install HDP
 + `hdp-deploy` - Deploy and Start HDP Services (will start all Hadoop Services)
-+ `sensors` - Deploy and start the sensors.
++ `sensors` - Deploy the sensors.\*
 + `sensor-stubs` - Deploy and start the sensor stubs.
+
+\* In order to start the bro, yaf, and snort sensors, and send traffic through them (via the `pcap-replay` service) you will need to do the following after your `provision` command is complete:
+```
+vagrant ssh
+sudo su -
+service pcap-replay restart
+service yaf restart
+service snortd restart
+service snort-producer restart
+```
