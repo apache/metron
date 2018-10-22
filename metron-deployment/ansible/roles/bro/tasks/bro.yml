@@ -30,8 +30,8 @@
 - name: Compile and Install bro
   shell: "{{ item }}"
   environment:
-    CXX: /opt/rh/devtoolset-4/root/usr/bin/g++
-    CC: /opt/rh/devtoolset-4/root/usr/bin/gcc
+    CXX: /opt/rh/devtoolset-6/root/usr/bin/g++
+    CC: /opt/rh/devtoolset-6/root/usr/bin/gcc
   args:
     chdir: "/tmp/bro-{{ bro_version }}"
     creates: "{{ bro_home }}/bin/bro"

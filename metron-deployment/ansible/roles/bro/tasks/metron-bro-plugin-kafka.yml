@@ -30,8 +30,8 @@
   environment:
     PATH: "{{ git29_bin }}:{{ bro_bin }}:{{ ansible_env.PATH }}"
     LD_LIBRARY_PATH: "{{ httpd24_lib }}:{{ python27_lib }}"
-    CXX: /opt/rh/devtoolset-4/root/usr/bin/g++
-    CC: /opt/rh/devtoolset-4/root/usr/bin/gcc
+    CXX: /opt/rh/devtoolset-6/root/usr/bin/g++
+    CC: /opt/rh/devtoolset-6/root/usr/bin/gcc
   command: "{{ python27_bin }}/bro-pkg install apache/metron-bro-plugin-kafka --force --version {{ metron_bro_plugin_kafka_version }}"
 
 - name: Configure bro-kafka plugin
