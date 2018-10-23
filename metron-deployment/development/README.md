@@ -27,3 +27,24 @@ This directory contains environments useful for Metron developers.  These enviro
 ## Vagrant Cachier recommendations
 
 The development boxes are designed to be spun up and destroyed on a regular basis as part of the development cycle. In order to avoid the overhead of re-downloading many of the heavy platform dependencies, Vagrant can use the [vagrant-cachier](http://fgrehm.viewdocs.io/vagrant-cachier/) plugin to store package caches between builds. If the plugin has been installed to your vagrant it will be used, and packages will be cached in ~/.vagrant/cache.
+
+## Knox Demo LDAP
+
+The development environment can be set up to authenticate against Knox's demo LDAP.
+
+A couple notes
+* A custom LDIF file is used to setup users. This is to get the roles and passwords setup correctly.
+* The demo LDAP uses plaintext passwords with no encryption prefix (e.g. {SSHA}). Spring expects this prefix to be present, so the LDIF file manually prepends {noop} in order to meet this expectation. This also is used in the password setup in Ambari. During authentication at login pages, this prefix does NOT need to be provided.
+* You may need or want to shut down any or all of the topologies. This is optional, but clears some room
+
+To setup this up, start full dev.
+* In Ambari, add the Knox service (Actions -> +Add Service).  Accept all defaults and let it install
+* In the Knox configuration, go to "Advanced users-ldif". We have a custom ldif file "knox-demo-ldap.ldif" in "metron-deployment/development" that contains a customized variant of the users and groups defined here. Replace the default ldif configuration with the contents of "knox-demo-ldap.ldif"
+* Start the Demo LDAP (In Knox, "Service Actions -> Start Demo LDAP)
+* In Metron's configs, we're going to make two changes
+  * In REST, alter "Active Spring profiles" to include LDAP (e.g. "dev,ldap"). This will signal that we are using LDAP instead of JDBC.
+  * In Security, set "Bind user password" to match the admin user's password from the ldif file ({noop}admin-password). Again, note that we have the prefix for the purpose of the demo LDAP.
+* Restart the REST application
+
+Now, when you go to Swagger or the UIs, you should be able to give a user and password. The "{noop}" prefix can be omitted now (Spring handles the encoding appropriately at this point).
+"admin" will have the roles ROLE_ADMIN and ROLE_USER, which can be verified via the "/whoami/roles" endpoint in Swagger. Similarly, there is a user "sam" that only has ROLE_USER. A third user, "tom" has neither role.

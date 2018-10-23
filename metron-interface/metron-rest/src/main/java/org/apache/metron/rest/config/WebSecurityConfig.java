@@ -39,7 +39,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.stereotype.Controller;
@@ -114,18 +113,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-//    @Autowired
-//    private LdapAuthoritiesPopulator authoritiesPopulator;
-
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
         // Note that we can switch profiles on the fly in Ambari.
         List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
         if (activeProfiles.contains(MetronRestConstants.LDAP_PROFILE)) {
-//            DefaultLdapAuthoritiesPopulator ldapAuthoritiesPopulator =
-//                new DefaultLdapAuthoritiesPopulator(contextSource, ldapGroupSearchBase);
-//            ldapAuthoritiesPopulator.setGroupRoleAttribute(ldapGroupRoleAttribute);
-//            ldapAuthoritiesPopulator.setGroupSearchFilter(ldapGroupSearchFilter);
             LOG.debug("Setting up LDAP authentication against {}.", providerUrl);
             auth.ldapAuthentication()
                 .userDnPatterns(userDnPatterns)
@@ -134,7 +126,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .groupRoleAttribute(groupRoleAttribute)
                 .groupSearchFilter(groupSearchFilter)
                 .groupSearchBase(groupSearchBase)
-//                .ldapAuthoritiesPopulator(authoritiesPopulator)
                 .contextSource()
                 .url(providerUrl)
                 .managerDn(providerUserDn)

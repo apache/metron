@@ -105,8 +105,9 @@
   </property>
   <property>
     <name>metron.ldap.group.roleattribute</name>
+    <display-name>LDAP group role attribute.</display-name>
     <value>cn</value>
-    <description>LDAP group role attribute</description>
+    <description>The LDAP group attribute to be used for determining roles</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
