@@ -279,6 +279,8 @@ metron_ldap_user_searchfilter = config['configurations']['metron-security-env'][
 metron_ldap_group_searchbase = config['configurations']['metron-security-env']['metron.ldap.group.searchbase']
 metron_ldap_group_searchfilter = config['configurations']['metron-security-env']['metron.ldap.group.searchfilter']
 metron_ldap_group_role = config['configurations']['metron-security-env']['metron.ldap.group.roleattribute']
+metron_ldap_ssl_truststore = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore']
+metron_ldap_ssl_truststore_password = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore.password']
 metron_ldap = metron_ldap_url != ""
 
 # Management UI

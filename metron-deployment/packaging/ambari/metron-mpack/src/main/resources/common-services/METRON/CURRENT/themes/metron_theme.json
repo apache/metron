@@ -1626,6 +1626,18 @@
         }
       },
       {
+        "config": "metron-security-env/metron.ldap.ssl.truststore",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.ldap.ssl.truststore.password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
         "config": "metron-security-env/metron.ldap.user.dnpattern",
         "widget": {
           "type": "text-field"
