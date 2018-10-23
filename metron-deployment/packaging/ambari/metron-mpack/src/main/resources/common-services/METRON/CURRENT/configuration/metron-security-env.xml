@@ -21,7 +21,7 @@
   <property>
     <name>metron.ldap.url</name>
     <display-name>LDAP URL</display-name>
-    <value>ldap://localhost:33369</value>
+    <value>ldap://localhost:33389</value>
     <description>LDAP Server URL</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -116,7 +116,7 @@
     <name>metron.ldap.bind.dn</name>
     <display-name>Bind User</display-name>
     <value>uid=admin,ou=people,dc=hadoop,dc=apache,dc=org</value>
-    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. </description>
+    <description>Full distinguished name (DN), of an LDAP user account that has privileges to search for users. </description>
     <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
