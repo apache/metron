@@ -33,9 +33,10 @@ BRO_PLUGIN_UPSTREAM="https://git-wip-us.apache.org/repos/asf/${BRO_PLUGIN_REPO_N
 
 DEV_REPO="https://dist.apache.org/repos/dist/dev/metron"
 RELEASE_REPO=" https://dist.apache.org/repos/dist/release/metron"
-PLUGIN_GIT_REPO="https://git-wip-us.apache.org/repos/asf/metron-bro-plugin-kafka.git"
+PLUGIN_GIT_REPO="https://git-wip-us.apache.org/repos/asf/${BRO_PLUGIN_REPO_NAME}.git"
 
 RC_PREFIX=rc
+UPPER_RC_PREFIX="$(tr '[:lower:]' '[:upper:]' <<< ${RC_PREFIX})"
 TAG_POSTFIX="-release"
 
 CONFIG_FILE=~/.metron-prepare-release-candidate
@@ -223,33 +224,29 @@ if [ "${PRACTICE_RUN}" = true ]; then
   printf "This is a practice run. Not running <git push --set-upstream origin %s_%s>\n" "${CAPITAL_REPO}" "$VERSION"
 else
   printf "Pushing branch %s_%s\n" "${CAPITAL_REPO}" "$VERSION"
-  git push --set-upstream origin "${BRANCH_PREFIX}_${BRANCH_VERSION}"
+  git push --set-upstream origin "${CAPITAL_REPO}_${VERSION}"
 fi
 
 # Create directory for release artifacts
 if [ "${CHOSEN_REPO}" = "${METRON_REPO_NAME}" ]; then
-  ART_DIR="$WORKDIR/dev/metron/${VERSION}-RC${RC_NUM}"
+  ART_DIR="$WORKDIR/dev/metron/${VERSION}-${UPPER_RC_PREFIX}${RC_NUM}"
 else
   # We're using a sub module, so put it in it's own directory.
-  ART_DIR="$WORKDIR/dev/metron/${CHOSEN_REPO}/${VERSION}-RC${RC_NUM}"
+  ART_DIR="$WORKDIR/dev/metron/${CHOSEN_REPO}/${VERSION}-${UPPER_RC_PREFIX}${RC_NUM}"
 fi
 mkdir -p "$ART_DIR"
 
 # Setup various parameters we need for the release artifacts
 if [ "${CHOSEN_REPO}" = "${METRON_REPO_NAME}" ]; then
-  CORE_PREFIX="apache-metron-"
+  CORE_PREFIX="apache-metron_"
   ARTIFACT_PREFIX="${CORE_PREFIX}"
   TAG_VERSION="${CURRENT_VERSION}"
   TAG="${CORE_PREFIX}${TAG_VERSION}${TAG_POSTFIX}"
 elif [ "${CHOSEN_REPO}" = "${BRO_PLUGIN_REPO_NAME}" ]; then
-  PLUGIN_PREFIX="apache-metron-bro-plugin-kafka_"
-  ARTIFACT_PREFIX="${PLUGIN_PREFIX}"
+  BRO_PLUGIN_PREFIX="apache-metron-bro-plugin-kafka_"
+  ARTIFACT_PREFIX="${BRO_PLUGIN_PREFIX}"
   TAG_VERSION="${CURRENT_VERSION}"
-  TAG="${PLUGIN_PREFIX}${TAG_VERSION}${TAG_POSTFIX}"
-  # Handle special tag case from prior release
-  if [ "${TAG_VERSION}" = "0.1" ]; then
-    TAG="0.1"
-  fi
+  TAG="${BRO_PLUGIN_PREFIX}${TAG_VERSION}${TAG_POSTFIX}"
 else
   # If we ever add new modules, add them as needed.
   printf "Unrecognized module: %s\n" "${CHOSEN_REPO}"
@@ -324,7 +321,7 @@ if [ "${PRACTICE_RUN}" = true ]; then
   printf "<svn add %s>\n" ${COMMIT_DIR}
   printf "<svn commit -m \"Adding artifacts for %s %s\">\n" "${CHOSEN_REPO}" "${COMMIT_DIR}"
 else
-  printf "Adding artifacts for Metron ${VERSION}-RC${RC_NUM} to dev SVN\n"
+  printf "Adding artifacts for Metron ${VERSION}-${UPPER_RC_PREFIX}${RC_NUM} to dev SVN\n"
   # Metron goes in the root of the dir, submodules go in folder
   if [ "${CHOSEN_REPO}" = "${METRON_REPO_NAME}" ]; then
     cd "$WORKDIR/dev/metron/"

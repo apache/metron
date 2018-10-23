@@ -98,8 +98,30 @@ In addition to re-running the entire provisioning play book, you may now re-run 
 vagrant --ansible-tags="sensor-stubs" provision
 ```
 
-Tags are listed in the playbooks, some frequently used tags:
+Tags are listed in the playbooks.  Here are some frequently used tags:
 + `hdp-install` - Install HDP
 + `hdp-deploy` - Deploy and Start HDP Services (will start all Hadoop Services)
-+ `sensors` - Deploy and start the sensors.
++ `sensors` - Deploy the sensors (see [Sensors](#sensors) for more details regarding this tag)
 + `sensor-stubs` - Deploy and start the sensor stubs.
+
+#### Sensors
+
+By default, the Metron development environment uses sensor stubs to mimic the behavior of the full sensors.  This is done because the full sensors take a significant amount of time and CPU to build, install, and run.
+
+From time to time you may want to install the full sensors for testing (see the specifics of what that means [here](../../ansible/playbooks/sensor_install.yml)).  This can be done by running the following command:
+
+```
+vagrant --ansible-skip-tags="sensor-stubs" up
+```
+
+This will skip only the `sensor-stubs` tag, allowing the ansible roles with the `sensors` tag to be run.  This provisions the full sensors in a 'testing mode' so that they are more active, and thus more useful for testing (more details on that [here](../../ansible/roles/sensor-test-mode/)).  **However**, when vagrant completes the sensors will NOT be running.  In order to start the sensors and simulate traffic through them (which will create a fair amount of load on your test system), complete the below steps:
+
+```
+vagrant ssh
+sudo su -
+service pcap-replay restart
+service yaf restart
+service snortd restart
+service snort-producer restart
+```
+

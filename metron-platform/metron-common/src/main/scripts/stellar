@@ -33,8 +33,9 @@ if [ -f "$METRON_SYSCONFIG" ]; then
 	source $METRON_SYSCONFIG
 fi
 
-export METRON_VERSION="${METRON_VERSION:-${project.version}}"
-export METRON_HOME="${METRON_HOME:-/usr/metron/$METRON_VERSION}"
+# treat unset vars as an error; METRON_HOME
+set -u
+
 export HBASE_CONFIGS=$(hbase classpath)
 export STELLAR_LIB=$(find $METRON_HOME/lib/ -name metron-parsers*.jar)
 export MANAGEMENT_LIB=$(find $METRON_HOME/lib/ -name metron-management*.jar)

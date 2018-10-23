@@ -311,7 +311,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
     LOG.debug("Unable to extract message from tuple; expected valid JSON");
     getWriterComponent().error(
             new Exception("Unable to extract message from tuple; expected valid JSON"),
-            ImmutableList.of(tuple)
+            tuple
     );
   }
 
