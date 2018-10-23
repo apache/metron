@@ -22,7 +22,6 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.exceptions import ExecutionFailed
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
-from resource_management.libraries.functions.format import format
 
 import metron_service
 

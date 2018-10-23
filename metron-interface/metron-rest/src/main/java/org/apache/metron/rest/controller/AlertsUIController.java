@@ -74,7 +74,6 @@ public class AlertsUIController {
     }
   }
 
-  // TODO need roles to make this work.  No tests covering it, but it'll break.
   @Secured({"ROLE_" + SECURITY_ROLE_ADMIN})
   @ApiOperation(value = "Retrieves all users' settings.  Only users that are part of "
           + "the \"ROLE_ADMIN\" role are allowed to get all user settings.")

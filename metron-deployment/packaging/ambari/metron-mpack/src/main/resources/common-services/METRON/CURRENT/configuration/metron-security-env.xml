@@ -19,9 +19,31 @@
 -->
 <configuration supports_final="true">
   <property>
+    <name>metron.ldap.enabled</name>
+    <display-name>LDAP Enabled</display-name>
+    <value>false</value>
+    <description>Enable LDAP for Authentication</description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>metron.ldap.url</name>
     <display-name>LDAP URL</display-name>
-    <value>ldap://localhost:33369</value>
+    <value>ldap://localhost:33389</value>
     <description>LDAP Server URL</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -40,9 +62,9 @@
   </property>
   <property>
     <name>metron.ldap.user.searchbase</name>
-    <display-name>Group Search Base</display-name>
+    <display-name>User Search Base</display-name>
     <value>ou=people,dc=hadoop,dc=apache,dc=org</value>
-    <description>LDAP group searchbase</description>
+    <description>LDAP user searchbase</description>
     <value-attributes>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>
@@ -105,8 +127,9 @@
   </property>
   <property>
     <name>metron.ldap.group.roleattribute</name>
+    <display-name>LDAP group role attribute</display-name>
     <value>cn</value>
-    <description>LDAP group role attribute</description>
+    <description>The LDAP group attribute to be used for determining roles</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -116,7 +139,7 @@
     <name>metron.ldap.bind.dn</name>
     <display-name>Bind User</display-name>
     <value>uid=admin,ou=people,dc=hadoop,dc=apache,dc=org</value>
-    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. </description>
+    <description>Full distinguished name (DN), of an LDAP user account that has privileges to search for users. </description>
     <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
@@ -129,6 +152,30 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description>Password for the account that can search for users</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>metron.ldap.ssl.truststore</name>
+    <display-name>LDAP Truststore</display-name>
+    <value></value>
+    <description>Path of truststore with SSL certs for LDAP</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>metron.ldap.ssl.truststore.password</name>
+    <display-name>LDAP Truststore Password</display-name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <description>Password for the truststore with SSL certs for LDAP</description>
     <value-attributes>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>

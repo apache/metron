@@ -36,7 +36,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
@@ -54,6 +54,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private Environment environment;
+
+    @Autowired
+    private DataSource dataSource;
 
     @Value("${ldap.provider.url}")
     private String providerUrl;
@@ -108,13 +111,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Autowired
-    private DataSource dataSource;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
+    public void configureJdbc(AuthenticationManagerBuilder auth) throws Exception {
         // Note that we can switch profiles on the fly in Ambari.
         List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
         if (activeProfiles.contains(MetronRestConstants.LDAP_PROFILE)) {
@@ -132,28 +129,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .managerPassword(providerPassword)
                 .and()
                 .passwordCompare()
-                .passwordEncoder(passwordEncoder)
+                .passwordEncoder(new LdapShaPasswordEncoder())
                 .passwordAttribute(passwordAttribute);
-        } else if (!activeProfiles.contains(MetronRestConstants.LDAP_PROFILE) &&
-            (activeProfiles.contains(MetronRestConstants.DEV_PROFILE) ||
-                activeProfiles.contains(MetronRestConstants.TEST_PROFILE))) {
-            LOG.debug("Setting up dev/test JDBC authentication.");
-            auth.jdbcAuthentication().dataSource(dataSource)
-                .passwordEncoder(passwordEncoder)
-                .withUser("user").password("{noop}password").roles(SECURITY_ROLE_USER).and()
-                .withUser("user1").password("{noop}password").roles(SECURITY_ROLE_USER).and()
-                .withUser("user2").password("{noop}password").roles(SECURITY_ROLE_USER).and()
-                .withUser("admin").password("{noop}password")
-                .roles(SECURITY_ROLE_USER, SECURITY_ROLE_ADMIN);
+        } else if (activeProfiles.contains(MetronRestConstants.DEV_PROFILE) ||
+            activeProfiles.contains(MetronRestConstants.TEST_PROFILE)) {
+            auth.jdbcAuthentication()
+                .dataSource(dataSource)
+                .withUser("user").password("password").roles(SECURITY_ROLE_USER).and()
+                .withUser("user1").password("password").roles(SECURITY_ROLE_USER).and()
+                .withUser("user2").password("password").roles(SECURITY_ROLE_USER).and()
+                .withUser("admin").password("password").roles(SECURITY_ROLE_USER, SECURITY_ROLE_ADMIN);
         } else {
-            LOG.debug("Setting up JDBC authentication.");
-            // TODO what are we supposed to do here?
-            auth.jdbcAuthentication().dataSource(dataSource).passwordEncoder(NoOpPasswordEncoder.getInstance());
+            auth.jdbcAuthentication().dataSource(dataSource);
         }
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-      return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        return NoOpPasswordEncoder.getInstance();
     }
 }

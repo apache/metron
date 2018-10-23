@@ -52,7 +52,6 @@ storm:
     randomaccess.script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
     batch.script.path: /usr/metron/${metron.version}/bin/start_hdfs_topology.sh
 
-
 kerberos:
   enabled: false
   principal: metron@EXAMPLE.COM
@@ -62,7 +61,7 @@ ldap:
   provider:
     url: ldap://node1:33389
     userdn: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
-    password: "{noop}admin-password"
+    password: "admin-password"
   user:
     dn.patterns: uid={0},ou=people,dc=hadoop,dc=apache,dc=org
     passwordAttribute: userPassword

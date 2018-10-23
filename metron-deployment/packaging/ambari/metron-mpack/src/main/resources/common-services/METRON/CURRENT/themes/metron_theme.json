@@ -885,6 +885,10 @@
           "subsection-name": "subsection-alerts-ui"
         },
         {
+          "config": "metron-security-env/metron.ldap.enabled",
+          "subsection-name": "subsection-security-ldap"
+        },
+        {
           "config": "metron-security-env/metron.ldap.url",
           "subsection-name": "subsection-security-ldap"
         },
@@ -922,6 +926,14 @@
         },
         {
           "config": "metron-security-env/metron.ldap.group.roleattribute",
+          "subsection-name": "subsection-security-ldap"
+        },
+        {
+          "config": "metron-security-env/metron.ldap.ssl.truststore",
+          "subsection-name": "subsection-security-ldap"
+        },
+        {
+          "config": "metron-security-env/metron.ldap.ssl.truststore.password",
           "subsection-name": "subsection-security-ldap"
         },
         {
@@ -1608,6 +1620,12 @@
         }
       },
       {
+        "config": "metron-security-env/metron.ldap.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
         "config": "metron-security-env/metron.ldap.url",
         "widget": {
           "type": "text-field"
@@ -1621,6 +1639,18 @@
       },
       {
         "config": "metron-security-env/metron.ldap.bind.password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.ldap.ssl.truststore",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.ldap.ssl.truststore.password",
         "widget": {
           "type": "password"
         }
