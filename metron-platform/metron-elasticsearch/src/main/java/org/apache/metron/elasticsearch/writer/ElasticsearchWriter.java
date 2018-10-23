@@ -17,8 +17,6 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.field.FieldNameConverter;
@@ -44,9 +42,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.DOC_ID_SOURCE_FIELD;
-import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.DOC_ID_SOURCE_FIELD_DEFAULT;
 
 /**
  * A {@link BulkMessageWriter} that writes messages to Elasticsearch.
@@ -76,48 +71,36 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
   @Override
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
-    // writer settings
-    FieldNameConverter fieldNameConverter = FieldNameConverters.create(sensorType, configurations);
-    final String indexPostfix = dateFormat.format(new Date());
-    final String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
-    final String docType = sensorType + "_doc";
-    final String docIdSourceField = (String) configurations.getGlobalConfig().getOrDefault(DOC_ID_SOURCE_FIELD, DOC_ID_SOURCE_FIELD_DEFAULT);
 
+    // fetch the field name converter for this sensor type
+    FieldNameConverter fieldNameConverter = FieldNameConverters.create(sensorType, configurations);
+
+    final String indexPostfix = dateFormat.format(new Date());
     BulkRequestBuilder bulkRequest = client.prepareBulk();
     for(JSONObject message: messages) {
 
-      // clone the message to use as the document that will be indexed
       JSONObject esDoc = new JSONObject();
       for(Object k : message.keySet()){
         copyField(k.toString(), message, esDoc, fieldNameConverter);
       }
 
-      IndexRequestBuilder indexRequestBuilder = client
-              .prepareIndex(indexName, docType)
-              .setSource(esDoc.toJSONString());
-
-      // set the document identifier
-      if(StringUtils.isNotBlank(docIdSourceField)) {
-        String docId = (String) esDoc.get(docIdSourceField);
-        if(docId != null) {
-          indexRequestBuilder.setId(docId);
-        } else {
-          LOG.warn("Message is missing document ID source field; document ID not set; sourceField={}", docIdSourceField);
-        }
+      String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
+      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName, sensorType + "_doc");
+      indexRequestBuilder = indexRequestBuilder.setSource(esDoc.toJSONString());
+      String guid = (String)esDoc.get(Constants.GUID);
+      if(guid != null) {
+        indexRequestBuilder.setId(guid);
       }
 
-      // set the document timestamp, if one exists
-      Object ts = esDoc.get(Constants.Fields.TIMESTAMP.getName());
+      Object ts = esDoc.get("timestamp");
       if(ts != null) {
-        indexRequestBuilder.setTimestamp(ts.toString());
+        indexRequestBuilder = indexRequestBuilder.setTimestamp(ts.toString());
       }
 
       bulkRequest.add(indexRequestBuilder);
     }
 
     BulkResponse bulkResponse = bulkRequest.execute().actionGet();
-    LOG.info("Wrote {} message(s) to Elasticsearch; sensorType={}, index={}, docType={}, took={}",
-            ArrayUtils.getLength(bulkResponse.getItems()), sensorType, indexName, docType, bulkResponse.getTook().format());
     return buildWriteReponse(tuples, bulkResponse);
   }
 

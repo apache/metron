@@ -101,7 +101,6 @@ es_url = ",".join([host + ":" + es_binary_port for host in es_host_list])
 es_http_port = config['configurations']['metron-env']['es_http_port']
 es_http_url = es_host_list[0] + ":" + es_http_port
 es_date_format = config['configurations']['metron-env']['es_date_format']
-es_document_id = config['configurations']['metron-env']['es_document_id']
 
 # hadoop params
 stack_root = Script.get_stack_root()
