@@ -185,6 +185,18 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitAssignExpression(StellarParser.AssignExpressionContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code ColonAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterColonAssignExpression(StellarParser.ColonAssignExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ColonAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitColonAssignExpression(StellarParser.ColonAssignExpressionContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code PlusAssignExpression}
 	 * labeled alternative in {@link StellarParser#assign_expr}.
 	 * @param ctx the parse tree

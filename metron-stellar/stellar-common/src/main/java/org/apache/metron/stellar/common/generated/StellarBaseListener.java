@@ -193,6 +193,18 @@ public class StellarBaseListener implements StellarListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterColonAssignExpression(StellarParser.ColonAssignExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitColonAssignExpression(StellarParser.ColonAssignExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterPlusAssignExpression(StellarParser.PlusAssignExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}

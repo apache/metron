@@ -43,7 +43,8 @@ The Stellar language supports the following:
   * The literal `'\'foo\''` would represent `'foo'`
   * The literal `"\"foo\""` would represent `"foo"`
   * The literal `'foo \\ bar'` would represent `foo \ bar`
-* Assignment operations for variables: `=`, `+=`, `-=`, `*=`, `/=`
+* Assignment operations for variables: `=` or `:=`, `+=`, `-=`, `*=`, `/=`
+  * Note that `=` and `:=` can be used for assignment
 * Pre and Post increment and decrement operations for variables: `++`, `--`
 * Simple boolean operations: `and`, `not`, `or`
 * Simple arithmetic operations: `*`, `/`, `+`, `-` on real numbers or integers
@@ -86,7 +87,7 @@ The following keywords need to be single quote escaped in order to be used in St
 | default       | ==            | !=          | \<=         | \>          | 
 | \>=           | \+            | \-          | \<          | ?           | 
 | \*            | /             | ,           | \{          | \}          |
-| \=>           |               |             |             |             |
+| \=>           | :=            |             |             |             |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 

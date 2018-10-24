@@ -54,6 +54,7 @@ TRUE : 'true' | 'TRUE';
 FALSE : 'false' | 'FALSE';
 
 ASSIGN : '=' ;
+COLON_ASSIGN : ':=';
 PLUSASSIGN : '+=' ;
 MINUSASSIGN : '-=' ;
 DIVIDEASSIGN : '/=';
@@ -157,6 +158,7 @@ transformation_expr:
 
 assign_expr :
    IDENTIFIER ASSIGN transformation_expr #AssignExpression
+  |IDENTIFIER COLON_ASSIGN transformation_expr #ColonAssignExpression
   |IDENTIFIER PLUSASSIGN transformation_expr #PlusAssignExpression
   |IDENTIFIER MINUSASSIGN transformation_expr #MinusAssignExpression
   |IDENTIFIER DIVIDEASSIGN transformation_expr #DivideAssignExpression

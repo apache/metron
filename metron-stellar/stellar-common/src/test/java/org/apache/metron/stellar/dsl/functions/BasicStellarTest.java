@@ -173,6 +173,77 @@ public class BasicStellarTest {
   }
 
   @Test
+  public void testColonAssign(){
+    String query = "foo := 1";
+    Map<String,Object> variables = new HashMap<String,Object>(){{
+      put("foo",null);
+    }};
+
+    // basics, return the assign, set the var with default resolver
+    Assert.assertEquals(1, run(query,variables));
+    Assert.assertEquals(1, variables.get("foo"));
+
+    // test more complex, until we get +=
+    // the else is required....
+    query = "if foo == 1 then foo := foo + 1 else foo := foo - 1";
+    Assert.assertEquals(2, run(query,variables));
+    Assert.assertEquals(2, variables.get("foo"));
+
+    // does it work in a lambda if we explicitly use var name?
+    {
+      String expr  = "MAP([ foo, bar, baz ], (item) -> count := count + 1  )";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",1);
+        put("bar",1);
+        put("baz",1);
+        put("count", 0);
+      }};
+      for(int i = 0 ; i < 5; i++){
+        run(expr, map);
+      }
+      Assert.assertEquals(new Integer(15), (Integer)map.get("count"));
+    }
+
+    // can we assign one variable to another?
+    {
+      String expr = "foo := bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar",999);
+      }};
+      Assert.assertEquals(999,run(expr,map));
+      Assert.assertEquals(999,map.get("foo"));
+    }
+
+    // can we assign one variable to another as a string?
+    {
+      String expr = "foo := bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar","message");
+      }};
+      Assert.assertEquals("message",run(expr,map));
+      Assert.assertEquals("message",map.get("foo"));
+    }
+
+  }
+
+  @Test
+  public void testMixedAssign(){
+    Map<String,Object> variables = new HashMap<String,Object>(){{
+      put("foo",1);
+    }};
+
+    // test more complex, until we get +=
+    // the else is required....
+    String query = "if foo == 1 then foo := foo + 1 else foo = foo - 1";
+    Assert.assertEquals(2, run(query,variables));
+    Assert.assertEquals(2, variables.get("foo"));
+
+  }
+
+
+  @Test
   public void testPlusAssign(){
     String query = "foo += 1";
     Map<String,Object> variables = new HashMap<String,Object>(){{
