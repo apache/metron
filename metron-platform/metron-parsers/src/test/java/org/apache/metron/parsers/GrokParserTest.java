@@ -19,6 +19,7 @@ package org.apache.metron.parsers;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -30,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public abstract class GrokParserTest {
 
@@ -53,8 +55,10 @@ public abstract class GrokParserTest {
 
       JSONObject expected = (JSONObject) jsonParser.parse(e.getValue());
       byte[] rawMessage = e.getKey().getBytes();
-
-      List<JSONObject> parsedList = grokParser.parse(rawMessage);
+      Optional<MessageParserResult<JSONObject>> resultOptional = grokParser.parseOptionalResult(rawMessage);
+      Assert.assertNotNull(resultOptional);
+      Assert.assertTrue(resultOptional.isPresent());
+      List<JSONObject> parsedList = resultOptional.get().getMessages();
       Assert.assertEquals(1, parsedList.size());
       compare(expected, parsedList.get(0));
     }
@@ -92,4 +96,5 @@ public abstract class GrokParserTest {
   public abstract List<String> getTimeFields();
   public abstract String getDateFormat();
   public abstract String getTimestampField();
+  public abstract String getMultiLine();
 }

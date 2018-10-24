@@ -70,6 +70,9 @@ sequence files.
 
 ## Configuration
 
+The configuration properties for PCAP sensor is managed via Ambari at Services -> Metron -> Config -> PCAP tab.
+Note that changes to PCAP sensor config properties via Ambari requires restarting the Metron PCAP service.
+
 The configuration file for the Flux topology is located at
 `$METRON_HOME/config/pcap.properties` and the possible options
 are as follows:
@@ -132,12 +135,14 @@ usage: Fixed filter options
  -nr,--num_reducers <arg>        The number of reducers to use.  Default
                                  is 10.
  -h,--help                       Display help
+ -ps,--print_status              Print the status of the job as it runs
  -ir,--include_reverse           Indicates if filter should check swapped
                                  src/dest addresses and IPs
  -p,--protocol <arg>             IP Protocol
  -sa,--ip_src_addr <arg>         Source IP address
  -sp,--ip_src_port <arg>         Source port
  -st,--start_time <arg>          (required) Packet start time range.
+ -yq,--yarn_queue <arg>          Yarn queue this job will be submitted to
 ```
 
 ```
@@ -154,8 +159,10 @@ usage: Query filter options
  -nr,--num_reducers <arg>        The number of reducers to use.  Default
                                  is 10.
  -h,--help                       Display help
+ -ps,--print_status              Print the status of the job as it runs
  -q,--query <arg>                Query string to use as a filter
  -st,--start_time <arg>          (required) Packet start time range.
+ -yq,--yarn_queue <arg>          Yarn queue this job will be submitted to
 ```
 
 The Query filter's `--query` argument specifies the Stellar expression to

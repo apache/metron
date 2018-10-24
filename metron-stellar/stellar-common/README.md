@@ -37,6 +37,7 @@ For a variety of components (threat intelligence triage and field transformation
 
 The Stellar language supports the following:
 * Referencing fields in the enriched JSON
+* Referencing all fields in the enriched JSON via the `_` reserved variable name.
 * String literals are quoted with either `'` or `"`
 * String literals support escaping for `'`, `"`, `\t`, `\r`, `\n`, and backslash 
   * The literal `'\'foo\''` would represent `'foo'`
@@ -54,6 +55,20 @@ The Stellar language supports the following:
 * An `in` operator that works like the `in` in Python
 * The ability to have parenthesis to make order of operations explicit
 * User defined functions, including Lambda expressions 
+
+### Boolean Expressions
+
+Variables may be used in boolean expressions and variables which are not
+explicitly boolean may be interpreted as booleans subject to the
+following rules:
+* Similar to python and javascript, empty collections (e.g. `[]`) will be
+  interpreted as `false`
+* Similar to python and javascript, missing variables will be
+  interpreted as `false`
+* Variables set to `null` will be interpreted as `false`
+
+Otherwise, boolean variables will be interpreted as their values
+reflect. 
 
 ### Stellar Language Keywords
 The following keywords need to be single quote escaped in order to be used in Stellar expressions:
@@ -162,6 +177,7 @@ Where:
 | [ `CHOP`](#chop)                                                                                   |
 | [ `CHOMP`](#chomp)                                                                                 |
 | [ `COUNT_MATCHES`](#count_matches)                                                                 |
+| [ `DATE_FORMAT`](#date_format)
 | [ `DAY_OF_MONTH`](#day_of_month)                                                                   |
 | [ `DAY_OF_WEEK`](#day_of_week)                                                                     |
 | [ `DAY_OF_YEAR`](#day_of_year)                                                                     |
@@ -372,6 +388,14 @@ Where:
     * substring/character - the substring or character to count, may be null.
   * Returns: the number of non-overlapping occurrences, 0 if either CharSequence is null.
 
+### `DATE_FORMAT`
+  * Description: Takes an epoch timestamp and converts it to a date format.
+  * Input:
+    * format - DateTime format as a String.
+    * timestampField - Optional epoch time in Long format.  Defaults to now.
+    * timezone - Optional timezone in String format.
+  * Returns: Formatted date.
+  
 ### `DAY_OF_MONTH`
   * Description: The numbered day within the month.  The first day within the month has a value of 1.
   * Input:
@@ -879,10 +903,10 @@ Where:
   * Returns: The reduction of the list.
   
 ### `REGEXP_MATCH`
-  * Description: Determines whether a regex matches a string
+  * Description: Determines whether a regex matches a string.  If a list of patterns is passed, then the matching is an OR operation
   * Input:
     * string - The string to test
-    * pattern - The proposed regex pattern
+    * pattern - The proposed regex pattern or a list of patterns
   * Returns: True if the regex pattern matches the string and false if otherwise.
   
 ### `REGEXP_GROUP_VAL`
@@ -1470,7 +1494,7 @@ operating system.
 
 
 ```bash
-metron-stellar/stellar-common/target/stellar-common-0.4.3-stand-alone.tar.gz
+metron-stellar/stellar-common/target/stellar-common-0.6.1-stand-alone.tar.gz
 ```
 
 When unpacked, the following structure will be created:
@@ -1480,7 +1504,7 @@ When unpacked, the following structure will be created:
 ├── bin
 │   └── stellar
 └── lib
-    └── stellar-common-0.4.3-uber.jar
+    └── stellar-common-0.6.1-uber.jar
 ```
 
 To run the Stellar Shell run the following from the directory you unpacked to:

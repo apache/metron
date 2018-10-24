@@ -28,6 +28,8 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.writer.ConfigurationStrategy;
+import org.apache.metron.common.configuration.writer.ConfigurationsStrategies;
 import org.apache.metron.zookeeper.SimpleEventListener;
 import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
 import org.apache.metron.common.zookeeper.configurations.Reloadable;
@@ -43,12 +45,14 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
   private static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private String zookeeperUrl;
+  private String configurationStrategy;
 
   protected CuratorFramework client;
   protected ZKCache cache;
   private final CONFIG_T configurations;
-  public ConfiguredBolt(String zookeeperUrl) {
+  public ConfiguredBolt(String zookeeperUrl, String configurationStrategy) {
     this.zookeeperUrl = zookeeperUrl;
+    this.configurationStrategy = configurationStrategy;
     this.configurations = createUpdater().defaultConfigurations();
   }
 
@@ -68,7 +72,13 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
     return configurations;
   }
 
-  protected abstract ConfigurationsUpdater<CONFIG_T> createUpdater();
+  protected ConfigurationStrategy<CONFIG_T> getConfigurationStrategy() {
+    return ConfigurationsStrategies.valueOf(configurationStrategy);
+  }
+
+  protected ConfigurationsUpdater<CONFIG_T> createUpdater() {
+    return getConfigurationStrategy().createUpdater(this, this::getConfigurations);
+  }
 
 
   @Override

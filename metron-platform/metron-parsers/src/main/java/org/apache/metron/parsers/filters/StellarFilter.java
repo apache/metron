@@ -54,7 +54,7 @@ public class StellarFilter implements MessageFilter<JSONObject> {
   }
 
   @Override
-  public boolean emitTuple(JSONObject message, Context context) {
+  public boolean emit(JSONObject message, Context context) {
     VariableResolver resolver = new MapVariableResolver(message);
     return processor.parse(query, resolver, functionResolver, context);
   }

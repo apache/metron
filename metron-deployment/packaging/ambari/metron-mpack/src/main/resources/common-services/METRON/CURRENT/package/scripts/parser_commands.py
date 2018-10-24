@@ -20,6 +20,7 @@ limitations under the License.
 
 import os
 import re
+import shlex
 import subprocess
 import time
 
@@ -49,7 +50,45 @@ class ParserCommands:
 
     # get list of parsers
     def __get_parsers(self, params):
-        return params.parsers.replace(' ', '').split(',')
+        """
+        Combines the list of parser topics and sends a unique list to be used for
+        Kafka topic creation and the like.
+        :param params:
+        :return: List containing the names of unique parsers
+        """
+        parserBatches = list(self.__get_aggr_parsers(params))
+        parsers = ','.join(s.translate(None, '"') for s in parserBatches)
+        # Get only the unique list of parser names
+        parsers = list(set(parsers.split(',')))
+        return parsers
+
+    def __get_aggr_parsers(self, params):
+        """
+        Fetches the list of aggregated (and regular) parsers and returns a list.
+        If the input list of parsers were "bro,snort,yaf", "bro,snort" and yaf, for example,
+        then this method will return ["bro,snort,yaf", "bro,snort", "yaf"]
+        :param params:
+        :return: List containing the names of parsers
+        """
+        parserList = []
+        parsers = shlex.shlex(params.parsers)
+        for name in parsers:
+            parserList.append(name.strip(','))
+        return [s.translate(None, "'[]") for s in filter(None, parserList)]
+
+    def get_parser_aggr_topology_names(self, params):
+        """
+        Returns the names of regular and aggregated topologies as they would run in storm
+        An aggregated topology has the naming convention of 'parserA__parserB'.
+        For example, a list of parsers like ["bro,snort", yaf] will be returned as ["bro__snort", "yaf"]
+        :param params:
+        :return: List containing the names of parser topologies
+        """
+        topologyName = []
+        for parser in self.__get_aggr_parsers(params):
+            parser = parser.replace(",", "__").strip('"')
+            topologyName.append(parser)
+        return topologyName
 
     def __get_topics(self):
         # All errors go to indexing topics, so create it here if it's not already
@@ -104,7 +143,7 @@ class ParserCommands:
         metron_service.init_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
 
     def start_parser_topologies(self, env):
-        Logger.info("Starting Metron parser topologies: {0}".format(self.get_parser_list()))
+        Logger.info("Starting Metron parser topologies: {0}".format(self.__get_aggr_parsers(self.__params)))
         start_cmd_template = """{0}/bin/start_parser_topology.sh \
                                     -k {1} \
                                     -z {2} \
@@ -118,7 +157,7 @@ class ParserCommands:
                                   self.__params.metron_principal_name,
                                   execute_user=self.__params.metron_user)
 
-        stopped_parsers = set(self.get_parser_list()) - self.get_running_topology_names(env)
+        stopped_parsers = set(self.__get_aggr_parsers(self.__params)) - self.get_running_topology_names(env)
         Logger.info('Parsers that need started: ' + str(stopped_parsers))
 
         for parser in stopped_parsers:
@@ -135,7 +174,7 @@ class ParserCommands:
     def stop_parser_topologies(self, env):
         Logger.info('Stopping parsers')
 
-        running_parsers = set(self.get_parser_list()) & self.get_running_topology_names(env)
+        running_parsers = set(self.get_parser_aggr_topology_names(self.__params)) & self.get_running_topology_names(env)
         Logger.info('Parsers that need stopped: ' + str(running_parsers))
 
         for parser in running_parsers:
@@ -192,7 +231,7 @@ class ParserCommands:
         env.set_params(self.__params)
         all_running = True
         topologies = metron_service.get_running_topologies(self.__params)
-        for parser in self.get_parser_list():
+        for parser in self.get_parser_aggr_topology_names(self.__params):
             parser_found = False
             is_running = False
             if parser in topologies:

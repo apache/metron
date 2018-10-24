@@ -20,7 +20,7 @@ Metron on CentOS 6
 
 This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized host running CentOS 6.
 
-Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.  
+Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.
 
 Getting Started
 ---------------
@@ -29,7 +29,7 @@ Getting Started
 
 The computer used to deploy Apache Metron will need to have the following components installed.
 
- - [Ansible](https://github.com/ansible/ansible) (2.0.0.2, 2.2.2.0, or 2.5.0)
+ - [Ansible](https://github.com/ansible/ansible) 2.4.0+
  - [Docker](https://www.docker.com/community-edition)
  - [Vagrant](https://www.vagrantup.com) 2.0+
  - [Vagrant Hostmanager Plugin](https://github.com/devopsgroup-io/vagrant-hostmanager)
@@ -52,11 +52,10 @@ Any platform that supports these tools is suitable, but the following instructio
 
 1. Run the following command in a terminal to install all of the required tools.
 
-    ```  
-    brew cask install vagrant virtualbox docker
+    ```
+    brew cask install vagrant virtualbox docker ansible
     brew cask install caskroom/versions/java8
     brew install maven@3.3 git
-    pip install ansible==2.2.2.0
     vagrant plugin install vagrant-hostmanager
     open /Applications/Docker.app
     ```
@@ -82,8 +81,8 @@ Any platform that supports these tools is suitable, but the following instructio
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
 
-* [Metron Alerts](http://node1:4201)
-* [Ambari](http://node1:8080)
+* [Metron Alerts](http://node1:4201) credentials: user/password
+* [Ambari](http://node1:8080) credentials: admin/admin
 
 Connecting to the host through SSH is as simple as running the following command.
 ```
@@ -98,8 +97,30 @@ In addition to re-running the entire provisioning play book, you may now re-run 
 vagrant --ansible-tags="sensor-stubs" provision
 ```
 
-Tags are listed in the playbooks, some frequently used tags:
+Tags are listed in the playbooks.  Here are some frequently used tags:
 + `hdp-install` - Install HDP
 + `hdp-deploy` - Deploy and Start HDP Services (will start all Hadoop Services)
-+ `sensors` - Deploy and start the sensors.
++ `sensors` - Deploy the sensors (see [Sensors](#sensors) for more details regarding this tag)
 + `sensor-stubs` - Deploy and start the sensor stubs.
+
+#### Sensors
+
+By default, the Metron development environment uses sensor stubs to mimic the behavior of the full sensors.  This is done because the full sensors take a significant amount of time and CPU to build, install, and run.
+
+From time to time you may want to install the full sensors for testing (see the specifics of what that means [here](../../ansible/playbooks/sensor_install.yml)).  This can be done by running the following command:
+
+```
+vagrant --ansible-skip-tags="sensor-stubs" up
+```
+
+This will skip only the `sensor-stubs` tag, allowing the ansible roles with the `sensors` tag to be run.  This provisions the full sensors in a 'testing mode' so that they are more active, and thus more useful for testing (more details on that [here](../../ansible/roles/sensor-test-mode/)).  **However**, when vagrant completes the sensors will NOT be running.  In order to start the sensors and simulate traffic through them (which will create a fair amount of load on your test system), complete the below steps:
+
+```
+vagrant ssh
+sudo su -
+service pcap-replay restart
+service yaf restart
+service snortd restart
+service snort-producer restart
+```
+

@@ -32,6 +32,7 @@ es_master: [ES_MASTER]
 kibana_master: [KIBANA_MASTER]
 metron_indexing: [METRON_INDEXING]
 metron_profiler: [METRON_PROFILER]
+metron_pcap: [METRON_PCAP]
 metron_enrichment_master : [METRON_ENRICHMENT_MASTER]
 metron_parsers : [METRON_PARSERS]
 metron_rest: [METRON_REST]
@@ -40,7 +41,7 @@ metron_alerts_ui: [METRON_ALERTS_UI]
 
 metron_components: >
   {{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(hbase_master) | union(hadoop_slave) | union(zookeeper_slave) |
-  union(storm_slave) | union(kafka_broker) | union(hbase_slave) | union(kibana_master) | union(metron_indexing) | union(metron_profiler) |
+  union(storm_slave) | union(kafka_broker) | union(hbase_slave) | union(kibana_master) | union(metron_indexing) | union(metron_profiler) | union(metron_pcap) |
   union(metron_enrichment_master) | union(metron_parsers) | union(metron_rest) | union(metron_management_ui) | union(metron_alerts_ui) | union(es_master)  }}
 
 cluster_name: "metron_cluster"
@@ -69,6 +70,7 @@ configurations:
       yarn_heapsize: 512
       apptimelineserver_heapsize : 512
       resourcemanager_heapsize: 1024
+      min_user_id: 500
   - mapred-env:
       jobhistory_heapsize: 256
   - mapred-site:
@@ -90,7 +92,7 @@ configurations:
       # Storm expects ambari metrics to be available in 2.6.  We do *not* install ambari metrics in full-dev, so we need to revert to the old consumer
       storm.cluster.metrics.consumer.register: '[{"class": "org.apache.storm.metric.LoggingMetricsConsumer"}]'
       topology.metrics.consumer.register: '[{"class": "org.apache.storm.metric.LoggingMetricsConsumer", "parallelism.hint": 1, "whitelist": ["kafkaOffset\\..+/", "__complete-latency", "__process-latency", "__receive\\.population$", "__sendqueue\\.population$", "__execute-count", "__emit-count", "__ack-count", "__fail-count", "memory/heap\\.usedBytes$", "memory/nonHeap\\.usedBytes$", "GC/.+\\.count$", "GC/.+\\.timeMs$"]}]'
-      # Storm expects ambari metrics to be available in 2.6 and ambari metrics pulls data via JMX, but since we don't use ambari metrics here, we don't have the javaagent around to use and thus that must be removed from nimbus, supervisor and worker properties 
+      # Storm expects ambari metrics to be available in 2.6 and ambari metrics pulls data via JMX, but since we don't use ambari metrics here, we don't have the javaagent around to use and thus that must be removed from nimbus, supervisor and worker properties
       nimbus.childopts: '-Xmx1024m _JAAS_PLACEHOLDER'
       supervisor.childopts: '-Xmx256m _JAAS_PLACEHOLDER'
       worker.childopts: "-Xmx768m _JAAS_PLACEHOLDER"
@@ -99,10 +101,11 @@ configurations:
   - kafka-broker:
       log.dirs: '{{ kafka_log_dirs }}'
       delete.topic.enable: "true"
+      offsets.topic.replication.factor: 1
   - metron-rest-env:
       metron_spring_profiles_active: "dev"
   - metron-parsers-env:
-      parsers: "bro,snort"
+      parsers: "\"bro,snort,yaf\""
   - elastic-site:
       index_number_of_shards: 1
       index_number_of_replicas: 0
@@ -114,8 +117,9 @@ configurations:
 required_configurations:
   - metron-env:
       storm_rest_addr: "http://{{ groups.ambari_slave[0] }}:8744"
-      es_hosts: "{{ groups.search | join(',') }}"
+      es_hosts: "{{ elasticsearch_hosts }}"
       zeppelin_server_url: "{{ groups.zeppelin[0] }}:9995"
+      solr_zookeeper_url: "{{ groups.search[0] }}:9983"
   - metron-rest-env:
       metron_jdbc_driver: "org.h2.Driver"
       metron_jdbc_url: "jdbc:h2:file:~/metrondb"

@@ -295,7 +295,7 @@ We can do this by creating `$METRON_HOME/config/zookeeper/enrichments/squid.json
     "fieldMap": {
       "stellar" : {
         "config" : [
-          "is_alert := (exists(is_alert) && is_alert) || is_potential_typosquat"
+          "is_alert := is_alert || is_potential_typosquat"
         ]
       }
 
@@ -417,7 +417,7 @@ curl -XPOST "http://$ES_HOST/_template/squid_index" -d '{
                  "url" : {
                    "type" : "text","fielddata" : true
                  },
-                 "alert" : {
+                 "metron_alert" : {
                    "type" : "nested"
                  }
               }
@@ -448,3 +448,10 @@ From there you should see the following data from squid with one as an alert and
 Now, if you drill down into the alert, you can see our fields and the reasons specified
 
 ![Drill Down](drill_down.png) 
+
+### Version Info
+
+Verified against:
+
+- METRON_VERSION=0.5.0
+- ELASTIC_VERSION=5.6.2

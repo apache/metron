@@ -17,7 +17,12 @@
  */
 package org.apache.metron.parsers.interfaces;
 
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.metron.parsers.DefaultMessageParserResult;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,23 +36,47 @@ public interface MessageParser<T> extends Configurable {
   /**
    * Take raw data and convert it to a list of messages.
    *
-   * @param rawMessage
+   * @param rawMessage the raw bytes of the message
    * @return If null is returned, this is treated as an empty list.
    */
-  List<T> parse(byte[] rawMessage);
+  @Deprecated
+  default List<T> parse(byte[] rawMessage) {
+    throw new NotImplementedException("parse is not implemented");
+  }
 
   /**
    * Take raw data and convert it to an optional list of messages.
-   * @param parseMessage
+   * @param parseMessage the raw bytes of the message
    * @return If null is returned, this is treated as an empty list.
    */
+  @Deprecated
   default Optional<List<T>> parseOptional(byte[] parseMessage) {
     return Optional.ofNullable(parse(parseMessage));
   }
 
   /**
+   * Take raw data and convert it to messages.  Each raw message may produce multiple messages and therefore
+   * multiple errors.  A {@link MessageParserResult} is returned, which will have both the messages produced
+   * and the errors.
+   * @param parseMessage the raw bytes of the message
+   * @return Optional of {@link MessageParserResult}
+   */
+  default Optional<MessageParserResult<T>> parseOptionalResult(byte[] parseMessage) {
+    Optional<MessageParserResult<T>> result = Optional.empty();
+    try {
+      Optional<List<T>> optionalMessages = parseOptional(parseMessage);
+      if (optionalMessages.isPresent()) {
+        result = Optional.of(new DefaultMessageParserResult<>(optionalMessages.get()));
+      }
+    } catch (Throwable t) {
+      return Optional.of(new DefaultMessageParserResult<>(t));
+    }
+    return result;
+  }
+
+  /**
    * Validate the message to ensure that it's correct.
-   * @param message
+   * @param message the message to validate
    * @return true if the message is valid, false if not
    */
   boolean validate(T message);

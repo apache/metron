@@ -50,6 +50,8 @@ and sent to
 By default, errors during indexing are sent back into the `indexing` kafka queue so that they can be indexed and archived.
 
 ## Sensor Indexing Configuration
+
+
 The sensor specific configuration is intended to configure the
 indexing used for a given sensor type (e.g. `snort`).  
 
@@ -58,22 +60,36 @@ Just like the global config, the format is a JSON stored in zookeeper and on dis
 * `hdfs`
 * `solr`
 
-Depending on how you start the indexing topology, it will have either
-elasticsearch or solr and hdfs writers running.
+Depending on how you start the indexing topology, it will have either Elasticsearch or Solr and HDFS writers running.
 
-The configuration for an individual writer-specific configuration is a JSON map with the following fields:
-* `index` : The name of the index to write to (defaulted to the name of the sensor).
-* `batchSize` : The size of the batch that is written to the indices at once. Defaults to `1` (no batching).
-* `batchTimeout` : The timeout after which a batch will be flushed even if batchSize has not been met.  Optional.
-If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm 
-parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
-* `enabled` : Whether the writer is enabled (default `true`).
+| Property             | Description                                                                           | Default Value                                                                                                                                       |
+|----------------------|---------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `index`              | The name of the index to write to.                                                    | Defaults to the name of the sensor.                                                                                                                 |
+| `batchSize`          | The size of the batch that is written to the indices at once.                         | Defaults to `1`; no batching.                                                                                                                         |
+| `batchTimeout`       | The timeout after which a batch will be flushed even if `batchSize` has not been met. | Defaults to a duration which is a fraction of the Storm parameter `topology.message.timeout.secs`, if left undefined or set to 0.  Ignored if batchSize is `1`, since this disables batching.|
+| `enabled`            | A boolean indicating whether the writer is enabled.                                   | Defaults to `true`                                                                                                                                    |
+| `fieldNameConverter` | Defines how field names are transformed before being written to the index.  Only applicable to `elasticsearch`.          | Defaults to `DEDOT`.  Acceptable values are `DEDOT` that replaces all '.' with ':' or `NOOP` that does not change the field names . |
+
 
 ### Meta Alerts
 Alerts can be grouped, after appropriate searching, into a set of alerts called a meta alert.  A meta alert is useful for maintaining the context of searching and grouping during further investigations. Standard searches can return meta alerts, but grouping and other aggregation or sorting requests will not, because there's not a clear way to aggregate in many cases if there are multiple alerts contained in the meta alert. All meta alerts will have the source type of metaalert, regardless of the contained alert's origins.
 
 ### Elasticsearch
 Metron comes with built-in templates for the default sensors for Elasticsearch. When adding a new sensor, it will be necessary to add a new template defining the output fields appropriately. In addition, there is a requirement for a field `alert` of type `nested` for Elasticsearch 2.x installs.  This is detailed at [Using Metron with Elasticsearch 2.x](../metron-elasticsearch/README.md#using-metron-with-elasticsearch-2x)
+
+### Solr
+
+Metron comes with built-in schemas for the default sensors for Solr.  When adding a new sensor, it will be necessary to add a new schema defining the output fields appropriately.  In addition, these fields are used internally by Metron and also required:
+
+* `<field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />`
+* `<field name="source.type" type="string" indexed="true" stored="true" />`
+* `<field name="timestamp" type="timestamp" indexed="true" stored="true" />`
+* `<field name="comments" type="string" indexed="true" stored="true" multiValued="true"/>`
+* `<field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>`
+
+The unique key should be set to `guid` by including `<uniqueKey>guid</uniqueKey>` in the schema.
+
+It is strongly suggested the `fieldTypes` match those in the built-in schemas.
 
 ### Indexing Configuration Examples
 For a given  sensor, the following scenarios would be indicated by
@@ -194,7 +210,7 @@ The HBase column family to use for message updates.
 ### The `MetaAlertDao`
 
 The goal of meta alerts is to be able to group together a set of alerts while being able to transparently perform actions
-like searches, as if meta alerts were normal alerts.  `org.apache.metron.indexing.dao.MetaAlertDao` extends `IndexDao` and
+like searches, as if meta alerts were normal alerts.  `org.apache.metron.indexing.dao.metaalert.MetaAlertDao` extends `IndexDao` and
 enables several features: 
 * the ability to get all meta alerts associated with an alert
 * creation of a meta alert

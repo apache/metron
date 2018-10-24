@@ -22,4 +22,4 @@
   roles:
     - role: enable-swap
 
-- include: ../../../ansible/playbooks/metron_full_install.yml
+- import_playbook: ../../../ansible/playbooks/metron_full_install.yml

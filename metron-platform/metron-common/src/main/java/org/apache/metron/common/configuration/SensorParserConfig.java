@@ -21,6 +21,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.metron.common.message.metadata.RawMessageStrategy;
+import org.apache.metron.common.message.metadata.RawMessageStrategies;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * The configuration object that defines a parser for a given sensor.  Each
@@ -86,18 +89,25 @@ public class SensorParserConfig implements Serializable {
    * transformations. If true, the parser field transformations can access
    * parser metadata values.
    *
-   * <p>By default, this is false and parser metadata is not available
-   * to the field transformations.
+   * <p>The default is dependent upon the raw message strategy used:
+   * <ul>
+   * <li>The default strategy sets this to false and metadata is not read by default.</li>
+   * <li>The envelope strategy sets this to true and metadata is read by default.</li>
+   * </ul>
    */
-  private Boolean readMetadata = false;
+  private Boolean readMetadata = null;
 
   /**
    * Determines if parser metadata is automatically merged into the message.  If
    * true, parser metadata values will appear as fields within the message.
    *
-   * <p>By default, this is false and metadata is not merged.
+   * <p>The default is dependent upon the raw message strategy used:
+   * <ul>
+   * <li>The default strategy sets this to false and metadata is not merged by default.</li>
+   * <li>The envelope strategy sets this to true and metadata is merged by default.</li>
+   * </ul>
    */
-  private Boolean mergeMetadata = false;
+  private Boolean mergeMetadata = null;
 
   /**
    * The number of workers for the topology.
@@ -115,6 +125,7 @@ public class SensorParserConfig implements Serializable {
 
   /**
    * The parallelism of the Kafka spout.
+   * If multiple sensors are specified, each sensor will use it's own configured value.
    *
    * <p>This property can be overridden on the CLI.
    */
@@ -122,6 +133,7 @@ public class SensorParserConfig implements Serializable {
 
   /**
    * The number of tasks for the Kafka spout.
+   * If multiple sensors are specified, each sensor will use it's own configured value.
    *
    * <p>This property can be overridden on the CLI.
    */
@@ -129,6 +141,7 @@ public class SensorParserConfig implements Serializable {
 
   /**
    * The parallelism of the parser bolt.
+   * If multiple sensors are defined, the last one's config will win.
    *
    * <p>This property can be overridden on the CLI.
    */
@@ -136,6 +149,7 @@ public class SensorParserConfig implements Serializable {
 
   /**
    * The number of tasks for the parser bolt.
+   * If multiple sensors are defined, the last one's config will win.
    *
    * <p>This property can be overridden on the CLI.
    */
@@ -164,6 +178,7 @@ public class SensorParserConfig implements Serializable {
 
   /**
    * The Kafka security protocol.
+   * If multiple sensors are defined, any non PLAINTEXT configuration will be used.
    *
    * <p>This property can be overridden on the CLI.  This property can also be overridden by the spout config.
    */
@@ -189,11 +204,41 @@ public class SensorParserConfig implements Serializable {
 
   /**
    * Configures the cache that backs stellar field transformations.
+   * If there are multiple sensors, the configs are merged, and the last non-empty config wins.
    *
-   * <li>stellar.cache.maxSize - The maximum number of elements in the cache.
-   * <li>stellar.cache.maxTimeRetain - The maximum amount of time an element is kept in the cache (in minutes).
+   * <ul>
+   *   <li>stellar.cache.maxSize - The maximum number of elements in the cache.
+   *   <li>stellar.cache.maxTimeRetain - The maximum amount of time an element is kept in the cache (in minutes).
+   * </ul>
    */
   private Map<String, Object> cacheConfig = new HashMap<>();
+
+  /**
+   * Return the raw message supplier.  This is the strategy to use to extract the raw message and metadata from
+   * the tuple.
+   */
+  private RawMessageStrategy rawMessageStrategy = RawMessageStrategies.DEFAULT;
+
+  /**
+   * The config for the raw message supplier.
+   */
+  private Map<String, Object> rawMessageStrategyConfig = new HashMap<>();
+
+  public RawMessageStrategy getRawMessageStrategy() {
+    return rawMessageStrategy;
+  }
+
+  public void setRawMessageStrategy(String rawMessageSupplierName) {
+    this.rawMessageStrategy = RawMessageStrategies.valueOf(rawMessageSupplierName);
+  }
+
+  public Map<String, Object> getRawMessageStrategyConfig() {
+    return rawMessageStrategyConfig;
+  }
+
+  public void setRawMessageStrategyConfig(Map<String, Object> rawMessageStrategyConfig) {
+    this.rawMessageStrategyConfig = rawMessageStrategyConfig;
+  }
 
   public Map<String, Object> getCacheConfig() {
     return cacheConfig;
@@ -292,7 +337,7 @@ public class SensorParserConfig implements Serializable {
   }
 
   public Boolean getMergeMetadata() {
-    return mergeMetadata;
+    return Optional.ofNullable(mergeMetadata).orElse(getRawMessageStrategy().mergeMetadataDefault());
   }
 
   public void setMergeMetadata(Boolean mergeMetadata) {
@@ -300,7 +345,7 @@ public class SensorParserConfig implements Serializable {
   }
 
   public Boolean getReadMetadata() {
-    return readMetadata;
+    return Optional.ofNullable(readMetadata).orElse(getRawMessageStrategy().readMetadataDefault());
   }
 
   public void setReadMetadata(Boolean readMetadata) {
@@ -414,8 +459,8 @@ public class SensorParserConfig implements Serializable {
             .append(errorTopic, that.errorTopic)
             .append(writerClassName, that.writerClassName)
             .append(errorWriterClassName, that.errorWriterClassName)
-            .append(readMetadata, that.readMetadata)
-            .append(mergeMetadata, that.mergeMetadata)
+            .append(getReadMetadata(), that.getReadMetadata())
+            .append(getMergeMetadata(), that.getMergeMetadata())
             .append(numWorkers, that.numWorkers)
             .append(numAckers, that.numAckers)
             .append(spoutParallelism, that.spoutParallelism)
@@ -430,6 +475,8 @@ public class SensorParserConfig implements Serializable {
             .append(cacheConfig, that.cacheConfig)
             .append(parserConfig, that.parserConfig)
             .append(fieldTransformations, that.fieldTransformations)
+            .append(rawMessageStrategy, that.rawMessageStrategy)
+            .append(rawMessageStrategyConfig, that.rawMessageStrategyConfig)
             .isEquals();
   }
 
@@ -443,8 +490,8 @@ public class SensorParserConfig implements Serializable {
             .append(errorTopic)
             .append(writerClassName)
             .append(errorWriterClassName)
-            .append(readMetadata)
-            .append(mergeMetadata)
+            .append(getReadMetadata())
+            .append(getMergeMetadata())
             .append(numWorkers)
             .append(numAckers)
             .append(spoutParallelism)
@@ -459,6 +506,8 @@ public class SensorParserConfig implements Serializable {
             .append(cacheConfig)
             .append(parserConfig)
             .append(fieldTransformations)
+            .append(rawMessageStrategy)
+            .append(rawMessageStrategyConfig)
             .toHashCode();
   }
 
@@ -472,8 +521,8 @@ public class SensorParserConfig implements Serializable {
             .append("errorTopic", errorTopic)
             .append("writerClassName", writerClassName)
             .append("errorWriterClassName", errorWriterClassName)
-            .append("readMetadata", readMetadata)
-            .append("mergeMetadata", mergeMetadata)
+            .append("readMetadata", getReadMetadata())
+            .append("mergeMetadata", getMergeMetadata())
             .append("numWorkers", numWorkers)
             .append("numAckers", numAckers)
             .append("spoutParallelism", spoutParallelism)
@@ -488,6 +537,8 @@ public class SensorParserConfig implements Serializable {
             .append("cacheConfig", cacheConfig)
             .append("parserConfig", parserConfig)
             .append("fieldTransformations", fieldTransformations)
+            .append("rawMessageStrategy", rawMessageStrategy)
+            .append("rawMessageStrategyConfig", rawMessageStrategyConfig)
             .toString();
   }
 }

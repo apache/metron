@@ -17,42 +17,31 @@
  */
 package org.apache.metron.parsers.integration;
 
-import com.google.common.collect.ImmutableList;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+
 import org.apache.commons.lang.SerializationUtils;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.parsers.ParserRunner;
+import org.apache.metron.parsers.ParserRunnerImpl;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
-import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.storm.generated.GlobalStreamId;
-import org.apache.storm.task.GeneralTopologyContext;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Fields;
-import org.apache.storm.tuple.MessageId;
 import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.TupleImpl;
 import org.json.simple.JSONObject;
-import org.mockito.Matchers;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,33 +82,13 @@ public class ParserDriver implements Serializable {
     List<byte[]> errors = new ArrayList<>();
 
     public ShimParserBolt(List<byte[]> output) {
-      super(null
-           , sensorType == null?config.getSensorTopic():sensorType
-           , ReflectionUtils.createInstance(config.getParserClassName())
-           , new WriterHandler( new CollectingWriter(output))
-      );
+      super(null, parserRunner, Collections.singletonMap(sensorType, new WriterHandler(new CollectingWriter(output))));
       this.output = output;
-      getParser().configure(config.getParserConfig());
     }
 
     @Override
     public ParserConfigurations getConfigurations() {
-      return new ParserConfigurations() {
-        @Override
-        public SensorParserConfig getSensorParserConfig(String sensorType) {
-          return config;
-        }
-
-        @Override
-        public Map<String, Object> getGlobalConfig() {
-          return globalConfig;
-        }
-
-        @Override
-        public List<FieldValidator> getFieldValidations() {
-          return new ArrayList<>();
-        }
-      };
+      return config;
     }
 
     @Override
@@ -127,31 +96,37 @@ public class ParserDriver implements Serializable {
     }
 
     @Override
-    protected void handleError(byte[] originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
+    protected void handleError(String sensorType, byte[] originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
       errors.add(originalMessage);
       LOG.error("Error parsing message: " + ex.getMessage(), ex);
     }
 
+    @SuppressWarnings("unchecked")
     public ProcessorResult<List<byte[]>> getResults() {
       return new ProcessorResult.Builder<List<byte[]>>().withProcessErrors(errors)
                                                         .withResult(output)
                                                         .build();
-
     }
   }
 
 
-  private SensorParserConfig config;
-  private Map<String, Object> globalConfig;
+  private ParserConfigurations config;
   private String sensorType;
+  private ParserRunner parserRunner;
 
   public ParserDriver(String sensorType, String parserConfig, String globalConfig) throws IOException {
-    config = SensorParserConfig.fromBytes(parserConfig.getBytes());
-    this.sensorType = sensorType;
-    this.globalConfig = JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER);
+    SensorParserConfig sensorParserConfig = SensorParserConfig.fromBytes(parserConfig.getBytes());
+    this.sensorType = sensorType == null ? sensorParserConfig.getSensorTopic() : sensorType;
+    config = new ParserConfigurations();
+    config.updateSensorParserConfig(this.sensorType, SensorParserConfig.fromBytes(parserConfig.getBytes()));
+    config.updateGlobalConfig(JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER));
+
+    parserRunner = new ParserRunnerImpl(new HashSet<String>() {{
+      add(sensorType);
+    }});
   }
 
-  public ProcessorResult<List<byte[]>> run(List<byte[]> in) {
+  public ProcessorResult<List<byte[]>> run(Iterable<byte[]> in) {
     ShimParserBolt bolt = new ShimParserBolt(new ArrayList<>());
     byte[] b = SerializationUtils.serialize(bolt);
     ShimParserBolt b2 = (ShimParserBolt) SerializationUtils.deserialize(b);
@@ -165,6 +140,7 @@ public class ParserDriver implements Serializable {
 
   public Tuple toTuple(byte[] record) {
     Tuple ret = mock(Tuple.class);
+    when(ret.getStringByField("topic")).thenReturn(sensorType);
     when(ret.getBinary(eq(0))).thenReturn(record);
     return ret;
   }

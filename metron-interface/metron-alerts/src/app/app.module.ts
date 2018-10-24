@@ -19,7 +19,7 @@ import { Router } from '@angular/router';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpModule } from '@angular/http';
+import {HttpClientModule, HTTP_INTERCEPTORS} from '@angular/common/http';
 import { APP_INITIALIZER } from '@angular/core';
 
 import { AppComponent } from './app.component';
@@ -45,8 +45,11 @@ import {UpdateService} from './service/update.service';
 import {MetaAlertService} from './service/meta-alert.service';
 import {MetaAlertsModule} from './alerts/meta-alerts/meta-alerts.module';
 import {SearchService} from './service/search.service';
+import { GlobalConfigService } from './service/global-config.service';
+import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.interceptor';
 
 
+import {PcapModule} from './pcap/pcap.module';
 
 export function initConfig(config: ColumnNamesService) {
   return () => config.list();
@@ -59,7 +62,7 @@ export function initConfig(config: ColumnNamesService) {
   imports: [
     BrowserModule,
     FormsModule,
-    HttpModule,
+    HttpClientModule,
     MetronAlertsRoutingModule,
     LoginModule,
     AlertsListModule,
@@ -69,10 +72,12 @@ export function initConfig(config: ColumnNamesService) {
     ConfigureRowsModule,
     SaveSearchModule,
     SavedSearchesModule,
-    SwitchModule
+    SwitchModule,
+    PcapModule
   ],
   providers: [{ provide: APP_INITIALIZER, useFactory: initConfig, deps: [ColumnNamesService], multi: true },
               { provide: DataSource, useClass: ElasticSearchLocalstorageImpl },
+              { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true },
               AuthenticationService,
               AuthGuard,
               LoginGuard,
@@ -82,7 +87,8 @@ export function initConfig(config: ColumnNamesService) {
               MetronDialogBox,
               ColumnNamesService,
               UpdateService,
-              MetaAlertService],
+              MetaAlertService,
+              GlobalConfigService],
   bootstrap: [AppComponent]
 })
 

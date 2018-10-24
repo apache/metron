@@ -59,8 +59,9 @@ export class QueryBuilder {
     this.setSearch(this._searchRequest.query);
   }
 
-  get groupRequest(): GroupRequest {
+  groupRequest(scoreField): GroupRequest {
     this._groupRequest.query = this.generateSelect();
+    this._groupRequest.scoreField = scoreField;
     return this._groupRequest;
   }
 
@@ -143,7 +144,7 @@ export class QueryBuilder {
   }
 
   setGroupby(groups: string[]) {
-    this.groupRequest.groups = groups.map(groupName => new Group(groupName));
+    this._groupRequest.groups = groups.map(groupName => new Group(groupName));
   }
 
   setSort(sortBy: string, order: string) {

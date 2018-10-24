@@ -18,15 +18,15 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-interface</artifactId>
-        <version>0.4.3</version>
+        <version>0.6.1</version>
     </parent>
     <artifactId>metron-alerts</artifactId>
     <url>https://metron.apache.org/</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <node.version>v7.10.0</node.version>
-        <npm.version>4.2.0</npm.version>
+        <node.version>v9.11.1</node.version>
+        <npm.version>6.2.0</npm.version>
     </properties>
     <dependencies>
     </dependencies>
@@ -52,22 +52,32 @@
                     </execution>
                     <execution>
                         <phase>generate-resources</phase>
-                        <id>npm install</id>
+                        <id>npm ci</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
                         <configuration>
-                            <arguments>install</arguments>
+                            <arguments>ci</arguments>
                         </configuration>
                     </execution>
                     <execution>
                         <phase>generate-resources</phase>
-                        <id>ng build</id>
+                        <id>npm run build</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
                         <configuration>
                             <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>test</phase>
+                        <id>npm testCI</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run testCI</arguments>
                         </configuration>
                     </execution>
                 </executions>

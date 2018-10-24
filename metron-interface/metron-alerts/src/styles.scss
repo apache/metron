@@ -22,6 +22,7 @@
 @import "metron-dialog.scss";
 @import "../node_modules/pikaday-time/scss/pikaday.scss";
 @import "hexagon";
+@import "confirm-popover.scss";
 
 body,
 button {
@@ -324,5 +325,15 @@ $background_color_3: #2196F3;
       display: none;
     }
   }
+}
+
+.notransition * {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  -ms-transition: none !important;
+  transition: none !important;
+
+  animation: none !important;
 }
 

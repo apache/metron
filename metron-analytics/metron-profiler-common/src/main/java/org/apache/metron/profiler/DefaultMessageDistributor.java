@@ -28,10 +28,10 @@ import com.google.common.cache.RemovalNotification;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.stellar.dsl.Context;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +58,7 @@ import static java.lang.String.format;
  * lost.
  *
  */
-public class DefaultMessageDistributor implements MessageDistributor {
+public class DefaultMessageDistributor implements MessageDistributor, Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -74,7 +74,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
    * messages.  Once it has not received messages for a period of time, it is
    * moved to the expired cache.
    */
-  private transient Cache<Integer, ProfileBuilder> activeCache;
+  private Cache<Integer, ProfileBuilder> activeCache;
 
   /**
    * A cache of expired profiles.
@@ -85,7 +85,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
    * can flush the state of the expired profile.  If the client does not flush
    * the expired profiles, this state will be lost forever.
    */
-  private transient Cache<Integer, ProfileBuilder> expiredCache;
+  private Cache<Integer, ProfileBuilder> expiredCache;
 
   /**
    * Create a new message distributor.
@@ -147,17 +147,14 @@ public class DefaultMessageDistributor implements MessageDistributor {
   /**
    * Distribute a message along a MessageRoute.
    *
-   * @param message The message that needs distributed.
-   * @param timestamp The timestamp of the message.
    * @param route The message route.
    * @param context The Stellar execution context.
-   * @throws ExecutionException
    */
   @Override
-  public void distribute(JSONObject message, long timestamp, MessageRoute route, Context context) {
+  public void distribute(MessageRoute route, Context context) {
     try {
       ProfileBuilder builder = getBuilder(route, context);
-      builder.apply(message, timestamp);
+      builder.apply(route.getMessage(), route.getTimestamp());
 
     } catch(ExecutionException e) {
       LOG.error("Unexpected error", e);
@@ -177,10 +174,10 @@ public class DefaultMessageDistributor implements MessageDistributor {
    */
   @Override
   public List<ProfileMeasurement> flush() {
+    LOG.debug("About to flush active profiles");
 
     // cache maintenance needed here to ensure active profiles will expire
-    activeCache.cleanUp();
-    expiredCache.cleanUp();
+    cacheMaintenance();
 
     List<ProfileMeasurement> measurements = flushCache(activeCache);
     return measurements;
@@ -202,10 +199,10 @@ public class DefaultMessageDistributor implements MessageDistributor {
    */
   @Override
   public List<ProfileMeasurement> flushExpired() {
+    LOG.debug("About to flush expired profiles");
 
     // cache maintenance needed here to ensure active profiles will expire
-    activeCache.cleanUp();
-    expiredCache.cleanUp();
+    cacheMaintenance();
 
     // flush all expired profiles
     List<ProfileMeasurement> measurements = flushCache(expiredCache);
@@ -214,6 +211,16 @@ public class DefaultMessageDistributor implements MessageDistributor {
     expiredCache.invalidateAll();
 
     return measurements;
+  }
+
+  /**
+   * Performs cache maintenance on both the active and expired caches.
+   */
+  private void cacheMaintenance() {
+    activeCache.cleanUp();
+    expiredCache.cleanUp();
+
+    LOG.debug("Cache maintenance complete: activeCacheSize={}, expiredCacheSize={}", activeCache.size(), expiredCache.size());
   }
 
   /**
@@ -289,7 +296,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
   /**
    * A listener that is notified when profiles expire from the active cache.
    */
-  private class ActiveCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder> {
+  private class ActiveCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder>, Serializable {
 
     @Override
     public void onRemoval(RemovalNotification<Integer, ProfileBuilder> notification) {
@@ -307,7 +314,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
   /**
    * A listener that is notified when profiles expire from the active cache.
    */
-  private class ExpiredCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder> {
+  private class ExpiredCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder>, Serializable {
 
     @Override
     public void onRemoval(RemovalNotification<Integer, ProfileBuilder> notification) {

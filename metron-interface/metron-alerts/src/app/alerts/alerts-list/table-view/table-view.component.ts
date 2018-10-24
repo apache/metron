@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import {Router} from '@angular/router';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 
 import {Pagination} from '../../../model/pagination';
 import {SortEvent} from '../../../shared/metron-table/metron-table.directive';
@@ -29,13 +29,11 @@ import {QueryBuilder} from '../query-builder';
 import {Sort} from '../../../utils/enums';
 import {Filter} from '../../../model/filter';
 import {AlertSource} from '../../../model/alert-source';
-import {PatchRequest} from '../../../model/patch-request';
-import {Patch} from '../../../model/patch';
 import {UpdateService} from '../../../service/update.service';
-import {META_ALERTS_INDEX} from '../../../utils/constants';
 import {MetaAlertService} from '../../../service/meta-alert.service';
 import {MetaAlertAddRemoveRequest} from '../../../model/meta-alert-add-remove-request';
 import {GetRequest} from '../../../model/get-request';
+import { GlobalConfigService } from '../../../service/global-config.service';
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -47,11 +45,8 @@ export enum MetronAlertDisplayState {
   styleUrls: ['./table-view.component.scss']
 })
 
-export class TableViewComponent implements OnChanges {
+export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
-  threatScoreFieldName = 'threat:triage:score';
-
-  router: Router;
   searchService: SearchService;
   updateService: UpdateService;
   isStatusFieldPresent = false;
@@ -59,6 +54,9 @@ export class TableViewComponent implements OnChanges {
   metaAlertService: MetaAlertService;
   metaAlertsDisplayState: {[key: string]: MetronAlertDisplayState} = {};
   metronAlertDisplayState = MetronAlertDisplayState;
+  globalConfig: {} = {};
+  globalConfigService: GlobalConfigService;
+  configSubscription: Subscription;
 
   @Input() alerts: Alert[] = [];
   @Input() queryBuilder: QueryBuilder;
@@ -73,16 +71,29 @@ export class TableViewComponent implements OnChanges {
   @Output() onShowConfigureTable = new EventEmitter<Alert>();
   @Output() onSelectedAlertsChange = new EventEmitter< Alert[]>();
 
-  constructor(router: Router,
-              searchService: SearchService,
+  constructor(searchService: SearchService,
               metronDialogBox: MetronDialogBox,
               updateService: UpdateService,
-              metaAlertService: MetaAlertService) {
-    this.router = router;
+              metaAlertService: MetaAlertService,
+              globalConfigService: GlobalConfigService) {
     this.searchService = searchService;
     this.metronDialogBox = metronDialogBox;
     this.updateService = updateService;
     this.metaAlertService = metaAlertService;
+    this.globalConfigService = globalConfigService;
+  }
+
+  ngOnInit() {
+    this.configSubscription = this.globalConfigService.get().subscribe((config: {}) => {
+      this.globalConfig = config;
+      if (this.globalConfig['source.type.field']) {
+        let filteredAlertsColumnsToDisplay = this.alertsColumnsToDisplay.filter(colName => colName.name !== 'source:type');
+        if (filteredAlertsColumnsToDisplay.length < this.alertsColumnsToDisplay.length) {
+          this.alertsColumnsToDisplay = filteredAlertsColumnsToDisplay;
+          this.alertsColumnsToDisplay.splice(2, 0, new ColumnMetadata(this.globalConfig['source.type.field'], 'string'));
+        }
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -96,9 +107,30 @@ export class TableViewComponent implements OnChanges {
     }
   }
 
+  ngOnDestroy() {
+    this.configSubscription.unsubscribe();
+  }
+
+  threatScoreFieldName() {
+    return this.globalConfig['threat.triage.score.field']
+  }
+
+  hasScore(alertSource) {
+    if(alertSource[this.threatScoreFieldName()]) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  getScore(alertSource) {
+    return alertSource[this.threatScoreFieldName()];
+  }
+
   updateExpandedStateForChangedData(expandedMetaAlerts: string[]) {
     this.alerts.forEach(alert => {
-      if (alert.source.alert && alert.source.alert.length > 0) {
+      if (alert.source.metron_alert && alert.source.metron_alert.length > 0) {
         this.metaAlertsDisplayState[alert.id] = expandedMetaAlerts.indexOf(alert.id) === -1 ?
                                                   MetronAlertDisplayState.COLLAPSE : MetronAlertDisplayState.EXPAND;
       }
@@ -202,7 +234,6 @@ export class TableViewComponent implements OnChanges {
   showMetaAlertDetails($event, alertSource: AlertSource) {
     let alert = new Alert();
     alert.source = alertSource;
-    alert.index = META_ALERTS_INDEX;
     this.showDetails($event, alert);
   }
 
@@ -236,26 +267,26 @@ export class TableViewComponent implements OnChanges {
     $event.stopPropagation();
   }
 
-  deleteMetaAlert($event, alert: Alert, index: number) {
+  deleteMetaAlert($event, alert: Alert) {
     this.metronDialogBox.showConfirmationMessage('Do you wish to remove all the alerts from meta alert?').subscribe(response => {
       if (response) {
-        this.doDeleteMetaAlert(alert, index);
+        this.doDeleteMetaAlert(alert);
       }
     });
     $event.stopPropagation();
   }
 
   doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex) {
-    let alertToRemove = alert.source.alert[metaAlertIndex];
+    let alertToRemove = alert.source.metron_alert[metaAlertIndex];
     let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
     metaAlertAddRemoveRequest.metaAlertGuid = alert.source.guid;
-    metaAlertAddRemoveRequest.alerts = [new GetRequest(alertToRemove.guid, alertToRemove['source:type'], '')];
+    metaAlertAddRemoveRequest.alerts = [new GetRequest(alertToRemove.guid, alertToRemove[this.globalConfig['source.type.field']], '')];
 
     this.metaAlertService.removeAlertsFromMetaAlert(metaAlertAddRemoveRequest).subscribe(() => {
     });
   }
 
-  doDeleteMetaAlert(alert: Alert, index: number) {
+  doDeleteMetaAlert(alert: Alert) {
     this.metaAlertService.updateMetaAlertStatus(alert.source.guid, 'inactive').subscribe(() => {
     });
   }

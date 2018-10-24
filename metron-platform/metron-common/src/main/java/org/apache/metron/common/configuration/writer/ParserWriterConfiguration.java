@@ -26,6 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/*
+ * Note that parsers can also be used for streaming enrichments, which means broader scope than
+ * Kafka alone.
+ */
 public class ParserWriterConfiguration implements WriterConfiguration {
   private ParserConfigurations config;
   public ParserWriterConfiguration(ParserConfigurations config) {
@@ -38,7 +42,7 @@ public class ParserWriterConfiguration implements WriterConfiguration {
             && config.getSensorParserConfig(sensorName).getParserConfig() != null
             ) {
       Object batchObj = config.getSensorParserConfig(sensorName).getParserConfig().get(IndexingConfigurations.BATCH_SIZE_CONF);
-      return batchObj == null ? 1 : ConversionUtils.convert(batchObj, Integer.class);
+      return batchObj == null ? ParserConfigurations.DEFAULT_KAFKA_BATCH_SIZE : ConversionUtils.convert(batchObj, Integer.class);
     }
     return 1;
   }
@@ -100,5 +104,11 @@ public class ParserWriterConfiguration implements WriterConfiguration {
   @Override
   public boolean isDefault(String sensorName) {
     return false;
+  }
+
+  @Override
+  public String getFieldNameConverter(String sensorName) {
+    // not applicable
+    return null;
   }
 }

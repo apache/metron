@@ -12,11 +12,11 @@
   the specific language governing permissions and limitations under the License.
   -->
 <div class="table-wrapper">
-  <table class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="resize()" #table>
+  <table attr.data-qe-id="{{'alerts-table'}}" class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="resize()" #table>
     <thead>
     <tr>
       <th width="15" class="dropdown-cell"> </th>
-      <th width="55"> <metron-config-sorter [type]="'number'" [sortBy]="threatScoreFieldName"> Score </metron-config-sorter> </th>
+      <th width="55"> <metron-config-sorter [type]="'number'" [sortBy]="threatScoreFieldName()"> Score </metron-config-sorter> </th>
       <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name"> <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter> </th>
       <th width="20" class="icon-cell"></th>
       <th width="20" class="icon-cell"></th>
@@ -26,16 +26,16 @@
     <tbody>
     <ng-container *ngFor="let alert of alerts; let alertIndex = index;">
 
-      <ng-container *ngIf="!alert.source.alert || alert.source.alert.length === 0">
-        <tr (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
+      <ng-container *ngIf="!alert.source.metron_alert || alert.source.metron_alert.length === 0">
+        <tr attr.data-qe-id="{{'row-' + alertIndex}}" (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
           <td width="15" class="icon-cell"></td>
-          <td (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])">
-            <div appAlertSeverity [severity]="alert.source[threatScoreFieldName]">
-              <a> {{ alert.source[threatScoreFieldName] ? alert.source[threatScoreFieldName] : '-' }} </a>
+          <td (click)="addFilter(threatScoreFieldName(), getScore(alert.source))">
+            <div appAlertSeverity [severity]="getScore(alert.source)">
+              <a attr.data-qe-id="{{'score'}}"> {{ hasScore(alert.source) ? getScore(alert.source) : '-' }} </a>
             </div>
           </td>
-          <td *ngFor="let column of alertsColumnsToDisplay" #cell>
-            <a (click)="addFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9">
+          <td *ngFor="let column of alertsColumnsToDisplay; let columnIndex = index;" #cell>
+            <a  attr.data-qe-id="{{'cell-' + columnIndex}}" (click)="addFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}"  style="color:#689AA9">
               {{ getValue(alert,column, true) | centerEllipses:20:cell }}
             </a>
           </td>
@@ -50,26 +50,26 @@
         </tr>
       </ng-container>
 
-      <ng-container *ngIf="alert.source.alert && alert.source.alert.length > 0">
+      <ng-container *ngIf="alert.source.metron_alert && alert.source.metron_alert.length > 0">
         <tr (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
           <td width="15" class="icon-cell dropdown-cell" (click)="toggleExpandCollapse($event, alert)">
             <i class="fa" aria-hidden="true"
                [ngClass]="{'fa-caret-right': metaAlertsDisplayState[alert.id] === metronAlertDisplayState.COLLAPSE, 'fa-caret-down': metaAlertsDisplayState[alert.id] === metronAlertDisplayState.EXPAND}">
             </i>
           </td>
-          <td (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])">
-            <span appAlertSeverity [severity]="alert.source[threatScoreFieldName]"> <a> {{ alert.source[threatScoreFieldName] ? alert.source[threatScoreFieldName] : '-' }} </a> </span>
+          <td (click)="addFilter(threatScoreFieldName(), getScore(alert.source))">
+            <span appAlertSeverity [severity]="getScore(alert.source)"> <a> {{ hasScore(alert.source) ? getScore(alert.source) : '-' }} </a> </span>
           </td>
           <td [attr.colspan]="alertsColumnsToDisplay.length - 1">
             <a (click)="addFilter('guid', alert.id)" [attr.title]="alert.id" style="color:#689AA9"> {{ alert.source['name'] ? alert.source['name'] : alert.id | centerEllipses:20:cell }}</a>
-              <span> ({{ alert.source.alert.length }})</span>
+              <span> ({{ alert.source.metron_alert.length }})</span>
           </td>
           <td>
             <a *ngIf="isStatusFieldPresent" (click)="addFilter('alert_status', alert.source['alert_status'])" style="color:#689AA9">
               {{ alert.source['alert_status'] ?alert.source['alert_status'] : 'New' | centerEllipses:20:cell }}
             </a>
           </td>
-          <td width="20" class="icon-cell" (click)="deleteMetaAlert($event, alert, alertIndex)">
+          <td width="20" class="icon-cell" (click)="deleteMetaAlert($event, alert)">
             <i class="fa fa-chain-broken" aria-hidden="true"></i>
           </td>
           <td width="20" class="icon-cell">
@@ -80,12 +80,12 @@
             <label attr.for="{{ alert.id }}"></label>
           </td>
         </tr>
-        <tr *ngFor="let metaAlerts of alert.source.alert; let metaAlertIndex = index;" (click)="showMetaAlertDetails($event, metaAlerts)"
+        <tr *ngFor="let metaAlerts of alert.source.metron_alert; let metaAlertIndex = index;" (click)="showMetaAlertDetails($event, metaAlerts)"
             [ngClass]="{'selected' : selectedAlerts.indexOf(metaAlerts) != -1 , 'd-none': metaAlertsDisplayState[alert.id] === metronAlertDisplayState.COLLAPSE}">
           <td width="15" class="icon-cell" class="dropdown-cell"></td>
-          <td (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])" style="padding-left: 15px">
-            <div appAlertSeverity [severity]="metaAlerts[threatScoreFieldName]">
-              <a> {{ metaAlerts[threatScoreFieldName] ? metaAlerts[threatScoreFieldName] : '-' }} </a>
+          <td (click)="addFilter(threatScoreFieldName(), getScore(alert.source))" style="padding-left: 15px">
+            <div appAlertSeverity [severity]="getScore(metaAlerts)">
+              <a> {{ hasScore(metaAlerts) ? getScore(metaAlerts) : '-' }} </a>
             </div>
           </td>
           <td *ngFor="let column of alertsColumnsToDisplay">

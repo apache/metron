@@ -1,0 +1,3 @@
+{ "string" : "foo", "number" : 1, "ignored" : [ "blah" ] },{ "number" : 4 },
+{ "string" : "bar", "number" : 2, "ignored" : [ "blah" ] },{ "number" : 5 },
+{ "string" : "baz", "number" : 3, "ignored" : [ "blah" ] },{ "number" : 6 }

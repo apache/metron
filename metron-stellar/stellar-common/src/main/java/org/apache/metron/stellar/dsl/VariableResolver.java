@@ -28,6 +28,7 @@ package org.apache.metron.stellar.dsl;
  * </ul>
  */
 public interface VariableResolver {
+  public static final String ALL_FIELDS = "_";
 
   /**
    * Returns the value of a variable.

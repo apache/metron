@@ -1,0 +1,701 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<schema name="bro_doc" version="1.6">
+  <!--
+    WARNING
+
+    Because Metron inserts many distinct bro records into a single ElasticSearch index
+    by default, it encounters field collisions due to field name reuse across bro logs.
+
+    Be careful when modifying this file to not unintentionally affect other logs.
+    For instance, the "version" field exists in the HTTP, SSL, and SSH logs.  If you
+    were to only consider the SSH log, you would set the type to integer, but because
+    in the SSL and HTTP logs version is a string, we must set the type to keyword.
+   -->
+  <field name="_version_" type="plong" indexed="true" stored="true"/>
+  <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
+
+  <!--
+         * Metron-specific fields
+  -->
+  <field name="source.type" type="string" indexed="true" stored="true" />
+  <field name="alert_status" type="string" indexed="true" stored="true" />
+  <field name="timestamp" type="timestamp" indexed="true" stored="true" />
+  <field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+  <uniqueKey>guid</uniqueKey>
+
+  <!--
+         * Widely-used Bro fields (potentially renamed during Metron ingest)
+  -->
+  <field name="uid" type="string" indexed="true" stored="true" />
+  <field name="ip_src_addr" type="ip" indexed="true" stored="true" />
+  <field name="ip_src_port" type="pint" indexed="true" stored="true" />
+  <field name="ip_dst_addr" type="ip" indexed="true" stored="true" />
+  <field name="ip_dst_port" type="pint" indexed="true" stored="true" />
+
+  <!--
+         * HTTP log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/http/main.bro.html#type-HTTP::Info
+         *
+         * Notable Fields
+         *   Field:     method
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     uri
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     password
+         *   Notes:     Field exists in the HTTP and FTP logs
+         *
+         *   Field:     capture_password
+         *   Notes:     Field exists in the HTTP and FTP logs
+         *
+         *   Field:     trans_depth
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
+         *
+         *   Field:     user_agent
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
+         *
+         *   Field:     version
+         *   Notes:     Field exists in the HTTP, SSL, and SSH logs
+         *
+         *   Field:     host
+         *   Notes:     Field exists in the HTTP, KnownCerts, and Software logs
+         *
+         *   Field:     username
+         *   Notes:     Field exists in the HTTP and RADIUS logs
+         *
+         *   Field:     status_code
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     status_msg
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     request_body_len
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     response_body_len
+         *   Notes:     Field exists in the HTTP and SIP logs
+  -->
+  <field name="trans_depth" type="pint" indexed="true" stored="true" />
+  <field name="method" type="string" indexed="true" stored="true" />
+  <field name="host" type="string" indexed="true" stored="true" />
+  <field name="uri" type="string" indexed="true" stored="true" />
+  <field name="referrer" type="string" indexed="true" stored="true" />
+  <field name="version" type="string" indexed="true" stored="true" />
+  <field name="user_agent" type="string" indexed="true" stored="true" />
+  <field name="request_body_len" type="plong" indexed="true" stored="true" />
+  <field name="response_body_len" type="plong" indexed="true" stored="true" />
+  <field name="status_code" type="pint" indexed="true" stored="true" />
+  <field name="status_msg" type="string" indexed="true" stored="true" />
+  <field name="info_code" type="pint" indexed="true" stored="true" />
+  <field name="info_msg" type="string" indexed="true" stored="true" />
+  <field name="tags" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="username" type="string" indexed="true" stored="true" />
+  <field name="password" type="string" indexed="true" stored="true" />
+  <field name="proxied" type="string" indexed="true" stored="true" />
+  <field name="orig_fuids" type="string" indexed="true" stored="true" multiValued="true"/>
+  <field name="orig_filenames" type="string" indexed="true" stored="true" />
+  <field name="orig_mime_types" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="resp_fuids" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="resp_filenames" type="string" indexed="true" stored="true" />
+  <field name="resp_mime_types" type="string" indexed="true" stored="true" multiValued="true" />
+
+  <!--
+         * DNS log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/dns/main.bro.html#type-DNS::Info
+         *
+         * Notable Fields
+         *   Field:     proto
+         *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
+         *
+         *   Field:     trans_id
+         *   Notes:     Field exists in the DNS and DHCP logs
+         *
+         *   Field:     rtt
+         *   Notes:     This field uses the "interval" type, which may need handled differently.
+         *              https://www.bro.org/sphinx-git/script-reference/types.html#type-interval
+  -->
+  <field name="proto" type="string" indexed="true" stored="true" />
+  <field name="trans_id" type="plong" indexed="true" stored="true" />
+  <field name="rtt" type="string" indexed="true" stored="true" />
+
+  <field name="query" type="string" indexed="true" stored="true" />
+  <field name="qclass" type="pint" indexed="true" stored="true" />
+  <field name="qclass_name" type="string" indexed="true" stored="true" />
+  <field name="qtype" type="pint" indexed="true" stored="true" />
+  <field name="qtype_name" type="string" indexed="true" stored="true" />
+  <field name="rcode" type="pint" indexed="true" stored="true" />
+  <field name="rcode_name" type="string" indexed="true" stored="true" />
+  <field name="AA" type="boolean" indexed="true" stored="true" />
+  <field name="TC" type="boolean" indexed="true" stored="true" />
+  <field name="RD" type="boolean" indexed="true" stored="true" />
+  <field name="RA" type="boolean" indexed="true" stored="true" />
+  <field name="Z" type="pint" indexed="true" stored="true" />
+  <field name="answers" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="TTLs" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="rejected" type="boolean" indexed="true" stored="true" />
+  <!--
+         * Conn log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/conn/main.bro.html#type-Conn::Info
+         *
+         * Notable Fields
+         *   Field:     proto
+         *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
+         *
+         *   Field:     duration
+         *   Notes:     Field exists in the Conn and Files logs
+         *
+         *   Field:     local_orig
+         *   Notes:     Field exists in the Conn and Files logs
+  -->
+  <field name="service" type="string" indexed="true" stored="true" />
+  <field name="duration" type="pfloat" indexed="true" stored="true" />
+  <field name="orig_bytes" type="plong" indexed="true" stored="true" />
+  <field name="resp_bytes" type="plong" indexed="true" stored="true" />
+  <field name="conn_state" type="string" indexed="true" stored="true" />
+  <field name="local_orig" type="boolean" indexed="true" stored="true" />
+
+  <field name="local_resp" type="string" indexed="true" stored="true" />
+  <field name="missed_bytes" type="plong" indexed="true" stored="true" />
+  <field name="history" type="string" indexed="true" stored="true" />
+  <field name="orig_pkts" type="plong" indexed="true" stored="true" />
+  <field name="orig_ip_bytes" type="plong" indexed="true" stored="true" />
+  <field name="resp_pkts" type="plong" indexed="true" stored="true" />
+  <field name="resp_ip_bytes" type="plong" indexed="true" stored="true" />
+  <field name="tunnel_parents" type="string" indexed="true" stored="true" multiValued="true" />
+  <!--
+         * DPD log support
+         * https://www.bro.org/sphinx-git/scripts/base/frameworks/dpd/main.bro.html#type-DPD::Info
+         *
+         * Notable Fields
+         *   Field:     proto
+         *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
+  -->
+  <field name="analyzer" type="string" indexed="true" stored="true" />
+  <field name="failure_reason" type="string" indexed="true" stored="true" />
+  <!--
+         * FTP log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/ftp/info.bro.html#type-FTP::Info
+         *
+         * Notable Fields
+         *   Field:     password
+         *   Notes:     Field exists in the HTTP and FTP logs
+         *
+         *   Field:     capture_password
+         *   Notes:     Field exists in the HTTP and FTP logs
+         *
+         *   Field:     mime_type
+         *   Notes:     Field exists in the FTP and Files logs
+         *
+         *   Field:     fuid
+         *   Notes:     Field exists in the FTP, Files, and Notice logs
+   -->
+  <field name="user" type="string" indexed="true" stored="true" />
+  <field name="command" type="string" indexed="true" stored="true" />
+  <field name="arg" type="string" indexed="true" stored="true" />
+  <field name="mime_type" type="string" indexed="true" stored="true" />
+  <field name="file_size" type="plong" indexed="true" stored="true" />
+  <field name="reply_code" type="pint" indexed="true" stored="true" />
+  <field name="reply_msg" type="string" indexed="true" stored="true" />
+  <field name="data_channel.passive" type="boolean" indexed="true" stored="true" />
+  <field name="data_channel.orig_h" type="ip" indexed="true" stored="true" />
+  <field name="data_channel.resp_h" type="ip" indexed="true" stored="true" />
+  <field name="data_channel.resp_p" type="pint" indexed="true" stored="true" />
+  <field name="cwd" type="string" indexed="true" stored="true" />
+  <field name="passive" type="boolean" indexed="true" stored="true" />
+  <field name="fuid" type="string" indexed="true" stored="true" />
+  <!--
+         * Files log support
+         * https://www.bro.org/sphinx/scripts/base/frameworks/files/main.bro.html#type-Files::Info
+         *
+         * Notable Fields
+         *   Field:     tx_hosts
+         *   Notes:     Metron rewrites this to "ip_src_addr"
+         *
+         *   Field:     rx_hosts
+         *   Notes:     Metron rewrites this to "ip_dst_addr"
+         *
+         *   Field:     mime_type
+         *   Notes:     Field exists in the FTP and Files logs
+         *
+         *   Field:     duration
+         *   Notes:     Field exists in the Conn and Files logs
+         *
+         *   Field:     local_orig
+         *   Notes:     Field exists in the Conn and Files logs
+         *
+         *   Field:     fuid
+         *   Notes:     Field exists in the FTP, Files, and Notice logs
+  -->
+  <field name="conn_uids" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="source" type="string" indexed="true" stored="true" />
+  <field name="depth" type="pint" indexed="true" stored="true" />
+  <field name="analyzers" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="filename" type="string" indexed="true" stored="true" />
+  <field name="is_orig" type="boolean" indexed="true" stored="true" />
+  <field name="seen_bytes" type="plong" indexed="true" stored="true" />
+  <field name="total_bytes" type="plong" indexed="true" stored="true" />
+  <field name="missing_bytes" type="plong" indexed="true" stored="true" />
+  <field name="overflow_bytes" type="plong" indexed="true" stored="true" />
+  <field name="timedout" type="boolean" indexed="true" stored="true" />
+  <field name="parent_fuid" type="string" indexed="true" stored="true" />
+  <field name="md5" type="string" indexed="true" stored="true" />
+  <field name="sha1" type="string" indexed="true" stored="true" />
+  <field name="sha256" type="string" indexed="true" stored="true" />
+  <field name="extracted" type="string" indexed="true" stored="true" />
+  <field name="extracted_cutoff" type="boolean" indexed="true" stored="true" />
+  <field name="extracted_size" type="plong" indexed="true" stored="true" />
+
+  <!--
+         * Known::CertInfo log support
+         * https://www.bro.org/sphinx/scripts/policy/protocols/ssl/known-certs.bro.html#type-Known::CertsInfo
+         *
+         * Notable Fields
+         *   Field:     host
+         *   Notes:     Field exists in the HTTP, KnownCerts, and Software logs
+         *
+         *   Field:     subject
+         *   Notes:     Field exists in the KnownCerts, SMTP, SIP, and SSL logs
+  -->
+  <field name="port_num" type="pint" indexed="true" stored="true" />
+  <field name="subject" type="string" indexed="true" stored="true" />
+  <field name="issuer_subject" type="string" indexed="true" stored="true" />
+  <field name="serial" type="string" indexed="true" stored="true" />
+
+  <!--
+         * SMTP log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/smtp/main.bro.html#type-SMTP::Info
+         *
+         * Notable Fields
+         *   Field:     trans_depth
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
+         *
+         *   Field:     date
+         *   Notes:     Field exists in the SMTP and SIP logs
+         *
+         *   Field:     subject
+         *   Notes:     Field exists in the KnownCerts, SMTP, SIP, and SSL logs
+         *
+         *   Field:     reply_to
+         *   Notes:     Field exists in the SMTP and SIP logs
+         *
+         *   Field:     user_agent
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
+  -->
+  <field name="helo" type="string" indexed="true" stored="true" />
+  <field name="mailfrom" type="string" indexed="true" stored="true" />
+  <field name="rcptto" type="string" indexed="true" stored="true" />
+  <field name="date" type="string" indexed="true" stored="true" />
+  <field name="from" type="string" indexed="true" stored="true" />
+  <field name="to" type="string" indexed="true" stored="true" />
+  <field name="cc" type="string" indexed="true" stored="true" />
+  <field name="reply_to" type="string" indexed="true" stored="true" />
+  <field name="msg_id" type="string" indexed="true" stored="true" />
+  <field name="in_reply_to" type="string" indexed="true" stored="true" />
+  <field name="x_originating_ip" type="ip" indexed="true" stored="true" />
+  <field name="first_received" type="string" indexed="true" stored="true" />
+  <field name="second_received" type="string" indexed="true" stored="true" />
+  <field name="last_reply" type="string" indexed="true" stored="true" />
+  <field name="path" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="tls" type="boolean" indexed="true" stored="true" />
+  <field name="fuids" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="is_webmail" type="boolean" indexed="true" stored="true" />
+
+  <!--
+         * SSL log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/ssl/main.bro.html#type-SSL::Info
+         *
+         * Notable Fields
+         *   Field:     version
+         *   Notes:     Field exists in the HTTP, SSL, and SSH logs
+         *
+         *   Field:     subject
+         *   Notes:     Field exists in the KnownCerts, SMTP, SIP, and SSL logs
+  -->
+  <field name="cipher" type="string" indexed="true" stored="true" />
+  <field name="curve" type="string" indexed="true" stored="true" />
+  <field name="server_name" type="string" indexed="true" stored="true" />
+  <field name="resumed" type="boolean" indexed="true" stored="true" />
+  <field name="server_appdata" type="string" indexed="true" stored="true" />
+  <field name="client_appdata" type="boolean" indexed="true" stored="true" />
+  <field name="last_alert" type="string" indexed="true" stored="true" />
+  <field name="next_protocol" type="string" indexed="true" stored="true" />
+  <field name="established" type="boolean" indexed="true" stored="true" />
+  <field name="cert_chain_fuids" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="client_cert_chain_fuids" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="issuer" type="string" indexed="true" stored="true" />
+  <field name="client_subject" type="string" indexed="true" stored="true" />
+  <field name="client_issuer" type="string" indexed="true" stored="true" />
+  <field name="validation_status" type="string" indexed="true" stored="true" />
+  <!--
+         * Weird log support
+         * https://www.bro.org/sphinx/scripts/base/frameworks/notice/weird.bro.html#type-Weird::Info
+         *
+         * Notable Fields
+         *   Field:     peer
+         *   Notes:     Field exists in the Weird, CaptureLoss, and Stats logs
+         *
+         *   Field:     name
+         *   Notes:     Field exists in the Weird and LoadedScripts logs
+  -->
+  <field name="name" type="string" indexed="true" stored="true" />
+  <field name="addl" type="string" indexed="true" stored="true" />
+  <field name="notice" type="boolean" indexed="true" stored="true" />
+  <field name="peer" type="string" indexed="true" stored="true" />
+
+  <!--
+         * Notice log support
+         * https://www.bro.org/sphinx/scripts/base/frameworks/notice/main.bro.html#type-Notice::Info
+         *
+         * Notable Fields
+         *   Field:     fuid
+         *   Notes:     Field exists in the FTP, Files, and Notice logs
+         *
+         *   Field:     proto
+         *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
+         *
+         *   Field:     remote_location:country_code
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:region
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:city
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:latitude
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:longitude
+         *   Notes:     Field exists in the Notice and SSH logs
+  -->
+  <field name="file_mime_type" type="string" indexed="true" stored="true" />
+  <field name="file_desc" type="string" indexed="true" stored="true" />
+  <field name="note" type="string" indexed="true" stored="true" />
+  <field name="msg" type="string" indexed="true" stored="true" />
+  <field name="sub" type="string" indexed="true" stored="true" />
+  <field name="src" type="ip" indexed="true" stored="true" />
+  <field name="dst" type="ip" indexed="true" stored="true" />
+  <field name="p" type="pint" indexed="true" stored="true" />
+  <field name="n" type="pint" indexed="true" stored="true" />
+  <field name="src_peer" type="ip" indexed="true" stored="true" />
+  <field name="peer_descr" type="string" indexed="true" stored="true" />
+  <field name="actions" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="suppress_for" type="pdouble" indexed="true" stored="true" />
+  <field name="dropped" type="boolean" indexed="true" stored="true" />
+  <field name="remote_location.country_code" type="string" indexed="true" stored="true" />
+  <field name="remote_location.region" type="string" indexed="true" stored="true" />
+  <field name="remote_location.city" type="string" indexed="true" stored="true" />
+  <field name="remote_location.latitude" type="pdouble" indexed="true" stored="true" />
+  <field name="remote_location.longitude" type="pdouble" indexed="true" stored="true" />
+
+  <!--
+         * DHCP log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/dhcp/main.bro.html#type-DHCP::Info
+         *
+         * Notable Fields
+         *   Field:     mac
+         *   Notes:     Field exists in the DHCP, RADIUS, and KnownDevices logs
+         *
+         *   Field:     trans_id
+         *   Notes:     Field exists in the DNS and DHCP logs
+  -->
+  <field name="mac" type="string" indexed="true" stored="true" />
+  <field name="assigned_ip" type="ip" indexed="true" stored="true" />
+  <field name="lease_time" type="pfloat" indexed="true" stored="true" />
+  <!--
+         * SSH log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/ssh/main.bro.html#type-SSH::Info
+         *
+         * Notable Fields
+         *   Field:     version
+         *   Notes:     Field exists in the HTTP, SSL, and SSH logs
+         *
+         *   Field:     remote_location:country_code
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:region
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:city
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:latitude
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:longitude
+         *   Notes:     Field exists in the Notice and SSH logs
+  -->
+  <field name="auth_success" type="boolean" indexed="true" stored="true" />
+  <field name="auth_attempts" type="pint" indexed="true" stored="true" />
+  <field name="direction" type="string" indexed="true" stored="true" />
+  <field name="client" type="string" indexed="true" stored="true" />
+  <field name="server" type="string" indexed="true" stored="true" />
+  <field name="cipher_alg" type="string" indexed="true" stored="true" />
+  <field name="mac_alg" type="string" indexed="true" stored="true" />
+  <field name="compression_alg" type="string" indexed="true" stored="true" />
+  <field name="kex_alg" type="string" indexed="true" stored="true" />
+  <field name="host_key_alg" type="string" indexed="true" stored="true" />
+  <field name="host_key" type="string" indexed="true" stored="true" />
+
+  <!--
+         * Software log support
+         * https://www.bro.org/sphinx/scripts/base/frameworks/software/main.bro.html#type-Software::Info
+         *
+         * Notable Fields
+         *   Field:     host
+         *   Notes:     Field exists in the HTTP, KnownCerts, and Software logs
+  -->
+  <field name="host_p" type="pint" indexed="true" stored="true" />
+  <field name="software_type" type="string" indexed="true" stored="true" />
+  <field name="version.major" type="string" indexed="true" stored="true" />
+  <field name="version.minor" type="string" indexed="true" stored="true" />
+  <field name="version.minor2" type="string" indexed="true" stored="true" />
+  <field name="version.minor3" type="string" indexed="true" stored="true" />
+  <field name="version.addl" type="string" indexed="true" stored="true" />
+  <field name="unparsed_version" type="string" indexed="true" stored="true" />
+
+  <!--
+         * RADIUS log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/radius/main.bro.html#type-RADIUS::Info
+         *
+         * Notable Fields
+         *   Field:     username
+         *   Notes:     Field exists in the HTTP and RADIUS logs
+         *
+         *   Field:     mac
+         *   Notes:     Field exists in the DHCP, RADIUS, and KnownDevices logs
+         *
+         *   Field:     ttl
+         *   Notes:     This field uses the "interval" type, which may need handled differently.
+         *              https://www.bro.org/sphinx-git/script-reference/types.html#type-interval
+  -->
+  <field name="framed_addr" type="ip" indexed="true" stored="true" />
+  <field name="remote_ip" type="ip" indexed="true" stored="true" />
+  <field name="connect_info" type="string" indexed="true" stored="true" />
+  <field name="result" type="string" indexed="true" stored="true" />
+  <field name="ttl" type="string" indexed="true" stored="true" />
+
+  <!--
+         * X509 log support
+         * https://www.bro.org/sphinx/scripts/base/files/x509/main.bro.html#type-X509::Info
+         *
+         * Notable Fields
+         *   Field:     id
+         *   Notes:     In other bro records, the id field is of type conn_id, so it is
+         *              expanded before being logged into 4 fields, all of which are addressed
+         *              under the "Widely-used Bro fields" section of this template.  In X509
+         *              logs, however, id is a keyword to identify the certificate file id.
+  -->
+  <field name="id" type="string" indexed="true" stored="true" />
+  <field name="certificate.version" type="pint" indexed="true" stored="true" />
+  <field name="certificate.serial" type="string" indexed="true" stored="true" />
+  <field name="certificate.subject" type="string" indexed="true" stored="true" />
+  <field name="certificate.issuer" type="string" indexed="true" stored="true" />
+  <field name="certificate.not_valid_before" type="string" indexed="true" stored="true" />
+  <field name="certificate.not_valid_after" type="string" indexed="true" stored="true" />
+  <field name="certificate.key_alg" type="string" indexed="true" stored="true" />
+  <field name="certificate.sig_alg" type="string" indexed="true" stored="true" />
+  <field name="certificate.key_type" type="string" indexed="true" stored="true" />
+  <field name="certificate.key_length" type="pint" indexed="true" stored="true" />
+  <field name="certificate.exponent" type="string" indexed="true" stored="true" />
+  <field name="certificate.curve" type="string" indexed="true" stored="true" />
+  <field name="san.dns" type="string" indexed="true" stored="true" />
+  <field name="san.uri" type="string" indexed="true" stored="true" />
+  <field name="san.email" type="string" indexed="true" stored="true" />
+  <field name="san.ip" type="string" indexed="true" stored="true" />
+  <field name="basic_constraints.ca" type="boolean" indexed="true" stored="true" />
+  <field name="basic_constraints.path_len" type="pint" indexed="true" stored="true" />
+
+  <!--
+         * Known::DevicesInfo log support
+         * https://www.bro.org/sphinx/scripts/policy/misc/known-devices.bro.html#type-Known::DevicesInfo
+         *
+         * Notable Fields
+         *   Field:     mac
+         *   Notes:     Field exists in the DHCP, RADIUS, and KnownDevices logs
+  -->
+  <field name="dhcp_host_name" type="string" indexed="true" stored="true" />
+  <!--
+         * RFB::Info log support
+         * https://www.bro.org/sphinx-git/scripts/base/protocols/rfb/main.bro.html#type-RFB::Info
+  -->
+  <field name="client_major_version" type="string" indexed="true" stored="true" />
+  <field name="client_minor_version" type="string" indexed="true" stored="true" />
+  <field name="server_major_version" type="string" indexed="true" stored="true" />
+  <field name="server_minor_version" type="string" indexed="true" stored="true" />
+  <field name="authentication_method" type="string" indexed="true" stored="true" />
+  <field name="auth" type="boolean" indexed="true" stored="true" />
+  <field name="share_flag" type="boolean" indexed="true" stored="true" />
+  <field name="desktop_name" type="string" indexed="true" stored="true" />
+  <field name="width" type="pint" indexed="true" stored="true" />
+  <field name="height" type="pint" indexed="true" stored="true" />
+
+  <!--
+         * Stats::Info log support
+         * https://www.bro.org/sphinx/scripts/policy/misc/stats.bro.html#type-Stats::Info
+         *
+         * Notable Fields
+         *   Field:     peer
+         *   Notes:     Field exists in the Weird, CaptureLoss, and Stats logs
+         *
+         *   Field:     pkt_lag
+         *   Notes:     This field uses the "interval" type, which may need handled differently.
+         *              https://www.bro.org/sphinx-git/script-reference/types.html#type-interval
+  -->
+  <field name="mem" type="pint" indexed="true" stored="true" />
+  <field name="pkts_proc" type="pint" indexed="true" stored="true" />
+  <field name="bytes_recv" type="pint" indexed="true" stored="true" />
+  <field name="pkts_dropped" type="pint" indexed="true" stored="true" />
+  <field name="pkts_link" type="pint" indexed="true" stored="true" />
+  <field name="pkt_lag" type="string" indexed="true" stored="true" />
+  <field name="events_proc" type="pint" indexed="true" stored="true" />
+  <field name="events_queued" type="pint" indexed="true" stored="true" />
+  <field name="active_tcp_conns" type="pint" indexed="true" stored="true" />
+  <field name="active_udp_conns" type="pint" indexed="true" stored="true" />
+  <field name="active_icmp_conns" type="pint" indexed="true" stored="true" />
+  <field name="tcp_conns" type="pint" indexed="true" stored="true" />
+  <field name="udp_conns" type="pint" indexed="true" stored="true" />
+  <field name="icmp_conns" type="pint" indexed="true" stored="true" />
+  <field name="timers" type="pint" indexed="true" stored="true" />
+  <field name="active_timers" type="pint" indexed="true" stored="true" />
+  <field name="files" type="pint" indexed="true" stored="true" />
+  <field name="active_files" type="pint" indexed="true" stored="true" />
+  <field name="dns_requests" type="pint" indexed="true" stored="true" />
+  <field name="active_dns_requests" type="pint" indexed="true" stored="true" />
+  <field name="reassem_tcp_size" type="pint" indexed="true" stored="true" />
+  <field name="reassem_file_size" type="pint" indexed="true" stored="true" />
+  <field name="reassem_frag_size" type="pint" indexed="true" stored="true" />
+  <field name="reassem_unknown_size" type="pint" indexed="true" stored="true" />
+
+  <!--
+         * CaptureLoss::Info log support
+         * https://www.bro.org/sphinx/scripts/policy/misc/capture-loss.bro.html#type-CaptureLoss::Info
+         *
+         * Notable Fields
+         *   Field:     ts_delta
+         *   Notes:     This field uses the "interval" type, which may need handled differently.
+         *              https://www.bro.org/sphinx-git/script-reference/types.html#type-interval
+         *
+         *   Field:     peer
+         *   Notes:     Field exists in the Weird, CaptureLoss, and Stats logs
+  -->
+  <field name="ts_delta" type="string" indexed="true" stored="true" />
+  <field name="gaps" type="pint" indexed="true" stored="true" />
+  <field name="acks" type="pint" indexed="true" stored="true" />
+  <field name="percent_lost" type="pdouble" indexed="true" stored="true" />
+
+  <!--
+         * Reporter::Info log support
+         * https://www.bro.org/sphinx/scripts/base/frameworks/reporter/main.bro.html#type-Reporter::Info
+  -->
+  <field name="level" type="string" indexed="true" stored="true" />
+  <field name="message" type="string" indexed="true" stored="true" />
+  <field name="location" type="string" indexed="true" stored="true" />
+
+  <!--
+         * SIP::Info log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/sip/main.bro.html#type-SIP::Info
+         *
+         * Notable Fields
+         *   Field:     trans_depth
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
+         *
+         *   Field:     method
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     uri
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     date
+         *   Notes:     Field exists in the SMTP and SIP logs
+         *
+         *   Field:     reply_to
+         *   Notes:     Field exists in the SMTP and SIP logs
+         *
+         *   Field:     subject
+         *   Notes:     Field exists in the KnownCerts, SMTP, SIP, and SSL logs
+         *
+         *   Field:     user_agent
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
+         *
+         *   Field:     status_code
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     status_msg
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     request_body_len
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     response_body_len
+         *   Notes:     Field exists in the HTTP and SIP logs
+  -->
+  <field name="request_from" type="string" indexed="true" stored="true" />
+  <field name="request_to" type="string" indexed="true" stored="true" />
+  <field name="response_from" type="string" indexed="true" stored="true" />
+  <field name="response_to" type="string" indexed="true" stored="true" />
+  <field name="call_id" type="string" indexed="true" stored="true" />
+  <field name="seq" type="string" indexed="true" stored="true" />
+  <field name="request_path" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="response_path" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="warning" type="string" indexed="true" stored="true" />
+  <field name="content_type" type="string" indexed="true" stored="true" />
+
+  <!-- Geo Enrichment Fields -->
+  <dynamicField name="*.location_point" type="location" multiValued="false" docValues="false"/>
+  <dynamicField name="*_coordinate" type="pdouble" indexed="true" stored="false" docValues="false"/>
+  <dynamicField name="*.country" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.city" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.locID" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.dmaCode" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.postalCode" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.latitude" type="pfloat" multiValued="false" docValues="true"/>
+  <dynamicField name="*.longitude" type="pfloat" multiValued="false" docValues="true"/>
+
+  <!-- Performance Debugging Fields -->
+  <dynamicField name="*.ts" type="timestamp" multiValued="false" docValues="true"/>
+
+  <!-- Threat Intel Scoring Fields -->
+  <field name="is_alert" type="boolean" indexed="true" stored="true" />
+  <dynamicField name="*score" type="pfloat" multiValued="false" docValues="true"/>
+  <dynamicField name="*.reason" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.name" type="string" multiValued="false" docValues="true"/>
+
+  <!-- Comments field required for the UI -->
+  <field name="comments" type="string" indexed="true" stored="true" multiValued="true"/>
+
+  <!-- Metaalerts Field -->
+  <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>
+
+  <!-- Catch all, if we don't know about it, it gets dropped. -->
+  <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
+
+  <!-- Type Definitions -->
+  <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.TrieIntField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.TrieFloatField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.TrieDoubleField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
+  <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
+</schema>

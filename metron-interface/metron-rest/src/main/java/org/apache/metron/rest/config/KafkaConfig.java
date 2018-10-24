@@ -73,9 +73,9 @@ public class KafkaConfig {
   }
 
   /**
-   * Create properties that will be used by {@link this#createConsumerFactory()}
+   * Create properties that will be used by {@link org.apache.metron.rest.config.KafkaConfig#createConsumerFactory()}
    *
-   * @return Configurations used by {@link this#createConsumerFactory()}.
+   * @return Configurations used by {@link org.apache.metron.rest.config.KafkaConfig#createConsumerFactory()}.
    */
   @Bean
   public Map<String, Object> consumerProperties() {

@@ -89,7 +89,8 @@ There are two types of configurations at the moment, `global` and
 ## Global Configuration 
 
 There are a few enrichments which have independent configurations, such
-as from the global config.
+as from the global config. You can also configure the enrichment topology's
+writer batching settings.
 
 Also, see the "[Global Configuration](../metron-common)" section for
 more discussion of the global config.
@@ -106,6 +107,18 @@ lookups.  This file will be localized on the storm supervisors running
 the topology and used from there. This is lazy, so if this property
 changes in a running topology, the file will be localized from HDFS upon first
 time the file is used via the geo enrichment. 
+
+### Writer Batching
+
+#### `enrichment.writer.batchSize`
+
+The size of the batch that is written to Kafka at once. Defaults to `15` (size of 1 disables batching).
+
+#### `enrichment.writer.batchTimeout`
+
+The timeout after which a batch will be flushed even if batchSize has not been met.  Optional.
+If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm 
+parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
 
 ## Sensor Enrichment Configuration
 

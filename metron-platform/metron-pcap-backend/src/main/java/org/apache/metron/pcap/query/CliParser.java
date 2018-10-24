@@ -18,20 +18,28 @@
 
 package org.apache.metron.pcap.query;
 
-import org.apache.commons.cli.*;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INPUT_PATH_DEFAULT;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INTERIM_RESULT_PATH_DEFAULT;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.NUM_FINALIZER_THREADS_DEFAULT;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.NUM_RECORDS_PER_FILE_DEFAULT;
+import static org.apache.metron.pcap.config.PcapGlobalDefaults.NUM_REDUCERS_DEFAULT;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
+import org.apache.metron.pcap.config.PcapConfig;
 
 /**
  * Provides commmon required fields for the PCAP filter jobs
  */
 public class CliParser {
-  public static final String BASE_PATH_DEFAULT = "/apps/metron/pcap";
-  public static final String BASE_OUTPUT_PATH_DEFAULT = "/tmp";
-  public static final int NUM_REDUCERS_DEFAULT = 10;
-  public static final int NUM_RECORDS_PER_FILE_DEFAULT = 10000;
   private CommandLineParser parser;
-  protected CliConfig.PrefixStrategy prefixStrategy;
+  protected PcapConfig.PrefixStrategy prefixStrategy;
 
-  public CliParser(CliConfig.PrefixStrategy prefixStrategy) {
+  public CliParser(PcapConfig.PrefixStrategy prefixStrategy) {
     this.prefixStrategy = prefixStrategy;
     parser = new PosixParser();
   }
@@ -39,13 +47,17 @@ public class CliParser {
   public Options buildOptions() {
     Options options = new Options();
     options.addOption(newOption("h", "help", false, "Display help"));
-    options.addOption(newOption("bp", "base_path", true, String.format("Base PCAP data path. Default is '%s'", BASE_PATH_DEFAULT)));
-    options.addOption(newOption("bop", "base_output_path", true, String.format("Query result output path. Default is '%s'", BASE_OUTPUT_PATH_DEFAULT)));
+    options.addOption(newOption("bp", "base_path", true, String.format("Base PCAP data path. Default is '%s'",
+        BASE_INPUT_PATH_DEFAULT)));
+    options.addOption(newOption("bop", "base_output_path", true, String.format("Query result output path. Default is '%s'",
+        BASE_INTERIM_RESULT_PATH_DEFAULT)));
     options.addOption(newOption("st", "start_time", true, "(required) Packet start time range.", true));
     options.addOption(newOption("nr", "num_reducers", true, String.format("Number of reducers to use (defaults to %s)", NUM_REDUCERS_DEFAULT)));
     options.addOption(newOption("rpf", "records_per_file", true, String.format("Number of records to include in each output pcap file (defaults to %s)", NUM_RECORDS_PER_FILE_DEFAULT)));
     options.addOption(newOption("et", "end_time", true, "Packet end time range. Default is current system time."));
     options.addOption(newOption("df", "date_format", true, "Date format to use for parsing start_time and end_time. Default is to use time in millis since the epoch."));
+    options.addOption(newOption("yq", "yarn_queue", true, "Yarn queue this job will be submitted to"));
+    options.addOption(newOption("ft", "finalizer_threads", true, "Number of threads to use for the final output writing."));
     return options;
   }
 
@@ -59,7 +71,7 @@ public class CliParser {
     return option;
   }
 
-  public void parse(CommandLine commandLine, CliConfig config) throws java.text.ParseException {
+  public void parse(CommandLine commandLine, PcapConfig config) throws java.text.ParseException {
     if (commandLine.hasOption("help")) {
       config.setShowHelp(true);
     }
@@ -69,21 +81,21 @@ public class CliParser {
     if (commandLine.hasOption("base_path")) {
       config.setBasePath(commandLine.getOptionValue("base_path"));
     } else {
-      config.setBasePath(BASE_PATH_DEFAULT);
+      config.setBasePath(BASE_INPUT_PATH_DEFAULT);
     }
     if (commandLine.hasOption("base_output_path")) {
-      config.setBaseOutputPath(commandLine.getOptionValue("base_output_path"));
+      config.setBaseInterimResultPath(commandLine.getOptionValue("base_output_path"));
     } else {
-      config.setBaseOutputPath(BASE_OUTPUT_PATH_DEFAULT);
+      config.setBaseInterimResultPath(BASE_INTERIM_RESULT_PATH_DEFAULT);
     }
     if (commandLine.hasOption("start_time")) {
       try {
         if (commandLine.hasOption("date_format")) {
           long startTime = config.getDateFormat().parse(commandLine.getOptionValue("start_time")).getTime();
-          config.setStartTime(startTime);
+          config.setStartTimeMs(startTime);
         } else {
           long startTime = Long.parseLong(commandLine.getOptionValue("start_time"));
-          config.setStartTime(startTime);
+          config.setStartTimeMs(startTime);
         }
       } catch (NumberFormatException nfe) {
         //no-op
@@ -107,14 +119,23 @@ public class CliParser {
       try {
         if (commandLine.hasOption("date_format")) {
           long endTime = config.getDateFormat().parse(commandLine.getOptionValue("end_time")).getTime();
-          config.setEndTime(endTime);
+          config.setEndTimeMs(endTime);
         } else {
           long endTime = Long.parseLong(commandLine.getOptionValue("end_time"));
-          config.setEndTime(endTime);
+          config.setEndTimeMs(endTime);
         }
       } catch (NumberFormatException nfe) {
         //no-op
       }
+    }
+    if (commandLine.hasOption("yarn_queue")) {
+      config.setYarnQueue(commandLine.getOptionValue("yarn_queue"));
+    }
+    if (commandLine.hasOption("finalizer_threads")) {
+      String numThreads = commandLine.getOptionValue("finalizer_threads");
+      config.setFinalizerThreadpoolSize(numThreads);
+    } else {
+      config.setFinalizerThreadpoolSize(NUM_FINALIZER_THREADS_DEFAULT);
     }
   }
 

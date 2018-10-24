@@ -35,6 +35,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.BasicParser;
@@ -87,10 +88,18 @@ public class JSONMapParser extends BasicParser {
 
   public static final String MAP_STRATEGY_CONFIG = "mapStrategy";
   public static final String JSONP_QUERY = "jsonpQuery";
+  public static final String WRAP_JSON = "wrapInEntityArray";
+  public static final String WRAP_ENTITY_NAME = "wrapEntityName";
+  public static final String DEFAULT_WRAP_ENTITY_NAME = "messages";
+
+  private static final String WRAP_START_FMT = "{ \"%s\" : [";
+  private static final String WRAP_END = "]}";
 
   private MapStrategy mapStrategy = MapStrategy.DROP;
   private transient TypeRef<List<Map<String, Object>>> typeRef = null;
   private String jsonpQuery = null;
+  private String wrapEntityName = DEFAULT_WRAP_ENTITY_NAME;
+  private boolean wrapJson = false;
 
 
   @Override
@@ -100,6 +109,20 @@ public class JSONMapParser extends BasicParser {
     if (config.containsKey(JSONP_QUERY)) {
       typeRef = new TypeRef<List<Map<String, Object>>>() { };
       jsonpQuery = (String) config.get(JSONP_QUERY);
+
+      if (!StringUtils.isBlank(jsonpQuery) && config.containsKey(WRAP_JSON)) {
+        Object wrapObject = config.get(WRAP_JSON);
+        if (wrapObject instanceof String) {
+          wrapJson = Boolean.valueOf((String)wrapObject);
+        } else if (wrapObject instanceof Boolean) {
+          wrapJson = (Boolean) config.get(WRAP_JSON);
+        }
+        String entityName = (String)config.get(WRAP_ENTITY_NAME);
+        if (!StringUtils.isBlank(entityName)) {
+          wrapEntityName = entityName;
+        }
+      }
+
       Configuration.setDefaults(new Configuration.Defaults() {
 
         private final JsonProvider jsonProvider = new JacksonJsonProvider();
@@ -147,9 +170,14 @@ public class JSONMapParser extends BasicParser {
       String originalString = new String(rawMessage);
       List<Map<String, Object>> messages = new ArrayList<>();
 
+      // if configured, wrap the json in an entity and array
+      if (wrapJson) {
+        originalString = wrapMessageJson(originalString);
+      }
+
       if (!StringUtils.isEmpty(jsonpQuery)) {
-        Object parsedObject = JsonPath.parse(new String(rawMessage)).read(jsonpQuery, typeRef);
-        if(parsedObject != null) {
+        Object parsedObject = JsonPath.parse(originalString).read(jsonpQuery, typeRef);
+        if (parsedObject != null) {
           messages.addAll((List<Map<String,Object>>)parsedObject);
         }
       } else {
@@ -192,4 +220,12 @@ public class JSONMapParser extends BasicParser {
     return ret;
   }
 
+  private String wrapMessageJson(String jsonMessage) {
+    String base = new StringBuilder(String.format(WRAP_START_FMT,wrapEntityName))
+            .append(jsonMessage).toString().trim();
+    if (base.endsWith(",")) {
+      base = base.substring(0, base.length() - 1);
+    }
+    return base + WRAP_END;
+  }
 }

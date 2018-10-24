@@ -21,10 +21,16 @@ package org.apache.metron.stellar.common;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.base.Joiner;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -138,15 +144,33 @@ public class BaseStellarProcessor<T> {
     try {
       expression = expressionCache.get(rule, r -> compile(r));
     } catch (Throwable e) {
-      throw new ParseException("Unable to parse: " + rule + " due to: " + e.getMessage(), e);
+      throw createException(rule, variableResolver, e);
     }
     try {
       return clazz.cast(expression
           .apply(new StellarCompiler.ExpressionState(context, functionResolver, variableResolver)));
-    }finally {
+    }
+    catch(Throwable e) {
+      throw createException(rule, variableResolver, e);
+    }
+    finally {
         // always reset the activity type
         context.setActivityType(null);
     }
+  }
+
+  private ParseException createException(String rule, VariableResolver resolver, Throwable t) {
+    String message = "Unable to parse: " + rule + " due to: " + t.getMessage();
+    Set<String> variablesUsed = variablesUsed(rule);
+    if(variablesUsed.isEmpty()) {
+      return new ParseException(message, t);
+    }
+    List<Map.Entry<String, Object>> messagesUsed = new ArrayList<>(variablesUsed.size());
+    for(String v : variablesUsed) {
+      Optional<Object> resolved = Optional.ofNullable(resolver.resolve(v));
+      messagesUsed.add(new AbstractMap.SimpleEntry<>(v, resolved.orElse("missing")));
+    }
+    return new ParseException(message + " with relevant variables " + Joiner.on(",").join(messagesUsed), t);
   }
 
   /**

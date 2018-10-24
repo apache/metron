@@ -29,3 +29,15 @@
     content: '\f073';
   }
 }
+
+:host(.ng-invalid):not(form) {
+  border-left: none !important;
+}
+
+:host(.ng-invalid) input {
+  border-left: 5px solid #a94442; /* red */
+
+  &:focus {
+    border-color: #4D4D4D;
+  }
+}

@@ -27,9 +27,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
+import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -227,7 +229,7 @@ public class BasicStellarTest {
         run(expr, map);
       } catch (ParseException pe) {
         thrown = true;
-        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric assignment value"));
+        Assert.assertTrue(pe.getMessage().contains("Invalid operation, Number type required for numeric assignment value"));
       }
       Assert.assertTrue(thrown);
     }
@@ -293,7 +295,7 @@ public class BasicStellarTest {
         run(expr, map);
       } catch (ParseException pe) {
         thrown = true;
-        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric assignment value"));
+        Assert.assertTrue(pe.getMessage().contains("Invalid operation, Number type required for numeric assignment value"));
       }
       Assert.assertTrue(thrown);
     }
@@ -358,7 +360,7 @@ public class BasicStellarTest {
         run(expr, map);
       } catch (ParseException pe) {
         thrown = true;
-        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric assignment value"));
+        Assert.assertTrue(pe.getMessage().contains("Invalid operation, Number type required for numeric assignment value"));
       }
       Assert.assertTrue(thrown);
     }
@@ -423,7 +425,7 @@ public class BasicStellarTest {
         run(expr, map);
       } catch (ParseException pe) {
         thrown = true;
-        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric assignment value"));
+        Assert.assertTrue(pe.getMessage().contains("Invalid operation, Number type required for numeric assignment value"));
       }
       Assert.assertTrue(thrown);
     }
@@ -485,7 +487,7 @@ public class BasicStellarTest {
         run(expr, map);
       } catch (ParseException pe) {
         thrown = true;
-        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric pre-increment"));
+        Assert.assertTrue(pe.getMessage().contains("Invalid operation, Number type required for numeric pre-increment"));
       }
       Assert.assertTrue(thrown);
     }
@@ -547,7 +549,7 @@ public class BasicStellarTest {
         run(expr, map);
       } catch (ParseException pe) {
         thrown = true;
-        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric pre-decrement"));
+        Assert.assertTrue(pe.getMessage().contains("Invalid operation, Number type required for numeric pre-decrement"));
       }
       Assert.assertTrue(thrown);
     }
@@ -611,7 +613,7 @@ public class BasicStellarTest {
         run(expr, map);
       } catch (ParseException pe) {
         thrown = true;
-        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric post-increment"));
+        Assert.assertTrue(pe.getMessage().contains("Invalid operation, Number type required for numeric post-increment"));
       }
       Assert.assertTrue(thrown);
     }
@@ -673,7 +675,7 @@ public class BasicStellarTest {
         run(expr, map);
       } catch (ParseException pe) {
         thrown = true;
-        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric post-decrement"));
+        Assert.assertTrue(pe.getMessage().contains("Invalid operation, Number type required for numeric post-decrement"));
       }
       Assert.assertTrue(thrown);
     }
@@ -1523,5 +1525,46 @@ public class BasicStellarTest {
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("The rule 'TO_UPPER(protocol)' does not return a boolean value.");
     runPredicate("TO_UPPER(protocol)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v)));
+  }
+
+  @Test
+  public void all_fields_test() {
+    final Map<String, Object> varMap1 = new HashMap<String, Object>();
+    varMap1.put("field1", "val1");
+    final Map<String, Object> varMap2 = new HashMap<String, Object>();
+    varMap2.put("field2", "val2");
+    VariableResolver resolver = new MapVariableResolver(varMap1, varMap2);
+    Assert.assertTrue(runPredicate("MAP_GET('field1', _) == 'val1'", resolver));
+    Assert.assertTrue(runPredicate("MAP_GET('field2', _) == 'val2'", resolver));
+    Assert.assertTrue(runPredicate("LENGTH(_) == 2", resolver));
+    Map<String, Object> ret = (Map<String, Object>) run("_", resolver);
+    Assert.assertEquals(2, ret.size());
+    Assert.assertEquals("val1", ret.get("field1"));
+    Assert.assertEquals("val2", ret.get("field2"));
+  }
+
+  @Test
+  public void nullAsFalse() {
+    checkFalsey("is_alert");
+  }
+
+  private void checkFalsey(String falseyExpr) {
+    VariableResolver resolver = new MapVariableResolver(new HashMap<>());
+    Assert.assertTrue(runPredicate(String.format(" %s || true", falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("%s && EXCEPTION('blah')", falseyExpr), resolver));
+    Assert.assertTrue(runPredicate(String.format("NOT(%s)", falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true else false", falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true || %s else false", falseyExpr, falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true || %s else false && %s", falseyExpr, falseyExpr, falseyExpr), resolver));
+    Assert.assertFalse(runPredicate(String.format("if %s then true || %s else false && (%s || true)", falseyExpr, falseyExpr, falseyExpr), resolver));
+    //make sure that nulls aren't replaced by false everywhere, only in boolean expressions.
+    Assert.assertNull(run(String.format("MAP_GET(%s, {false : 'blah'})", falseyExpr), resolver));
+  }
+
+  @Test
+  public void emptyAsFalse() {
+    checkFalsey("[]");
+    checkFalsey("{}");
+    checkFalsey("LIST_ADD([])");
   }
 }

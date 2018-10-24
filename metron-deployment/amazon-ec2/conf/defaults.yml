@@ -58,9 +58,8 @@ num_partitions: 3
 retention_in_gb: 25
 
 # metron variables
-metron_version: 0.4.3
+metron_version: 0.6.1
 metron_directory: /usr/metron/{{ metron_version }}
-pcapservice_port: 8081
 
 # sensors
 install_snort: True

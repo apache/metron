@@ -51,13 +51,15 @@ Source4:        metron-solr-%{full_version}-archive.tar.gz
 Source5:        metron-enrichment-%{full_version}-archive.tar.gz
 Source6:        metron-indexing-%{full_version}-archive.tar.gz
 Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
-Source8:        metron-profiler-%{full_version}-archive.tar.gz
+Source8:        metron-profiler-storm-%{full_version}-archive.tar.gz
 Source9:        metron-rest-%{full_version}-archive.tar.gz
 Source10:       metron-config-%{full_version}-archive.tar.gz
 Source11:       metron-management-%{full_version}-archive.tar.gz
 Source12:       metron-maas-service-%{full_version}-archive.tar.gz
 Source13:       metron-alerts-%{full_version}-archive.tar.gz
 Source14:       metron-performance-%{full_version}-archive.tar.gz
+Source15:       metron-profiler-spark-%{full_version}-archive.tar.gz
+Source16:       metron-profiler-repl-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -95,6 +97,8 @@ tar -xzf %{SOURCE11} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE12} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE13} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE14} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE15} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE16} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
@@ -151,8 +155,10 @@ This package installs the Metron Parser files
 %{metron_home}/config/zookeeper/parsers/bro.json
 %{metron_home}/config/zookeeper/parsers/jsonMap.json
 %{metron_home}/config/zookeeper/parsers/jsonMapQuery.json
+%{metron_home}/config/zookeeper/parsers/jsonMapWrappedQuery.json
 %{metron_home}/config/zookeeper/parsers/snort.json
 %{metron_home}/config/zookeeper/parsers/squid.json
+%{metron_home}/config/zookeeper/parsers/syslog5424.json
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
 %{metron_home}/config/zookeeper/parsers/asa.json
@@ -248,8 +254,23 @@ This package installs the Metron Solr files
 %dir %{metron_home}/bin
 %dir %{metron_home}/config
 %dir %{metron_home}/lib
+%{metron_home}/bin/create_collection.sh
+%{metron_home}/bin/delete_collection.sh
+%{metron_home}/bin/install_solr.sh
+%{metron_home}/bin/start_solr.sh
 %{metron_home}/bin/start_solr_topology.sh
+%{metron_home}/bin/stop_solr.sh
 %{metron_home}/config/solr.properties
+%{metron_home}/config/schema/bro/schema.xml
+%{metron_home}/config/schema/bro/solrconfig.xml
+%{metron_home}/config/schema/error/schema.xml
+%{metron_home}/config/schema/error/solrconfig.xml
+%{metron_home}/config/schema/metaalert/schema.xml
+%{metron_home}/config/schema/metaalert/solrconfig.xml
+%{metron_home}/config/schema/snort/schema.xml
+%{metron_home}/config/schema/snort/solrconfig.xml
+%{metron_home}/config/schema/yaf/schema.xml
+%{metron_home}/config/schema/yaf/solrconfig.xml
 %attr(0644,root,root) %{metron_home}/lib/metron-solr-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -363,15 +384,15 @@ This package installs the Metron PCAP files %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-%package        profiler
-Summary:        Metron Profiler
+%package        profiler-storm
+Summary:        Metron Profiler for Storm
 Group:          Applications/Internet
-Provides:       profiler = %{version}
+Provides:       profiler-storm = %{version}
 
-%description    profiler
-This package installs the Metron Profiler %{metron_home}
+%description    profiler-storm
+This package installs the Metron Profiler for Storm %{metron_home}
 
-%files          profiler
+%files          profiler-storm
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
@@ -383,7 +404,7 @@ This package installs the Metron Profiler %{metron_home}
 %{metron_home}/config/profiler.properties
 %{metron_home}/bin/start_profiler_topology.sh
 %{metron_home}/flux/profiler/remote.yaml
-%attr(0644,root,root) %{metron_home}/lib/metron-profiler-%{full_version}-uber.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-storm-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -404,6 +425,7 @@ This package installs the Metron Rest %{metron_home}
 %dir %{metron_home}/lib
 %{metron_home}/config/rest_application.yml
 %{metron_home}/bin/metron-rest.sh
+%{metron_home}/bin/pcap_to_pdml.sh
 %attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -502,7 +524,7 @@ This package installs the Metron Alerts UI %{metron_home}
 %attr(0755,root,root) %{metron_home}/web/expressjs/alerts-server.js
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/favicon.ico
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/index.html
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.bundle.css
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/styles.*.css
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.js
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.ttf
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.svg
@@ -520,6 +542,44 @@ This package installs the Metron Alerts UI %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        profiler-spark
+Summary:        Metron Profiler for Spark
+Group:          Applications/Internet
+Provides:       profiler-spark = %{version}
+
+%description    profiler-spark
+This package installs the Metron Profiler for Spark %{metron_home}
+
+%files          profiler-spark
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/config
+%{metron_home}/config/batch-profiler.properties
+%dir %{metron_home}/bin
+%{metron_home}/bin/start_batch_profiler.sh
+%dir %{metron_home}/lib
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-spark-%{full_version}.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        profiler-repl
+Summary:        Metron Profiler for the Stellar REPL
+Group:          Applications/Internet
+Provides:       profiler-repl = %{version}
+
+%description    profiler-repl
+This package installs the Metron Profiler for the Stellar REPL %{metron_home}
+
+%files          profiler-repl
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/lib
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-repl-%{full_version}.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %post config
 chkconfig --add metron-management-ui
 chkconfig --add metron-alerts-ui
@@ -529,6 +589,16 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Thu Aug 30 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
+- Update compiled css file name for Alerts UI
+* Fri Aug 24 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
+- Add syslog5424 parser
+* Tue Aug 21 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
+- Add Profiler for REPL
+* Tue Aug 14 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
+- Add Profiler for Spark
+* Thu Feb 1 2018 Apache Metron <dev@metron.apache.org> - 0.4.3
+- Add Solr install script to Solr RPM
 * Tue Sep 25 2017 Apache Metron <dev@metron.apache.org> - 0.4.2
 - Add Alerts UI
 * Tue Sep 19 2017 Apache Metron <dev@metron.apache.org> - 0.4.2

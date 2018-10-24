@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.metron</groupId>
     <artifactId>Metron</artifactId>
-    <version>0.4.3</version>
+    <version>0.6.1</version>
     <packaging>pom</packaging>
     <name>Metron</name>
     <description>Metron Top Level Project</description>
@@ -71,7 +71,22 @@
             </snapshots>
         </repository>
     </repositories>
-
+    <pluginRepositories>
+      <pluginRepository>
+            <id>apache.snapshots</id>
+            <name>Apache Development Snapshot Repository</name>
+            <url>https://repository.apache.org/content/repositories/snapshots/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+                <enabled>true</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
     <properties>
         <twitter>@ApacheMetron</twitter>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -91,7 +106,7 @@
         <global_curator_version>2.7.1</global_curator_version>
         <global_classindex_version>3.3</global_classindex_version>
         <global_storm_version>1.0.3</global_storm_version>
-        <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
+        <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
         <global_flux_version>${base_flux_version}</global_flux_version>
         <global_pcap_version>1.7.1</global_pcap_version>
         <global_kafka_version>0.10.0.1</global_kafka_version>
@@ -108,9 +123,10 @@
         <global_slf4j_version>1.7.7</global_slf4j_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_java_version>1.8</global_java_version>
-        <global_solr_version>5.2.1</global_solr_version>
+        <global_solr_version>6.6.2</global_solr_version>
         <global_mockito_version>1.10.19</global_mockito_version>
-        <global_shade_version>2.4.3</global_shade_version>
+        <global_powermock_version>1.7.0</global_powermock_version>
+        <global_shade_version>3.2.0</global_shade_version>
         <global_jackson_version>2.7.4</global_jackson_version>
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
         <global_jar_version>3.0.2</global_jar_version>
@@ -121,6 +137,8 @@
         <global_reflections_version>0.9.10</global_reflections_version>
         <global_checkstyle_version>8.0</global_checkstyle_version>
         <global_log4j_core_version>2.1</global_log4j_core_version>
+        <global_simple_syslog_version>0.0.9</global_simple_syslog_version>
+        <global_spark_version>2.3.1</global_spark_version>
     </properties>
 
     <profiles>
@@ -129,7 +147,7 @@
             <properties>
                 <hdp_version>2.5.0.0</hdp_version>
                 <build_number>1245</build_number>
-                <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
+                <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
                 <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
                 <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
             </properties>
@@ -291,7 +309,7 @@
             <plugin>
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>
-                <version>0.12</version>
+                <version>0.13-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <phase>verify</phase>
@@ -320,6 +338,7 @@
                         <exclude>**/*.rpm</exclude>
                         <exclude>site/**</exclude>
                         <exclude>**/src/main/resources/patterns/**</exclude>
+                        <exclude>**/src/test/resources/patterns/**</exclude>
                         <exclude>**/src/main/sample/patterns/**</exclude>
                         <exclude>**/src/test/resources/**</exclude>
                         <exclude>**/src/main/sample/data/**</exclude>
@@ -346,8 +365,7 @@
                         <!-- Generated svg and bundle.css containing Font Awesome fonts are covered in the
                              metron-interface/metron-config README and NOTICE files -->
                         <exclude>dist/*.svg</exclude>
-                        <exclude>dist/styles.a0b6b99c10d9a13dc67e.bundle.css</exclude>
-                        <exclude>dist/styles.f56deed131e58bd7ee04.bundle.css</exclude>
+                        <exclude>dist/styles.*.bundle.css</exclude>
                         <!-- 3rdpartylicenses.txt is an empty file carried along by imported libraries -->
                         <exclude>dist/3rdpartylicenses.txt</exclude>
                         <exclude>e2e/*.js.map</exclude>

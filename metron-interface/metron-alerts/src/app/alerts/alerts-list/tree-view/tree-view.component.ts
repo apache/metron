@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 
-import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
-import {Router} from '@angular/router';
-import {Subscription, Observable} from 'rxjs/Rx';
+import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy, Input } from '@angular/core';
+import {Subscription, Observable} from 'rxjs';
 
 import {TableViewComponent} from '../table-view/table-view.component';
 import {SearchResponse} from '../../../model/search-response';
@@ -37,6 +36,7 @@ import {INDEXES, MAX_ALERTS_IN_META_ALERTS} from '../../../utils/constants';
 import {UpdateService} from '../../../service/update.service';
 import {PatchRequest} from '../../../model/patch-request';
 import {GetRequest} from '../../../model/get-request';
+import { GlobalConfigService } from '../../../service/global-config.service';
 
 @Component({
   selector: 'app-tree-view',
@@ -46,18 +46,20 @@ import {GetRequest} from '../../../model/get-request';
 
 export class TreeViewComponent extends TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
+  @Input() globalConfig: {} = {};
   groupByFields: string[] = [];
   topGroups: TreeGroupData[] = [];
   groupResponse: GroupResponse = new GroupResponse();
   treeGroupSubscriptionMap: {[key: string]: TreeAlertsSubscription } = {};
   alertsChangedSubscription: Subscription;
+  configSubscription: Subscription;
 
-  constructor(router: Router,
-              searchService: SearchService,
+  constructor(searchService: SearchService,
               metronDialogBox: MetronDialogBox,
               updateService: UpdateService,
-              metaAlertService: MetaAlertService) {
-    super(router, searchService, metronDialogBox, updateService, metaAlertService);
+              metaAlertService: MetaAlertService,
+              globalConfigService: GlobalConfigService) {
+    super(searchService, metronDialogBox, updateService, metaAlertService, globalConfigService);
   }
 
   addAlertChangedListner() {
@@ -117,7 +119,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   getGroups() {
-    let groupRequest = this.queryBuilder.groupRequest;
+    let groupRequest = this.getGroupRequest();
     groupRequest.query = this.queryBuilder.generateSelect();
 
     this.searchService.groups(groupRequest).subscribe(groupResponse => {
@@ -158,7 +160,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   initTopGroups() {
-    let groupByFields =  this.queryBuilder.groupRequest.groups.map(group => group.field);
+    let groupByFields =  this.getGroupRequest().groups.map(group => group.field);
     let currentTopGroupKeys = this.groupResponse.groupResults.map(groupResult => groupResult.key);
     let previousTopGroupKeys = this.topGroups.map(group => group.key);
 
@@ -363,13 +365,14 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   createGetRequestArray(searchResponse: SearchResponse): any {
-    return searchResponse.results.map(alert => new GetRequest(alert.source.guid, alert.source['source:type'], alert.index));
+    return searchResponse.results.map(alert =>
+      new GetRequest(alert.source.guid, alert.source[this.globalConfig['source.type.field']], alert.index));
   }
 
   getAllAlertsForSlectedGroup(group: TreeGroupData): Observable<SearchResponse> {
     let dashRowKey = Object.keys(group.groupQueryMap);
     let searchRequest = new SearchRequest();
-    searchRequest.fields = ['guid', 'source:type'];
+    searchRequest.fields = ['guid', this.globalConfig['source.type.field']];
     searchRequest.from = 0;
     searchRequest.indices = INDEXES;
     searchRequest.query = this.createQuery(group);
@@ -383,7 +386,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
       if (this.canCreateMetaAlert(searchResponse.total)) {
         let metaAlert = new MetaAlertCreateRequest();
         metaAlert.alerts = this.createGetRequestArray(searchResponse);
-        metaAlert.groups = this.queryBuilder.groupRequest.groups.map(grp => grp.field);
+        metaAlert.groups = this.getGroupRequest().groups.map(grp => grp.field);
 
         this.metaAlertService.create(metaAlert).subscribe(() => {
           setTimeout(() => this.onRefreshData.emit(true), 1000);
@@ -392,6 +395,27 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
       }
     });
   }
+
+  hasScore(alertSource) {
+    if(alertSource[this.threatScoreFieldName()]) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  getScore(alertSource) {
+    return alertSource[this.threatScoreFieldName()];
+  }
+
+  threatScoreFieldName() {
+    return this.globalConfig['threat.triage.score.field'];
+  }
+
+  getGroupRequest() {
+    return this.queryBuilder.groupRequest(this.threatScoreFieldName());
+    }
 
   createMetaAlert($event, group: TreeGroupData, index: number) {
     if (this.canCreateMetaAlert(group.total)) {

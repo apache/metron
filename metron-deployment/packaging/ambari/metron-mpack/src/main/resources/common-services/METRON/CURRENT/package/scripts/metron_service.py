@@ -27,6 +27,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.libraries.script import Script
 
 from metron_security import kinit
 
@@ -51,10 +52,23 @@ def set_configured(user, flag_file, log_msg):
 def set_zk_configured(params):
   set_configured(params.metron_user, params.zk_configured_flag_file, "Setting Zookeeper configured to true")
 
-def build_global_config_patch(params, patch_file):
-  # see RFC 6902 at https://tools.ietf.org/html/rfc6902
-  patch_template = """
-  [
+def solr_global_config_patches():
+  """
+  Builds the global configuration patches required for Solr.
+  """
+  return """
+    {
+        "op": "add",
+        "path": "/solr.zookeeper",
+        "value": "{{solr_zookeeper_url}}"
+    }
+  """
+
+def elasticsearch_global_config_patches():
+  """
+  Builds the global configuration patches required for Elasticsearch.
+  """
+  return """
     {
         "op": "add",
         "path": "/es.clustername",
@@ -69,6 +83,31 @@ def build_global_config_patch(params, patch_file):
         "op": "add",
         "path": "/es.date.format",
         "value": "{{es_date_format}}"
+    }
+  """
+
+def build_global_config_patch(params, patch_file):
+  """
+  Build the file used to patch the global configuration.
+  See RFC 6902 at https://tools.ietf.org/html/rfc6902
+
+  :param params:
+  :param patch_file: The path where the patch file will be created.
+  """
+  if params.ra_indexing_writer == 'Solr':
+      indexing_patches = solr_global_config_patches()
+  else:
+      indexing_patches = elasticsearch_global_config_patches()
+  other_patches = """
+    {
+        "op": "add",
+        "path": "/profiler.client.period.duration",
+        "value": "{{profiler_period_duration}}"
+    },
+    {
+        "op": "add",
+        "path": "/profiler.client.period.duration.units",
+        "value": "{{profiler_period_units}}"
     },
     {
         "op": "add",
@@ -87,16 +126,6 @@ def build_global_config_patch(params, patch_file):
     },
     {
         "op": "add",
-        "path": "/profiler.client.period.duration",
-        "value": "{{profiler_period_duration}}"
-    },
-    {
-        "op": "add",
-        "path": "/profiler.client.period.duration.units",
-        "value": "{{profiler_period_units}}"
-    },
-    {
-        "op": "add",
         "path": "/user.settings.hbase.table",
         "value": "{{user_settings_hbase_table}}"
     },
@@ -104,9 +133,50 @@ def build_global_config_patch(params, patch_file):
         "op": "add",
         "path": "/user.settings.hbase.cf",
         "value": "{{user_settings_hbase_cf}}"
+    },
+    {
+        "op": "add",
+        "path": "/bootstrap.servers",
+        "value": "{{kafka_brokers}}"
+    },
+    {
+        "op": "add",
+        "path": "/source.type.field",
+        "value": "{{source_type_field}}"
+    },
+    {
+        "op": "add",
+        "path": "/threat.triage.score.field",
+        "value": "{{threat_triage_score_field}}"
+    },
+    {
+        "op": "add",
+        "path": "/enrichment.writer.batchSize",
+        "value": "{{enrichment_kafka_writer_batch_size}}"
+    },
+    {
+        "op": "add",
+        "path": "/enrichment.writer.batchTimeout",
+        "value": "{{enrichment_kafka_writer_batch_timeout}}"
+    },
+    {
+        "op": "add",
+        "path": "/profiler.writer.batchSize",
+        "value": "{{profiler_kafka_writer_batch_size}}"
+    },
+    {
+        "op": "add",
+        "path": "/profiler.writer.batchTimeout",
+        "value": "{{profiler_kafka_writer_batch_timeout}}"
     }
-  ]
   """
+  patch_template = ambari_format(
+  """
+  [
+    {indexing_patches},
+    {other_patches}
+  ]
+  """)
   File(patch_file,
        content=InlineTemplate(patch_template),
        owner=params.metron_user,
@@ -122,6 +192,7 @@ def patch_global_config(params):
       "{metron_home}/bin/zk_load_configs.sh --zk_quorum {zookeeper_quorum} --mode PATCH --config_type GLOBAL --patch_file " + patch_file),
       path=ambari_format("{java_home}/bin")
   )
+  Logger.info("Done patching global config")
 
 def pull_config(params):
   Logger.info('Pulling all Metron configs down from ZooKeeper to local file system')
@@ -131,17 +202,12 @@ def pull_config(params):
       path=ambari_format("{java_home}/bin")
   )
 
-# pushes json patches to zookeeper based on Ambari parameters that are configurable by the user
 def refresh_configs(params):
   if not is_zk_configured(params):
     Logger.warning("The expected flag file '" + params.zk_configured_flag_file + "'indicating that Zookeeper has been configured does not exist. Skipping patching. An administrator should look into this.")
     return
-
-  Logger.info("Patch global config in Zookeeper")
+  check_indexer_parameters()
   patch_global_config(params)
-  Logger.info("Done patching global config")
-
-  Logger.info("Pull zookeeper config locally")
   pull_config(params)
 
 def get_running_topologies(params):
@@ -495,3 +561,32 @@ def check_http(host, port, user):
       Execute(cmd, tries=3, try_sleep=5, logoutput=False, user=user)
     except:
       raise ComponentIsNotRunning()
+
+def check_indexer_parameters():
+    """
+    Ensure that all required parameters have been defined for the chosen
+    Indexer; either Solr or Elasticsearch.
+    """
+    missing = []
+    config = Script.get_config()
+    indexer = config['configurations']['metron-indexing-env']['ra_indexing_writer']
+    Logger.info('Checking parameters for indexer = ' + indexer)
+
+    if indexer == 'Solr':
+      # check for all required solr parameters
+      if not config['configurations']['metron-env']['solr_zookeeper_url']:
+        missing.append("metron-env/solr_zookeeper_url")
+
+    else:
+      # check for all required elasticsearch parameters
+      if not config['configurations']['metron-env']['es_cluster_name']:
+        missing.append("metron-env/es_cluster_name")
+      if not config['configurations']['metron-env']['es_hosts']:
+        missing.append("metron-env/es_hosts")
+      if not config['configurations']['metron-env']['es_binary_port']:
+        missing.append("metron-env/es_binary_port")
+      if not config['configurations']['metron-env']['es_date_format']:
+        missing.append("metron-env/es_date_format")
+
+    if len(missing) > 0:
+      raise Fail("Missing required indexing parameters(s): indexer={0}, missing={1}".format(indexer, missing))

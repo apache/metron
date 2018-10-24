@@ -16,58 +16,82 @@
  * limitations under the License.
  */
 import {Injectable} from '@angular/core';
-import {Headers, RequestOptions} from '@angular/http';
-import {Subject}    from 'rxjs/Subject';
-import {Observable} from 'rxjs/Rx';
-import 'rxjs/add/observable/interval';
-import 'rxjs/add/operator/switchMap';
-import 'rxjs/add/operator/onErrorResumeNext';
+import { HttpClient } from '@angular/common/http';
+import {Observable} from 'rxjs';
+import { forkJoin as observableForkJoin, Subject } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 import {HttpUtil} from '../utils/httpUtil';
 import {Alert} from '../model/alert';
-import {Http} from '@angular/http';
 import {PatchRequest} from '../model/patch-request';
 import {Utils} from '../utils/utils';
 import {Patch} from '../model/patch';
-import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../utils/constants';
+import { GlobalConfigService } from './global-config.service';
+import {CommentAddRemoveRequest} from "../model/comment-add-remove-request";
 
 @Injectable()
 export class UpdateService {
 
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
-
   alertChangedSource = new Subject<PatchRequest>();
   alertChanged$ = this.alertChangedSource.asObservable();
+  sourceType = 'source:type';
+  alertCommentChangedSource = new Subject<CommentAddRemoveRequest>();
+  alertCommentChanged$ = this.alertCommentChangedSource.asObservable();
 
-  constructor(private http: Http) { }
+  constructor(private http: HttpClient, private globalConfigService: GlobalConfigService) {
+    this.globalConfigService.get().subscribe((config: {}) => {
+      this.sourceType = config['source.type.field'];
+    });
+  }
+
+  public addComment(commentRequest: CommentAddRemoveRequest, fireChangeListener = true): Observable<{}> {
+    let url = '/api/v1/update/add/comment';
+    return this.http.post(url, commentRequest).pipe(
+    catchError(HttpUtil.handleError),
+    map(result => {
+      if (fireChangeListener) {
+        this.alertCommentChangedSource.next(commentRequest);
+      }
+      return result;
+    }));
+  }
+
+  public removeComment(commentRequest: CommentAddRemoveRequest, fireChangeListener = true): Observable<{}> {
+    let url = '/api/v1/update/remove/comment';
+    return this.http.post(url, commentRequest).pipe(
+    catchError(HttpUtil.handleError),
+    map(result => {
+      if (fireChangeListener) {
+        this.alertCommentChangedSource.next(commentRequest);
+      }
+      return result;
+    }));
+  }
 
   public patch(patchRequest: PatchRequest, fireChangeListener = true): Observable<{}> {
     let url = '/api/v1/update/patch';
-    return this.http.patch(url, patchRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-    .catch(HttpUtil.handleError)
-    .map(result => {
+    return this.http.patch(url, patchRequest).pipe(
+    catchError(HttpUtil.handleError),
+    map(result => {
       if (fireChangeListener) {
         this.alertChangedSource.next(patchRequest);
       }
       return result;
-    });
+    }),);
   }
 
   public updateAlertState(alerts: Alert[], state: string, fireChangeListener = true): Observable<{}> {
     let patchRequests: PatchRequest[] = alerts.map(alert => {
       let patchRequest = new PatchRequest();
       patchRequest.guid = alert.source.guid;
-      patchRequest.sensorType = Utils.getAlertSensorType(alert);
+      patchRequest.sensorType = Utils.getAlertSensorType(alert, this.sourceType);
       patchRequest.patch = [new Patch('add', '/alert_status', state)];
-      if (patchRequest.sensorType === META_ALERTS_SENSOR_TYPE) {
-        patchRequest.index = META_ALERTS_INDEX;
-      }
       return patchRequest;
     });
     let patchObservables = [];
     for (let patchRequest of patchRequests) {
       patchObservables.push(this.patch(patchRequest, fireChangeListener));
     }
-    return Observable.forkJoin(patchObservables);
+    return observableForkJoin(patchObservables);
   }
 }

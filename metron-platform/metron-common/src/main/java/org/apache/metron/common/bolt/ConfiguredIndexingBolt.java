@@ -17,26 +17,17 @@
  */
 package org.apache.metron.common.bolt;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.IndexingConfigurations;
-import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
-import org.apache.metron.common.zookeeper.configurations.IndexingUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// TODO delete - no longer used after removing from BulkMessageWriterBolt?
 public abstract class ConfiguredIndexingBolt extends ConfiguredBolt<IndexingConfigurations> {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public ConfiguredIndexingBolt(String zookeeperUrl) {
-    super(zookeeperUrl);
-  }
-
-  @Override
-  protected ConfigurationsUpdater<IndexingConfigurations> createUpdater() {
-    return new IndexingUpdater(this, this::getConfigurations);
+    super(zookeeperUrl, "INDEXING");
   }
 
 }

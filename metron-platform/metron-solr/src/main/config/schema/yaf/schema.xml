@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<schema name="yaf_doc" version="1.6">
+  <field name="_version_" type="plong" indexed="true" stored="true"/>
+  <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
+
+  <!-- Metron specific fields -->
+  <field name="timestamp" type="timestamp" indexed="true" stored="true" />
+  <field name="source.type" type="string" indexed="true" stored="true" />
+  <field name="alert_status" type="string" indexed="true" stored="true" />
+  <field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+  <uniqueKey>guid</uniqueKey>
+
+  <!-- Source/Destination information -->
+  <field name="ip_dst_addr" type="ip" indexed="true" stored="true" />
+  <field name="ip_dst_port" type="pint" indexed="true" stored="true" />
+  <field name="ip_src_addr" type="ip" indexed="true" stored="true" />
+  <field name="ip_src_port" type="pint" indexed="true" stored="true" />
+
+  <!-- Yaf specific fields -->
+  <field name="start_time" type="timestamp" indexed="true" stored="true" />
+  <field name="end_time" type="timestamp" indexed="true" stored="true" />
+  <field name="duration" type="pdouble" indexed="true" stored="true" />
+  <field name="rtt" type="pdouble" indexed="true" stored="true" />
+  <field name="proto" type="string" indexed="true" stored="true" />
+  <field name="sip" type="string" indexed="true" stored="true" />
+  <field name="sp" type="string" indexed="true" stored="true" />
+  <field name="dip" type="string" indexed="true" stored="true" />
+  <field name="dp" type="string" indexed="true" stored="true" />
+  <field name="iflags" type="string" indexed="true" stored="true" />
+  <field name="uflags" type="string" indexed="true" stored="true" />
+  <field name="riflags" type="string" indexed="true" stored="true" />
+  <field name="ruflags" type="string" indexed="true" stored="true" />
+  <field name="isn" type="string" indexed="true" stored="true" />
+  <field name="risn" type="string" indexed="true" stored="true" />
+  <field name="tag" type="string" indexed="true" stored="true" />
+  <field name="rtag" type="string" indexed="true" stored="true" />
+  <field name="pkt" type="pint" indexed="true" stored="true" />
+  <field name="oct" type="pint" indexed="true" stored="true" />
+  <field name="rpkt" type="pint" indexed="true" stored="true" />
+  <field name="roct" type="pint" indexed="true" stored="true" />
+  <field name="app" type="string" indexed="true" stored="true" />
+  <field name="end-reason" type="string" indexed="true" stored="true" />
+
+  <!-- Geo Enrichment Fields -->
+  <dynamicField name="*.location_point" type="location" multiValued="false" docValues="false"/>
+  <dynamicField name="*_coordinate" type="pdouble" indexed="true" stored="false" docValues="false"/>
+  <dynamicField name="*.country" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.city" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.locID" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.dmaCode" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.postalCode" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.latitude" type="pfloat" multiValued="false" docValues="true"/>
+  <dynamicField name="*.longitude" type="pfloat" multiValued="false" docValues="true"/>
+
+  <!-- Performance Debugging Fields -->
+  <dynamicField name="*.ts" type="timestamp" multiValued="false" docValues="true"/>
+
+  <!-- Threat Intel Scoring Fields -->
+  <field name="is_alert" type="boolean" indexed="true" stored="true" />
+  <dynamicField name="*score" type="pfloat" multiValued="false" docValues="true"/>
+  <dynamicField name="*.reason" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.name" type="string" multiValued="false" docValues="true"/>
+
+  <!-- Comments field required for the UI -->
+  <field name="comments" type="string" indexed="true" stored="true" multiValued="true"/>
+
+  <!-- Metaalerts Field -->
+  <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>
+
+  <!-- Catch all, if we don't know about it, it gets dropped. -->
+  <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
+
+  <!-- Type Definitions -->
+  <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.TrieIntField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.TrieFloatField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.TrieDoubleField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
+  <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
+</schema>

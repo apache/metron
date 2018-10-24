@@ -17,11 +17,15 @@
  */
 import * as moment from 'moment/moment';
 
-import {DEFAULT_TIMESTAMP_FORMAT, META_ALERTS_SENSOR_TYPE} from './constants';
-import {Alert} from '../model/alert';
-import {DateFilterValue} from '../model/date-filter-value';
+import { DEFAULT_START_TIME, DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT, META_ALERTS_SENSOR_TYPE } from './constants';
+import { Alert } from '../model/alert';
+import { DateFilterValue } from '../model/date-filter-value';
+import { PcapRequest } from '../pcap/model/pcap.request';
+import { PcapFilterFormValue } from '../pcap/pcap-filters/pcap-filters.component';
+import { FormGroup } from '@angular/forms';
 
 export class Utils {
+  
   public static escapeESField(field: string): string {
     return field.replace(/:/g, '\\:');
   }
@@ -33,9 +37,9 @@ export class Utils {
     .replace(/\&\&/g, '\\&&'); // replace &&
   }
 
-  public static getAlertSensorType(alert: Alert): string {
-    if (alert.source['source:type'] && alert.source['source:type'].length > 0) {
-      return alert.source['source:type'];
+  public static getAlertSensorType(alert: Alert, sourceType: string): string {
+    if (alert.source[sourceType] && alert.source[sourceType].length > 0) {
+      return alert.source[sourceType];
     } else {
       return META_ALERTS_SENSOR_TYPE;
     }
@@ -200,5 +204,4 @@ export class Utils {
 
     return {toDate: toDate, fromDate: fromDate};
   }
-
 }

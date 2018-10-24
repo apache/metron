@@ -53,6 +53,9 @@ public class MetronRestConstants {
   public static final String KAFKA_BROKER_URL_SPRING_PROPERTY = "kafka.broker.url";
   public static final String KAFKA_TOPICS_ESCALATION_PROPERTY = "kafka.topics.escalation";
 
+  public static final String METRON_ESCALATION_USER_FIELD = "metron_escalation_user";
+  public static final String METRON_ESCALATION_TIMESTAMP_FIELD = "metron_escalation_timestamp";
+
   public static final String KERBEROS_ENABLED_SPRING_PROPERTY = "kerberos.enabled";
   public static final String KERBEROS_PRINCIPLE_SPRING_PROPERTY = "kerberos.principal";
   public static final String KERBEROS_KEYTAB_SPRING_PROPERTY = "kerberos.keytab";
@@ -72,6 +75,15 @@ public class MetronRestConstants {
 
   public static final String USER_SETTINGS_HBASE_TABLE_SPRING_PROPERTY = "user.settings.table";
   public static final String USER_SETTINGS_HBASE_CF_SPRING_PROPERTY = "user.settings.cf";
+  public static final String USER_JOB_LIMIT_SPRING_PROPERTY = "user.job.limit";
 
   public static final String LOGGING_SYSTEM_PROPERTY = "org.springframework.boot.logging.LoggingSystem";
+
+  public static final String PCAP_BASE_PATH_SPRING_PROPERTY = "pcap.base.path";
+  public static final String PCAP_BASE_INTERIM_RESULT_PATH_SPRING_PROPERTY = "pcap.base.interim.result.path";
+  public static final String PCAP_FINAL_OUTPUT_PATH_SPRING_PROPERTY = "pcap.final.output.path";
+  public static final String PCAP_PAGE_SIZE_SPRING_PROPERTY = "pcap.page.size";
+  public static final String PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY = "pcap.pdml.script.path";
+  public static final String PCAP_YARN_QUEUE_SPRING_PROPERTY = "pcap.yarn.queue";
+  public static final String PCAP_FINALIZER_THREADPOOL_SIZE_SPRING_PROPERTY = "pcap.finalizer.threadpool.size";
 }

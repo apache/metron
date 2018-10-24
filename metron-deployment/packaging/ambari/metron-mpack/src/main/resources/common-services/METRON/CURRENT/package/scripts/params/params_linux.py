@@ -39,6 +39,8 @@ import status_params
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+hdp_version = default("/commandParams/version", None)
+
 hostname = config['hostname']
 metron_home = status_params.metron_home
 
@@ -83,6 +85,7 @@ indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_fl
 indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
 elasticsearch_template_installed_flag_file = status_params.elasticsearch_template_installed_flag_file
+solr_schema_installed_flag_file = status_params.solr_schema_installed_flag_file
 rest_kafka_configured_flag_file = status_params.rest_kafka_configured_flag_file
 rest_kafka_acl_configured_flag_file = status_params.rest_kafka_acl_configured_flag_file
 rest_hbase_configured_flag_file = status_params.rest_hbase_configured_flag_file
@@ -122,6 +125,14 @@ if has_zk_host:
     zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(config['clusterHostInfo']['zookeeper_hosts'])
     # last port config
     zookeeper_quorum += ':' + zookeeper_clientPort
+
+# Solr params
+solr_version = '6.6.2'
+solr_home = '/var/solr/solr-' + solr_version
+solr_zookeeper_url = format(format(config['configurations']['metron-env']['solr_zookeeper_url']))
+solr_user = config['configurations']['solr-config-env']['solr_config_user']
+solr_principal_name = config['configurations']['solr-config-env']['solr_principal_name']
+solr_keytab_path = config['configurations']['solr-config-env']['solr_keytab_path']
 
 # Storm
 storm_rest_addr = status_params.storm_rest_addr
@@ -203,6 +214,13 @@ yaf_index_path = tmp_dir + "/yaf_index.template"
 error_index_path = tmp_dir + "/error_index.template"
 meta_index_path = tmp_dir + "/metaalert_index.template"
 
+# Solr Schemas
+bro_schema_path = metron_home + "/config/schema/bro"
+snort_schema_path = metron_home + "/config/schema/snort"
+yaf_schema_path = metron_home + "/config/schema/yaf"
+error_schema_path = metron_home + "/config/schema/error"
+meta_schema_path = metron_home + "/config/schema/metaalert"
+
 # Zeppelin Notebooks
 metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")
 zeppelin_shiro_ini_content = status_params.zeppelin_shiro_ini_content
@@ -223,6 +241,7 @@ client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_
 enrichment_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 profiler_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 indexing_topology_worker_childopts = client_jaas_arg if security_enabled else ''
+pcap_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 metron_jvm_flags += (' ' + client_jaas_arg) if security_enabled else ''
 topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
 # Needed for storm.config, because it needs Java String
@@ -241,7 +260,12 @@ if security_enabled:
     kafka_principal_name = kafka_principal_raw.replace('_HOST', hostname_lowercase)
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
 
+    metron_client_jaas_conf_template = config['configurations']['metron-client-jaas-conf']['content']
+
     nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']
+    # Check wether Solr mpack is installed
+    if 'solr-config-env' in config['configurations']:
+        solr_principal_name = solr_principal_name.replace('_HOST', hostname_lowercase)
 
 # Management UI
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
@@ -254,6 +278,8 @@ metron_rest_classpath = config['configurations']['metron-rest-env']['metron_rest
 metron_sysconfig = config['configurations']['metron-rest-env']['metron_sysconfig']
 user_settings_hbase_table = status_params.user_settings_hbase_table
 user_settings_hbase_cf = status_params.user_settings_hbase_cf
+source_type_field = config['configurations']['metron-rest-env']['source_type_field']
+threat_triage_score_field = config['configurations']['metron-rest-env']['threat_triage_score_field']
 
 # Enrichment
 metron_enrichment_topology = status_params.metron_enrichment_topology
@@ -266,6 +292,8 @@ enrichment_input_topic = status_params.enrichment_input_topic
 enrichment_output_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
 enrichment_error_topic = config['configurations']['metron-enrichment-env']['enrichment_error_topic']
 threatintel_error_topic = config['configurations']['metron-enrichment-env']['threatintel_error_topic']
+enrichment_kafka_writer_batch_size = config['configurations']['metron-enrichment-env']['enrichment_kafka_writer_batch_size']
+enrichment_kafka_writer_batch_timeout = config['configurations']['metron-enrichment-env']['enrichment_kafka_writer_batch_timeout']
 
 # Enrichment - Storm common parameters
 enrichment_workers = config['configurations']['metron-enrichment-env']['enrichment_workers']
@@ -326,6 +354,8 @@ profiler_window_lag=config['configurations']['metron-profiler-env']['profiler_wi
 profiler_window_lag_units=config['configurations']['metron-profiler-env']['profiler_window_lag_units']
 profiler_topology_message_timeout_secs=config['configurations']['metron-profiler-env']['profiler_topology_message_timeout_secs']
 profiler_topology_max_spout_pending=config['configurations']['metron-profiler-env']['profiler_topology_max_spout_pending']
+profiler_kafka_writer_batch_size = config['configurations']['metron-profiler-env']['profiler_kafka_writer_batch_size']
+profiler_kafka_writer_batch_timeout = config['configurations']['metron-profiler-env']['profiler_kafka_writer_batch_timeout']
 
 # Indexing
 ra_indexing_kafka_start = config['configurations']['metron-indexing-env']['ra_indexing_kafka_start']
@@ -334,7 +364,7 @@ indexing_input_topic = status_params.indexing_input_topic
 indexing_error_topic = config['configurations']['metron-indexing-env']['indexing_error_topic']
 metron_random_access_indexing_topology = status_params.metron_random_access_indexing_topology
 metron_batch_indexing_topology = status_params.metron_batch_indexing_topology
-ra_indexing_writer_class_name = config['configurations']['metron-indexing-env']['ra_indexing_writer_class_name']
+ra_indexing_writer = config['configurations']['metron-indexing-env']['ra_indexing_writer']
 batch_indexing_writer_class_name = config['configurations']['metron-indexing-env']['batch_indexing_writer_class_name']
 ra_indexing_workers = config['configurations']['metron-indexing-env']['ra_indexing_workers']
 batch_indexing_workers = config['configurations']['metron-indexing-env']['batch_indexing_workers']
@@ -357,3 +387,35 @@ metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-in
 bolt_hdfs_rotation_policy = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy']
 bolt_hdfs_rotation_policy_units = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_units']
 bolt_hdfs_rotation_policy_count = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_count']
+
+# PCAP
+metron_pcap_topology = status_params.metron_pcap_topology
+pcap_input_topic = status_params.pcap_input_topic
+pcap_base_path = config['configurations']['metron-pcap-env']['pcap_base_path']
+pcap_base_interim_result_path = config['configurations']['metron-pcap-env']['pcap_base_interim_result_path']
+pcap_final_output_path = config['configurations']['metron-pcap-env']['pcap_final_output_path']
+pcap_page_size = config['configurations']['metron-pcap-env']['pcap_page_size']
+pcap_yarn_queue = config['configurations']['metron-pcap-env']['pcap_yarn_queue']
+pcap_finalizer_threadpool_size= config['configurations']['metron-pcap-env']['pcap_finalizer_threadpool_size']
+pcap_configured_flag_file = status_params.pcap_configured_flag_file
+pcap_perm_configured_flag_file = status_params.pcap_perm_configured_flag_file
+pcap_acl_configured_flag_file = status_params.pcap_acl_configured_flag_file
+pcap_topology_workers = config['configurations']['metron-pcap-env']['pcap_topology_workers']
+if not len(pcap_topology_worker_childopts) == 0:
+    pcap_topology_worker_childopts += ' '
+pcap_topology_worker_childopts += config['configurations']['metron-pcap-env']['pcap_topology_worker_childopts']
+spout_kafka_topic_pcap = config['configurations']['metron-pcap-env']['spout_kafka_topic_pcap']
+hdfs_sync_every = config['configurations']['metron-pcap-env']['hdfs_sync_every']
+hdfs_replication_factor = config['configurations']['metron-pcap-env']['hdfs_replication_factor']
+kafka_pcap_start = config['configurations']['metron-pcap-env']['kafka_pcap_start']
+kafka_pcap_numpackets = config['configurations']['metron-pcap-env']['kafka_pcap_numpackets']
+kafka_pcap_maxtimems = config['configurations']['metron-pcap-env']['kafka_pcap_maxtimems']
+kafka_pcap_tsscheme = config['configurations']['metron-pcap-env']['kafka_pcap_tsscheme']
+kafka_pcap_out = config['configurations']['metron-pcap-env']['kafka_pcap_out']
+kafka_pcap_ts_granularity = config['configurations']['metron-pcap-env']['kafka_pcap_ts_granularity']
+kafka_spout_parallelism = config['configurations']['metron-pcap-env']['kafka_spout_parallelism']
+
+
+# MapReduce
+metron_user_hdfs_dir = '/user/' + metron_user
+metron_user_hdfs_dir_configured_flag_file = status_params.metron_user_hdfs_dir_configured_flag_file

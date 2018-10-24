@@ -44,6 +44,7 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         metronParsersHost = self.getHosts(componentsList, "METRON_PARSERS")[0]
         metronEnrichmentMaster = self.getHosts(componentsList, "METRON_ENRICHMENT_MASTER")[0]
         metronProfilerHost = self.getHosts(componentsList, "METRON_PROFILER")[0]
+        metronPcapHost = self.getHosts(componentsList, "METRON_PCAP")[0]
         metronIndexingHost = self.getHosts(componentsList, "METRON_INDEXING")[0]
         metronRESTHost = self.getHosts(componentsList, "METRON_REST")[0]
         metronManagementUIHost = self.getHosts(componentsList, "METRON_MANAGEMENT_UI")[0]
@@ -82,6 +83,10 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         if metronParsersHost != metronIndexingHost:
             message = "Metron Indexing must be co-located with Metron Parsers on {0}".format(metronParsersHost)
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_INDEXING', "host": metronIndexingHost })
+
+        if metronParsersHost != metronPcapHost:
+            message = "Metron PCAP must be co-located with Metron Parsers on {0}".format(metronParsersHost)
+            items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_PCAP', "host": metronPcapHost })
 
         if metronParsersHost != metronProfilerHost:
             message = "Metron Profiler must be co-located with Metron Parsers on {0}".format(metronParsersHost)
@@ -152,6 +157,16 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             zeppelinServerUrl = zeppelinServerHost + ":" + zeppelinServerPort
             putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
             putMetronEnvProperty("zeppelin_server_url", zeppelinServerUrl)
+
+        #Suggest Zookeeper quorum
+        if "solr-cloud" in services["configurations"]:
+            zookeeperHost = self.getComponentHostNames(services, "ZOOKEEPER", "ZOOKEEPER_SERVER")[0]
+            zookeeperClientPort = services["configurations"]["zoo.cfg"]["properties"]["clientPort"]
+            solrZkDir = services["configurations"]["solr-cloud"]["properties"]["solr_cloud_zk_directory"]
+            solrZookeeperUrl = zookeeperHost + ":" + zookeeperClientPort + solrZkDir
+            putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
+            putMetronEnvProperty("solr_zookeeper_url", solrZookeeperUrl)
+
 
     def validateSTORMSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
         # Determine if the cluster is secured

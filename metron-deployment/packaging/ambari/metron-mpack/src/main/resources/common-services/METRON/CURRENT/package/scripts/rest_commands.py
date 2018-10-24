@@ -37,6 +37,7 @@ class RestCommands:
     __kafka_acl_configured = False
     __hbase_configured = False
     __hbase_acl_configured = False
+    __metron_user_hdfs_dir_configured = False
 
     def __init__(self, params):
         if params is None:
@@ -46,6 +47,7 @@ class RestCommands:
         self.__kafka_acl_configured = os.path.isfile(self.__params.rest_kafka_acl_configured_flag_file)
         self.__hbase_configured = os.path.isfile(self.__params.rest_hbase_configured_flag_file)
         self.__hbase_acl_configured = os.path.isfile(self.__params.rest_hbase_acl_configured_flag_file)
+        self.__metron_user_hdfs_dir_configured = os.path.isfile(self.__params.metron_user_hdfs_dir_configured_flag_file)
         Directory(params.metron_rest_pid_dir,
                   mode=0755,
                   owner=params.metron_user,
@@ -74,6 +76,9 @@ class RestCommands:
     def is_hbase_acl_configured(self):
         return self.__hbase_acl_configured
 
+    def is_metron_user_hdfs_dir_configured(self):
+        return self.__metron_user_hdfs_dir_configured
+
     def set_kafka_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.rest_kafka_configured_flag_file, "Setting Kafka configured to True for rest")
 
@@ -85,6 +90,9 @@ class RestCommands:
 
     def set_hbase_acl_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.rest_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True for rest")
+
+    def set_metron_user_hdfs_dir_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.metron_user_hdfs_dir_configured_flag_file, "Setting Metron user HDFS directory configured to True")
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for rest')
@@ -99,6 +107,16 @@ class RestCommands:
 
         groups = ['metron-rest']
         metron_service.init_kafka_acl_groups(self.__params, groups)
+
+    def create_metron_user_hdfs_dir(self):
+        Logger.info("Creating HDFS location for Metron user")
+        self.__params.HdfsResource(self.__params.metron_user_hdfs_dir,
+                                   type="directory",
+                                   action="create_on_execute",
+                                   owner=self.__params.metron_user,
+                                   group=self.__params.metron_group,
+                                   mode=0755,
+                                   )
 
     def start_rest_application(self):
         """
@@ -125,6 +143,8 @@ class RestCommands:
           "export METRON_INDEX_CP={metron_indexing_classpath};"
           "export METRON_LOG_DIR={metron_log_dir};"
           "export METRON_PID_FILE={pid_file};"
+          "export HDP_VERSION={hdp_version};"
+          "export METRON_RA_INDEXING_WRITER={ra_indexing_writer};"
           "{metron_home}/bin/metron-rest.sh;"
           "unset METRON_JDBC_PASSWORD;"
         ))

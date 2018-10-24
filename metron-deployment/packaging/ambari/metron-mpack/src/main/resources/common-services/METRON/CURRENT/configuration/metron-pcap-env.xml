@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+    <property>
+        <name>pcap_topology_worker_childopts</name>
+        <description>PCAP Topology JVM Options</description>
+        <value/>
+        <display-name>PCAP Topology childopts</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>pcap_topology_workers</name>
+        <description>Number of PCAP Topology Workers</description>
+        <value>1</value>
+        <display-name>Workers for PCAP Topology</display-name>
+    </property>
+    <property>
+        <name>spout_kafka_topic_pcap</name>
+        <description>PCAP Input Topic</description>
+        <value>pcap</value>
+        <display-name>PCAP Input Topic</display-name>
+    </property>
+    <property>
+        <name>hdfs_sync_every</name>
+        <description>HDFS Sync Every</description>
+        <value>1</value>
+        <display-name>HDFS Sync Every</display-name>
+    </property>
+    <property>
+        <name>hdfs_replication_factor</name>
+        <description>HDFS Replication Factor</description>
+        <value>-1</value>
+        <display-name>HDFS Replication Factor</display-name>
+    </property>
+    <property>
+        <name>kafka_pcap_start</name>
+        <description>PCAP Topology Spout Offset</description>
+        <value>UNCOMMITTED_EARLIEST</value>
+        <display-name>PCAP Topology Offset</display-name>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>EARLIEST</value>
+                </entry>
+                <entry>
+                    <value>LATEST</value>
+                </entry>
+                <entry>
+                    <value>UNCOMMITTED_EARLIEST</value>
+                </entry>
+                <entry>
+                    <value>UNCOMMITTED_LATEST</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>kafka_pcap_numpackets</name>
+        <description>Number of Packets</description>
+        <value>1000</value>
+        <display-name>Number of Packets to keep in one file</display-name>
+    </property>
+    <property>
+        <name>kafka_pcap_maxtimems</name>
+        <description>Max Time in milliseconds</description>
+        <value>300000</value>
+        <display-name>Number of packets to keep in terms of duration</display-name>
+    </property>
+    <property>
+        <name>kafka_pcap_tsscheme</name>
+        <description>Kafka PCAP Timestamp Scheme. Use FROM_KEY which works with current tooling</description>
+        <value>FROM_KEY</value>
+        <display-name>Kafka PCAP Timestamp Scheme</display-name>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>FROM_KEY</value>
+                </entry>
+                <entry>
+                    <value>FROM_VALUE</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>kafka_pcap_out</name>
+        <description>HDFS Directory to store PCAPs</description>
+        <value>/apps/metron/pcap/input</value>
+        <display-name>HDFS Directory to store PCAPs</display-name>
+    </property>
+    <property>
+        <name>kafka_pcap_ts_granularity</name>
+        <description>Granulariy of Timing in Timestamps</description>
+        <value>MICROSECONDS</value>
+        <display-name>Granulariy of Timing in Timestamps</display-name>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>MICROSECONDS</value>
+                </entry>
+                <entry>
+                    <value>MILLISECONDS</value>
+                </entry>
+                <entry>
+                    <value>NANOSECONDS</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>kafka_spout_parallelism</name>
+        <description>PCAP Topology Spout Parallelism</description>
+        <value>1</value>
+        <display-name>PCAP Topology Spout Parallelism</display-name>
+    </property>
+    <property>
+        <name>pcap_base_path</name>
+        <display-name>PCAP Base Path</display-name>
+        <description>The HDFS path where pcap files are stored.  These files are the input to pcap queries.</description>
+        <value>/apps/metron/pcap/input</value>
+    </property>
+    <property>
+        <name>pcap_base_interim_result_path</name>
+        <display-name>PCAP Base Interim Result Path</display-name>
+        <description>The HDFS path where interim results of a pcap query are stored, before they are separated into pages.</description>
+        <value>/apps/metron/pcap/interim</value>
+    </property>
+    <property>
+        <name>pcap_final_output_path</name>
+        <display-name>PCAP Final Output Path</display-name>
+        <description>The HDFS path where the final results of a pcap query are stored.</description>
+        <value>/apps/metron/pcap/output</value>
+    </property>
+    <property>
+        <name>pcap_page_size</name>
+        <display-name>PCAP Page Size</display-name>
+        <description>The number of pcaps written to a page/file as a result of a pcap query.</description>
+        <value>10</value>
+    </property>
+    <property>
+        <name>pcap_yarn_queue</name>
+        <display-name>PCAP YARN Queue</display-name>
+        <description>The YARN queue pcap jobs will be submitted to.</description>
+        <value/>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>pcap_finalizer_threadpool_size</name>
+        <display-name>PCAP Finalizer Threadpool Size</display-name>
+        <description>The number of threads to use when finalizing Pcap jobs. This affects parallelism
+            around writing out paged files to their final location.
+            If it's a string and ends with "C", then strip the C and treat it as an integral multiple of
+            the number of cores. If it's a string and does not end with a C, then treat it as a number in
+            string form.
+        </description>
+        <value>1</value>
+        <value-attributes>
+            <empty-value-valid>false</empty-value-valid>
+        </value-attributes>
+    </property>
+</configuration>

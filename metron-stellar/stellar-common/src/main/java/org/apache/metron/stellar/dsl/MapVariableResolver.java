@@ -18,11 +18,15 @@
 
 package org.apache.metron.stellar.dsl;
 
+
+import org.apache.metron.stellar.common.utils.ConcatMap;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class MapVariableResolver implements VariableResolver {
+
 
   List<Map> variableMappings = new ArrayList<>();
 
@@ -45,6 +49,10 @@ public class MapVariableResolver implements VariableResolver {
 
   @Override
   public Object resolve(String variable) {
+    if(variable != null && variable.equals(VariableResolver.ALL_FIELDS)) {
+      return new ConcatMap(variableMappings);
+    }
+
     for (Map variableMapping : variableMappings) {
       Object o = variableMapping.get(variable);
       if (o != null) {

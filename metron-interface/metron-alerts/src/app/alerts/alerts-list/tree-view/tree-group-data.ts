@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Subscription} from 'rxjs/Rx';
+import {Subscription} from 'rxjs';
 import {SearchResponse} from '../../../model/search-response';
 import {Pagination} from '../../../model/pagination';
 import {TREE_SUB_GROUP_SIZE} from '../../../utils/constants';

@@ -37,11 +37,18 @@ public class RegExFunctionsTest {
       put("numbers", "12345");
       put("numberPattern", "\\d(\\d)(\\d).*");
       put("letters", "abcde");
+      put("letterPattern", "[a-zA-Z]+");
       put("empty", "");
     }};
 
     Assert.assertTrue(runPredicate("REGEXP_MATCH(numbers,numberPattern)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     Assert.assertFalse(runPredicate("REGEXP_MATCH(letters,numberPattern)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_MATCH(letters,[numberPattern,letterPattern])", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("REGEXP_MATCH(letters,[numberPattern])", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("REGEXP_MATCH(letters,[numberPattern,numberPattern])", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("REGEXP_MATCH(null,[numberPattern])", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("REGEXP_MATCH(letters,null)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("REGEXP_MATCH(letters,[null])", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test

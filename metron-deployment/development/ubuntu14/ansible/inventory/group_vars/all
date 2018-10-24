@@ -35,9 +35,9 @@ threatintel_hbase_table: threatintel
 enrichment_hbase_table: enrichment
 
 # metron
-metron_version: 0.4.3
+metron_version: 0.6.1
 metron_directory: /usr/metron/{{ metron_version }}
-bro_version: "2.5.2"
+bro_version: "2.5.4"
 fixbuf_version: "1.7.1"
 yaf_version: "2.8.0"
 daq_version: "2.0.6-1"
@@ -46,6 +46,7 @@ pycapa_home: "/opt/pycapa"
 snort_version: "2.9.8.0-1"
 snort_alert_csv_path: "/var/log/snort/alert.csv"
 threat_intel_bulk_load: False
+elasticsearch_hosts: "localhost"
 
 # data directories - only required to override defaults
 zookeeper_data_dir: "/data1/hadoop/zookeeper"

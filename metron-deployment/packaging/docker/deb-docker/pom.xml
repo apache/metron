@@ -21,11 +21,11 @@
     <artifactId>metron-debs</artifactId>
     <packaging>pom</packaging>
     <name>metron-debs</name>
-    <version>0.4.3</version>
+    <version>0.6.1</version>
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-deployment</artifactId>
-        <version>0.4.3</version>
+        <version>0.6.1</version>
         <relativePath>../../..</relativePath>
     </parent>
     <description>DEB Package Builder for Apache Metron</description>
@@ -126,7 +126,19 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-analytics/metron-profiler/target/</directory>
+                                    <directory>${metron_dir}/metron-analytics/metron-profiler-storm/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-analytics/metron-profiler-spark/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-analytics/metron-profiler-repl/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

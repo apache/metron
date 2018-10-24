@@ -17,14 +17,9 @@
  */
 package org.apache.metron.common.bolt;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
-import org.apache.metron.common.zookeeper.configurations.ParserUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,24 +28,12 @@ public abstract class ConfiguredParserBolt extends ConfiguredBolt<ParserConfigur
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected final ParserConfigurations configurations = new ParserConfigurations();
-  private String sensorType;
-  public ConfiguredParserBolt(String zookeeperUrl, String sensorType) {
-    super(zookeeperUrl);
-    this.sensorType = sensorType;
+  public ConfiguredParserBolt(String zookeeperUrl) {
+    super(zookeeperUrl, "PARSERS");
   }
 
-  protected SensorParserConfig getSensorParserConfig() {
+  protected SensorParserConfig getSensorParserConfig(String sensorType) {
     return getConfigurations().getSensorParserConfig(sensorType);
-  }
-
-  public String getSensorType() {
-    return sensorType;
-  }
-
-
-  @Override
-  protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
-    return new ParserUpdater(this, this::getConfigurations);
   }
 
 }

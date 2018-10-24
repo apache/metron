@@ -18,7 +18,7 @@
 import { ColumnNameTranslatePipe } from './column-name-translate.pipe';
 
 describe('ColumnNameTranslatePipe', () => {
-  it('create an instance', () => {
+  it('should be created', () => {
     const pipe = new ColumnNameTranslatePipe();
     expect(pipe).toBeTruthy();
   });

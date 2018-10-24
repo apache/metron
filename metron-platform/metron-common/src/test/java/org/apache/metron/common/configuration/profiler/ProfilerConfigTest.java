@@ -19,8 +19,10 @@
  */
 package org.apache.metron.common.configuration.profiler;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -31,6 +33,7 @@ import java.io.ObjectOutputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -253,11 +256,24 @@ public class ProfilerConfigTest {
 
     // setup a profiler config to serialize
     ProfilerConfig expected = ProfilerConfig.fromJSON(profilesToSerialize);
+    assertNotNull(expected);
+    Kryo kryo = new Kryo();
 
-    // round-trip java serialization
-    byte[] raw = SerDeUtils.toBytes(expected);
-    Object actual = SerDeUtils.fromBytes(raw, Object.class);
+    // serialize
+    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+    Output output = new Output(byteStream);
+    kryo.writeObject(output, expected);
 
+    // validate serialization
+    byte[] bits = output.toBytes();
+    assertNotNull(bits);
+
+    // deserialize
+    Input input = new Input(new ByteArrayInputStream(bits));
+    ProfilerConfig actual = kryo.readObject(input, ProfilerConfig.class);
+
+    // validate deserialization
+    assertNotNull(actual);
     assertEquals(expected, actual);
   }
 

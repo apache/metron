@@ -66,10 +66,3 @@
     - role: load_web_templates
   tags:
     - load_templates
-
-- hosts: pcap_server
-  become: true
-  roles:
-    - role: metron_pcapservice
-  tags:
-    - pcap-service

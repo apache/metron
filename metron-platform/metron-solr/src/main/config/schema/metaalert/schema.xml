@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<schema name="metaalert_doc" version="1.6">
+  <field name="_version_" type="plong" indexed="true" stored="true"/>
+  <field name="_root_" type="string" indexed="true" stored="false" docValues="false"/>
+  <field name="_childDocuments_" type="ignored" stored="true" docValues="true"/>
+
+  <field name="guid" type="string" indexed="true" stored="true" required="true"
+    multiValued="false"/>
+
+  <field name="source.type" type="string" indexed="true" stored="true"/>
+  <field name="timestamp" type="plong" indexed="true" stored="true"/>
+  <field name="score" type="pdouble" indexed="true" stored="true"/>
+  <field name="status" type="string" indexed="true" stored="true"/>
+  <field name="average" type="pdouble" indexed="true" stored="true"/>
+  <field name="min" type="pdouble" indexed="true" stored="true"/>
+  <field name="median" type="pdouble" indexed="true" stored="true"/>
+  <field name="max" type="pdouble" indexed="true" stored="true"/>
+  <field name="sum" type="pdouble" indexed="true" stored="true"/>
+  <field name="count" type="pint" indexed="true" stored="true"/>
+  <field name="groups" type="string" indexed="true" stored="true" multiValued="true"/>
+
+  <!-- Ensure that metaalerts child field is multivalued -->
+  <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>
+
+  <!-- Threat Intel Scoring Field -->
+  <!-- This is a double from the method of calculation. It'll still sort alongside pfloat -->
+  <dynamicField name="*score" type="pdouble" multiValued="false" docValues="true"/>
+
+  <!-- Catch all, if we don't know about it, it gets dropped. -->
+  <dynamicField name="*" type="ignored" indexed="true" stored="true" multiValued="false" docValues="true"/>
+
+  <uniqueKey>guid</uniqueKey>
+
+  <!-- Type Definitions -->
+  <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.TrieIntField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.TrieFloatField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.TrieDoubleField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
+  <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
+</schema>

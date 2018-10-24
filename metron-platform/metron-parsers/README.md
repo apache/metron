@@ -24,15 +24,17 @@ Parsers are pluggable components which are used to transform raw data
 enrichment and indexing.  
 
 There are two general types types of parsers:
-*  A parser written in Java which conforms to the `MessageParser` interface.  This kind of parser is optimized for speed and performance and is built for use with higher velocity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  
+* A parser written in Java which conforms to the `MessageParser` interface.  This kind of parser is optimized for speed and performance and is built for use with higher velocity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  
 * A general purpose parser.  This type of parser is primarily designed for lower-velocity topologies or for quickly standing up a parser for a new telemetry before a permanent Java parser can be written for it.  As of the time of this writing, we have:
   * Grok parser: `org.apache.metron.parsers.GrokParser` with possible `parserConfig` entries of 
     * `grokPath` : The path in HDFS (or in the Jar) to the grok statement
     * `patternLabel` : The pattern label to use from the grok statement
+    * `multiLine` : The raw data passed in should be handled as a long with multiple lines, with each line to be parsed separately. This setting's valid values are 'true' or 'false'.  The default if unset is 'false'. When set the parser will handle multiple lines with successfully processed lines emitted normally, and lines with errors sent to the error topic.
     * `timestampField` : The field to use for timestamp
     * `timeFields` : A list of fields to be treated as time
     * `dateFormat` : The date format to use to parse the time fields
     * `timezone` : The timezone to use. `UTC` is default.
+    * The Grok parser supports either 1 line to parse per incoming message, or incoming messages with multiple log lines, and will produce a json message per line
   * CSV Parser: `org.apache.metron.parsers.csv.CSVParser` with possible `parserConfig` entries of
     * `timestampFormat` : The date format of the timestamp to use.  If unspecified, the parser assumes the timestamp is ms since unix epoch.
     * `columns` : A map of column names you wish to extract from the CSV to their offsets (e.g. `{ 'name' : 1, 'profession' : 3}`  would be a column map for extracting the 2nd and 4th columns from a CSV)
@@ -44,6 +46,11 @@ There are two general types types of parsers:
       * `ALLOW` : Allow multidimensional maps
       * `ERROR` : Throw an error when a multidimensional map is encountered
     * `jsonpQuery` : A [JSON Path](#json_path) query string. If present, the result of the JSON Path query should be a list of messages. This is useful if you have a JSON document which contains a list or array of messages embedded in it, and you do not have another means of splitting the message.
+    * `wrapInEntityArray` : `"true" or "false"`. If `jsonQuery` is present and this flag is present and set to `"true"`, the incoming message will be wrapped in a JSON  entity and array.
+       for example:
+       `{"name":"value"},{"name2","value2}` will be wrapped as `{"message" : [{"name":"value"},{"name2","value2}]}`.
+       This is using the default value for `wrapEntityName` if that property is not set.
+    * `wrapEntityName` : Sets the name to use when wrapping JSON using `wrapInEntityArray`.  The `jsonpQuery` should reference this name.
     * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.  
 
 ## Parser Error Routing
@@ -82,6 +89,13 @@ topology in kafka.  Errors are collected with the context of the error
 (e.g. stacktrace) and original message causing the error and sent to an
 `error` queue.  Invalid messages as determined by global validation
 functions are also treated as errors and sent to an `error` queue. 
+
+Multiple sensors can be aggregated into a single Storm topology. When this is done, there will be
+multiple Kafka spouts, but only a single parser bolt which will handle delegating to the correct 
+parser as needed. There are some constraints around this, in particular regarding some configuration.
+Additionally, all sensors must flow to the same error topic. The Kafka topic is retrieved from the input Tuple itself.
+
+A worked example of this can be found in the [Parser Chaining use case](../../use-cases/parser_chaining/README.md#aggregated-parsers-with-parser-chaining).
  
 ## Message Format
 
@@ -101,7 +115,7 @@ Where appropriate there is also a standardization around the 5-tuple JSON fields
 * timestamp (epoch)
 * original_string: A human friendly string representation of the message
 
-The timestamp and original_string fields are madatory. The remaining standard fields are optional.  If any of the optional fields are not applicable then the field should be left out of the JSON.
+The timestamp and original_string fields are mandatory. The remaining standard fields are optional.  If any of the optional fields are not applicable then the field should be left out of the JSON.
 
 So putting it all together a typical Metron message with all 5-tuple fields present would look like the following:
 
@@ -138,6 +152,8 @@ the following fields:
 * `raw_message_bytes` : The raw message bytes
 * `error_hash` : A hash of the error message
 
+When aggregating multiple sensors, all sensors must be using the same error topic.
+
 ## Parser Configuration
 
 The configuration for the various parser topologies is defined by JSON
@@ -159,20 +175,27 @@ Example Stellar Filter which includes messages which contain a the `field1` fiel
 ```
 * `sensorTopic` : The kafka topic to send the parsed messages to.  If the topic is prefixed and suffixed by `/` 
 then it is assumed to be a regex and will match any topic matching the pattern (e.g. `/bro.*/` would match `bro_cust0`, `bro_cust1` and `bro_cust2`)
-* `readMetadata` : Boolean indicating whether to read metadata or not (`false` by default).  See below for a discussion about metadata.
-* `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (`false` by default).  See below for a discussion about metadata.
-* `parserConfig` : A JSON Map representing the parser implementation specific configuration.
+* `readMetadata` : Boolean indicating whether to read metadata or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
+* `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
+* `rawMessageStrategy` : The strategy to use when reading the raw data and metadata.  See below for a discussion about message reading strategies.
+* `rawMessageStrategyConfig` : The raw message strategy configuration map.  See below for a discussion about message reading strategies.
+* `parserConfig` : A JSON Map representing the parser implementation specific configuration. Also include batch sizing and timeout for writer configuration here.
+  * `batchSize` : Integer indicating number of records to batch together before sending to the writer. (default to `15`)
+  * `batchTimeout` : The timeout after which a batch will be flushed even if batchSize has not been met.  Optional.
+    If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm
+    parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
+  * The kafka writer can be configured within the parser config as well.  (This is all configured a priori, but this is convenient for overriding the settings).  See [here](../metron-writer/README.md#kafka-writer)
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
-* `spoutParallelism` : The kafka spout parallelism (default to `1`).  This can be overridden on the command line.
-* `spoutNumTasks` : The number of tasks for the spout (default to `1`). This can be overridden on the command line.
-* `parserParallelism` : The parser bolt parallelism (default to `1`). This can be overridden on the command line.
-* `parserNumTasks` : The number of tasks for the parser bolt (default to `1`). This can be overridden on the command line.
+* `spoutParallelism` : The kafka spout parallelism (default to `1`).  This can be overridden on the command line, and if there are multiple sensors should be in a comma separated list in the same order as the sensors.
+* `spoutNumTasks` : The number of tasks for the spout (default to `1`). This can be overridden on the command line, and if there are multiple sensors should be in a comma separated list in the same order as the sensors.
+* `parserParallelism` : The parser bolt parallelism (default to `1`). If there are multiple sensors, the last one's configuration will be used. This can be overridden on the command line.
+* `parserNumTasks` : The number of tasks for the parser bolt (default to `1`). If there are multiple sensors, the last one's configuration will be used. This can be overridden on the command line.
 * `errorWriterParallelism` : The error writer bolt parallelism (default to `1`). This can be overridden on the command line.
 * `errorWriterNumTasks` : The number of tasks for the error writer bolt (default to `1`). This can be overridden on the command line.
 * `numWorkers` : The number of workers to use in the topology (default is the storm default of `1`).
 * `numAckers` : The number of acker executors to use in the topology (default is the storm default of `1`).
-* `spoutConfig` : A map representing a custom spout config (this is a map). This can be overridden on the command line.
-* `securityProtocol` : The security protocol to use for reading from kafka (this is a string).  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence.
+* `spoutConfig` : A map representing a custom spout config (this is a map). If there are multiple sensors, the configs will be merged with the last specified taking precedence. This can be overridden on the command line.
+* `securityProtocol` : The security protocol to use for reading from kafka (this is a string).  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence. If multiple sensors are used, any non "PLAINTEXT" value will be used.
 * `stormConfig` : The storm config to use (this is a map).  This can be overridden on the command line.  If both are specified, they are merged with CLI properties taking precedence.
 * `cacheConfig` : Cache config for stellar field transformations.   This configures a least frequently used cache.  This is a map with the following keys.  If not explicitly configured (the default), then no cache will be used.
   * `stellar.cache.maxSize` - The maximum number of elements in the cache. Default is to not use a cache.
@@ -208,16 +231,33 @@ As such, there are two types of metadata that we seek to support in Metron:
    * At the moment, only the kafka topic is kept as the field name.
 * Custom metadata: Custom metadata from an individual telemetry source that one might want to use within Metron. 
 
-Metadata is controlled by two fields in the parser:
+Metadata is controlled by the following parser configs:
+* `rawMessageStrategy` : This is a strategy which indicates how to read
+  data and metadata.  The strategies supported are:
+  * `DEFAULT` : Data is read directly from the kafka record value and metadata, if any, is read from the kafka record key.  This strategy defaults to not reading metadata and not merging metadata.  This is the default strategy.
+  * `ENVELOPE` : Data from kafka record value is presumed to be a JSON blob. One of
+    these fields must contain the raw data to pass to the parser.  All other fields should be considered metadata.  The field containing the raw data is specified in the `rawMessageStrategyConfig`.  Data held in the kafka key as well as the non-data fields in the JSON blob passed into the kafka value are considered metadata. Note that the exception to this is that any `original_string` field is inherited from the envelope data so that the original string contains the envelope data.  If you do not prefer this behavior, remove this field from the envelope data.
+* `rawMessageStrategyConfig` : The configuration (a map) for the `rawMessageStrategy`.  Available configurations are strategy dependent:
+  * `DEFAULT` 
+    * `metadataPrefix` defines the key prefix for metadata (default is `metron.metadata`).
+  * `ENVELOPE` 
+    * `metadataPrefix` defines the key prefix for metadata (default is `metron.metadata`) 
+    * `messageField` defines the field from the envelope to use as the data.  All other fields are considered metadata.
 * `readMetadata` : This is a boolean indicating whether metadata will be read and made available to Field 
-transformations (i.e. Stellar field transformations).  The default is `false`.
-* `mergeMetadata` : This is a boolean indicating whether metadata fields will be merged with the message automatically.  
-That is to say, if this property is set to `true` then every metadata field will become part of the messages and, 
-consequently, also available for use in field transformations.
+transformations (i.e. Stellar field transformations).  The default is
+dependent upon the `rawMessageStrategy`:
+  * `DEFAULT` : default to `false`.
+  * `ENVELOPE` : default to `true`.
+* `mergeMetadata` : This is a boolean indicating whether metadata fields will be merged with the message automatically.  That is to say, if this property is set to `true` then every metadata field will become part of the messages and, consequently, also available for use in field transformations.  The default is dependent upon the `rawMessageStrategy`:
+  * `DEFAULT` : default to `false`.
+  * `ENVELOPE` : default to `true`.
+
+
 #### Field Naming
 
-In order to avoid collisions from metadata fields, metadata fields will be prefixed with `metron.metadata.`.  
-So, for instance the kafka topic would be in the field `metron.metadata.topic`.
+In order to avoid collisions from metadata fields, metadata fields will
+be prefixed (the default is `metron.metadata.`, but this is configurable
+in the `rawMessageStrategyConfig`).  So, for instance the kafka topic would be in the field `metron.metadata.topic`.
 
 #### Specifying Custom Metadata
 Custom metadata is specified by sending a JSON Map in the key.  If no key is sent, then, obviously, no metadata will be parsed.
@@ -333,6 +373,29 @@ The following config will rename the fields `old_field` and `different_old_field
                       ]
 }
 ```
+* `REGEX_SELECT` : This transformation lets users set an output field to one of a set of possibilities based on matching regexes. This transformation is useful when the number or conditions are large enough to make a stellar language match statement unwieldy.
+ 
+The following config will set the field `logical_source_type` to one of the
+following, dependent upon the value of the `pix_type` field:
+* `cisco-6-302` if `pix_type` starts with either `6-302` or `06-302`
+* `cisco-5-304` if `pix_type` starts with `5-304`
+```
+{
+...
+  "fieldTransformations" : [
+    {
+     "transformation" : "REGEX_ROUTING"
+    ,"input" :  "pix_type"
+    ,"output" :  "logical_source_type"
+    ,"config" : {
+      "cisco-6-302" : [ "^6-302.*", "^06-302.*"]
+      "cisco-5-304" : "^5-304.*"
+                }
+    }
+                           ]
+...  
+}
+```
 
 
 ### Assignment to `null`
@@ -443,17 +506,22 @@ Parser adapters are loaded dynamically in each Metron topology.  They
 are defined in the Parser Config (defined above) JSON file in Zookeeper.
 
 ### Java Parser Adapters
-Java parser adapters are indended for higher-velocity topologies and are not easily changed or extended.  As the adoption of Metron continues we plan on extending our library of Java adapters to process more log formats.  As of this moment the Java adapters included with Metron are:
+Java parser adapters are intended for higher-velocity topologies and are not easily changed or extended.  As the adoption of Metron continues we plan on extending our library of Java adapters to process more log formats.  As of this moment the Java adapters included with Metron are:
 
 * org.apache.metron.parsers.ise.BasicIseParser : Parse ISE messages
 * org.apache.metron.parsers.bro.BasicBroParser : Parse Bro messages
 * org.apache.metron.parsers.sourcefire.BasicSourcefireParser : Parse Sourcefire messages
 * org.apache.metron.parsers.lancope.BasicLancopeParser : Parse Lancope messages
+* org.apache.metron.parsers.syslog.Syslog5424Parser : Parse Syslog RFC 5424 messages
 
 ### Grok Parser Adapters
-Grok parser adapters are designed primarly for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recombiled in order to make changes to them.  An example of a Grok perser is:
+Grok parser adapters are designed primarily for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recompiled in order to make changes to them.  Example of a Grok parsers are:
 
-* org.apache.metron.parsers.GrokParser
+* org.apache.metron.parsers.GrokParser and org.apache.metron.parsers.websphere.GrokWebSphereParser
+
+Parsers that derive from GrokParser typically allow the GrokParser to parse the messages, and then override the methods for postParse to do further parsing.
+When this is the case, and the Parser has not overridden `parse(byte[])` or `parseResultOptional(byte[])` these parsers will gain support for treating byte[] input as multiple lines, with each line parsed as a separate message ( and returned as such).
+This is enabled by using the `"multiline":"true"` Parser configuration option.
 
 For more information on the Grok project please refer to the following link:
 
@@ -551,11 +619,15 @@ and pass `--extra_topology_options custom_config.json` to `start_parser_topology
 Default installed Metron is untuned for production deployment.  There
 are a few knobs to tune to get the most out of your system.
 
+When using aggregated parsers, it's highly recommended to aggregate parsers with similar velocity and parser complexity together.
+
 # Notes on Adding a New Sensor
 In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
 it is necessary to add an additional field to the templates and mapping for existing sensors.
 
 Please see a description of the steps necessary to make this change in the metron-elasticsearch [Using Metron with Elasticsearch 2.x](../../metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2x)
+
+If Solr is selected as the real-time store, it is also necessary to add additional fields.  See the [Solr](../metron-indexing#solr) section in metron-indexing for more details.
 
 ## Kafka Queue
 The kafka queue associated with your parser is a collection point for
