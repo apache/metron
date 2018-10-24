@@ -62,23 +62,33 @@ export class SavedSearchesComponent implements OnInit {
   }
 
   deleteRecentSearch($event) {
-    let selectedSearch = this.recentSearcheObj.find(savedSearch => savedSearch.name === $event.key);
-    const confirmedSubscription = this.dialogService.launchDialog('Do you wish to delete recent search ' + selectedSearch.name).subscribe(r => {
-      if (r === ConfirmationType.Confirmed) {
-        this.doDeleteRecentSearch(selectedSearch);
-      }
-      confirmedSubscription.unsubscribe();
-    });
+    let selectedSearch = this.recentSearcheObj.find(
+      savedSearch => savedSearch.name === $event.key
+    );
+    const confirmedSubscription = this.dialogService
+      .launchDialog(
+        'Do you wish to delete recent search ' + selectedSearch.name
+      )
+      .subscribe(action => {
+        if (action === ConfirmationType.Confirmed) {
+          this.doDeleteRecentSearch(selectedSearch);
+        }
+        confirmedSubscription.unsubscribe();
+      });
   }
 
   deleteSearch($event) {
-    let selectedSearch = this.searches.find(savedSearch => savedSearch.name === $event.key);
-    const confirmedSubscription = this.dialogService.launchDialog('Do you wish to delete saved search ' + selectedSearch.name).subscribe(r => {
-      if (r === ConfirmationType.Confirmed) {
-        this.doDeleteSearch(selectedSearch);
-      }
-      confirmedSubscription.unsubscribe();
-    });
+    let selectedSearch = this.searches.find(
+      savedSearch => savedSearch.name === $event.key
+    );
+    const confirmedSubscription = this.dialogService
+      .launchDialog('Do you wish to delete saved search ' + selectedSearch.name)
+      .subscribe(action => {
+        if (action === ConfirmationType.Confirmed) {
+          this.doDeleteSearch(selectedSearch);
+        }
+        confirmedSubscription.unsubscribe();
+      });
   }
 
   ngOnInit() {

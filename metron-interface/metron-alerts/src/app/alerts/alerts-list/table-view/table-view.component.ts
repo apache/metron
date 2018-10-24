@@ -250,22 +250,26 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   deleteOneAlertFromMetaAlert($event, alert: Alert, metaAlertIndex: number) {
-    const confirmedSubscription = this.dialogService.launchDialog('Do you wish to remove the alert from the meta alert?').subscribe(r => {
-      if (r === ConfirmationType.Confirmed) {
-        this.doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex);
-      }
-      confirmedSubscription.unsubscribe();
-    });
+    const confirmedSubscription = this.dialogService
+      .launchDialog('Do you wish to remove the alert from the meta alert?')
+      .subscribe(action => {
+        if (action === ConfirmationType.Confirmed) {
+          this.doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex);
+        }
+        confirmedSubscription.unsubscribe();
+      });
     $event.stopPropagation();
   }
 
   deleteMetaAlert($event, alert: Alert) {
-    const confirmedSubscription = this.dialogService.launchDialog('Do you wish to remove all the alerts from meta alert?').subscribe(r => {
-      if (r === ConfirmationType.Confirmed) {
-        this.doDeleteMetaAlert(alert);
-      }
-      confirmedSubscription.unsubscribe();
-    });
+    const confirmedSubscription = this.dialogService
+      .launchDialog('Do you wish to remove all the alerts from meta alert?')
+      .subscribe(action => {
+        if (action === ConfirmationType.Confirmed) {
+          this.doDeleteMetaAlert(alert);
+        }
+        confirmedSubscription.unsubscribe();
+      });
     $event.stopPropagation();
   }
 
