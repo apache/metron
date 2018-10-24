@@ -48,16 +48,11 @@ export enum MetronAlertDisplayState {
 
 export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
-  searchService: SearchService;
-  updateService: UpdateService;
   isStatusFieldPresent = false;
-  metaAlertService: MetaAlertService;
   metaAlertsDisplayState: {[key: string]: MetronAlertDisplayState} = {};
   metronAlertDisplayState = MetronAlertDisplayState;
   globalConfig: {} = {};
-  globalConfigService: GlobalConfigService;
   configSubscription: Subscription;
-  dialogService: DialogService;
 
   @Input() alerts: Alert[] = [];
   @Input() queryBuilder: QueryBuilder;
@@ -72,16 +67,11 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   @Output() onShowConfigureTable = new EventEmitter<Alert>();
   @Output() onSelectedAlertsChange = new EventEmitter< Alert[]>();
 
-  constructor(searchService: SearchService,
-              updateService: UpdateService,
-              metaAlertService: MetaAlertService,
-              globalConfigService: GlobalConfigService,
-              dialogService: DialogService) {
-    this.searchService = searchService;
-    this.updateService = updateService;
-    this.metaAlertService = metaAlertService;
-    this.globalConfigService = globalConfigService;
-    this.dialogService = dialogService;
+  constructor(public searchService: SearchService,
+              public updateService: UpdateService,
+              public metaAlertService: MetaAlertService,
+              public globalConfigService: GlobalConfigService,
+              public dialogService: DialogService) {
   }
 
   ngOnInit() {
