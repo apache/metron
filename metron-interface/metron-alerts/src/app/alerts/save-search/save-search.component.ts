@@ -74,9 +74,7 @@ export class SaveSearchComponent implements OnInit {
         this.saveSearch.searchRequest = this.saveSearchService.queryBuilder.searchRequest;
         this.saveSearchService.updateSearch(this.saveSearch).subscribe(() => { this.goBack(); }, error => {});
       }
-      if (r !== 'Initial') {
-        confirmedSubscription.unsubscribe();
-      }
+      confirmedSubscription.unsubscribe();
     });
   }
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { ConfirmationType } from '../model/confirmation-type';
 import { DialogType } from '../model/dialog-type';
 
@@ -32,12 +32,11 @@ export class DialogParams {
 
 export class DialogService {
   message = new BehaviorSubject<DialogParams>(new DialogParams());
-  confirmed = new BehaviorSubject<ConfirmationType>(ConfirmationType.Initial);
+  confirmed = new Subject<ConfirmationType>();
 
   constructor() {}
 
-  confirm(message: string, dialogType = DialogType.Confirmation): BehaviorSubject<ConfirmationType> {
-    this.confirmed.next(ConfirmationType.Initial);
+  confirm(message: string, dialogType = DialogType.Confirmation): Subject<ConfirmationType> {
     this.message.next({
       message: message,
       show: true,

@@ -39,12 +39,6 @@ describe('DialogService', () => {
   }));
 
   describe('confirm()', () => {
-    it('should emit confirmed with ConfirmationType.Initial', () => {
-      const confirmedSpy = spyOn(dialogService.confirmed, 'next');
-
-      dialogService.confirm('');
-      expect(confirmedSpy).toHaveBeenCalledWith(ConfirmationType.Initial);
-    });
 
     it('should emit a message with the correct params', () => {
       const messageSpy = spyOn(dialogService.message, 'next');
@@ -62,13 +56,6 @@ describe('DialogService', () => {
       dialogService.confirm(testMessage, DialogType.Error);
     });
 
-    it('should return a ConfirmationType', () => {
-      const responseMock: ConfirmationType = ConfirmationType.Initial;
-
-      dialogService.confirm('').subscribe(r => {
-        expect(r).toBe(responseMock);
-      });
-    });
   });
 
   describe('cancel()', () => {

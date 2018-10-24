@@ -269,9 +269,7 @@ export class AlertDetailsComponent implements OnInit {
               this.alertCommentsWrapper.sort((a, b) => b.alertComment.timestamp - a.alertComment.timestamp);
             });
       }
-      if (r !== 'Initial') {
-        confirmedSubscription.unsubscribe();
-      }
+      confirmedSubscription.unsubscribe();
     });
   }
 }

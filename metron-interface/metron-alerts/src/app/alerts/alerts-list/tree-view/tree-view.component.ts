@@ -428,9 +428,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
         if (r === ConfirmationType.Confirmed) {
           this.doCreateMetaAlert(group, index);
         }
-        if (r !== 'Initial') {
-          confirmedSubscription.unsubscribe();
-        }
+        confirmedSubscription.unsubscribe();
       });
     }
 

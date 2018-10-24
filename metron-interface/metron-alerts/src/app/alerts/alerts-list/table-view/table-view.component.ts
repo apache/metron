@@ -254,9 +254,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
       if (r === ConfirmationType.Confirmed) {
         this.doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex);
       }
-      if (r !== 'Initial') {
-        confirmedSubscription.unsubscribe();
-      }
+      confirmedSubscription.unsubscribe();
     });
     $event.stopPropagation();
   }
@@ -266,9 +264,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
       if (r === ConfirmationType.Confirmed) {
         this.doDeleteMetaAlert(alert);
       }
-      if (r !== 'Initial') {
-        confirmedSubscription.unsubscribe();
-      }
+      confirmedSubscription.unsubscribe();
     });
     $event.stopPropagation();
   }

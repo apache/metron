@@ -67,9 +67,7 @@ export class SavedSearchesComponent implements OnInit {
       if (r === ConfirmationType.Confirmed) {
         this.doDeleteRecentSearch(selectedSearch);
       }
-      if (r !== 'Initial') {
-        confirmedSubscription.unsubscribe();
-      }
+      confirmedSubscription.unsubscribe();
     });
   }
 
@@ -79,9 +77,7 @@ export class SavedSearchesComponent implements OnInit {
       if (r === ConfirmationType.Confirmed) {
         this.doDeleteSearch(selectedSearch);
       }
-      if (r !== 'Initial') {
-        confirmedSubscription.unsubscribe();
-      }
+      confirmedSubscription.unsubscribe();
     });
   }
 
