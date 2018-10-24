@@ -169,6 +169,7 @@ Where:
 | [ `CHOP`](#chop)                                                                                   |
 | [ `CHOMP`](#chomp)                                                                                 |
 | [ `COUNT_MATCHES`](#count_matches)                                                                 |
+| [ `DATE_FORMAT`](#date_format)
 | [ `DAY_OF_MONTH`](#day_of_month)                                                                   |
 | [ `DAY_OF_WEEK`](#day_of_week)                                                                     |
 | [ `DAY_OF_YEAR`](#day_of_year)                                                                     |
@@ -379,6 +380,14 @@ Where:
     * substring/character - the substring or character to count, may be null.
   * Returns: the number of non-overlapping occurrences, 0 if either CharSequence is null.
 
+### `DATE_FORMAT`
+  * Description: Takes an epoch timestamp and converts it to a date format.
+  * Input:
+    * format - DateTime format as a String.
+    * timestampField - Optional epoch time in Long format.  Defaults to now.
+    * timezone - Optional timezone in String format.
+  * Returns: Formatted date.
+  
 ### `DAY_OF_MONTH`
   * Description: The numbered day within the month.  The first day within the month has a value of 1.
   * Input:
@@ -1477,7 +1486,7 @@ operating system.
 
 
 ```bash
-metron-stellar/stellar-common/target/stellar-common-0.6.0-stand-alone.tar.gz
+metron-stellar/stellar-common/target/stellar-common-0.6.1-stand-alone.tar.gz
 ```
 
 When unpacked, the following structure will be created:
@@ -1487,7 +1496,7 @@ When unpacked, the following structure will be created:
 ├── bin
 │   └── stellar
 └── lib
-    └── stellar-common-0.6.0-uber.jar
+    └── stellar-common-0.6.1-uber.jar
 ```
 
 To run the Stellar Shell run the following from the directory you unpacked to:

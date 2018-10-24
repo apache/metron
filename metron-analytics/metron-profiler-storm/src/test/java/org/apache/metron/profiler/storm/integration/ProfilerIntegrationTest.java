@@ -23,6 +23,7 @@ package org.apache.metron.profiler.storm.integration;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.integration.BaseIntegrationTest;
@@ -40,6 +41,8 @@ import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.storm.Config;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -49,7 +52,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,6 +70,13 @@ import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PRO
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
+import static org.apache.metron.profiler.storm.KafkaEmitter.ALERT_FIELD;
+import static org.apache.metron.profiler.storm.KafkaEmitter.ENTITY_FIELD;
+import static org.apache.metron.profiler.storm.KafkaEmitter.PERIOD_END_FIELD;
+import static org.apache.metron.profiler.storm.KafkaEmitter.PERIOD_ID_FIELD;
+import static org.apache.metron.profiler.storm.KafkaEmitter.PERIOD_START_FIELD;
+import static org.apache.metron.profiler.storm.KafkaEmitter.PROFILE_FIELD;
+import static org.apache.metron.profiler.storm.KafkaEmitter.TIMESTAMP_FIELD;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -82,18 +91,15 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   public static final long startAt = 10;
   public static final String entity = "10.0.0.1";
-
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
   private static final String inputTopic = Constants.INDEXING_TOPIC;
   private static final String outputTopic = "profiles";
   private static final int saltDivisor = 10;
-
   private static final long periodDurationMillis = TimeUnit.SECONDS.toMillis(20);
   private static final long windowLagMillis = TimeUnit.SECONDS.toMillis(10);
   private static final long windowDurationMillis = TimeUnit.SECONDS.toMillis(10);
   private static final long profileTimeToLiveMillis = TimeUnit.SECONDS.toMillis(20);
-
   private static final long maxRoutesPerBolt = 100000;
 
   private static ZKServerComponent zkComponent;
@@ -102,11 +108,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static ConfigUploadComponent configUploadComponent;
   private static ComponentRunner runner;
   private static MockHTable profilerTable;
-
   private static String message1;
   private static String message2;
   private static String message3;
-
   private StellarStatefulExecutor executor;
 
   /**
@@ -127,9 +131,25 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Multiline
   private static String kryoSerializers;
 
+  /**
+   * {
+   *    "profiles": [
+   *      {
+   *        "profile": "processing-time-test",
+   *        "foreach": "ip_src_addr",
+   *        "init": { "counter": "0" },
+   *        "update": { "counter": "counter + 1" },
+   *        "result": "counter"
+   *      }
+   *    ]
+   * }
+   */
+  @Multiline
+  private static String processingTimeProfile;
+
   @Test
   public void testProcessingTime() throws Exception {
-    uploadConfigToZookeeper(TEST_RESOURCES + "/config/zookeeper/processing-time-test");
+    uploadConfigToZookeeper(ProfilerConfig.fromJSON(processingTimeProfile));
 
     // start the topology and write 3 test messages to kafka
     fluxComponent.submitTopology();
@@ -138,7 +158,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     kafkaComponent.writeMessages(inputTopic, message3);
 
     // retrieve the profile measurement using PROFILE_GET
-    String profileGetExpression = "PROFILE_GET('processing-time-test', '10.0.0.1', PROFILE_FIXED('5', 'MINUTES'))";
+    String profileGetExpression = "PROFILE_GET('processing-time-test', '10.0.0.1', PROFILE_FIXED('15', 'MINUTES'))";
     List<Integer> measurements = execute(profileGetExpression, List.class);
 
     // need to keep checking for measurements until the profiler has flushed one out
@@ -170,7 +190,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void testProcessingTimeWithTimeToLiveFlush() throws Exception {
-    uploadConfigToZookeeper(TEST_RESOURCES + "/config/zookeeper/processing-time-test");
+    uploadConfigToZookeeper(ProfilerConfig.fromJSON(processingTimeProfile));
 
     // start the topology and write 3 test messages to kafka
     fluxComponent.submitTopology();
@@ -186,7 +206,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     kafkaComponent.writeMessages(inputTopic, message3);
 
     // retrieve the profile measurement using PROFILE_GET
-    String profileGetExpression = "PROFILE_GET('processing-time-test', '10.0.0.1', PROFILE_FIXED('5', 'MINUTES'))";
+    String profileGetExpression = "PROFILE_GET('processing-time-test', '10.0.0.1', PROFILE_FIXED('15', 'MINUTES'))";
     List<Integer> measurements = execute(profileGetExpression, List.class);
 
     // need to keep checking for measurements until the profiler has flushed one out
@@ -213,9 +233,33 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     assertEquals(3, measurements.get(0).intValue());
   }
 
+  /**
+   * {
+   *    "timestampField": "timestamp",
+   *    "profiles": [
+   *      {
+   *        "profile": "count-by-ip",
+   *        "foreach": "ip_src_addr",
+   *        "init": { "count": 0 },
+   *        "update": { "count" : "count + 1" },
+   *        "result": "count"
+   *      },
+   *      {
+   *        "profile": "total-count",
+   *        "foreach": "'total'",
+   *        "init": { "count": 0 },
+   *        "update": { "count": "count + 1" },
+   *        "result": "count"
+   *      }
+   *    ]
+   * }
+   */
+  @Multiline
+  private static String eventTimeProfile;
+
   @Test
   public void testEventTime() throws Exception {
-    uploadConfigToZookeeper(TEST_RESOURCES + "/config/zookeeper/event-time-test");
+    uploadConfigToZookeeper(ProfilerConfig.fromJSON(eventTimeProfile));
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -256,6 +300,23 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
+   * {
+   *    "profiles": [
+   *      {
+   *        "profile": "profile-with-stats",
+   *        "foreach": "'global'",
+   *        "init": { "stats": "STATS_INIT()" },
+   *        "update": { "stats": "STATS_ADD(stats, 1)" },
+   *        "result": "stats"
+   *      }
+   *    ],
+   *    "timestampField": "timestamp"
+   * }
+   */
+  @Multiline
+  private static String profileWithStats;
+
+  /**
    * The result produced by a Profile has to be serializable within Storm. If the result is not
    * serializable the topology will crash and burn.
    *
@@ -264,7 +325,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void testProfileWithStatsObject() throws Exception {
-    uploadConfigToZookeeper(TEST_RESOURCES + "/config/zookeeper/profile-with-stats");
+    uploadConfigToZookeeper(ProfilerConfig.fromJSON(profileWithStats));
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -286,17 +347,59 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
-   * Generates an error message for if the byte comparison fails.
-   *
-   * @param expected The expected value.
-   * @param actual The actual value.
-   * @return
-   * @throws UnsupportedEncodingException
+   * {
+   *    "profiles": [
+   *      {
+   *        "profile": "profile-with-triage",
+   *        "foreach": "'global'",
+   *        "update": {
+   *          "stats": "STATS_ADD(stats, 1)"
+   *        },
+   *        "result": {
+   *          "profile": "stats",
+   *          "triage": {
+   *            "min": "STATS_MIN(stats)",
+   *            "max": "STATS_MAX(stats)",
+   *            "mean": "STATS_MEAN(stats)"
+   *          }
+   *        }
+   *      }
+   *    ],
+   *    "timestampField": "timestamp"
+   * }
    */
-  private String failMessage(byte[] expected, byte[] actual) throws UnsupportedEncodingException {
-    return String.format("expected '%s', got '%s'",
-              new String(expected, "UTF-8"),
-              new String(actual, "UTF-8"));
+  @Multiline
+  private static String profileWithTriageResult;
+
+  @Test
+  public void testProfileWithTriageResult() throws Exception {
+    uploadConfigToZookeeper(ProfilerConfig.fromJSON(profileWithTriageResult));
+
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    List<String> telemetry = FileUtils.readLines(new File("src/test/resources/telemetry.json"));
+    kafkaComponent.writeMessages(inputTopic, telemetry);
+
+    // wait until the triage message is output to kafka
+    waitOrTimeout(() -> kafkaComponent.readMessages(outputTopic).size() > 0, timeout(seconds(90)));
+
+    List<byte[]> outputMessages = kafkaComponent.readMessages(outputTopic);
+    assertEquals(1, outputMessages.size());
+
+    // validate the triage message
+    JSONObject message = (JSONObject) new JSONParser().parse(new String(outputMessages.get(0), "UTF-8"));
+    assertEquals("profile-with-triage", message.get(PROFILE_FIELD));
+    assertEquals("global",              message.get(ENTITY_FIELD));
+    assertEquals(76548935L,             message.get(PERIOD_ID_FIELD));
+    assertEquals(1530978700000L,        message.get(PERIOD_START_FIELD));
+    assertEquals(1530978720000L,        message.get(PERIOD_END_FIELD));
+    assertEquals("profiler",            message.get(Constants.SENSOR_TYPE));
+    assertEquals("true",                message.get(ALERT_FIELD));
+    assertEquals(1.0,                   message.get("min"));
+    assertEquals(1.0,                   message.get("max"));
+    assertEquals(1.0,                   message.get("mean"));
+    assertTrue(message.containsKey(TIMESTAMP_FIELD));
+    assertTrue(message.containsKey(Constants.GUID));
   }
 
   private static String getMessage(String ipSource, long timestamp) {
@@ -441,13 +544,12 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   /**
    * Uploads config values to Zookeeper.
-   * @param path The path on the local filesystem to the config values.
+   * @param profilerConfig The Profiler configuration.
    * @throws Exception
    */
-  public void uploadConfigToZookeeper(String path) throws Exception {
+  public void uploadConfigToZookeeper(ProfilerConfig profilerConfig) throws Exception {
     configUploadComponent
-            .withGlobalConfiguration(path)
-            .withProfilerConfiguration(path)
+            .withProfilerConfiguration(profilerConfig)
             .update();
   }
 
@@ -471,7 +573,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    */
   private <T> T execute(String expression, Class<T> clazz) {
     T results = executor.execute(expression, Collections.emptyMap(), clazz);
-
     LOG.debug("{} = {}", expression, results);
     return results;
   }

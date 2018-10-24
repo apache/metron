@@ -28,10 +28,16 @@ elif [ -e /usr/lib/bigtop-utils/bigtop-detect-javahome ]; then
   . /usr/lib/bigtop-utils/bigtop-detect-javahome
 fi
 
+export METRON_SYSCONFIG="/etc/default/metron"
+if [ -f "$METRON_SYSCONFIG" ]; then
+	source $METRON_SYSCONFIG
+fi
+
+# treat unset vars as an error; METRON_HOME
+set -u
+
 export HBASE_CONFIGS=$(hbase classpath)
-export METRON_VERSION=${project.version}
-export METRON_HOME=/usr/metron/$METRON_VERSION
 export STELLAR_LIB=$(find $METRON_HOME/lib/ -name metron-parsers*.jar)
 export MANAGEMENT_LIB=$(find $METRON_HOME/lib/ -name metron-management*.jar)
 export PROFILER_LIB=$(find $METRON_HOME/lib/ -name metron-profiler-repl*.jar)
-java $JVMFLAGS -cp "${CONTRIB:-$METRON_HOME/contrib/*}:$STELLAR_LIB:$MANAGEMENT_LIB:$PROFILER_LIB:$HBASE_CONFIGS" org.apache.metron.stellar.common.shell.cli.StellarShell "$@"
+java $METRON_JVMFLAGS -cp "${CONTRIB:-$METRON_HOME/contrib/*}:$STELLAR_LIB:$MANAGEMENT_LIB:$PROFILER_LIB:$HBASE_CONFIGS" org.apache.metron.stellar.common.shell.cli.StellarShell "$@"

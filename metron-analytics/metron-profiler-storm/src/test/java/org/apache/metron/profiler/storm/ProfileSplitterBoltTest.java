@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 
+import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.VALUE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -219,7 +220,7 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
     message = (JSONObject) parser.parse(input);
 
     // ensure the tuple returns the expected json message
-    when(tuple.getBinary(0)).thenReturn(input.getBytes());
+    when(tuple.getBinaryByField(VALUE.getFieldName())).thenReturn(input.getBytes());
   }
 
   /**

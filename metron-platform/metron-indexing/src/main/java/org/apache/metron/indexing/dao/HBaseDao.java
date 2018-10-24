@@ -238,13 +238,14 @@ public class HBaseDao implements IndexDao {
   }
 
   @Override
-  public synchronized void update(Document update, Optional<String> index) throws IOException {
+  public synchronized Document update(Document update, Optional<String> index) throws IOException {
     Put put = buildPut(update);
     getTableInterface().put(put);
+    return update;
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     List<Put> puts = new ArrayList<>();
     for (Map.Entry<Document, Optional<String>> updateEntry : updates.entrySet()) {
       Document update = updateEntry.getKey();
@@ -253,6 +254,7 @@ public class HBaseDao implements IndexDao {
       puts.add(put);
     }
     getTableInterface().put(puts);
+    return updates;
   }
 
   protected Get buildGet(GetRequest getRequest) throws IOException {
@@ -280,16 +282,17 @@ public class HBaseDao implements IndexDao {
 
   @Override
   @SuppressWarnings("unchecked")
-  public void addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
+  public Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = getLatest(request.getGuid(), request.getSensorType());
-    addCommentToAlert(request, latest);
+    return addCommentToAlert(request, latest);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
     if (latest == null || latest.getDocument() == null) {
-      throw new IOException("Unable to add comment to document that doesn't exist");
+      throw new IOException(String.format("Unable to add comment. Document with guid %s cannot be found.",
+              request.getGuid()));
     }
 
     List<Map<String, Object>> comments = (List<Map<String, Object>>) latest.getDocument()
@@ -309,28 +312,30 @@ public class HBaseDao implements IndexDao {
 
     Document newVersion = new Document(latest);
     newVersion.getDocument().put(COMMENTS_FIELD, commentsMap);
-    update(newVersion, Optional.empty());
+    return update(newVersion, Optional.empty());
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public void removeCommentFromAlert(CommentAddRemoveRequest request)
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request)
       throws IOException {
     Document latest = getLatest(request.getGuid(), request.getSensorType());
-    removeCommentFromAlert(request, latest);
+    return removeCommentFromAlert(request, latest);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
     if (latest == null || latest.getDocument() == null) {
-      throw new IOException("Unable to remove comment document that doesn't exist");
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s cannot be found.",
+              request.getGuid()));
     }
     List<Map<String, Object>> commentMap = (List<Map<String, Object>>) latest.getDocument().get(COMMENTS_FIELD);
     // Can't remove anything if there's nothing there
     if (commentMap == null) {
-      return;
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s has no comments.",
+              request.getGuid()));
     }
     List<Map<String, Object>> originalComments = new ArrayList<>(commentMap);
     List<AlertComment> comments = new ArrayList<>();
@@ -349,6 +354,6 @@ public class HBaseDao implements IndexDao {
       newVersion.getDocument().remove(COMMENTS_FIELD);
     }
 
-    update(newVersion, Optional.empty());
+    return update(newVersion, Optional.empty());
   }
 }

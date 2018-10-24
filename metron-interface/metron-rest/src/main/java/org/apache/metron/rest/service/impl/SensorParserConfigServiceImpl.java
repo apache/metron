@@ -20,11 +20,10 @@ package org.apache.metron.rest.service.impl;
 import static org.apache.metron.rest.MetronRestConstants.GROK_CLASS_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.configuration.ConfigurationType;
@@ -33,17 +32,15 @@ import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.metron.rest.util.ParserIndex;
-import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
-import org.reflections.Reflections;
-import org.reflections.util.ConfigurationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -154,11 +151,24 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
       }
       parser.configure(sensorParserConfig.getParserConfig());
       parser.init();
-      JSONObject results = parser.parse(parseMessageRequest.getSampleData().getBytes()).get(0);
+
+      Optional<MessageParserResult<JSONObject>> result = parser.parseOptionalResult(parseMessageRequest.getSampleData().getBytes());
+      if (!result.isPresent()) {
+        throw new RestException("Unknown error parsing sample data");
+      }
+
+      if (result.get().getMasterThrowable().isPresent()) {
+        throw new RestException("Error parsing sample data",result.get().getMasterThrowable().get());
+      }
+
+      if (result.get().getMessages().isEmpty()) {
+        throw new RestException("No results from parsing sample data");
+      }
+
       if (isGrokConfig(sensorParserConfig) && temporaryGrokPath != null) {
         grokService.deleteTemporary();
       }
-      return results;
+      return result.get().getMessages().get(0);
     }
   }
 

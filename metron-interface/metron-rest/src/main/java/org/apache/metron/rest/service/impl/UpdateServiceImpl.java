@@ -19,6 +19,7 @@ package org.apache.metron.rest.service.impl;
 
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
@@ -43,37 +44,36 @@ public class UpdateServiceImpl implements UpdateService {
 
 
   @Override
-  public void patch(PatchRequest request) throws RestException, OriginalNotFoundException {
+  public Document patch(PatchRequest request) throws RestException, OriginalNotFoundException {
     try {
-      dao.patch(dao, request, Optional.of(System.currentTimeMillis()));
-    } catch (Exception e) {
-
-      throw new RestException(e.getMessage(), e);
-    }
-  }
-
-  @Override
-  public void replace(ReplaceRequest request) throws RestException {
-    try {
-      dao.replace(request, Optional.of(System.currentTimeMillis()));
+      return dao.patch(dao, request, Optional.of(System.currentTimeMillis()));
     } catch (Exception e) {
       throw new RestException(e.getMessage(), e);
     }
   }
 
   @Override
-  public void addComment(CommentAddRemoveRequest request) throws RestException {
+  public Document replace(ReplaceRequest request) throws RestException {
     try {
-      dao.addCommentToAlert(request);
+      return dao.replace(request, Optional.of(System.currentTimeMillis()));
     } catch (Exception e) {
       throw new RestException(e.getMessage(), e);
     }
   }
 
   @Override
-  public void removeComment(CommentAddRemoveRequest request) throws RestException {
+  public Document addComment(CommentAddRemoveRequest request) throws RestException {
     try {
-      dao.removeCommentFromAlert(request);
+      return dao.addCommentToAlert(request);
+    } catch (Exception e) {
+      throw new RestException(e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public Document removeComment(CommentAddRemoveRequest request) throws RestException {
+    try {
+      return dao.removeCommentFromAlert(request);
     } catch (Exception e) {
       throw new RestException(e.getMessage(), e);
     }

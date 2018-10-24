@@ -43,6 +43,12 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.OFFSET;
+import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.PARTITION;
+import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.TIMESTAMP;
+import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.TOPIC;
+import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.VALUE;
+
 /**
  * The Storm bolt responsible for filtering incoming messages and directing
  * each to the downstream bolts responsible for building a Profile.
@@ -132,6 +138,11 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   @Override
   public void execute(Tuple input) {
     try {
+      LOG.debug("Received message; topic={}, partition={}, offset={}, kafkaTimestamp={}",
+              input.contains(TOPIC.getFieldName())      ? input.getStringByField(TOPIC.getFieldName()):       "unknown",
+              input.contains(PARTITION.getFieldName())  ? input.getIntegerByField(PARTITION.getFieldName()):  "unknown",
+              input.contains(OFFSET.getFieldName())     ? input.getLongByField(OFFSET.getFieldName()):        "unknown",
+              input.contains(TIMESTAMP.getFieldName())  ? input.getLongByField(TIMESTAMP.getFieldName()):     "unknown");
       doExecute(input);
 
     } catch (Throwable t) {
@@ -146,7 +157,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   private void doExecute(Tuple input) throws ParseException, UnsupportedEncodingException {
 
     // retrieve the input message
-    byte[] data = input.getBinary(0);
+    byte[] data = input.getBinaryByField(VALUE.getFieldName());
     if(data == null) {
       LOG.debug("Received null message. Nothing to do.");
       return;
