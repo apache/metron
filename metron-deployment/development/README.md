@@ -34,7 +34,7 @@ The development environment can be set up to authenticate against Knox's demo LD
 
 A couple notes
 * A custom LDIF file is used to setup users. This is to get the roles and passwords setup correctly.
-* The demo LDAP uses plaintext passwords with no encryption prefix (e.g. {SSHA}). Spring expects this prefix to be present, so the LDIF file manually prepends {noop} in order to meet this expectation. This also is used in the password setup in Ambari. During authentication at login pages, this prefix does NOT need to be provided.
+* The demo LDAP uses plaintext passwords with no encryption prefix (e.g. {SSHA}).
 * You may need or want to shut down any or all of the topologies. This is optional, but clears some room
 
 To setup this up, start full dev.
@@ -43,8 +43,8 @@ To setup this up, start full dev.
 * Start the Demo LDAP (In Knox, "Service Actions -> Start Demo LDAP)
 * In Metron's configs, we're going to make two changes
   * In REST, alter "Active Spring profiles" to include LDAP (e.g. "dev,ldap"). This will signal that we are using LDAP instead of JDBC.
-  * In Security, set "Bind user password" to match the admin user's password from the ldif file ({noop}admin-password). Again, note that we have the prefix for the purpose of the demo LDAP.
+  * In Security, set "Bind user password" to match the admin user's password from the ldif file (admin-password).
 * Restart the REST application
 
-Now, when you go to Swagger or the UIs, you should be able to give a user and password. The "{noop}" prefix can be omitted now (Spring handles the encoding appropriately at this point).
+Now, when you go to Swagger or the UIs, you should be able to give a user and password.
 "admin" will have the roles ROLE_ADMIN and ROLE_USER, which can be verified via the "/whoami/roles" endpoint in Swagger. Similarly, there is a user "sam" that only has ROLE_USER. A third user, "tom" has neither role.

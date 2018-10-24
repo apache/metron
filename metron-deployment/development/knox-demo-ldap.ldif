@@ -40,7 +40,7 @@
  cn: Guest
  sn: User
  uid: guest
- userPassword:{noop}guest-password
+ userPassword:guest-password
 
 
  # entry for sample user admin
@@ -52,7 +52,7 @@
  cn: Admin
  sn: Admin
  uid: admin
- userPassword:{noop}admin-password
+ userPassword:admin-password
 
  # entry for sample user sam
  dn: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org
@@ -63,7 +63,7 @@
  cn: sam
  sn: sam
  uid: sam
- userPassword:{noop}sam-password
+ userPassword:sam-password
 
  # entry for sample user tom
  dn: uid=tom,ou=people,dc=hadoop,dc=apache,dc=org
@@ -74,7 +74,7 @@
  cn: tom
  sn: tom
  uid: tom
- userPassword:{noop}tom-password
+ userPassword:tom-password
 
  # create FIRST Level groups branch
  dn: ou=groups,dc=hadoop,dc=apache,dc=org
