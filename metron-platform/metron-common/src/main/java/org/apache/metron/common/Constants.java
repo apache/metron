@@ -127,5 +127,48 @@ public class Constants {
     }
   }
 
+   public static enum ParserConfigConstants {
+    //@formatter:off
+    RECORD_TYPE("recordType"),
+    RECORD_TYPE_REGEX("recordTypeRegex"),
+    REGEX("regex"),
+    FIELDS("fields"),
+    MESSAGE_HEADER("messageHeaderRegex"),
+    ORIGINAL("original_string"),
+    TIMESTAMP("timestamp"),
+    CONVERT_CAMELCASE_TO_UNDERSCORE("convertCamelCaseToUnderScore");
+    //@formatter:on
+    private final String name;
+    private static Map<String, ParserConfigConstants> nameToField;
+
+    static {
+      nameToField = new HashMap<>();
+      for (final ParserConfigConstants f : ParserConfigConstants.values()) {
+        nameToField.put(f.getName(), f);
+      }
+    }
+
+
+    ParserConfigConstants(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    static {
+      nameToField = new HashMap<>();
+      for (final ParserConfigConstants f : ParserConfigConstants.values()) {
+        nameToField.put(f.getName(), f);
+      }
+    }
+
+
+    public static ParserConfigConstants fromString(String fieldName) {
+      return nameToField.get(fieldName);
+    }
+  }
+
 }
 
