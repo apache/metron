@@ -36,7 +36,7 @@ export class DialogService {
 
   constructor() {}
 
-  confirm(message: string, dialogType = DialogType.Confirmation): Subject<ConfirmationType> {
+  launchDialog(message: string, dialogType = DialogType.Confirmation): Subject<ConfirmationType> {
     this.message.next({
       message: message,
       show: true,

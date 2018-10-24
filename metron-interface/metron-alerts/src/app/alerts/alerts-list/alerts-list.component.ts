@@ -340,7 +340,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.setData(results);
     }, error => {
       this.setData(new SearchResponse());
-      this.dialogService.confirm(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
+      this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
     });
 
     this.tryStartPolling();

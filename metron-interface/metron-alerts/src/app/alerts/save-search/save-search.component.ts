@@ -69,7 +69,7 @@ export class SaveSearchComponent implements OnInit {
 
   update() {
     let message = 'A Search with the name \'' + this.saveSearch.name + '\' already exist do you wish to override it?';
-    const confirmedSubscription = this.dialogService.confirm(message).subscribe(r => {
+    const confirmedSubscription = this.dialogService.launchDialog(message).subscribe(r => {
       if (r === ConfirmationType.Confirmed) {
         this.saveSearch.searchRequest = this.saveSearchService.queryBuilder.searchRequest;
         this.saveSearchService.updateSearch(this.saveSearch).subscribe(() => { this.goBack(); }, error => {});

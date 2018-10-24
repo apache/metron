@@ -197,7 +197,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     return this.searchService.search(searchRequest).subscribe(results => {
       this.setData(selectedGroup, results);
     }, error => {
-      this.dialogService.confirm(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
+      this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
     });
   }
 
@@ -361,7 +361,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   canCreateMetaAlert(count: number) {
     if (count > MAX_ALERTS_IN_META_ALERTS) {
       let errorMessage = 'Meta Alert cannot have more than ' + MAX_ALERTS_IN_META_ALERTS +' alerts within it';
-      this.dialogService.confirm(errorMessage, DialogType.Error);
+      this.dialogService.launchDialog(errorMessage, DialogType.Error);
       return false;
     }
     return true;
@@ -424,7 +424,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     if (this.canCreateMetaAlert(group.total)) {
       let confirmationMsg = 'Do you wish to create a meta alert with ' +
                             (group.total === 1 ? ' alert' : group.total + ' selected alerts') + '?';
-      const confirmedSubscription = this.dialogService.confirm(confirmationMsg).subscribe(r => {
+      const confirmedSubscription = this.dialogService.launchDialog(confirmationMsg).subscribe(r => {
         if (r === ConfirmationType.Confirmed) {
           this.doCreateMetaAlert(group, index);
         }

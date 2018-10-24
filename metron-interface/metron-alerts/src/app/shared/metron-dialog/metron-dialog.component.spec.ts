@@ -55,7 +55,7 @@ describe('MetronDialogComponent', () => {
 
   it('should display the passed message', () => {
     const testMessage = 'This is a confirmation message';
-    dialogService.confirm(testMessage);
+    dialogService.launchDialog(testMessage);
     fixture.detectChanges();
     const modalMessage = fixture.nativeElement.querySelector(
       '[data-qe-id="modal-message"]'
@@ -64,14 +64,14 @@ describe('MetronDialogComponent', () => {
   });
 
   it('should display the correct title based on the dialog type', () => {
-    dialogService.confirm('');
+    dialogService.launchDialog('');
     fixture.detectChanges();
     let modalTitle = fixture.nativeElement.querySelector(
       '[data-qe-id="modal-title"]'
     );
     expect(modalTitle.textContent).toBe('Confirmation');
 
-    dialogService.confirm('', DialogType.Error);
+    dialogService.launchDialog('', DialogType.Error);
     fixture.detectChanges();
     modalTitle = fixture.nativeElement.querySelector(
       '[data-qe-id="modal-title"]'
@@ -80,7 +80,7 @@ describe('MetronDialogComponent', () => {
   });
 
   it('should execute cancel() when the cancel button is clicked', () => {
-    dialogService.confirm('');
+    dialogService.launchDialog('');
     const cancelSpy = spyOn(component, 'cancel').and.callThrough();
     fixture.detectChanges();
 
@@ -93,7 +93,7 @@ describe('MetronDialogComponent', () => {
   });
 
   it('should execute confirm() when the ok button is clicked', () => {
-    dialogService.confirm('');
+    dialogService.launchDialog('');
     const confirmSpy = spyOn(component, 'confirm').and.callThrough();
     fixture.detectChanges();
 
@@ -106,7 +106,7 @@ describe('MetronDialogComponent', () => {
   });
 
   it('should only display a cancel() button when the dialog type is Error', () => {
-    dialogService.confirm('', DialogType.Error);
+    dialogService.launchDialog('', DialogType.Error);
     fixture.detectChanges();
 
     const errorCancelButton = fixture.nativeElement.querySelector(

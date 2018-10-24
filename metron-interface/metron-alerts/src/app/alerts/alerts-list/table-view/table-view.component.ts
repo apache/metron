@@ -250,7 +250,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   deleteOneAlertFromMetaAlert($event, alert: Alert, metaAlertIndex: number) {
-    const confirmedSubscription = this.dialogService.confirm('Do you wish to remove the alert from the meta alert?').subscribe(r => {
+    const confirmedSubscription = this.dialogService.launchDialog('Do you wish to remove the alert from the meta alert?').subscribe(r => {
       if (r === ConfirmationType.Confirmed) {
         this.doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex);
       }
@@ -260,7 +260,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   deleteMetaAlert($event, alert: Alert) {
-    const confirmedSubscription = this.dialogService.confirm('Do you wish to remove all the alerts from meta alert?').subscribe(r => {
+    const confirmedSubscription = this.dialogService.launchDialog('Do you wish to remove all the alerts from meta alert?').subscribe(r => {
       if (r === ConfirmationType.Confirmed) {
         this.doDeleteMetaAlert(alert);
       }

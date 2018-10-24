@@ -49,11 +49,11 @@ describe('DialogService', () => {
         dialogType: DialogType.Confirmation
       };
 
-      dialogService.confirm(testMessage);
+      dialogService.launchDialog(testMessage);
       expect(messageSpy).toHaveBeenCalledWith(messageEmit);
 
       messageEmit.dialogType = DialogType.Error;
-      dialogService.confirm(testMessage, DialogType.Error);
+      dialogService.launchDialog(testMessage, DialogType.Error);
     });
 
   });
