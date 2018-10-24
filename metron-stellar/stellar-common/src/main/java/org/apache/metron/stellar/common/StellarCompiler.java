@@ -364,14 +364,13 @@ public class StellarCompiler extends StellarBaseListener {
     exitCommonAssign(ctx.getStart().getText());
   }
 
-  private void exitCommonAssign(String varText) {
+  private void exitCommonAssign(String varName) {
     final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
 
       // do not check for the existence of the variable, if the
       // resolver supports updates and creation, it will create it
 
-      String varName = varText;
       Token<?> token = popDeque(tokenDeque);
       Object value = token.getValue();
       state.variableResolver.update(varName, value);
@@ -380,7 +379,7 @@ public class StellarCompiler extends StellarBaseListener {
       // do
       tokenDeque.push(new Token<>(value, Object.class, context));
     }, DeferredFunction.class, context));
-    expression.variablesUsed.add(varText);
+    expression.variablesUsed.add(varName);
   }
 
   @SuppressWarnings("unchecked")
