@@ -18,17 +18,18 @@
 package org.apache.metron.elasticsearch.integration;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.elasticsearch.dao.ElasticsearchColumnMetadataDao;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
+import org.apache.metron.elasticsearch.dao.ElasticsearchRequestSubmitter;
+import org.apache.metron.elasticsearch.dao.ElasticsearchRetrieveLatestDao;
+import org.apache.metron.elasticsearch.dao.ElasticsearchSearchDao;
+import org.apache.metron.elasticsearch.dao.ElasticsearchUpdateDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
+import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
@@ -38,12 +39,10 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.utils.TestUtils;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.action.support.WriteRequest;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -51,9 +50,26 @@ import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
+
+import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static String indexDir = "target/elasticsearch_search";
   private static String dateFormat = "yyyy.MM.dd.HH";
   private static String broTemplatePath = "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/bro_index.template";
@@ -70,21 +86,26 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     loadTestData();
   }
 
-  protected static IndexDao createDao() {
+  protected static Map<String, Object> createGlobalConfig() {
+    return new HashMap<String, Object>() {{
+      put("es.clustername", "metron");
+      put("es.port", "9200");
+      put("es.ip", "localhost");
+      put("es.date.format", dateFormat);
+    }};
+  }
+
+  protected static AccessConfig createAccessConfig() {
     AccessConfig config = new AccessConfig();
     config.setMaxSearchResults(100);
     config.setMaxSearchGroups(100);
-    config.setGlobalConfigSupplier( () ->
-            new HashMap<String, Object>() {{
-              put("es.clustername", "metron");
-              put("es.port", "9200");
-              put("es.ip", "localhost");
-              put("es.date.format", dateFormat);
-            }}
-    );
+    config.setGlobalConfigSupplier(() -> createGlobalConfig());
+    return config;
+  }
 
+  protected static IndexDao createDao() {
     IndexDao dao = new ElasticsearchDao();
-    dao.init(config);
+    dao.init(createAccessConfig());
     return dao;
   }
 
@@ -97,46 +118,79 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     return es;
   }
 
-  protected static void loadTestData() throws ParseException, IOException {
+  protected static void loadTestData() throws Exception {
     ElasticSearchComponent es = (ElasticSearchComponent) indexComponent;
 
+    // define the bro index template
+    String broIndex = "bro_index_2017.01.01.01";
     JSONObject broTemplate = JSONUtils.INSTANCE.load(new File(broTemplatePath), JSONObject.class);
     addTestFieldMappings(broTemplate, "bro_doc");
-    es.getClient().admin().indices().prepareCreate("bro_index_2017.01.01.01")
-        .addMapping("bro_doc", JSONUtils.INSTANCE.toJSON(broTemplate.get("mappings"), false)).get();
+    es.getClient().admin().indices().prepareCreate(broIndex)
+            .addMapping("bro_doc", JSONUtils.INSTANCE.toJSON(broTemplate.get("mappings"), false)).get();
+
+    // define the snort index template
+    String snortIndex = "snort_index_2017.01.01.02";
     JSONObject snortTemplate = JSONUtils.INSTANCE.load(new File(snortTemplatePath), JSONObject.class);
     addTestFieldMappings(snortTemplate, "snort_doc");
-    es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
-        .addMapping("snort_doc", JSONUtils.INSTANCE.toJSON(snortTemplate.get("mappings"), false)).get();
+    es.getClient().admin().indices().prepareCreate(snortIndex)
+            .addMapping("snort_doc", JSONUtils.INSTANCE.toJSON(snortTemplate.get("mappings"), false)).get();
 
-    BulkRequestBuilder bulkRequest = es.getClient().prepareBulk()
-        .setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
-    JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
-    for (Object o : broArray) {
-      JSONObject jsonObject = (JSONObject) o;
-      IndexRequestBuilder indexRequestBuilder = es.getClient()
-          .prepareIndex("bro_index_2017.01.01.01", "bro_doc");
-      indexRequestBuilder = indexRequestBuilder.setId((String) jsonObject.get("guid"));
-      indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
-      indexRequestBuilder = indexRequestBuilder
-          .setTimestamp(jsonObject.get("timestamp").toString());
-      bulkRequest.add(indexRequestBuilder);
+    // setup the classes required to write the test data
+    AccessConfig accessConfig = createAccessConfig();
+    ElasticsearchClient client = ElasticsearchUtils.getClient(createGlobalConfig());
+    ElasticsearchRetrieveLatestDao retrieveLatestDao = new ElasticsearchRetrieveLatestDao(client);
+    ElasticsearchColumnMetadataDao columnMetadataDao = new ElasticsearchColumnMetadataDao(client);
+    ElasticsearchRequestSubmitter requestSubmitter = new ElasticsearchRequestSubmitter(client);
+    ElasticsearchUpdateDao updateDao = new ElasticsearchUpdateDao(client, accessConfig, retrieveLatestDao);
+    ElasticsearchSearchDao searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao, requestSubmitter);
+
+    // write the test documents for Bro
+    List<String> broDocuments = new ArrayList<>();
+    for (Object broObject: (JSONArray) new JSONParser().parse(broData)) {
+      broDocuments.add(((JSONObject) broObject).toJSONString());
     }
-    JSONArray snortArray = (JSONArray) new JSONParser().parse(snortData);
-    for (Object o : snortArray) {
-      JSONObject jsonObject = (JSONObject) o;
-      IndexRequestBuilder indexRequestBuilder = es.getClient()
-          .prepareIndex("snort_index_2017.01.01.02", "snort_doc");
-      indexRequestBuilder = indexRequestBuilder.setId((String) jsonObject.get("guid"));
-      indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
-      indexRequestBuilder = indexRequestBuilder
-          .setTimestamp(jsonObject.get("timestamp").toString());
-      bulkRequest.add(indexRequestBuilder);
+    es.add(updateDao, broIndex, "bro", broDocuments);
+
+    // write the test documents for Snort
+    List<String> snortDocuments = new ArrayList<>();
+    for (Object snortObject: (JSONArray) new JSONParser().parse(snortData)) {
+      snortDocuments.add(((JSONObject) snortObject).toJSONString());
     }
-    BulkResponse bulkResponse = bulkRequest.execute().actionGet();
-    if (bulkResponse.hasFailures()) {
-      throw new RuntimeException("Failed to index test data");
+    es.add(updateDao, snortIndex, "snort", snortDocuments);
+
+    // wait until the test documents are visible
+    assertEventually(() -> Assert.assertEquals(10, findAll(searchDao).getTotal()));
+  }
+
+  /**
+   * Finds all documents that are indexed.
+   *
+   * @param searchDao The {@link ElasticsearchSearchDao} that is used to search for documents.
+   * @return The search response.
+   */
+  private static SearchResponse findAll(ElasticsearchSearchDao searchDao) {
+    try {
+      SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
+      return searchDao.search(request);
+
+    } catch(IOException | InvalidSearchException e) {
+      throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Create an indexable Document from a JSON message.
+   *
+   * @param message The JSON message that needs indexed.
+   * @param docType The document type to write.
+   * @return The {@link Document} that was written.
+   * @throws IOException
+   */
+  private static Document createDocument(JSONObject message, String docType) throws IOException {
+    Long timestamp = ConversionUtils.convert(message.get("timestamp"), Long.class);
+    String source = message.toJSONString();
+    String guid = (String) message.get("guid");
+    return new Document(source, guid, docType, timestamp);
   }
 
   /**
@@ -167,8 +221,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     SearchRequest request = JSONUtils.INSTANCE.load(badFacetQuery, SearchRequest.class);
     dao.search(request);
   }
-
-
 
   @Override
   public void returns_column_metadata_for_specified_indices() throws Exception {

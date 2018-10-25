@@ -55,6 +55,7 @@ import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -1090,7 +1091,7 @@ public abstract class MetaAlertIntegrationTest {
       throws IOException, InterruptedException;
 
   protected abstract void addRecords(List<Map<String, Object>> inputData, String index,
-      String docType) throws IOException;
+      String docType) throws IOException, ParseException;
 
   protected abstract long getMatchingMetaAlertCount(String fieldName, String fieldValue)
       throws IOException, InterruptedException;

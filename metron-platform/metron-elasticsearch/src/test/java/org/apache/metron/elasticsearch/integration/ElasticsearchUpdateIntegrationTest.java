@@ -117,7 +117,7 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   @Override
   protected void addTestData(String indexName, String sensorType,
       List<Map<String, Object>> docs) throws Exception {
-    es.add(index, SENSOR_NAME
+    es.add(getDao(), index, SENSOR_NAME
         , Iterables.transform(docs,
             m -> {
               try {
