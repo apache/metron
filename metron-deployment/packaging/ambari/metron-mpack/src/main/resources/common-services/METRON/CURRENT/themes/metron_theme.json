@@ -921,6 +921,10 @@
           "subsection-name": "subsection-security-ldap"
         },
         {
+          "config": "metron-security-env/metron.ldap.group.roleattribute",
+          "subsection-name": "subsection-security-ldap"
+        },
+        {
           "config": "metron-security-env/metron.ldap.ssl.truststore",
           "subsection-name": "subsection-security-ldap"
         },
