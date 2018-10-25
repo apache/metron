@@ -51,7 +51,7 @@ describe('HdfsService', () => {
           },
           error => console.log(error)
         );
-        const req = mockBackend.expectOne('/api/v1/hdfs/list');
+        const req = mockBackend.expectOne('/api/v1/hdfs/list?path=/path');
         expect(req.request.method).toBe('GET');
         req.flush(fileList);
       });
@@ -63,7 +63,7 @@ describe('HdfsService', () => {
           },
           error => console.log(error)
         );
-        const req = mockBackend.expectOne('/api/v1/hdfs');
+        const req = mockBackend.expectOne('/api/v1/hdfs?path=/path');
         expect(req.request.method).toBe('GET');
         req.flush(contents);
       });
@@ -75,7 +75,7 @@ describe('HdfsService', () => {
           },
           error => console.log(error)
         );
-        const req = mockBackend.expectOne('/api/v1/hdfs');
+        const req = mockBackend.expectOne('/api/v1/hdfs?path=/path');
         expect(req.request.method).toBe('POST');
         req.flush({ status: 200 });
       });
@@ -87,7 +87,7 @@ describe('HdfsService', () => {
           },
           error => console.log(error)
         );
-        const req = mockBackend.expectOne('/api/v1/hdfs');
+        const req = mockBackend.expectOne('/api/v1/hdfs?path=/path');
         expect(req.request.method).toBe('DELETE');
         req.flush({ status: 200 });
       });

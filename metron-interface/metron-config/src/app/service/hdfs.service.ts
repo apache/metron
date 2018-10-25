@@ -33,8 +33,7 @@ export class HdfsService {
   ) {}
 
   public list(path: string): Observable<string[]> {
-    let options: HttpParams = new HttpParams();
-    options.set('path', path);
+    const options: HttpParams = new HttpParams().set('path', path);
     return this.http.get(this.url + '/list', { params: options }).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
@@ -42,8 +41,7 @@ export class HdfsService {
   }
 
   public read(path: string): Observable<Object> {
-    let options: HttpParams = new HttpParams();
-    options.set('path', path);
+    const options: HttpParams = new HttpParams().set('path', path);
     return this.http.get(this.url, { params: options }).pipe(
       map(HttpUtil.extractString),
       catchError(HttpUtil.handleError)
@@ -51,16 +49,14 @@ export class HdfsService {
   }
 
   public post(path: string, contents: string): any {
-    let options: HttpParams = new HttpParams();
-    options.set('path', path);
+    const options: HttpParams = new HttpParams().set('path', path);
     return this.http
       .post(this.url, contents, { params: options })
       .pipe(catchError(HttpUtil.handleError));
   }
 
   public deleteFile(path: string): any {
-    let options: HttpParams = new HttpParams();
-    options.set('path', path);
+    const options: HttpParams = new HttpParams().set('path', path);
     return this.http
       .delete(this.url, { params: options })
       .pipe(catchError(HttpUtil.handleError));

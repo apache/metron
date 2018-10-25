@@ -85,7 +85,7 @@ describe('GrokValidationService', () => {
           },
           error => console.log(error)
         );
-        const req = mockBackend.expectOne('/api/v1/grok/get/statement');
+        const req = mockBackend.expectOne('/api/v1/grok/get/statement?path=/path');
         expect(req.request.method).toBe('GET');
         req.flush(grokStatement);
       }
