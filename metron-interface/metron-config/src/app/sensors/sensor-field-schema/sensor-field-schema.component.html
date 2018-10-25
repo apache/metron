@@ -16,7 +16,7 @@
   <div class="metron-slider-pane-edit fill load-left-to-right dialog2x">
 
   <div class="form-title">Schema</div>
-  <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancel()"></i>
+  <i class="fa fa-times float-right close-button" aria-hidden="true" (click)="onCancel()"></i>
 
 
   <form role="form" class="fieldschema-form">
@@ -42,10 +42,10 @@
                 <div class="col-md-3 field-schema-cell-title"> {{ fieldSchemaRow.outputFieldName }} </div>
                 <div class="col-md-7 field-schema-cell-value" [innerHtml]="getChanges(fieldSchemaRow)"> </div>
                 <div class="col-md-2 field-schema-cell icon-blue" style="font-size: 16px">
-                  <i *ngIf="!fieldSchemaRow.isParserGenerated" class="fa fa-trash pull-right" aria-hidden="true" (click)="onDelete(fieldSchemaRow)"></i>
-                  <i class="fa fa-pencil pull-right" aria-hidden="true" (click)="fieldSchemaRow.showConfig=true"></i>
-                  <i *ngIf="!fieldSchemaRow.isRemoved" class="fa fa-ban pull-right" aria-hidden="true" (click)="onRemove(fieldSchemaRow)"></i>
-                  <i *ngIf="fieldSchemaRow.isRemoved" class="fa fa-check-circle-o pull-right" style="color:lightgreen" aria-hidden="true" (click)="onEnable(fieldSchemaRow)"></i>
+                  <i *ngIf="!fieldSchemaRow.isParserGenerated" class="fa fa-trash float-right" aria-hidden="true" (click)="onDelete(fieldSchemaRow)"></i>
+                  <i class="fa fa-pencil float-right" aria-hidden="true" (click)="fieldSchemaRow.showConfig=true"></i>
+                  <i *ngIf="!fieldSchemaRow.isRemoved" class="fa fa-ban float-right" aria-hidden="true" (click)="onRemove(fieldSchemaRow)"></i>
+                  <i *ngIf="fieldSchemaRow.isRemoved" class="fa fa-check-circle-o float-right" style="color:lightgreen" aria-hidden="true" (click)="onEnable(fieldSchemaRow)"></i>
 
                 </div>
               </div>
@@ -57,7 +57,7 @@
                 <div class="row py-1">
                   <div class="col-md-10 enrichments-edit-title"> {{ fieldSchemaRow.outputFieldName }} </div>
                   <div class="col-md-2  enrichment-cell">
-                    <i class="fa fa-times-circle pull-right small-close-button" aria-hidden="true" (click)="onCancelChange(fieldSchemaRow)"></i>
+                    <i class="fa fa-times-circle float-right small-close-button" aria-hidden="true" (click)="onCancelChange(fieldSchemaRow)"></i>
                   </div>
                 </div>
 
@@ -96,7 +96,7 @@
                 </div>
 
                 <div class="form-group  p-1 col-md-12">
-                  <button type="submit" class="btn form-enable-disable-button pull-left" (click)="onSaveChange(fieldSchemaRow)">SAVE</button>
+                  <button type="submit" class="btn form-enable-disable-button float-left" (click)="onSaveChange(fieldSchemaRow)">SAVE</button>
                 </div>
 
               </div>

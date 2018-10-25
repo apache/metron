@@ -19,7 +19,7 @@
       <div class="metron-readonly-pane">
       <div class="row">
         <div class="col-xs-12 form-title">{{selectedSensorName}}
-          <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i>
+          <i class="fa fa-times float-right close-button" aria-hidden="true" (click)="goBack()"></i>
         </div>
       </div>
 
@@ -39,22 +39,22 @@
 
           <div *ngSwitchDefault class="row">
             <div *ngIf="item.label!=''" class="col-xs-6 form-label" [ngClass]="{'form-value font-weight-bold': item.boldTitle}">{{ item.label }}</div>
-            <div *ngIf="item.model == 'sensorParserConfig'" class="col-xs-6  px-0 pull-left form-value">{{ sensorParserConfig[item.value] ? sensorParserConfig[item.value] : "-" }}</div>
-            <div *ngIf="item.model == 'sensorParserConfigHistory'" class="col-xs-6  px-0 pull-left form-value">{{ sensorParserConfigHistory[item.value] ? sensorParserConfigHistory[item.value] : "-" }}</div>
-            <div *ngIf="item.model == 'kafkaTopic'" class="col-xs-6  px-0 pull-left form-value">{{ kafkaTopic[item.value] ? kafkaTopic[item.value] : "-" }}</div>
-            <div *ngIf="item.model == 'topologyStatus'" class="col-xs-6  px-0  pull-left form-value">{{ getTopologyStatus(item.value) }}</div>
+            <div *ngIf="item.model == 'sensorParserConfig'" class="col-xs-6  px-0 float-left form-value">{{ sensorParserConfig[item.value] ? sensorParserConfig[item.value] : "-" }}</div>
+            <div *ngIf="item.model == 'sensorParserConfigHistory'" class="col-xs-6  px-0 float-left form-value">{{ sensorParserConfigHistory[item.value] ? sensorParserConfigHistory[item.value] : "-" }}</div>
+            <div *ngIf="item.model == 'kafkaTopic'" class="col-xs-6  px-0 float-left form-value">{{ kafkaTopic[item.value] ? kafkaTopic[item.value] : "-" }}</div>
+            <div *ngIf="item.model == 'topologyStatus'" class="col-xs-6  px-0  float-left form-value">{{ getTopologyStatus(item.value) }}</div>
 
             <div *ngIf="item.model == 'grokStatement' && sensorParserConfigHistory.config.parserClassName === 'org.apache.metron.parsers.GrokParser'" style="border: none">
               <div class="col-xs-12 form-sub-title">Grok Statement</div>
-              <div id="collapseGrok" class="col-xs-12  pull-left form-value panel-collapse collapse"></div>
-              <div class="col-xs-12  pull-left form-value grok" [innerHtml]="grokStatement"></div>
+              <div id="collapseGrok" class="col-xs-12  float-left form-value panel-collapse collapse"></div>
+              <div class="col-xs-12  float-left form-value grok" [innerHtml]="grokStatement"></div>
               <a *ngIf="grokStatement.length>0" class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseGrok" aria-expanded="false" aria-controls="collapseGrok"  #grokLink (click)="grokLink.text=(grokLink.text==='show more')?'show less':'show more'">show more</a>
               <div class="px-1"> <div class="col-xs-12 form-seperator"></div> </div>
             </div>
 
             <div *ngIf="item.model == 'transforms'">
 
-              <div id="collapseTransform" class="col-xs-12  pull-left form-value panel-collapse collapse">
+              <div id="collapseTransform" class="col-xs-12  float-left form-value panel-collapse collapse">
                 <div class="form-sub-sub-title">Transforms</div>
                 <div>
                   <div *ngFor="let results of transformsConfigKeys" >
@@ -72,7 +72,7 @@
             </div>
             <div *ngIf="item.model == 'threatTriageRules'" class="threat-triage-rules">
               <div class="col-xs-6 form-label">AGGREGATOR</div><div class="col-xs-6 form-value">{{sensorEnrichmentConfig.threatIntel.triageConfig.aggregator}}</div>
-              <div id="collapseThreatTriage" class="col-xs-12  pull-left form-value panel-collapse collapse">
+              <div id="collapseThreatTriage" class="col-xs-12  float-left form-value panel-collapse collapse">
                 <div>
                   <div class="col-xs-6 form-sub-sub-title">NAME</div><div class="col-xs-6 form-sub-sub-title">SCORE</div>
                   <div *ngFor="let riskLevelRule of rules" >

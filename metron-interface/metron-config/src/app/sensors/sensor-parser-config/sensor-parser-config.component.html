@@ -42,7 +42,7 @@
     <div class="metron-slider-pane-edit fill load-right-to-left dialog1x" style="overflow: auto" >
         <div style="height:100%">
             <div class="form-title">{{sensorName}} </div>
-            <i class="fa fa-times pull-right main close-button" aria-hidden="true" (click)="goBack()"></i>
+            <i class="fa fa-times float-right main close-button" aria-hidden="true" (click)="goBack()"></i>
 
             <form role="form" [formGroup]="sensorConfigForm">
                 <div class="form-group">
@@ -135,7 +135,7 @@
                     <div class="form-group">
                         <div class="form-seperator-edit"></div>
                         <div class="advanced-title">Advanced</div>
-                        <i class="fa fa-times pull-right small-close-button" aria-hidden="true" (click)="onAdvancedConfigFormClose()"></i>
+                        <i class="fa fa-times float-right small-close-button" aria-hidden="true" (click)="onAdvancedConfigFormClose()"></i>
                     </div>
                     <div class="form-group" [ngClass]="{'panel-selected': showRawJson }">
                         <label attr.for="stellar">RAW JSON</label>
