@@ -179,21 +179,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   }
 
   /**
-   * Create an indexable Document from a JSON message.
-   *
-   * @param message The JSON message that needs indexed.
-   * @param docType The document type to write.
-   * @return The {@link Document} that was written.
-   * @throws IOException
-   */
-  private static Document createDocument(JSONObject message, String docType) throws IOException {
-    Long timestamp = ConversionUtils.convert(message.get("timestamp"), Long.class);
-    String source = message.toJSONString();
-    String guid = (String) message.get("guid");
-    return new Document(source, guid, docType, timestamp);
-  }
-
-  /**
    * Add test fields to a template with defined types in case they are not defined in the sensor template shipped with Metron.
    * This is useful for testing certain cases, for example faceting on fields of various types.
    * @param template
