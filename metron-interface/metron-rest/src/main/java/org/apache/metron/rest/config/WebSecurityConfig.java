@@ -133,18 +133,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .passwordCompare()
                 .passwordEncoder(new LdapShaPasswordEncoder())
                 .passwordAttribute(passwordAttribute);
-        } else if (!activeProfiles.contains(MetronRestConstants.LDAP_PROFILE) &&
-            activeProfiles.contains(MetronRestConstants.DEV_PROFILE) ||
+        } else if (activeProfiles.contains(MetronRestConstants.DEV_PROFILE) ||
             activeProfiles.contains(MetronRestConstants.TEST_PROFILE)) {
             auth.jdbcAuthentication()
-                .passwordEncoder(NoOpPasswordEncoder.getInstance())
                 .dataSource(dataSource)
                 .withUser("user").password("password").roles(SECURITY_ROLE_USER).and()
                 .withUser("user1").password("password").roles(SECURITY_ROLE_USER).and()
                 .withUser("user2").password("password").roles(SECURITY_ROLE_USER).and()
                 .withUser("admin").password("password").roles(SECURITY_ROLE_USER, SECURITY_ROLE_ADMIN);
         } else {
-            auth.jdbcAuthentication().passwordEncoder(NoOpPasswordEncoder.getInstance()).dataSource(dataSource);
+            auth.jdbcAuthentication().dataSource(dataSource);
         }
     }
 }

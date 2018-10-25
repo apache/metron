@@ -145,8 +145,8 @@ if [[ ${METRON_RA_INDEXING_WRITER} == "Solr" ]]; then
 fi
 
 if [ -n "${METRON_LDAP_SSL_TRUSTSTORE}" ]; then
-  METRON_JVMFLAGS+=" -Djavax.net.ssl.trustStore=\"${METRON_LDAP_SSL_TRUSTSTORE}\""
-  METRON_JVMFLAGS+=" -Djavax.net.ssl.trustStorePassword=\"${METRON_LDAP_SSL_TRUSTSTORE_PASSWORD}\""
+  METRON_JVMFLAGS+=" -Djavax.net.ssl.trustStore=${METRON_LDAP_SSL_TRUSTSTORE}"
+  METRON_JVMFLAGS+=" -Djavax.net.ssl.trustStorePassword=${METRON_LDAP_SSL_TRUSTSTORE_PASSWORD}"
 fi
 
 echo "Starting application"

@@ -55,13 +55,14 @@ pcap:
   yarn.queue: ${PCAP_YARN_QUEUE}
   finalizer.threadpool.size: ${PCAP_FINALIZER_THREADPOOL_SIZE}
 
-datasource:
-  driverClassName: ${METRON_JDBC_DRIVER}
-  url: ${METRON_JDBC_URL}
-  username: ${METRON_JDBC_USERNAME}
-  password: ${METRON_JDBC_PASSWORD}
-  platform: ${METRON_JDBC_PLATFORM}
-  continue-on-error: true
+spring:
+  datasource:
+    driverClassName: ${METRON_JDBC_DRIVER}
+    url: ${METRON_JDBC_URL}
+    username: ${METRON_JDBC_USERNAME}
+    password: ${METRON_JDBC_PASSWORD}
+    platform: ${METRON_JDBC_PLATFORM}
+    continue-on-error: true
 
 ldap:
   provider:
