@@ -188,8 +188,7 @@ public class SolrRetrieveLatestIntegrationTest {
     return requestOne;
   }
 
-  protected static void addData(String collection, String sensorName)
-      throws IOException, SolrServerException {
+  protected static void addData(String collection, String sensorName) throws IOException {
     List<Map<String, Object>> inputData = new ArrayList<>();
     for (int i = 0; i < 3; ++i) {
       final String name = buildGuid(sensorName, i);
@@ -198,7 +197,7 @@ public class SolrRetrieveLatestIntegrationTest {
       inputMap.put(Constants.GUID, name);
       inputData.add(inputMap);
     }
-    solrComponent.addDocs(collection, inputData);
+    solrComponent.addDocs(dao, collection, inputData);
   }
 
   protected static String buildGuid(String sensorName, int i) {

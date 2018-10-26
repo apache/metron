@@ -18,26 +18,8 @@
 
 package org.apache.metron.indexing.dao.metaalert;
 
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.STATUS_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
@@ -58,6 +40,25 @@ import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.STATUS_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
 
 public abstract class MetaAlertIntegrationTest {
 
@@ -148,50 +149,68 @@ public abstract class MetaAlertIntegrationTest {
 
   @Test
   public void shouldGetAllMetaAlertsForAlert() throws Exception {
-    // Load alerts
-    List<Map<String, Object>> alerts = buildAlerts(3);
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+    // create 3 'standard' alerts
+    List<Map<String, Object>> alerts = new ArrayList<>();
+    alerts.add(buildAlert("message_0", SENSOR_NAME));
+    alerts.add(buildAlert("message_1", SENSOR_NAME));
+    alerts.add(buildAlert("message_2", SENSOR_NAME));
+    addAlerts(alerts, getTestIndexFullName(), SENSOR_NAME);
 
-    // Load metaAlerts
-    List<Map<String, Object>> metaAlerts = buildMetaAlerts(12, MetaAlertStatus.ACTIVE,
-        Optional.of(Collections.singletonList(alerts.get(0))));
-    metaAlerts.add(buildMetaAlert("meta_active_12", MetaAlertStatus.ACTIVE,
-        Optional.of(Arrays.asList(alerts.get(0), alerts.get(2)))));
-    metaAlerts.add(buildMetaAlert("meta_inactive", MetaAlertStatus.INACTIVE,
-        Optional.of(Arrays.asList(alerts.get(0), alerts.get(2)))));
-    // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(metaAlerts, getMetaAlertIndex(), METAALERT_TYPE);
+    // create 5 active meta-alerts; each linked to "message_0"
+    Optional<List<Map<String, Object>>> associatedAlerts = Optional.of(Collections.singletonList(alerts.get(0)));
+    Map<String, Object> meta = addMetaAlert("meta_0", MetaAlertStatus.ACTIVE, associatedAlerts);
+    addMetaAlert("meta_1", MetaAlertStatus.ACTIVE, associatedAlerts);
+    addMetaAlert("meta_2", MetaAlertStatus.ACTIVE, associatedAlerts);
+    addMetaAlert("meta_3", MetaAlertStatus.ACTIVE, associatedAlerts);
+    addMetaAlert("meta_4", MetaAlertStatus.ACTIVE, associatedAlerts);
+
+    // create 1 meta-alert linked to "message_0" and "message_2"
+    addMetaAlert("meta_5", MetaAlertStatus.ACTIVE,
+        Optional.of(Arrays.asList(alerts.get(0), alerts.get(2))));
+
+    // create 1 "inactive" meta-alert that includes "message_0" and "message_2"
+    addMetaAlert("meta_6_inactive", MetaAlertStatus.INACTIVE,
+            Optional.of(Arrays.asList(alerts.get(0), alerts.get(2))));
 
     // Verify load was successful
-    List<GetRequest> createdDocs = metaAlerts.stream().map(metaAlert ->
-        new GetRequest((String) metaAlert.get(Constants.GUID), METAALERT_TYPE))
-        .collect(Collectors.toList());
-    createdDocs.addAll(alerts.stream().map(alert ->
-        new GetRequest((String) alert.get(Constants.GUID), SENSOR_NAME))
-        .collect(Collectors.toList()));
-    findCreatedDocs(createdDocs);
+    List<GetRequest> getRequests = new ArrayList<>();
+    getRequests.add(new GetRequest("message_0", SENSOR_NAME));
+    getRequests.add(new GetRequest("message_1", SENSOR_NAME));
+    getRequests.add(new GetRequest("message_2", SENSOR_NAME));
+    getRequests.add(new GetRequest("meta_0", METAALERT_TYPE));
+    getRequests.add(new GetRequest("meta_1", METAALERT_TYPE));
+    getRequests.add(new GetRequest("meta_2", METAALERT_TYPE));
+    getRequests.add(new GetRequest("meta_3", METAALERT_TYPE));
+    getRequests.add(new GetRequest("meta_4", METAALERT_TYPE));
+    getRequests.add(new GetRequest("meta_5", METAALERT_TYPE));
+    getRequests.add(new GetRequest("meta_6_inactive", METAALERT_TYPE));
+    findCreatedDocs(getRequests);
 
     {
-      // Verify searches successfully return more than 10 results
+      // verify there are 13 "active" alerts linked to "alert_0"
       SearchResponse searchResponse0 = metaDao.getAllMetaAlertsForAlert("message_0");
       List<SearchResult> searchResults0 = searchResponse0.getResults();
       Assert.assertEquals(13, searchResults0.size());
+
+      // verify that the search results contained the first meta-alert
       Set<Map<String, Object>> resultSet = new HashSet<>();
       Iterables.addAll(resultSet, Iterables.transform(searchResults0, r -> r.getSource()));
-      StringBuffer reason = new StringBuffer("Unable to find " + metaAlerts.get(0) + "\n");
+      StringBuffer reason = new StringBuffer("Unable to find message0\n");
       reason.append(Joiner.on("\n").join(resultSet));
-      Assert.assertTrue(reason.toString(), resultSet.contains(metaAlerts.get(0)));
-
-      // Verify no meta alerts are returned because message_1 was not added to any
+      Assert.assertTrue(reason.toString(), resultSet.contains(meta));
+    }
+    {
+      // Verify that there are no meta-alerts linked to "message_1"
       SearchResponse searchResponse1 = metaDao.getAllMetaAlertsForAlert("message_1");
       List<SearchResult> searchResults1 = searchResponse1.getResults();
       Assert.assertEquals(0, searchResults1.size());
-
-      // Verify only the meta alert message_2 was added to is returned
+    }
+    {
+      // Verify that there is only 1 "active" meta-alert linked to "message_2"
       SearchResponse searchResponse2 = metaDao.getAllMetaAlertsForAlert("message_2");
       List<SearchResult> searchResults2 = searchResponse2.getResults();
       Assert.assertEquals(1, searchResults2.size());
-      Assert.assertEquals(metaAlerts.get(12), searchResults2.get(0).getSource());
+      Assert.assertEquals("meta_5", searchResults2.get(0).getId());
     }
   }
 
@@ -200,13 +219,10 @@ public abstract class MetaAlertIntegrationTest {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(2);
     alerts.get(0).put(METAALERT_FIELD, "meta_active_0");
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+    addAlerts(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlerts
-    List<Map<String, Object>> metaAlerts = buildMetaAlerts(1, MetaAlertStatus.ACTIVE,
-        Optional.of(Collections.singletonList(alerts.get(0))));
-    // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(metaAlerts, getMetaAlertIndex(), METAALERT_TYPE);
+    addMetaAlert("meta_1", MetaAlertStatus.ACTIVE, Optional.of(Collections.singletonList(alerts.get(0))));
 
     // Verify load was successful
     List<GetRequest> createdDocs = metaAlerts.stream().map(metaAlert ->
@@ -263,11 +279,11 @@ public abstract class MetaAlertIntegrationTest {
   public void shouldCreateMetaAlert() throws Exception {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(3);
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+    addAlerts(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
-        new GetRequest("message_0", SENSOR_NAME),
+        new GetRequest("alert_0", SENSOR_NAME),
         new GetRequest("message_1", SENSOR_NAME),
         new GetRequest("message_2", SENSOR_NAME)));
 
@@ -342,12 +358,12 @@ public abstract class MetaAlertIntegrationTest {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(4);
     alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+    addAlerts(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlert
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
         Optional.of(Collections.singletonList(alerts.get(0))));
-    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
+    addMetaAlerts(Collections.singletonList(metaAlert));
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -434,12 +450,12 @@ public abstract class MetaAlertIntegrationTest {
     alerts.get(1).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
     alerts.get(2).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
     alerts.get(3).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+    addAlerts(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlert
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
         Optional.of(Arrays.asList(alerts.get(0), alerts.get(1), alerts.get(2), alerts.get(3))));
-    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
+    addMetaAlerts(Collections.singletonList(metaAlert));
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -552,12 +568,12 @@ public abstract class MetaAlertIntegrationTest {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(2);
     alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+    addAlerts(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlert
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.INACTIVE,
         Optional.of(Collections.singletonList(alerts.get(0))));
-    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
+    addMetaAlerts(Collections.singletonList(metaAlert));
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -603,14 +619,12 @@ public abstract class MetaAlertIntegrationTest {
     for (Map<String, Object> alert : childAlerts) {
       alert.put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
     }
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+    addAlerts(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlerts
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
         Optional.of(childAlerts));
-    // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(),
-        METAALERT_TYPE);
+    addMetaAlerts(Collections.singletonList(metaAlert));
 
     List<GetRequest> requests = new ArrayList<>();
     for (int i = 0; i < numChildAlerts; ++i) {
@@ -706,10 +720,7 @@ public abstract class MetaAlertIntegrationTest {
     Map<String, Object> inactiveMetaAlert = buildMetaAlert("meta_inactive",
         MetaAlertStatus.INACTIVE,
         Optional.empty());
-
-    // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), getMetaAlertIndex(),
-        METAALERT_TYPE);
+    addMetaAlerts(Arrays.asList(activeMetaAlert, inactiveMetaAlert));
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -744,7 +755,7 @@ public abstract class MetaAlertIntegrationTest {
     alerts.get(0).put("score", 1);
     alerts.get(1).put("ip_src_addr", "192.168.1.1");
     alerts.get(1).put("score", 10);
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+    addAlerts(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Put the nested type into the test index, so that it'll match appropriately
     setupTypings();
@@ -789,7 +800,7 @@ public abstract class MetaAlertIntegrationTest {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(2);
     alerts.get(0).put(METAALERT_FIELD, Arrays.asList("meta_active", "meta_inactive"));
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+    addAlerts(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Load metaAlerts
     Map<String, Object> activeMetaAlert = buildMetaAlert("meta_active", MetaAlertStatus.ACTIVE,
@@ -797,9 +808,7 @@ public abstract class MetaAlertIntegrationTest {
     Map<String, Object> inactiveMetaAlert = buildMetaAlert("meta_inactive",
         MetaAlertStatus.INACTIVE,
         Optional.of(Collections.singletonList(alerts.get(0))));
-    // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), getMetaAlertIndex(),
-        METAALERT_TYPE);
+    addMetaAlerts(Arrays.asList(activeMetaAlert, inactiveMetaAlert));
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -889,7 +898,7 @@ public abstract class MetaAlertIntegrationTest {
     List<Map<String, Object>> alerts = buildAlerts(2);
     alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
     alerts.get(1).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+    addAlerts(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // Put the nested type into the test index, so that it'll match appropriately
     setupTypings();
@@ -898,7 +907,7 @@ public abstract class MetaAlertIntegrationTest {
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
         Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
+    addMetaAlerts(Collections.singletonList(metaAlert));
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -996,8 +1005,7 @@ public abstract class MetaAlertIntegrationTest {
     }
   }
 
-  protected boolean findCreatedDoc(String guid, String sensorType)
-      throws InterruptedException, IOException, OriginalNotFoundException {
+  protected boolean findCreatedDoc(String guid, String sensorType) throws Exception {
     for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
       Document doc = metaDao.getLatest(guid, sensorType);
       if (doc != null) {
@@ -1053,14 +1061,18 @@ public abstract class MetaAlertIntegrationTest {
     List<Map<String, Object>> inputData = new ArrayList<>();
     for (int i = 0; i < count; ++i) {
       final String guid = "message_" + i;
-      Map<String, Object> alerts = new HashMap<>();
-      alerts.put(Constants.GUID, guid);
-      alerts.put(getSourceTypeField(), SENSOR_NAME);
-      alerts.put(THREAT_FIELD_DEFAULT, (double) i);
-      alerts.put("timestamp", System.currentTimeMillis());
-      inputData.add(alerts);
+      inputData.add(buildAlert(guid, SENSOR_NAME));
     }
     return inputData;
+  }
+
+  protected Map<String, Object> buildAlert(String guid, String sensorName) {
+    Map<String, Object> alert = new HashMap<>();
+    alert.put(Constants.GUID, guid);
+    alert.put(getSourceTypeField(), sensorName);
+    alert.put(THREAT_FIELD_DEFAULT, (double) i);
+    alert.put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
+    return alert;
   }
 
   protected List<Map<String, Object>> buildMetaAlerts(int count, MetaAlertStatus status,
@@ -1073,8 +1085,7 @@ public abstract class MetaAlertIntegrationTest {
     return inputData;
   }
 
-  protected Map<String, Object> buildMetaAlert(String guid, MetaAlertStatus status,
-      Optional<List<Map<String, Object>>> alerts) {
+  protected Map<String, Object> buildMetaAlert(String guid, MetaAlertStatus status, Optional<List<Map<String, Object>>> alerts) {
     Map<String, Object> metaAlert = new HashMap<>();
     metaAlert.put(Constants.GUID, guid);
     metaAlert.put(getSourceTypeField(), METAALERT_TYPE);
@@ -1090,8 +1101,28 @@ public abstract class MetaAlertIntegrationTest {
   protected abstract long getMatchingAlertCount(String fieldName, Object fieldValue)
       throws IOException, InterruptedException;
 
-  protected abstract void addRecords(List<Map<String, Object>> inputData, String index,
-      String docType) throws IOException, ParseException;
+  /**
+   * Add an alert.
+   *
+   * @param alerts The alerts to add.
+   * @param index The index to add the alert to.
+   * @param docType The document type of the alert.
+   * @throws IOException
+   * @throws ParseException
+   */
+  protected abstract void addAlerts(List<Map<String, Object>> alerts, String index, String docType) throws Exception;
+
+  /**
+   * Create a meta-alert.
+   *
+   * @param guid The GUID of the meta-alert.
+   * @param status The status of the meta-alert.
+   * @param alerts The alerts to associate with the meta-alert.
+   * @throws IOException
+   * @throws ParseException
+   */
+  protected abstract Map<String, Object> addMetaAlert(String guid, MetaAlertStatus status,
+                                                      Optional<List<Map<String, Object>>> alerts) throws Exception;
 
   protected abstract long getMatchingMetaAlertCount(String fieldName, String fieldValue)
       throws IOException, InterruptedException;

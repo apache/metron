@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.common.Constants;
@@ -53,6 +54,7 @@ import org.apache.metron.solr.dao.SolrMetaAlertUpdateDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.zookeeper.KeeperException;
+import org.json.simple.parser.ParseException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -159,7 +161,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     alerts.get(2).put("ip_src_port", 8008);
     alerts.get(3).put("ip_src_addr", "192.168.1.4");
     alerts.get(3).put("ip_src_port", 8007);
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+    addAlerts(alerts, getTestIndexName(), SENSOR_NAME);
 
     // Put the nested type into the test index, so that it'll match appropriately
     setupTypings();
@@ -170,9 +172,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     Map<String, Object> inactiveMetaAlert = buildMetaAlert("meta_inactive",
         MetaAlertStatus.INACTIVE,
         Optional.of(Arrays.asList(alerts.get(2), alerts.get(3))));
-    // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), METAALERTS_COLLECTION,
-        METAALERT_TYPE);
+    addMetaAlerts(Arrays.asList(activeMetaAlert, inactiveMetaAlert));
 
     // Verify load was successful
     findCreatedDocs(Arrays.asList(
@@ -269,7 +269,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
     alerts.get(0).put("ip_src_addr", "192.168.1.1");
     alerts.get(0).put("ip_src_port", 8010);
-    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+    addAlerts(alerts, getTestIndexName(), SENSOR_NAME);
 
     // Put the nested type into the test index, so that it'll match appropriately
     setupTypings();
@@ -278,7 +278,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     Map<String, Object> activeMetaAlert = buildMetaAlert("meta_active", MetaAlertStatus.ACTIVE,
         Optional.of(Arrays.asList(alerts.get(0))));
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Collections.singletonList(activeMetaAlert), METAALERTS_COLLECTION, METAALERT_TYPE);
+    addMetaAlerts(Collections.singletonList(activeMetaAlert));
 
     // Verify load was successful
     findCreatedDocs(Collections.singletonList(new GetRequest("meta_active", METAALERT_TYPE)));
@@ -353,13 +353,28 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   }
 
   @Override
-  protected void addRecords(List<Map<String, Object>> inputData, String index, String docType)
-      throws IOException {
+  protected void addAlerts(List<Map<String, Object>> alerts, String index, String docType) throws Exception {
+
     // Ignore docType for Solr. It's unused.
-    try {
-      solr.addDocs(index, inputData);
-    } catch (SolrServerException e) {
-      throw new IOException("Unable to load Solr Docs", e);
+    solr.addAlerts(metaDao, index, alerts);
+
+    // ensure that the alerts were added; exception thrown if not found after a number of retries
+    for(Map<String, Object> alert: alerts) {
+      String guid = String.class.cast(alert.get(Constants.GUID));
+      findCreatedDoc(guid, docType);
+    }
+  }
+
+  @Override
+  protected void addMetaAlerts(List<Map<String, Object>> metaAlerts) throws Exception {
+    // Ignore docType for Solr. It's unused.
+    solr.addAlerts(metaDao, index, metaAlerts);
+    solr.addMetaAlert(metaDao, metaAlerts);
+
+    // ensure that the alerts were added; exception thrown if not found after a number of retries
+    for(Map<String, Object> alert: alerts) {
+      String guid = String.class.cast(alert.get(Constants.GUID));
+      findCreatedDoc(guid, docType);
     }
   }
 

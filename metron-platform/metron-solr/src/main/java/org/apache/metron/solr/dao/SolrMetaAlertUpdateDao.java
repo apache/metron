@@ -135,10 +135,10 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
    */
   @Override
   public Document update(Document update, Optional<String> collection) throws IOException {
-    if (MetaAlertConstants.METAALERT_TYPE.equals(update.getSensorType())) {
-      // We've been passed an update to the meta alert.
-      throw new UnsupportedOperationException("Meta alerts cannot be directly updated");
-    }
+//    if (MetaAlertConstants.METAALERT_TYPE.equals(update.getSensorType())) {
+//      // We've been passed an update to the meta alert.
+//      throw new UnsupportedOperationException("Meta alerts cannot be directly updated");
+//    }
     // Index can't be optional, or it won't be committed
 
     Map<Document, Optional<String>> updates = new HashMap<>();

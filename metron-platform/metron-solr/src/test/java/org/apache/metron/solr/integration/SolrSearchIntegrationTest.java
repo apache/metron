@@ -99,9 +99,9 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
   @SuppressWarnings("unchecked")
   protected static void loadTestData() throws ParseException, IOException, SolrServerException {
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
-    solrComponent.addDocs("bro", broArray);
+    solrComponent.addDocs(dao,"bro", broArray);
     JSONArray snortArray = (JSONArray) new JSONParser().parse(snortData);
-    solrComponent.addDocs("snort", snortArray);
+    solrComponent.addDocs(dao,"snort", snortArray);
   }
 
   @Override

@@ -27,8 +27,11 @@ import java.io.IOException;
 public interface MetaAlertSearchDao extends SearchDao {
 
   /**
-   * Given an alert GUID, retrieve all associated meta alerts.
-   * @param guid The alert GUID to be searched for
+   * Returns all active meta-alerts associated with an alert.
+   *
+   * <p>An alert can be associated with multiple meta-alerts.
+   *
+   * @param guid The GUID of the alert to search for.
    * @return All meta alerts with a child alert having the GUID
    * @throws InvalidSearchException If a problem occurs with the search
    */
