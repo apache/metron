@@ -128,7 +128,7 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   @Override
   protected void addTestData(String indexName, String sensorType,
       List<Map<String, Object>> docs) throws Exception {
-    solrComponent.addDocs(getDao(), indexName, docs);
+    solrComponent.addDocs(indexName, docs);
   }
 
   @Override

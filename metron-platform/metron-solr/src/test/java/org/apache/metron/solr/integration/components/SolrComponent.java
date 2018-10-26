@@ -19,23 +19,14 @@ package org.apache.metron.solr.integration.components;
 
 import com.google.common.base.Function;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertUpdateDao;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.solr.dao.SolrUtilities;
 import org.apache.metron.solr.writer.MetronSolrClient;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.JettyConfig;
@@ -55,9 +46,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.zookeeper.KeeperException;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 public class SolrComponent implements InMemoryComponent {
 
@@ -203,80 +191,37 @@ public class SolrComponent implements InMemoryComponent {
     return docs;
   }
 
-  public void addAlerts(UpdateDao updateDao, String collection, List<Map<String, Object>> messages) throws IOException {
-    // transform each input message to a Document that can be indexed by the UpdateDao
-    for(Map<String, Object> msg: messages) {
-      updateDao.update(createDocument(msg, collection), Optional.of(collection));
-    }
+  public void addDocs(String collection, List<Map<String, Object>> docs)
+      throws IOException, SolrServerException {
+    CloudSolrClient solr = miniSolrCloudCluster.getSolrClient();
+    solr.setDefaultCollection(collection);
+    Collection<SolrInputDocument> solrInputDocuments = docs.stream().map(doc -> {
+      SolrInputDocument solrInputDocument = new SolrInputDocument();
+      for (Entry<String, Object> entry : doc.entrySet()) {
+        // If the entry itself is a map, add it as a child document. Handle one level of nesting.
+        if (entry.getValue() instanceof List && !entry.getKey().equals(
+            MetaAlertConstants.METAALERT_FIELD)) {
+          for (Object entryItem : (List)entry.getValue()) {
+            if (entryItem instanceof Map) {
+              @SuppressWarnings("unchecked")
+              Map<String, Object> childDoc = (Map<String, Object>) entryItem;
+              SolrInputDocument childInputDoc = new SolrInputDocument();
+              for (Entry<String, Object> childEntry : childDoc.entrySet()) {
+                childInputDoc.addField(childEntry.getKey(), childEntry.getValue());
+              }
+              solrInputDocument.addChildDocument(childInputDoc);
+            }
+          }
+        } else {
+          solrInputDocument.addField(entry.getKey(), entry.getValue());
+        }
+      }
+      return solrInputDocument;
+    }).collect(Collectors.toList());
 
-    // TODO do we need to wait until the documents are visible?
-    try {
-      Thread.sleep(2000);
-    } catch(Exception e) {
-    }
-
-//
-//    checkUpdateResponse(solr.add(collection, solrInputDocuments));
-//    // Make sure to commit so things show up
-//    checkUpdateResponse(solr.commit(true, true));
-  }
-
-  private List<GetRequest> getRequest(List<Map<String, Object>> alerts) {
-    List<GetRequest> requests = new ArrayList<>();
-    for(Map<String, Object> alert: alerts) {
-      String guid = String.class.cast(alert.get(Constants.GUID));
-      requests.add(new GetRequest(guid, MetaAlertConstants.METAALERT_TYPE));
-    }
-    return requests;
-  }
-
-  public void addMetaAlert(MetaAlertUpdateDao updateDao, String guid, MetaAlertStatus status,
-                           Optional<List<Map<String, Object>>> alerts) throws IOException {
-
-    MetaAlertCreateRequest request = new MetaAlertCreateRequest();
-    alerts.ifPresent(theAlerts -> request.setAlerts(getRequest(theAlerts)));
-
-    // transform each input message to a Document that can be indexed by the UpdateDao
-    for(Map<String, Object> msg: messages) {
-
-
-
-      {{
-        setAlerts(new ArrayList<GetRequest>() {{
-          add(new GetRequest("message_1", SENSOR_NAME));
-          add(new GetRequest("message_2", SENSOR_NAME, getTestIndexFullName()));
-        }});
-        setGroups(Collections.singletonList("group"));
-      }};
-
-      MetaAlertCreateRequest create = new MetaAlertCreateRequest();
-      create.setAlerts();
-      updateDao.createMetaAlert(createDocument(msg, collection), Optional.of(collection));
-    }
-
-    try {
-      Thread.sleep(2000);
-    } catch(Exception e) {
-    }
-    // TODO do we need to wait until the documents are visible?
-//
-//    checkUpdateResponse(solr.add(collection, solrInputDocuments));
-//    // Make sure to commit so things show up
-//    checkUpdateResponse(solr.commit(true, true));
-  }
-
-  /**
-   * Create an indexable Document from a JSON message.
-   *
-   * @param message The message that needs indexed.
-   * @param docType The document type to write.
-   * @return The {@link Document} that was written.
-   * @throws IOException
-   */
-  private static Document createDocument(Map<String, Object> message, String docType) throws IOException {
-    Long timestamp = ConversionUtils.convert(message.get("timestamp"), Long.class);
-    String guid = (String) message.get("guid");
-    return new Document(message, guid, docType, timestamp);
+    checkUpdateResponse(solr.add(collection, solrInputDocuments));
+    // Make sure to commit so things show up
+    checkUpdateResponse(solr.commit(true, true));
   }
 
   protected void checkUpdateResponse(UpdateResponse result) throws IOException {
