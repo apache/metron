@@ -59,7 +59,7 @@ function init_configuration {
 
 
 #
-# Initialize the committer variables if it is not provided through the configuration file.
+# Initialize the committer variables if they are not provided through the configuration file.
 # If it is not present, it will be written out for the next time
 #
 function init_committer_info {
