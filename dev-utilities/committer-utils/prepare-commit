@@ -17,7 +17,7 @@
 #
 
 LOCATION_DIR=`dirname $0`
-
+#shellcheck source=./metron-committer-common
 source ${LOCATION_DIR}/metron-committer-common
 
 init_configuration

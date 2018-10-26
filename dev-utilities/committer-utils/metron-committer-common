@@ -40,6 +40,9 @@ USER=
 EMAIL=
 JIRA=
 DESC=
+APACHE_NAME=
+APACHE_EMAIL=
+GITHUB_NAME=
 
 #
 # Initialize the variables from the default configuration file, if it exists
@@ -48,6 +51,7 @@ function init_configuration {
     # does a config file already exist?
     echo "$CONFIG_FILE"
     if [ -f ${CONFIG_FILE} ]; then
+        #shellcheck source=/dev/null
         source ${CONFIG_FILE}
         echo "  ...using settings from $CONFIG_FILE"
     fi
@@ -71,7 +75,7 @@ function init_committer_info {
     # apache id of committer (you)
     if [ -z "$APACHE_NAME" ]; then
       read -p "  your apache userid [$APACHE_NAME]: " INPUT
-      [ -n "$INPUT" ] && APACHE_NAME=$INPUT
+      [ -n "$INPUT" ] && APACHE_NAME=${INPUT}
 
       # write setting to config file
       echo "APACHE_NAME=$APACHE_NAME" >> ${CONFIG_FILE}
@@ -106,7 +110,7 @@ function chose_metron_or_bro_repo {
         exit 1
         ;;
     esac
-    [ -n "$INPUT" ] && UPSTREAM=$INPUT
+    [ -n "$INPUT" ] && UPSTREAM=${INPUT}
 
     CHOSEN_REPO=$(basename ${UPSTREAM%%.git})
 }
@@ -144,7 +148,7 @@ function setup_working_directory {
     fi
 
     read -p "  local working directory [$WORK]: " INPUT
-    [ -n "$INPUT" ] && WORK=$INPUT
+    [ -n "$INPUT" ] && WORK=${INPUT}
 
     # handle tilde expansion
     WORK="${WORK/#\~/$HOME}"
@@ -182,12 +186,12 @@ function setup_code {
         # what branch did the PR get submitted against?  could be a feature branch
         BASE_BRANCH=`curl -s https://api.github.com/repos/apache/${REPO_NAME}/pulls/${PR} | python -c 'import sys, json; print json.load(sys.stdin)["base"]["ref"]'`
         read -p "  base branch to merge into [$BASE_BRANCH]: " INPUT
-        [ -n "$INPUT" ] && BASE_BRANCH=$INPUT
+        [ -n "$INPUT" ] && BASE_BRANCH=${INPUT}
 
         # clone the repository and fetch updates
         mkdir -p ${WORK}
         git clone ${ORIGIN} ${WORK}
-        cd ${WORK}
+        cd ${WORK} || exit "Failed to cd to ${WORK}"
 
         # setup the git user and email for your apache account
         git config user.name "$APACHE_NAME"
@@ -224,7 +228,7 @@ function setup_code {
 
     PR_BRANCH_REF="pull/$PR/head:pr-$PR"
     PR_BRANCH="pr-$PR"
-    cd ${WORK}
+    cd ${WORK} || exit "failed to move to ${WORK}"
     git fetch ${GITHUB_REMOTE} ${PR_BRANCH_REF}
     echo ""
 }
