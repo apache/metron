@@ -22,7 +22,7 @@ source ${LOCATION_DIR}/metron-committer-common
 
 init_configuration
 
-chose_metron_or_bro_repo
+choose_metron_or_bro_repo
 
 init_committer_info
 

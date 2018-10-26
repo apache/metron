@@ -95,7 +95,7 @@ function init_committer_info {
 #
 # Provide the user with a choice of the metron or bro repositories
 #
-function chose_metron_or_bro_repo {
+function choose_metron_or_bro_repo {
     # which repo?  metron or metron-bro-plugin-kafka
     echo "    [1] metron"
     echo "    [2] metron-bro-plugin-kafka"
