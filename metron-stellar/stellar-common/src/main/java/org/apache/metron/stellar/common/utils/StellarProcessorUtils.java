@@ -96,6 +96,7 @@ public class StellarProcessorUtils {
               return variables.get(x);
             }
             ,x-> x.equals(MapVariableResolver.ALL_FIELDS) || variables.containsKey(x)
+            ,(x,y) -> variables.put(x,y)
     );
     return run(expression, varResolver, context);
   }

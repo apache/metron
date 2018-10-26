@@ -137,6 +137,162 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitMatchExpr(StellarParser.MatchExprContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code AssignExpr}
+	 * labeled alternative in {@link StellarParser#transformation_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterAssignExpr(StellarParser.AssignExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code AssignExpr}
+	 * labeled alternative in {@link StellarParser#transformation_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitAssignExpr(StellarParser.AssignExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PreExpr}
+	 * labeled alternative in {@link StellarParser#transformation_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterPreExpr(StellarParser.PreExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PreExpr}
+	 * labeled alternative in {@link StellarParser#transformation_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitPreExpr(StellarParser.PreExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PostEpr}
+	 * labeled alternative in {@link StellarParser#transformation_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterPostEpr(StellarParser.PostEprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PostEpr}
+	 * labeled alternative in {@link StellarParser#transformation_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitPostEpr(StellarParser.PostEprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code AssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterAssignExpression(StellarParser.AssignExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code AssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitAssignExpression(StellarParser.AssignExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ColonAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterColonAssignExpression(StellarParser.ColonAssignExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ColonAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitColonAssignExpression(StellarParser.ColonAssignExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PlusAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterPlusAssignExpression(StellarParser.PlusAssignExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PlusAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitPlusAssignExpression(StellarParser.PlusAssignExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code MinusAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterMinusAssignExpression(StellarParser.MinusAssignExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code MinusAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitMinusAssignExpression(StellarParser.MinusAssignExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code DivideAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterDivideAssignExpression(StellarParser.DivideAssignExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code DivideAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitDivideAssignExpression(StellarParser.DivideAssignExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code MultiAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterMultiAssignExpression(StellarParser.MultiAssignExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code MultiAssignExpression}
+	 * labeled alternative in {@link StellarParser#assign_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitMultiAssignExpression(StellarParser.MultiAssignExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PreIncrementExpression}
+	 * labeled alternative in {@link StellarParser#pre_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterPreIncrementExpression(StellarParser.PreIncrementExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PreIncrementExpression}
+	 * labeled alternative in {@link StellarParser#pre_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitPreIncrementExpression(StellarParser.PreIncrementExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PreDecrementExpression}
+	 * labeled alternative in {@link StellarParser#pre_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterPreDecrementExpression(StellarParser.PreDecrementExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PreDecrementExpression}
+	 * labeled alternative in {@link StellarParser#pre_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitPreDecrementExpression(StellarParser.PreDecrementExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PostIncrementExpression}
+	 * labeled alternative in {@link StellarParser#post_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterPostIncrementExpression(StellarParser.PostIncrementExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PostIncrementExpression}
+	 * labeled alternative in {@link StellarParser#post_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitPostIncrementExpression(StellarParser.PostIncrementExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PostDecrementExpression}
+	 * labeled alternative in {@link StellarParser#post_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterPostDecrementExpression(StellarParser.PostDecrementExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PostDecrementExpression}
+	 * labeled alternative in {@link StellarParser#post_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitPostDecrementExpression(StellarParser.PostDecrementExpressionContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code if_expr}
 	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree

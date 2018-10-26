@@ -251,7 +251,7 @@ public class BaseStellarProcessor<T> {
     // it will be reset in parse()
     context.setActivityType(ActivityType.VALIDATION_ACTIVITY);
     try {
-      parse(rule, DefaultVariableResolver.NULL_RESOLVER(), StellarFunctions.FUNCTION_RESOLVER(), context);
+      parse(rule, DefaultVariableResolver.NULL_RESOLVER, StellarFunctions.FUNCTION_RESOLVER(), context);
     } catch (Throwable t) {
       if (throwException) {
         throw new ParseException("Unable to parse " + rule + ": " + t.getMessage(), t);
