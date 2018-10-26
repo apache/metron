@@ -30,7 +30,7 @@ read_pull_request
 
 setup_working_directory ~/tmp/${CHOSEN_REPO}-pr${PR}
 
-setup_code{CHOSEN_REPO}
+setup_code ${CHOSEN_REPO}
 
 get_contributor_info
 
