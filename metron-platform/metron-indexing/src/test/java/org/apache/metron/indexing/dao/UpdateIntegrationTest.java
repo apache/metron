@@ -62,8 +62,8 @@ public abstract class UpdateIntegrationTest {
   @Multiline
   protected String commentTwo;
 
-  private static final int MAX_RETRIES = 10;
-  private static final int SLEEP_MS = 500;
+  protected static final int MAX_RETRIES = 10;
+  protected static final int SLEEP_MS = 500;
   protected static final String SENSOR_NAME = "test";
   private static final String CF = "p";
 
