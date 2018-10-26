@@ -30,6 +30,9 @@ import org.apache.commons.collections4.map.AbstractMapDecorator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.utils.HDFSUtils;
 
+/**
+ * Access configuration options for the ES client.
+ */
 public class ElasticsearchClientConfig extends AbstractMapDecorator<String, Object> {
 
   private static Integer THIRTY_SECONDS_IN_MILLIS = 30_000;

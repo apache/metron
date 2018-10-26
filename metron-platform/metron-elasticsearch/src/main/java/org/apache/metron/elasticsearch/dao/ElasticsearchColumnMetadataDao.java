@@ -18,13 +18,7 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import org.apache.metron.elasticsearch.client.ElasticsearchClient;
-import org.apache.metron.elasticsearch.utils.FieldMapping;
-import org.apache.metron.elasticsearch.utils.FieldProperties;
-import org.apache.metron.indexing.dao.ColumnMetadataDao;
-import org.apache.metron.indexing.dao.search.FieldType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.INDEX_NAME_DELIMITER;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -34,8 +28,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.INDEX_NAME_DELIMITER;
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.elasticsearch.utils.FieldMapping;
+import org.apache.metron.elasticsearch.utils.FieldProperties;
+import org.apache.metron.indexing.dao.ColumnMetadataDao;
+import org.apache.metron.indexing.dao.search.FieldType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Responsible for retrieving column-level metadata for Elasticsearch search indices.
@@ -59,16 +58,13 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
     elasticsearchTypeMap = Collections.unmodifiableMap(fieldTypeMap);
   }
 
-  /**
-   * An Elasticsearch administrative client.
-   */
-  private transient ElasticsearchClient adminClient;
+  private transient ElasticsearchClient esClient;
 
   /**
-   * @param adminClient The Elasticsearch admin client.
+   * @param esClient The Elasticsearch client.
    */
-  public ElasticsearchColumnMetadataDao(ElasticsearchClient adminClient) {
-    this.adminClient = adminClient;
+  public ElasticsearchColumnMetadataDao(ElasticsearchClient esClient) {
+    this.esClient = esClient;
   }
 
   @SuppressWarnings("unchecked")
@@ -81,7 +77,7 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
     String[] latestIndices = getLatestIndices(indices);
     if (latestIndices.length > 0) {
 
-     Map<String, FieldMapping>  mappings = adminClient.getMappings(latestIndices);
+     Map<String, FieldMapping>  mappings = esClient.getMappings(latestIndices);
 
       // for each index
       for (Map.Entry<String, FieldMapping> kv : mappings.entrySet()) {
@@ -157,7 +153,7 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
     LOG.debug("Getting latest indices; indices={}", includeIndices);
     Map<String, String> latestIndices = new HashMap<>();
 
-    String[] indices = adminClient.getIndices();
+    String[] indices = esClient.getIndices();
 
     for (String index : indices) {
       int prefixEnd = index.indexOf(INDEX_NAME_DELIMITER);

@@ -39,6 +39,8 @@ import org.elasticsearch.client.RestHighLevelClient;
 
 /**
  * Wrapper around the Elasticsearch REST clients. Exposes capabilities of the low and high-level clients.
+ * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/java-rest-overview.html. Most, if not
+ * all of use in Metron would be focused through the high-level client. It handles marshaling/unmarshaling.
  */
 public class ElasticsearchClient implements AutoCloseable{
   private RestClient lowLevelClient;
@@ -49,25 +51,84 @@ public class ElasticsearchClient implements AutoCloseable{
     this.highLevelClient = highLevelClient;
   }
 
+  /**
+   * Exposes an Elasticsearch low-level client. Prefer the high level client.
+   */
   public RestClient getLowLevelClient() {
     return lowLevelClient;
   }
 
+  /**
+   * <p>
+   * Exposes an Elasticsearch high-level client. Prefer to use this client over the low-level client where possible. This client wraps the low-level
+   * client and exposes some additional sugar on top of the low level methods including marshaling/unmarshaling.
+   * </p>
+   * <p>
+   *   Note, as of 5.6.2 it does NOT support index or cluster management operations.
+   *   https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_changing_the_application_8217_s_code.html
+   *   <br>
+   * &nbsp;&nbsp;&nbsp;&nbsp;<i>Does not provide indices or cluster management APIs. Management operations can be executed by external scripts or using the low-level client.</i>
+   * </p>
+   * <p>
+   * Current supported ES API's seen here - https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/java-rest-high-supported-apis.html
+   * </p>
+   *
+   * <ul>
+   *   <li>Single document APIs
+   *     <ul>
+   *       <li>Index API</li>
+   *       <li>Get API</li>
+   *       <li>Delete API</li>
+   *       <li>Update API</li>
+   *     </ul>
+   *   </li>
+   *   <li>Multi document APIs
+   *     <ul>
+   *       <li>Bulk API</li>
+   *     </ul>
+   *   </li>
+   *   <li>Search APIs
+   *     <ul>
+   *       <li>Search API</li>
+   *       <li>Search Scroll API</li>
+   *       <li>Clear Scroll API</li>
+   *     </ul>
+   *   </li>
+   *   <li>Miscellaneous APIs
+   *     <ul>
+   *       <li>Info API</li>
+   *     </ul>
+   *   </li>
+   * </ul>
+   */
   public RestHighLevelClient getHighLevelClient() {
     return highLevelClient;
   }
 
+  /**
+   * Included as part of AutoCloseable because Elasticsearch recommends closing the client when not
+   * being used.
+   * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_changing_the_client_8217_s_initialization_code.html
+   * @throws IOException
+   */
   @Override
   public void close() throws IOException {
-    if(lowLevelClient != null) {
+    if (lowLevelClient != null) {
       lowLevelClient.close();
     }
   }
 
-  public void putMapping(String index, String type, String source) throws IOException {
-    HttpEntity entity = new StringEntity(source);
+  /**
+   * https://www.elastic.co/guide/en/elasticsearch/reference/5.6/indices-put-mapping.html
+   * @param index
+   * @param mappingType https://www.elastic.co/guide/en/elasticsearch/reference/5.6/mapping.html#mapping-type
+   * @param mapping
+   * @throws IOException
+   */
+  public void putMapping(String index, String mappingType, String mapping) throws IOException {
+    HttpEntity entity = new StringEntity(mapping);
     Response response = lowLevelClient.performRequest("PUT"
-            , "/" + index + "/_mapping/" + type
+            , "/" + index + "/_mapping/" + mappingType
             , Collections.emptyMap()
             , entity
     );
