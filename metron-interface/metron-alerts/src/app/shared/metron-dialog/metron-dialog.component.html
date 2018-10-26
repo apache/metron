@@ -1,0 +1,40 @@
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<div>
+  <div *ngIf="showModal" class="metron-dialog modal show" [class.block]="showModal" data-backdrop="static" data-qe-id="modal">
+    <div class="modal-dialog modal-sm" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="modal-title" data-qe-id="modal-title"><b>{{ dialogType }}</b></span>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true" (click)="cancel()">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p data-qe-id="modal-message">{{ message }}</p>
+        </div>
+        <div class="modal-footer">
+          <button *ngIf="dialogType === 'Error'" type="button" class="btn btn-all_ports" (click)="cancel()" data-qe-id="modal-error-cancel">OK</button>
+          <button *ngIf="dialogType !== 'Error'" type="button" class="btn btn-all_ports" (click)="confirm()" data-qe-id="modal-confirm">OK</button>
+          <button *ngIf="dialogType !== 'Error'" type="button" class="btn btn-mine_shaft_2" data-dismiss="modal" (click)="cancel()" data-qe-id="modal-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show" *ngIf="showModal"></div>
+</div>
