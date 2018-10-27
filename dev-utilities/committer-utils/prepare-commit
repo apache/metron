@@ -16,7 +16,7 @@
 #  limitations under the License.
 #
 
-LOCATION_DIR=`dirname $0`
+LOCATION_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 #shellcheck source=./metron-committer-common
 source ${LOCATION_DIR}/metron-committer-common
 
