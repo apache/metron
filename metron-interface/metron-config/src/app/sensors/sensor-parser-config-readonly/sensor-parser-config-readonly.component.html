@@ -49,7 +49,7 @@
               <div id="collapseGrok" class="col-sm-12  float-left form-value panel-collapse collapse"></div>
               <div class="col-sm-12  float-left form-value grok" [innerHtml]="grokStatement"></div>
               <a *ngIf="grokStatement.length>0" class="collapsed blue-label font-weight-bold col-sm-8 col-sm-push-4" data-toggle="collapse" href="#collapseGrok" aria-expanded="false" aria-controls="collapseGrok"  #grokLink (click)="grokLink.text=(grokLink.text==='show more')?'show less':'show more'">show more</a>
-              <div class="px-1"> <div class="col-sm-12 form-seperator"></div> </div>
+              <div class="px-3"> <div class="col-sm-12 form-seperator"></div> </div>
             </div>
 
             <div *ngIf="item.model == 'transforms'">
@@ -90,7 +90,7 @@
     </div>
 
       <div class="metron-button-bar" >
-          <div class="row pl-0 py-1">
+          <div class="row pl-0 py-3">
             <button class="btn btn-primary" type="button" (click)="onEditSensor()"  [disabled]="startStopInProgress">EDIT</button>
 
             <button class="btn btn-primary" type="button" (click)="onStartSensor()" [disabled]="startStopInProgress" [hidden]="isStartHidden()">START</button>
