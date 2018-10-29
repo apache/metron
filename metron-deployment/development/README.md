@@ -42,7 +42,7 @@ To setup this up, start full dev.
 * In the Knox configuration, go to "Advanced users-ldif". We have a custom ldif file "knox-demo-ldap.ldif" in "metron-deployment/development" that contains a customized variant of the users and groups defined here. Replace the default ldif configuration with the contents of "knox-demo-ldap.ldif"
 * Start the Demo LDAP (In Knox, "Service Actions -> Start Demo LDAP)
 * In Metron's configs, we're going to make two changes
-  * In REST, alter "Active Spring profiles" to include LDAP (e.g. "dev,ldap"). This will signal that we are using LDAP instead of JDBC.
+  * Set "LDAP Enabled" to "On"
   * In Security, set "Bind user password" to match the admin user's password from the ldif file (admin-password).
 * Restart the REST application
 

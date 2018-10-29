@@ -58,7 +58,14 @@ metron_management_ui_port = status_params.metron_management_ui_port
 metron_alerts_ui_host = status_params.metron_alerts_ui_host
 metron_alerts_ui_port = status_params.metron_alerts_ui_port
 metron_jvm_flags = config['configurations']['metron-rest-env']['metron_jvm_flags']
-metron_spring_profiles_active = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
+
+# Construct the profiles as a temp variable first. Only the first time it's set will carry through
+metron_spring_profiles_temp = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
+if config['configurations']['metron-security-env']['metron.ldap.enabled']:
+    metron_spring_profiles_active = metron_spring_profiles_temp + ',ldap'
+else:
+    metron_spring_profiles_active = metron_spring_profiles_temp
+
 metron_jdbc_driver = config['configurations']['metron-rest-env']['metron_jdbc_driver']
 metron_jdbc_url = config['configurations']['metron-rest-env']['metron_jdbc_url']
 metron_jdbc_username = config['configurations']['metron-rest-env']['metron_jdbc_username']
@@ -272,7 +279,7 @@ metron_ldap_url = config['configurations']['metron-security-env']['metron.ldap.u
 metron_ldap_userdn = config['configurations']['metron-security-env']['metron.ldap.bind.dn']
 metron_ldap_password = config['configurations']['metron-security-env']['metron.ldap.bind.password']
 metron_ldap_user_pattern = config['configurations']['metron-security-env']['metron.ldap.user.dnpattern']
-metron_ldap_user_password = config['configurations']['metron-security-env']['metron.ldap.user.password']
+metron_ldap_user_password = config['configurationsmetron_spring_profiles_active']['metron-security-env']['metron.ldap.user.password']
 metron_ldap_user_dnbase = config['configurations']['metron-security-env']['metron.ldap.user.basedn']
 metron_ldap_user_searchbase = config['configurations']['metron-security-env']['metron.ldap.user.searchbase']
 metron_ldap_user_searchfilter = config['configurations']['metron-security-env']['metron.ldap.user.searchfilter']
@@ -281,7 +288,6 @@ metron_ldap_group_searchfilter = config['configurations']['metron-security-env']
 metron_ldap_group_role = config['configurations']['metron-security-env']['metron.ldap.group.roleattribute']
 metron_ldap_ssl_truststore = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore']
 metron_ldap_ssl_truststore_password = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore.password']
-metron_ldap = metron_ldap_url != ""
 
 # Management UI
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]

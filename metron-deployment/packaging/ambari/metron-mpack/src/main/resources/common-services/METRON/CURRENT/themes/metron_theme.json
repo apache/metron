@@ -885,6 +885,10 @@
           "subsection-name": "subsection-alerts-ui"
         },
         {
+          "config": "metron-security-env/metron.ldap.enabled",
+          "subsection-name": "subsection-security-ldap"
+        },
+        {
           "config": "metron-security-env/metron.ldap.url",
           "subsection-name": "subsection-security-ldap"
         },
@@ -1613,6 +1617,12 @@
         "config": "metron-alerts-ui-env/metron_alerts_ui_port",
         "widget": {
           "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.ldap.enabled",
+        "widget": {
+          "type": "toggle"
         }
       },
       {
