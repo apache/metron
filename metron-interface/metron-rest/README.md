@@ -198,7 +198,7 @@ METRON_SERVICE_KEYTAB="/etc/security/keytabs/metron.keytab"
 
 Metron REST can be configured to use LDAP for authentication and roles. Configuration can be performed via Ambari in the "Security" tab.
 
-Configuration will default to matching Knox's Demo LDAP for convenience. This should only be used for development purposed. Manual instructions for setting up demo LDAP and finalizing configuration (e.g. setting up the user LDIF file) can be found in the [Development README](../../metron-deployment/development/README.md#knox-demo-ldap).
+Configuration will default to matching Knox's Demo LDAP for convenience. This should only be used for development purposes. Manual instructions for setting up demo LDAP and finalizing configuration (e.g. setting up the user LDIF file) can be found in the [Development README](../../metron-deployment/development/README.md#knox-demo-ldap).
 
 #### LDAPS
 There is configuration to provide a path to a truststore with SSL certificates and provide a password. Users should import certificates as needed to appropriate truststores.  An example of doing this is:
