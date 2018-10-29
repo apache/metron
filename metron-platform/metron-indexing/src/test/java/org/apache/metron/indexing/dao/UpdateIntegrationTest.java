@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.collections.MapUtils;
@@ -179,6 +180,56 @@ public abstract class UpdateIntegrationTest {
   }
 
   @Test
+  public void testUpdate() throws Exception {
+    // create a document to update
+    final String guid = UUID.randomUUID().toString();
+    final Long timestamp = 1526306463050L;
+    Document toUpdate = createDocument(guid, timestamp);
+
+    // update the document and validate
+    Document updated = getDao().update(toUpdate, Optional.of(SENSOR_NAME));
+    Assert.assertEquals(toUpdate, updated);
+
+    // ensure the document is updated in the index
+    Document indexed = findUpdatedDoc(toUpdate.getDocument(), guid, SENSOR_NAME);
+    Assert.assertEquals(toUpdate, indexed);
+  }
+
+  @Test
+  public void testBatchUpdate() throws Exception {
+    Map<Document, Optional<String>> toUpdate = new HashMap<>();
+
+    // create the first document to update
+    final String guid1 = UUID.randomUUID().toString();
+    final Long timestamp1 = 1526306463050L;
+    Document document1 = createDocument(guid1, timestamp1);
+    toUpdate.put(document1, Optional.of(SENSOR_NAME));
+
+    // create the second document to update
+    final String guid2 = UUID.randomUUID().toString();
+    final Long timestamp2 = 1526306463100L;
+    Document document2 = createDocument(guid2, timestamp2);
+    toUpdate.put(document2, Optional.of(SENSOR_NAME));
+
+    // create the third document to update
+    final String guid3 = UUID.randomUUID().toString();
+    final Long timestamp3 = 1526306463300L;
+    Document document3 = createDocument(guid3, timestamp3);
+    toUpdate.put(document3, Optional.of(SENSOR_NAME));
+
+    // update the documents as a batch and validate
+    Map<Document, Optional<String>> updated = getDao().batchUpdate(toUpdate);
+    Assert.assertTrue(updated.containsKey(document1));
+    Assert.assertTrue(updated.containsKey(document2));
+    Assert.assertTrue(updated.containsKey(document3));
+
+    // ensure the documents were written to the index
+    Assert.assertEquals(document1, findUpdatedDoc(document1.getDocument(), guid1, SENSOR_NAME));
+    Assert.assertEquals(document2, findUpdatedDoc(document2.getDocument(), guid2, SENSOR_NAME));
+    Assert.assertEquals(document3, findUpdatedDoc(document3.getDocument(), guid3, SENSOR_NAME));
+  }
+
+  @Test
   public void testAddCommentAndPatch() throws Exception {
     Map<String, Object> fields = new HashMap<>();
     fields.put("guid", "add_comment");
@@ -296,12 +347,21 @@ public abstract class UpdateIntegrationTest {
     return request;
   }
 
-  protected void findUpdatedDoc(Map<String, Object> message0, String guid, String sensorType)
+  protected Document createDocument(String guid, Long timestamp) {
+    Map<String, Object> message1 = new HashMap<>();
+    message1.put(Constants.GUID, guid);
+    message1.put(Constants.SENSOR_TYPE, SENSOR_NAME);
+    message1.put(Constants.Fields.TIMESTAMP.getName(), timestamp);
+
+    return new Document(message1, guid, SENSOR_NAME, timestamp);
+  }
+
+  protected Document findUpdatedDoc(Map<String, Object> message0, String guid, String sensorType)
       throws InterruptedException, IOException, OriginalNotFoundException {
     for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
       Document doc = getDao().getLatest(guid, sensorType);
       if (doc != null && message0.equals(doc.getDocument())) {
-        return;
+        return doc;
       }
       if (t == MAX_RETRIES -1) {
         MapUtils.debugPrint(System.out, "Expected", message0);
