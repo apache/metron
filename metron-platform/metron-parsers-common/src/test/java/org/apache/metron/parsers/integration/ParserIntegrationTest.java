@@ -33,7 +33,7 @@ import org.junit.Assert;
 
 public abstract class ParserIntegrationTest extends BaseIntegrationTest {
   // Contains the list of sensor types to be tested.
-  // See StormParserIntegerationTest for an example of how to use this in a Parameterized JUnit test
+  // See StormParserIntegrationTest for an example of how to use this in a Parameterized JUnit test
   protected static List<String> sensorTypes = Arrays.asList(
           "asa",
           "bro",
