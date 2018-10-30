@@ -46,6 +46,12 @@ public class ElasticsearchClient implements AutoCloseable{
   private RestClient lowLevelClient;
   private RestHighLevelClient highLevelClient;
 
+  /**
+   * Instantiate with ElasticsearchClientFactory.
+   *
+   * @param lowLevelClient
+   * @param highLevelClient
+   */
   public ElasticsearchClient(RestClient lowLevelClient, RestHighLevelClient highLevelClient) {
     this.lowLevelClient = lowLevelClient;
     this.highLevelClient = highLevelClient;
@@ -139,6 +145,9 @@ public class ElasticsearchClient implements AutoCloseable{
     }
   }
 
+  /**
+   * Gets ALL Elasticsearch indices, or null if status code returned is not OK 200.
+   */
   public String[] getIndices() throws IOException {
     Response response = lowLevelClient.performRequest("GET", "/_cat/indices");
     if(response.getStatusLine().getStatusCode() == 200) {
@@ -160,21 +169,13 @@ public class ElasticsearchClient implements AutoCloseable{
     return null;
   }
 
-  private Map<String, Object> getInnerMap(Map<String, Object> outerMap, String... keys) {
-    Map<String, Object> ret = outerMap;
-    if(keys.length == 0) {
-      return outerMap;
-    }
-    for(String key : keys) {
-      ret = (Map<String, Object>)ret.get(key);
-      if(ret == null) {
-        return ret;
-      }
-    }
-    return ret;
-  }
-
-  public Map<String, FieldMapping> getMappings(String[] indices) throws IOException {
+  /**
+   * Gets FieldMapping detail for a list of indices.
+   *
+   * @param indices get field mapppings for the provided indices
+   * @return mapping of index name to FieldMapping
+   */
+  public Map<String, FieldMapping> getMappingByIndex(String[] indices) throws IOException {
     Map<String, FieldMapping> ret = new HashMap<>();
     String indicesCsv = Joiner.on(",").join(indices);
     Response response = lowLevelClient.performRequest("GET", "/" + indicesCsv + "/_mapping");
@@ -200,6 +201,42 @@ public class ElasticsearchClient implements AutoCloseable{
             }
           }
         }
+      }
+    }
+    return ret;
+  }
+
+  /**
+   * Traverses the outer map to retrieve a leaf map by iteratively calling get(key) using the provided keys in order. e.g.
+   * for an outer map provided as follows:
+   * <pre>
+   * {
+   *   "foo" : {
+   *     "bar" : {
+   *       "baz" : {
+   *         "hello" : "world"
+   *       }
+   *     }
+   *   }
+   * }
+   * </pre>
+   * calling getInnerMap(outerMap, new String[] { "foo", "bar", "baz" }) would return the following:
+   * <pre>
+   * {hello=world}
+   * </pre>
+   * @param outerMap Complex map of nested keys/values
+   * @param keys ordered list of keys to iterate over to grab a leaf mapping.
+   * @return leaf node, or innermost matching node from outerMap if no leaf exists
+   */
+  private Map<String, Object> getInnerMap(Map<String, Object> outerMap, String... keys) {
+    Map<String, Object> ret = outerMap;
+    if(keys.length == 0) {
+      return outerMap;
+    }
+    for(String key : keys) {
+      ret = (Map<String, Object>)ret.get(key);
+      if(ret == null) {
+        return ret;
       }
     }
     return ret;

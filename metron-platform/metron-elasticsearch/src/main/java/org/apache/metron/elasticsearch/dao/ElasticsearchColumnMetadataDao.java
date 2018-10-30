@@ -77,7 +77,7 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
     String[] latestIndices = getLatestIndices(indices);
     if (latestIndices.length > 0) {
 
-     Map<String, FieldMapping>  mappings = esClient.getMappings(latestIndices);
+     Map<String, FieldMapping>  mappings = esClient.getMappingByIndex(latestIndices);
 
       // for each index
       for (Map.Entry<String, FieldMapping> kv : mappings.entrySet()) {
