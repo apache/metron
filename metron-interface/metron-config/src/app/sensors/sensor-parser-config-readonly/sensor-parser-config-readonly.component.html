@@ -93,15 +93,15 @@
           <div class="row pl-0 py-3">
             <button class="btn btn-primary" type="button" (click)="onEditSensor()"  [disabled]="startStopInProgress">EDIT</button>
 
-            <button class="btn btn-primary" type="button" (click)="onStartSensor()" [disabled]="startStopInProgress" [hidden]="isStartHidden()">START</button>
-            <button class="btn form-enable-disable-button" type="button" (click)="onStopSensor()" [disabled]="startStopInProgress" [hidden]="isStopHidden()">STOP</button>
+            <button class="btn btn-primary ml-1" type="button" (click)="onStartSensor()" [disabled]="startStopInProgress" [hidden]="isStartHidden()">START</button>
+            <button class="btn form-enable-disable-button ml-1" type="button" (click)="onStopSensor()" [disabled]="startStopInProgress" [hidden]="isStopHidden()">STOP</button>
 
-            <button class="btn btn-primary" type="button" (click)="onEnableSensor()" [disabled]="startStopInProgress" [hidden]="isEnableHidden()" >ENABLE</button>
-            <button class="btn form-enable-disable-button" type="button" (click)="onDisableSensor()" [disabled]="startStopInProgress" [hidden]="isDisableHidden()">DISABLE</button>
+            <button class="btn btn-primary ml-1" type="button" (click)="onEnableSensor()" [disabled]="startStopInProgress" [hidden]="isEnableHidden()" >ENABLE</button>
+            <button class="btn form-enable-disable-button ml-1" type="button" (click)="onDisableSensor()" [disabled]="startStopInProgress" [hidden]="isDisableHidden()">DISABLE</button>
 
-            <button class="btn btn-link delete" type="button" (click)="onDeleteSensor()"> Delete </button>
+            <button class="btn btn-link delete ml-1" type="button" (click)="onDeleteSensor()"> Delete </button>
 
-            <div class="start-stop-progress"> <i class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!startStopInProgress"></i> </div>
+            <div class="start-stop-progress ml-1"> <i class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!startStopInProgress"></i> </div>
           </div>
       </div>
     </div>

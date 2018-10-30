@@ -35,7 +35,7 @@ export class MetronDialogBox {
                       </div>
                       <div class="modal-footer">
                         <button type="button" class="btn btn-primary">OK</button>
-                        <button type="button" class="btn form-enable-disable-button" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn form-enable-disable-button ml-1" data-dismiss="modal">Cancel</button>
                       </div>
                     </div>
                   </div>
