@@ -85,7 +85,7 @@
                 <div class="form-group" [ngClass]="{'panel-selected': showFieldSchema }" >
                     <label attr.for="fieldSchema">SCHEMA</label>
                     <div  class="input-group" [attr.disabled]="!configValid">
-                        <div  class="form-control" style="height: 80px; resize: none;" readonly>
+                        <div class="form-control table-wrapper" readonly>
                             <table cellspacing="10">
                                 <tr> <td class="p-l-1">TRANSFORMATIONS </td> <td class="p-l-1">&nbsp;&nbsp;</td><td class="p-1-1">{{getTransformationCount()}}</td> </tr>
                                 <tr> <td>ENRICHMENTS</td> <td class="p-l-1">&nbsp;&nbsp;</td> <td class="p-1-1">{{getEnrichmentCount()}}</td></tr>
