@@ -104,6 +104,21 @@ public class StormParserDriver extends ParserDriver {
     }
   }
 
+//
+//  private ParserConfigurations config;
+//  private String sensorType;
+//  private ParserRunner parserRunner;
+//
+//  public ParserDriver(String sensorType, String parserConfig, String globalConfig) throws IOException {
+//    SensorParserConfig sensorParserConfig = SensorParserConfig.fromBytes(parserConfig.getBytes());
+//    this.sensorType = sensorType == null ? sensorParserConfig.getSensorTopic() : sensorType;
+//    config = new ParserConfigurations();
+//    config.updateSensorParserConfig(this.sensorType, SensorParserConfig.fromBytes(parserConfig.getBytes()));
+//    config.updateGlobalConfig(JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER));
+//
+//    parserRunner = new ParserRunnerImpl(new HashSet<String>() {{
+//      add(sensorType);
+//    }});
   public StormParserDriver(String sensorType, String parserConfig, String globalConfig) throws IOException {
     super(sensorType, parserConfig, globalConfig);
   }

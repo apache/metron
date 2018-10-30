@@ -15,19 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.parsers;
-
-import org.apache.metron.common.error.MetronError;
-
-import java.util.List;
-
-/**
- * Container for the results of parsing a message with a ParserRunner.
- * @param <T> The type of a successfully parsed message.
- */
-public interface ParserRunnerResults<T> {
-
-  List<T> getMessages();
-
-  List<MetronError> getErrors();
+export enum ConfirmationType {
+  Confirmed = 'Confirmed',
+  Rejected = 'Rejected'
 }

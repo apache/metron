@@ -476,10 +476,6 @@
           "subsection-name": "subsection-index-settings"
         },
         {
-          "config": "metron-env/es_document_id",
-          "subsection-name": "subsection-index-settings"
-        },
-        {
           "config": "metron-env/solr_zookeeper_url",
           "subsection-name": "subsection-index-settings"
         },
@@ -948,12 +944,6 @@
       },
       {
         "config": "metron-env/es_date_format",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/es_document_id",
         "widget": {
           "type": "text-field"
         }

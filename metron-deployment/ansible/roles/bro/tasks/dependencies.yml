@@ -38,8 +38,8 @@
     - perl
     - crontabs
     - net-tools
-    - devtoolset-4-gcc
-    - devtoolset-4-gcc-c++
+    - devtoolset-6-gcc
+    - devtoolset-6-gcc-c++
     - python27
     - rh-git29
   register: result
