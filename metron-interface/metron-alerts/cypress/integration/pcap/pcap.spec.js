@@ -77,36 +77,28 @@ context('PCAP Tab', () => {
   });
 
   it('requesting job status', () => {
-    cy.clock(new Date().getTime());
-
-    cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
-    cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-01.json').as('jobStatusCheck');
-
-    cy.contains('PCAP').click();
-    cy.get('[data-qe-id="submit-button"]').click();
-
-    cy.tick(7000);
-    cy.wait('@jobStatusCheck').its('url').should('include', '/api/v1/pcap/job_1537878471649_0001');
-  });
-
-  it('process status in percentage', () => {
-    cy.clock(new Date().getTime());
-
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
     cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-01.json').as('jobStatusCheck');
 
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(7000);
+    cy.wait('@jobStatusCheck').its('url').should('include', '/api/v1/pcap/job_1537878471649_0001');
+  });
+
+  it('process status in percentage', () => {
+    cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
+    cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-01.json').as('jobStatusCheck');
+
+    cy.contains('PCAP').click();
+    cy.get('[data-qe-id="submit-button"]').click();
+    
     cy.wait('@jobStatusCheck');
 
     cy.contains('75%').should('be.visible');
   });
 
   it('getting pcap json', () => {
-    cy.clock(new Date().getTime());
-
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
     cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
     cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
@@ -114,7 +106,6 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(7000);
     cy.wait('@statusCheck');
 
     cy.wait('@gettingPdml').its('url').should('include', '/api/v1/pcap/job_1537878471649_0001/pdml?page=1');
@@ -122,8 +113,6 @@ context('PCAP Tab', () => {
 
 
   it('rendering pcap table', () => {
-    cy.clock(new Date().getTime());
-
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
     cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
     cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
@@ -131,7 +120,6 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(7000);
     cy.wait('@statusCheck');
 
     cy.wait('@gettingPdml');
@@ -141,8 +129,6 @@ context('PCAP Tab', () => {
   });
 
   it('showing pcap details', () => {
-    cy.clock(new Date().getTime());
-
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
     cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
     cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
@@ -150,7 +136,6 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(7000);
     cy.wait('@statusCheck');
     cy.wait('@gettingPdml');
 
@@ -164,8 +149,6 @@ context('PCAP Tab', () => {
   });
 
   it('navigating accross pages', () => {
-    cy.clock(new Date().getTime());
-
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
     cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
     cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
@@ -173,7 +156,6 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(7000);
     cy.wait('@statusCheck');
     cy.wait('@gettingPdml');
 
@@ -185,8 +167,6 @@ context('PCAP Tab', () => {
   });
 
   it('downloading pdml', () => {
-    cy.clock(new Date().getTime());
-
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
     cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-02.json').as('statusCheck');
     cy.route('GET', '/api/v1/pcap/*/pdml*', 'fixture:pcap.page-01.json').as('gettingPdml');
@@ -195,7 +175,6 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(7000);
     cy.wait('@statusCheck');
     cy.wait('@gettingPdml');
 
@@ -209,8 +188,6 @@ context('PCAP Tab', () => {
 
 
   it('cancelling (kill) pcap query job', () => {
-    cy.clock(new Date().getTime());
-
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json');
     cy.route('GET', '/api/v1/pcap/*', 'fixture:pcap.status-01.json').as('jobStatusCheck');
     cy.route('DELETE', '/api/v1/pcap/kill/*', 'fixture:pcap.status-02.json').as('killJob');
@@ -218,7 +195,6 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(7000);
     cy.wait('@jobStatusCheck');
 
     cy.get('[data-qe-id="pcap-cancel-query-button"]').click();
