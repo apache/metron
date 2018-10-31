@@ -17,9 +17,16 @@
  */
 package org.apache.metron.common.bolt;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.Map;
+
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.stellar.common.utils.HttpClientUtils;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.task.TopologyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,12 +35,29 @@ public abstract class ConfiguredParserBolt extends ConfiguredBolt<ParserConfigur
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected final ParserConfigurations configurations = new ParserConfigurations();
+  protected CloseableHttpClient httpClient;
   public ConfiguredParserBolt(String zookeeperUrl) {
     super(zookeeperUrl, "PARSERS");
   }
 
   protected SensorParserConfig getSensorParserConfig(String sensorType) {
     return getConfigurations().getSensorParserConfig(sensorType);
+  }
+
+  @Override
+  public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+    super.prepare(stormConf, context, collector);
+    httpClient = HttpClientUtils.getPoolingClient(getConfigurations().getGlobalConfig());
+  }
+
+  @Override
+  public void cleanup() {
+    super.cleanup();
+    try {
+      httpClient.close();
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
+    }
   }
 
 }
