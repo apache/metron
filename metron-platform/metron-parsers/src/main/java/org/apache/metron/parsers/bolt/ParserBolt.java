@@ -285,6 +285,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
             .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
             .with(Context.Capabilities.STELLAR_CONFIG, () -> getConfigurations().getGlobalConfig())
+            .with(Context.Capabilities.HTTP_CLIENT, () -> httpClient)
             ;
     if(cache != null) {
       builder = builder.with(Context.Capabilities.CACHE, () -> cache);

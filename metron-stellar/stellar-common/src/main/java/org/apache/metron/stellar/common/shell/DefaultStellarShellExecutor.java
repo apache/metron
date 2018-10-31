@@ -23,6 +23,8 @@ import com.google.common.collect.Maps;
 import org.apache.commons.collections.map.UnmodifiableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.configuration.ConfigurationsUtils;
 import org.apache.metron.stellar.common.shell.StellarExecutionListeners.FunctionDefinedListener;
@@ -63,6 +65,7 @@ import static org.apache.metron.stellar.common.shell.StellarResult.noop;
 import static org.apache.metron.stellar.common.shell.StellarResult.error;
 import static org.apache.metron.stellar.common.shell.StellarResult.success;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.HTTP_CLIENT;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.ZOOKEEPER_CLIENT;
 
@@ -362,6 +365,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
             .with(SHELL_VARIABLES, () -> variables)
             .with(GLOBAL_CONFIG, () -> globals)
             .with(STELLAR_CONFIG, () -> getStellarConfig(globals, properties))
+            .with(HTTP_CLIENT, HttpClients::createDefault)
             .build();
   }
 

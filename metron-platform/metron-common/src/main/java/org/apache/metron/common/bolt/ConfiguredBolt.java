@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.bolt;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Map;
 import org.apache.curator.RetryPolicy;
@@ -24,12 +25,14 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.writer.ConfigurationStrategy;
 import org.apache.metron.common.configuration.writer.ConfigurationsStrategies;
+import org.apache.metron.stellar.common.utils.HttpClientUtils;
 import org.apache.metron.zookeeper.SimpleEventListener;
 import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
 import org.apache.metron.common.zookeeper.configurations.Reloadable;
@@ -49,6 +52,7 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
 
   protected CuratorFramework client;
   protected ZKCache cache;
+  protected CloseableHttpClient httpClient;
   private final CONFIG_T configurations;
   public ConfiguredBolt(String zookeeperUrl, String configurationStrategy) {
     this.zookeeperUrl = zookeeperUrl;
@@ -84,6 +88,7 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     prepCache();
+    httpClient = HttpClientUtils.getPoolingClient(getConfigurations().getGlobalConfig());
   }
 
   protected void prepCache() {
@@ -127,5 +132,10 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
   public void cleanup() {
     cache.close();
     client.close();
+    try {
+      httpClient.close();
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
+    }
   }
 }

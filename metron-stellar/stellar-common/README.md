@@ -248,7 +248,8 @@ Where:
 | [ `REDUCE`](#reduce)                                                                               |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                           |
-| [ `REGEXP_REPLACE`](#regexp_replace)                                                               |
+| [ `REGEXP_REPLACE`](#regexp_replace)
+| [ `REST_GET`](#rest_get)
 | [ `ROUND`](#round)                                                                                 |
 | [ `SAMPLE_ADD`](../../metron-analytics/metron-statistics#sample_add)                               |
 | [ `SAMPLE_GET`](../../metron-analytics/metron-statistics#sample_get)                               |
@@ -916,6 +917,13 @@ Where:
     * pattern - The proposed regex pattern
     * value - The value to replace the regex pattern
   * Returns: The modified input string with replaced values
+  
+### `REST_GET`
+  * Description: Performs a REST GET request and parses the JSON results into a map.
+  * Input:
+    * url - URI to the REST service
+    * rest_config - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter of the same name. Default is the empty Map, meaning no overrides.
+  * Returns: JSON results as a Map
 
 ### `ROUND`
   * Description: Rounds a number to the nearest integer.  This is half-up rounding.
