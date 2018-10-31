@@ -23,12 +23,15 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -51,6 +54,9 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   private transient ElasticsearchClient client;
   private AccessConfig accessConfig;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
+  private BulkDocumentWriter<Document> documentWriter;
+  private int failures;
+  private Throwable lastException;
 
   public ElasticsearchUpdateDao(ElasticsearchClient client,
       AccessConfig accessConfig,
@@ -62,54 +68,45 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
   @Override
   public Document update(Document update, Optional<String> index) throws IOException {
-    String indexPostfix = ElasticsearchUtils
-        .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
-    String sensorType = update.getSensorType();
-    String indexName = getIndexName(update, index, indexPostfix);
+    Map<Document, Optional<String>> updates = new HashMap<>();
+    updates.put(update, index);
 
-    IndexRequest indexRequest = buildIndexRequest(update, sensorType, indexName);
-    try {
-      IndexResponse response = client.getHighLevelClient().index(indexRequest);
-
-      ShardInfo shardInfo = response.getShardInfo();
-      int failed = shardInfo.getFailed();
-      if (failed > 0) {
-        throw new IOException(
-            "ElasticsearchDao index failed: " + Arrays.toString(shardInfo.getFailures()));
-      }
-    } catch (Exception e) {
-      throw new IOException(e.getMessage(), e);
-    }
-    return update;
+    Map<Document, Optional<String>> results = batchUpdate(updates);
+    return results.keySet().iterator().next();
   }
 
   @Override
   public Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
-    String indexPostfix = ElasticsearchUtils
-        .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
+    Map<String, Object> globalConfig = accessConfig.getGlobalConfigSupplier().get();
+    String indexPostfix = ElasticsearchUtils.getIndexFormat(globalConfig).format(new Date());
 
-    BulkRequest bulkRequestBuilder = new BulkRequest();
+    List<Document> documents = new ArrayList<>();
+    for (Map.Entry<Document, Optional<String>> entry : updates.entrySet()) {
+      Document document = entry.getKey();
 
-    // Get the indices we'll actually be using for each Document.
-    for (Map.Entry<Document, Optional<String>> updateEntry : updates.entrySet()) {
-      Document update = updateEntry.getKey();
-      String sensorType = update.getSensorType();
-      String indexName = getIndexName(update, updateEntry.getValue(), indexPostfix);
-      IndexRequest indexRequest = buildIndexRequest(
-          update,
-          sensorType,
-          indexName
-      );
+      // set the index name since it is known
+      String indexName = getIndexName(document, entry.getValue(), indexPostfix);
+      document.setIndex(Optional.of(indexName));
 
-      bulkRequestBuilder.add(indexRequest);
+      documents.add(document);
     }
 
-    BulkResponse bulkResponse = client.getHighLevelClient().bulk(bulkRequestBuilder);
-    if (bulkResponse.hasFailures()) {
-      LOG.error("Bulk Request has failures: {}", bulkResponse.buildFailureMessage());
-      throw new IOException(
-          "ElasticsearchDao upsert failed: " + bulkResponse.buildFailureMessage());
+    // track if a failure occurs so that a checked exception can be thrown; cannot throw checked exception in lambda
+    failures = 0;
+    lastException = null;
+    documentWriter.onFailure((document, cause, message) -> {
+      failures++;
+      lastException = cause;
+      LOG.error(message, cause);
+    });
+
+    // write the documents. if any document fails, raise an exception
+    documentWriter.write(documents);
+    if(failures > 0) {
+      String msg = String.format("Failed to update all documents; %d of %d update(s) failed", failures, documents.size());
+      throw new IOException(msg, lastException);
     }
+
     return updates;
   }
 

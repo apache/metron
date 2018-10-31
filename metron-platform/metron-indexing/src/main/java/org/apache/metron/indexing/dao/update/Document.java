@@ -21,6 +21,10 @@ package org.apache.metron.indexing.dao.update;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.metron.common.utils.JSONUtils;
 
 public class Document {
@@ -28,12 +32,21 @@ public class Document {
   Map<String, Object> document;
   String guid;
   String sensorType;
+  Optional<String> index;
 
   public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp) {
     setDocument(document);
     setGuid(guid);
     setTimestamp(timestamp);
     setSensorType(sensorType);
+  }
+
+  public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp, Optional<String> index) {
+    setDocument(document);
+    setGuid(guid);
+    setTimestamp(timestamp);
+    setSensorType(sensorType);
+    setIndex(index);
   }
 
   public Document(String document, String guid, String sensorType, Long timestamp) throws IOException {
@@ -89,14 +102,12 @@ public class Document {
     this.guid = guid;
   }
 
-  @Override
-  public String toString() {
-    return "Document{" +
-        "timestamp=" + timestamp +
-        ", document=" + document +
-        ", guid='" + guid + '\'' +
-        ", sensorType='" + sensorType + '\'' +
-        '}';
+  public Optional<String> getIndex() {
+    return index;
+  }
+
+  public void setIndex(Optional<String> index) {
+    this.index = index;
   }
 
   @Override
@@ -104,31 +115,38 @@ public class Document {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof Document)) {
       return false;
     }
-
     Document document1 = (Document) o;
-
-    if (timestamp != null ? !timestamp.equals(document1.timestamp) : document1.timestamp != null) {
-      return false;
-    }
-    if (document != null ? !document.equals(document1.document) : document1.document != null) {
-      return false;
-    }
-    if (guid != null ? !guid.equals(document1.guid) : document1.guid != null) {
-      return false;
-    }
-    return sensorType != null ? sensorType.equals(document1.sensorType)
-        : document1.sensorType == null;
+    return new EqualsBuilder()
+            .append(timestamp, document1.timestamp)
+            .append(document, document1.document)
+            .append(guid, document1.guid)
+            .append(sensorType, document1.sensorType)
+            .append(index, document1.index)
+            .isEquals();
   }
 
   @Override
   public int hashCode() {
-    int result = timestamp != null ? timestamp.hashCode() : 0;
-    result = 31 * result + (document != null ? document.hashCode() : 0);
-    result = 31 * result + (guid != null ? guid.hashCode() : 0);
-    result = 31 * result + (sensorType != null ? sensorType.hashCode() : 0);
-    return result;
+    return new HashCodeBuilder(17, 37)
+            .append(timestamp)
+            .append(document)
+            .append(guid)
+            .append(sensorType)
+            .append(index)
+            .toHashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "Document{" +
+            "timestamp=" + timestamp +
+            ", document=" + document +
+            ", guid='" + guid + '\'' +
+            ", sensorType='" + sensorType + '\'' +
+            ", index=" + index +
+            '}';
   }
 }
