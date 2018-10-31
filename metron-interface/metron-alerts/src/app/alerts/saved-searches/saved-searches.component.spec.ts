@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { Component, Input } from '@angular/core';
 
 import { SavedSearchesComponent } from './saved-searches.component';
 import { CollapseComponent } from '../../shared/collapse/collapse.component';
@@ -24,8 +23,8 @@ import { CenterEllipsesPipe } from '../../shared/pipes/center-ellipses.pipe';
 import { ColumnNameTranslatePipe } from '../../shared/pipes/column-name-translate.pipe';
 import { Router } from '@angular/router';
 import { SaveSearchService } from '../../service/save-search.service';
-import { MetronDialogBox } from '../../shared/metron-dialog-box';
 import { of } from 'rxjs';
+import { DialogService } from 'app/service/dialog.service';
 
 
 describe('SavedSearchesComponent', () => {
@@ -40,7 +39,7 @@ describe('SavedSearchesComponent', () => {
           listSavedSearches: jasmine.createSpy('listSavedSearches').and.returnValue(of([])),
           listRecentSearches: jasmine.createSpy('listRecentSearches').and.returnValue(of([])),
         } },
-        MetronDialogBox
+        DialogService
       ],
       declarations: [
         SavedSearchesComponent,

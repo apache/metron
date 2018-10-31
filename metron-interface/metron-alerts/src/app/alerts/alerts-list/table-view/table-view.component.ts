@@ -24,7 +24,6 @@ import {SortEvent} from '../../../shared/metron-table/metron-table.directive';
 import {ColumnMetadata} from '../../../model/column-metadata';
 import {Alert} from '../../../model/alert';
 import {SearchService} from '../../../service/search.service';
-import {MetronDialogBox} from '../../../shared/metron-dialog-box';
 import {QueryBuilder} from '../query-builder';
 import {Sort} from '../../../utils/enums';
 import {Filter} from '../../../model/filter';
@@ -34,6 +33,8 @@ import {MetaAlertService} from '../../../service/meta-alert.service';
 import {MetaAlertAddRemoveRequest} from '../../../model/meta-alert-add-remove-request';
 import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
+import { DialogService } from '../../../service/dialog.service';
+import { ConfirmationType } from 'app/model/confirmation-type';
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -47,15 +48,10 @@ export enum MetronAlertDisplayState {
 
 export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
-  searchService: SearchService;
-  updateService: UpdateService;
   isStatusFieldPresent = false;
-  metronDialogBox: MetronDialogBox;
-  metaAlertService: MetaAlertService;
   metaAlertsDisplayState: {[key: string]: MetronAlertDisplayState} = {};
   metronAlertDisplayState = MetronAlertDisplayState;
   globalConfig: {} = {};
-  globalConfigService: GlobalConfigService;
   configSubscription: Subscription;
 
   @Input() alerts: Alert[] = [];
@@ -71,16 +67,11 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   @Output() onShowConfigureTable = new EventEmitter<Alert>();
   @Output() onSelectedAlertsChange = new EventEmitter< Alert[]>();
 
-  constructor(searchService: SearchService,
-              metronDialogBox: MetronDialogBox,
-              updateService: UpdateService,
-              metaAlertService: MetaAlertService,
-              globalConfigService: GlobalConfigService) {
-    this.searchService = searchService;
-    this.metronDialogBox = metronDialogBox;
-    this.updateService = updateService;
-    this.metaAlertService = metaAlertService;
-    this.globalConfigService = globalConfigService;
+  constructor(public searchService: SearchService,
+              public updateService: UpdateService,
+              public metaAlertService: MetaAlertService,
+              public globalConfigService: GlobalConfigService,
+              public dialogService: DialogService) {
   }
 
   ngOnInit() {
@@ -259,20 +250,26 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   deleteOneAlertFromMetaAlert($event, alert: Alert, metaAlertIndex: number) {
-    this.metronDialogBox.showConfirmationMessage('Do you wish to remove the alert from the meta alert?').subscribe(response => {
-      if (response) {
-        this.doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex);
-      }
-    });
+    const confirmedSubscription = this.dialogService
+      .launchDialog('Do you wish to remove the alert from the meta alert?')
+      .subscribe(action => {
+        if (action === ConfirmationType.Confirmed) {
+          this.doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex);
+        }
+        confirmedSubscription.unsubscribe();
+      });
     $event.stopPropagation();
   }
 
   deleteMetaAlert($event, alert: Alert) {
-    this.metronDialogBox.showConfirmationMessage('Do you wish to remove all the alerts from meta alert?').subscribe(response => {
-      if (response) {
-        this.doDeleteMetaAlert(alert);
-      }
-    });
+    const confirmedSubscription = this.dialogService
+      .launchDialog('Do you wish to remove all the alerts from meta alert?')
+      .subscribe(action => {
+        if (action === ConfirmationType.Confirmed) {
+          this.doDeleteMetaAlert(alert);
+        }
+        confirmedSubscription.unsubscribe();
+      });
     $event.stopPropagation();
   }
 
