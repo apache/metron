@@ -18,6 +18,9 @@
  */
 context('PCAP Tab', () => {
 
+  const STATUS_CHECK_INTERVAL = 4200;
+  const BASE_TICK_INTERVAL = 200;
+
   beforeEach(() => {
     cy.server();
     cy.route({
@@ -85,7 +88,7 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
 
-    cy.tick(12000);
+    cy.tick(STATUS_CHECK_INTERVAL);
     cy.wait('@jobStatusCheck').its('url').should('include', '/api/v1/pcap/job_1537878471649_0001');
   });
 
@@ -98,9 +101,9 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(12000);
+    cy.tick(STATUS_CHECK_INTERVAL);
     cy.wait('@jobStatusCheck');
-
+    cy.tick(BASE_TICK_INTERVAL);
     cy.contains('75%').should('be.visible');
   });
 
@@ -114,9 +117,9 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(12000);
+    cy.tick(STATUS_CHECK_INTERVAL);
     cy.wait('@statusCheck');
-
+    cy.tick(BASE_TICK_INTERVAL);
     cy.wait('@gettingPdml').its('url').should('include', '/api/v1/pcap/job_1537878471649_0001/pdml?page=1');
   });
 
@@ -131,9 +134,9 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(12000);
+    cy.tick(STATUS_CHECK_INTERVAL);
     cy.wait('@statusCheck');
-
+    cy.tick(BASE_TICK_INTERVAL);
     cy.wait('@gettingPdml');
 
     cy.get('app-pcap-list table').should('be.visible');
@@ -150,15 +153,15 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(12000);
+    cy.tick(STATUS_CHECK_INTERVAL);
     cy.wait('@statusCheck');
+    cy.tick(BASE_TICK_INTERVAL);
     cy.wait('@gettingPdml');
 
     cy.get('app-pcap-list table').should('be.visible');
     cy.contains('General information').should('not.be.visible');
 
     cy.get(':nth-child(3) > .timestamp').click();
-    
     cy.contains('General information').should('be.visible');
     cy.get('[data-qe-id="proto"]').should('have.length', 6);
   });
@@ -173,8 +176,9 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(12000);
+    cy.tick(STATUS_CHECK_INTERVAL);
     cy.wait('@statusCheck');
+    cy.tick(BASE_TICK_INTERVAL);
     cy.wait('@gettingPdml');
 
     cy.contains('Page 1 of 2').should('be.visible');
@@ -195,8 +199,9 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(12000);
+    cy.tick(STATUS_CHECK_INTERVAL);
     cy.wait('@statusCheck');
+    cy.tick(BASE_TICK_INTERVAL);
     cy.wait('@gettingPdml');
 
     cy.contains('Download').should('be.visible');
@@ -218,7 +223,7 @@ context('PCAP Tab', () => {
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
     
-    cy.tick(12000);
+    cy.tick(STATUS_CHECK_INTERVAL);
     cy.wait('@jobStatusCheck');
 
     cy.get('[data-qe-id="pcap-cancel-query-button"]').click();
