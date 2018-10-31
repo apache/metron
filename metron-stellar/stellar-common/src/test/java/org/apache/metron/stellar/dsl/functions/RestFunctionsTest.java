@@ -181,7 +181,7 @@ public class RestFunctionsTest {
               .respond(response()
                       .withStatusCode(404));
 
-      assertEquals(new HashMap<>(), run(String.format("REST_GET('%s', '%s')", getUri, emptyContentOverride), context));
+    assertEquals(new HashMap<>(), run(String.format("REST_GET('%s', %s)", getUri, emptyContentOverride), context));
   }
 
   /**
@@ -204,7 +204,7 @@ public class RestFunctionsTest {
             .respond(response()
                     .withStatusCode(500));
 
-    Object result = run(String.format("REST_GET('%s', '%s')", getUri, errorValueOverride), context);
+    Object result = run(String.format("REST_GET('%s', %s)", getUri, errorValueOverride), context);
     assertEquals("error message" , result);
   }
 
@@ -286,7 +286,12 @@ public class RestFunctionsTest {
       assertEquals("globalHost", restConfig.getProxyHost());
     }
 
-    String functionRestConfig = String.format("{\"%s\": 1, \"%s\": \"functionUser\", \"%s\": 100}", SOCKET_TIMEOUT, BASIC_AUTH_USER, TIMEOUT);
+    Map<String, Object> functionRestConfig = new HashMap<String, Object>() {{
+      put(SOCKET_TIMEOUT, 1);
+      put(BASIC_AUTH_USER, "functionUser");
+      put(TIMEOUT, 100);
+    }};
+
 
     // Function call settings should override global settings
     {
@@ -300,7 +305,10 @@ public class RestFunctionsTest {
       assertEquals("globalHost", restConfig.getProxyHost());
     }
 
-    functionRestConfig = String.format("{\"%s\": \"functionUser\", \"%s\": 100}", BASIC_AUTH_USER, TIMEOUT);
+    functionRestConfig = new HashMap<String, Object>() {{
+      put(BASIC_AUTH_USER, "functionUser");
+      put(TIMEOUT, 100);
+    }};
 
     // New function call settings should take effect with global settings staying the same
     {
@@ -514,7 +522,7 @@ public class RestFunctionsTest {
    */
   @Test
   public void restGetShouldTimeoutWithSuppliedTimeout() {
-    String expression = String.format("REST_GET('%s', '%s')", getUri, timeoutConfig);
+    String expression = String.format("REST_GET('%s', %s)", getUri, timeoutConfig);
     Map<String, Object> actual = (Map<String, Object>) run(expression, context);
     assertNull(actual);
   }

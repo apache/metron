@@ -65,7 +65,7 @@ import static org.apache.metron.stellar.dsl.functions.RestConfig.STELLAR_REST_SE
  * Defines functions that enable REST requests with proper result and error handling.  Depends on an
  * Apache HttpComponents client being supplied as a Stellar HTTP_CLIENT capability.  Exposes various Http settings
  * including authentication, proxy and timeouts through the global config with the option to override any settings
- * though a config object supplied in the expression.
+ * through a config object supplied in the expression.
  */
 public class RestFunctions {
 
@@ -124,14 +124,6 @@ public class RestFunctions {
      * The CloseableHttpClient.
      */
     private CloseableHttpClient httpClient;
-
-    /**
-     * Member variables for caching the last used deserialized rest configs.
-     */
-    int globalHash = 0;
-    int functionHash = 0;
-    private RestConfig globalRestConfig;
-    private RestConfig functionRestConfig;
 
     /**
      * Executor used to impose a hard request timeout.
@@ -230,44 +222,17 @@ public class RestFunctions {
      *   <li>rest config stored in the global config</li>
      *   <li>default rest config</li>
      * </ul>
-     * Only settings specified in the rest config will override lower priority config settings.  A copy of the
-     * global and function supplied configs are maintained to avoid the deserialization cost on every function call.
-     * Configs are only deserialized when they change.
+     * Only settings specified in the rest config will override lower priority config settings.
      * @param args
      * @param globalConfig
      * @return
      * @throws IOException
      */
     protected RestConfig getRestConfig(List<Object> args, Map<String, Object> globalConfig) throws IOException {
-      Map<String, Object> newGlobalRestConfig = (Map<String, Object>) globalConfig.get(STELLAR_REST_SETTINGS);
-
-      // Detect if the global config has changed since the last call
-      int newGlobalHash = newGlobalRestConfig != null ? newGlobalRestConfig.hashCode() : 0;
-      if (globalHash != newGlobalHash) {
-        globalHash = newGlobalHash;
-        // Deserialize the global config if it exists, otherwise set it to null
-        if (newGlobalRestConfig != null) {
-          ByteArrayInputStream input = new ByteArrayInputStream(JSONUtils.INSTANCE.toJSON(newGlobalRestConfig));
-          globalRestConfig = JSONUtils.INSTANCE.load(input, RestConfig.class);
-        } else {
-          globalRestConfig = null;
-        }
-      }
-      String newFunctionRestConfig = null;
+      Map<String, Object> globalRestConfig = (Map<String, Object>) globalConfig.get(STELLAR_REST_SETTINGS);
+      Map<String, Object> functionRestConfig = null;
       if (args.size() > 1) {
-        newFunctionRestConfig = getArg(1, String.class, args);
-      }
-      // Detect if the function supplied config has changed since the last call
-      int newFunctionHash = newFunctionRestConfig != null ? newFunctionRestConfig.hashCode() : 0;
-      if (functionHash != newFunctionHash) {
-        functionHash = newFunctionHash;
-
-        // Deserialize the function supplied config if it exists, otherwise set it to null
-        if (newFunctionRestConfig != null) {
-          functionRestConfig = JSONUtils.INSTANCE.load(newFunctionRestConfig, RestConfig.class);
-        } else {
-          functionRestConfig = null;
-        }
+        functionRestConfig = getArg(1, Map.class, args);
       }
 
       // Add settings in order of precedence
@@ -332,7 +297,7 @@ public class RestFunctions {
 
       // Add the basic auth credentials if the rest config settings are present
       if (restConfig.getBasicAuthUser() != null && restConfig.getBasicAuthPasswordPath() != null) {
-        String password = new String(readBytes(new Path(restConfig.getBasicAuthPasswordPath())), StandardCharsets.UTF_8);
+        String password = new String(readBytes(new Path(restConfig.getBasicAuthPasswordPath())), StandardCharsets.UTF_8).trim();
         credentialsProvider.setCredentials(
                 new AuthScope(target),
                 new UsernamePasswordCredentials(restConfig.getBasicAuthUser(), password));
@@ -342,7 +307,7 @@ public class RestFunctions {
       // Add the proxy basic auth credentials if the rest config settings are present
       if (proxy.isPresent() && restConfig.getProxyBasicAuthUser() != null &&
               restConfig.getProxyBasicAuthPasswordPath() != null) {
-        String password = new String(readBytes(new Path(restConfig.getProxyBasicAuthPasswordPath())), StandardCharsets.UTF_8);
+        String password = new String(readBytes(new Path(restConfig.getProxyBasicAuthPasswordPath())), StandardCharsets.UTF_8).trim();
         credentialsProvider.setCredentials(
                 new AuthScope(proxy.get()),
                 new UsernamePasswordCredentials(restConfig.getProxyBasicAuthUser(), password));
