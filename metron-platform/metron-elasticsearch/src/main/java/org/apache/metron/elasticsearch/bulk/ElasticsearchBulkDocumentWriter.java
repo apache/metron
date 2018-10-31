@@ -33,27 +33,30 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
-public class ElasticsearchDocumentWriter<D extends Document> implements BulkDocumentWriter<D> {
+public class ElasticsearchBulkDocumentWriter<D extends Document> implements BulkDocumentWriter<D> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private SuccessCallback onSuccess;
-    private FailureCallback onFailure;
+    private Optional<SuccessCallback> onSuccess;
+    private Optional<FailureCallback> onFailure;
     private ElasticsearchClient client;
 
-    public ElasticsearchDocumentWriter(ElasticsearchClient client) {
+    public ElasticsearchBulkDocumentWriter(ElasticsearchClient client) {
         this.client = client;
+        this.onSuccess = Optional.empty();
+        this.onFailure = Optional.empty();
     }
 
     @Override
     public void onSuccess(SuccessCallback<D> onSuccess) {
-        this.onSuccess = onSuccess;
+        this.onSuccess = Optional.of(onSuccess);
     }
 
     @Override
     public void onFailure(FailureCallback<D> onFailure) {
-        this.onFailure = onFailure;
+        this.onFailure = Optional.of(onFailure);
     }
 
     @Override
@@ -71,14 +74,14 @@ public class ElasticsearchDocumentWriter<D extends Document> implements BulkDocu
             List<Document> successful = handleBulkResponse(bulkResponse, documents);
 
             // notify the success callback
-            onSuccess.onSuccess(successful);
-            LOG.debug("Wrote document(s) to Elasticsearch; batchSize={}, success={}, failed={}, tookInMillis={}",
+            onSuccess.ifPresent(callback -> callback.onSuccess(successful));
+            LOG.debug("Wrote document(s) to Elasticsearch; batchSize={}, success={}, failed={}, took={} ms",
                     documents.size(), successful.size(), documents.size() - successful.size(), bulkResponse.getTookInMillis());
 
         } catch(IOException e) {
             // failed to submit bulk request; all documents failed
             for(Document failed: documents) {
-                onFailure.onFailure(failed, e, ExceptionUtils.getRootCauseMessage(e));
+                onFailure.ifPresent(callback -> callback.onFailure(failed, e, ExceptionUtils.getRootCauseMessage(e)));
             }
             LOG.error("Failed to submit bulk request; all documents failed", e);
         }
@@ -104,7 +107,7 @@ public class ElasticsearchDocumentWriter<D extends Document> implements BulkDocu
                     Document failed = documents.get(response.getItemId());
                     Exception cause = response.getFailure().getCause();
                     String message = response.getFailureMessage();
-                    onFailure.onFailure(failed, cause, message);
+                    onFailure.ifPresent(callback -> callback.onFailure(failed, cause, message));
 
                 } else {
                     // request succeeded
@@ -131,18 +134,18 @@ public class ElasticsearchDocumentWriter<D extends Document> implements BulkDocu
 
         // create a request for each document
         for(Document document: documents) {
+            if(document.getTimestamp() == null) {
+                throw new IllegalArgumentException("Document must contain the timestamp");
+            }
+
             IndexRequest request = new IndexRequest()
                     .source(document.getDocument())
                     .type(document.getSensorType() + "_doc")
-                    .id(document.getGuid());
+                    .id(document.getGuid())
+                    .timestamp(document.getTimestamp().toString());
 
             // the index name may not be defined
             document.getIndex().ifPresent(name -> request.index(name));
-
-            // the timestamp may not be defined
-            if(document.getTimestamp() != null) {
-                request.timestamp(document.getTimestamp().toString());
-            }
 
             requests.add(request);
         }

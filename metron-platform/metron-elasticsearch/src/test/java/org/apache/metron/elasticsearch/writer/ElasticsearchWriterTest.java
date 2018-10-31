@@ -18,170 +18,200 @@
 
 package org.apache.metron.elasticsearch.writer;
 
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.tuple.Tuple;
+import org.json.simple.JSONObject;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.ImmutableList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import org.apache.metron.common.writer.BulkWriterResponse;
-import org.apache.storm.tuple.Tuple;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.junit.Test;
-
 public class ElasticsearchWriterTest {
-    @Test
-    public void testSingleSuccesses() throws Exception {
-        Tuple tuple1 = mock(Tuple.class);
 
-        BulkResponse response = mock(BulkResponse.class);
-        when(response.hasFailures()).thenReturn(false);
+    Map stormConf;
+    TopologyContext topologyContext;
+    WriterConfiguration writerConfiguration;
 
-        BulkWriterResponse expected = new BulkWriterResponse();
-        expected.addSuccess(tuple1);
+    @Before
+    public void setup() {
+        topologyContext = mock(TopologyContext.class);
 
-        ElasticsearchWriter esWriter = new ElasticsearchWriter();
-        BulkWriterResponse actual = esWriter.buildWriteReponse(ImmutableList.of(tuple1), response);
+        writerConfiguration = mock(WriterConfiguration.class);
+        when(writerConfiguration.getGlobalConfig()).thenReturn(globals());
 
-        assertEquals("Response should have no errors and single success", expected, actual);
+        stormConf = new HashMap();
     }
 
     @Test
-    public void testMultipleSuccesses() throws Exception {
-        Tuple tuple1 = mock(Tuple.class);
-        Tuple tuple2 = mock(Tuple.class);
-
-        BulkResponse response = mock(BulkResponse.class);
-        when(response.hasFailures()).thenReturn(false);
-
-        BulkWriterResponse expected = new BulkWriterResponse();
-        expected.addSuccess(tuple1);
-        expected.addSuccess(tuple2);
-
+    public void testSuccess() {
+        // create a writer where all writes will be successful
+        float probabilityOfSuccess = 1.0F;
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
-        BulkWriterResponse actual = esWriter.buildWriteReponse(ImmutableList.of(tuple1, tuple2), response);
+        esWriter.setDocumentWriter( new BulkDocumentWriterStub<>(probabilityOfSuccess));
+        esWriter.init(stormConf, topologyContext, writerConfiguration);
 
-        assertEquals("Response should have no errors and two successes", expected, actual);
+        // create a tuple and a message associated with that tuple
+        List<Tuple> tuples = createTuples(1);
+        List<JSONObject> messages = createMessages(1);
+
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+
+        // response should only contain successes
+        assertFalse(response.hasErrors());
+        assertTrue(response.getSuccesses().contains(tuples.get(0)));
     }
 
     @Test
-    public void testSingleFailure() throws Exception {
-        Tuple tuple1 = mock(Tuple.class);
-
-        BulkResponse response = mock(BulkResponse.class);
-        when(response.hasFailures()).thenReturn(true);
-
-        Exception e = new IllegalStateException();
-        BulkItemResponse itemResponse = buildBulkItemFailure(e);
-        when(response.iterator()).thenReturn(ImmutableList.of(itemResponse).iterator());
-
-        BulkWriterResponse expected = new BulkWriterResponse();
-        expected.addError(e, tuple1);
-
+    public void testSuccesses() {
+        // create a writer where all writes will be successful
+        float probabilityOfSuccess = 1.0F;
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
-        BulkWriterResponse actual = esWriter.buildWriteReponse(ImmutableList.of(tuple1), response);
+        esWriter.setDocumentWriter(new BulkDocumentWriterStub<>(probabilityOfSuccess));
+        esWriter.init(stormConf, topologyContext, writerConfiguration);
 
-        assertEquals("Response should have one error and zero successes", expected, actual);
+        // create a few tuples and the messages associated with the tuples
+        List<Tuple> tuples = createTuples(3);
+        List<JSONObject> messages = createMessages(3);
+
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+
+        // response should only contain successes
+        assertFalse(response.hasErrors());
+        assertTrue(response.getSuccesses().contains(tuples.get(0)));
+        assertTrue(response.getSuccesses().contains(tuples.get(1)));
+        assertTrue(response.getSuccesses().contains(tuples.get(2)));
     }
 
     @Test
-    public void testTwoSameFailure() throws Exception {
-        Tuple tuple1 = mock(Tuple.class);
-        Tuple tuple2 = mock(Tuple.class);
-
-        BulkResponse response = mock(BulkResponse.class);
-        when(response.hasFailures()).thenReturn(true);
-
-        Exception e = new IllegalStateException();
-
-        BulkItemResponse itemResponse = buildBulkItemFailure(e);
-        BulkItemResponse itemResponse2 = buildBulkItemFailure(e);
-
-        when(response.iterator()).thenReturn(ImmutableList.of(itemResponse, itemResponse2).iterator());
-
-        BulkWriterResponse expected = new BulkWriterResponse();
-        expected.addError(e, tuple1);
-        expected.addError(e, tuple2);
+    public void testFailure() {
+        // create a writer where all writes will fail
+        float probabilityOfSuccess = 0.0F;
+        BulkDocumentWriterStub<TupleBasedDocument> docWriter = new BulkDocumentWriterStub<>(probabilityOfSuccess);
 
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
-        BulkWriterResponse actual = esWriter.buildWriteReponse(ImmutableList.of(tuple1, tuple2), response);
+        esWriter.setDocumentWriter(docWriter);
+        esWriter.init(stormConf, topologyContext, writerConfiguration);
 
-        assertEquals("Response should have two errors and no successes", expected, actual);
+        // create a tuple and a message associated with that tuple
+        List<Tuple> tuples = createTuples(1);
+        List<JSONObject> messages = createMessages(1);
 
-        // Ensure the errors actually get collapsed together
-        Map<Throwable, Collection<Tuple>> actualErrors = actual.getErrors();
-        HashMap<Throwable, Collection<Tuple>> expectedErrors = new HashMap<>();
-        expectedErrors.put(e, ImmutableList.of(tuple1, tuple2));
-        assertEquals("Errors should have collapsed together", expectedErrors, actualErrors);
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+
+        // response should only contain failures
+        assertTrue(response.hasErrors());
+        Collection<Tuple> errors = response.getErrors().get(docWriter.getException());
+        assertTrue(errors.contains(tuples.get(0)));
     }
 
     @Test
-    public void testTwoDifferentFailure() throws Exception {
-        Tuple tuple1 = mock(Tuple.class);
-        Tuple tuple2 = mock(Tuple.class);
-
-        BulkResponse response = mock(BulkResponse.class);
-        when(response.hasFailures()).thenReturn(true);
-
-        Exception e = new IllegalStateException("Cause");
-        Exception e2 = new IllegalStateException("Different Cause");
-        BulkItemResponse itemResponse = buildBulkItemFailure(e);
-        BulkItemResponse itemResponse2 = buildBulkItemFailure(e2);
-
-        when(response.iterator()).thenReturn(ImmutableList.of(itemResponse, itemResponse2).iterator());
-
-        BulkWriterResponse expected = new BulkWriterResponse();
-        expected.addError(e, tuple1);
-        expected.addError(e2, tuple2);
+    public void testFailures() {
+        // create a writer where all writes will fail
+        float probabilityOfSuccess = 0.0F;
+        BulkDocumentWriterStub<TupleBasedDocument> docWriter = new BulkDocumentWriterStub<>(probabilityOfSuccess);
 
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
-        BulkWriterResponse actual = esWriter.buildWriteReponse(ImmutableList.of(tuple1, tuple2), response);
+        esWriter.setDocumentWriter(docWriter);
+        esWriter.init(stormConf, topologyContext, writerConfiguration);
 
-        assertEquals("Response should have two errors and no successes", expected, actual);
+        // create a few tuples and the messages associated with the tuples
+        List<Tuple> tuples = createTuples(3);
+        List<JSONObject> messages = createMessages(3);
 
-        // Ensure the errors did not get collapsed together
-        Map<Throwable, Collection<Tuple>> actualErrors = actual.getErrors();
-        HashMap<Throwable, Collection<Tuple>> expectedErrors = new HashMap<>();
-        expectedErrors.put(e, ImmutableList.of(tuple1));
-        expectedErrors.put(e2, ImmutableList.of(tuple2));
-        assertEquals("Errors should not have collapsed together", expectedErrors, actualErrors);
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+
+        // response should only contain failures
+        assertTrue(response.hasErrors());
+        Collection<Tuple> errors = response.getErrors().get(docWriter.getException());
+        assertTrue(errors.contains(tuples.get(0)));
+        assertTrue(errors.contains(tuples.get(1)));
+        assertTrue(errors.contains(tuples.get(2)));
     }
 
     @Test
-    public void testSuccessAndFailure() throws Exception {
-        Tuple tuple1 = mock(Tuple.class);
-        Tuple tuple2 = mock(Tuple.class);
-
-        BulkResponse response = mock(BulkResponse.class);
-        when(response.hasFailures()).thenReturn(true);
-
-        Exception e = new IllegalStateException("Cause");
-        BulkItemResponse itemResponse = buildBulkItemFailure(e);
-
-        BulkItemResponse itemResponse2 = mock(BulkItemResponse.class);
-        when(itemResponse2.isFailed()).thenReturn(false);
-
-        when(response.iterator()).thenReturn(ImmutableList.of(itemResponse, itemResponse2).iterator());
-
-        BulkWriterResponse expected = new BulkWriterResponse();
-        expected.addError(e, tuple1);
-        expected.addSuccess(tuple2);
+    public void testPartialFailures() {
+        // create a writer where some will fails and some will succeed
+        float probabilityOfSuccess = 0.5F;
+        BulkDocumentWriterStub<TupleBasedDocument> docWriter = new BulkDocumentWriterStub<>(probabilityOfSuccess);
 
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
-        BulkWriterResponse actual = esWriter.buildWriteReponse(ImmutableList.of(tuple1, tuple2), response);
+        esWriter.setDocumentWriter(docWriter);
+        esWriter.init(stormConf, topologyContext, writerConfiguration);
 
-        assertEquals("Response should have one error and one success", expected, actual);
+        // create some tuples and the messages associated with the tuples
+        int count = 100;
+        List<Tuple> tuples = createTuples(count);
+        List<JSONObject> messages = createMessages(count);
+
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+
+        // response should contain some successes and some failures
+        int successes = response.getSuccesses().size();
+        int failures = response.getErrors().get(docWriter.getException()).size();
+        assertTrue(response.hasErrors());
+        assertTrue(successes > 0);
+        assertTrue(failures > 0);
+        assertEquals(count, successes + failures);
     }
 
-    private BulkItemResponse buildBulkItemFailure(Exception e) {
-        BulkItemResponse itemResponse = mock(BulkItemResponse.class);
-        when(itemResponse.isFailed()).thenReturn(true);
-        BulkItemResponse.Failure failure = mock(BulkItemResponse.Failure.class);
-        when(itemResponse.getFailure()).thenReturn(failure);
-        when(failure.getCause()).thenReturn(e);
-        return itemResponse;
+    @Test(expected = IllegalStateException.class)
+    public void testWhenNumberOfMessagesDoesNotMatchTuples() {
+        // create a writer where all writes will be successful
+        float probabilityOfSuccess = 1.0F;
+        ElasticsearchWriter esWriter = new ElasticsearchWriter();
+        esWriter.setDocumentWriter( new BulkDocumentWriterStub<>(probabilityOfSuccess));
+        esWriter.init(stormConf, topologyContext, writerConfiguration);
+
+        // there are 5 tuples and only 1 message; there should be 5 messages to match the number of tuples
+        List<Tuple> tuples = createTuples(5);
+        List<JSONObject> messages = createMessages(1);
+
+        esWriter.write("bro", writerConfiguration, tuples, messages);
+        fail("expected exception");
+    }
+
+    private JSONObject message() {
+        JSONObject message = new JSONObject();
+        message.put(Constants.GUID, UUID.randomUUID().toString());
+        message.put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
+        message.put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
+        return message;
+    }
+
+    private Map<String, Object> globals() {
+        Map<String, Object> globals = new HashMap<>();
+        globals.put("es.date.format", "yyyy.MM.dd.HH");
+        return globals;
+    }
+
+    private List<Tuple> createTuples(int count) {
+        List<Tuple> tuples = new ArrayList<>();
+        for(int i=0; i<count; i++) {
+            tuples.add(mock(Tuple.class));
+        }
+        return tuples;
+    }
+
+    private List<JSONObject> createMessages(int count) {
+        List<JSONObject> messages = new ArrayList<>();
+        for(int i=0; i<count; i++) {
+            messages.add(message());
+        }
+        return messages;
     }
 }

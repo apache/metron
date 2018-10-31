@@ -25,6 +25,7 @@ import org.apache.metron.common.field.FieldNameConverters;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
+import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.storm.task.TopologyContext;
@@ -57,7 +58,14 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
    */
   private transient ElasticsearchClient client;
 
-  private BulkDocumentWriter<TupleBasedDocument> documentWriter;
+  /**
+   * Responsible for writing documents.
+   *
+   * <p>Uses a {@link TupleBasedDocument} to maintain the relationship
+   * between a {@link Tuple} and the document created for that tuple. If
+   * a document cannot be written, the associated tuple needs to be failed.
+   */
+  private transient BulkDocumentWriter<TupleBasedDocument> documentWriter;
 
   /**
    * A simple data formatter used to build the appropriate Elasticsearch index name.
@@ -66,12 +74,14 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
   @Override
   public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
-
-    // TODO define the documentWriter?  Or initialize if none?  Need to pass in the client?
-
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
-    client = ElasticsearchUtils.getClient(globalConfiguration);
     dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
+
+    // only create the document writer, if one not already set. useful for testing
+    if(documentWriter == null) {
+      client = ElasticsearchUtils.getClient(globalConfiguration);
+      documentWriter = new ElasticsearchBulkDocumentWriter<>(client);
+    }
   }
 
   @Override
@@ -92,7 +102,6 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       throw new IllegalStateException(format("Expect same number of tuples and messages; |tuples|=%d, |messages|=%d",
               tuples.size(), messages.size()));
     }
-    LOG.debug("About to write {} document(s) to Elasticsearch", batchSize);
 
     // create a document from each message
     List<TupleBasedDocument> documents = new ArrayList<>();
@@ -106,7 +115,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
         copyField(k.toString(), message, source, fieldNameConverter);
       }
 
-      // define the unique document id
+      // define the document id
       String guid = String.class.cast(source.get(Constants.GUID));
       if(guid == null) {
         throw new IllegalStateException("What to do if no GUID?");
@@ -147,7 +156,9 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
   @Override
   public void close() throws Exception {
-    client.close();
+    if(client != null) {
+      client.close();
+    }
   }
 
   /**
@@ -174,6 +185,14 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     // copy the field
     destination.put(destinationFieldName, source.get(sourceFieldName));
+  }
+
+  /**
+   * Set the document writer.  Primarily used for testing.
+   * @param documentWriter The {@link BulkDocumentWriter} to use.
+   */
+  public void setDocumentWriter(BulkDocumentWriter<TupleBasedDocument> documentWriter) {
+    this.documentWriter = documentWriter;
   }
 }
 

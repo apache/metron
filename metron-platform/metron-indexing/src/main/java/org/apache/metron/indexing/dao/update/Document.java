@@ -39,6 +39,7 @@ public class Document {
     setGuid(guid);
     setTimestamp(timestamp);
     setSensorType(sensorType);
+    index = Optional.empty();
   }
 
   public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp, Optional<String> index) {

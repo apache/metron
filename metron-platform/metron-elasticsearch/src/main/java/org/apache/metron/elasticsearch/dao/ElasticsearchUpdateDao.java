@@ -22,8 +22,6 @@ import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +30,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
+import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -39,11 +38,7 @@ import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +59,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     this.client = client;
     this.accessConfig = accessConfig;
     this.retrieveLatestDao = searchDao;
+    this.documentWriter = new ElasticsearchBulkDocumentWriter<>(client);
   }
 
   @Override
