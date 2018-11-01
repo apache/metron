@@ -79,7 +79,7 @@ public class RestConfig extends HashMap<String, Object> {
   public final static String RESPONSE_CODES_ALLOWED = "response.codes.allowed";
 
   /**
-   * The default value that will be returned on a successful request with empty content.  Default is null;
+   * The default value that will be returned on a successful request with empty content.  Default is null.
    */
   public final static String EMPTY_CONTENT_OVERRIDE = "empty.content.override";
 

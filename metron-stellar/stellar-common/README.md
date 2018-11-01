@@ -31,6 +31,12 @@ For a variety of components (threat intelligence triage and field transformation
     * [Advanced Usage](#advanced-usage)
     * [Implementation](#implementation)
 * [Stellar Configuration](#stellar-configuration)
+* [Stellar REST Client](#stellar-rest-client)
+    * [Configuration](#configuration)
+    * [Security](#security)
+    * [Examples](#examples)
+    * [Latency](#latency)
+    * [Response Handling](#response-handling)
 
 
 ## Introduction
@@ -1607,3 +1613,81 @@ that specify what should be included when searching for Stellar functions.
 }
 ```
 
+## Stellar REST Client
+
+Stellar provides a REST Client with the `REST_GET` function.  This function depends on the Apache HttComponents library for
+executing Http requests.  The syntax is:
+```
+REST_GET( uri , optional config )
+```
+
+### Configuration
+
+The second argument is an optional Map of settings.  The following settings are available:
+
+* basic.auth.user - User name for basic authentication.
+* basic.auth.password.path - Path to the basic authentication password file stored in HDFS.
+* proxy.host - Proxy host.
+* proxy.port - Proxy port.
+* proxy.basic.auth.user - User name for proxy basic authentication.
+* proxy.basic.auth.password.path - Path to the proxy basic authentication password file stored in HDFS.
+* timeout - Hard timeout for the total request time.  Defaults to 1000 ms.
+* connect.timeout - Connect timeout exposed by the HttpClient object.
+* connection.request.timeout - Connection request timeout exposed by the HttpClient object.
+* socket.timeout - Socket timeout exposed by the HttpClient object.
+* response.codes.allowed - A list of response codes that are allowed.  All others will be treated as errors.  Defaults to `200`.
+* empty.content.override - The default value that will be returned on a successful request with empty content.  Defaults to null.
+* error.value.override - The default value that will be returned on an error.  Defaults to null.
+
+This Map of settings can also be stored in the global config `stellar.rest.settings` property.  For example, to configure basic authentication
+settings you would add this property to the global config:
+
+```
+{
+  "stellar.rest.settings": {
+    "basic.auth.user": "user",
+    "basic.auth.password.path": "/password/path"
+  }
+}
+```
+
+Any settings passed into the expression will take precedence over the global config settings.  The global config settings will take precedence over the defaults.
+
+### Security
+
+At this time, only basic authentication is supported.  
+
+### Examples
+
+Perform a simple GET request with no authentication:
+```
+[Stellar]>>> REST_GET('http://httpbin.org/get')
+{args={}, headers={Accept=application/json, Accept-Encoding=gzip,deflate, Cache-Control=max-age=259200, Connection=close, Host=httpbin.org, User-Agent=Apache-HttpClient/4.3.2 (java 1.5)}, origin=127.0.0.1, 136.62.241.236, url=http://httpbin.org/get}
+```
+
+Perform a GET request using basic authentication:
+```
+[Stellar]>>> config := {'basic.auth.user': 'user', 'basic.auth.password.path': '/password/path'}
+{basic.auth.user=user, basic.auth.password.path=/password/path}
+[Stellar]>>> REST_GET('http://httpbin.org/basic-auth/user/passwd', config)
+{authenticated=true, user=user}
+```
+
+Perform a GET request using a proxy:
+```
+[Stellar]>>> config := {'proxy.host': 'node1', 'proxy.port': 3128, 'proxy.basic.auth.user': 'user', 'proxy.basic.auth.password.path': '/proxy/password/path'}
+{proxy.basic.auth.password.path=/proxy/password/path, proxy.port=3128, proxy.host=node1, proxy.basic.auth.user=user}
+[Stellar]>>> REST_GET('http://httpbin.org/get', config)
+{args={}, headers={Accept=application/json, Accept-Encoding=gzip,deflate, Cache-Control=max-age=259200, Connection=close, Host=httpbin.org, User-Agent=Apache-HttpClient/4.3.2 (java 1.5)}, origin=127.0.0.1, 136.62.241.236, url=http://httpbin.org/get}
+```
+
+### Latency
+
+Performing a REST request will introduce latency in a streaming pipeline.  Therefore this function should only be used for low volume telemetries that are unlikely to be
+affected by higher latency operations.  The `timeout` setting can be used to guarantee that requests complete within the configured time.
+
+### Response Handling
+
+In cases of Http errors, timeouts, etc this function will log the error and return null.  Only a status code of `200` is considered successful
+by default but this can be changed with the `response.codes.allowed` setting.  Values returned on errors or emtpy content can be changed from 
+the default value of null using the `error.value.override` and `empty.content.override` respectively.
