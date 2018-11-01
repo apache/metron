@@ -37,7 +37,10 @@
         <name>metron_spring_profiles_active</name>
         <description>Active Spring profiles. 'ldap' is used to enable authentication via LDAP.</description>
         <display-name>Active Spring profiles</display-name>
-        <value>jdbc</value>
+        <value/>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
     <property>
         <name>metron_jdbc_driver</name>
