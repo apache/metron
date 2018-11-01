@@ -126,7 +126,7 @@ public class ElasticsearchBulkDocumentWriterTest {
         List<Document> documents = new ArrayList<>();
         documents.add(document(message()));
 
-        // validate the "on failure" callback
+        // no callbacks defined
         writer.write(documents);
         assertFalse(onSuccessCalled);
         assertFalse(onFailureCalled);
@@ -136,7 +136,7 @@ public class ElasticsearchBulkDocumentWriterTest {
     public void testDocumentWithIndex() throws IOException {
         setupElasticsearchToSucceed();
 
-        // create a document that does not contain a timestamp
+        // create a document that specifies the index
         final String indexName = "test_index_foo";
         Document document = document(message());
         document.setIndex(Optional.of(indexName));

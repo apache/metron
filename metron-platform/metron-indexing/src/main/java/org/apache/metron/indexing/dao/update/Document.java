@@ -21,6 +21,7 @@ package org.apache.metron.indexing.dao.update;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -48,6 +49,10 @@ public class Document {
     setTimestamp(timestamp);
     setSensorType(sensorType);
     setIndex(index);
+  }
+
+  public Document(String document, String guid, String sensorType, Long timestamp, Optional<String> index) throws IOException {
+    this(convertDoc(document), guid, sensorType, timestamp, index);
   }
 
   public Document(String document, String guid, String sensorType, Long timestamp) throws IOException {
@@ -113,31 +118,19 @@ public class Document {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof Document)) {
-      return false;
-    }
+    if (this == o) return true;
+    if (!(o instanceof Document)) return false;
     Document document1 = (Document) o;
-    return new EqualsBuilder()
-            .append(timestamp, document1.timestamp)
-            .append(document, document1.document)
-            .append(guid, document1.guid)
-            .append(sensorType, document1.sensorType)
-            .append(index, document1.index)
-            .isEquals();
+    return Objects.equals(timestamp, document1.timestamp) &&
+            Objects.equals(document, document1.document) &&
+            Objects.equals(guid, document1.guid) &&
+            Objects.equals(sensorType, document1.sensorType) &&
+            Objects.equals(index, document1.index);
   }
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(17, 37)
-            .append(timestamp)
-            .append(document)
-            .append(guid)
-            .append(sensorType)
-            .append(index)
-            .toHashCode();
+    return Objects.hash(timestamp, document, guid, sensorType, index);
   }
 
   @Override

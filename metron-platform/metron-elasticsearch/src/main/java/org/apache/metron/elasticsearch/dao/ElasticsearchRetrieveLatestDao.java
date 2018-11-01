@@ -26,9 +26,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.apache.metron.common.Constants;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -71,7 +73,7 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
           String doc = hit.getSourceAsString();
           String sourceType = Iterables.getFirst(Splitter.on("_doc").split(hit.getType()), null);
           try {
-            return Optional.of(new Document(doc, hit.getId(), sourceType, ts));
+            return Optional.of(new Document(doc, hit.getId(), sourceType, ts, Optional.ofNullable(hit.getIndex())));
           } catch (IOException e) {
             throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
           }
@@ -133,12 +135,26 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
     return results;
   }
 
+  private Optional<Long> getTimestamp(Map<String, Object> document) {
+    Optional<Long> timestamp = Optional.empty();
+
+    if(document != null && document.containsKey(Constants.Fields.TIMESTAMP.getName())) {
+      Object value = document.get(Constants.Fields.TIMESTAMP.getName());
+      if(value instanceof Long) {
+        timestamp = Optional.of(Long.class.cast(value));
+      }
+    }
+
+    return timestamp;
+  }
+
   private Optional<Document> toDocument(final String guid, SearchHit hit) {
-    Long ts = 0L;
     String doc = hit.getSourceAsString();
     String sourceType = toSourceType(hit.getType());
     try {
-      return Optional.of(new Document(doc, guid, sourceType, ts));
+      Document document = new Document(doc, guid, sourceType, 0L, Optional.ofNullable(hit.getIndex()));
+      getTimestamp(document.getDocument()).ifPresent(ts -> document.setTimestamp(ts));
+      return Optional.of(document);
     } catch (IOException e) {
       throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
     }

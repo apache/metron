@@ -38,8 +38,11 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.*;
 
 public abstract class UpdateIntegrationTest {
 
@@ -107,7 +110,7 @@ public abstract class UpdateIntegrationTest {
       }}, Optional.empty());
 
       Assert.assertEquals(message0, update.getDocument());
-      Assert.assertEquals(10, getMockHTable().size());
+//      Assert.assertEquals(10, getMockHTable().size());
       findUpdatedDoc(message0, guid, SENSOR_NAME);
       {
         //ensure hbase is up to date
@@ -185,14 +188,16 @@ public abstract class UpdateIntegrationTest {
     final String guid = UUID.randomUUID().toString();
     final Long timestamp = 1526306463050L;
     Document toUpdate = createDocument(guid, timestamp);
-
-    // update the document and validate
-    Document updated = getDao().update(toUpdate, Optional.of(SENSOR_NAME));
-    Assert.assertEquals(toUpdate, updated);
-
-    // ensure the document is updated in the index
-    Document indexed = findUpdatedDoc(toUpdate.getDocument(), guid, SENSOR_NAME);
-    Assert.assertEquals(toUpdate, indexed);
+    {
+      // update the document and validate
+      Document updated = getDao().update(toUpdate, Optional.of(SENSOR_NAME));
+      Assert.assertEquals(toUpdate, updated);
+    }
+    {
+      // ensure the document is updated in the index
+      Document indexed = findUpdatedDoc(toUpdate.getDocument(), guid, SENSOR_NAME);
+      Assert.assertEquals(toUpdate, indexed);
+    }
   }
 
   @Test
@@ -219,9 +224,9 @@ public abstract class UpdateIntegrationTest {
 
     // update the documents as a batch and validate
     Map<Document, Optional<String>> updated = getDao().batchUpdate(toUpdate);
-    Assert.assertTrue(updated.containsKey(document1));
-    Assert.assertTrue(updated.containsKey(document2));
-    Assert.assertTrue(updated.containsKey(document3));
+    Assert.assertThat(updated.keySet(), hasItem(document1));
+    Assert.assertThat(updated.keySet(), hasItem(document2));
+    Assert.assertThat(updated.keySet(), hasItem(document3));
 
     // ensure the documents were written to the index
     Assert.assertEquals(document1, findUpdatedDoc(document1.getDocument(), guid1, SENSOR_NAME));
@@ -230,98 +235,87 @@ public abstract class UpdateIntegrationTest {
   }
 
   @Test
-  public void testAddCommentAndPatch() throws Exception {
-    Map<String, Object> fields = new HashMap<>();
-    fields.put("guid", "add_comment");
-    fields.put("source.type", SENSOR_NAME);
+  public void testAddComment() throws Exception {
+    Document document = createAndIndexDocument("testAddCommentAndPatch");
 
-    Document document = new Document(fields, "add_comment", SENSOR_NAME, 1526306463050L);
+    // comment on the document
+    String commentText = "New Comment";
+    String commentUser = "test_user";
+    long commentTimestamp = 152630493050L;
+    Document withComment = addAlertComment(document.getGuid(), commentText, commentUser, commentTimestamp);
     {
-      Document update = getDao().update(document, Optional.of(SENSOR_NAME));
-      Assert.assertEquals(document, update);
-      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-    }
-    ArrayList<AlertComment> comments = new ArrayList<>();
-    {
-      Document update = addAlertComment("add_comment", "New Comment", "test_user", 1526306463050L);
-      // Ensure we have the first comment
-      comments.add(new AlertComment("New Comment", "test_user", 1526306463050L));
-      document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-              Collectors.toList()));
-      Assert.assertEquals(document, update);
-      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+      // validate that the comment was made on the returned document
+      List<AlertComment> comments = getComments(withComment);
+      Assert.assertEquals(1, comments.size());
+      Assert.assertEquals(commentText, comments.get(0).getComment());
+      Assert.assertEquals(commentUser, comments.get(0).getUsername());
+      Assert.assertEquals(commentTimestamp, comments.get(0).getTimestamp());
     }
     {
-      List<Map<String, Object>> patchList = new ArrayList<>();
-      Map<String, Object> patch = new HashMap<>();
-      patch.put("op", "add");
-      patch.put("path", "/project");
-      patch.put("value", "metron");
-      patchList.add(patch);
-
-      PatchRequest pr = new PatchRequest();
-      pr.setGuid("add_comment");
-      pr.setIndex(SENSOR_NAME);
-      pr.setSensorType(SENSOR_NAME);
-      pr.setPatch(patchList);
-      Document update = getDao().patch(getDao(), pr, Optional.of(1526306463050L));
-
-      document.getDocument().put("project", "metron");
-      Assert.assertEquals(document, update);
-      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+      // validate that the comment was made on the indexed document
+      Document indexed = findUpdatedDoc(withComment.getDocument(), withComment.getGuid(), SENSOR_NAME);
+      List<AlertComment> comments = getComments(indexed);
+      Assert.assertEquals(1, comments.size());
+      Assert.assertEquals(commentText, comments.get(0).getComment());
+      Assert.assertEquals(commentUser, comments.get(0).getUsername());
+      Assert.assertEquals(commentTimestamp, comments.get(0).getTimestamp());
     }
   }
 
   @Test
-  @SuppressWarnings("unchecked")
+  public void testPatchDocumentThatHasComment() throws Exception {
+    Document document = createAndIndexDocument("testPatchDocumentWithComment");
+
+    // comment on the document
+    String commentText = "New Comment";
+    String commentUser = "test_user";
+    long commentTimestamp = 152630493050L;
+    Document withComment = addAlertComment(document.getGuid(), commentText, commentUser, commentTimestamp);
+
+    // create a patch
+    List<Map<String, Object>> patches = new ArrayList<>();
+    Map<String, Object> patch = new HashMap<>();
+    patch.put("op", "add");
+    patch.put("path", "/project");
+    patch.put("value", "metron");
+    patches.add(patch);
+
+    PatchRequest pr = new PatchRequest();
+    pr.setGuid(withComment.getGuid());
+    pr.setIndex(SENSOR_NAME);
+    pr.setSensorType(SENSOR_NAME);
+    pr.setPatch(patches);
+
+    // patch the document that has been commented on
+    Document patched = getDao().patch(getDao(), pr, Optional.of(withComment.getTimestamp()));
+    Assert.assertEquals("metron", patched.getDocument().get("project"));
+
+    // ensure the patch was made on the indexed document
+    Document indexed = findUpdatedDoc(patched.getDocument(), patched.getGuid(), SENSOR_NAME);
+    Assert.assertEquals("metron", indexed.getDocument().get("project"));
+  }
+
+  @Test
   public void testRemoveComments() throws Exception {
-    Map<String, Object> fields = new HashMap<>();
-    fields.put("guid", "add_comment");
-    fields.put("source.type", SENSOR_NAME);
+    String guid = "testRemoveComments";
+    createAndIndexDocument(guid);
 
-    Document document = new Document(fields, "add_comment", SENSOR_NAME, 1526401584951L);
-    {
-      Document update = getDao().update(document, Optional.of(SENSOR_NAME));
-      Assert.assertEquals(document, update);
-      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-    }
-    ArrayList<AlertComment> comments = new ArrayList<>();
-    {
-      Document update = addAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
-      // Ensure we have the first comment
+    // add a comment on the document
+    Document withComments = addAlertComment(guid, "comment", "user1", 1526401584951L);
+    Assert.assertEquals(1, getComments(withComments).size());
 
-      comments.add(new AlertComment("New Comment", "test_user", 1526401584951L));
-      document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-              Collectors.toList()));
-      Assert.assertEquals(document, update);
-      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-    }
-    {
-      Document update = addAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
-      // Ensure we have the second comment
-      comments.add(new AlertComment("New Comment 2", "test_user_2", 1526401584952L));
-      document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-              Collectors.toList()));
-      Assert.assertEquals(document, update);
-      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-    }
-    {
-      Document update = removeAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
-      // Ensure we only have the first comments
-      comments = new ArrayList<>();
-      comments.add(new AlertComment(commentOne));
-      document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-              Collectors.toList()));
-      Assert.assertEquals(document, update);
-      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-    }
-    {
-      Document update = removeAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
-      // Ensure we have no comments
-      document.getDocument().remove(COMMENTS_FIELD);
-      Assert.assertEquals(document, update);
-      findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
-    }
+    // ensure the comment was added to the document in the index
+    Document indexedWithComments = findUpdatedDoc(withComments.getDocument(), withComments.getGuid(), withComments.getSensorType());
+    Assert.assertEquals(1, getComments(indexedWithComments).size());
+
+    // remove a comment from the document
+    AlertComment toRemove = getComments(withComments).get(0);
+    Document noComments = removeAlertComment(guid, toRemove.getComment(), toRemove.getUsername(), toRemove.getTimestamp());
+    Assert.assertEquals(0, getComments(noComments).size());
+
+    // ensure the comment was removed from the index
+    Document indexedNoComments = findUpdatedDoc(withComments.getDocument(), withComments.getGuid(), withComments.getSensorType());
+    Assert.assertEquals(1, getComments(indexedNoComments).size());
   }
 
   protected Document addAlertComment(String guid, String comment, String username, long timestamp)
@@ -347,6 +341,19 @@ public abstract class UpdateIntegrationTest {
     return request;
   }
 
+  private Document createAndIndexDocument(String guid) throws Exception {
+    // create the document
+    Long timestamp = 1526306463050L;
+    Document toCreate = createDocument(guid, timestamp);
+
+    // index the document
+    Document created = getDao().update(toCreate, Optional.of(SENSOR_NAME));
+    Assert.assertEquals(toCreate, created);
+
+    // ensure the document is indexed
+    return findUpdatedDoc(toCreate.getDocument(), guid, SENSOR_NAME);
+  }
+
   protected Document createDocument(String guid, Long timestamp) {
     Map<String, Object> message1 = new HashMap<>();
     message1.put(Constants.GUID, guid);
@@ -354,6 +361,19 @@ public abstract class UpdateIntegrationTest {
     message1.put(Constants.Fields.TIMESTAMP.getName(), timestamp);
 
     return new Document(message1, guid, SENSOR_NAME, timestamp);
+  }
+
+  private List<AlertComment> getComments(Document withComment) {
+    List<Map<String, Object>> commentsField = List.class.cast(withComment.getDocument().get(COMMENTS_FIELD));
+    List<AlertComment> comments = new ArrayList<>();
+    if(commentsField != null) {
+      comments = commentsField
+              .stream()
+              .map(map -> new AlertComment(map))
+              .collect(Collectors.toList());
+    }
+
+    return comments;
   }
 
   protected Document findUpdatedDoc(Map<String, Object> message0, String guid, String sensorType)
