@@ -226,7 +226,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.3.2</version>
+            <version>${global_httpclient_version}</version>
         </dependency>
         <dependency>
             <!-- junit dependency added with default scope to allow inclusion of StellarProcessorUtils in main jar.
