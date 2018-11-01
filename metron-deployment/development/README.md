@@ -38,7 +38,20 @@ A couple notes
 * You may need or want to shut down any or all of the topologies. This is optional, but clears some room
 
 To setup this up, start full dev.
-* In Ambari, add the Knox service (Actions -> +Add Service).  Accept all defaults and let it install
+* In Ambari, add the Knox service (Actions -> +Add Service).  Accept all defaults and let it install. The configs that will be set how we need by default are:
+  * LDAP URL = ldap://localhost:33389
+  * User dn pattern = uid={0},ou=people,dc=hadoop,dc=apache,dc=org
+  * LDAP user searchbase = ou=people,dc=hadoop,dc=apache,dc=org
+  * Group Search Base = ou=groups,dc=hadoop,dc=apache,dc=org
+  * Group Search Filter = member={0}
+  * User Base DN = uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
+  * User Search Filter is empty
+  * User password attribute = userPassword
+  * LDAP group role attribute = cn
+  * Bind User = uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
+  * LDAP Truststore is empty
+  * LDAP Truststore Password is empty
+  
 * In the Knox configuration, go to "Advanced users-ldif". We have a custom ldif file "knox-demo-ldap.ldif" in "metron-deployment/development" that contains a customized variant of the users and groups defined here. Replace the default ldif configuration with the contents of "knox-demo-ldap.ldif"
 * Start the Demo LDAP (In Knox, "Service Actions -> Start Demo LDAP)
 * In Metron's configs, we're going to make two changes

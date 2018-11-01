@@ -62,9 +62,9 @@
   </property>
   <property>
     <name>metron.ldap.user.searchbase</name>
-    <display-name>Group Search Base</display-name>
+    <display-name>User Search Base</display-name>
     <value>ou=people,dc=hadoop,dc=apache,dc=org</value>
-    <description>LDAP group searchbase</description>
+    <description>LDAP user searchbase</description>
     <value-attributes>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>
@@ -127,7 +127,7 @@
   </property>
   <property>
     <name>metron.ldap.group.roleattribute</name>
-    <display-name>LDAP group role attribute.</display-name>
+    <display-name>LDAP group role attribute</display-name>
     <value>cn</value>
     <description>The LDAP group attribute to be used for determining roles</description>
     <value-attributes>
