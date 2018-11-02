@@ -18,7 +18,6 @@
 package org.apache.metron.elasticsearch.integration;
 
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
@@ -30,7 +29,6 @@ import org.apache.metron.elasticsearch.dao.ElasticsearchRetrieveLatestDao;
 import org.apache.metron.elasticsearch.dao.ElasticsearchSearchDao;
 import org.apache.metron.elasticsearch.dao.ElasticsearchUpdateDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
@@ -40,14 +38,11 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
-import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.utils.TestUtils;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -63,8 +58,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
 
 import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 

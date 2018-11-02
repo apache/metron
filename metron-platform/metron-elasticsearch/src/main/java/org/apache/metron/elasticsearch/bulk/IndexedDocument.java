@@ -21,8 +21,14 @@ import org.apache.metron.indexing.dao.update.Document;
 
 import java.util.Map;
 
+/**
+ * A {@link Document} along with the index where it is stored.
+ */
 public class IndexedDocument extends Document {
 
+    /**
+     * The name of the index where the {@link Document} is stored.
+     */
     private String index;
 
     public IndexedDocument(Map<String, Object> document, String guid, String sensorType, Long timestamp, String index) {

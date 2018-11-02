@@ -24,6 +24,9 @@ import org.apache.storm.tuple.Tuple;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * An {@link IndexedDocument} that is created from the contents of a {@link Tuple}.
+ */
 public class TupleBasedDocument extends IndexedDocument {
 
     private Tuple tuple;

@@ -61,8 +61,8 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   /**
    * Responsible for writing documents.
    *
-   * <p>Uses a {@link TupleBasedDocument} to maintain the relationship
-   * between a {@link Tuple} and the document created for that tuple. If
+   * <p>Uses a {@link TupleBasedDocument} to maintain the relationship between
+   * a {@link Tuple} and the document created from the contents of that tuple. If
    * a document cannot be written, the associated tuple needs to be failed.
    */
   private transient BulkDocumentWriter<TupleBasedDocument> documentWriter;

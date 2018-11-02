@@ -20,22 +20,47 @@ package org.apache.metron.elasticsearch.bulk;
 import java.util.List;
 
 /**
+ * Writes documents to an index in bulk.
  *
- * @param <D>
+ * <p>Partial failures within a batch can be handled individually by registering
+ * a {@link FailureListener}.
+ *
+ * @param <D> The type of document to write.
  */
 public interface BulkDocumentWriter<D extends IndexedDocument> {
 
-    interface SuccessCallback<D extends IndexedDocument> {
+    /**
+     * A listener that is notified when a set of documents have been
+     * written successfully.
+     * @param <D> The type of document to write.
+     */
+    interface SuccessListener<D extends IndexedDocument> {
         void onSuccess(List<D> documents);
     }
 
-    interface FailureCallback<D extends IndexedDocument> {
+    /**
+     * A listener that is notified when a document has failed to write.
+     * @param <D> The type of document to write.
+     */
+    interface FailureListener<D extends IndexedDocument> {
         void onFailure(D failedDocument, Throwable cause, String message);
     }
 
-    void onSuccess(SuccessCallback<D> onSuccess);
+    /**
+     * Register a listener that is notified when a document is successfully written.
+     * @param onSuccess The listener to notify.
+     */
+    void onSuccess(SuccessListener<D> onSuccess);
 
-    void onFailure(FailureCallback<D> onFailure);
+    /**
+     * Register a listener that is notified when a document fails to write.
+     * @param onFailure The listener to notify.
+     */
+    void onFailure(FailureListener<D> onFailure);
 
+    /**
+     * Write documents to an index.
+     * @param documents The documents to write.
+     */
     void write(List<D> documents);
 }

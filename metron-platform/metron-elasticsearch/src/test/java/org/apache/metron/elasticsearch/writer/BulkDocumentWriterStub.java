@@ -34,8 +34,8 @@ import java.util.Random;
  */
 public class BulkDocumentWriterStub<D extends IndexedDocument> implements BulkDocumentWriter<D> {
 
-    private SuccessCallback onSuccess;
-    private FailureCallback onFailure;
+    private SuccessListener onSuccess;
+    private FailureListener onFailure;
     private float probabilityOfSuccess;
     private Exception exception;
 
@@ -45,12 +45,12 @@ public class BulkDocumentWriterStub<D extends IndexedDocument> implements BulkDo
     }
 
     @Override
-    public void onSuccess(SuccessCallback<D> onSuccess) {
+    public void onSuccess(SuccessListener<D> onSuccess) {
         this.onSuccess = onSuccess;
     }
 
     @Override
-    public void onFailure(FailureCallback<D> onFailure) {
+    public void onFailure(FailureListener<D> onFailure) {
         this.onFailure = onFailure;
     }
 

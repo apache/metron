@@ -18,7 +18,6 @@
 package org.apache.metron.elasticsearch.bulk;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -36,12 +35,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Writes documents to an Elasticsearch index in bulk.
+ *
+ * @param <D> The type of document to write.
+ */
 public class ElasticsearchBulkDocumentWriter<D extends IndexedDocument> implements BulkDocumentWriter<D> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-    private Optional<SuccessCallback> onSuccess;
-    private Optional<FailureCallback> onFailure;
+    private Optional<SuccessListener> onSuccess;
+    private Optional<FailureListener> onFailure;
     private ElasticsearchClient client;
 
     public ElasticsearchBulkDocumentWriter(ElasticsearchClient client) {
@@ -51,12 +54,12 @@ public class ElasticsearchBulkDocumentWriter<D extends IndexedDocument> implemen
     }
 
     @Override
-    public void onSuccess(SuccessCallback<D> onSuccess) {
+    public void onSuccess(SuccessListener<D> onSuccess) {
         this.onSuccess = Optional.of(onSuccess);
     }
 
     @Override
-    public void onFailure(FailureCallback<D> onFailure) {
+    public void onFailure(FailureListener<D> onFailure) {
         this.onFailure = Optional.of(onFailure);
     }
 
@@ -69,11 +72,11 @@ public class ElasticsearchBulkDocumentWriter<D extends IndexedDocument> implemen
                     .map(doc -> createRequest(doc))
                     .collect(Collectors.toList());
 
-            // create one bulk request for all the documents
+            // create one bulk request to wrap each of the index requests
             BulkRequest bulkRequest = new BulkRequest();
             bulkRequest.add(requests);
 
-            // handle the bulk response
+            // submit the request and handle the response
             BulkResponse bulkResponse = client.getHighLevelClient().bulk(bulkRequest);
             List<D> successful = handleBulkResponse(bulkResponse, documents);
 
@@ -91,11 +94,22 @@ public class ElasticsearchBulkDocumentWriter<D extends IndexedDocument> implemen
         }
     }
 
+    private IndexRequest createRequest(D document) {
+        if(document.getTimestamp() == null) {
+            throw new IllegalArgumentException("Document must contain the timestamp");
+        }
+        return new IndexRequest()
+                .source(document.getDocument())
+                .type(document.getSensorType() + "_doc")
+                .id(document.getGuid())
+                .index(document.getIndex())
+                .timestamp(document.getTimestamp().toString());
+    }
+
     /**
      * Handles the {@link BulkResponse} received from Elasticsearch.
-     *
      * @param bulkResponse The response received from Elasticsearch.
-     * @param documents The documents that are being written.
+     * @param documents The documents included in the bulk request.
      * @return The documents that were successfully written. Failed documents are excluded.
      */
     private List<D> handleBulkResponse(BulkResponse bulkResponse, List<D> documents) {
@@ -125,24 +139,5 @@ public class ElasticsearchBulkDocumentWriter<D extends IndexedDocument> implemen
         }
 
         return successful;
-    }
-
-    /**
-     * Creates an {@link IndexRequest} for a document.
-     *
-     * @param document The document to index.
-     * @return The {@link IndexRequest} for a document.
-     */
-    private IndexRequest createRequest(D document) {
-        if(document.getTimestamp() == null) {
-            throw new IllegalArgumentException("Document must contain the timestamp");
-        }
-
-        return new IndexRequest()
-                .source(document.getDocument())
-                .type(document.getSensorType() + "_doc")
-                .id(document.getGuid())
-                .index(document.getIndex())
-                .timestamp(document.getTimestamp().toString());
     }
 }
