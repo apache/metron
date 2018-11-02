@@ -43,7 +43,6 @@ import org.apache.metron.stellar.dsl.StellarFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
@@ -297,7 +296,7 @@ public class RestFunctions {
 
       // Add the basic auth credentials if the rest config settings are present
       if (restConfig.getBasicAuthUser() != null && restConfig.getBasicAuthPasswordPath() != null) {
-        String password = new String(readBytes(new Path(restConfig.getBasicAuthPasswordPath())), StandardCharsets.UTF_8).trim();
+        String password = new String(readBytes(new Path(restConfig.getBasicAuthPasswordPath())), StandardCharsets.UTF_8);
         credentialsProvider.setCredentials(
                 new AuthScope(target),
                 new UsernamePasswordCredentials(restConfig.getBasicAuthUser(), password));
@@ -307,7 +306,7 @@ public class RestFunctions {
       // Add the proxy basic auth credentials if the rest config settings are present
       if (proxy.isPresent() && restConfig.getProxyBasicAuthUser() != null &&
               restConfig.getProxyBasicAuthPasswordPath() != null) {
-        String password = new String(readBytes(new Path(restConfig.getProxyBasicAuthPasswordPath())), StandardCharsets.UTF_8).trim();
+        String password = new String(readBytes(new Path(restConfig.getProxyBasicAuthPasswordPath())), StandardCharsets.UTF_8);
         credentialsProvider.setCredentials(
                 new AuthScope(proxy.get()),
                 new UsernamePasswordCredentials(restConfig.getProxyBasicAuthUser(), password));

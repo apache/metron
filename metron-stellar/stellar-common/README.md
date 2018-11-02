@@ -1653,6 +1653,8 @@ settings you would add this property to the global config:
 
 Any settings passed into the expression will take precedence over the global config settings.  The global config settings will take precedence over the defaults.
 
+For security purposes, passwords are read from a file in HDFS.  Passwords are read as is including any new lines or spaces. Be careful not to include these in the file unless they are specifically part of the password.
+
 ### Security
 
 At this time, only basic authentication is supported.  
