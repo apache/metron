@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.dao.ElasticsearchColumnMetadataDao;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.dao.ElasticsearchRequestSubmitter;
@@ -137,7 +138,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
     // setup the classes required to write the test data
     AccessConfig accessConfig = createAccessConfig();
-    ElasticsearchClient client = ElasticsearchUtils.getClient(createGlobalConfig());
+    ElasticsearchClient client = ElasticsearchClientFactory.create(createGlobalConfig());
     ElasticsearchRetrieveLatestDao retrieveLatestDao = new ElasticsearchRetrieveLatestDao(client);
     ElasticsearchColumnMetadataDao columnMetadataDao = new ElasticsearchColumnMetadataDao(client);
     ElasticsearchRequestSubmitter requestSubmitter = new ElasticsearchRequestSubmitter(client);
