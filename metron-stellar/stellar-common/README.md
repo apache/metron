@@ -1631,7 +1631,7 @@ The second argument is an optional Map of settings.  The following settings are 
 * proxy.port - Proxy port.
 * proxy.basic.auth.user - User name for proxy basic authentication.
 * proxy.basic.auth.password.path - Path to the proxy basic authentication password file stored in HDFS.
-* timeout - Hard timeout for the total request time.  Defaults to 1000 ms.
+* timeout - Stellar enforced hard timeout for the total request time. Defaults to 1000 ms.  HttpClient timeouts alone are insufficient to guarantee the hard timeout.
 * connect.timeout - Connect timeout exposed by the HttpClient object.
 * connection.request.timeout - Connection request timeout exposed by the HttpClient object.
 * socket.timeout - Socket timeout exposed by the HttpClient object.
