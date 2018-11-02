@@ -30,11 +30,14 @@ import org.apache.commons.collections4.map.AbstractMapDecorator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.utils.HDFSUtils;
 
+/**
+ * Access configuration options for the ES client.
+ */
 public class ElasticsearchClientConfig extends AbstractMapDecorator<String, Object> {
 
-  private static Integer THIRTY_SECONDS_IN_MILLIS = 30_000;
-  private static Integer ONE_SECONDS_IN_MILLIS = 1_000;
-  private static String DEFAULT_KEYSTORE_TYPE = "JKS";
+  private static final Integer THIRTY_SECONDS_IN_MILLIS = 30_000;
+  private static final Integer ONE_SECONDS_IN_MILLIS = 1_000;
+  private static final String DEFAULT_KEYSTORE_TYPE = "JKS";
 
   /**
    * Initialize config from provided settings Map.
@@ -122,6 +125,13 @@ public class ElasticsearchClientConfig extends AbstractMapDecorator<String, Obje
    */
   public boolean isSSLEnabled() {
     return ElasticsearchClientOptions.SSL_ENABLED.getOrDefault(this, Boolean.class, false);
+  }
+
+  /**
+   * http by default, https if ssl is enabled.
+   */
+  public String getConnectionScheme() {
+    return isSSLEnabled() ? "https" : "http";
   }
 
   /**

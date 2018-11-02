@@ -63,7 +63,7 @@ public class ElasticsearchColumnMetadataDaoTest {
       }
 
       @Override
-      public Map<String, FieldMapping> getMappings(String[] indices) throws IOException {
+      public Map<String, FieldMapping> getMappingByIndex(String[] indices) throws IOException {
         return mappings;
       }
     };

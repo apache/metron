@@ -15,18 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.elasticsearch.utils;
-
-import org.apache.commons.collections4.map.AbstractMapDecorator;
-
-import java.util.HashMap;
-
-/**
- * Typedef that maps Elasticsearch index name to properties.
- */
-public class FieldMapping extends AbstractMapDecorator<String, FieldProperties>{
-  public FieldMapping() {
-    super(new HashMap<String, FieldProperties>());
-  }
-
+export enum DialogType {
+  Confirmation,
+  Error
 }

@@ -17,20 +17,11 @@
  */
 package org.apache.metron.elasticsearch.utils;
 
-import static java.lang.String.format;
-
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.nio.file.Files;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,28 +29,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.RequestConfig.Builder;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.impl.nio.reactor.IOReactorConfig;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.SSLContexts;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.elasticsearch.client.ElasticsearchClient;
-import org.apache.metron.elasticsearch.config.ElasticsearchClientConfig;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.xcontent.XContentHelper;
@@ -84,10 +59,6 @@ public class ElasticsearchUtils {
    */
   public static final String INDEX_NAME_DELIMITER = "_index";
 
-  public static SimpleDateFormat getIndexFormat(WriterConfiguration configurations) {
-    return getIndexFormat(configurations.getGlobalConfig());
-  }
-
   public static SimpleDateFormat getIndexFormat(Map<String, Object> globalConfig) {
     String format = (String) globalConfig.get("es.date.format");
     return DATE_FORMAT_CACHE.get().computeIfAbsent(format, SimpleDateFormat::new);
@@ -108,179 +79,16 @@ public class ElasticsearchUtils {
     return indexName;
   }
 
-  /**
-   * Extracts the base index name from a full index name.
-   *
-   * For example, given an index named 'bro_index_2017.01.01.01', the base
-   * index name is 'bro'.
-   *
-   * @param indexName The full index name including delimiter and date postfix.
-   * @return The base index name.
-   */
-  public static String getBaseIndexName(String indexName) {
-
-    String[] parts = indexName.split(INDEX_NAME_DELIMITER);
-    if(parts.length < 1 || StringUtils.isEmpty(parts[0])) {
-      String msg = format("Unexpected index name; index=%s, delimiter=%s", indexName, INDEX_NAME_DELIMITER);
-      throw new IllegalStateException(msg);
-    }
-
-    return parts[0];
-  }
-
-  /**
-   * Instantiates an Elasticsearch client
-   *
-   * @param globalConfiguration Metron global config
-   * @return new es client
-   */
-  public static ElasticsearchClient getClient(Map<String, Object> globalConfiguration) {
-    ElasticsearchClientConfig esClientConfig = new ElasticsearchClientConfig(getEsSettings(globalConfiguration));
-
-    String scheme = esClientConfig.isSSLEnabled() ? "https" : "http";
-    RestClientBuilder builder = getRestClientBuilder(globalConfiguration, scheme);
-
-    RestClientBuilder.RequestConfigCallback reqCallback = reqConfigBuilder -> {
-      setupConnectionTimeouts(reqConfigBuilder, esClientConfig);
-      return reqConfigBuilder;
-    };
-    builder.setRequestConfigCallback(reqCallback);
-    builder.setMaxRetryTimeoutMillis(esClientConfig.getMaxRetryTimeoutMillis());
-
-    RestClientBuilder.HttpClientConfigCallback httpClientConfigCallback = clientBuilder -> {
-      setupNumConnectionThreads(clientBuilder, esClientConfig);
-      setupAuthentication(clientBuilder, esClientConfig);
-      setupConnectionEncryption(clientBuilder, esClientConfig);
-      return clientBuilder;
-    };
-    builder.setHttpClientConfigCallback(httpClientConfigCallback);
-
-    RestClient lowLevelClient = builder.build();
-    RestHighLevelClient client = new RestHighLevelClient(lowLevelClient);
-    return new ElasticsearchClient(lowLevelClient, client);
-  }
-
-  private static Map<String, Object> getEsSettings(Map<String, Object> globalConfig) {
-    return (Map<String, Object>) globalConfig.getOrDefault("es.client.settings", new HashMap<String, Object>());
-  }
-
-  private static RestClientBuilder getRestClientBuilder(Map<String, Object> globalConfiguration,
-      String scheme) {
-    List<HostnamePort> hps = getIps(globalConfiguration);
-    HttpHost[] posts = new HttpHost[hps.size()];
-    int i = 0;
-    for (HostnamePort hp : hps) {
-      posts[i++] = new HttpHost(hp.hostname, hp.port, scheme);
-    }
-    return RestClient.builder(posts);
-  }
-
-  /**
-   * Modifies request config builder with connection and socket timeouts.
-   * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_timeouts.html
-   *
-   * @param reqConfigBuilder builder to modify
-   * @param esClientConfig pull timeout settings from this config
-   */
-  private static void setupConnectionTimeouts(Builder reqConfigBuilder,
-      ElasticsearchClientConfig esClientConfig) {
-    reqConfigBuilder.setConnectTimeout(esClientConfig.getConnectTimeoutMillis());
-    reqConfigBuilder.setSocketTimeout(esClientConfig.getSocketTimeoutMillis());
-  }
-
-  /**
-   * Modifies client builder with setting for num connection threads. Default is ES client default,
-   * which is 1 to num processors per the documentation.
-   * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_number_of_threads.html
-   *
-   * @param clientBuilder builder to modify
-   * @param esClientConfig pull num threads property from config
-   */
-  private static void setupNumConnectionThreads(HttpAsyncClientBuilder clientBuilder,
-      ElasticsearchClientConfig esClientConfig) {
-    if (esClientConfig.getNumClientConnectionThreads().isPresent()) {
-      Integer numThreads = esClientConfig.getNumClientConnectionThreads().get();
-      LOG.info("Setting number of client connection threads: {}", numThreads);
-      clientBuilder.setDefaultIOReactorConfig(IOReactorConfig.custom()
-          .setIoThreadCount(numThreads).build());
-    }
-  }
-
-  /**
-   * Modifies client builder with settings for authentication with X-Pack.
-   * Note, we do not expose the ability to disable preemptive authentication.
-   * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_basic_authentication.html
-   *
-   * @param clientBuilder builder to modify
-   * @param esClientConfig pull credentials property from config
-   */
-  private static void setupAuthentication(HttpAsyncClientBuilder clientBuilder, ElasticsearchClientConfig esClientConfig) {
-    Optional<Entry<String, String>> credentials = esClientConfig.getCredentials();
-    if (credentials.isPresent()) {
-      LOG.info(
-          "Found auth credentials - setting up user/pass authenticated client connection for ES.");
-      final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-      UsernamePasswordCredentials upcredentials = new UsernamePasswordCredentials(
-          credentials.get().getKey(), credentials.get().getValue());
-      credentialsProvider.setCredentials(AuthScope.ANY, upcredentials);
-      clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-    } else {
-      LOG.info(
-          "Elasticsearch client credentials not provided. Defaulting to non-authenticated client connection.");
-    }
-  }
-
-  /**
-   * Modify client builder with connection encryption details (SSL) if applicable.
-   * If ssl.enabled=true, sets up SSL connection. If enabled, keystore.path is required. User can
-   * also optionally set keystore.password and keystore.type.
-   * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_encrypted_communication.html
-   *
-   * @param clientBuilder builder to modify
-   * @param esClientConfig pull connection encryption details from config
-   */
-  private static void setupConnectionEncryption(HttpAsyncClientBuilder clientBuilder,
-      ElasticsearchClientConfig esClientConfig) {
-    if (esClientConfig.isSSLEnabled()) {
-      LOG.info("Configuring client for SSL connection.");
-      if (!esClientConfig.getKeyStorePath().isPresent()) {
-        throw new IllegalStateException("KeyStore path must be provided for SSL connection.");
-      }
-      KeyStore truststore;
-      try {
-        truststore = KeyStore.getInstance(esClientConfig.getKeyStoreType());
-      } catch (KeyStoreException e) {
-        throw new IllegalStateException(
-            "Unable to get keystore type '" + esClientConfig.getKeyStoreType() + "'", e);
-      }
-      Optional<String> optKeyStorePass = esClientConfig.getKeyStorePassword();
-      char[] keyStorePass = optKeyStorePass.map(String::toCharArray).orElse(null);
-      try (InputStream is = Files.newInputStream(esClientConfig.getKeyStorePath().get())) {
-        truststore.load(is, keyStorePass);
-      } catch (IOException | NoSuchAlgorithmException | CertificateException e) {
-        throw new IllegalStateException(
-            "Unable to load keystore from path '" + esClientConfig.getKeyStorePath().get() + "'",
-            e);
-      }
-      try {
-        SSLContextBuilder sslBuilder = SSLContexts.custom().loadTrustMaterial(truststore, null);
-        clientBuilder.setSSLContext(sslBuilder.build());
-      } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-        throw new IllegalStateException("Unable to load truststore.", e);
-      }
-    }
-  }
-
   public static class HostnamePort {
-    String hostname;
-    Integer port;
+    public String hostname;
+    public Integer port;
     public HostnamePort(String hostname, Integer port) {
       this.hostname = hostname;
       this.port = port;
     }
   }
 
-  protected static List<HostnamePort> getIps(Map<String, Object> globalConfiguration) {
+  public static List<HostnamePort> getIps(Map<String, Object> globalConfiguration) {
     Object ipObj = globalConfiguration.get("es.ip");
     Object portObj = globalConfiguration.get("es.port");
     if(ipObj == null) {

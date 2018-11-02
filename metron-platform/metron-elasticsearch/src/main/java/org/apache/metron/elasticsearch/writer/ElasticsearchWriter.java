@@ -27,6 +27,7 @@ import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
@@ -41,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -77,9 +77,9 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
 
-    // only create the document writer, if one not already set. useful for testing
+    // only create the document writer, if one not already set. useful for testing.
     if(documentWriter == null) {
-      client = ElasticsearchUtils.getClient(globalConfiguration);
+      client = ElasticsearchClientFactory.create(globalConfiguration);
       documentWriter = new ElasticsearchBulkDocumentWriter<>(client);
     }
   }

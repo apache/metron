@@ -22,6 +22,9 @@ import org.apache.commons.collections4.map.AbstractMapDecorator;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Typedef that maps Elasticsearch field names to types.
+ */
 public class FieldProperties extends AbstractMapDecorator<String, Object> {
   public FieldProperties() {
     super(new HashMap<>());
