@@ -95,11 +95,11 @@ public class BaseFunctionResolverTest {
     }
   }
 
-  private SimpleFunctionResolver resolver;
+  private TestResolver resolver;
 
   @Before
   public void setup() {
-    resolver = new SimpleFunctionResolver();
+    resolver = new TestResolver();
   }
 
   @Test
