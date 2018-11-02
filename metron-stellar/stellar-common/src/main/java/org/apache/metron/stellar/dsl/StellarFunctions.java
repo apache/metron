@@ -30,4 +30,8 @@ public class StellarFunctions {
   public static void initialize(Context context) {
     SingletonFunctionResolver.getInstance().initialize(context);
   }
+
+  public static void teardown(Context context) {
+    SingletonFunctionResolver.getInstance().initialize(context);
+  }
 }

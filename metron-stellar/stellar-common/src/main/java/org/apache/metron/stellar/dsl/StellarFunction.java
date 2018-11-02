@@ -23,4 +23,5 @@ public interface StellarFunction {
   Object apply(List<Object> args, Context context) throws ParseException;
   void initialize(Context context);
   boolean isInitialized();
+  void teardown(Context context);
 }
