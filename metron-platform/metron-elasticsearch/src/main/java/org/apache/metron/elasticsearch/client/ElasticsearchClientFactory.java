@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -32,13 +33,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import javax.net.ssl.SSLContext;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
 public class ElasticsearchClientFactory {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String ES_SETTINGS_KEY = "es.client.settings"; // es config key in global config
 
   /**
    * Creates an Elasticsearch client from settings provided via the global config.
@@ -66,24 +67,24 @@ public class ElasticsearchClientFactory {
   public static ElasticsearchClient create(Map<String, Object> globalConfig) {
     ElasticsearchClientConfig esClientConfig = new ElasticsearchClientConfig(
         getEsSettings(globalConfig));
-
     HttpHost[] httpHosts = getHttpHosts(globalConfig, esClientConfig.getConnectionScheme());
     RestClientBuilder builder = RestClient.builder(httpHosts);
 
-    RestClientBuilder.RequestConfigCallback reqCallback = reqConfigBuilder -> {
-      setupConnectionTimeouts(reqConfigBuilder, esClientConfig);
+    builder.setRequestConfigCallback(reqConfigBuilder -> {
+      // Modifies request config builder with connection and socket timeouts.
+      // https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_timeouts.html
+      reqConfigBuilder.setConnectTimeout(esClientConfig.getConnectTimeoutMillis());
+      reqConfigBuilder.setSocketTimeout(esClientConfig.getSocketTimeoutMillis());
       return reqConfigBuilder;
-    };
-    builder.setRequestConfigCallback(reqCallback);
+    });
     builder.setMaxRetryTimeoutMillis(esClientConfig.getMaxRetryTimeoutMillis());
 
-    RestClientBuilder.HttpClientConfigCallback httpClientConfigCallback = clientBuilder -> {
-      setupNumConnectionThreads(clientBuilder, esClientConfig);
-      setupAuthentication(clientBuilder, esClientConfig);
-      setupConnectionEncryption(clientBuilder, esClientConfig);
+    builder.setHttpClientConfigCallback(clientBuilder -> {
+      clientBuilder.setDefaultIOReactorConfig(getIOReactorConfig(esClientConfig));
+      clientBuilder.setDefaultCredentialsProvider(getCredentialsProvider(esClientConfig));
+      clientBuilder.setSSLContext(getSSLContext(esClientConfig));
       return clientBuilder;
-    };
-    builder.setHttpClientConfigCallback(httpClientConfigCallback);
+    });
 
     RestClient lowLevelClient = builder.build();
     RestHighLevelClient client = new RestHighLevelClient(lowLevelClient);
@@ -91,7 +92,7 @@ public class ElasticsearchClientFactory {
   }
 
   private static Map<String, Object> getEsSettings(Map<String, Object> globalConfig) {
-    return (Map<String, Object>) globalConfig.getOrDefault("es.client.settings", new HashMap<>());
+    return (Map<String, Object>) globalConfig.getOrDefault(ES_SETTINGS_KEY, new HashMap<>());
   }
 
   private static HttpHost[] getHttpHosts(Map<String, Object> globalConfiguration, String scheme) {
@@ -105,45 +106,21 @@ public class ElasticsearchClientFactory {
   }
 
   /**
-   * Modifies request config builder with connection and socket timeouts.
-   * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_timeouts.html
-   *
-   * @param reqConfigBuilder builder to modify
-   * @param esClientConfig pull timeout settings from this config
-   */
-  private static void setupConnectionTimeouts(Builder reqConfigBuilder,
-      ElasticsearchClientConfig esClientConfig) {
-    reqConfigBuilder.setConnectTimeout(esClientConfig.getConnectTimeoutMillis());
-    reqConfigBuilder.setSocketTimeout(esClientConfig.getSocketTimeoutMillis());
-  }
-
-  /**
-   * Modifies client builder with setting for num connection threads. Default is ES client default,
+   * Creates config with setting for num connection threads. Default is ES client default,
    * which is 1 to num processors per the documentation.
    * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_number_of_threads.html
-   *
-   * @param clientBuilder builder to modify
-   * @param esClientConfig pull num threads property from config
    */
-  private static void setupNumConnectionThreads(HttpAsyncClientBuilder clientBuilder,
-      ElasticsearchClientConfig esClientConfig) {
+  private static IOReactorConfig getIOReactorConfig(ElasticsearchClientConfig esClientConfig) {
     if (esClientConfig.getNumClientConnectionThreads().isPresent()) {
       Integer numThreads = esClientConfig.getNumClientConnectionThreads().get();
       LOG.info("Setting number of client connection threads: {}", numThreads);
-      clientBuilder.setDefaultIOReactorConfig(IOReactorConfig.custom()
-          .setIoThreadCount(numThreads).build());
+      return IOReactorConfig.custom().setIoThreadCount(numThreads).build();
+    } else {
+      return IOReactorConfig.DEFAULT;
     }
   }
 
-  /**
-   * Modifies client builder with settings for authentication with X-Pack.
-   * Note, we do not expose the ability to disable preemptive authentication.
-   * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_basic_authentication.html
-   *
-   * @param clientBuilder builder to modify
-   * @param esClientConfig pull credentials property from config
-   */
-  private static void setupAuthentication(HttpAsyncClientBuilder clientBuilder,
+  private static CredentialsProvider getCredentialsProvider(
       ElasticsearchClientConfig esClientConfig) {
     Optional<Entry<String, String>> credentials = esClientConfig.getCredentials();
     if (credentials.isPresent()) {
@@ -153,52 +130,60 @@ public class ElasticsearchClientFactory {
       UsernamePasswordCredentials upcredentials = new UsernamePasswordCredentials(
           credentials.get().getKey(), credentials.get().getValue());
       credentialsProvider.setCredentials(AuthScope.ANY, upcredentials);
-      clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+      return credentialsProvider;
     } else {
       LOG.info(
           "Elasticsearch client credentials not provided. Defaulting to non-authenticated client connection.");
+      return null;
     }
   }
 
   /**
-   * Modify client builder with connection encryption details (SSL) if applicable.
+   * <p>Setup connection encryption details (SSL) if applicable.
    * If ssl.enabled=true, sets up SSL connection. If enabled, keystore.path is required. User can
    * also optionally set keystore.password and keystore.type.
    * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_encrypted_communication.html
-   *
-   * @param clientBuilder builder to modify
-   * @param esClientConfig pull connection encryption details from config
+   * <p>
+   * <p>Other guidance on the HTTP Component library and configuring SSL connections.
+   * http://www.robinhowlett.com/blog/2016/01/05/everything-you-ever-wanted-to-know-about-ssl-but-were-afraid-to-ask.
+   * <p>
+   * <p>JSSE docs - https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html
+   * <p>
+   * <p>Additional guidance for configuring Elasticsearch for SSL can be found here - https://www.elastic.co/guide/en/x-pack/5.6/ssl-tls.html
    */
-  private static void setupConnectionEncryption(HttpAsyncClientBuilder clientBuilder,
-      ElasticsearchClientConfig esClientConfig) {
+  private static SSLContext getSSLContext(ElasticsearchClientConfig esClientConfig) {
     if (esClientConfig.isSSLEnabled()) {
       LOG.info("Configuring client for SSL connection.");
       if (!esClientConfig.getKeyStorePath().isPresent()) {
         throw new IllegalStateException("KeyStore path must be provided for SSL connection.");
       }
-      KeyStore truststore;
-      try {
-        truststore = KeyStore.getInstance(esClientConfig.getKeyStoreType());
-      } catch (KeyStoreException e) {
-        throw new IllegalStateException(
-            "Unable to get keystore type '" + esClientConfig.getKeyStoreType() + "'", e);
-      }
       Optional<String> optKeyStorePass = esClientConfig.getKeyStorePassword();
       char[] keyStorePass = optKeyStorePass.map(String::toCharArray).orElse(null);
-      try (InputStream is = Files.newInputStream(esClientConfig.getKeyStorePath().get())) {
-        truststore.load(is, keyStorePass);
-      } catch (IOException | NoSuchAlgorithmException | CertificateException e) {
-        throw new IllegalStateException(
-            "Unable to load keystore from path '" + esClientConfig.getKeyStorePath().get() + "'",
-            e);
-      }
+      KeyStore trustStore = getStore(esClientConfig.getKeyStoreType(),
+          esClientConfig.getKeyStorePath().get(), keyStorePass);
       try {
-        SSLContextBuilder sslBuilder = SSLContexts.custom().loadTrustMaterial(truststore, null);
-        clientBuilder.setSSLContext(sslBuilder.build());
+        SSLContextBuilder sslBuilder = SSLContexts.custom().loadTrustMaterial(trustStore, null);
+        return sslBuilder.build();
       } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
         throw new IllegalStateException("Unable to load truststore.", e);
       }
     }
+    return null;
+  }
+
+  private static KeyStore getStore(String type, Path path, char[] pass) {
+    KeyStore store;
+    try {
+      store = KeyStore.getInstance(type);
+    } catch (KeyStoreException e) {
+      throw new IllegalStateException("Unable to get keystore type '" + type + "'", e);
+    }
+    try (InputStream is = Files.newInputStream(path)) {
+      store.load(is, pass);
+    } catch (IOException | NoSuchAlgorithmException | CertificateException e) {
+      throw new IllegalStateException("Unable to load keystore from path '" + path + "'", e);
+    }
+    return store;
   }
 
 }
