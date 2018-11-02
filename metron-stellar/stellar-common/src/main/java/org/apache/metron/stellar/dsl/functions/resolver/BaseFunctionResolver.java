@@ -95,6 +95,16 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
   }
 
   /**
+   * Teardown the Stellar functions.
+   */
+  @Override
+  public void teardown() {
+    for (StellarFunctionInfo info : getFunctionInfo()) {
+      info.getFunction().teardown();
+    }
+  }
+
+  /**
    * Resolves a function by name.
    * @param functionName The name of the function to resolve.
    * @return The executable StellarFunction.

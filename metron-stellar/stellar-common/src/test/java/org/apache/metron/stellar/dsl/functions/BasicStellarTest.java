@@ -75,6 +75,11 @@ public class BasicStellarTest {
     public boolean isInitialized() {
       return true;
     }
+
+    @Override
+    public void teardown() {
+
+    }
   }
 
   @Stellar(
@@ -100,6 +105,11 @@ public class BasicStellarTest {
     @Override
     public boolean isInitialized() {
       return true;
+    }
+
+    @Override
+    public void teardown() {
+
     }
   }
 
@@ -1005,4 +1015,5 @@ public class BasicStellarTest {
     checkFalsey("{}");
     checkFalsey("LIST_ADD([])");
   }
+
 }

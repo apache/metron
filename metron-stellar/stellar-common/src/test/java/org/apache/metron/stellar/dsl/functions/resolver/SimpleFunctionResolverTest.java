@@ -118,5 +118,10 @@ public class SimpleFunctionResolverTest {
     public boolean isInitialized() {
       return false;
     }
+
+    @Override
+    public void teardown() {
+
+    }
   }
 }

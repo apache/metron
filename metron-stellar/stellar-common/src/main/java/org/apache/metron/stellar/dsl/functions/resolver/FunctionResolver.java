@@ -43,4 +43,10 @@ public interface FunctionResolver extends Function<String, StellarFunction> {
    * @param context Context used to initialize.
    */
   void initialize(Context context);
+
+  /**
+   * Perform any cleanup necessary for the loaded Stellar functions.
+   */
+  void teardown();
+
 }

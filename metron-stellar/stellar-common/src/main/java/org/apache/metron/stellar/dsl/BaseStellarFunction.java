@@ -41,7 +41,7 @@ public abstract class BaseStellarFunction implements StellarFunction {
   }
 
   @Override
-  public void teardown(Context context) {
+  public void teardown() {
 
   }
 
