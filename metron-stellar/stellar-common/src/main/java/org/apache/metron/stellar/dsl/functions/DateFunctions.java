@@ -28,6 +28,7 @@ import org.apache.metron.stellar.common.utils.ConversionUtils;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
@@ -109,6 +110,13 @@ public class DateFunctions {
     return sdf.parse(date).getTime();
   }
 
+  public static String getDateFormat(String format, Optional<Long> epochTime, Optional<String> timezone) {
+    Long time = epochTime.orElseGet(System::currentTimeMillis);
+    TimezonedFormat fmt = timezone.map(s -> new TimezonedFormat(format, s)).orElseGet(() -> new TimezonedFormat(format));
+    SimpleDateFormat sdf = formatCache.get(fmt).get();
+    return sdf.format(new Date(time));
+  }
+
 
   /**
    * Stellar Function: TO_EPOCH_TIMESTAMP
@@ -141,6 +149,40 @@ public class DateFunctions {
         }
       }
       return null;
+    }
+  }
+
+  @Stellar( name="DATE_FORMAT",
+          description = "Takes an epoch timestamp and converts it to a date format.",
+          params = {"format - DateTime format as a String."
+                  , "timestampField - Optional epoch time in Long format.  Defaults to now."
+                  , "timezone - Optional timezone in String format."},
+          returns="Formatted date."
+  )
+  public static class DateFormat extends BaseStellarFunction {
+
+    public Object apply(List<Object> objects) {
+      int size = objects.size();
+      Optional<Object> formatObj = Optional.ofNullable(objects.get(0));
+      Optional<Long> epochObj = Optional.empty();
+      Optional<String> tzObj = Optional.empty();
+      if (size > 1) {
+        if (size == 2) {
+          if (objects.get(1) == null) {
+            return null;
+          }
+          epochObj = objects.get(1) instanceof Long ? Optional.of((Long) objects.get(1)) : Optional.empty();
+          tzObj = objects.get(1) instanceof String ? Optional.of((String) objects.get(1)) : Optional.empty();
+        } else {
+          epochObj = Optional.ofNullable((Long) objects.get(1));
+          tzObj = Optional.ofNullable((String) objects.get(2));
+        }
+      }
+      if(formatObj.isPresent()) {
+        return getDateFormat(formatObj.get().toString(), epochObj, tzObj);
+      } else {
+        return null;
+      }
     }
   }
 

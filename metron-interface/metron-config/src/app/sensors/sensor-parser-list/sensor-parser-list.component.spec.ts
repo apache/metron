@@ -720,7 +720,7 @@ describe('Component: SensorParserList', () => {
 
     component.updateSensorStatus();
     expect(component.sensors[0]['status']).toEqual('Running');
-    expect(component.sensors[0]['latency']).toEqual('10s');
+    expect(component.sensors[0]['latency']).toEqual('10ms');
     expect(component.sensors[0]['throughput']).toEqual('23kb/s');
 
     component.sensorsStatus[0].status = 'KILLED';

@@ -22,9 +22,10 @@ import {forkJoin as observableForkJoin} from 'rxjs';
 
 import {SaveSearchService} from '../../service/save-search.service';
 import {SaveSearch} from '../../model/save-search';
-import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {NUM_SAVED_SEARCH} from '../../utils/constants';
 import {CollapseComponentData, CollapseComponentDataItems} from '../../shared/collapse/collapse-component-data';
+import { DialogService } from 'app/service/dialog.service';
+import { ConfirmationType } from 'app/model/confirmation-type';
 
 @Component({
   selector: 'app-saved-searches',
@@ -39,7 +40,7 @@ export class SavedSearchesComponent implements OnInit {
   recentSearches: CollapseComponentData = new CollapseComponentData();
   constructor(private router: Router,
               private saveSearchService: SaveSearchService,
-              private metronDialog: MetronDialogBox) {
+              private dialogService: DialogService) {
   }
 
   doDeleteRecentSearch(selectedSearch: SaveSearch) {
@@ -61,21 +62,33 @@ export class SavedSearchesComponent implements OnInit {
   }
 
   deleteRecentSearch($event) {
-    let selectedSearch = this.recentSearcheObj.find(savedSearch => savedSearch.name === $event.key);
-    this.metronDialog.showConfirmationMessage('Do you wish to delete recent search ' + selectedSearch.name).subscribe((result: boolean) => {
-      if (result) {
-        this.doDeleteRecentSearch(selectedSearch);
-      }
-    });
+    let selectedSearch = this.recentSearcheObj.find(
+      savedSearch => savedSearch.name === $event.key
+    );
+    const confirmedSubscription = this.dialogService
+      .launchDialog(
+        'Do you wish to delete recent search ' + selectedSearch.name
+      )
+      .subscribe(action => {
+        if (action === ConfirmationType.Confirmed) {
+          this.doDeleteRecentSearch(selectedSearch);
+        }
+        confirmedSubscription.unsubscribe();
+      });
   }
 
   deleteSearch($event) {
-    let selectedSearch = this.searches.find(savedSearch => savedSearch.name === $event.key);
-    this.metronDialog.showConfirmationMessage('Do you wish to delete saved search ' + selectedSearch.name).subscribe((result: boolean) => {
-      if (result) {
-        this.doDeleteSearch(selectedSearch);
-      }
-    });
+    let selectedSearch = this.searches.find(
+      savedSearch => savedSearch.name === $event.key
+    );
+    const confirmedSubscription = this.dialogService
+      .launchDialog('Do you wish to delete saved search ' + selectedSearch.name)
+      .subscribe(action => {
+        if (action === ConfirmationType.Confirmed) {
+          this.doDeleteSearch(selectedSearch);
+        }
+        confirmedSubscription.unsubscribe();
+      });
   }
 
   ngOnInit() {

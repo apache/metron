@@ -25,23 +25,35 @@ import com.github.palindromicity.syslog.SyslogParserBuilder;
 import com.github.palindromicity.syslog.dsl.SyslogFieldKeys;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.parsers.BasicParser;
+import org.apache.metron.parsers.DefaultMessageParserResult;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.Reader;
+import java.io.Serializable;
 import java.io.StringReader;
+import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 
 /**
  * Parser for well structured RFC 5424 messages.
  */
-public class Syslog5424Parser extends BasicParser {
+public class Syslog5424Parser implements MessageParser<JSONObject>, Serializable {
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String NIL_POLICY_CONFIG = "nilPolicy";
   private transient SyslogParser syslogParser;
 
@@ -62,15 +74,31 @@ public class Syslog5424Parser extends BasicParser {
   }
 
   @Override
+  public boolean validate(JSONObject message) {
+    JSONObject value = message;
+    if (!(value.containsKey("original_string"))) {
+      LOG.trace("[Metron] Message does not have original_string: {}", message);
+      return false;
+    } else if (!(value.containsKey("timestamp"))) {
+      LOG.trace("[Metron] Message does not have timestamp: {}", message);
+      return false;
+    } else {
+      LOG.trace("[Metron] Message conforms to schema: {}", message);
+      return true;
+    }
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
-  public List<JSONObject> parse(byte[] rawMessage) {
+  public Optional<MessageParserResult<JSONObject>> parseOptionalResult(byte[] rawMessage) {
     try {
       if (rawMessage == null || rawMessage.length == 0) {
-        return null;
+        return Optional.empty();
       }
 
       String originalString = new String(rawMessage);
       List<JSONObject> returnList = new ArrayList<>();
+      Map<Object,Throwable> errorMap = new HashMap<>();
       try (Reader reader = new BufferedReader(new StringReader(originalString))) {
         syslogParser.parseLines(reader, (m) -> {
           JSONObject jsonObject = new JSONObject(m);
@@ -79,14 +107,14 @@ public class Syslog5424Parser extends BasicParser {
           jsonObject.put("original_string", originalString);
           setTimestamp(jsonObject);
           returnList.add(jsonObject);
-        });
+        },errorMap::put);
 
-        return returnList;
+        return Optional.of(new DefaultMessageParserResult<JSONObject>(returnList,errorMap));
       }
-    } catch (Exception e) {
-      String message = "Unable to parse " + new String(rawMessage) + ": " + e.getMessage();
+    } catch (IOException e) {
+      String message = "Unable to read buffer " + new String(rawMessage) + ": " + e.getMessage();
       LOG.error(message, e);
-      throw new IllegalStateException(message, e);
+      return Optional.of(new DefaultMessageParserResult<JSONObject>( new IllegalStateException(message, e)));
     }
   }
 

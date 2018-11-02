@@ -67,7 +67,7 @@ public class BroMessageFilter implements MessageFilter<JSONObject>{
    */
 
   @Override
-  public boolean emitTuple(JSONObject message, Context context) {
+  public boolean emit(JSONObject message, Context context) {
     String protocol = (String) message.get(_key);
     return _known_protocols.contains(protocol);
   }

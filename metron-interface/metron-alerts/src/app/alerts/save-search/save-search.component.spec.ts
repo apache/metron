@@ -21,7 +21,7 @@ import { SaveSearchComponent } from './save-search.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SaveSearchService } from '../../service/save-search.service';
-import { MetronDialogBox } from '../../shared/metron-dialog-box';
+import { DialogService } from 'app/service/dialog.service';
 
 describe('SaveSearchComponent', () => {
   let component: SaveSearchComponent;
@@ -33,7 +33,7 @@ describe('SaveSearchComponent', () => {
         FormsModule
       ],
       providers: [
-        MetronDialogBox,
+        DialogService,
         { provide: Router, useValue: {} },
         { provide: SaveSearchService, useValue: {} }
       ],

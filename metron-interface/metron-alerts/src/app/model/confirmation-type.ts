@@ -15,11 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.parsers.interfaces;
-
-import org.apache.metron.stellar.dsl.Context;
-
-public interface MessageFilter<T> extends Configurable{
-
-	boolean emit(T message, Context context);
+export enum ConfirmationType {
+  Confirmed = 'Confirmed',
+  Rejected = 'Rejected'
 }
