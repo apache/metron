@@ -18,6 +18,7 @@
 package org.apache.metron.elasticsearch.writer;
 
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
+import org.apache.metron.elasticsearch.bulk.IndexedDocument;
 import org.apache.metron.indexing.dao.update.Document;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ import java.util.Random;
  *
  * @param <D> The type of {@link Document} to write.
  */
-public class BulkDocumentWriterStub<D extends Document> implements BulkDocumentWriter<D> {
+public class BulkDocumentWriterStub<D extends IndexedDocument> implements BulkDocumentWriter<D> {
 
     private SuccessCallback onSuccess;
     private FailureCallback onFailure;

@@ -17,25 +17,29 @@
  */
 package org.apache.metron.elasticsearch.bulk;
 
-import java.util.List;
+import org.apache.metron.indexing.dao.update.Document;
 
-/**
- *
- * @param <D>
- */
-public interface BulkDocumentWriter<D extends IndexedDocument> {
+import java.util.Map;
 
-    interface SuccessCallback<D extends IndexedDocument> {
-        void onSuccess(List<D> documents);
+public class IndexedDocument extends Document {
+
+    private String index;
+
+    public IndexedDocument(Map<String, Object> document, String guid, String sensorType, Long timestamp, String index) {
+        super(document, guid, sensorType, timestamp);
+        this.index = index;
     }
 
-    interface FailureCallback<D extends IndexedDocument> {
-        void onFailure(D failedDocument, Throwable cause, String message);
+    public IndexedDocument(Document document, String index) {
+        super(document.getDocument(), document.getGuid(), document.getSensorType(), document.getTimestamp());
+        this.index = index;
     }
 
-    void onSuccess(SuccessCallback<D> onSuccess);
+    public String getIndex() {
+        return index;
+    }
 
-    void onFailure(FailureCallback<D> onFailure);
-
-    void write(List<D> documents);
+    public void setIndex(String index) {
+        this.index = index;
+    }
 }

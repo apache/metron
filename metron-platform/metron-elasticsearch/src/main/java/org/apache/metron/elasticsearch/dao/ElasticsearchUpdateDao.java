@@ -17,7 +17,18 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
-import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
+import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
+import org.apache.metron.elasticsearch.bulk.IndexedDocument;
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.search.AlertComment;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
+import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.UpdateDao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -29,18 +40,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
-import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
-import org.apache.metron.elasticsearch.client.ElasticsearchClient;
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
-import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.search.AlertComment;
-import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
-import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.UpdateDao;
-import org.elasticsearch.action.index.IndexRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 public class ElasticsearchUpdateDao implements UpdateDao {
 
@@ -49,7 +49,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   private transient ElasticsearchClient client;
   private AccessConfig accessConfig;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
-  private BulkDocumentWriter<Document> documentWriter;
+  private BulkDocumentWriter<IndexedDocument> documentWriter;
   private int failures;
   private Throwable lastException;
 
@@ -76,15 +76,13 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     Map<String, Object> globalConfig = accessConfig.getGlobalConfigSupplier().get();
     String indexPostfix = ElasticsearchUtils.getIndexFormat(globalConfig).format(new Date());
 
-    List<Document> documents = new ArrayList<>();
+    List<IndexedDocument> documents = new ArrayList<>();
     for (Map.Entry<Document, Optional<String>> entry : updates.entrySet()) {
       Document document = entry.getKey();
+      Optional<String> optionalIndex = entry.getValue();
 
-      // set the index name since it is known
-      String indexName = getIndexName(document, entry.getValue(), indexPostfix);
-      document.setIndex(Optional.of(indexName));
-
-      documents.add(document);
+      String indexName = optionalIndex.orElse(getIndexName(document, indexPostfix));
+      documents.add(new IndexedDocument(document, indexName));
     }
 
     // track if a failure occurs so that a checked exception can be thrown; cannot throw checked exception in lambda
@@ -175,28 +173,15 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     return update(newVersion, Optional.empty());
   }
 
-  protected String getIndexName(Document update, Optional<String> index, String indexPostFix) throws IOException {
-    return index.orElse(getIndexName(update.getGuid(), update.getSensorType())
-        .orElse(ElasticsearchUtils.getIndexName(update.getSensorType(), indexPostFix, null))
-    );
+  protected String getIndexName(Document update, String indexPostFix) throws IOException {
+    return findIndexNameByGUID(update.getGuid(), update.getSensorType())
+            .orElse(ElasticsearchUtils.getIndexName(update.getSensorType(), indexPostFix, null));
   }
 
-  protected Optional<String> getIndexName(String guid, String sensorType) throws IOException {
+  protected Optional<String> findIndexNameByGUID(String guid, String sensorType) throws IOException {
     return retrieveLatestDao.searchByGuid(guid,
         sensorType,
         hit -> Optional.ofNullable(hit.getIndex())
     );
-  }
-
-  protected IndexRequest buildIndexRequest(Document update, String sensorType, String indexName) {
-    String type = sensorType + "_doc";
-    Object ts = update.getTimestamp();
-    IndexRequest indexRequest = new IndexRequest(indexName, type, update.getGuid())
-        .source(update.getDocument());
-    if (ts != null) {
-      indexRequest = indexRequest.timestamp(ts.toString());
-    }
-
-    return indexRequest;
   }
 }

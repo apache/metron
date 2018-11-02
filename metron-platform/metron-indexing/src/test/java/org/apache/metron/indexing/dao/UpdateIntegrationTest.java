@@ -38,7 +38,6 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -110,7 +109,7 @@ public abstract class UpdateIntegrationTest {
       }}, Optional.empty());
 
       Assert.assertEquals(message0, update.getDocument());
-//      Assert.assertEquals(10, getMockHTable().size());
+      Assert.assertEquals(10, getMockHTable().size());
       findUpdatedDoc(message0, guid, SENSOR_NAME);
       {
         //ensure hbase is up to date
@@ -314,8 +313,8 @@ public abstract class UpdateIntegrationTest {
     Assert.assertEquals(0, getComments(noComments).size());
 
     // ensure the comment was removed from the index
-    Document indexedNoComments = findUpdatedDoc(withComments.getDocument(), withComments.getGuid(), withComments.getSensorType());
-    Assert.assertEquals(1, getComments(indexedNoComments).size());
+    Document indexedNoComments = findUpdatedDoc(noComments.getDocument(), withComments.getGuid(), withComments.getSensorType());
+    Assert.assertEquals(0, getComments(indexedNoComments).size());
   }
 
   protected Document addAlertComment(String guid, String comment, String username, long timestamp)

@@ -18,41 +18,24 @@
 
 package org.apache.metron.indexing.dao.update;
 
+import org.apache.metron.common.utils.JSONUtils;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.metron.common.utils.JSONUtils;
 
 public class Document {
   Long timestamp;
   Map<String, Object> document;
   String guid;
   String sensorType;
-  Optional<String> index;
 
   public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp) {
     setDocument(document);
     setGuid(guid);
     setTimestamp(timestamp);
     setSensorType(sensorType);
-    index = Optional.empty();
-  }
-
-  public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp, Optional<String> index) {
-    setDocument(document);
-    setGuid(guid);
-    setTimestamp(timestamp);
-    setSensorType(sensorType);
-    setIndex(index);
-  }
-
-  public Document(String document, String guid, String sensorType, Long timestamp, Optional<String> index) throws IOException {
-    this(convertDoc(document), guid, sensorType, timestamp, index);
   }
 
   public Document(String document, String guid, String sensorType, Long timestamp) throws IOException {
@@ -108,14 +91,6 @@ public class Document {
     this.guid = guid;
   }
 
-  public Optional<String> getIndex() {
-    return index;
-  }
-
-  public void setIndex(Optional<String> index) {
-    this.index = index;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -124,13 +99,12 @@ public class Document {
     return Objects.equals(timestamp, document1.timestamp) &&
             Objects.equals(document, document1.document) &&
             Objects.equals(guid, document1.guid) &&
-            Objects.equals(sensorType, document1.sensorType) &&
-            Objects.equals(index, document1.index);
+            Objects.equals(sensorType, document1.sensorType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(timestamp, document, guid, sensorType, index);
+    return Objects.hash(timestamp, document, guid, sensorType);
   }
 
   @Override
@@ -140,7 +114,6 @@ public class Document {
             ", document=" + document +
             ", guid='" + guid + '\'' +
             ", sensorType='" + sensorType + '\'' +
-            ", index=" + index +
             '}';
   }
 }

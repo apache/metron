@@ -20,16 +20,6 @@ package org.apache.metron.elasticsearch.dao;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-
 import org.apache.metron.common.Constants;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
@@ -42,6 +32,16 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
 
@@ -73,7 +73,7 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
           String doc = hit.getSourceAsString();
           String sourceType = Iterables.getFirst(Splitter.on("_doc").split(hit.getType()), null);
           try {
-            return Optional.of(new Document(doc, hit.getId(), sourceType, ts, Optional.ofNullable(hit.getIndex())));
+            return Optional.of(new Document(doc, hit.getId(), sourceType, ts));
           } catch (IOException e) {
             throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
           }
@@ -152,7 +152,7 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
     String doc = hit.getSourceAsString();
     String sourceType = toSourceType(hit.getType());
     try {
-      Document document = new Document(doc, guid, sourceType, 0L, Optional.ofNullable(hit.getIndex()));
+      Document document = new Document(doc, guid, sourceType, 0L);
       getTimestamp(document.getDocument()).ifPresent(ts -> document.setTimestamp(ts));
       return Optional.of(document);
     } catch (IOException e) {

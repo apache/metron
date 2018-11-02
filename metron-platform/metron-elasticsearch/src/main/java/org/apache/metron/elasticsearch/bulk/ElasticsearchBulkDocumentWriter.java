@@ -18,8 +18,8 @@
 package org.apache.metron.elasticsearch.bulk;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
-import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -34,8 +34,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-public class ElasticsearchBulkDocumentWriter<D extends Document> implements BulkDocumentWriter<D> {
+public class ElasticsearchBulkDocumentWriter<D extends IndexedDocument> implements BulkDocumentWriter<D> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -63,7 +64,10 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     public void write(List<D> documents) {
         try {
             // create an index request for each document
-            List<DocWriteRequest> requests = createIndexRequests(documents);
+            List<DocWriteRequest> requests = documents
+                    .stream()
+                    .map(doc -> createRequest(doc))
+                    .collect(Collectors.toList());
 
             // create one bulk request for all the documents
             BulkRequest bulkRequest = new BulkRequest();
@@ -71,7 +75,7 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
 
             // handle the bulk response
             BulkResponse bulkResponse = client.getHighLevelClient().bulk(bulkRequest);
-            List<Document> successful = handleBulkResponse(bulkResponse, documents);
+            List<D> successful = handleBulkResponse(bulkResponse, documents);
 
             // notify the success callback
             onSuccess.ifPresent(callback -> callback.onSuccess(successful));
@@ -80,7 +84,7 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
 
         } catch(IOException e) {
             // failed to submit bulk request; all documents failed
-            for(Document failed: documents) {
+            for(D failed: documents) {
                 onFailure.ifPresent(callback -> callback.onFailure(failed, e, ExceptionUtils.getRootCauseMessage(e)));
             }
             LOG.error("Failed to submit bulk request; all documents failed", e);
@@ -94,8 +98,8 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
      * @param documents The documents that are being written.
      * @return The documents that were successfully written. Failed documents are excluded.
      */
-    private List<Document> handleBulkResponse(BulkResponse bulkResponse, List<D> documents) {
-        List<Document> successful = new ArrayList<>();
+    private List<D> handleBulkResponse(BulkResponse bulkResponse, List<D> documents) {
+        List<D> successful = new ArrayList<>();
         if (bulkResponse.hasFailures()) {
 
             // interrogate the response to distinguish between those that succeeded and those that failed
@@ -104,14 +108,14 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
                 BulkItemResponse response = iterator.next();
                 if(response.isFailed()) {
                     // request failed
-                    Document failed = documents.get(response.getItemId());
+                    D failed = documents.get(response.getItemId());
                     Exception cause = response.getFailure().getCause();
                     String message = response.getFailureMessage();
                     onFailure.ifPresent(callback -> callback.onFailure(failed, cause, message));
 
                 } else {
                     // request succeeded
-                    Document success = documents.get(response.getItemId());
+                    D success = documents.get(response.getItemId());
                     successful.add(success);
                 }
             }
@@ -124,32 +128,21 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     }
 
     /**
-     * Creates an {@link IndexRequest} for each {@link Document}.
+     * Creates an {@link IndexRequest} for a document.
      *
-     * @param documents The list of documents to write.
-     * @return A list of requests; one for each document.
+     * @param document The document to index.
+     * @return The {@link IndexRequest} for a document.
      */
-    private List<DocWriteRequest> createIndexRequests(List<D> documents) {
-        List<DocWriteRequest> requests = new ArrayList<>();
-
-        // create a request for each document
-        for(Document document: documents) {
-            if(document.getTimestamp() == null) {
-                throw new IllegalArgumentException("Document must contain the timestamp");
-            }
-
-            IndexRequest request = new IndexRequest()
-                    .source(document.getDocument())
-                    .type(document.getSensorType() + "_doc")
-                    .id(document.getGuid())
-                    .timestamp(document.getTimestamp().toString());
-
-            // the index name may not be defined
-            document.getIndex().ifPresent(name -> request.index(name));
-
-            requests.add(request);
+    private IndexRequest createRequest(D document) {
+        if(document.getTimestamp() == null) {
+            throw new IllegalArgumentException("Document must contain the timestamp");
         }
 
-        return requests;
+        return new IndexRequest()
+                .source(document.getDocument())
+                .type(document.getSensorType() + "_doc")
+                .id(document.getGuid())
+                .index(document.getIndex())
+                .timestamp(document.getTimestamp().toString());
     }
 }

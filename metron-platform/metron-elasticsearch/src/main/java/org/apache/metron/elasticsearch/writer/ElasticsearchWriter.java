@@ -118,17 +118,16 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       // define the document id
       String guid = String.class.cast(source.get(Constants.GUID));
       if(guid == null) {
-        throw new IllegalStateException("What to do if no GUID?");
+        LOG.info("Missing '{}' field; document ID will be auto-generated.", Constants.GUID);
       }
 
       // define the document timestamp
-      // TODO what if the timestamp is a string?
-      Long timestamp = Long.class.cast(source.get("timestamp"));
+      Long timestamp = Long.class.cast(source.get(Constants.Fields.TIMESTAMP.getName()));
       if(timestamp == null) {
-        throw new IllegalStateException("What to do if no timestamp?");
+        LOG.info("Missing '{}' field; timestamp will be set to system time.", Constants.Fields.TIMESTAMP.getName());
       }
 
-      documents.add(new TupleBasedDocument(source, guid, sensorType, timestamp, tuple, Optional.of(indexName)));
+      documents.add(new TupleBasedDocument(source, guid, sensorType, timestamp, indexName, tuple));
     }
 
     // add successful tuples to the response
