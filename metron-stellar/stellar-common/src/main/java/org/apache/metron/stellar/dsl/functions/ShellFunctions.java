@@ -129,11 +129,6 @@ public class ShellFunctions {
     public boolean isInitialized() {
       return true;
     }
-
-    @Override
-    public void teardown() {
-
-    }
   }
 
   @Stellar(
@@ -172,11 +167,6 @@ public class ShellFunctions {
     public boolean isInitialized() {
       return true;
     }
-
-    @Override
-    public void teardown() {
-
-    }
   }
 
   @Stellar(
@@ -214,11 +204,6 @@ public class ShellFunctions {
     @Override
     public boolean isInitialized() {
       return true;
-    }
-
-    @Override
-    public void teardown() {
-
     }
   }
 
@@ -311,11 +296,6 @@ public class ShellFunctions {
     @Override
     public boolean isInitialized() {
       return true;
-    }
-
-    @Override
-    public void teardown() {
-
     }
   }
 }

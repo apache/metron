@@ -61,9 +61,4 @@ public class StellarMathFunction implements StellarFunction {
   public boolean isInitialized() {
     return true;
   }
-
-  @Override
-  public void teardown() {
-
-  }
 }

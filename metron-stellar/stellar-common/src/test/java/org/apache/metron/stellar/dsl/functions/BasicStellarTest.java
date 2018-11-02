@@ -76,10 +76,6 @@ public class BasicStellarTest {
       return true;
     }
 
-    @Override
-    public void teardown() {
-
-    }
   }
 
   @Stellar(
@@ -107,10 +103,6 @@ public class BasicStellarTest {
       return true;
     }
 
-    @Override
-    public void teardown() {
-
-    }
   }
 
   @Test

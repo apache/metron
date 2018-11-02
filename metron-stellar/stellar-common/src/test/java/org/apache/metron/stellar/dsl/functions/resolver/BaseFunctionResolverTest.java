@@ -18,6 +18,7 @@
 
 package org.apache.metron.stellar.dsl.functions.resolver;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -56,7 +57,7 @@ public class BaseFunctionResolverTest {
       "param1"})
   private static class IAmAFunction extends BaseStellarFunction {
 
-    public static boolean teardownCalled = false;
+    public static boolean closeCalled = false;
 
     public IAmAFunction() {
     }
@@ -67,8 +68,8 @@ public class BaseFunctionResolverTest {
     }
 
     @Override
-    public void teardown() {
-      teardownCalled = true;
+    public void close() {
+      closeCalled = true;
     }
   }
 
@@ -79,7 +80,7 @@ public class BaseFunctionResolverTest {
       "param1"})
   private static class IAmAnotherFunction extends BaseStellarFunction {
 
-    public static boolean teardownCalled = false;
+    public static boolean closeCalled = false;
 
     public IAmAnotherFunction() {
     }
@@ -90,8 +91,8 @@ public class BaseFunctionResolverTest {
     }
 
     @Override
-    public void teardown() {
-      teardownCalled = true;
+    public void close() {
+      closeCalled = true;
     }
   }
 
@@ -103,12 +104,12 @@ public class BaseFunctionResolverTest {
   }
 
   @Test
-  public void teardown_calls_all_loaded_function_teardown_methods() {
+  public void close_calls_all_loaded_function_close_methods() throws IOException {
     resolver.withClass(IAmAFunction.class);
     resolver.withClass(IAmAnotherFunction.class);
-    resolver.teardown();
-    Assert.assertTrue(IAmAFunction.teardownCalled);
-    Assert.assertTrue(IAmAnotherFunction.teardownCalled);
+    resolver.close();
+    Assert.assertTrue(IAmAFunction.closeCalled);
+    Assert.assertTrue(IAmAnotherFunction.closeCalled);
   }
 
 }

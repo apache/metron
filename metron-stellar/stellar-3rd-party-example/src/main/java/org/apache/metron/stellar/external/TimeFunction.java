@@ -40,10 +40,5 @@ public class TimeFunction {
     public boolean isInitialized() {
       return true;
     }
-
-    @Override
-    public void teardown() {
-
-    }
   }
 }

@@ -20,7 +20,7 @@ package org.apache.metron.stellar.dsl;
 import java.util.List;
 
 /**
- * Functions that do not require initialization and teardown can extend this class rather than directly implement StellarFunction
+ * Functions that do not require initialization can extend this class rather than directly implement StellarFunction
  */
 public abstract class BaseStellarFunction implements StellarFunction {
   public abstract Object apply(List<Object> args);
@@ -39,10 +39,4 @@ public abstract class BaseStellarFunction implements StellarFunction {
   public boolean isInitialized() {
     return true;
   }
-
-  @Override
-  public void teardown() {
-
-  }
-
 }

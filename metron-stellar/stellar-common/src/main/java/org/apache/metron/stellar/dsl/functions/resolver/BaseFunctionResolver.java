@@ -23,6 +23,7 @@ import static java.lang.String.format;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
@@ -95,12 +96,12 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
   }
 
   /**
-   * Teardown the Stellar functions.
+   * Close the Stellar functions.
    */
   @Override
-  public void teardown() {
+  public void close() throws IOException {
     for (StellarFunctionInfo info : getFunctionInfo()) {
-      info.getFunction().teardown();
+      info.getFunction().close();
     }
   }
 

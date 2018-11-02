@@ -17,6 +17,8 @@
  */
 package org.apache.metron.stellar.dsl.functions.resolver;
 
+import java.io.Closeable;
+import java.io.IOException;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.stellar.dsl.StellarFunctionInfo;
@@ -26,7 +28,7 @@ import java.util.function.Function;
 /**
  * Responsible for function resolution in Stellar.
  */
-public interface FunctionResolver extends Function<String, StellarFunction> {
+public interface FunctionResolver extends Function<String, StellarFunction>, Closeable {
 
   /**
    * Provides metadata about each Stellar function that is resolvable.
@@ -47,6 +49,7 @@ public interface FunctionResolver extends Function<String, StellarFunction> {
   /**
    * Perform any cleanup necessary for the loaded Stellar functions.
    */
-  void teardown();
+  @Override
+  void close() throws IOException;
 
 }
