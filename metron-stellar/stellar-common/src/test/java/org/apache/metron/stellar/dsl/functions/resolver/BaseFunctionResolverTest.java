@@ -27,7 +27,9 @@ import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class BaseFunctionResolverTest {
 
@@ -58,6 +60,7 @@ public class BaseFunctionResolverTest {
   private static class IAmAFunction extends BaseStellarFunction {
 
     public static boolean closeCalled = false;
+    public static boolean throwException = false;
 
     public IAmAFunction() {
     }
@@ -68,8 +71,12 @@ public class BaseFunctionResolverTest {
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
       closeCalled = true;
+      if (throwException) {
+        Throwable cause = new Throwable("Some nasty nasty cause.");
+        throw new IOException("Bad things happened", cause);
+      }
     }
   }
 
@@ -81,6 +88,7 @@ public class BaseFunctionResolverTest {
   private static class IAmAnotherFunction extends BaseStellarFunction {
 
     public static boolean closeCalled = false;
+    public static boolean throwException = false;
 
     public IAmAnotherFunction() {
     }
@@ -91,8 +99,11 @@ public class BaseFunctionResolverTest {
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
       closeCalled = true;
+      if (throwException) {
+        throw new NullPointerException("A most annoying exception.");
+      }
     }
   }
 
@@ -112,4 +123,17 @@ public class BaseFunctionResolverTest {
     Assert.assertTrue(IAmAnotherFunction.closeCalled);
   }
 
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
+
+  @Test
+  public void close_collects_all_exceptions_thrown_on_loaded_function_close_methods()
+      throws IOException {
+    IAmAFunction.throwException = true;
+    IAmAnotherFunction.throwException = true;
+    resolver.withClass(IAmAFunction.class);
+    resolver.withClass(IAmAnotherFunction.class);
+    exception.expect(IOException.class);
+    resolver.close();
+  }
 }

@@ -96,12 +96,31 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
   }
 
   /**
-   * Close the Stellar functions.
+   * Makes an attempt to close all Stellar functions.
+   * @throws IOException Catches all exceptions and summarizes them.
    */
   @Override
   public void close() throws IOException {
+    Map<String, Throwable> errors = new HashMap();
     for (StellarFunctionInfo info : getFunctionInfo()) {
-      info.getFunction().close();
+      try {
+        info.getFunction().close();
+      } catch (Throwable t) {
+        errors.put(info.getName(), t);
+      }
+    }
+    if (!errors.isEmpty()) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Unable to close Stellar functions:");
+      for (Map.Entry<String, Throwable> e : errors.entrySet()) {
+        Throwable throwable = e.getValue();
+        String eText = String
+            .format("Exception - Function: %s; Message: %s; Cause: %s", e.getKey(), throwable .getMessage(),
+                throwable .getCause());
+        sb.append(System.lineSeparator());
+        sb.append(eText);
+      }
+      throw new IOException(sb.toString());
     }
   }
 

@@ -19,11 +19,10 @@ package org.apache.metron.stellar.dsl.functions.resolver;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.function.Function;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.stellar.dsl.StellarFunctionInfo;
-
-import java.util.function.Function;
 
 /**
  * Responsible for function resolution in Stellar.
@@ -50,6 +49,6 @@ public interface FunctionResolver extends Function<String, StellarFunction>, Clo
    * Perform any cleanup necessary for the loaded Stellar functions.
    */
   @Override
-  void close() throws IOException;
+  default void close() throws IOException {}
 
 }
