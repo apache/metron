@@ -25,6 +25,6 @@ SPLIT_JOIN_ARGS="--remote $METRON_HOME/flux/enrichment/remote-splitjoin.yaml --f
 UNIFIED_ARGS="--remote $METRON_HOME/flux/enrichment/remote-unified.yaml --filter $METRON_HOME/config/enrichment-unified.properties"
 
 # by passing in different args, the user can execute an alternative enrichment topology
-ARGS=${@:-$SPLIT_JOIN_ARGS}
+ARGS=${@:-$UNIFIED_ARGS}
 
 storm jar $METRON_HOME/lib/$TOPOLOGY_JAR org.apache.storm.flux.Flux $ARGS
