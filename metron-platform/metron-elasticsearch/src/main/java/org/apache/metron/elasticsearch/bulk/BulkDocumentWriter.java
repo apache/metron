@@ -17,6 +17,8 @@
  */
 package org.apache.metron.elasticsearch.bulk;
 
+import org.apache.metron.indexing.dao.update.Document;
+
 import java.util.List;
 
 /**
@@ -27,14 +29,14 @@ import java.util.List;
  *
  * @param <D> The type of document to write.
  */
-public interface BulkDocumentWriter<D extends IndexedDocument> {
+public interface BulkDocumentWriter<D extends Document> {
 
     /**
      * A listener that is notified when a set of documents have been
      * written successfully.
      * @param <D> The type of document to write.
      */
-    interface SuccessListener<D extends IndexedDocument> {
+    interface SuccessListener<D extends Document> {
         void onSuccess(List<D> documents);
     }
 
@@ -42,7 +44,7 @@ public interface BulkDocumentWriter<D extends IndexedDocument> {
      * A listener that is notified when a document has failed to write.
      * @param <D> The type of document to write.
      */
-    interface FailureListener<D extends IndexedDocument> {
+    interface FailureListener<D extends Document> {
         void onFailure(D failedDocument, Throwable cause, String message);
     }
 
@@ -59,8 +61,14 @@ public interface BulkDocumentWriter<D extends IndexedDocument> {
     void onFailure(FailureListener<D> onFailure);
 
     /**
-     * Write documents to an index.
-     * @param documents The documents to write.
+     * Add a document to the batch.
+     * @param document The document to write.
+     * @param index The name of the index to write to.
      */
-    void write(List<D> documents);
+    void addDocument(D document, String index);
+
+    /**
+     * Write all documents in the batch.
+     */
+    void write();
 }

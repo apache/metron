@@ -18,7 +18,6 @@
 package org.apache.metron.elasticsearch.writer;
 
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
-import org.apache.metron.elasticsearch.bulk.IndexedDocument;
 import org.apache.metron.indexing.dao.update.Document;
 
 import java.util.ArrayList;
@@ -32,16 +31,18 @@ import java.util.Random;
  *
  * @param <D> The type of {@link Document} to write.
  */
-public class BulkDocumentWriterStub<D extends IndexedDocument> implements BulkDocumentWriter<D> {
+public class BulkDocumentWriterStub<D extends Document> implements BulkDocumentWriter<D> {
 
     private SuccessListener onSuccess;
     private FailureListener onFailure;
     private float probabilityOfSuccess;
     private Exception exception;
+    private List<D> documents;
 
     public BulkDocumentWriterStub(float probabilityOfSuccess) {
         this.probabilityOfSuccess = probabilityOfSuccess;
         this.exception = new IllegalStateException("Exception created by a stub for testing");
+        this.documents = new ArrayList<>();
     }
 
     @Override
@@ -55,7 +56,12 @@ public class BulkDocumentWriterStub<D extends IndexedDocument> implements BulkDo
     }
 
     @Override
-    public void write(List<D> documents) {
+    public void addDocument(D document, String index) {
+        documents.add(document);
+    }
+
+    @Override
+    public void write() {
         Random random = new Random();
 
         List<Document> successes = new ArrayList<>();

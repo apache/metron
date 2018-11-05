@@ -19,6 +19,7 @@ package org.apache.metron.elasticsearch.bulk;
 
 import org.apache.metron.common.Constants;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -28,7 +29,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 
 public class ElasticsearchBulkDocumentWriterTest {
 
-    ElasticsearchBulkDocumentWriter<IndexedDocument> writer;
+    ElasticsearchBulkDocumentWriter<Document> writer;
     ElasticsearchClient client;
     RestHighLevelClient highLevelClient;
     boolean onSuccessCalled;
@@ -65,16 +65,18 @@ public class ElasticsearchBulkDocumentWriterTest {
         setupElasticsearchToSucceed();
 
         // create a document to write
-        List<IndexedDocument> documents = new ArrayList<>();
-        documents.add(document(message()));
+        Document doc = document(message());
+        String index = "bro_index";
+        writer.addDocument(doc, index);
 
         // validate the "on success" callback
         writer.onSuccess(successfulDocs -> {
-            assertEquals(documents, successfulDocs);
+            assertEquals(1, successfulDocs.size());
+            assertEquals(doc, successfulDocs.get(0));
             onSuccessCalled = true;
         });
 
-        writer.write(documents);
+        writer.write();
         assertTrue(onSuccessCalled);
         assertFalse(onFailureCalled);
     }
@@ -84,11 +86,12 @@ public class ElasticsearchBulkDocumentWriterTest {
         setupElasticsearchToSucceed();
 
         // create a document to write
-        List<IndexedDocument> documents = new ArrayList<>();
-        documents.add(document(message()));
+        Document doc = document(message());
+        String index = "bro_index";
+        writer.addDocument(doc, index);
 
         // no callbacks defined
-        writer.write(documents);
+        writer.write();
         assertFalse(onSuccessCalled);
         assertFalse(onFailureCalled);
     }
@@ -98,17 +101,18 @@ public class ElasticsearchBulkDocumentWriterTest {
         setupElasticsearchToFail();
 
         // create a document to write
-        List<IndexedDocument> documents = new ArrayList<>();
-        documents.add(document(message()));
+        Document doc = document(message());
+        String index = "bro_index";
+        writer.addDocument(doc, index);
 
         // validate the "on failure" callback
         writer.onFailure((failedDoc, cause, msg) -> {
-            assertEquals(documents.get(0), failedDoc);
+            assertEquals(doc, failedDoc);
             onFailureCalled = true;
         });
 
         // no callbacks defined
-        writer.write(documents);
+        writer.write();
         assertFalse(onSuccessCalled);
         assertTrue(onFailureCalled);
     }
@@ -118,11 +122,12 @@ public class ElasticsearchBulkDocumentWriterTest {
         setupElasticsearchToFail();
 
         // create a document to write
-        List<IndexedDocument> documents = new ArrayList<>();
-        documents.add(document(message()));
+        Document doc = document(message());
+        String index = "bro_index";
+        writer.addDocument(doc, index);
 
         // no callbacks defined
-        writer.write(documents);
+        writer.write();
         assertFalse(onSuccessCalled);
         assertFalse(onFailureCalled);
     }
@@ -158,12 +163,11 @@ public class ElasticsearchBulkDocumentWriterTest {
         when(highLevelClient.bulk(any(BulkRequest.class))).thenReturn(response);
     }
 
-    private IndexedDocument document(JSONObject message) {
+    private Document document(JSONObject message) {
         String guid = UUID.randomUUID().toString();
         String sensorType = "bro";
         Long timestamp = System.currentTimeMillis();
-        String index = "bro_index";
-        return new IndexedDocument(message, guid, sensorType, timestamp, index);
+        return new Document(message, guid, sensorType, timestamp);
     }
 
     private JSONObject message() {
