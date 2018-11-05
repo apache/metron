@@ -6,7 +6,7 @@
         {
           "alert_template": {
           "path_match": "metron_alert.*",
-          "match_mapping_type": "string",
+          "match_mapping_type": "*",
           "mapping": {
             "type": "keyword"
           }
