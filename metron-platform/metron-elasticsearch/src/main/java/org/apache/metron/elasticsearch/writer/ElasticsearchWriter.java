@@ -127,7 +127,8 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
         LOG.info("Missing '{}' field; timestamp will be set to system time.", Constants.Fields.TIMESTAMP.getName());
       }
 
-      documents.add(new TupleBasedDocument(source, guid, sensorType, timestamp, indexName, tuple));
+      TupleBasedDocument document = new TupleBasedDocument(source, guid, sensorType, timestamp, tuple);
+      documentWriter.addDocument(document, indexName);
     }
 
     // add successful tuples to the response
@@ -138,13 +139,13 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     });
 
     // add any failed tuples to the response
-    documentWriter.onFailure((failedDocument, cause, message) -> {
-      Tuple failedTuple = failedDocument.getTuple();
+    documentWriter.onFailure((document, cause, message) -> {
+      Tuple failedTuple = document.getTuple();
       response.addError(cause, failedTuple);
     });
 
     // write the documents
-    documentWriter.write(documents);
+    documentWriter.write();
     return response;
   }
 

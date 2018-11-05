@@ -19,7 +19,6 @@ package org.apache.metron.elasticsearch.dao;
 
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
-import org.apache.metron.elasticsearch.bulk.IndexedDocument;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -49,7 +48,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   private transient ElasticsearchClient client;
   private AccessConfig accessConfig;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
-  private BulkDocumentWriter<IndexedDocument> documentWriter;
+  private BulkDocumentWriter<Document> documentWriter;
   private int failures;
   private Throwable lastException;
 
@@ -76,13 +75,11 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     Map<String, Object> globalConfig = accessConfig.getGlobalConfigSupplier().get();
     String indexPostfix = ElasticsearchUtils.getIndexFormat(globalConfig).format(new Date());
 
-    List<IndexedDocument> documents = new ArrayList<>();
     for (Map.Entry<Document, Optional<String>> entry : updates.entrySet()) {
       Document document = entry.getKey();
       Optional<String> optionalIndex = entry.getValue();
-
       String indexName = optionalIndex.orElse(getIndexName(document, indexPostfix));
-      documents.add(new IndexedDocument(document, indexName));
+      documentWriter.addDocument(document, indexName);
     }
 
     // record failures so that a checked exception can be thrown later; cannot throw checked exception in listener
@@ -94,10 +91,10 @@ public class ElasticsearchUpdateDao implements UpdateDao {
       LOG.error(message, cause);
     });
 
-    // write the documents. if any document fails, raise an exception
-    documentWriter.write(documents);
+    // write the documents. if any document fails, raise an exception.
+    documentWriter.write();
     if(failures > 0) {
-      String msg = String.format("Failed to update all documents; %d of %d update(s) failed", failures, documents.size());
+      String msg = String.format("Failed to update all documents; %d of %d update(s) failed", failures, updates.entrySet().size());
       throw new IOException(msg, lastException);
     }
 

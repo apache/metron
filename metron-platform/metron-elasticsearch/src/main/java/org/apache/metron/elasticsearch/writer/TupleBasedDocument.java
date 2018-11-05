@@ -17,15 +17,15 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
-import org.apache.metron.elasticsearch.bulk.IndexedDocument;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.storm.tuple.Tuple;
 
 import java.util.Map;
 
 /**
- * An {@link IndexedDocument} that is created from the contents of a {@link Tuple}.
+ * An {@link Document} that is created from the contents of a {@link Tuple}.
  */
-public class TupleBasedDocument extends IndexedDocument {
+public class TupleBasedDocument extends Document {
 
     private Tuple tuple;
 
@@ -33,9 +33,8 @@ public class TupleBasedDocument extends IndexedDocument {
                               String guid,
                               String sensorType,
                               Long timestamp,
-                              String index,
                               Tuple tuple) {
-        super(document, guid, sensorType, timestamp, index);
+        super(document, guid, sensorType, timestamp);
         this.tuple = tuple;
     }
 
