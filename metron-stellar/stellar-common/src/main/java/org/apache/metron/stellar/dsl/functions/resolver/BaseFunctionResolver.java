@@ -59,9 +59,15 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
    */
   protected Context context;
 
+  /**
+   * Indicates if closed has been called on this resolver.
+   */
+  private boolean closed;
+
   public BaseFunctionResolver() {
     // memoize provides lazy initialization and thread-safety (the ugly cast is necessary for serialization)
     functions = Suppliers.memoize((Supplier<Map<String, StellarFunctionInfo>> & Serializable) this::resolveFunctions);
+    closed = false;
   }
 
   /**
@@ -96,31 +102,36 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
   }
 
   /**
-   * Makes an attempt to close all Stellar functions.
+   * Makes an attempt to close all Stellar functions. Calling close multiple times has no effect.
    * @throws IOException Catches all exceptions and summarizes them.
    */
   @Override
   public void close() throws IOException {
-    Map<String, Throwable> errors = new HashMap();
-    for (StellarFunctionInfo info : getFunctionInfo()) {
-      try {
-        info.getFunction().close();
-      } catch (Throwable t) {
-        errors.put(info.getName(), t);
+    if (!closed) {
+      Map<String, Throwable> errors = new HashMap<>();
+      for (StellarFunctionInfo info : getFunctionInfo()) {
+        try {
+          info.getFunction().close();
+        } catch (Throwable t) {
+          errors.put(info.getName(), t);
+        }
       }
-    }
-    if (!errors.isEmpty()) {
-      StringBuilder sb = new StringBuilder();
-      sb.append("Unable to close Stellar functions:");
-      for (Map.Entry<String, Throwable> e : errors.entrySet()) {
-        Throwable throwable = e.getValue();
-        String eText = String
-            .format("Exception - Function: %s; Message: %s; Cause: %s", e.getKey(), throwable .getMessage(),
-                throwable .getCause());
-        sb.append(System.lineSeparator());
-        sb.append(eText);
+      if (!errors.isEmpty()) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Unable to close Stellar functions:");
+        for (Map.Entry<String, Throwable> e : errors.entrySet()) {
+          Throwable throwable = e.getValue();
+          String eText = String
+              .format("Exception - Function: %s; Message: %s; Cause: %s", e.getKey(),
+                  throwable.getMessage(),
+                  throwable.getCause());
+          sb.append(System.lineSeparator());
+          sb.append(eText);
+        }
+        closed = true;
+        throw new IOException(sb.toString());
       }
-      throw new IOException(sb.toString());
+      closed = true;
     }
   }
 

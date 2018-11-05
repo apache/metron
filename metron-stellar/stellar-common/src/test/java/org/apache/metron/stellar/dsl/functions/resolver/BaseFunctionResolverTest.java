@@ -18,6 +18,9 @@
 
 package org.apache.metron.stellar.dsl.functions.resolver;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -59,10 +62,11 @@ public class BaseFunctionResolverTest {
       "param1"})
   private static class IAmAFunction extends BaseStellarFunction {
 
-    public static boolean closeCalled = false;
-    public static boolean throwException = false;
+    public static int closeCallCount;
+    public static boolean throwException = false; // init here bc of reflection in resolver.
 
     public IAmAFunction() {
+      closeCallCount = 0;
     }
 
     @Override
@@ -72,7 +76,7 @@ public class BaseFunctionResolverTest {
 
     @Override
     public void close() throws IOException {
-      closeCalled = true;
+      closeCallCount++;
       if (throwException) {
         Throwable cause = new Throwable("Some nasty nasty cause.");
         throw new IOException("Bad things happened", cause);
@@ -87,10 +91,11 @@ public class BaseFunctionResolverTest {
       "param1"})
   private static class IAmAnotherFunction extends BaseStellarFunction {
 
-    public static boolean closeCalled = false;
-    public static boolean throwException = false;
+    public static int closeCallCount;
+    public static boolean throwException = false; // init here bc of reflection in resolver.
 
     public IAmAnotherFunction() {
+      closeCallCount = 0;
     }
 
     @Override
@@ -100,7 +105,7 @@ public class BaseFunctionResolverTest {
 
     @Override
     public void close() throws IOException {
-      closeCalled = true;
+      closeCallCount++;
       if (throwException) {
         throw new NullPointerException("A most annoying exception.");
       }
@@ -112,6 +117,8 @@ public class BaseFunctionResolverTest {
   @Before
   public void setup() {
     resolver = new TestResolver();
+    IAmAFunction.throwException = false;
+    IAmAnotherFunction.throwException = false;
   }
 
   @Test
@@ -119,8 +126,8 @@ public class BaseFunctionResolverTest {
     resolver.withClass(IAmAFunction.class);
     resolver.withClass(IAmAnotherFunction.class);
     resolver.close();
-    Assert.assertTrue(IAmAFunction.closeCalled);
-    Assert.assertTrue(IAmAnotherFunction.closeCalled);
+    assertThat(IAmAFunction.closeCallCount, equalTo(1));
+    assertThat(IAmAnotherFunction.closeCallCount, equalTo(1));
   }
 
   @Rule
@@ -135,5 +142,28 @@ public class BaseFunctionResolverTest {
     resolver.withClass(IAmAnotherFunction.class);
     exception.expect(IOException.class);
     resolver.close();
+  }
+
+  @Test
+  public void close_only_throws_exceptions_on_first_invocation()
+      throws IOException {
+    IAmAFunction.throwException = true;
+    IAmAnotherFunction.throwException = true;
+    resolver.withClass(IAmAFunction.class);
+    resolver.withClass(IAmAnotherFunction.class);
+    try {
+      resolver.close();
+      Assert.fail("Should have thrown an exception.");
+    } catch (IOException e) {
+      // intentionally empty
+    }
+    assertThat(IAmAFunction.closeCallCount, equalTo(1));
+    assertThat(IAmAnotherFunction.closeCallCount, equalTo(1));
+    // should not throw exceptions or call any function's close again.
+    resolver.close();
+    resolver.close();
+    resolver.close();
+    assertThat(IAmAFunction.closeCallCount, equalTo(1));
+    assertThat(IAmAnotherFunction.closeCallCount, equalTo(1));
   }
 }
