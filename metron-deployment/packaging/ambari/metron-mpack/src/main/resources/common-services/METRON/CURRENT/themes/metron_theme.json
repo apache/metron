@@ -125,27 +125,8 @@
                   ]
                 },
                 {
-                  "name": "section-enrichment-splitjoin",
-                  "row-index": "3",
-                  "column-index": "0",
-                  "row-span": "1",
-                  "column-span": "1",
-                  "section-columns": "1",
-                  "section-rows": "1",
-                  "subsections": [
-                    {
-                      "name": "subsection-enrichment-splitjoin",
-                      "display-name": "Split Join Topology",
-                      "row-index": "0",
-                      "column-index": "0",
-                      "row-span": "1",
-                      "column-span": "1"
-                    }
-                  ]
-                },
-                {
                   "name": "section-enrichment-unified",
-                  "row-index": "4",
+                  "row-index": "3",
                   "column-index": "0",
                   "row-span": "1",
                   "column-span": "1",
@@ -155,6 +136,25 @@
                     {
                       "name": "subsection-enrichment-unified",
                       "display-name": "Unified Topology",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-enrichment-splitjoin",
+                  "row-index": "4",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-enrichment-splitjoin",
+                      "display-name": "Split Join Topology",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
