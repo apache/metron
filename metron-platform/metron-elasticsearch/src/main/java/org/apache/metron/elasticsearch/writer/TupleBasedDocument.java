@@ -18,11 +18,9 @@
 package org.apache.metron.elasticsearch.writer;
 
 import org.apache.metron.elasticsearch.bulk.IndexedDocument;
-import org.apache.metron.indexing.dao.update.Document;
 import org.apache.storm.tuple.Tuple;
 
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * An {@link IndexedDocument} that is created from the contents of a {@link Tuple}.

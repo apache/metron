@@ -85,7 +85,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
       documents.add(new IndexedDocument(document, indexName));
     }
 
-    // track if a failure occurs so that a checked exception can be thrown; cannot throw checked exception in lambda
+    // record failures so that a checked exception can be thrown later; cannot throw checked exception in listener
     failures = 0;
     lastException = null;
     documentWriter.onFailure((document, cause, message) -> {

@@ -22,7 +22,7 @@ import org.apache.metron.indexing.dao.update.Document;
 import java.util.Map;
 
 /**
- * A {@link Document} along with the index where it is stored.
+ * A {@link Document} that can be written to a search index.
  */
 public class IndexedDocument extends Document {
 
