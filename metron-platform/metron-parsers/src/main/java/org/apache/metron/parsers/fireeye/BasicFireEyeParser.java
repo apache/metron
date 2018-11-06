@@ -21,14 +21,8 @@ package org.apache.metron.parsers.fireeye;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.parsers.BasicParser;
-import org.apache.metron.parsers.utils.ParserUtils;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +30,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.parsers.BasicParser;
+import org.apache.metron.parsers.utils.ParserUtils;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 
 public class BasicFireEyeParser extends BasicParser {
 
@@ -44,109 +46,83 @@ public class BasicFireEyeParser extends BasicParser {
           .getLogger(MethodHandles.lookup().lookupClass());
 
 
-  String tsRegex = "([a-zA-Z]{3})\\s+(\\d+)\\s+(\\d+\\:\\d+\\:\\d+)\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)";
-
-
-  Pattern tsPattern = Pattern.compile(tsRegex);
-  // private transient static MetronGrok grok;
-  // private transient static InputStream pattern_url;
-
-  public BasicFireEyeParser() throws Exception {
-    // pattern_url = getClass().getClassLoader().getResourceAsStream(
-    // "patterns/fireeye");
-    //
-    // File file = ParserUtils.stream2file(pattern_url);
-    // grok = MetronGrok.create(file.getPath());
-    //
-    // grok.compile("%{FIREEYE_BASE}");
-  }
+  private static final String tsRegex = "([a-zA-Z]{3})\\s+(\\d+)\\s+(\\d+\\:\\d+\\:\\d+)"
+          + "\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)";
+  private static final Pattern tsPattern = Pattern.compile(tsRegex);
+  private static final String syslogPriorityRegex = "<[1-9][0-9]*>";
+  private static final Pattern syslogPriorityPattern = Pattern.compile(syslogPriorityRegex);
+  private static final String nvRegex = "([\\w\\d]+)=([^=]*)(?=\\s*\\w+=|\\s*$) ";
+  private static final Pattern nvPattern = Pattern.compile(nvRegex);
 
   @Override
-  public void configure(Map<String, Object> parserConfig) {
-
-  }
+  public void configure(Map<String, Object> parserConfig) {}
 
   @Override
-  public void init() {
+  public void init() {}
 
-  }
 
   @Override
-  public List<JSONObject> parse(byte[] raw_message) {
-    String toParse = "";
+  @SuppressWarnings("unchecked")
+  public List<JSONObject> parse(byte[] rawMessage) {
+    String toParse;
     List<JSONObject> messages = new ArrayList<>();
     try {
 
-      toParse = new String(raw_message, "UTF-8");
+      toParse = new String(rawMessage, StandardCharsets.UTF_8);
 
-      // String[] mTokens = toParse.split(" ");
-
-      String positveIntPattern = "<[1-9][0-9]*>";
-      Pattern p = Pattern.compile(positveIntPattern);
-      Matcher m = p.matcher(toParse);
+      // because we support what is basically a malformed syslog 3164 message having
+      // some form of text before the PRIORITY, we need to use the priority as
+      // a delimiter
+      Matcher m = syslogPriorityPattern.matcher(toParse);
 
       String delimiter = "";
 
       while (m.find()) {
         delimiter = m.group();
-
       }
 
       if (!StringUtils.isBlank(delimiter)) {
         String[] tokens = toParse.split(delimiter);
-
-        if (tokens.length > 1)
+        if (tokens.length > 1) {
           toParse = delimiter + tokens[1];
-
+        }
       }
 
+      // parse the main message
       JSONObject toReturn = parseMessage(toParse);
-
-      toReturn.put("timestamp", getTimeStamp(toParse, delimiter));
+      toReturn.put("timestamp", getTimeStamp(toParse));
       messages.add(toReturn);
       return messages;
-
     } catch (Exception e) {
-      e.printStackTrace();
-      return null;
+      String message = "Unable to parse " + new String(rawMessage) + ": " + e.getMessage();
+      LOG.error(message, e);
+      throw new IllegalStateException(message, e);
     }
-
   }
 
-  private long getTimeStamp(String toParse, String delimiter) throws ParseException {
-
-    long ts = 0;
-    String month = null;
-    String day = null;
-    String time = null;
+  private long getTimeStamp(String toParse) throws ParseException {
+    long timestamp = 0;
+    String month;
+    String day;
+    String time;
     Matcher tsMatcher = tsPattern.matcher(toParse);
     if (tsMatcher.find()) {
       month = tsMatcher.group(1);
       day = tsMatcher.group(2);
       time = tsMatcher.group(3);
-      ts = ParserUtils.convertToEpoch(month, day, time, true);
+      timestamp = ParserUtils.convertToEpoch(month, day, time, true);
     } else {
       LOG.warn("Unable to find timestamp in message: {}", toParse);
     }
-
-    return ts;
+    return timestamp;
   }
 
+  @SuppressWarnings("unchecked")
   private JSONObject parseMessage(String toParse) {
 
-    // System.out.println("Received message: " + toParse);
-
-    // MetronMatch gm = grok.match(toParse);
-    // gm.captures();
-
     JSONObject toReturn = new JSONObject();
-    //toParse = toParse.replaceAll("  ", " ");
-    String[] mTokens = toParse.split("\\s+");
-    //mTokens = toParse.split(" ");
-
-    // toReturn.putAll(gm.toMap());
-
-    String id = mTokens[4];
+    String[] messageTokens = toParse.split("\\s+");
+    String id = messageTokens[4];
 
     // We are not parsing the fedata for multi part message as we cannot
     // determine how we can split the message and how many multi part
@@ -156,36 +132,36 @@ public class BasicFireEyeParser extends BasicParser {
     String[] tokens = id.split("\\.");
     if (tokens.length == 2) {
 
-      String[] array = Arrays.copyOfRange(mTokens, 1, mTokens.length - 1);
+      String[] array = Arrays.copyOfRange(messageTokens, 1, messageTokens.length - 1);
       String syslog = Joiner.on(" ").join(array);
 
       Multimap<String, String> multiMap = formatMain(syslog);
 
       for (String key : multiMap.keySet()) {
-
         String value = Joiner.on(",").join(multiMap.get(key));
         toReturn.put(key, value.trim());
       }
-
     }
 
     toReturn.put("original_string", toParse);
 
-    String ip_src_addr = (String) toReturn.get("dvc");
-    String ip_src_port = (String) toReturn.get("src_port");
-    String ip_dst_addr = (String) toReturn.get("dst_ip");
-    String ip_dst_port = (String) toReturn.get("dst_port");
+    final String ipSrcAddr = (String) toReturn.get("dvc");
+    final String ipSrcPort = (String) toReturn.get("src_port");
+    final String ipDstDddr = (String) toReturn.get("dst_ip");
+    final String ipDstPort = (String) toReturn.get("dst_port");
 
-    if (ip_src_addr != null)
-      toReturn.put("ip_src_addr", ip_src_addr);
-    if (ip_src_port != null)
-      toReturn.put("ip_src_port", ip_src_port);
-    if (ip_dst_addr != null)
-      toReturn.put("ip_dst_addr", ip_dst_addr);
-    if (ip_dst_port != null)
-      toReturn.put("ip_dst_port", ip_dst_port);
-
-
+    if (ipSrcAddr != null) {
+      toReturn.put("ip_src_addr", ipSrcAddr);
+    }
+    if (ipSrcPort != null) {
+      toReturn.put("ip_src_port", ipSrcPort);
+    }
+    if (ipDstDddr != null) {
+      toReturn.put("ip_dst_addr", ipDstDddr);
+    }
+    if (ipDstPort != null) {
+      toReturn.put("ip_dst_port", ipDstPort);
+    }
     return toReturn;
   }
 
@@ -203,20 +179,13 @@ public class BasicFireEyeParser extends BasicParser {
 
     if (tokens.length > 0) {
       String message = tokens[tokens.length - 1];
-
-      String pattern = "([\\w\\d]+)=([^=]*)(?=\\s*\\w+=|\\s*$) ";
-      Pattern p = Pattern.compile(pattern);
-      Matcher m = p.matcher(message);
+      Matcher m = nvPattern.matcher(message);
 
       while (m.find()) {
         String[] str = m.group().split("=");
         multiMap.put(str[0], str[1]);
-
       }
-
     }
     return multiMap;
   }
-
-
 }
