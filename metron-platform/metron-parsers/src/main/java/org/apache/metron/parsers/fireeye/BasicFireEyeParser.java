@@ -28,6 +28,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +41,7 @@ public class BasicFireEyeParser extends BasicParser {
 
   private static final long serialVersionUID = 6328907550159134550L;
   protected static final Logger LOG = LoggerFactory
-          .getLogger(BasicFireEyeParser.class);
+          .getLogger(MethodHandles.lookup().lookupClass());
 
 
   String tsRegex = "([a-zA-Z]{3})\\s+(\\d+)\\s+(\\d+\\:\\d+\\:\\d+)\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)";
@@ -184,7 +185,6 @@ public class BasicFireEyeParser extends BasicParser {
     if (ip_dst_port != null)
       toReturn.put("ip_dst_port", ip_dst_port);
 
-//		System.out.println(toReturn);
 
     return toReturn;
   }
