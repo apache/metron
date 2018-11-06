@@ -108,6 +108,7 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
   @Override
   public void close() throws IOException {
     if (!closed) {
+      LOG.info("Calling close() on Stellar functions.");
       Map<String, Throwable> errors = new HashMap<>();
       for (StellarFunctionInfo info : getFunctionInfo()) {
         try {
@@ -132,6 +133,8 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
         throw new IOException(sb.toString());
       }
       closed = true;
+    } else {
+      LOG.info("close() already called on Stellar functions - skipping.");
     }
   }
 
