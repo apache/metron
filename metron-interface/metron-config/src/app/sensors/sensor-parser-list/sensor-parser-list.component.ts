@@ -26,7 +26,6 @@ import {SortEvent} from '../../shared/metron-table/metron-table.directive';
 import {StormService} from '../../service/storm.service';
 import {TopologyStatus} from '../../model/topology-status';
 import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
-import {SensorParserConfigHistoryService} from '../../service/sensor-parser-config-history.service';
 
 @Component({
   selector: 'metron-config-sensor-parser-list',
@@ -46,7 +45,6 @@ export class SensorParserListComponent implements OnInit {
   enableAutoRefresh: boolean = true;
 
   constructor(private sensorParserConfigService: SensorParserConfigService,
-              private sensorParserConfigHistoryService: SensorParserConfigHistoryService,
               private stormService: StormService,
               private router: Router,
               private metronAlerts:  MetronAlerts,
