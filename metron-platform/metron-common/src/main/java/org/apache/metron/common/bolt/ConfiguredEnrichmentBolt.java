@@ -19,13 +19,8 @@ package org.apache.metron.common.bolt;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.Map;
-
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.stellar.common.utils.HttpClientUtils;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.task.TopologyContext;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,25 +28,21 @@ public abstract class ConfiguredEnrichmentBolt extends ConfiguredBolt<Enrichment
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  protected CloseableHttpClient httpClient;
 
   public ConfiguredEnrichmentBolt(String zookeeperUrl) {
     super(zookeeperUrl, "ENRICHMENT");
   }
 
   @Override
-  public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-    super.prepare(stormConf, context, collector);
-    httpClient = HttpClientUtils.getPoolingClient(getConfigurations().getGlobalConfig());
-  }
-
-  @Override
   public void cleanup() {
+    // This method may not be called in production.
+    // See https://storm.apache.org/releases/1.0.6/javadocs/org/apache/storm/task/IBolt.html#cleanup-- for more detail.
     super.cleanup();
     try {
-      httpClient.close();
+      StellarFunctions.close();
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
     }
   }
+
 }

@@ -23,11 +23,13 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
@@ -53,6 +55,8 @@ import static org.apache.metron.stellar.dsl.functions.RestConfig.BASIC_AUTH_PASS
 import static org.apache.metron.stellar.dsl.functions.RestConfig.BASIC_AUTH_USER;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.CONNECTION_REQUEST_TIMEOUT;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.CONNECT_TIMEOUT;
+import static org.apache.metron.stellar.dsl.functions.RestConfig.POOLING_DEFAULT_MAX_PER_RUOTE;
+import static org.apache.metron.stellar.dsl.functions.RestConfig.POOLING_MAX_TOTAL;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.PROXY_BASIC_AUTH_PASSWORD_PATH;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.PROXY_BASIC_AUTH_USER;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.PROXY_HOST;
@@ -62,6 +66,10 @@ import static org.apache.metron.stellar.dsl.functions.RestConfig.STELLAR_REST_SE
 import static org.apache.metron.stellar.dsl.functions.RestConfig.TIMEOUT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -90,11 +98,8 @@ public class RestFunctionsTest {
 
   @Before
   public void setup() throws Exception {
-    CloseableHttpClient httpclient = HttpClients.createDefault();
-
     context = new Context.Builder()
             .with(Context.Capabilities.GLOBAL_CONFIG, HashMap::new)
-            .with(Context.Capabilities.HTTP_CLIENT, () -> httpclient)
             .build();
 
     // Store the passwords in the local file system
@@ -560,22 +565,6 @@ public class RestFunctionsTest {
   }
 
   /**
-   * The REST_GET function should throw an exception when the HttpClient is missing.
-   */
-  @Test
-  public void restGetShouldThrowExceptionOnMissingClient() {
-    thrown.expect(ParseException.class);
-    thrown.expectMessage(String.format("Unable to parse REST_GET('%s'): Unable to parse: REST_GET('%s') due to: Unable to initialize function 'REST_GET'", getUri, getUri));
-
-    context = new Context.Builder()
-            .with(Context.Capabilities.GLOBAL_CONFIG, HashMap::new)
-            .with(Context.Capabilities.HTTP_CLIENT, null)
-            .build();
-
-    run(String.format("REST_GET('%s')", getUri), context);
-  }
-
-  /**
    * The REST_GET function should throw an exception when the required uri parameter is missing.
    */
   @Test
@@ -586,5 +575,30 @@ public class RestFunctionsTest {
     run("REST_GET()", context);
   }
 
+  @Test
+  public void restGetShouldGetPoolingConnectionManager() {
+    RestFunctions.RestGet restGet = new RestFunctions.RestGet();
+
+    RestConfig restConfig = new RestConfig();
+    restConfig.put(POOLING_MAX_TOTAL, 5);
+    restConfig.put(POOLING_DEFAULT_MAX_PER_RUOTE, 2);
+
+    PoolingHttpClientConnectionManager cm = restGet.getConnectionManager(restConfig);
+
+    assertEquals(5, cm.getMaxTotal());
+    assertEquals(2, cm.getDefaultMaxPerRoute());
+  }
+
+  @Test
+  public void restGetShouldCloseHttpClient() throws Exception {
+    RestFunctions.RestGet restGet = new RestFunctions.RestGet();
+    CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
+
+    restGet.setHttpClient(httpClient);
+    restGet.close();
+
+    verify(httpClient, times(1)).close();
+    verifyNoMoreInteractions(httpClient);
+  }
 
 }

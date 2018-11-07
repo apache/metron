@@ -1638,6 +1638,8 @@ The second argument is an optional Map of settings.  The following settings are 
 * response.codes.allowed - A list of response codes that are allowed.  All others will be treated as errors.  Defaults to `200`.
 * empty.content.override - The default value that will be returned on a successful request with empty content.  Defaults to null.
 * error.value.override - The default value that will be returned on an error.  Defaults to null.
+* pooling.max.total - The maximum number of connections in the connection pool.
+* pooling.default.max.per.route - The default maximum number of connections per route in the connection pool.
 
 This Map of settings can also be stored in the global config `stellar.rest.settings` property.  For example, to configure basic authentication
 settings you would add this property to the global config:

@@ -164,7 +164,6 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
                          .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                          .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
                          .with(Context.Capabilities.STELLAR_CONFIG, () -> getConfigurations().getGlobalConfig())
-                         .with(Context.Capabilities.HTTP_CLIENT, () -> httpClient)
                          .build();
     StellarFunctions.initialize(stellarContext);
   }
@@ -272,6 +271,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
   @Override
   public void cleanup() {
+    super.cleanup();
     adapter.cleanup();
   }
 

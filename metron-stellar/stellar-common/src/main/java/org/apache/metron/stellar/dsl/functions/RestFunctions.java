@@ -33,6 +33,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.common.utils.JSONUtils;
@@ -48,6 +50,8 @@ import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,6 +62,8 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
+import static org.apache.metron.stellar.dsl.functions.RestConfig.POOLING_DEFAULT_MAX_PER_RUOTE;
+import static org.apache.metron.stellar.dsl.functions.RestConfig.POOLING_MAX_TOTAL;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.STELLAR_REST_SETTINGS;
 
 /**
@@ -69,21 +75,6 @@ import static org.apache.metron.stellar.dsl.functions.RestConfig.STELLAR_REST_SE
 public class RestFunctions {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  /**
-   * Retrieves the ClosableHttpClient from the execution context.
-   *
-   * @param context The execution context.
-   * @return A ClosableHttpClient, if one exists.  Otherwise, an exception is thrown.
-   */
-  private static CloseableHttpClient getHttpClient(Context context) {
-    Optional<Object> clientOpt = context.getCapability(Context.Capabilities.HTTP_CLIENT);
-    if(clientOpt.isPresent()) {
-      return (CloseableHttpClient) clientOpt.get();
-    } else {
-      throw new IllegalStateException("Missing HTTP_CLIENT; http connection required");
-    }
-  }
 
   /**
    * Get an argument from a list of arguments.
@@ -130,6 +121,23 @@ public class RestFunctions {
     private ScheduledExecutorService scheduledExecutorService;
 
     /**
+     * Initialize the function by creating a ScheduledExecutorService and looking up the CloseableHttpClient from the
+     * Stellar context.
+     * @param context
+     */
+    @Override
+    public void initialize(Context context) {
+      scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+      httpClient = getHttpClient(context);
+      initialized = true;
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return initialized;
+    }
+
+    /**
      * Apply the function.
      * @param args The function arguments including uri and rest config.
      * @param context Stellar context
@@ -139,11 +147,7 @@ public class RestFunctions {
       RestConfig restConfig = new RestConfig();
       try {
         URI uri = new URI(getArg(0, String.class, args));
-        Optional<Object> globalCapability = context.getCapability(GLOBAL_CONFIG, false);
-
-        Map<String, Object> globalConfig = (Map<String, Object>) globalCapability.get();
-
-        restConfig = getRestConfig(args, globalConfig);
+        restConfig = getRestConfig(args, getGlobalConfig(context));
 
         HttpHost target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
         Optional<HttpHost> proxy = getProxy(restConfig);
@@ -160,6 +164,51 @@ public class RestFunctions {
         LOG.error(e.getMessage(), e);
         return restConfig.getErrorValueOverride();
       }
+    }
+
+    @Override
+    public void close() throws IOException {
+      if (httpClient != null) {
+        httpClient.close();
+      }
+      if (scheduledExecutorService != null) {
+        scheduledExecutorService.shutdown();
+      }
+    }
+
+    /**
+     * Retrieves the ClosableHttpClient from a pooling connection manager.
+     *
+     * @param context The execution context.
+     * @return A ClosableHttpClient.
+     */
+    protected CloseableHttpClient getHttpClient(Context context) {
+      RestConfig restConfig = getRestConfig(Collections.emptyList(), getGlobalConfig(context));
+
+      PoolingHttpClientConnectionManager cm = getConnectionManager(restConfig);
+
+      return HttpClients.custom()
+              .setConnectionManager(cm)
+              .build();
+    }
+
+    protected PoolingHttpClientConnectionManager getConnectionManager(RestConfig restConfig) {
+      PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+      if (restConfig.containsKey(POOLING_MAX_TOTAL)) {
+        cm.setMaxTotal(restConfig.getPoolingMaxTotal());
+      }
+      if (restConfig.containsKey(POOLING_DEFAULT_MAX_PER_RUOTE)) {
+        cm.setDefaultMaxPerRoute(restConfig.getPoolingDefaultMaxPerRoute());
+      }
+      return cm;
+    }
+
+    /**
+     * Only used for testing.
+     * @param httpClient
+     */
+    protected void setHttpClient(CloseableHttpClient httpClient) {
+      this.httpClient = httpClient;
     }
 
     /**
@@ -214,6 +263,11 @@ public class RestFunctions {
       }
     }
 
+    private Map<String, Object> getGlobalConfig(Context context) {
+      Optional<Object> globalCapability = context.getCapability(GLOBAL_CONFIG, false);
+      return globalCapability.map(o -> (Map<String, Object>) o).orElseGet(HashMap::new);
+    }
+
     /**
      * Build the RestConfig object using the following order of precedence:
      * <ul>
@@ -227,7 +281,7 @@ public class RestFunctions {
      * @return
      * @throws IOException
      */
-    protected RestConfig getRestConfig(List<Object> args, Map<String, Object> globalConfig) throws IOException {
+    protected RestConfig getRestConfig(List<Object> args, Map<String, Object> globalConfig) {
       Map<String, Object> globalRestConfig = (Map<String, Object>) globalConfig.get(STELLAR_REST_SETTINGS);
       Map<String, Object> functionRestConfig = null;
       if (args.size() > 1) {
@@ -324,27 +378,11 @@ public class RestFunctions {
      * @return
      * @throws IOException
      */
-    public static byte[] readBytes(Path inPath) throws IOException {
+    private byte[] readBytes(Path inPath) throws IOException {
       FileSystem fs = FileSystem.get(inPath.toUri(), new Configuration());
       try (FSDataInputStream inputStream = fs.open(inPath)) {
         return IOUtils.toByteArray(inputStream);
       }
-    }
-
-    /**
-     * Initialize the function by creating a ScheduledExecutorService and looking up the CloseableHttpClient from the
-     * Stellar context.
-     * @param context
-     */
-    @Override
-    public void initialize(Context context) {
-      scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-      httpClient = getHttpClient(context);
-    }
-
-    @Override
-    public boolean isInitialized() {
-      return initialized;
     }
   }
 }

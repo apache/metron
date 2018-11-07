@@ -88,6 +88,17 @@ public class RestConfig extends HashMap<String, Object> {
    */
   public final static String ERROR_VALUE_OVERRIDE = "error.value.override";
 
+  /**
+   * The maximum number of connections in the connection pool.
+   */
+  public final static String POOLING_MAX_TOTAL = "pooling.max.total";
+
+  /**
+   * The default maximum number of connections per route in the connection pool.
+   */
+  public final static String POOLING_DEFAULT_MAX_PER_RUOTE = "pooling.default.max.per.route";
+
+
   public RestConfig() {
     put(TIMEOUT, 1000);
     put(RESPONSE_CODES_ALLOWED, Collections.singletonList(200));
@@ -143,5 +154,13 @@ public class RestConfig extends HashMap<String, Object> {
 
   public Object getErrorValueOverride() {
     return get(ERROR_VALUE_OVERRIDE);
+  }
+
+  public Integer getPoolingMaxTotal() {
+    return (Integer) get(POOLING_MAX_TOTAL);
+  }
+
+  public Integer getPoolingDefaultMaxPerRoute() {
+    return (Integer) get(POOLING_DEFAULT_MAX_PER_RUOTE);
   }
 }
