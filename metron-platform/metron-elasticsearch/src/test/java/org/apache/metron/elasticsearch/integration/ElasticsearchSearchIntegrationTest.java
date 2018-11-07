@@ -197,8 +197,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     dao.search(request);
   }
 
-
-
   @Override
   public void returns_column_metadata_for_specified_indices() throws Exception {
     // getColumnMetadata with only bro

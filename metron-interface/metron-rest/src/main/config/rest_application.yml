@@ -13,14 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-spring:
-  datasource:
-      driverClassName: ${METRON_JDBC_DRIVER}
-      url: ${METRON_JDBC_URL}
-      username: ${METRON_JDBC_USERNAME}
-      password: ${METRON_JDBC_PASSWORD}
-      platform: ${METRON_JDBC_PLATFORM}
-      continue-on-error: true
 
 zookeeper:
   url: ${ZOOKEEPER}
@@ -62,3 +54,27 @@ pcap:
   page.size: ${PCAP_PAGE_SIZE}
   yarn.queue: ${PCAP_YARN_QUEUE}
   finalizer.threadpool.size: ${PCAP_FINALIZER_THREADPOOL_SIZE}
+
+spring:
+  datasource:
+    driverClassName: ${METRON_JDBC_DRIVER}
+    url: ${METRON_JDBC_URL}
+    username: ${METRON_JDBC_USERNAME}
+    password: ${METRON_JDBC_PASSWORD}
+    platform: ${METRON_JDBC_PLATFORM}
+    continue-on-error: true
+
+ldap:
+  provider:
+    url: ${METRON_LDAP_URL}
+    userdn: ${METRON_LDAP_USERDN}
+    password: ${METRON_LDAP_PASSWORD}
+  user:
+    dn.patterns: ${METRON_LDAP_USER_PATTERN}
+    passwordAttribute: ${METRON_LDAP_USER_PASSWORD}
+    searchBase: ${METRON_LDAP_USER_SEARCHBASE}
+    searchFilter: ${METRON_LDAP_USER_SEARCHFILTER}
+  group:
+    searchBase: ${METRON_LDAP_GROUP_SEARCHBASE}
+    searchFilter: ${METRON_LDAP_GROUP_SEARCHFILTER}
+    roleAttribute: ${METRON_LDAP_GROUP_ROLE}

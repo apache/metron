@@ -17,10 +17,17 @@
  */
 package org.apache.metron.stellar.dsl;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.List;
 
-public interface StellarFunction {
+public interface StellarFunction extends Closeable {
   Object apply(List<Object> args, Context context) throws ParseException;
   void initialize(Context context);
   boolean isInitialized();
+
+  @Override
+  default void close() throws IOException {
+
+  }
 }

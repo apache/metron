@@ -5,8 +5,8 @@
       "dynamic_templates": [
         {
           "alert_template": {
-          "path_match": "alert.*",
-          "match_mapping_type": "string",
+          "path_match": "metron_alert.*",
+          "match_mapping_type": "*",
           "mapping": {
             "type": "keyword"
           }
