@@ -19,3 +19,15 @@
 .config-table {
   table-layout: fixed;
 }
+
+.dark-grey {
+  color: #545454;
+}
+
+table tr td, table tr th {
+  padding: 0.9em;
+}
+
+table tr th:nth-child(1) {
+  width: 30px;
+}
