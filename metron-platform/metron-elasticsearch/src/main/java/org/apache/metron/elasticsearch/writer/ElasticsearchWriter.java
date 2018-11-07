@@ -78,7 +78,6 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     final String indexPostfix = dateFormat.format(new Date());
     BulkRequest bulkRequest = new BulkRequest();
-    //BulkRequestBuilder bulkRequest = client.prepareBulk();
     for(JSONObject message: messages) {
 
       JSONObject esDoc = new JSONObject();
