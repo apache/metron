@@ -1,0 +1,5 @@
+- Are groups collapsible?
+- Apply/reset changes
+- Sorting/Grouping collision
+- Is search enough instead of sorting?
+- Is user able to drag groups?
