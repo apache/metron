@@ -368,4 +368,17 @@ export class SensorParserListComponent implements OnInit {
     this.selectedSensor = null;
     this.selectedSensors = [];
   }
+
+
+  onDragStart(sensor: SensorParserConfigHistory, event: DragEvent) {
+    return true;
+  }
+
+  onDragOver(sensor: SensorParserConfigHistory, event: DragEvent) {
+    event.preventDefault();
+  }
+
+  onDrop(sensor: SensorParserConfigHistory, event: DragEvent) {
+    debugger; 
+  }
 }

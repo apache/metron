@@ -40,6 +40,7 @@
   <table class="table config-table" metron-config-table #table (onSort)="onSort($event)">
     <thead>
     <tr>
+      <th></th>
       <th> <metron-config-sorter [sortBy]="'sensorName'"> Name </metron-config-sorter> </th>
       <th> <metron-config-sorter [sortBy]="'parserClassName'"> Parser </metron-config-sorter> </th>
       <th> <metron-config-sorter [sortBy]="'status'"> Status </metron-config-sorter> </th>
@@ -52,7 +53,10 @@
     </tr>
     </thead>
     <tbody>
-    <tr *ngFor="let sensor of sensors;" (click)="onSensorRowSelect(sensor, $event)" [ngClass]="{'active': (selectedSensors.indexOf(sensor) != -1 || selectedSensor == sensor)}">
+    <tr *ngFor="let sensor of sensors;" (click)="onSensorRowSelect(sensor, $event)" 
+        [ngClass]="{'active': (selectedSensors.indexOf(sensor) != -1 || selectedSensor == sensor)}"
+        draggable="true" (dragstart)="onDragStart(sensor, $event)" (dragover)="onDragOver(sensor, $event)" (drop)="onDrop(sensor, $event)">
+      <td><i class="fa fa-bars dark-grey"></i></td>
       <td>{{ sensor.sensorName }}</td>
       <td>{{ getParserType(sensor.config) }}</td>
       <td [ngClass]="{'warning-text': (sensor.status == 'Stopped' || sensor.status == 'Disabled')}">{{ sensor.status }}</td>
