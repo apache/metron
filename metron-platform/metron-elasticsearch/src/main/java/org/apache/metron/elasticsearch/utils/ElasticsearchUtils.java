@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
@@ -39,6 +41,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -240,5 +243,28 @@ public class ElasticsearchUtils {
           return searchResult;
         }
     ).collect(Collectors.toList());
+  }
+
+  /**
+   * Retrieves the Metron GUID from a {@link SearchHit}.
+   *
+   * @param searchHit The search hit containing a Metron GUID.
+   * @return The Metron GUID.
+   */
+  public static String getGUID(SearchHit searchHit) {
+    String guid;
+    if(searchHit.hasSource() && searchHit.getSource().containsKey(Constants.GUID)) {
+      guid = (String) searchHit.getSource().get(Constants.GUID);
+
+    } else if(!searchHit.hasSource()) {
+      String template = "No source found, has it been disabled in the mapping? index=%s, docId=%s";
+      throw new IllegalStateException(String.format(template, searchHit.getIndex(), searchHit.getId()));
+
+    } else {
+      String template = "Missing expected field; field=%s, index=%s, docId=%s";
+      throw new IllegalStateException(String.format(template, Constants.GUID, searchHit.getIndex(), searchHit.getId()));
+    }
+
+    return guid;
   }
 }

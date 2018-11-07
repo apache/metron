@@ -24,18 +24,37 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+
+import static org.apache.metron.common.Constants.Fields.TIMESTAMP;
+import static org.apache.metron.common.Constants.GUID;
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 
 public class Document {
+
   Long timestamp;
   Map<String, Object> document;
   String guid;
   String sensorType;
+  Optional<String> documentID;
+
+  public static Document fromJSON(Map<String, Object> json) {
+    String guid = getGUID(json);
+    Long timestamp = getTimestamp(json);
+    String sensorType = getSensorType(json);
+    return new Document(json, guid, sensorType, timestamp);
+  }
 
   public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp) {
+    this(document, guid, sensorType, timestamp, Optional.empty());
+  }
+
+  public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp, Optional<String> documentID) {
     setDocument(document);
     setGuid(guid);
     setTimestamp(timestamp);
     setSensorType(sensorType);
+    setDocumentID(documentID);
   }
 
   public Document(String document, String guid, String sensorType, Long timestamp) throws IOException {
@@ -52,7 +71,7 @@ public class Document {
    */
   public Document(Document other) {
     this(new HashMap<>(other.getDocument()), other.getGuid(), other.getSensorType(),
-        other.getTimestamp());
+        other.getTimestamp(), other.getDocumentID());
   }
 
   private static Map<String, Object> convertDoc(String document) throws IOException {
@@ -91,6 +110,50 @@ public class Document {
     this.guid = guid;
   }
 
+  public Optional<String> getDocumentID() {
+    return documentID;
+  }
+
+  public void setDocumentID(Optional<String> documentID) {
+    this.documentID = documentID;
+  }
+
+  public void setDocumentID(String documentID) {
+    this.documentID = Optional.ofNullable(documentID);
+  }
+
+  private static Long getTimestamp(Map<String, Object> document) {
+    Object value = document.get(TIMESTAMP.getName());
+    if(value != null && value instanceof Long) {
+      return Long.class.cast(value);
+    }
+
+    throw new IllegalStateException(String.format("Missing '%s' field", TIMESTAMP.getName()));
+  }
+
+  private static String getGUID(Map<String, Object> document) {
+    Object value = document.get(GUID);
+    if(value != null && value instanceof String) {
+      return String.class.cast(value);
+    }
+
+    throw new IllegalStateException(String.format("Missing '%s' field", GUID));
+  }
+
+  private static String getSensorType(Map<String, Object> document) {
+    Object value = document.get(SENSOR_TYPE);
+    if(value != null && value instanceof String) {
+      return String.class.cast(value);
+    }
+
+    value = document.get(SENSOR_TYPE.replace(".", ":"));
+    if(value != null && value instanceof String) {
+      return String.class.cast(value);
+    }
+
+    throw new IllegalStateException(String.format("Missing '%s' field", SENSOR_TYPE));
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -99,12 +162,13 @@ public class Document {
     return Objects.equals(timestamp, document1.timestamp) &&
             Objects.equals(document, document1.document) &&
             Objects.equals(guid, document1.guid) &&
-            Objects.equals(sensorType, document1.sensorType);
+            Objects.equals(sensorType, document1.sensorType) &&
+            Objects.equals(documentID, document1.documentID);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(timestamp, document, guid, sensorType);
+    return Objects.hash(timestamp, document, guid, sensorType, documentID);
   }
 
   @Override
@@ -114,6 +178,7 @@ public class Document {
             ", document=" + document +
             ", guid='" + guid + '\'' +
             ", sensorType='" + sensorType + '\'' +
+            ", documentID=" + documentID +
             '}';
   }
 }

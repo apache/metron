@@ -25,6 +25,7 @@ import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.support.WriteRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 /**
  * Writes documents to an Elasticsearch index in bulk.
@@ -61,12 +64,29 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     private Optional<FailureListener> onFailure;
     private ElasticsearchClient client;
     private List<Indexable> documents;
+    private boolean defineDocumentId;
 
     public ElasticsearchBulkDocumentWriter(ElasticsearchClient client) {
         this.client = client;
         this.onSuccess = Optional.empty();
         this.onFailure = Optional.empty();
         this.documents = new ArrayList<>();
+        this.defineDocumentId = false;
+    }
+
+    /**
+     * By default, the {@link ElasticsearchBulkDocumentWriter} does not explicitly define
+     * the document ID. In most cases this is the most performant option.
+     *
+     * If set to true, the document ID will be explicitly set to the Metron GUID.  The
+     * Metron GUID is a randomized UUID generated with Java's `UUID.randomUUID()`. Using a
+     * randomized UUID for the Elasticsearch document ID can negatively impact indexing
+     * performance.
+     *
+     * @param defineDocumentId If the document ID should be defined.
+     */
+    public void setDefineDocumentId(boolean defineDocumentId) {
+        this.defineDocumentId = defineDocumentId;
     }
 
     @Override
@@ -121,12 +141,18 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
         if(document.getTimestamp() == null) {
             throw new IllegalArgumentException("Document must contain the timestamp");
         }
-        return new IndexRequest()
+
+        IndexRequest request = new IndexRequest()
                 .source(document.getDocument())
                 .type(document.getSensorType() + "_doc")
-                .id(document.getGuid())
                 .index(index)
                 .timestamp(document.getTimestamp().toString());
+
+        if(defineDocumentId) {
+            request.id(document.getGuid());
+        }
+
+        return request;
     }
 
     /**
@@ -137,28 +163,25 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
      */
     private List<D> handleBulkResponse(BulkResponse bulkResponse, List<Indexable> documents) {
         List<D> successful = new ArrayList<>();
-        if (bulkResponse.hasFailures()) {
 
-            // interrogate the response to distinguish between those that succeeded and those that failed
-            Iterator<BulkItemResponse> iterator = bulkResponse.iterator();
-            while(iterator.hasNext()) {
-                BulkItemResponse response = iterator.next();
-                if(response.isFailed()) {
-                    // request failed
-                    D failed = getDocument(response.getItemId());
-                    Exception cause = response.getFailure().getCause();
-                    String message = response.getFailureMessage();
-                    onFailure.ifPresent(listener -> listener.onFailure(failed, cause, message));
+        // interrogate the response to distinguish between those that succeeded and those that failed
+        Iterator<BulkItemResponse> iterator = bulkResponse.iterator();
+        while(iterator.hasNext()) {
+            BulkItemResponse response = iterator.next();
+            if(response.isFailed()) {
+                // request failed
+                D failed = getDocument(response.getItemId());
+                Exception cause = response.getFailure().getCause();
+                String message = response.getFailureMessage();
+                onFailure.ifPresent(listener -> listener.onFailure(failed, cause, message));
+                LOG.error(format("Failed to write message; error=%s", message), cause);
 
-                } else {
-                    // request succeeded
-                    D success = getDocument(response.getItemId());
-                    successful.add(success);
-                }
+            } else {
+                // request succeeded
+                D success = getDocument(response.getItemId());
+                success.setDocumentID(response.getResponse().getId());
+                successful.add(success);
             }
-        } else {
-            // all requests succeeded
-            successful.addAll(getDocuments());
         }
 
         return successful;

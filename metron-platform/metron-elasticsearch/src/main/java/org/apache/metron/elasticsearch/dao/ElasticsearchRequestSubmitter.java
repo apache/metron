@@ -60,7 +60,8 @@ public class ElasticsearchRequestSubmitter {
     org.elasticsearch.action.search.SearchResponse esResponse;
     try {
       esResponse = client.getHighLevelClient().search(request);
-      LOG.debug("Got Elasticsearch response; response={}", esResponse.toString());
+      LOG.debug("Got Elasticsearch response with {} hit(s); response={}",
+              esResponse.getHits().getTotalHits(), esResponse.toString());
 
     } catch (Exception e) {
       String msg = String.format(
