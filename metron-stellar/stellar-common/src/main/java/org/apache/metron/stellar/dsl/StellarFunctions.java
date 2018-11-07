@@ -18,6 +18,7 @@
 
 package org.apache.metron.stellar.dsl;
 
+import java.io.IOException;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SingletonFunctionResolver;
 
@@ -29,5 +30,9 @@ public class StellarFunctions {
 
   public static void initialize(Context context) {
     SingletonFunctionResolver.getInstance().initialize(context);
+  }
+
+  public static void close() throws IOException {
+    SingletonFunctionResolver.getInstance().close();
   }
 }

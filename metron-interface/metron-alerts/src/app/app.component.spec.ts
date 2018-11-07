@@ -21,6 +21,8 @@ import { AppComponent } from './app.component';
 import { Component } from '@angular/core';
 import { AuthenticationService } from './service/authentication.service';
 import { of } from 'rxjs';
+import { DialogService } from './service/dialog.service';
+import { MetronDialogComponent } from './shared/metron-dialog/metron-dialog.component';
 
 @Component({ selector: 'router-outlet', template: '' })
 class RouterOutletStubComponent {}
@@ -32,10 +34,12 @@ describe('AppComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       providers: [
+        DialogService,
         { provide: AuthenticationService, useValue: { onLoginEvent: of(true) } }
       ],
       declarations: [
         AppComponent,
+        MetronDialogComponent,
         RouterOutletStubComponent,
       ],
     }).compileComponents();

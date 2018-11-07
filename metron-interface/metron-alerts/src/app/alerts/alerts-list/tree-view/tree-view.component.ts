@@ -27,7 +27,6 @@ import {GroupResponse} from '../../../model/group-response';
 import {GroupResult} from '../../../model/group-result';
 import {SortField} from '../../../model/sort-field';
 import {Sort} from '../../../utils/enums';
-import {MetronDialogBox, DialogType} from '../../../shared/metron-dialog-box';
 import {ElasticsearchUtils} from '../../../utils/elasticsearch-utils';
 import {SearchRequest} from '../../../model/search-request';
 import {MetaAlertCreateRequest} from '../../../model/meta-alert-create-request';
@@ -37,6 +36,9 @@ import {UpdateService} from '../../../service/update.service';
 import {PatchRequest} from '../../../model/patch-request';
 import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
+import { DialogService } from '../../../service/dialog.service';
+import { DialogType } from 'app/model/dialog-type';
+import { ConfirmationType } from 'app/model/confirmation-type';
 
 @Component({
   selector: 'app-tree-view',
@@ -53,13 +55,14 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   treeGroupSubscriptionMap: {[key: string]: TreeAlertsSubscription } = {};
   alertsChangedSubscription: Subscription;
   configSubscription: Subscription;
+  dialogService: DialogService
 
   constructor(searchService: SearchService,
-              metronDialogBox: MetronDialogBox,
               updateService: UpdateService,
               metaAlertService: MetaAlertService,
-              globalConfigService: GlobalConfigService) {
-    super(searchService, metronDialogBox, updateService, metaAlertService, globalConfigService);
+              globalConfigService: GlobalConfigService,
+              dialogService: DialogService) {
+    super(searchService, updateService, metaAlertService, globalConfigService, dialogService);
   }
 
   addAlertChangedListner() {
@@ -194,7 +197,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     return this.searchService.search(searchRequest).subscribe(results => {
       this.setData(selectedGroup, results);
     }, error => {
-      this.metronDialogBox.showConfirmationMessage(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
+      this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
     });
   }
 
@@ -358,7 +361,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   canCreateMetaAlert(count: number) {
     if (count > MAX_ALERTS_IN_META_ALERTS) {
       let errorMessage = 'Meta Alert cannot have more than ' + MAX_ALERTS_IN_META_ALERTS +' alerts within it';
-      this.metronDialogBox.showConfirmationMessage(errorMessage, DialogType.Error).subscribe((response) => {});
+      this.dialogService.launchDialog(errorMessage, DialogType.Error);
       return false;
     }
     return true;
@@ -421,10 +424,11 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     if (this.canCreateMetaAlert(group.total)) {
       let confirmationMsg = 'Do you wish to create a meta alert with ' +
                             (group.total === 1 ? ' alert' : group.total + ' selected alerts') + '?';
-      this.metronDialogBox.showConfirmationMessage(confirmationMsg).subscribe((response) => {
-        if (response) {
+      const confirmedSubscription = this.dialogService.launchDialog(confirmationMsg).subscribe(action => {
+        if (action === ConfirmationType.Confirmed) {
           this.doCreateMetaAlert(group, index);
         }
+        confirmedSubscription.unsubscribe();
       });
     }
 

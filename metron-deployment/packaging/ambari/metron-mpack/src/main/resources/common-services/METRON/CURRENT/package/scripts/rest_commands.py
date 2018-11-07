@@ -145,8 +145,12 @@ class RestCommands:
           "export METRON_PID_FILE={pid_file};"
           "export HDP_VERSION={hdp_version};"
           "export METRON_RA_INDEXING_WRITER={ra_indexing_writer};"
+          "export METRON_LDAP_PASSWORD={metron_ldap_password!p};"
+          "export METRON_LDAP_SSL_TRUSTSTORE_PASSWORD={metron_ldap_ssl_truststore_password!p};"
           "{metron_home}/bin/metron-rest.sh;"
           "unset METRON_JDBC_PASSWORD;"
+          "unset METRON_LDAP_PASSWORD;"
+          "unset METRON_LDAP_SSL_TRUSTSTORE_PASSWORD;"
         ))
 
         Execute(cmd,

@@ -29,8 +29,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.metron.common.Constants;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -59,20 +57,16 @@ public class ElasticsearchDaoTest {
 
     // setup the mock search hits
     SearchHit hit1 = mock(SearchHit.class);
-    when(hit1.getId()).thenReturn("docId1");
-    when(hit1.hasSource()).thenReturn(true);
+    when(hit1.getId()).thenReturn("id1");
     when(hit1.getSource()).thenReturn(new HashMap<String, Object>() {{
       put("field", "value1");
-      put(Constants.GUID, "id1");
     }});
     when(hit1.getScore()).thenReturn(0.1f);
 
     SearchHit hit2 = mock(SearchHit.class);
-    when(hit2.getId()).thenReturn("docId2");
-    when(hit2.hasSource()).thenReturn(true);
+    when(hit2.getId()).thenReturn("id2");
     when(hit2.getSource()).thenReturn(new HashMap<String, Object>() {{
       put("field", "value2");
-      put(Constants.GUID, "id2");
     }});
     when(hit2.getScore()).thenReturn(0.2f);
 

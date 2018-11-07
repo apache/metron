@@ -194,6 +194,44 @@ METRON_PRINCIPAL_NAME="metron@EXAMPLE.COM"
 METRON_SERVICE_KEYTAB="/etc/security/keytabs/metron.keytab"
 ```
 
+### LDAP
+
+Metron REST can be configured to use LDAP for authentication and roles. Configuration can be performed via Ambari in the "Security" tab.
+
+Configuration will default to matching Knox's Demo LDAP for convenience. This should only be used for development purposes. Manual instructions for setting up demo LDAP and finalizing configuration (e.g. setting up the user LDIF file) can be found in the [Development README](../../metron-deployment/development/README.md#knox-demo-ldap).
+
+#### LDAPS
+There is configuration to provide a path to a truststore with SSL certificates and provide a password. Users should import certificates as needed to appropriate truststores.  An example of doing this is:
+```
+keytool -import -alias <alias> -file <certificate> -keystore <keystore_file> -storepass <password>
+```
+
+
+#### Roles
+Roles used by Metron are ROLE_ADMIN and ROLE_USER. Metron will use a property in a group containing the appropriate role to construct this.
+
+For example, our ldif file could create this group:
+```
+dn: cn=admin,ou=groups,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass: groupofnames
+cn: admin
+description:admin group
+member: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
+```
+
+If we are using "cn" as our role attribute, Metron will give the "admin" user the role "ROLE_ADMIN".
+
+Similarly, we could give a user "sam" ROLE_USER with the following group:
+```
+dn: cn=user,ou=groups,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass: groupofnames
+cn: user
+description: user group
+member: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org
+```
+
 ## Spring Profiles
 
 The REST application comes with a few [Spring Profiles](http://docs.spring.io/autorepo/docs/spring-boot/current/reference/html/boot-features-profiles.html) to aid in testing and development.

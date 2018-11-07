@@ -35,11 +35,6 @@ export class PcapPanelComponent implements OnInit, OnDestroy {
   pdml: Pdml = null;
   pcapRequest: PcapRequest;
   resetPaginationForSearch: boolean;
-
-  statusSubscription: Subscription;
-  cancelSubscription: Subscription;
-  submitSubscription: Subscription;
-  getSubscription: Subscription;
   queryRunning = false;
   queryId: string;
   progressWidth = 0;
@@ -47,28 +42,33 @@ export class PcapPanelComponent implements OnInit, OnDestroy {
   savedPcapRequest: {};
   errorMsg: string;
   cancelConfirmMessage = 'Are you sure want to cancel the running query?';
+  subscriptions: {
+    [key: string]: Subscription
+  } = {};
 
   constructor(private pcapService: PcapService) { }
 
   ngOnInit() {
     this.pcapRequest = new PcapRequest();
-    this.pcapService.getRunningJob().subscribe((statusResponses: PcapStatusResponse[]) => {
+    this.subscriptions['runningJobSubscription'] = this.pcapService.getRunningJob().subscribe((statusResponses: PcapStatusResponse[]) => {
       if (statusResponses.length > 0) {
         // Assume the first job in the list is the running job
         this.queryRunning = true;
         let statusResponse = statusResponses[0];
         this.updateStatus(statusResponse);
         this.startPolling(statusResponse.jobId);
-        this.pcapService.getPcapRequest(statusResponse.jobId).subscribe((pcapRequest: PcapRequest) => {
-          this.pcapRequest = pcapRequest;
-        });
+        this.subscriptions['pcapRequestSubscription'] = this.pcapService.getPcapRequest(statusResponse.jobId).subscribe(
+          (pcapRequest: PcapRequest) => {
+            this.pcapRequest = pcapRequest;
+          }
+        );
       }
     });
   }
 
   changePage(page) {
     this.pagination.selectedPage = page;
-    this.pcapService.getPackets(this.queryId, this.pagination.selectedPage).toPromise().then(pdml => {
+    this.subscriptions['packetSubscription'] = this.pcapService.getPackets(this.queryId, this.pagination.selectedPage).subscribe(pdml => {
       this.pdml = pdml;
     });
   }
@@ -81,26 +81,28 @@ export class PcapPanelComponent implements OnInit, OnDestroy {
     this.pdml = null;
     this.progressWidth = 0;
     this.errorMsg = null;
-    this.submitSubscription = this.pcapService.submitRequest(pcapRequest).subscribe((submitResponse: PcapStatusResponse) => {
-      let id = submitResponse.jobId;
-      if (!id) {
-        this.errorMsg = submitResponse.description;
-        this.queryRunning = false;
-      } else {
-        this.startPolling(id);
+    this.subscriptions['submitSubscription'] = this.pcapService.submitRequest(pcapRequest).subscribe(
+      (submitResponse: PcapStatusResponse) => {
+        let id = submitResponse.jobId;
+        if (!id) {
+          this.errorMsg = submitResponse.description;
+          this.queryRunning = false;
+        } else {
+          this.startPolling(id);
+        }
+      }, (error: any) => {
+        this.errorMsg = `Response message: ${error.message}. Something went wrong with your query submission!`;
       }
-    }, (error: any) => {
-      this.errorMsg = `Response message: ${error.message}. Something went wrong with your query submission!`;
-    });
+    );
   }
 
   startPolling(id: string) {
     this.queryId = id;
     this.errorMsg = null;
-    this.statusSubscription = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
+    this.subscriptions['statusSubscription'] = this.pcapService.pollStatus(id).subscribe((statusResponse: PcapStatusResponse) => {
       this.updateStatus(statusResponse);
     }, (error: any) => {
-      this.statusSubscription.unsubscribe();
+      this.subscriptions['statusSubscription'].unsubscribe();
       this.queryRunning = false;
       this.errorMsg = `Response message: ${error.message}. Something went wrong with your status request!`;
     });
@@ -109,9 +111,9 @@ export class PcapPanelComponent implements OnInit, OnDestroy {
   updateStatus(statusResponse: PcapStatusResponse) {
     if ('SUCCEEDED' === statusResponse.jobStatus) {
       this.pagination.total = statusResponse.pageTotal;
-      this.statusSubscription.unsubscribe();
+      this.subscriptions['statusSubscription'].unsubscribe();
       this.queryRunning = false;
-      this.pcapService.getPackets(this.queryId, this.pagination.selectedPage).toPromise().then(pdml => {
+      this.subscriptions['packetSubscription'] = this.pcapService.getPackets(this.queryId, this.pagination.selectedPage).subscribe(pdml => {
         this.pdml = pdml;
       }, (error: RestError) => {
         if (error.status === 404) {
@@ -121,7 +123,7 @@ export class PcapPanelComponent implements OnInit, OnDestroy {
         }
       });
     } else if ('FAILED' === statusResponse.jobStatus) {
-      this.statusSubscription.unsubscribe();
+      this.subscriptions['statusSubscription'].unsubscribe();
       this.queryRunning = false;
       this.errorMsg = `Query status: ${statusResponse.jobStatus}. Check your filter criteria and try again!`;
     } else if (this.progressWidth < 100) {
@@ -134,25 +136,19 @@ export class PcapPanelComponent implements OnInit, OnDestroy {
   }
 
   unsubscribeAll() {
-    if (this.cancelSubscription) {
-      this.cancelSubscription.unsubscribe();
-    }
-    if (this.statusSubscription) {
-      this.statusSubscription.unsubscribe();
-    }
-    if (this.submitSubscription) {
-      this.submitSubscription.unsubscribe();
-    }
+    Object.keys(this.subscriptions).forEach((key) => {
+      this.subscriptions[key].unsubscribe();
+    });
+    this.subscriptions = {};
   }
 
   cancelQuery() {
-    this.cancelSubscription = this.pcapService.cancelQuery(this.queryId)
+    this.subscriptions['cancelSubscription'] = this.pcapService.cancelQuery(this.queryId)
       .subscribe(() => {
         this.unsubscribeAll();
         this.queryId = '';
         this.queryRunning = false;
       }, (error: any) => {
-        this.cancelSubscription.unsubscribe();
         this.queryId = '';
         this.errorMsg = `Response message: ${error.message}. Something went wrong with the cancellation!`;
         this.queryRunning = false;

@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
@@ -168,6 +167,8 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     dao.search(request);
   }
 
+
+
   @Override
   public void returns_column_metadata_for_specified_indices() throws Exception {
     // getColumnMetadata with only bro
@@ -257,24 +258,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     List<SearchResult> results = response.getResults();
     Assert.assertEquals("bro", results.get(0).getSource().get("source:type"));
     Assert.assertEquals("data 1", results.get(0).getSource().get("ttl"));
-  }
-
-  @Test
-  public void queries_fields() throws Exception {
-    SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
-    SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(10, response.getTotal());
-
-    List<SearchResult> results = response.getResults();
-    Assert.assertEquals(10, response.getResults().size());
-
-    // validate the source fields contained in the search response
-    for (int i = 0; i < 10; ++i) {
-      Map<String, Object> source = results.get(i).getSource();
-      Assert.assertNotNull(source);
-      Assert.assertNotNull(source.get(Constants.Fields.SRC_ADDR.getName()));
-      Assert.assertNotNull(source.get(Constants.GUID));
-    }
   }
 
   @Override
