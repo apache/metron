@@ -235,6 +235,11 @@ public class DateFunctionsTest {
     assertEquals("Thu Aug 25 2016 08:27:10 EST", result);
   }
 
+  /**
+   * Test that the String returned is formatted as specified.
+   * LocalDate.parse will throw if it is not.
+   * @throws Exception
+   */
   @Test
   public void testDateFormatDefault() throws Exception {
     Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzzz')");
