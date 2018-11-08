@@ -133,6 +133,44 @@ public class ElasticsearchBulkDocumentWriterTest {
         assertFalse(onFailureCalled);
     }
 
+    @Test
+    public void testFlushBatchOnSuccess() throws IOException {
+        setupElasticsearchToSucceed();
+        assertEquals(0, writer.size());
+
+        // add some documents to write
+        String index = "bro_index";
+        writer.addDocument(document(message()), index);
+        writer.addDocument(document(message()), index);
+        writer.addDocument(document(message()), index);
+        writer.addDocument(document(message()), index);
+        writer.addDocument(document(message()), index);
+        assertEquals(5, writer.size());
+
+        // after the write, all documents should have been flushed
+        writer.write();
+        assertEquals(0, writer.size());
+    }
+
+    @Test
+    public void testFlushBatchOnFailure() throws IOException {
+        setupElasticsearchToFail();
+        assertEquals(0, writer.size());
+
+        // add some documents to write
+        String index = "bro_index";
+        writer.addDocument(document(message()), index);
+        writer.addDocument(document(message()), index);
+        writer.addDocument(document(message()), index);
+        writer.addDocument(document(message()), index);
+        writer.addDocument(document(message()), index);
+        assertEquals(5, writer.size());
+
+        // after the write, all documents should have been flushed
+        writer.write();
+        assertEquals(0, writer.size());
+    }
+
     private void setupElasticsearchToFail() throws IOException {
         final String errorMessage = "error message";
         final Exception cause = new Exception("test exception");

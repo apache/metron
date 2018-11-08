@@ -102,6 +102,7 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     @Override
     public void addDocument(D document, String index) {
         documents.add(new Indexable(document, index));
+        LOG.debug("Adding document to batch; document={}, index={}", document, index);
     }
 
     @Override
@@ -134,7 +135,16 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
                 }
             }
             LOG.error("Failed to submit bulk request; all documents failed", e);
+
+        } finally {
+            // flush all documents no matter which ones succeeded or failed
+            documents.clear();
         }
+    }
+
+    @Override
+    public int size() {
+        return documents.size();
     }
 
     private IndexRequest createRequest(D document, String index) {
