@@ -36,11 +36,21 @@ public class Document {
   Map<String, Object> document;
   String guid;
   String sensorType;
+
+  /**
+   * A unique identifier that is used when persisting this document.
+   *
+   * <p>This value may be different than the Metron guid.
+   *
+   * <p>Only present when a document has been retrieved from a store
+   * that supports a document ID, like Elasticsearch.  This will not
+   * be present when retrieved from HBase.
+   */
   Optional<String> documentID;
 
   public static Document fromJSON(Map<String, Object> json) {
     String guid = getGUID(json);
-    Long timestamp = getTimestamp(json);
+    Long timestamp = getTimestamp(json).orElse(0L);
     String sensorType = getSensorType(json);
     return new Document(json, guid, sensorType, timestamp);
   }
@@ -122,13 +132,12 @@ public class Document {
     this.documentID = Optional.ofNullable(documentID);
   }
 
-  private static Long getTimestamp(Map<String, Object> document) {
+  private static Optional<Long> getTimestamp(Map<String, Object> document) {
     Object value = document.get(TIMESTAMP.getName());
     if(value != null && value instanceof Long) {
-      return Long.class.cast(value);
+      return Optional.of(Long.class.cast(value));
     }
-
-    throw new IllegalStateException(String.format("Missing '%s' field", TIMESTAMP.getName()));
+    return Optional.empty();
   }
 
   private static String getGUID(Map<String, Object> document) {
