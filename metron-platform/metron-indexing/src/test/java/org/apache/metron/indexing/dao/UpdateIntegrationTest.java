@@ -184,18 +184,23 @@ public abstract class UpdateIntegrationTest {
   @Test
   public void testUpdate() throws Exception {
     // create a document to update
-    final String guid = UUID.randomUUID().toString();
     final Long timestamp = 1526306463050L;
-    Document toUpdate = createDocument(guid, timestamp);
+    Document toUpdate = createDocument(timestamp);
     {
       // update the document and validate
-      Document updated = getDao().update(toUpdate, Optional.of(SENSOR_NAME));
-      Assert.assertEquals(toUpdate, updated);
+      Document updated = getDao().update(toUpdate, Optional.of(toUpdate.getSensorType()));
+      Assert.assertEquals(toUpdate.getGuid(), updated.getGuid());
+      Assert.assertEquals(toUpdate.getSensorType(), updated.getSensorType());
+      Assert.assertEquals(toUpdate.getTimestamp(), updated.getTimestamp());
+      Assert.assertEquals(toUpdate.getDocument(), updated.getDocument());
     }
     {
       // ensure the document is updated in the index
-      Document indexed = findUpdatedDoc(toUpdate.getDocument(), guid, SENSOR_NAME);
-      Assert.assertEquals(toUpdate, indexed);
+      Document indexed = findUpdatedDoc(toUpdate.getDocument(), toUpdate.getGuid(), toUpdate.getSensorType());
+      Assert.assertEquals(toUpdate.getGuid(), indexed.getGuid());
+      Assert.assertEquals(toUpdate.getSensorType(), indexed.getSensorType());
+      Assert.assertEquals(toUpdate.getTimestamp(), indexed.getTimestamp());
+      Assert.assertEquals(toUpdate.getDocument(), indexed.getDocument());
     }
   }
 
@@ -204,22 +209,16 @@ public abstract class UpdateIntegrationTest {
     Map<Document, Optional<String>> toUpdate = new HashMap<>();
 
     // create the first document to update
-    final String guid1 = UUID.randomUUID().toString();
-    final Long timestamp1 = 1526306463050L;
-    Document document1 = createDocument(guid1, timestamp1);
-    toUpdate.put(document1, Optional.of(SENSOR_NAME));
+    Document document1 = createDocument(1526306463050L);
+    toUpdate.put(document1, Optional.of(document1.getSensorType()));
 
     // create the second document to update
-    final String guid2 = UUID.randomUUID().toString();
-    final Long timestamp2 = 1526306463100L;
-    Document document2 = createDocument(guid2, timestamp2);
-    toUpdate.put(document2, Optional.of(SENSOR_NAME));
+    Document document2 = createDocument(1526306463100L);
+    toUpdate.put(document2, Optional.of(document2.getSensorType()));
 
     // create the third document to update
-    final String guid3 = UUID.randomUUID().toString();
-    final Long timestamp3 = 1526306463300L;
-    Document document3 = createDocument(guid3, timestamp3);
-    toUpdate.put(document3, Optional.of(SENSOR_NAME));
+    Document document3 = createDocument(1526306463300L);
+    toUpdate.put(document3, Optional.of(document3.getSensorType()));
 
     // update the documents as a batch and validate
     Map<Document, Optional<String>> updated = getDao().batchUpdate(toUpdate);
@@ -228,14 +227,32 @@ public abstract class UpdateIntegrationTest {
     Assert.assertThat(updated.keySet(), hasItem(document3));
 
     // ensure the documents were written to the index
-    Assert.assertEquals(document1, findUpdatedDoc(document1.getDocument(), guid1, SENSOR_NAME));
-    Assert.assertEquals(document2, findUpdatedDoc(document2.getDocument(), guid2, SENSOR_NAME));
-    Assert.assertEquals(document3, findUpdatedDoc(document3.getDocument(), guid3, SENSOR_NAME));
+    {
+      Document actual = findUpdatedDoc(document1.getDocument(), document1.getGuid(), document1.getSensorType());
+      Assert.assertEquals(document1.getGuid(), actual.getGuid());
+      Assert.assertEquals(document1.getSensorType(), actual.getSensorType());
+      Assert.assertEquals(document1.getTimestamp(), actual.getTimestamp());
+      Assert.assertEquals(document1.getDocument(), actual.getDocument());
+    }
+    {
+      Document actual = findUpdatedDoc(document2.getDocument(), document2.getGuid(), document2.getSensorType());
+      Assert.assertEquals(document2.getGuid(), actual.getGuid());
+      Assert.assertEquals(document2.getSensorType(), actual.getSensorType());
+      Assert.assertEquals(document2.getTimestamp(), actual.getTimestamp());
+      Assert.assertEquals(document2.getDocument(), actual.getDocument());
+    }
+    {
+      Document actual = findUpdatedDoc(document3.getDocument(), document3.getGuid(), document3.getSensorType());
+      Assert.assertEquals(document3.getGuid(), actual.getGuid());
+      Assert.assertEquals(document3.getSensorType(), actual.getSensorType());
+      Assert.assertEquals(document3.getTimestamp(), actual.getTimestamp());
+      Assert.assertEquals(document3.getDocument(), actual.getDocument());
+    }
   }
 
   @Test
   public void testAddComment() throws Exception {
-    Document document = createAndIndexDocument("testAddCommentAndPatch");
+    Document document = createAndIndexDocument();
 
     // comment on the document
     String commentText = "New Comment";
@@ -252,7 +269,7 @@ public abstract class UpdateIntegrationTest {
     }
     {
       // validate that the comment was made on the indexed document
-      Document indexed = findUpdatedDoc(withComment.getDocument(), withComment.getGuid(), SENSOR_NAME);
+      Document indexed = findUpdatedDoc(withComment.getDocument(), withComment.getGuid(), withComment.getSensorType());
       List<AlertComment> comments = getComments(indexed);
       Assert.assertEquals(1, comments.size());
       Assert.assertEquals(commentText, comments.get(0).getComment());
@@ -263,7 +280,7 @@ public abstract class UpdateIntegrationTest {
 
   @Test
   public void testPatchDocumentThatHasComment() throws Exception {
-    Document document = createAndIndexDocument("testPatchDocumentWithComment");
+    Document document = createAndIndexDocument();
 
     // comment on the document
     String commentText = "New Comment";
@@ -296,11 +313,10 @@ public abstract class UpdateIntegrationTest {
 
   @Test
   public void testRemoveComments() throws Exception {
-    String guid = "testRemoveComments";
-    createAndIndexDocument(guid);
+    Document document = createAndIndexDocument();
 
     // add a comment on the document
-    Document withComments = addAlertComment(guid, "comment", "user1", 1526401584951L);
+    Document withComments = addAlertComment(document.getGuid(), "comment", "user1", 1526401584951L);
     Assert.assertEquals(1, getComments(withComments).size());
 
     // ensure the comment was added to the document in the index
@@ -309,7 +325,7 @@ public abstract class UpdateIntegrationTest {
 
     // remove a comment from the document
     AlertComment toRemove = getComments(withComments).get(0);
-    Document noComments = removeAlertComment(guid, toRemove.getComment(), toRemove.getUsername(), toRemove.getTimestamp());
+    Document noComments = removeAlertComment(document.getGuid(), toRemove.getComment(), toRemove.getUsername(), toRemove.getTimestamp());
     Assert.assertEquals(0, getComments(noComments).size());
 
     // ensure the comment was removed from the index
@@ -340,20 +356,21 @@ public abstract class UpdateIntegrationTest {
     return request;
   }
 
-  private Document createAndIndexDocument(String guid) throws Exception {
+  private Document createAndIndexDocument() throws Exception {
     // create the document
     Long timestamp = 1526306463050L;
-    Document toCreate = createDocument(guid, timestamp);
+    Document toCreate = createDocument(timestamp);
 
     // index the document
-    Document created = getDao().update(toCreate, Optional.of(SENSOR_NAME));
+    Document created = getDao().update(toCreate, Optional.of(toCreate.getSensorType()));
     Assert.assertEquals(toCreate, created);
 
     // ensure the document is indexed
-    return findUpdatedDoc(toCreate.getDocument(), guid, SENSOR_NAME);
+    return findUpdatedDoc(toCreate.getDocument(), toCreate.getGuid(), toCreate.getSensorType());
   }
 
-  protected Document createDocument(String guid, Long timestamp) {
+  protected Document createDocument(Long timestamp) {
+    String guid = UUID.randomUUID().toString();
     Map<String, Object> message1 = new HashMap<>();
     message1.put(Constants.GUID, guid);
     message1.put(Constants.SENSOR_TYPE, SENSOR_NAME);
