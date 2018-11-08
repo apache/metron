@@ -28,6 +28,8 @@ import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -234,9 +236,10 @@ public class DateFunctionsTest {
   }
 
   @Test
-  public void testDateFormatDefault() {
+  public void testDateFormatDefault() throws Exception {
     Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzzz')");
-    assertTrue(result.toString().endsWith(TimeZone.getDefault().getDisplayName(true, 1)));
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd yyyy hh:mm:ss zzzz");
+    LocalDate.parse(result.toString(), formatter);
   }
 
   @Test
