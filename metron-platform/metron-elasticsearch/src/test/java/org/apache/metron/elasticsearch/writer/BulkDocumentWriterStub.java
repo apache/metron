@@ -79,6 +79,11 @@ public class BulkDocumentWriterStub<D extends Document> implements BulkDocumentW
         onSuccess.onSuccess(successes);
     }
 
+    @Override
+    public int size() {
+        return documents.size();
+    }
+
     /**
      * Set the exception that is passed to the failure callback when a message fails to write.
      * @param exception The exception passed to the failure callback.

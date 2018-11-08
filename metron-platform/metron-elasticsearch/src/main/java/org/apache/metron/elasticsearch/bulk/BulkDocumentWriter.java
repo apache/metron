@@ -68,6 +68,11 @@ public interface BulkDocumentWriter<D extends Document> {
     void addDocument(D document, String index);
 
     /**
+     * @return The number of documents waiting to be written.
+     */
+    int size();
+
+    /**
      * Write all documents in the batch.
      */
     void write();
