@@ -62,7 +62,10 @@ metron_jvm_flags = config['configurations']['metron-rest-env']['metron_jvm_flags
 # Construct the profiles as a temp variable first. Only the first time it's set will carry through
 metron_spring_profiles_temp = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
 if config['configurations']['metron-security-env']['metron.ldap.enabled']:
-    metron_spring_profiles_active = metron_spring_profiles_temp + ',ldap'
+    if metron_spring_profiles_temp:
+        metron_spring_profiles_active = metron_spring_profiles_temp + ',ldap'
+    else:
+        metron_spring_profiles_active = 'ldap'
 else:
     metron_spring_profiles_active = metron_spring_profiles_temp
 
