@@ -58,30 +58,6 @@ class MockAuthenticationService extends AuthenticationService {
   }
 }
 
-class MockSensorParserConfigHistoryService extends SensorParserConfigHistoryService {
-  private allSensorParserConfigHistory: SensorParserConfigHistory[];
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
-
-  public setSensorParserConfigHistoryForTest(
-    allSensorParserConfigHistory: SensorParserConfigHistory[]
-  ) {
-    this.allSensorParserConfigHistory = allSensorParserConfigHistory;
-  }
-
-  public getAll(): Observable<SensorParserConfigHistory[]> {
-    return Observable.create(observer => {
-      observer.next(this.allSensorParserConfigHistory);
-      observer.complete();
-    });
-  }
-}
-
 class MockSensorParserConfigService extends SensorParserConfigService {
   private sensorParserConfigs: {};
 
@@ -174,7 +150,6 @@ describe('Component: SensorParserList', () => {
   let authenticationService: MockAuthenticationService;
   let sensorParserConfigService: MockSensorParserConfigService;
   let stormService: MockStormService;
-  let sensorParserConfigHistoryService: MockSensorParserConfigHistoryService;
   let router: Router;
   let metronAlerts: MetronAlerts;
   let metronDialog: MetronDialogBox;
@@ -192,10 +167,6 @@ describe('Component: SensorParserList', () => {
           useClass: MockSensorParserConfigService
         },
         { provide: StormService, useClass: MockStormService },
-        {
-          provide: SensorParserConfigHistoryService,
-          useClass: MockSensorParserConfigHistoryService
-        },
         { provide: Router, useClass: MockRouter },
         { provide: MetronDialogBox, useClass: MockMetronDialogBox },
         { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
@@ -207,9 +178,6 @@ describe('Component: SensorParserList', () => {
     authenticationService = TestBed.get(AuthenticationService);
     sensorParserConfigService = TestBed.get(SensorParserConfigService);
     stormService = TestBed.get(StormService);
-    sensorParserConfigHistoryService = TestBed.get(
-      SensorParserConfigHistoryService
-    );
     router = TestBed.get(Router);
     metronAlerts = TestBed.get(MetronAlerts);
     metronDialog = TestBed.get(MetronDialogBox);
