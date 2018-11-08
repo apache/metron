@@ -18,8 +18,6 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
@@ -27,10 +25,8 @@ import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.TypeQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
@@ -40,15 +36,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.typeQuery;
 
 public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
@@ -101,12 +93,17 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
       return Collections.emptyList();
     }
 
-    // build the search query
+    // should match any of the guids. the 'guid' field must be of type 'keyword' or the term query will not match
+    BoolQueryBuilder guidQuery = boolQuery().must(termsQuery(Constants.GUID, guids));
+
+    // should match any of the sensor types
+    BoolQueryBuilder sensorQuery = boolQuery();
+    sensorTypes.forEach(sensorType -> sensorQuery.should(typeQuery(sensorType + "_doc")));
+
+    // must have a match for both guid and sensor
     BoolQueryBuilder query = boolQuery()
-            .must(termsQuery(Constants.GUID, guids));
-    for(String sensorType: sensorTypes) {
-      query.must(sensorQuery(sensorType));
-    }
+            .must(guidQuery)
+            .must(sensorQuery);
 
     // submit the search
     SearchResponse response;
@@ -114,7 +111,6 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
       SearchSourceBuilder source = new SearchSourceBuilder()
               .query(query)
               .size(guids.size());
-
       SearchRequest request = new SearchRequest().source(source);
       response = submitter.submitSearch(request);
 
@@ -126,9 +122,7 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
     List<T> results = new ArrayList<>();
     for(SearchHit hit: response.getHits()) {
       Optional<T> result = callback.apply(hit);
-      if(result.isPresent()) {
-        results.add(result.get());
-      }
+      result.ifPresent( r -> results.add(r));
     }
 
     return results;
@@ -139,9 +133,5 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
     document.setDocumentID(hit.getId());
 
     return Optional.of(document);
-  }
-
-  private TypeQueryBuilder sensorQuery(String sensorType) {
-    return typeQuery(sensorType + "_doc");
   }
 }
