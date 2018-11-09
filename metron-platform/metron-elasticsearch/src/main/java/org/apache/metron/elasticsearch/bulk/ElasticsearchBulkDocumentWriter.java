@@ -152,17 +152,36 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
             throw new IllegalArgumentException("Document must contain the timestamp");
         }
 
-        IndexRequest request = new IndexRequest()
+        return new IndexRequest()
                 .source(document.getDocument())
                 .type(document.getSensorType() + "_doc")
                 .index(index)
+                .id(documentID(document))
                 .timestamp(document.getTimestamp().toString());
+    }
 
-        if(defineDocumentId) {
-            request.id(document.getGuid());
+    /**
+     * Returns the document ID that should be used to index
+     * the {@link Document} in Elasticsearch.
+     *
+     * @param document The document to index.
+     * @return The document ID.
+     */
+    private String documentID(D document) {
+        String documentID;
+        if(document.getDocumentID().isPresent()) {
+            // if updating an existing document, need to set the doc ID
+            documentID = document.getDocumentID().get();
+
+        } else if(defineDocumentId) {
+            // if creating a document and not using auto-generation, then need to set the document ID
+            documentID = document.getGuid();
+
+        } else {
+            // allow elastic to auto-generate the ID
+            documentID = null;
         }
-
-        return request;
+        return documentID;
     }
 
     /**
