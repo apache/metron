@@ -22,8 +22,11 @@ import { ParseMessageRequest } from '../model/parse-message-request';
 import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 import {
   HttpClientTestingModule,
-  HttpTestingController
+  HttpTestingController,
+  TestRequest
 } from '@angular/common/http/testing';
+import { ParserGroupModel } from 'app/model/parser-group';
+import { noop } from 'rxjs';
 
 describe('SensorParserConfigService', () => {
   let mockBackend: HttpTestingController;
@@ -128,4 +131,79 @@ describe('SensorParserConfigService', () => {
       r.flush(parsedMessage);
     });
   });
+
+  describe('REST Calls for Parser Grouping', () => {
+
+    it('getting list of parser groups', () => {
+      sensorParserConfigService.getAllGroups().subscribe((result: ParserGroupModel[]) => {
+        expect(result.length).toBe(2);
+        expect(result[0].name).toBe('TestGroupName1');
+        expect(result[0].description).toBe('TestDesc1');
+      });
+
+      const request = mockBackend.expectOne('/api/v1/sensor/parser/group');
+      request.flush([
+        {
+          name: 'TestGroupName1',
+          description: 'TestDesc1'
+        },
+        {
+          name: 'TestGroupName2',
+          description: 'TestDesc2'
+        }
+      ]);
+    });
+
+    it('getting single parser group by name', () => {
+      sensorParserConfigService.getGroup('TestGroup').subscribe((result: ParserGroupModel) => {
+        expect(result.name).toBe('TestGroupName1');
+        expect(result.description).toBe('TestDesc1');
+      });
+
+      const request = mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup');
+      request.flush({
+          name: 'TestGroupName1',
+          description: 'TestDesc1'
+        });
+    });
+
+    it('creating/editing single parser group by name', () => {
+      sensorParserConfigService.saveGroup('TestGroup', {
+        name: 'TestGroupName1',
+        description: 'TestDesc1'
+      }).subscribe();
+
+      const request = mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup');
+      expect(request.request.method).toEqual('POST');
+      expect(request.request.body.name).toBe('TestGroupName1');
+    });
+
+    it('deleting single parser group by name', () => {
+      sensorParserConfigService.deleteGroup('TestGroup').subscribe();
+
+      const request = mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup');
+      expect(request.request.method).toEqual('DELETE');
+    });
+
+    fit('deleting multiple parser groups by name', () => {
+      sensorParserConfigService.deleteGroups(['TestGroup1', 'TestGroup2', 'TestGroup3'])
+      .subscribe((result) => {
+        expect(result.success.length).toBe(2);
+        expect(result.failure.length).toBe(1);
+      });
+
+      const request: Array<TestRequest> = [];
+      request.push(mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup1'));
+      request.push(mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup2'));
+      request.push(mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup3'));
+
+      expect(request[0].request.method).toEqual('DELETE');
+      expect(request[1].request.method).toEqual('DELETE');
+      expect(request[2].request.method).toEqual('DELETE');
+
+      request[0].flush({});
+      request[1].flush('Invalid request parameters', { status: 404, statusText: 'Bad Request' });
+      request[2].flush({});
+    });
+  })
 });

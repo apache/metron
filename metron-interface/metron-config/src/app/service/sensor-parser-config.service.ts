@@ -17,8 +17,8 @@
  */
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Subject } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { Observable, Subject, from, of } from 'rxjs';
+import { catchError, map, take, mergeMap, finalize } from 'rxjs/operators';
 import { SensorParserConfig } from '../model/sensor-parser-config';
 import { HttpUtil } from '../util/httpUtil';
 import { ParseMessageRequest } from '../model/parse-message-request';
@@ -26,38 +26,79 @@ import { RestError } from '../model/rest-error';
 import { IAppConfig } from '../app.config.interface';
 import { APP_CONFIG } from '../app.config';
 import { ParserGroupModel } from 'app/model/parser-group';
-import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-history';
 
 @Injectable()
 export class SensorParserConfigService {
-  parserConfigEndpoint = this.config.apiEndpoint + '/sensor/parser/config';
-  parserGroupEndpoint = this.config.apiEndpoint + '/sensor/parser/config';
-  selectedSensorParserConfig: SensorParserConfig;
+  readonly parserConfigEndpoint = this.config.apiEndpoint + '/sensor/parser/config';
+  readonly parserGroupEndpoint = this.config.apiEndpoint + '/sensor/parser/group';
 
   dataChangedSource = new Subject<string[]>();
   dataChanged$ = this.dataChangedSource.asObservable();
 
-  private groups: Observable<ParserGroupModel[]>;
-  private parsers: Observable<SensorParserConfigHistory[]>;
-  public groupsAndParsers: Observable<{}>;
-
   constructor(
     private http: HttpClient,
     @Inject(APP_CONFIG) private config: IAppConfig
-  ) {
-    this.getParserGroups();
-    this.groups.subscribe();
-  }
+  ) {}
 
-  private getParserGroups() {
+  public getAllGroups(): Observable<ParserGroupModel[]> {
     function extractParserGroups(rawJsonArray) {
       return rawJsonArray.map(group => new ParserGroupModel(group));
     }
 
-    this.groups = this.http.get(this.parserGroupEndpoint).pipe(
+    return this.http.get(this.parserGroupEndpoint).pipe(
       map(extractParserGroups),
       catchError(HttpUtil.handleError)
     );
+  }
+
+  public getGroup(name: string): Observable<RestError | ParserGroupModel> {
+    return this.http.get(`${this.parserGroupEndpoint}/${name}`).pipe(
+      map(group => new ParserGroupModel(group)),
+      catchError(HttpUtil.handleError)
+    );
+  }
+
+  public saveGroup(name: string, group: ParserGroupModel): Observable<RestError | ParserGroupModel> {
+    return this.http.post(`${this.parserGroupEndpoint}/${name}`, group).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
+  }
+
+  public deleteGroup(groupName: string): Observable<{ groupName: string, isSuccess: boolean }> {
+    return this.http.delete(`${this.parserGroupEndpoint}/${groupName}`).pipe(
+      map((result) => { return { groupName, isSuccess: true } }),
+      catchError((error) => { return of({ groupName, isSuccess: false }) })
+    );
+  }
+
+  public deleteGroups(
+    groupNames: string[]
+  ): Observable<{ success: Array<string>; failure: Array<string> }> {
+    let result: { success: Array<string>; failure: Array<string> } = {
+      success: [],
+      failure: []
+    };
+    let observable = Observable.create(observer => {
+      let completed = () => {
+        if (observer) {
+          observer.next(result);
+          observer.complete();
+        }
+        // TODO: what about this?
+        // this.dataChangedSource.next(groupNames);
+      };
+      from(groupNames).pipe(
+        mergeMap(this.deleteGroup.bind(this)),
+        take(groupNames.length),
+        map((deleteResult: { groupName: string, isSuccess: boolean}) => {
+          (deleteResult.isSuccess ? result.success : result.failure).push(deleteResult.groupName);
+        }),
+        finalize(completed)
+        ).subscribe();
+    });
+
+    return observable;
   }
 
   public post(
