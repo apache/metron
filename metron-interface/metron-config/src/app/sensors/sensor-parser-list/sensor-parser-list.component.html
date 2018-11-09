@@ -53,31 +53,115 @@
     </tr>
     </thead>
     <tbody>
-    <tr *ngFor="let sensor of sensors;" (click)="onSensorRowSelect(sensor, $event)" 
-        [ngClass]="{'active': (selectedSensors.indexOf(sensor) != -1 || selectedSensor == sensor)}"
-        draggable="true" (dragstart)="onDragStart(sensor, $event)" (dragover)="onDragOver(sensor, $event)" (drop)="onDrop(sensor, $event)">
+    <tr *ngFor="let sensor of sensorsToRender"
+        (click)="onSensorRowSelect(sensor.getSensor(), $event)"
+        [ngClass]="{'active': (selectedSensors.indexOf(sensor.getSensor()) != -1 || selectedSensor == sensor.getSensor())}"
+        [draggable]="!sensor.isParent()"
+        (dragstart)="onDragStart(sensor)"
+        (dragover)="onDragOver($event)"
+        (drop)="onDrop(sensor)"
+      >
       <td><i class="fa fa-bars dark-grey"></i></td>
-      <td>{{ sensor.sensorName }}</td>
-      <td>{{ getParserType(sensor.config) }}</td>
-      <td [ngClass]="{'warning-text': (sensor.status == 'Stopped' || sensor.status == 'Disabled')}">{{ sensor.status }}</td>
-      <td>{{ sensor.latency }}</td>
-      <td>{{ sensor.throughput }}</td>
-      <td>{{ sensor.modifiedByDate }}</td>
-      <td>{{ sensor.modifiedBy }}</td>
-      <td class="icon-container">
-          <i  data-toggle="tooltip" title="Operation in progress" class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!sensor.config['startStopInProgress']"></i>
-
-          <i  data-toggle="tooltip" title="Stop parser topology" class="fa fa-stop fa-lg" aria-hidden="true" [hidden]="((sensor.status != 'Running' && sensor.status != 'Disabled') || sensor.config['startStopInProgress'])" (click)="onStopSensor(sensor, $event)"></i>
-          <i  data-toggle="tooltip" title="Disable parser topology" class="fa fa-ban fa-lg" aria-hidden="true" [hidden]="(sensor.status != 'Running'  || sensor.config['startStopInProgress'])" (click)="onDisableSensor(sensor, $event)"></i>
-
-          <i  data-toggle="tooltip" title="Start parser topology" class="fa fa-play fa-lg" aria-hidden="true" [hidden]="(sensor.status != 'Stopped' || sensor.config['startStopInProgress'])" (click)="onStartSensor(sensor, $event)"></i>
-          <i  data-toggle="tooltip" title="Enable parser topology" class="fa fa-check-circle-o fa-lg" aria-hidden="true" [hidden]="(sensor.status != 'Disabled' || sensor.config['startStopInProgress'])" (click)="onEnableSensor(sensor, $event)"></i>
-
-          <i  data-toggle="tooltip" title="Edit parser topology" class="fa fa-pencil fa-lg" aria-hidden="true" (click)="navigateToSensorEdit(sensor, $event)"></i>
-
-          <i  data-toggle="tooltip" title="Delete parser configuration" class="fa fa-trash-o fa-lg" aria-hidden="true" (click)="deleteSensor($event, [sensor])"></i>
+      <td>
+        <button
+          *ngIf="sensor.canUndo()"
+          (click)="undo(sensor, $event)"
+        >
+          Undo
+        </button>
+        <span class="group-parent-label" *ngIf="sensor.isParent()">
+          (group)
+        </span>
+        <span *ngIf="!!sensor.getSensor().group">
+          ----
+        </span>
+        {{ sensor.getSensor().sensorName }}
+        <span class="group-child-label" *ngIf="!!sensor.getSensor().group">
+          ({{ sensor.getSensor().group }})
+        </span>
       </td>
-      <td><input id="{{ sensor.sensorName }}" class="fontawesome-checkbox" type="checkbox" name="{{sensor.sensorName}}" (click)="onRowSelected(sensor, $event)"><label attr.for="{{ sensor.sensorName }}"></label></td>
+      <td>{{ getParserType(sensor.getSensor().config) }}</td>
+      <td
+        [ngClass]="{'warning-text': (sensor.getSensor().status == 'Stopped' || sensor.getSensor().status == 'Disabled')}"
+      >
+        {{ sensor.getSensor().status }}
+      </td>
+      <td>{{ sensor.getSensor().latency }}</td>
+      <td>{{ sensor.getSensor().throughput }}</td>
+      <td>{{ sensor.getSensor().modifiedByDate }}</td>
+      <td>{{ sensor.getSensor().modifiedBy }}</td>
+      <td class="icon-container">
+          <i
+            data-toggle="tooltip"
+            title="Operation in progress"
+            class="fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+            [hidden]="!sensor.getSensor().config['startStopInProgress']"
+          >
+          </i>
+          <i
+            data-toggle="tooltip"
+            title="Stop parser topology"
+            class="fa fa-stop fa-lg"
+            aria-hidden="true"
+            [hidden]="((sensor.getSensor().status != 'Running' && sensor.getSensor().status != 'Disabled') || sensor.getSensor().config['startStopInProgress'])"
+            (click)="onStopSensor(sensor.getSensor(), $event)"
+          >
+          </i>
+          <i
+            data-toggle="tooltip"
+            title="Disable parser topology"
+            class="fa fa-ban fa-lg"
+            aria-hidden="true"
+            [hidden]="(sensor.getSensor().status != 'Running'  || sensor.getSensor().config['startStopInProgress'])"
+            (click)="onDisableSensor(sensor.getSensor(), $event)"
+          >
+          </i>
+
+          <i
+            data-toggle="tooltip"
+            title="Start parser topology"
+            class="fa fa-play fa-lg"
+            aria-hidden="true"
+            [hidden]="(sensor.getSensor().status != 'Stopped' || sensor.getSensor().config['startStopInProgress'])"
+            (click)="onStartSensor(sensor.getSensor(), $event)"
+          >
+          </i>
+          <i
+            data-toggle="tooltip"
+            title="Enable parser topology"
+            class="fa fa-check-circle-o fa-lg"
+            aria-hidden="true"
+            [hidden]="(sensor.getSensor().status != 'Disabled' || sensor.getSensor().config['startStopInProgress'])"
+            (click)="onEnableSensor(sensor.getSensor(), $event)"
+          >
+          </i>
+          <i
+            data-toggle="tooltip"
+            title="Edit parser topology"
+            class="fa fa-pencil fa-lg"
+            aria-hidden="true"
+            (click)="navigateToSensorEdit(sensor.getSensor(), $event)"
+          >
+          </i>
+          <i
+            data-toggle="tooltip"
+            title="Delete parser configuration"
+            class="fa fa-trash-o fa-lg"
+            aria-hidden="true"
+            (click)="deleteSensor($event.getSensor(), [sensor])"
+          >
+          </i>
+      </td>
+      <td>
+        <input
+          id="{{ sensor.getSensor().sensorName }}"
+          class="fontawesome-checkbox"
+          type="checkbox"
+          name="{{sensor.getSensor().sensorName}}"
+          (click)="onRowSelected(sensor.getSensor(), $event)"
+        >
+        <label attr.for="{{ sensor.getSensor().sensorName }}"></label>
+      </td>
     </tr>
     </tbody>
   </table>

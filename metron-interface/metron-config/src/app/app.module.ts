@@ -45,17 +45,22 @@ import {SensorParserConfigHistoryService} from './service/sensor-parser-config-h
 import {SensorIndexingConfigService} from './service/sensor-indexing-config.service';
 import {HdfsService} from './service/hdfs.service';
 import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.interceptor';
+import { SensorAggregateModule } from './sensors/sensor-aggregate/sensor-aggregate.module';
+import { SensorAggregateService } from './sensors/sensor-aggregate/sensor-aggregate.service';
+import { SensorParserConfigHistoryListController } from './sensors/sensor-aggregate/sensor-parser-config-history-list.controller';
 
 
 @NgModule({
   imports: [ BrowserModule, FormsModule, ReactiveFormsModule, HttpClientModule, SensorParserListModule,
-    SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule, MetronConfigRoutingModule ],
+    SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule, MetronConfigRoutingModule,
+    SensorAggregateModule ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
   providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
     StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
     GlobalConfigService, MetronAlerts, MetronDialogBox, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
-    { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true }],
+    { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true }, SensorAggregateService,
+    SensorParserConfigHistoryListController],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule {

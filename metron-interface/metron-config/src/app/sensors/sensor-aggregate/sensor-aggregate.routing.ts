@@ -15,31 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ModuleWithProviders }  from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+import { SensorAggregateComponent } from './sensor-aggregate.component';
+import { AuthGuard } from '../../shared/auth-guard';
 
-.config-table {
-  table-layout: fixed;
-}
+const routes: Routes = [
+  { path: 'sensor-aggregate', component: SensorAggregateComponent, canActivate: [ AuthGuard ], outlet: 'dialog'}
+];
 
-.dark-grey {
-  color: #545454;
-}
-
-table tr td, table tr th {
-  padding: 0.9em;
-}
-
-table tr th:nth-child(1) {
-  width: 30px;
-}
-
-.group-parent-label {
-  color: #A042B4;
-  font-size: 10px;
-  font-style: italic;
-}
-
-.group-child-label {
-  color: yellow;
-  font-size: 10px;
-  font-style: italic;
-}
+export const routing: ModuleWithProviders = RouterModule.forChild(routes);

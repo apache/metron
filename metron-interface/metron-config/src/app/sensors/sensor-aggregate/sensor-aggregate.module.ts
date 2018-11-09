@@ -15,31 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NgModule } from '@angular/core';
+import { routing } from './sensor-aggregate.routing';
+import { SensorAggregateComponent } from './sensor-aggregate.component';
+import { SharedModule } from '../../shared/shared.module';
 
-.config-table {
-  table-layout: fixed;
-}
-
-.dark-grey {
-  color: #545454;
-}
-
-table tr td, table tr th {
-  padding: 0.9em;
-}
-
-table tr th:nth-child(1) {
-  width: 30px;
-}
-
-.group-parent-label {
-  color: #A042B4;
-  font-size: 10px;
-  font-style: italic;
-}
-
-.group-child-label {
-  color: yellow;
-  font-size: 10px;
-  font-style: italic;
-}
+@NgModule({
+  imports: [
+    routing,
+    SharedModule
+  ],
+  declarations: [
+    SensorAggregateComponent
+  ]
+})
+export class SensorAggregateModule {}

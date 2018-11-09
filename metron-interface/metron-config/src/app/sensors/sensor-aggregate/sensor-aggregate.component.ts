@@ -15,31 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component } from '@angular/core';
+import { SensorAggregateService } from './sensor-aggregate.service';
 
-.config-table {
-  table-layout: fixed;
-}
+@Component({
+  selector: 'metron-config-sensor-aggregate',
+  templateUrl: './sensor-aggregate.component.html',
+})
+export class SensorAggregateComponent {
 
-.dark-grey {
-  color: #545454;
-}
+  constructor(private aggregateService: SensorAggregateService) {}
 
-table tr td, table tr th {
-  padding: 0.9em;
-}
+  close() {
+    this.aggregateService.close();
+  }
 
-table tr th:nth-child(1) {
-  width: 30px;
-}
-
-.group-parent-label {
-  color: #A042B4;
-  font-size: 10px;
-  font-style: italic;
-}
-
-.group-child-label {
-  color: yellow;
-  font-size: 10px;
-  font-style: italic;
+  save(groupName: string, description: string) {
+    this.aggregateService.save(groupName, description);
+  }
 }
