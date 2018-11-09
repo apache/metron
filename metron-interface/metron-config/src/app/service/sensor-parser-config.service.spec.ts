@@ -185,7 +185,7 @@ describe('SensorParserConfigService', () => {
       expect(request.request.method).toEqual('DELETE');
     });
 
-    fit('deleting multiple parser groups by name', () => {
+    it('deleting multiple parser groups by name', () => {
       sensorParserConfigService.deleteGroups(['TestGroup1', 'TestGroup2', 'TestGroup3'])
       .subscribe((result) => {
         expect(result.success.length).toBe(2);
