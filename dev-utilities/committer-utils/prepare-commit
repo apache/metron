@@ -16,242 +16,31 @@
 #  limitations under the License.
 #
 
-# not likely to change
-METRON_UPSTREAM="https://git-wip-us.apache.org/repos/asf/metron.git"
-BRO_PLUGIN_UPSTREAM="https://git-wip-us.apache.org/repos/asf/metron-bro-plugin-kafka.git"
-CONFIG_FILE=~/.metron-prepare-commit
-GITHUB_REMOTE="origin"
-BASE_BRANCH=master
+LOCATION_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+#shellcheck source=./metron-committer-common
+source ${LOCATION_DIR}/metron-committer-common
 
-# does a config file already exist?
-if [ -f $CONFIG_FILE ]; then
-  . $CONFIG_FILE
-  echo "  ...using settings from $CONFIG_FILE"
-fi
+init_configuration
 
-# which repo?  metron or metron-bro-plugin-kafka
-echo "    [1] metron"
-echo "    [2] metron-bro-plugin-kafka"
-read -p "  which repo? [1]: " INPUT
-case "${INPUT}" in
-  [Bb][Rr][Oo]|[Mm][Ee][Tt][Rr][Oo][Nn]-[Bb][Rr][Oo]-[Pp][Ll][Uu][Gg][Ii][Nn]-[Kk][Aa][Ff][Kk][Aa]|*metron-bro-plugin-kafka\.git|2)
-    INPUT="${BRO_PLUGIN_UPSTREAM}" ;;
-  [Mm][Ee][Tt][Rr][Oo][Nn]|*metron\.git|1|'')
-    INPUT="${METRON_UPSTREAM}" ;;
-  *)
-    echo "Invalid repo, provided \"${INPUT}\".  Please choose between metron or metron-bro-plugin-kafka"
-    exit 1
-    ;;
-esac
-[ -n "$INPUT" ] && UPSTREAM=$INPUT
+choose_metron_or_bro_repo
 
-CHOSEN_REPO=$(basename ${UPSTREAM%%.git})
+init_committer_info
 
-# github account of committer (you)
-if [ -z "$GITHUB_NAME" ]; then
-  read -p "  your github username [$GITHUB_NAME]: " INPUT
-  [ -n "$INPUT" ] && GITHUB_NAME=$INPUT
+read_pull_request
 
-  # write setting to config file
-  echo "GITHUB_NAME=$GITHUB_NAME" >> $CONFIG_FILE
-fi
+setup_working_directory ~/tmp/${CHOSEN_REPO}-pr${PR}
 
-# apache id of committer (you)
-if [ -z "$APACHE_NAME" ]; then
-  read -p "  your apache userid [$APACHE_NAME]: " INPUT
-  [ -n "$INPUT" ] && APACHE_NAME=$INPUT
+setup_code ${CHOSEN_REPO}
 
-  # write setting to config file
-  echo "APACHE_NAME=$APACHE_NAME" >> $CONFIG_FILE
-fi
+get_contributor_info
 
-# apache email addr of committer (you)
-if [ -z "$APACHE_EMAIL" ]; then
-  APACHE_EMAIL=${APACHE_NAME}@apache.org
-  read -p "  your apache email [$APACHE_EMAIL]: " INPUT
-  [ -n "$INPUT" ] && APACHE_EMAIL=$INPUT
+get_jira_info
 
-  # write setting to config file, so it is not needed next time
-  echo "APACHE_EMAIL=$APACHE_EMAIL" >> $CONFIG_FILE
-fi
+commit
 
-# retrieve the pull request identifier
-read -p "  pull request: " PR
-if [ -z "$PR" ]; then
-  echo "Error: missing pr"
-  exit 1
-fi
+review_commit_info
 
-# ensure that the pull request exists
-PR_EXISTS=`curl -sI https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/$PR | grep Status: | sed 's/[^0-9]//g'`
-if [ "$PR_EXISTS" != "200" ]; then
-  echo "Error: pull request #$PR does not exist"
-  exit 1
-fi
+run_tests
 
-# working directory
-WORK=~/tmp/${CHOSEN_REPO}-pr$PR
-read -p "  local working directory [$WORK]: " INPUT
-[ -n "$INPUT" ] && WORK=$INPUT
+please_review_then
 
-# handle tilde expansion
-WORK="${WORK/#\~/$HOME}"
-
-# warn the user if the working directory exists
-if [ -d "$WORK" ]; then
-  read -p "  directory exists [$WORK].  continue merge on existing repo? [yN] " -n 1 -r
-  echo
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    exit 1
-  fi
-fi
-
-# if working directory does not exist, checkout the base branch
-if [ ! -d "$WORK" ]; then
-
-  # origin repository
-  ORIGIN="https://github.com/apache/${CHOSEN_REPO}"
-  read -p "  origin repo [$ORIGIN]: " INPUT
-  [ -n "$INPUT" ] && ORIGIN=$INPUT
-
-  # what branch did the PR get submitted against?  could be a feature branch
-  BASE_BRANCH=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/$PR | python -c 'import sys, json; print json.load(sys.stdin)["base"]["ref"]'`
-  read -p "  base branch to merge into [$BASE_BRANCH]: " INPUT
-  [ -n "$INPUT" ] && BASE_BRANCH=$INPUT
-
-  # clone the repository and fetch updates
-  mkdir -p $WORK
-  git clone $ORIGIN $WORK
-  cd $WORK
-
-  # setup the git user and email for your apache account
-  git config user.name "$APACHE_NAME"
-  git config user.email $APACHE_EMAIL
-
-  # fetch any changes from upstream
-  git remote add upstream $UPSTREAM
-  if git fetch upstream "$BASE_BRANCH"; then
-
-    if [ $BASE_BRANCH = "master" ]; then
-      # merge any changes from upstream
-      git checkout $BASE_BRANCH
-      git merge upstream/$BASE_BRANCH
-
-    else
-      # create a local branch from the remote feature branch
-      git checkout -B $BASE_BRANCH upstream/$BASE_BRANCH
-
-    fi
-
-  else
-    # unable to fetch the base branch
-    exit $?
-  fi
-
-else
-
-  # if the repo already exists, allow the user to provide the name of the Github remote
-  # this is needed to checkout the code for the PR
-  read -p "  name of github remote [$GITHUB_REMOTE]: " INPUT
-  [ -n "$INPUT" ] && GITHUB_REMOTE=$INPUT
-
-fi
-
-PR_BRANCH_REF="pull/$PR/head:pr-$PR"
-PR_BRANCH="pr-$PR"
-cd $WORK
-git fetch $GITHUB_REMOTE $PR_BRANCH_REF
-echo ""
-
-# use github api to retrieve the contributor's login
-USER=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/$PR | grep login | head -1 | awk -F":" '{print $2}' | sed 's/[^a-zA-Z.@_-]//g'`
-read -p "  github contributor's username [$USER]: " INPUT
-[ -n "$INPUT" ] && USER=$INPUT
-
-# validate the github contributor
-if [ -z "$USER" ]; then
-  echo "Error: missing username"
-  exit 1
-fi
-
-# retrieve the contributor's email from the git commit history
-EMAIL=`git log $PR_BRANCH | grep Author | head -1 | awk -F"<" '{print $2}' | sed 's/[<>]//g'`
-read -p "  github contributor's email [$EMAIL]: " INPUT
-[ -n "$INPUT" ] && EMAIL=$INPUT
-
-# validate email
-if [ -z "$EMAIL" ] || [ "$EMAIL" = "null" ]; then
-  echo "Error: missing email"
-  exit 1
-fi
-
-# can we extract the JIRA from the PR title?
-JIRA=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/$PR | grep title | head -1 | egrep -o -i 'METRON-[0-9]+' | awk '{print toupper($0)}'`
-read -p "  issue identifier in jira [$JIRA]: " INPUT
-[ -n "$INPUT" ] && JIRA=$INPUT
-
-# validate the JIRA issue
-if [ -z "$JIRA" ]; then
-  echo "Error: missing jira"
-  exit 1
-fi
-
-# attempt to use the jira api to get a description of the jira
-DESC=`curl -s https://issues.apache.org/jira/si/jira.issueviews:issue-xml/$JIRA/$JIRA.xml | grep "<summary>" | sed 's/^.*<summary>//' | sed 's/<.summary>.*$//'`
-read -p "  issue description [$DESC]: " INPUT
-[ -n "$INPUT" ] && DESC=$INPUT
-
-# validate description
-if [ -z "$DESC" ]; then
-  echo "Error: missing description"
-  exit 1
-fi
-
-# commit message
-AUTHOR="$USER <$EMAIL>"
-if [ "$USER" == "$GITHUB_NAME" ]; then
-  MSG="$JIRA $DESC ($USER) closes apache/${CHOSEN_REPO}#$PR"
-else
-  MSG="$JIRA $DESC ($USER via $GITHUB_NAME) closes apache/${CHOSEN_REPO}#$PR"
-fi
-read -p "  commit message [$MSG]: " INPUT
-[ -n "$INPUT" ] && MSG=$INPUT
-
-# merge the contributor's branch and commit
-echo ""
-if git merge --squash "$PR_BRANCH"; then
-  git commit --author="$AUTHOR" -a -m "$MSG"
-else
-  exit $?
-fi
-
-# review the commit
-echo ""
-echo ""
-git diff --stat --color "upstream/$BASE_BRANCH..$BASE_BRANCH"
-echo ""
-echo ""
-git log --oneline "$BASE_BRANCH" "^upstream/$BASE_BRANCH"
-
-# run tests?
-echo ""
-echo ""
-read -p "  run test suite? [yN] " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-  if [ "${UPSTREAM}" == "${METRON_UPSTREAM}" ]; then
-      mvn -q -T 2C -DskipTests clean install &&
-          mvn -q -T 2C surefire:test@unit-tests &&
-          mvn -q surefire:test@integration-tests &&
-          mvn -q test --projects metron-interface/metron-config &&
-	  dev-utilities/build-utils/verify_licenses.sh
-  elif [ "${UPSTREAM}" == "${BRO_PLUGIN_UPSTREAM}" ]; then
-    echo "We don't currently support running metron-bro-plugin-kafka tests in this script"
-  fi
-fi
-
-echo ""
-echo "Review commit carefully then run..."
-echo "    cd $WORK"
-echo "    git push upstream $BASE_BRANCH"
-echo ""
