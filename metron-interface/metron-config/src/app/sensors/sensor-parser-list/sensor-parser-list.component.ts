@@ -32,6 +32,7 @@ import { Subscription } from 'rxjs';
 import { SensorParserConfigHistoryListController } from '../sensor-aggregate/sensor-parser-config-history-list.controller';
 import { SensorParserConfigHistoryUndoable } from '../sensor-aggregate/sensor-parser-config-history-undoable';
 
+
 @Component({
   selector: 'metron-config-sensor-parser-list',
   templateUrl: 'sensor-parser-list.component.html',
