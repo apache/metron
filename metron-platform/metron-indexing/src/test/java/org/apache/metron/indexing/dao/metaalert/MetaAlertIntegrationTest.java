@@ -55,9 +55,12 @@ import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.integration.utils.TestUtils;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 
 public abstract class MetaAlertIntegrationTest {
 
@@ -783,92 +786,72 @@ public abstract class MetaAlertIntegrationTest {
   @Test
   public abstract void shouldSearchByNestedAlert() throws Exception;
 
-  @SuppressWarnings("unchecked")
+  /**
+   * If a meta-alert is active, any updates to alerts associated with a meta-alert
+   * should be reflected in both the original alert and the copy contained within
+   * the meta-alert.
+   */
   @Test
   public void shouldUpdateMetaAlertOnAlertUpdate() throws Exception {
-    // Load alerts
-    List<Map<String, Object>> alerts = buildAlerts(2);
-    alerts.get(0).put(METAALERT_FIELD, Arrays.asList("meta_active", "meta_inactive"));
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
-
-    // Load metaAlerts
-    Map<String, Object> activeMetaAlert = buildMetaAlert("meta_active", MetaAlertStatus.ACTIVE,
-        Optional.of(Collections.singletonList(alerts.get(0))));
-    Map<String, Object> inactiveMetaAlert = buildMetaAlert("meta_inactive",
-        MetaAlertStatus.INACTIVE,
-        Optional.of(Collections.singletonList(alerts.get(0))));
-    // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), getMetaAlertIndex(),
-        METAALERT_TYPE);
-
-    // Verify load was successful
-    findCreatedDocs(Arrays.asList(
-        new GetRequest("message_0", SENSOR_NAME),
-        new GetRequest("message_1", SENSOR_NAME),
-        new GetRequest("meta_active", METAALERT_TYPE),
-        new GetRequest("meta_inactive", METAALERT_TYPE)));
-
+    final String expectedFieldValue = "metron";
     {
-      // Modify the first message and add a new field
-      Map<String, Object> message0 = new HashMap<String, Object>(alerts.get(0)) {
-        {
-          put(NEW_FIELD, "metron");
-          put(THREAT_FIELD_DEFAULT, 10.0d);
-        }
-      };
-      String guid = "" + message0.get(Constants.GUID);
-      metaDao.update(new Document(message0, guid, SENSOR_NAME, null),
-          Optional.of(getTestIndexFullName()));
+      // create 2 'regular' alerts that will be associated with meta-alerts
+      List<Map<String, Object>> alerts = buildAlerts(2);
+      alerts.get(0).put(METAALERT_FIELD, Arrays.asList("meta_active", "meta_inactive"));
+      addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
 
-      {
-        // Verify alerts are up-to-date
-        findUpdatedDoc(message0, guid, SENSOR_NAME);
-        long cnt = getMatchingAlertCount(NEW_FIELD, message0.get(NEW_FIELD));
-        if (cnt == 0) {
-          Assert.fail("Alert not updated!");
-        }
-      }
+      // the active meta-alert should be updated when an associated alert is updated
+      Map<String, Object> activeMetaAlert = buildMetaAlert("meta_active", MetaAlertStatus.ACTIVE,
+              Optional.of(Collections.singletonList(alerts.get(0))));
 
-      {
-        // Verify meta alerts are up-to-date
-        long cnt = getMatchingMetaAlertCount(NEW_FIELD, "metron");
-        if (cnt == 0) {
-          Assert.fail("Active metaalert was not updated!");
-        }
-        if (cnt != 1) {
-          Assert.fail("Metaalerts not updated correctly!");
-        }
-      }
+      // the inactive meta-alert should NOT be updated when an associated alert is updated
+      Map<String, Object> inactiveMetaAlert = buildMetaAlert("meta_inactive", MetaAlertStatus.INACTIVE,
+              Optional.of(Collections.singletonList(alerts.get(0))));
+
+      // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
+      addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), getMetaAlertIndex(), METAALERT_TYPE);
+
+      // Verify load was successful
+      findCreatedDocs(Arrays.asList(
+              new GetRequest("message_0", SENSOR_NAME),
+              new GetRequest("message_1", SENSOR_NAME),
+              new GetRequest("meta_active", METAALERT_TYPE),
+              new GetRequest("meta_inactive", METAALERT_TYPE)));
     }
-    //modify the same message and modify the new field
     {
-      Map<String, Object> message0 = new HashMap<String, Object>(alerts.get(0)) {
-        {
-          put(NEW_FIELD, "metron2");
-        }
-      };
-      String guid = "" + message0.get(Constants.GUID);
-      metaDao.update(new Document(message0, guid, SENSOR_NAME, null), Optional.empty());
-
-      {
-        // Verify index is up-to-date
-        findUpdatedDoc(message0, guid, SENSOR_NAME);
-        long cnt = getMatchingAlertCount(NEW_FIELD, message0.get(NEW_FIELD));
-        if (cnt == 0) {
-          Assert.fail("Alert not updated!");
-        }
-      }
-      {
-        // Verify meta alerts are up-to-date
-        long cnt = getMatchingMetaAlertCount(NEW_FIELD, "metron2");
-        if (cnt == 0) {
-          Assert.fail("Active metaalert was not updated!");
-        }
-        if (cnt != 1) {
-          Assert.fail("Metaalerts not updated correctly!");
-        }
-      }
+      // modify the 'normal' alert by adding a field
+      Document message0 = metaDao.getLatest("message_0", SENSOR_NAME);
+      message0.getDocument().put(NEW_FIELD, expectedFieldValue);
+      message0.getDocument().put(THREAT_FIELD_DEFAULT, 10.0d);
+      metaDao.update(message0, Optional.of(getTestIndexFullName()));
     }
+
+    // ensure the original 'normal' alert was itself updated
+    assertEventually(() -> {
+      Document message0 = metaDao.getLatest("message_0", SENSOR_NAME);
+      Assert.assertNotNull(message0);
+      Assert.assertEquals(expectedFieldValue, message0.getDocument().get(NEW_FIELD));
+    });
+
+    // the 'active' meta-alert, which contains a copy of the updated alert should also be updated
+    assertEventually(() -> {
+      Document active = metaDao.getLatest("meta_active", METAALERT_TYPE);
+      Object value = active.getDocument().get(ALERT_FIELD);
+      List<Map<String, Object>> children = List.class.cast(value);
+      Assert.assertNotNull(children);
+      Assert.assertEquals(1, children.size());
+      Assert.assertEquals(expectedFieldValue, children.get(0).get(NEW_FIELD));
+    });
+
+    // the 'inactive' meta-alert, which contains a copy of the updated alert should NOT be updated
+    assertEventually(() -> {
+      Document inactive = metaDao.getLatest("meta_inactive", METAALERT_TYPE);
+      Object value = inactive.getDocument().get(ALERT_FIELD);
+      List<Map<String, Object>> children = List.class.cast(value);
+      Assert.assertNotNull(children);
+      Assert.assertEquals(1, children.size());
+      Assert.assertFalse(children.get(0).containsKey(NEW_FIELD));
+    });
   }
 
   @Test
