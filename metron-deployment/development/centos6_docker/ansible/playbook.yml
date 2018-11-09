@@ -14,18 +14,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-[defaults]
-stdout_callback = yaml
-bin_ansible_callbacks = True
-host_key_checking = False
-library = /root/metron/metron-deployment/ansible/extra_modules
-roles_path = /root/metron/metron-deployment/ansible/roles
-pipelining = True
-scp_if_ssh = True
-log_path = ./ansible.log
-callback_plugins = /root/metron/metron-deployment/ansible/callback_plugins
+---
+- hosts: all
+  roles:
+    - { role: libselinux-python, tags: libselinux-python }
+    - { role: enable-swap,       tags: enable-swap }
+    - { role: enable-remote-ssh, tags: enable-remote-ssh }
 
-# fix for "ssh throws 'unix domain socket too long' " problem
-[ssh_connection]
-control_path = %(directory)s/%%h-%%p-%%r
-ssh_args = -C -o ControlMaster=auto -o ControlPersist=60m -o ServerAliveInterval=100 -o ServerAliveCountMax=120
+- import_playbook: /root/metron/metron-deployment/ansible/playbooks/metron_full_install.yml

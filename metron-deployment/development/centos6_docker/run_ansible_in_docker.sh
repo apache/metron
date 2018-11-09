@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,18 +16,36 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-[defaults]
-stdout_callback = yaml
-bin_ansible_callbacks = True
-host_key_checking = False
-library = /root/metron/metron-deployment/ansible/extra_modules
-roles_path = /root/metron/metron-deployment/ansible/roles
-pipelining = True
-scp_if_ssh = True
-log_path = ./ansible.log
-callback_plugins = /root/metron/metron-deployment/ansible/callback_plugins
 
-# fix for "ssh throws 'unix domain socket too long' " problem
-[ssh_connection]
-control_path = %(directory)s/%%h-%%p-%%r
-ssh_args = -C -o ControlMaster=auto -o ControlPersist=60m -o ServerAliveInterval=100 -o ServerAliveCountMax=120
+
+#
+# This script runs IN the docker container
+#
+
+cd /root/metron
+
+# make sure we have the right c++ tools
+source /opt/rh/devtoolset-6/enable
+
+# give the option to skip building metron, in case they have already done so
+#read -p "  build metron? [yN] " -n 1 -r
+#echo
+#if [[ $REPLY =~ ^[Yy]$ ]]; then
+# USE TAGS
+#fi
+
+case $(sed --help 2>&1) in
+    *GNU*) sed_i() { sed -i "$@"; } ;;
+    *) sed_i() { sed -i '' "$@"; } ;;
+esac
+
+sed_i -e '/^node1.*/' ~/.ssh/known_hosts
+
+ansible-playbook  \
+ -i /root/ansible_config/inventory \
+ --skip-tags="solr,sensors" \
+ --private-key="/root/vagrant_key/private_key" \
+ --user="vagrant" \
+ --become \
+ --extra-vars="ansible_ssh_private_key_file=/root/vagrant_key/private_key" \
+ /root/ansible_config/playbook.yml

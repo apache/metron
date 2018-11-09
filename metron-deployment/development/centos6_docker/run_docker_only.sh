@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,18 +16,27 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-[defaults]
-stdout_callback = yaml
-bin_ansible_callbacks = True
-host_key_checking = False
-library = /root/metron/metron-deployment/ansible/extra_modules
-roles_path = /root/metron/metron-deployment/ansible/roles
-pipelining = True
-scp_if_ssh = True
-log_path = ./ansible.log
-callback_plugins = /root/metron/metron-deployment/ansible/callback_plugins
 
-# fix for "ssh throws 'unix domain socket too long' " problem
-[ssh_connection]
-control_path = %(directory)s/%%h-%%p-%%r
-ssh_args = -C -o ControlMaster=auto -o ControlPersist=60m -o ServerAliveInterval=100 -o ServerAliveCountMax=120
+
+VAGRANT_PATH=`pwd`
+echo "setting the ansible configuration path"
+ANSIBLE_PATH=${VAGRANT_PATH}/ansible
+echo ${ANSIBLE_PATH}
+echo "setting the ssh key"
+VAGRANT_KEY_PATH=`pwd`/.vagrant/machines/node1/virtualbox
+echo ${VAGRANT_KEY_PATH}
+
+# set the vagrant user
+VAGRANT_USER='vagrant'
+# move over to the docker area
+cd ../../packaging/docker/ansible-docker
+pwd
+
+echo "===============Running Docker==============="
+docker run -it \
+ -v `pwd`/../../../..:/root/metron \
+ -v ~/.m2:/root/.m2 \
+ -v ${VAGRANT_PATH}:/root/vagrant \
+ -v ${ANSIBLE_PATH}:/root/ansible_config \
+ -v ${VAGRANT_KEY_PATH}:/root/vagrant_key \
+ ansible-docker:latest bash

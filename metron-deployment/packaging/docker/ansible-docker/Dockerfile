@@ -31,8 +31,8 @@ RUN yum install -y \
         centos-release-scl \
     # newer cpp 11 support required for building node modules \
     && yum install -y \
-        devtoolset-4-gcc-c++ \
-        devtoolset-4-gcc \
+        devtoolset-6-gcc-c++ \
+        devtoolset-6-gcc \
         zlib-dev \
         openssl-devel \
         sqlite-devel \
@@ -55,7 +55,7 @@ RUN yum install -y \
     && easy_install-2.7 pip \
     # install ansible and set the configuration var \
     && pip2.7 install \
-        ansible==2.0.0.2 \
+        ansible==2.6.0 \
         boto \
     # java \
     && yum install -y \
@@ -83,7 +83,9 @@ RUN yum install -y \
         make \
     # create a .bashrc for root, enabling the cpp 11 toolset \
     && touch /root/.bashrc \
-    && echo '/opt/rh/devtoolset-4/enable' >> /root/.bashrc \
+    && touch /root/.bash_profile \
+    && echo 'source /opt/rh/devtoolset-6/enable' >> /root/.bashrc \
+    && echo 'source /opt/rh/devtoolset-6/enable' >> /root/.bash_profile \
     # install node so that the node dependencies can be packaged into the RPMs \
     && curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - \
     && yum install -y \
