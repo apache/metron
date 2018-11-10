@@ -63,13 +63,12 @@ table tr td, table tr th {
       padding: 0;
 
       &.drag-handle {
-
-        cursor: grab;
         padding: 0 0 0 8px;
         position: relative;
 
         & .drag-handle-icon {
           color: #3F88B4;
+          cursor: grab;
         }
 
         &:hover {
