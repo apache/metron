@@ -29,6 +29,19 @@ export class SensorParserConfigHistoryListController {
 
   setSensors(sensors: SensorParserConfigHistory[]) {
 
+    /**
+     * Initially, the list handled by this controller doesn't include the group (root)
+     * elements. We need to create and add them to the list and "attach" all the parsers
+     * that belong to the newly created group element.
+     */
+    const collectGroups = () => {
+      this._sensors.forEach(sensor => {
+        if (sensor.getGroup()) {
+          this.addToGroup(sensor.getGroup(), sensor, { silent: true });
+        }
+      });
+    }
+
     if (this._sensors && this._sensors.length) {
       this._sensors.forEach(sensor => {
         sensor.destroy();
@@ -44,7 +57,7 @@ export class SensorParserConfigHistoryListController {
       return sensorUndoable;
     });
 
-    this._collectGroups();
+    collectGroups();
 
     this._next(this._sensors);
   }
@@ -53,19 +66,6 @@ export class SensorParserConfigHistoryListController {
     return [
       ...(this._sensors || [])
     ];
-  }
-
-  /**
-   * Initially, the list handled by this controller doesn't include the group (root)
-   * elements. We need to create and add them to the list and "attach" all the parsers
-   * that belong to the newly created group element.
-   */
-  _collectGroups() {
-    this._sensors.forEach(sensor => {
-      if (sensor.getGroup()) {
-        this.addToGroup(sensor.getGroup(), sensor, { silent: true });
-      }
-    });
   }
 
   isChanged(): Observable<SensorParserConfigHistoryUndoable[]> {

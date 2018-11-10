@@ -55,6 +55,10 @@ export class SensorParserConfigHistoryUndoable {
     return this._sensor.config.group;
   }
 
+  getName(): string {
+    return this._sensor.sensorName;
+  }
+
   setName(name: string) {
     this._sensor.sensorName = name;
   }

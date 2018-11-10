@@ -373,8 +373,16 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onDrop(sensor: SensorParserConfigHistoryUndoable) {
-    this.sensorAggregateService.markSensorToBeMerged(sensor, 1);
-    this.router.navigateByUrl('/sensors(dialog:sensor-aggregate)');
+    if (sensor.isParent()) {
+      this.sensorParserConfigHistoryListController
+        .addToGroup(
+          sensor.getName(),
+          this.sensorAggregateService.getSensorsToBeMerged()[0],
+          { startTimer: true });
+    } else {
+      this.sensorAggregateService.markSensorToBeMerged(sensor, 1);
+      this.router.navigateByUrl('/sensors(dialog:sensor-aggregate)');
+    }
   }
 
   addSensorsToGroup(groupName: string, sensors: SensorParserConfigHistoryUndoable[]) {

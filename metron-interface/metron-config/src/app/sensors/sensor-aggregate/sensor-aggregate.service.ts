@@ -29,6 +29,12 @@ export class SensorAggregateService {
 
   constructor(private router: Router) {}
 
+  getSensorsToBeMerged() {
+    return [
+      ...this._sensorsToBeMerged
+    ];
+  }
+
   markSensorToBeMerged(sensor: SensorParserConfigHistoryUndoable, index: number) {
     this._sensorsToBeMerged[index] = sensor;
   }
