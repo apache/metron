@@ -21,8 +21,6 @@ import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
 import {MetronAlerts} from '../../shared/metron-alerts';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
-import {Sort} from '../../util/enums';
-import {SortEvent} from '../../shared/metron-table/metron-table.directive';
 import {StormService} from '../../service/storm.service';
 import {TopologyStatus} from '../../model/topology-status';
 import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
@@ -79,7 +77,6 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
         this.selectedSensors = [];
         this.count = this.sensors.length;
 
-        // TODO: tear down when the component is no longet available
         this.sensorParserConfigHistoryListController.setSensors(this.sensors);
 
         if (!justOnce) {
@@ -91,44 +88,6 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
       }
     );
-  }
-
-  onSort($event: SortEvent) {
-    console.log('onSort')
-    switch ($event.sortBy) {
-      case 'sensorName':
-        this.sensors.sort((obj1: SensorParserConfigHistory, obj2: SensorParserConfigHistory) => {
-          if ($event.sortOrder === Sort.ASC) {
-            return obj1.sensorName.localeCompare(obj2.sensorName);
-          }
-          return obj2.sensorName.localeCompare(obj1.sensorName);
-        });
-        break;
-      case 'parserClassName':
-        this.sensors.sort((obj1: SensorParserConfigHistory, obj2: SensorParserConfigHistory) => {
-          if ($event.sortOrder === Sort.ASC) {
-            return this.getParserType(obj1.config).localeCompare(this.getParserType(obj2.config));
-          }
-          return this.getParserType(obj2.config).localeCompare(this.getParserType(obj1.config));
-        });
-        break;
-      case 'status':
-      case 'modifiedBy':
-      case 'modifiedByDate':
-      case 'latency':
-      case 'throughput':
-        this.sensors.sort((obj1: SensorParserConfigHistory, obj2: SensorParserConfigHistory) => {
-          if (!obj1[$event.sortBy] || !obj1[$event.sortBy]) {
-            return 0;
-          }
-          if ($event.sortOrder === Sort.ASC) {
-            return obj1[$event.sortBy].localeCompare(obj2[$event.sortBy]);
-          }
-
-          return obj2[$event.sortBy].localeCompare(obj1[$event.sortBy]);
-        });
-        break;
-    }
   }
 
   private pollStatus() {

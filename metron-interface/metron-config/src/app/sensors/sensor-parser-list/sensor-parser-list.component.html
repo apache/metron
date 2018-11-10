@@ -37,17 +37,17 @@
     </div>
   </div>
 
-  <table class="table config-table" metron-config-table #table (onSort)="onSort($event)">
+  <table class="table config-table" metron-config-table #table>
     <thead>
     <tr>
       <th></th>
-      <th> <metron-config-sorter [sortBy]="'sensorName'"> Name </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'parserClassName'"> Parser </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'status'"> Status </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'latency'"> Latency </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'throughput'"> Throughput </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'modifiedByDate'"> Last Updated </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'modifiedBy'"> Last Editor </metron-config-sorter> </th>
+      <th>Name </th>
+      <th>Parser</th>
+      <th>Status</th>
+      <th>Latency</th>
+      <th>Throughput</th>
+      <th>Last Updated</th>
+      <th>Last Editor</th>
       <th style="width:100px"></th>
       <th style="width:50px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="onSelectDeselectAll($event)"><label for="select-deselect-all"></label></th>
     </tr>
