@@ -34,12 +34,21 @@ table tr th:nth-child(1) {
 
 .group-parent-label {
   color: #A042B4;
-  font-size: 10px;
-  font-style: italic;
 }
 
-.group-child-label {
-  color: yellow;
-  font-size: 10px;
-  font-style: italic;
+.drag-handle {
+
+  cursor: grab;
+
+  & .drag-handle-icon {
+    color: #3F88B4;
+  }
+
+  &:hover {
+    background: #1E434F;
+
+    & .drag-handle-icon {
+      color: #fff;
+    }
+  }
 }

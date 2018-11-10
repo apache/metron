@@ -404,8 +404,9 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this.selectedSensors = [];
   }
 
-  onDragStart(sensor: SensorParserConfigHistoryUndoable) {
+  onDragStart(sensor: SensorParserConfigHistoryUndoable, e: DragEvent) {
     this.sensorAggregateService.markSensorToBeMerged(sensor, 0);
+    e.dataTransfer.setDragImage((e.target as HTMLElement).parentElement, 0, 0);
   }
 
   onDragOver(event: DragEvent) {

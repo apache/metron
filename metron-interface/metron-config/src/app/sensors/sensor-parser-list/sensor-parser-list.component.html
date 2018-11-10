@@ -56,12 +56,16 @@
     <tr *ngFor="let sensor of sensorsToRender"
         (click)="onSensorRowSelect(sensor.getSensor(), $event)"
         [ngClass]="{'active': (selectedSensors.indexOf(sensor.getSensor()) != -1 || selectedSensor == sensor.getSensor())}"
-        [draggable]="!sensor.isParent()"
-        (dragstart)="onDragStart(sensor)"
+        (dragstart)="onDragStart(sensor, $event)"
         (dragover)="onDragOver($event)"
         (drop)="onDrop(sensor)"
       >
-      <td><i class="fa fa-bars dark-grey"></i></td>
+      <td
+        class="drag-handle"
+        [draggable]="!sensor.isParent() && !sensor.canUndo()"
+      >
+        <i *ngIf="!sensor.isParent() && !sensor.canUndo()" class="drag-handle-icon fa fa-ellipsis-v"></i>
+      </td>
       <td>
         <button
           *ngIf="sensor.canUndo()"
@@ -69,16 +73,14 @@
         >
           Undo
         </button>
-        <span class="group-parent-label" *ngIf="sensor.isParent()">
-          (group)
+        <span *ngIf="sensor.isParent()">
+          <i class="fa fa-caret-down"></i>
+          <i class="fa fa-th group-parent-label"></i>
         </span>
         <span *ngIf="!!sensor.getSensor().group">
           ----
         </span>
         {{ sensor.getSensor().sensorName }}
-        <span class="group-child-label" *ngIf="!!sensor.getSensor().group">
-          ({{ sensor.getSensor().group }})
-        </span>
       </td>
       <td>{{ getParserType(sensor.getSensor().config) }}</td>
       <td
