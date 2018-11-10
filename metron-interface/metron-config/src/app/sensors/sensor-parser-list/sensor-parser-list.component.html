@@ -81,7 +81,7 @@
           <i class="fa fa-caret-down group-caret-down-icon"></i>
           <i class="fa fa-th group-parent-label"></i>
         </span>
-        <span class="indentation" *ngIf="!!sensor.getSensor().group">
+        <span class="indentation" *ngIf="!!sensor.hasGroup()">
           ---
         </span>
         {{ sensor.getSensor().sensorName }}
@@ -90,12 +90,12 @@
       <td
         [ngClass]="{'warning-text': ['Stopped', 'Stopping', 'Disabled'].includes(sensor.getSensor().status)}"
       >
-        {{ sensor.getSensor().group ? '' : sensor.getSensor().status }}
+        {{ sensor.hasGroup() ? '' : sensor.getSensor().status }}
       </td>
-      <td>{{ sensor.getSensor().group ? '' : sensor.getSensor().latency }}</td>
-      <td>{{ sensor.getSensor().group ? '' : sensor.getSensor().throughput }}</td>
-      <td>{{ sensor.getSensor().group ? '' : sensor.getSensor().modifiedByDate }}</td>
-      <td>{{ sensor.getSensor().group ? '' : sensor.getSensor().modifiedBy }}</td>
+      <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().latency }}</td>
+      <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().throughput }}</td>
+      <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().modifiedByDate }}</td>
+      <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().modifiedBy }}</td>
       <td class="icon-container">
           <i
             data-toggle="tooltip"

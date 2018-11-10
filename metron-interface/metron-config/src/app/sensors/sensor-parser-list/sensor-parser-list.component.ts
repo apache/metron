@@ -71,7 +71,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
         for (let sensorName of Object.keys(results)) {
           let sensorParserConfigHistory = new SensorParserConfigHistory();
           sensorParserConfigHistory.sensorName = sensorName;
-          sensorParserConfigHistory.config = results[sensorName];
+          sensorParserConfigHistory.setConfig(results[sensorName]);
           this.sensors.push(sensorParserConfigHistory);
         }
         this.selectedSensors = [];
@@ -355,7 +355,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   toggleStartStopInProgress(sensor: SensorParserConfigHistory) {
-    sensor.config['startStopInProgress'] = !sensor.config['startStopInProgress'];
+    sensor.config.startStopInProgress = !sensor.config.startStopInProgress;
   }
 
   onNavigationStart() {
@@ -378,8 +378,8 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   addSensorsToGroup(groupName: string, sensors: SensorParserConfigHistoryUndoable[]) {
-    this.sensorParserConfigHistoryListController.addToGroup(groupName, sensors[1]);
-    this.sensorParserConfigHistoryListController.addToGroup(groupName, sensors[0]);
+    this.sensorParserConfigHistoryListController.addToGroup(groupName, sensors[1], { startTimer: true });
+    this.sensorParserConfigHistoryListController.addToGroup(groupName, sensors[0], { startTimer: true });
   }
 
   undo(sensor: SensorParserConfigHistoryUndoable, e) {

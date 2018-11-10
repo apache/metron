@@ -43,21 +43,16 @@ export class SensorParserConfigHistoryUndoable {
   setProps(props) {
 
     if (typeof props.groupName !== 'undefined') {
-      this._sensor.group = props.groupName;
+      this._sensor.config.group = props.groupName;
     }
+  }
 
-    if (typeof props.status !== 'undefined') {
-      this._sensor.status = props.status;
-    }
+  hasGroup(): boolean {
+    return !!this._sensor.config.group;
+  }
 
-    if (this._timer) {
-      this._stopTimer();
-    }
-    this._startTimer(() => {
-      this._next();
-      this._stopTimer();
-      // call persist !
-    }, 10000);
+  getGroup(): string {
+    return this._sensor.config.group;
   }
 
   setName(name: string) {
@@ -78,6 +73,17 @@ export class SensorParserConfigHistoryUndoable {
 
   _startTimer(fn, delay = DEFAULT_UNDO_TIMEOUT) {
     this._timer = setTimeout(fn, delay);
+  }
+
+  startTimer() {
+    if (this._timer) {
+      this._stopTimer();
+    }
+    this._startTimer(() => {
+      this._next();
+      this._stopTimer();
+      // call persist !
+    }, 10000);
   }
 
   _stopTimer() {
@@ -106,11 +112,8 @@ export class SensorParserConfigHistoryUndoable {
 
   restorePreviousState() {
     this._sensor = this._cache;
-
     this._cache = null;
     this._stopTimer();
-
-    // this._next();
   }
 
   storePreviousState() {

@@ -26,15 +26,15 @@ export class SensorParserConfigHistory {
   status: string;
   latency: string;
   throughput: string;
-  group: string;
 
   constructor() {
     this.config = new SensorParserConfig();
   }
 
-  /**
-   * Shallow clone!
-   */
+  setConfig(config) {
+    this.config = new SensorParserConfig(config);
+  }
+
   clone(): SensorParserConfigHistory {
     const clone = new SensorParserConfigHistory();
 
@@ -43,11 +43,10 @@ export class SensorParserConfigHistory {
     clone.modifiedBy = this.modifiedBy;
     clone.createdDate = this.createdDate;
     clone.modifiedByDate = this.modifiedByDate;
-    clone.config = this.config; // TODO: for now it's fine but we must clone the SensorParserConfig instance as well!
+    clone.config = this.config.clone();
     clone.status = this.status;
     clone.latency = this.latency;
     clone.throughput = this.throughput;
-    clone.group = this.group;
 
     return clone;
   }

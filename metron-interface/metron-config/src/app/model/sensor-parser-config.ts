@@ -17,29 +17,71 @@
  */
 import {FieldTransformer} from './field-transformer';
 export class SensorParserConfig {
-  parserClassName: string;
-  filterClassName: string;
-  sensorTopic: string;
-  writerClassName: string;
+  cacheConfig: Object;
+  errorTopic: any;
   errorWriterClassName: string;
-  invalidWriterClassName: string;
-  parserConfig: {};
-  fieldTransformations: FieldTransformer[];
-  numWorkers: number;
-  numAckers: number;
-  spoutParallelism: number;
-  spoutNumTasks: number;
-  parserParallelism: number;
-  parserNumTasks: number;
-  errorWriterParallelism: number;
   errorWriterNumTasks: number;
+  errorWriterParallelism: number;
+  fieldTransformations: FieldTransformer[];
+  filterClassName: string;
+  mergeMetadata: boolean;
+  numAckers: number;
+  numWorkers: number;
+  outputTopic: any;
+  parserClassName: string;
+  parserConfig: {};
+  parserNumTasks: number;
+  parserParallelism: number;
+  rawMessageStrategy: string;
+  rawMessageStrategyConfig: {};
+  readMetadata: boolean;
+  securityProtocol: any;
+  sensorTopic: string;
   spoutConfig: {};
+  spoutNumTasks: number;
+  spoutParallelism: number;
   stormConfig: {};
+  writerClassName: string;
+  invalidWriterClassName: string;
+  startStopInProgress: boolean;
+  group: string;
 
-  constructor() {
-    this.parserConfig = {};
-    this.fieldTransformations = [];
-    this.spoutConfig = {};
-    this.stormConfig = {};
+  constructor(config: any = {}) {
+
+    Object.keys(config).forEach(key => {
+      this[key] = config[key];
+    });
+
+    this.parserConfig = config.parserConfig || {};
+    this.fieldTransformations = config.fieldTransformations || [];
+    this.spoutConfig = config.spoutConfig || {};
+    this.stormConfig = config.stormConfig || {};
+  }
+
+  clone() {
+    const clone = new SensorParserConfig();
+
+    clone.parserClassName = this.parserClassName;
+    clone.filterClassName = this.filterClassName;
+    clone.sensorTopic = this.sensorTopic;
+    clone.writerClassName = this.writerClassName;
+    clone.errorWriterClassName = this.errorWriterClassName;
+    clone.invalidWriterClassName = this.invalidWriterClassName;
+    clone.parserConfig = this.parserConfig;
+    clone.fieldTransformations = this.fieldTransformations;
+    clone.numWorkers = this.numWorkers;
+    clone.numAckers = this.numAckers;
+    clone.spoutParallelism = this.spoutParallelism;
+    clone.spoutNumTasks = this.spoutNumTasks;
+    clone.parserParallelism = this.parserParallelism;
+    clone.parserNumTasks = this.parserNumTasks;
+    clone.errorWriterParallelism = this.errorWriterParallelism;
+    clone.errorWriterNumTasks = this.errorWriterNumTasks;
+    clone.spoutConfig = this.spoutConfig;
+    clone.stormConfig = this.stormConfig;
+    clone.startStopInProgress = this.startStopInProgress;
+    clone.group = this.group;
+
+    return clone;
   }
 }

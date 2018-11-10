@@ -44,6 +44,8 @@ export class SensorParserConfigHistoryListController {
       return sensorUndoable;
     });
 
+    this._collectGroups();
+
     this._next(this._sensors);
   }
 
@@ -53,33 +55,17 @@ export class SensorParserConfigHistoryListController {
     ];
   }
 
-  // groupSensors(groupName: string, ...sensors: SensorParserConfigHistoryUndoable[]) {
-  //   const sensor1 = sensors[0];
-  //   const sensor2 = sensors[1];
-
-  //   const group = new SensorParserConfigHistoryUndoable(
-  //     new SensorParserConfigHistory()
-  //   );
-
-  //   group.setName(groupName);
-  //   group.setIsParent(true);
-
-  //   sensor1.setProps({ groupName });
-  //   sensor2.setProps({ groupName });
-
-  //   this._injectItemsAt([group, sensor1, sensor2], this._sensors.findIndex(sensor => sensor === sensor2) - 1);
-
-  //   this._next(this._sensors);
-  // }
-
-  _removeItems(items) {
-    this._sensors = this._sensors.filter(sensor => !items.includes(sensor));
-  }
-
-  _injectItemsAt(items: SensorParserConfigHistoryUndoable[], index: number, storePrevious = true) {
-
-    this._removeItems(items);
-    this._sensors.splice(index, 0, ...items)
+  /**
+   * Initially, the list handled by this controller doesn't include the group (root)
+   * elements. We need to create and add them to the list and "attach" all the parsers
+   * that belong to the newly created group element.
+   */
+  _collectGroups() {
+    this._sensors.forEach(sensor => {
+      if (sensor.getGroup()) {
+        this.addToGroup(sensor.getGroup(), sensor, { silent: true });
+      }
+    });
   }
 
   isChanged(): Observable<SensorParserConfigHistoryUndoable[]> {
@@ -112,7 +98,7 @@ export class SensorParserConfigHistoryListController {
 
     let i = 0, len = this._sensors.length;
     for (; i < len; i++) {
-      if (this._sensors[i].getSensor().group === groupName) {
+      if (this._sensors[i].getGroup() === groupName) {
         lastIndex = i;
       }
     }
@@ -134,13 +120,16 @@ export class SensorParserConfigHistoryListController {
     return null;
   }
 
+  /**
+   * @params groupName - create a new group with this group name
+   * @params at - The array index where you want to inject the group after creation
+   */
   createGroup(groupName: string, at?: number): SensorParserConfigHistoryUndoable {
     const group = new SensorParserConfigHistoryUndoable(
       new SensorParserConfigHistory()
     );
 
     group.setName(groupName);
-    group.setStatus('Stopping');
     group.setIsParent(true);
 
     if (typeof at === 'undefined') {
@@ -152,15 +141,25 @@ export class SensorParserConfigHistoryListController {
     return group;
   }
 
-  addToGroup(groupName: string, sensor: SensorParserConfigHistoryUndoable) {
+  addToGroup(groupName: string, sensor: SensorParserConfigHistoryUndoable, options: any = {}) {
 
     let group = this.getGroup(groupName);
     if (!group) {
       group = this.createGroup(groupName, this._sensors.indexOf(sensor));
     }
 
-    sensor.storePreviousState();
+    if (options.startTimer) {
+      // when we merge to parsers together, their status is "stopping"
+      // until the timer expires.
+      group.setStatus('Stopping');
 
+      // basically you can undo the this action until the time expires.
+      // when you undo this action you want the previous state back therefore we store it.
+      sensor.storePreviousState();
+      sensor.startTimer();
+    }
+
+    // update the sensor
     sensor.setProps({
       groupName
     });
@@ -169,14 +168,16 @@ export class SensorParserConfigHistoryListController {
     this._sensors = this._sensors.filter(s => s !== sensor);
     this._sensors.splice(this.findLastItemIndexInGroup(groupName) + 1, 0, sensor);
 
-    this._next(this._sensors);
+    if (!options.silent) {
+      this._next(this._sensors);
+    }
   }
 
   restorePreviousState(sensor: SensorParserConfigHistoryUndoable) {
 
     const previous = sensor.getPreviousState();
-    const previousGroup = previous.group;
-    const groupName = sensor.getSensor().group;
+    const previousGroup = previous.config.group;
+    const groupName = sensor.getGroup();
 
     sensor.restorePreviousState();
 
