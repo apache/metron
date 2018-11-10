@@ -28,27 +28,76 @@ table tr td, table tr th {
   padding: 0.9em;
 }
 
-table tr th:nth-child(1) {
-  width: 30px;
-}
-
 .group-parent-label {
   color: #A042B4;
 }
 
-.drag-handle {
+.parent {
+  background: #272727;
+}
 
-  cursor: grab;
+.cell-name {
+  font-size: 14px;
+  position: relative;
 
-  & .drag-handle-icon {
-    color: #3F88B4;
+  & .group-caret-down-icon {
+    position: absolute;
+    top: 10px;
+    left: -14px;
   }
+}
 
-  &:hover {
-    background: #1E434F;
+.config-table {
 
-    & .drag-handle-icon {
-      color: #fff;
+  & thead {
+    & th:nth-child(1) {
+      width: 40px;
     }
   }
+
+  & tbody {
+    & td {
+      height: 34px;
+      line-height: 34px;
+      vertical-align: middle;
+      padding: 0;
+
+      &.drag-handle {
+
+        cursor: grab;
+        padding: 0 0 0 8px;
+        position: relative;
+
+        & .drag-handle-icon {
+          color: #3F88B4;
+        }
+
+        &:hover {
+          background: #1E434F;
+
+          & .drag-handle-icon {
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+}
+
+.undo {
+  background: #1E434F;
+  color: #428EBC;
+  border: 1px solid #2B576B;
+  font-size: 9px;
+  line-height: 14px;
+  vertical-align: middle;
+  padding: 0 3px;
+  position: absolute;
+  top: 9px;
+  left: -16px;
+  cursor: pointer;
+}
+
+.indentation {
+  color: #4F4F4F;
 }

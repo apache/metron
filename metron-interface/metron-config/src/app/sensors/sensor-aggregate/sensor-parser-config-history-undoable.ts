@@ -46,6 +46,10 @@ export class SensorParserConfigHistoryUndoable {
       this._sensor.group = props.groupName;
     }
 
+    if (typeof props.status !== 'undefined') {
+      this._sensor.status = props.status;
+    }
+
     if (this._timer) {
       this._stopTimer();
     }
@@ -66,6 +70,10 @@ export class SensorParserConfigHistoryUndoable {
 
   isParent() {
     return this._isParent;
+  }
+
+  setStatus(status: string) {
+    this._sensor.status = status;
   }
 
   _startTimer(fn, delay = DEFAULT_UNDO_TIMEOUT) {

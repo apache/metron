@@ -55,7 +55,10 @@
     <tbody>
     <tr *ngFor="let sensor of sensorsToRender"
         (click)="onSensorRowSelect(sensor.getSensor(), $event)"
-        [ngClass]="{'active': (selectedSensors.indexOf(sensor.getSensor()) != -1 || selectedSensor == sensor.getSensor())}"
+        [ngClass]="{
+          'active': (selectedSensors.indexOf(sensor.getSensor()) != -1 || selectedSensor == sensor.getSensor()),
+          'parent': sensor.isParent()
+        }"
         (dragstart)="onDragStart(sensor, $event)"
         (dragover)="onDragOver($event)"
         (drop)="onDrop(sensor)"
@@ -65,33 +68,34 @@
         [draggable]="!sensor.isParent() && !sensor.canUndo()"
       >
         <i *ngIf="!sensor.isParent() && !sensor.canUndo()" class="drag-handle-icon fa fa-ellipsis-v"></i>
-      </td>
-      <td>
         <button
+          class="undo"
           *ngIf="sensor.canUndo()"
           (click)="undo(sensor, $event)"
         >
-          Undo
+          UNDO
         </button>
+      </td>
+      <td class="cell-name">
         <span *ngIf="sensor.isParent()">
-          <i class="fa fa-caret-down"></i>
+          <i class="fa fa-caret-down group-caret-down-icon"></i>
           <i class="fa fa-th group-parent-label"></i>
         </span>
-        <span *ngIf="!!sensor.getSensor().group">
-          ----
+        <span class="indentation" *ngIf="!!sensor.getSensor().group">
+          ---
         </span>
         {{ sensor.getSensor().sensorName }}
       </td>
       <td>{{ getParserType(sensor.getSensor().config) }}</td>
       <td
-        [ngClass]="{'warning-text': (sensor.getSensor().status == 'Stopped' || sensor.getSensor().status == 'Disabled')}"
+        [ngClass]="{'warning-text': ['Stopped', 'Stopping', 'Disabled'].includes(sensor.getSensor().status)}"
       >
-        {{ sensor.getSensor().status }}
+        {{ sensor.getSensor().group ? '' : sensor.getSensor().status }}
       </td>
-      <td>{{ sensor.getSensor().latency }}</td>
-      <td>{{ sensor.getSensor().throughput }}</td>
-      <td>{{ sensor.getSensor().modifiedByDate }}</td>
-      <td>{{ sensor.getSensor().modifiedBy }}</td>
+      <td>{{ sensor.getSensor().group ? '' : sensor.getSensor().latency }}</td>
+      <td>{{ sensor.getSensor().group ? '' : sensor.getSensor().throughput }}</td>
+      <td>{{ sensor.getSensor().group ? '' : sensor.getSensor().modifiedByDate }}</td>
+      <td>{{ sensor.getSensor().group ? '' : sensor.getSensor().modifiedBy }}</td>
       <td class="icon-container">
           <i
             data-toggle="tooltip"

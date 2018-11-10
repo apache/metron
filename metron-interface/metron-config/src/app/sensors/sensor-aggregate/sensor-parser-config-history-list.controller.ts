@@ -140,6 +140,7 @@ export class SensorParserConfigHistoryListController {
     );
 
     group.setName(groupName);
+    group.setStatus('Stopping');
     group.setIsParent(true);
 
     if (typeof at === 'undefined') {
