@@ -121,8 +121,8 @@ export class SensorParserConfigHistoryListController {
   }
 
   /**
-   * @params groupName - create a new group with this group name
-   * @params at - The array index where you want to inject the group after creation
+   * @param groupName - create a new group with this group name
+   * @param at - The array index where you want to inject the group after creation
    */
   createGroup(groupName: string, at?: number): SensorParserConfigHistoryUndoable {
     const group = new SensorParserConfigHistoryUndoable(
@@ -141,6 +141,12 @@ export class SensorParserConfigHistoryListController {
     return group;
   }
 
+  /**
+   * @param groupName
+   * @param sensor
+   * @param options.startTimer - whether we should start a timer on the parser (undoable)
+   * @param options.silent - If it's true, it won't call next on the changed$ observer
+   */
   addToGroup(groupName: string, sensor: SensorParserConfigHistoryUndoable, options: any = {}) {
 
     let group = this.getGroup(groupName);
@@ -173,7 +179,11 @@ export class SensorParserConfigHistoryListController {
     }
   }
 
-  restorePreviousState(sensor: SensorParserConfigHistoryUndoable) {
+  /**
+   * @param sensor
+   * @param options.silent - If it's true, it won't call next on the changed$ observer
+   */
+  restorePreviousState(sensor: SensorParserConfigHistoryUndoable, options: any = {}) {
 
     const previous = sensor.getPreviousState();
     const previousGroup = previous.config.group;
@@ -185,6 +195,8 @@ export class SensorParserConfigHistoryListController {
     this._sensors = this._sensors.filter(s => s !== sensor);
     this._sensors.splice(this.findLastItemIndexInGroup(previousGroup || groupName) + 1, 0, sensor);
 
-    this._next(this._sensors);
+    if (!options.silent) {
+      this._next(this._sensors);
+    }
   }
 }
