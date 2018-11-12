@@ -47,7 +47,6 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private transient ElasticsearchClient client;
   private AccessConfig accessConfig;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
   private BulkDocumentWriter<Document> documentWriter;
@@ -57,7 +56,6 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   public ElasticsearchUpdateDao(ElasticsearchClient client,
       AccessConfig accessConfig,
       ElasticsearchRetrieveLatestDao searchDao) {
-    this.client = client;
     this.accessConfig = accessConfig;
     this.retrieveLatestDao = searchDao;
     this.documentWriter = new ElasticsearchBulkDocumentWriter<>(client);
