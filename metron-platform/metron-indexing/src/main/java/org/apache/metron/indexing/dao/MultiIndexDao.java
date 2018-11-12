@@ -41,6 +41,8 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,7 +143,7 @@ public class MultiIndexDao implements IndexDao {
 
     } catch (Throwable e) {
       container = new DocumentContainer(e);
-      LOG.debug("Unable to add comment to alert; indexDao={}, error={}",
+      LOG.error("Unable to add comment to alert; indexDao={}, error={}",
               ClassUtils.getShortClassName(indexDao.getClass()), ExceptionUtils.getRootCauseMessage(e));
     }
 
@@ -181,7 +183,7 @@ public class MultiIndexDao implements IndexDao {
 
     } catch (Throwable e) {
       container = new DocumentContainer(e);
-      LOG.debug("Unable to remove comment from alert; indexDao={}, error={}",
+      LOG.error("Unable to remove comment from alert; indexDao={}, error={}",
               ClassUtils.getShortClassName(indexDao.getClass()), ExceptionUtils.getRootCauseMessage(e));
     }
 
@@ -274,7 +276,7 @@ public class MultiIndexDao implements IndexDao {
 
     } catch (Throwable e) {
       container = new DocumentContainer(e);
-      LOG.debug("Unable to find latest document; indexDao={}, error={}",
+      LOG.error("Unable to find latest document; indexDao={}, error={}",
               ClassUtils.getShortClassName(indexDao.getClass()), ExceptionUtils.getRootCauseMessage(e));
     }
 
@@ -313,6 +315,32 @@ public class MultiIndexDao implements IndexDao {
       throw new IOException(Joiner.on("\n").join(error));
     }
     return ret;
+  }
+
+  @Override
+  public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException, OriginalNotFoundException {
+    List<DocumentContainer> output = indices
+            .parallelStream()
+            .map(dao -> doReplace(dao, request, timestamp))
+            .collect(Collectors.toList());
+    return getLatestDocument(output);
+  }
+
+  public DocumentContainer doReplace(IndexDao indexDao, ReplaceRequest request, Optional<Long> timestamp) {
+    DocumentContainer container;
+    try {
+      Document document = indexDao.replace(request, timestamp);
+      container = new DocumentContainer(document);
+      LOG.debug("Replaced document; indexDao={}, guid={}, sensorType={}, document={}",
+              ClassUtils.getShortClassName(indexDao.getClass()), request.getGuid(), request.getSensorType(), document);
+
+    } catch (Throwable e) {
+      container = new DocumentContainer(e);
+      LOG.error("Unable to replace document; indexDao={}, error={}",
+              ClassUtils.getShortClassName(indexDao.getClass()), ExceptionUtils.getRootCauseMessage(e));
+    }
+
+    return container;
   }
 
   public List<IndexDao> getIndices() {

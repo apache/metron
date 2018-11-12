@@ -49,6 +49,7 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
+import org.jets3t.service.model.cloudfront.Origin;
 
 public class InMemoryMetaAlertDao implements MetaAlertDao {
 
@@ -168,14 +169,14 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
-      Optional<Long> timestamp)
+  public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request, Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
     return indexDao.patch(retrieveLatestDao, request, timestamp);
   }
 
   @Override
-  public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException {
+  public Document replace(ReplaceRequest request, Optional<Long> timestamp)
+          throws IOException, OriginalNotFoundException {
     return indexDao.replace(request, timestamp);
   }
 

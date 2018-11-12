@@ -41,7 +41,9 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -122,6 +124,11 @@ public class SolrMetaAlertDaoTest {
 
       @Override
       public Map<String, FieldType> getColumnMetadata(List<String> indices) {
+        return null;
+      }
+
+      @Override
+      public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException, OriginalNotFoundException {
         return null;
       }
     };

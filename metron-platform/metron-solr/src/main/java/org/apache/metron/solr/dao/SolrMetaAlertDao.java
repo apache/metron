@@ -47,6 +47,7 @@ import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.apache.solr.client.solrj.SolrClient;
 
 public class SolrMetaAlertDao implements MetaAlertDao {
@@ -252,5 +253,10 @@ public class SolrMetaAlertDao implements MetaAlertDao {
   @Override
   public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
     return solrDao.removeCommentFromAlert(request, latest);
+  }
+
+  @Override
+  public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException, OriginalNotFoundException {
+    return solrDao.replace(request, timestamp);
   }
 }

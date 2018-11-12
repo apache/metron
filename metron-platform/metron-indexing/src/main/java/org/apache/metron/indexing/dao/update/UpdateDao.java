@@ -105,13 +105,5 @@ public interface UpdateDao {
    * @return The replaced document.
    * @throws IOException If an error occurs during replacement.
    */
-  default Document replace(ReplaceRequest request, Optional<Long> timestamp)
-      throws IOException {
-    Document d = new Document(request.getReplacement(),
-        request.getGuid(),
-        request.getSensorType(),
-        timestamp.orElse(System.currentTimeMillis())
-    );
-    return update(d, Optional.ofNullable(request.getIndex()));
-  }
+  Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException, OriginalNotFoundException;
 }

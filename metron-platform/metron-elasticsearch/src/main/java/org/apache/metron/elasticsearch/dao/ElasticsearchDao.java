@@ -40,6 +40,7 @@ import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.jets3t.service.model.cloudfront.Origin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,7 +154,8 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException {
+  public Document replace(ReplaceRequest request, Optional<Long> timestamp)
+          throws IOException, OriginalNotFoundException {
     return updateDao.replace(request, timestamp);
   }
 

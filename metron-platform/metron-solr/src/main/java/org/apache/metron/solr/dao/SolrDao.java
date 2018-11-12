@@ -40,6 +40,7 @@ import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
@@ -165,6 +166,11 @@ public class SolrDao implements IndexDao {
   public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
     return this.solrUpdateDao.removeCommentFromAlert(request, latest);
+  }
+
+  @Override
+  public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException, OriginalNotFoundException {
+    return this.solrUpdateDao.replace(request, timestamp);
   }
 
   /**
