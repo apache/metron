@@ -233,8 +233,8 @@ public abstract class MetaAlertIntegrationTest {
     SearchResponse result = metaDao.search(sr);
     List<SearchResult> results = result.getResults();
     Assert.assertEquals(2, results.size());
-    Assert.assertEquals("meta_active_0", results.get((0)).getId());
-    Assert.assertEquals("message_1", results.get((1)).getId());
+    Assert.assertEquals("meta_active_0", results.get((0)).getSource().get(Constants.GUID));
+    Assert.assertEquals("message_1", results.get((1)).getSource().get(Constants.GUID));
 
     // Test ascending
     SortField sfAsc = new SortField();
@@ -247,8 +247,8 @@ public abstract class MetaAlertIntegrationTest {
     srAsc.setSort(Collections.singletonList(sfAsc));
     result = metaDao.search(srAsc);
     results = result.getResults();
-    Assert.assertEquals("message_1", results.get((0)).getId());
-    Assert.assertEquals("meta_active_0", results.get((1)).getId());
+    Assert.assertEquals("message_1", results.get((0)).getSource().get(Constants.GUID));
+    Assert.assertEquals("meta_active_0", results.get((1)).getSource().get(Constants.GUID));
     Assert.assertEquals(2, results.size());
   }
 
