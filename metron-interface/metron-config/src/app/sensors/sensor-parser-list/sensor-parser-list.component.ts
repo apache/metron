@@ -372,7 +372,44 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     event.preventDefault();
   }
 
+  onDragEnter(sensor, e) {
+
+    setTimeout(() => {
+      sensor.setDraggedOver(true);
+    });
+
+    const groupName = sensor.getGroup();
+    if (!groupName) {
+      return;
+    }
+    setTimeout(() => {
+      const group = this.sensorParserConfigHistoryListController.getByName(groupName);
+      group.setHighlighted(true);
+    });
+  }
+
+  onDragLeave(sensor, e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.pageX;
+    const mouseY = e.pageY;
+
+    if (mouseX < rect.left || mouseY < rect.top || mouseX >= rect.right || mouseY >= rect.bottom) {
+      sensor.setDraggedOver(false);
+
+      const groupName = sensor.getGroup();
+      if (!groupName) {
+        return;
+      }
+      const group = this.sensorParserConfigHistoryListController.getByName(groupName);
+      group.setHighlighted(false);
+    }
+  }
+
   onDrop(sensor: SensorParserConfigHistoryUndoable) {
+
+    this.sensorParserConfigHistoryListController.setAllHighlighted(false);
+    this.sensorParserConfigHistoryListController.setAllDraggedOver(false);
+
     if (sensor.isParent()) {
       this.sensorParserConfigHistoryListController
         .addToGroup(

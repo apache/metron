@@ -57,11 +57,15 @@
         (click)="onSensorRowSelect(sensor.getSensor(), $event)"
         [ngClass]="{
           'active': (selectedSensors.indexOf(sensor.getSensor()) != -1 || selectedSensor == sensor.getSensor()),
-          'parent': sensor.isParent()
+          'parent': sensor.isParent(),
+          'highlighted': sensor.getHighlighted(),
+          'dragged-over': sensor.getDraggedOver()
         }"
         (dragstart)="onDragStart(sensor, $event)"
         (dragover)="onDragOver($event)"
         (drop)="onDrop(sensor)"
+        (dragenter)="onDragEnter(sensor, $event)"
+        (dragleave)="onDragLeave(sensor, $event)"
       >
       <td
         class="drag-handle"

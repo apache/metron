@@ -199,4 +199,20 @@ export class SensorParserConfigHistoryListController {
       this._next(this._sensors);
     }
   }
+
+  getByName(name: string): SensorParserConfigHistoryUndoable {
+    return this._sensors.find(sensor => sensor.getName() === name);
+  }
+
+  setAllHighlighted(value: boolean) {
+    this._sensors.forEach(sensor => {
+      sensor.setHighlighted(value);
+    })
+  }
+
+  setAllDraggedOver(value: boolean) {
+    this._sensors.forEach(sensor => {
+      sensor.setDraggedOver(value);
+    })
+  }
 }

@@ -32,6 +32,9 @@ export class SensorParserConfigHistoryUndoable {
 
   changed$ = new Subject();
 
+  _highlighted = false;
+  _draggedOver = false;
+
   constructor(sensor: SensorParserConfigHistory) {
     this._sensor = sensor;
   }
@@ -73,6 +76,22 @@ export class SensorParserConfigHistoryUndoable {
 
   setStatus(status: string) {
     this._sensor.status = status;
+  }
+
+  setHighlighted(value: boolean) {
+    this._highlighted = value;
+  }
+
+  getHighlighted(): boolean {
+    return this._highlighted;
+  }
+
+  setDraggedOver(value: boolean) {
+    this._draggedOver = value;
+  }
+
+  getDraggedOver(): boolean {
+    return this._draggedOver;
   }
 
   _startTimer(fn, delay = DEFAULT_UNDO_TIMEOUT) {
