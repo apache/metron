@@ -18,12 +18,12 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
-import { SensorParserConfigHistoryUndoable } from './sensor-parser-config-history-undoable';
+import { MetaParserConfigItem } from './meta-parser-config-item';
 
 @Injectable ()
 export class SensorAggregateService {
 
-  _sensorsToBeMerged: SensorParserConfigHistoryUndoable[] = [];
+  _sensorsToBeMerged: MetaParserConfigItem[] = [];
 
   executeMerge$ = new Subject();
 
@@ -35,7 +35,7 @@ export class SensorAggregateService {
     ];
   }
 
-  markSensorToBeMerged(sensor: SensorParserConfigHistoryUndoable, index: number) {
+  markSensorToBeMerged(sensor: MetaParserConfigItem, index: number) {
     this._sensorsToBeMerged[index] = sensor;
   }
 

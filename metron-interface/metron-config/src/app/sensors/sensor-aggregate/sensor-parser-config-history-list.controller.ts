@@ -17,15 +17,18 @@
  */
 import { Injectable } from '@angular/core';
 import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
-import { SensorParserConfigHistoryUndoable } from './sensor-parser-config-history-undoable';
+import { MetaParserConfigItem } from './meta-parser-config-item';
 import { Subject, Observable, Subscription } from 'rxjs';
+import { MetaParserConfigItemFactory } from './meta-parser-config-item-factory';
 
 @Injectable ()
 export class SensorParserConfigHistoryListController {
 
-  _sensors: SensorParserConfigHistoryUndoable[];
+  _sensors: MetaParserConfigItem[];
   _subscriptions: Subscription[] = [];
   changed$ = new Subject();
+
+  constructor(private metaParserConfigFactory: MetaParserConfigItemFactory) {}
 
   setSensors(sensors: SensorParserConfigHistory[]) {
 
@@ -49,7 +52,7 @@ export class SensorParserConfigHistoryListController {
     }
 
     this._sensors = sensors.map((sensor, i) => {
-      const sensorUndoable = new SensorParserConfigHistoryUndoable(sensor);
+      const sensorUndoable = this.metaParserConfigFactory.create(sensor);
 
       this._subscriptions.push(
         sensorUndoable.isChanged().subscribe(() => this._next(this._sensors)),
@@ -62,14 +65,14 @@ export class SensorParserConfigHistoryListController {
     this._next(this._sensors);
   }
 
-  getSensors(): SensorParserConfigHistoryUndoable[] {
+  getSensors(): MetaParserConfigItem[] {
     return [
       ...(this._sensors || [])
     ];
   }
 
-  isChanged(): Observable<SensorParserConfigHistoryUndoable[]> {
-    return this.changed$.asObservable() as Observable<SensorParserConfigHistoryUndoable[]>;
+  isChanged(): Observable<MetaParserConfigItem[]> {
+    return this.changed$.asObservable() as Observable<MetaParserConfigItem[]>;
   }
 
   _next(sensors) {
@@ -110,7 +113,7 @@ export class SensorParserConfigHistoryListController {
     return lastIndex;
   }
 
-  getGroup(groupName: string): SensorParserConfigHistoryUndoable | null {
+  getGroup(groupName: string): MetaParserConfigItem | null {
     let i = 0, len = this._sensors.length;
     for (; i < len; i++) {
       if (this._sensors[i].getSensor().sensorName === groupName) {
@@ -124,10 +127,8 @@ export class SensorParserConfigHistoryListController {
    * @param groupName - create a new group with this group name
    * @param at - The array index where you want to inject the group after creation
    */
-  createGroup(groupName: string, at?: number): SensorParserConfigHistoryUndoable {
-    const group = new SensorParserConfigHistoryUndoable(
-      new SensorParserConfigHistory()
-    );
+  createGroup(groupName: string, at?: number): MetaParserConfigItem {
+    const group = this.metaParserConfigFactory.create(new SensorParserConfigHistory());
 
     group.setName(groupName);
     group.setIsParent(true);
@@ -147,7 +148,7 @@ export class SensorParserConfigHistoryListController {
    * @param options.startTimer - whether we should start a timer on the parser (undoable)
    * @param options.silent - If it's true, it won't call next on the changed$ observer
    */
-  addToGroup(groupName: string, sensor: SensorParserConfigHistoryUndoable, options: any = {}) {
+  addToGroup(groupName: string, sensor: MetaParserConfigItem, options: any = {}) {
 
     let group = this.getGroup(groupName);
     if (!group) {
@@ -183,7 +184,7 @@ export class SensorParserConfigHistoryListController {
    * @param sensor
    * @param options.silent - If it's true, it won't call next on the changed$ observer
    */
-  restorePreviousState(sensor: SensorParserConfigHistoryUndoable, options: any = {}) {
+  restorePreviousState(sensor: MetaParserConfigItem, options: any = {}) {
 
     const previous = sensor.getPreviousState();
     const previousGroup = previous.config.group;
@@ -200,7 +201,7 @@ export class SensorParserConfigHistoryListController {
     }
   }
 
-  getByName(name: string): SensorParserConfigHistoryUndoable {
+  getByName(name: string): MetaParserConfigItem {
     return this._sensors.find(sensor => sensor.getName() === name);
   }
 

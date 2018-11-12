@@ -24,11 +24,10 @@ import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {StormService} from '../../service/storm.service';
 import {TopologyStatus} from '../../model/topology-status';
 import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
-import {SensorParserConfigHistoryService} from '../../service/sensor-parser-config-history.service';
 import { SensorAggregateService } from '../sensor-aggregate/sensor-aggregate.service';
 import { Subscription } from 'rxjs';
 import { SensorParserConfigHistoryListController } from '../sensor-aggregate/sensor-parser-config-history-list.controller';
-import { SensorParserConfigHistoryUndoable } from '../sensor-aggregate/sensor-parser-config-history-undoable';
+import { MetaParserConfigItem } from '../sensor-aggregate/meta-parser-config-item';
 
 
 @Component({
@@ -48,7 +47,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   selectedSensors: SensorParserConfigHistory[] = [];
   enableAutoRefresh = true;
   _executeMergeSubscription: Subscription;
-  sensorsToRender: SensorParserConfigHistoryUndoable[];
+  sensorsToRender: MetaParserConfigItem[];
 
   constructor(private sensorParserConfigService: SensorParserConfigService,
               private stormService: StormService,
@@ -159,7 +158,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this._executeMergeSubscription = this.sensorAggregateService.executeMerge$
       .subscribe((value: {
         groupName: string,
-        sensors: SensorParserConfigHistoryUndoable[]
+        sensors: MetaParserConfigItem[]
       }) => {
         if (!value.groupName || !value.sensors.length) {
           // there's nothing to group
@@ -170,7 +169,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
     // TODO: unsubscribe
     this.sensorParserConfigHistoryListController.isChanged().subscribe(
-      (sensors: SensorParserConfigHistoryUndoable[]) => {
+      (sensors: MetaParserConfigItem[]) => {
         this.sensorsToRender = sensors;
       }
     );
@@ -363,7 +362,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this.selectedSensors = [];
   }
 
-  onDragStart(sensor: SensorParserConfigHistoryUndoable, e: DragEvent) {
+  onDragStart(sensor: MetaParserConfigItem, e: DragEvent) {
     this.sensorAggregateService.markSensorToBeMerged(sensor, 0);
     e.dataTransfer.setDragImage((e.target as HTMLElement).parentElement, 0, 0);
   }
@@ -405,7 +404,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDrop(sensor: SensorParserConfigHistoryUndoable) {
+  onDrop(sensor: MetaParserConfigItem) {
 
     this.sensorParserConfigHistoryListController.setAllHighlighted(false);
     this.sensorParserConfigHistoryListController.setAllDraggedOver(false);
@@ -422,12 +421,12 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     }
   }
 
-  addSensorsToGroup(groupName: string, sensors: SensorParserConfigHistoryUndoable[]) {
+  addSensorsToGroup(groupName: string, sensors: MetaParserConfigItem[]) {
     this.sensorParserConfigHistoryListController.addToGroup(groupName, sensors[1], { startTimer: true });
     this.sensorParserConfigHistoryListController.addToGroup(groupName, sensors[0], { startTimer: true });
   }
 
-  undo(sensor: SensorParserConfigHistoryUndoable, e) {
+  undo(sensor: MetaParserConfigItem, e) {
     e.stopPropagation();
     this.sensorParserConfigHistoryListController.restorePreviousState(sensor);
   }

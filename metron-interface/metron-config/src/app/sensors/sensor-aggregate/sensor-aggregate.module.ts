@@ -19,6 +19,7 @@ import { NgModule } from '@angular/core';
 import { routing } from './sensor-aggregate.routing';
 import { SensorAggregateComponent } from './sensor-aggregate.component';
 import { SharedModule } from '../../shared/shared.module';
+import { MetaParserConfigItemFactory } from './meta-parser-config-item-factory';
 
 @NgModule({
   imports: [
@@ -27,6 +28,9 @@ import { SharedModule } from '../../shared/shared.module';
   ],
   declarations: [
     SensorAggregateComponent
+  ],
+  providers: [
+    MetaParserConfigItemFactory,
   ]
 })
 export class SensorAggregateModule {}

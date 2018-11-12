@@ -17,10 +17,15 @@
  */
 import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
 import { Subject, Observable } from 'rxjs';
+import { SensorParserConfigService } from 'app/service/sensor-parser-config.service';
 
 const DEFAULT_UNDO_TIMEOUT = 60000;
 
-export class SensorParserConfigHistoryUndoable {
+export class MetaParserConfigItem {
+
+  readonly CHANGE_APPLY_DELAY = 3000;
+
+  private parserConfigService: SensorParserConfigService;
 
   _sensor: SensorParserConfigHistory = null;
 
@@ -35,8 +40,10 @@ export class SensorParserConfigHistoryUndoable {
   _highlighted = false;
   _draggedOver = false;
 
-  constructor(sensor: SensorParserConfigHistory) {
+  constructor(sensor: SensorParserConfigHistory,
+    parserConfigService: SensorParserConfigService) {
     this._sensor = sensor;
+    this.parserConfigService = parserConfigService;
   }
 
   getSensor(): SensorParserConfigHistory {
@@ -102,16 +109,19 @@ export class SensorParserConfigHistoryUndoable {
     if (this._timer) {
       this._stopTimer();
     }
-    this._startTimer(() => {
-      this._next();
-      this._stopTimer();
-      // call persist !
-    }, 10000);
+    this._startTimer(this.onTimerTick.bind(this), this.CHANGE_APPLY_DELAY);
   }
 
   _stopTimer() {
     clearTimeout(this._timer);
     this._timer = -1;
+  }
+
+  private onTimerTick() {
+    this._stopTimer();
+    this.parserConfigService
+      .saveConfig(this._sensor.sensorName, this._sensor.config)
+      .subscribe(this._next.bind(this));
   }
 
   canUndo() {
