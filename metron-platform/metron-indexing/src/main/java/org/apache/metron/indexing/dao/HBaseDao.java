@@ -18,17 +18,6 @@
 
 package org.apache.metron.indexing.dao;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -47,10 +36,18 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
 
-import static java.lang.String.format;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The HBaseDao is an index dao which only supports the following actions:
@@ -359,30 +356,5 @@ public class HBaseDao implements IndexDao {
     }
 
     return update(newVersion, Optional.empty());
-  }
-
-  @Override
-  public Document replace(ReplaceRequest request, Optional<Long> optionalTimestamp) throws IOException, OriginalNotFoundException {
-    Map<String, Object> source = request.getReplacement();
-    String guid = request.getGuid();
-    String sensorType = request.getSensorType();
-    Long timestamp = optionalTimestamp.orElse(System.currentTimeMillis());
-    Optional<String> documentID = findDocumentID(guid, sensorType);
-    Optional<String> index = Optional.ofNullable(request.getIndex());
-
-    Document replacement = new Document(source, guid, sensorType, timestamp, documentID);
-    return update(replacement, index);
-  }
-
-  private Optional<String> findDocumentID(String guid, String sensorType)
-          throws IOException, OriginalNotFoundException {
-
-    Document document = this.getLatest(guid, sensorType);
-    if(document == null) {
-      String error = format("Cannot find document to replace; guid=%s, sensorType=%s", guid, sensorType);
-      throw new OriginalNotFoundException(error);
-    }
-
-    return document.getDocumentID();
   }
 }

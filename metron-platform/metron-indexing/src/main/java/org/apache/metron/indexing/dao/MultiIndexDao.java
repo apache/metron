@@ -20,16 +20,6 @@ package org.apache.metron.indexing.dao;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -41,10 +31,18 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class MultiIndexDao implements IndexDao {
 
@@ -315,32 +313,6 @@ public class MultiIndexDao implements IndexDao {
       throw new IOException(Joiner.on("\n").join(error));
     }
     return ret;
-  }
-
-  @Override
-  public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException, OriginalNotFoundException {
-    List<DocumentContainer> output = indices
-            .parallelStream()
-            .map(dao -> doReplace(dao, request, timestamp))
-            .collect(Collectors.toList());
-    return getLatestDocument(output);
-  }
-
-  public DocumentContainer doReplace(IndexDao indexDao, ReplaceRequest request, Optional<Long> timestamp) {
-    DocumentContainer container;
-    try {
-      Document document = indexDao.replace(request, timestamp);
-      container = new DocumentContainer(document);
-      LOG.debug("Replaced document; indexDao={}, guid={}, sensorType={}, document={}",
-              ClassUtils.getShortClassName(indexDao.getClass()), request.getGuid(), request.getSensorType(), document);
-
-    } catch (Throwable e) {
-      container = new DocumentContainer(e);
-      LOG.error("Unable to replace document; indexDao={}, error={}",
-              ClassUtils.getShortClassName(indexDao.getClass()), ExceptionUtils.getRootCauseMessage(e));
-    }
-
-    return container;
   }
 
   public List<IndexDao> getIndices() {

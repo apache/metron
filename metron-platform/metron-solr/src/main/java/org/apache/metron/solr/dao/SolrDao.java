@@ -17,14 +17,7 @@
  */
 package org.apache.metron.solr.dao;
 
-import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-
 import com.google.common.base.Splitter;
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.ColumnMetadataDao;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -40,13 +33,20 @@ import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 
 public class SolrDao implements IndexDao {
 
@@ -166,11 +166,6 @@ public class SolrDao implements IndexDao {
   public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
       throws IOException {
     return this.solrUpdateDao.removeCommentFromAlert(request, latest);
-  }
-
-  @Override
-  public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException, OriginalNotFoundException {
-    return this.solrUpdateDao.replace(request, timestamp);
   }
 
   /**

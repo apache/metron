@@ -17,8 +17,16 @@
  */
 package org.apache.metron.solr.dao;
 
-import static java.lang.String.format;
-import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.search.AlertComment;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
+import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.UpdateDao;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrInputDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -32,18 +40,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.search.AlertComment;
-import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
-import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.apache.metron.indexing.dao.update.UpdateDao;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.common.SolrInputDocument;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 public class SolrUpdateDao implements UpdateDao {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -194,40 +192,6 @@ public class SolrUpdateDao implements UpdateDao {
     Document newVersion = new Document(latest);
     newVersion.getDocument().put(COMMENTS_FIELD, commentsAsJson);
     return update(newVersion, Optional.empty());
-  }
-
-  /**
-   * Replace a document in an index.
-   * @param request The replacement request.
-   * @param optionalTimestamp The timestamp (optional) of the update.  If not specified, then current time will be used.
-   * @return The replaced document.
-   * @throws IOException If an error occurs during replacement.
-   */
-  @Override
-  public Document replace(ReplaceRequest request, Optional<Long> optionalTimestamp)
-          throws IOException, OriginalNotFoundException {
-
-    Map<String, Object> source = request.getReplacement();
-    String guid = request.getGuid();
-    String sensorType = request.getSensorType();
-    Long timestamp = optionalTimestamp.orElse(System.currentTimeMillis());
-    Optional<String> documentID = findDocumentID(guid, sensorType);
-    Optional<String> index = Optional.ofNullable(request.getIndex());
-
-    Document replacement = new Document(source, guid, sensorType, timestamp, documentID);
-    return update(replacement, index);
-  }
-
-  private Optional<String> findDocumentID(String guid, String sensorType)
-          throws IOException, OriginalNotFoundException {
-
-    Document document = retrieveLatestDao.getLatest(guid, sensorType);
-    if(document == null) {
-      String error = format("Cannot find document to replace; guid=%s, sensorType=%s", guid, sensorType);
-      throw new OriginalNotFoundException(error);
-    }
-
-    return document.getDocumentID();
   }
 
   public void convertCommentsToRaw(Map<String,Object> source) {

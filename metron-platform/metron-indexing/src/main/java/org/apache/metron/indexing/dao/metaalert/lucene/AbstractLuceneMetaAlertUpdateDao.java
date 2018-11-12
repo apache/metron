@@ -18,8 +18,19 @@
 
 package org.apache.metron.indexing.dao.metaalert.lucene;
 
-import static java.lang.String.format;
-import static org.apache.metron.common.Constants.GUID;
+import org.apache.metron.common.Constants;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertUpdateDao;
+import org.apache.metron.indexing.dao.metaalert.MetaScores;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.indexing.dao.update.UpdateDao;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,20 +46,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.apache.metron.common.Constants;
-import org.apache.metron.indexing.dao.RetrieveLatestDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertUpdateDao;
-import org.apache.metron.indexing.dao.metaalert.MetaScores;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
-import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.apache.metron.indexing.dao.update.UpdateDao;
+import static org.apache.metron.common.Constants.GUID;
 
 public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdateDao {
 
@@ -284,41 +282,6 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
       update(updates);
     }
     return metaAlert;
-  }
-
-
-  /**
-   * Replace a document in an index.
-   * @param request The replacement request.
-   * @param optionalTimestamp The timestamp (optional) of the update.  If not specified, then current time will be used.
-   * @return The replaced document.
-   * @throws IOException If an error occurs during replacement.
-   */
-  @Override
-  public Document replace(ReplaceRequest request, Optional<Long> optionalTimestamp)
-          throws IOException, OriginalNotFoundException {
-
-    Map<String, Object> source = request.getReplacement();
-    String guid = request.getGuid();
-    String sensorType = request.getSensorType();
-    Long timestamp = optionalTimestamp.orElse(System.currentTimeMillis());
-    Optional<String> documentID = findDocumentID(guid, sensorType);
-    Optional<String> index = Optional.ofNullable(request.getIndex());
-
-    Document replacement = new Document(source, guid, sensorType, timestamp, documentID);
-    return update(replacement, index);
-  }
-
-  private Optional<String> findDocumentID(String guid, String sensorType)
-          throws IOException, OriginalNotFoundException {
-
-    Document document = retrieveLatestDao.getLatest(guid, sensorType);
-    if(document == null) {
-      String error = format("Cannot find document to replace; guid=%s, sensorType=%s", guid, sensorType);
-      throw new OriginalNotFoundException(error);
-    }
-
-    return document.getDocumentID();
   }
 
   /**

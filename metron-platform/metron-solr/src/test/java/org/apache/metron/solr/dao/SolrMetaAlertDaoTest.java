@@ -18,14 +18,6 @@
 
 package org.apache.metron.solr.dao;
 
-import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -41,11 +33,18 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 
 public class SolrMetaAlertDaoTest {
   private static AccessConfig accessConfig = new AccessConfig();
@@ -124,11 +123,6 @@ public class SolrMetaAlertDaoTest {
 
       @Override
       public Map<String, FieldType> getColumnMetadata(List<String> indices) {
-        return null;
-      }
-
-      @Override
-      public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException, OriginalNotFoundException {
         return null;
       }
     };

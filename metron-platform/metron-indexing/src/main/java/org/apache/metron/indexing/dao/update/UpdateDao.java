@@ -17,11 +17,12 @@
  */
 package org.apache.metron.indexing.dao.update;
 
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.indexing.dao.RetrieveLatestDao;
 
 import static java.lang.String.format;
 
@@ -97,13 +98,4 @@ public interface UpdateDao {
     Map<String, Object> patchedSource = JSONUtils.INSTANCE.applyPatch(request.getPatch(), originalSource);
     return new Document(patchedSource, guid, sensorType, timestamp, documentID);
   }
-
-  /**
-   * Replace a document in an index.
-   * @param request The replacement request.
-   * @param timestamp The timestamp (optional) of the update.  If not specified, then current time will be used.
-   * @return The replaced document.
-   * @throws IOException If an error occurs during replacement.
-   */
-  Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException, OriginalNotFoundException;
 }

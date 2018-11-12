@@ -22,7 +22,6 @@ import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.UpdateService;
 import org.slf4j.Logger;
@@ -47,15 +46,6 @@ public class UpdateServiceImpl implements UpdateService {
   public Document patch(PatchRequest request) throws RestException, OriginalNotFoundException {
     try {
       return dao.patch(dao, request, Optional.of(System.currentTimeMillis()));
-    } catch (Exception e) {
-      throw new RestException(e.getMessage(), e);
-    }
-  }
-
-  @Override
-  public Document replace(ReplaceRequest request) throws RestException {
-    try {
-      return dao.replace(request, Optional.of(System.currentTimeMillis()));
     } catch (Exception e) {
       throw new RestException(e.getMessage(), e);
     }

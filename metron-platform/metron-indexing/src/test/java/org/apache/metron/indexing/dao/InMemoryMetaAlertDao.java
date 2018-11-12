@@ -18,14 +18,6 @@
 
 package org.apache.metron.indexing.dao;
 
-import static org.apache.metron.common.Constants.SENSOR_TYPE;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.InMemoryMetaAlertRetrieveLatestDao;
@@ -48,8 +40,15 @@ import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.jets3t.service.model.cloudfront.Origin;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 
 public class InMemoryMetaAlertDao implements MetaAlertDao {
 
@@ -172,12 +171,6 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request, Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
     return indexDao.patch(retrieveLatestDao, request, timestamp);
-  }
-
-  @Override
-  public Document replace(ReplaceRequest request, Optional<Long> timestamp)
-          throws IOException, OriginalNotFoundException {
-    return indexDao.replace(request, timestamp);
   }
 
   @Override
