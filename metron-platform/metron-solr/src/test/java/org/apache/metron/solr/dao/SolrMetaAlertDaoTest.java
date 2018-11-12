@@ -18,14 +18,6 @@
 
 package org.apache.metron.solr.dao;
 
-import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -44,6 +36,15 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 
 public class SolrMetaAlertDaoTest {
   private static AccessConfig accessConfig = new AccessConfig();
