@@ -31,35 +31,21 @@ data format (e.g. a JSON Map structure with `original_message` and
 
 ## Enrichment Architecture
 
-![Architecture](enrichment_arch.png)
+![Unified Architecture](unified_enrichment_arch.svg)
 
 ### Unified Enrichment Topology
 
-There is an experimental unified enrichment topology which is shipped.
-Currently the architecture, as described above, has a split/join in
-order to perform enrichments in parallel.  This poses some issues in
-terms of ease of tuning and reasoning about performance.  
-
-In order to deal with these issues, there is an alternative enrichment topology which
-uses data parallelism as opposed to the split/join task parallelism.
-This architecture uses a worker pool to fully enrich any message within 
-a worker.  This results in 
+The unified enrichment topology uses data parallelism as opposed to the deprecated
+split/join topology's task parallelism. This architecture uses a worker pool to fully
+enrich any message within a worker.  This results in
 * Fewer bolts in the topology 
 * Each bolt fully operates on a message.
 * Fewer network hops
 
-![Unified Architecture](unified_enrichment_arch.svg)
-
-This architecture is fully backwards compatible; the only difference is
-how the enrichment will operate on each message (in one bolt where the
-split/join is done in a threadpool as opposed
+This architecture is fully backwards compatible with the old split-join
+topology; the only difference is how the enrichment will operate on each
+message (in one bolt where the split/join is done in a threadpool as opposed
 to split across multiple bolts).
-
-#### Using It
-
-In order to use this, you will need to 
-* Edit `$METRON_HOME/bin/start_enrichment_topology.sh` and adjust it to use `remote-unified.yaml` instead of `remote.yaml`
-* Restart the enrichment topology.
 
 #### Configuring It
 
@@ -76,6 +62,19 @@ intel bolt, the configurations will be taken from the respective join bolt
 parallelism.  When proper ambari support for this is added, we will add
 its own property.
 
+### Split-Join Enrichment Topology
+
+The now-deprecated split/join topology is also available and performs enrichments in parallel.
+This poses some issues in terms of ease of tuning and reasoning about performance.
+
+![Architecture](enrichment_arch.png)
+
+#### Using It
+
+In order to use the older, deprecated topology, you will need to
+* Edit `$METRON_HOME/bin/start_enrichment_topology.sh` and adjust it to use `remote-splitjoin.yaml` instead of `remote-unified.yaml`
+* Restart the enrichment topology.
+
 ## Enrichment Configuration
 
 The configuration for the `enrichment` topology, the topology primarily
@@ -84,7 +83,6 @@ defined by JSON documents stored in zookeeper.
 
 There are two types of configurations at the moment, `global` and
 `sensor` specific.  
-
 
 ## Global Configuration 
 
@@ -133,7 +131,6 @@ The configuration is a complex JSON object with the following top level fields:
 * `threatIntel` : A complex JSON object representing the configuration of the threat intelligence enrichments
 
 ### The `enrichment` Configuration
-
 
 | Field            | Description                                                                                                                                                                                                                   | Example                                                          |
 |------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|

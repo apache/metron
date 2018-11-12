@@ -19,6 +19,23 @@ limitations under the License.
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
 
+## 0.6.0 to 0.6.1
+
+### [METRON-1855: Make unified enrichment topology the default and deprecate split-join](https://issues.apache.org/jira/browse/METRON-1855)
+The unified enrichment topology will be the new default in this release,
+and the split-join enrichment topology is now considered deprecated.
+If you wish to keep the deprecated split-join enrichment topology,
+you will need to make the following changes:
+
+* In Ambari > Metron > Config > Enrichment set the enrichment_topology setting to "Split-Join"
+* If running `start_enrichment_topology.sh` manually, pass in the parameters to start the Split-Join topology as follows
+
+    ```
+    $METRON_HOME/bin/start_enrichment_topology.sh --remote $METRON_HOME/flux/enrichment/remote-splitjoin.yaml --filter $METRON_HOME/config/enrichment-splitjoin.properties
+    ```
+
+* Restart the enrichment topology
+
 ## 0.4.2 to 0.5.0
 
 ### [METRON-941: native PaloAlto parser corrupts message when having a comma in the payload](https://issues.apache.org/jira/browse/METRON-941)
