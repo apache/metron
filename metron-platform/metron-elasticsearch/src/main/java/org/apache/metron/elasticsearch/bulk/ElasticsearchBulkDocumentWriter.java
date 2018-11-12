@@ -114,12 +114,8 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
                     .map(ix -> createRequest(ix.document, ix.index))
                     .collect(Collectors.toList());
 
-            // create one bulk request to wrap each of the index requests
-            BulkRequest bulkRequest = new BulkRequest();
-            bulkRequest.add(requests);
-
-            // submit the request and handle the response
-            BulkResponse bulkResponse = client.getHighLevelClient().bulk(bulkRequest);
+            // submit one bulk request and handle the response
+            BulkResponse bulkResponse = client.getHighLevelClient().bulk(new BulkRequest().add(requests));
             List<D> successful = handleBulkResponse(bulkResponse, documents);
 
             // notify the success callback
@@ -170,16 +166,19 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     private String documentID(D document) {
         String documentID;
         if(document.getDocumentID().isPresent()) {
-            // if updating an existing document, need to set the doc ID
             documentID = document.getDocumentID().get();
+            LOG.debug("Updating an existing document with known doc ID; docID={}, guid={}, sensorType={}",
+                    documentID, document.getGuid(), document.getSensorType());
 
         } else if(defineDocumentId) {
-            // if creating a document and not using auto-generation, then need to set the document ID
             documentID = document.getGuid();
+            LOG.debug("Creating document and setting doc ID to guid; docID={}, guid={}, sensorType={}",
+                    documentID, document.getGuid(), document.getSensorType());
 
         } else {
-            // allow elastic to auto-generate the ID
             documentID = null;
+            LOG.debug("Creating document and allow Elasticsearch to auto-generate the doc ID; guid={}, sensorType={}",
+                    document.getGuid(), document.getSensorType());
         }
         return documentID;
     }

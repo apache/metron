@@ -39,6 +39,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+
 import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 public class ElasticsearchUpdateDao implements UpdateDao {
@@ -77,8 +79,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
     for (Map.Entry<Document, Optional<String>> entry : updates.entrySet()) {
       Document document = entry.getKey();
-      Optional<String> optionalIndex = entry.getValue();
-      String indexName = optionalIndex.orElse(getIndexName(document, indexPostfix));
+      String indexName = entry.getValue().orElse(getIndexName(document, indexPostfix));
       documentWriter.addDocument(document, indexName);
     }
 
@@ -94,8 +95,9 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     // write the documents. if any document fails, raise an exception.
     documentWriter.write();
     if(failures > 0) {
-      String msg = String.format("Failed to update all documents; %d of %d update(s) failed", failures, updates.entrySet().size());
-      throw new IOException(msg, lastException);
+      int batchSize = updates.entrySet().size();
+      String error = format("Failed to update all documents; %d of %d failed", failures, batchSize);
+      throw new IOException(error, lastException);
     }
 
     return updates;
