@@ -65,7 +65,7 @@ describe('SensorParserConfigService', () => {
 
   it('post', () => {
     sensorParserConfigService
-      .post('bro', sensorParserConfig)
+      .saveConfig('bro', sensorParserConfig)
       .subscribe(result => {
         expect(result).toEqual(sensorParserConfig);
       });
@@ -76,7 +76,7 @@ describe('SensorParserConfigService', () => {
   });
 
   it('get', () => {
-    sensorParserConfigService.get('bro').subscribe(result => {
+    sensorParserConfigService.getConfig('bro').subscribe(result => {
       expect(result).toEqual(sensorParserConfig);
     });
     const req = mockBackend.expectOne('/api/v1/sensor/parser/config/bro');
@@ -85,7 +85,7 @@ describe('SensorParserConfigService', () => {
   });
 
   it('getAll', () => {
-    sensorParserConfigService.getAll().subscribe(results => {
+    sensorParserConfigService.getAllConfig().subscribe(results => {
       expect(results).toEqual([sensorParserConfig]);
     });
     const req = mockBackend.expectOne('/api/v1/sensor/parser/config');
@@ -120,7 +120,7 @@ describe('SensorParserConfigService', () => {
   it('deleteSensorParserConfigs', () => {
     let req = [];
     sensorParserConfigService
-      .deleteSensorParserConfigs(['bro1', 'bro2'])
+      .deleteConfigs(['bro1', 'bro2'])
       .subscribe(result => {
         expect(result.success.length).toEqual(2);
       });
