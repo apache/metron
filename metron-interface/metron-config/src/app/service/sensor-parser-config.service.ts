@@ -101,7 +101,21 @@ export class SensorParserConfigService {
     return observable;
   }
 
-  public post(
+  public getConfig(name: string): Observable<SensorParserConfig> {
+    return this.http.get(this.parserConfigEndpoint + '/' + name).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
+  }
+
+  public getAllConfig(): Observable<{}> {
+    return this.http.get(this.parserConfigEndpoint).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
+  }
+
+  public saveConfig(
     name: string,
     sensorParserConfig: SensorParserConfig
   ): Observable<SensorParserConfig> {
@@ -113,21 +127,7 @@ export class SensorParserConfigService {
       );
   }
 
-  public get(name: string): Observable<SensorParserConfig> {
-    return this.http.get(this.parserConfigEndpoint + '/' + name).pipe(
-      map(HttpUtil.extractData),
-      catchError(HttpUtil.handleError)
-    );
-  }
-
-  public getAll(): Observable<{}> {
-    return this.http.get(this.parserConfigEndpoint).pipe(
-      map(HttpUtil.extractData),
-      catchError(HttpUtil.handleError)
-    );
-  }
-
-  public deleteSensorParserConfig(
+  public deleteConfig(
     name: string
   ): Observable<Object | RestError> {
     return this.http
@@ -135,23 +135,7 @@ export class SensorParserConfigService {
       .pipe(catchError(HttpUtil.handleError));
   }
 
-  public getAvailableParsers(): Observable<{}> {
-    return this.http.get(this.parserConfigEndpoint + '/list/available').pipe(
-      map(HttpUtil.extractData),
-      catchError(HttpUtil.handleError)
-    );
-  }
-
-  public parseMessage(
-    parseMessageRequest: ParseMessageRequest
-  ): Observable<{}> {
-    return this.http.post(this.parserConfigEndpoint + '/parseMessage', parseMessageRequest).pipe(
-      map(HttpUtil.extractData),
-      catchError(HttpUtil.handleError)
-    );
-  }
-
-  public deleteSensorParserConfigs(
+  public deleteConfigs(
     sensorNames: string[]
   ): Observable<{ success: Array<string>; failure: Array<string> }> {
     let result: { success: Array<string>; failure: Array<string> } = {
@@ -168,7 +152,7 @@ export class SensorParserConfigService {
         this.dataChangedSource.next(sensorNames);
       };
       for (let i = 0; i < sensorNames.length; i++) {
-        this.deleteSensorParserConfig(sensorNames[i]).subscribe(
+        this.deleteConfig(sensorNames[i]).subscribe(
           results => {
             result.success.push(sensorNames[i]);
             if (
@@ -192,5 +176,21 @@ export class SensorParserConfigService {
     });
 
     return observable;
+  }
+
+  public getAvailableParsers(): Observable<{}> {
+    return this.http.get(this.parserConfigEndpoint + '/list/available').pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
+  }
+
+  public parseMessage(
+    parseMessageRequest: ParseMessageRequest
+  ): Observable<{}> {
+    return this.http.post(this.parserConfigEndpoint + '/parseMessage', parseMessageRequest).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 }

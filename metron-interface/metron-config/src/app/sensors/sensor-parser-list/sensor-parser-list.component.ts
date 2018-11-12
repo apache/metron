@@ -65,7 +65,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   getSensors(justOnce: boolean) {
-    this.sensorParserConfigService.getAll().subscribe(
+    this.sensorParserConfigService.getAllConfig().subscribe(
       (results: {string: SensorParserConfig}) => {
         this.sensors = [];
         for (let sensorName of Object.keys(results)) {
@@ -231,7 +231,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
     this.metronDialogBox.showConfirmationMessage(confirmationsMsg).subscribe(result => {
       if (result) {
-        this.sensorParserConfigService.deleteSensorParserConfigs(sensorNames)
+        this.sensorParserConfigService.deleteConfigs(sensorNames)
             .subscribe((deleteResult: {success: Array<string>, failure: Array<string>}) => {
           if (deleteResult.success.length > 0) {
             this.metronAlerts.showSuccessMessage('Deleted sensors: ' + deleteResult.success.join(', '));

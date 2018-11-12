@@ -444,7 +444,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     this.toggleStartStopInProgress();
 
     let name = this.selectedSensorName;
-    this.sensorParserConfigService.deleteSensorParserConfig(name).subscribe(
+    this.sensorParserConfigService.deleteConfig(name).subscribe(
       result => {
         this.metronAlerts.showSuccessMessage('Deleted sensor ' + name);
         this.toggleStartStopInProgress();

@@ -121,7 +121,7 @@ export class SensorParserConfigComponent implements OnInit {
       this.editMode = true;
       this.sensorName = id;
       this.sensorParserConfigService
-        .get(id)
+        .getConfig(id)
         .subscribe((results: SensorParserConfig) => {
           this.sensorParserConfig = results;
           this.sensorNameValid = true;
@@ -185,7 +185,7 @@ export class SensorParserConfigComponent implements OnInit {
       this.sensorParserConfig = new SensorParserConfig();
       this.sensorParserConfig.parserClassName =
         'org.apache.metron.parsers.GrokParser';
-      this.sensorParserConfigService.getAll().subscribe((results: {}) => {
+      this.sensorParserConfigService.getAllConfig().subscribe((results: {}) => {
         this.currentSensors = Object.keys(results);
       });
     }
@@ -414,7 +414,7 @@ export class SensorParserConfigComponent implements OnInit {
       this.indexingConfigurations.solr.index = this.sensorName;
     }
     this.sensorParserConfigService
-      .post(this.sensorName, this.sensorParserConfig)
+      .saveConfig(this.sensorName, this.sensorParserConfig)
       .subscribe(
         sensorParserConfig => {
           if (this.isGrokParser(sensorParserConfig)) {

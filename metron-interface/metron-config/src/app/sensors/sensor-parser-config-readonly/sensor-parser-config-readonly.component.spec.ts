@@ -692,7 +692,7 @@ describe('Component: SensorParserConfigReadonly', () => {
   it('onDeleteSensor should delete the sensor', async(() => {
     spyOn(
       sensorParserConfigService,
-      'deleteSensorParserConfig'
+      'deleteConfig'
     ).and.returnValue(
       Observable.create(observer => {
         observer.next({});
@@ -709,7 +709,7 @@ describe('Component: SensorParserConfigReadonly', () => {
     component.onDeleteSensor();
 
     expect(
-      sensorParserConfigService.deleteSensorParserConfig
+      sensorParserConfigService.deleteConfig
     ).toHaveBeenCalledWith('abc');
     expect(alerts.showSuccessMessage).toHaveBeenCalledWith(
       'Deleted sensor abc'
