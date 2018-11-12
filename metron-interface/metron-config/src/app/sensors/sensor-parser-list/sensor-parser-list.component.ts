@@ -220,12 +220,19 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     }
   }
 
-  deleteSensor($event, selectedSensorsToDelete: SensorParserConfigHistory[]) {
+  deleteSensor(selectedSensorsToDelete: SensorParserConfigHistory[] | SensorParserConfigHistory, $event) {
+    let sensorArray = [];
     if ($event) {
       $event.stopPropagation();
     }
 
-    let sensorNames = selectedSensorsToDelete.map(sensor => { return sensor.sensorName; });
+    if (Array.isArray(selectedSensorsToDelete)) {
+      sensorArray = selectedSensorsToDelete;
+    } else {
+      sensorArray = [selectedSensorsToDelete];
+    }
+
+    let sensorNames = sensorArray.map(sensor => { return sensor.sensorName; });
     let confirmationsMsg = 'Are you sure you want to delete sensor(s) ' + sensorNames.join(', ') + ' ?';
 
     this.metronDialogBox.showConfirmationMessage(confirmationsMsg).subscribe(result => {
@@ -245,7 +252,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onDeleteSensor() {
-    this.deleteSensor(null, this.selectedSensors);
+    this.deleteSensor(this.selectedSensors, null);
   }
 
   onStopSensors() {

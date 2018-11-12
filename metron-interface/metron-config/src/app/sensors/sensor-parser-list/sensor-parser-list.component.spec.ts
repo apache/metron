@@ -422,7 +422,7 @@ describe('Component: SensorParserList', () => {
 
     expect(metronAlerts.showSuccessMessage).toHaveBeenCalled();
 
-    component.deleteSensor(event, [sensorParserConfigHistory1]);
+    component.deleteSensor([sensorParserConfigHistory1], event);
 
     expect(metronDialog.showConfirmationMessage).toHaveBeenCalled();
     expect(metronDialog.showConfirmationMessage['calls'].count()).toEqual(2);

@@ -23,8 +23,6 @@ const DEFAULT_UNDO_TIMEOUT = 60000;
 
 export class MetaParserConfigItem {
 
-  readonly CHANGE_APPLY_DELAY = 3000;
-
   private parserConfigService: SensorParserConfigService;
 
   _sensor: SensorParserConfigHistory = null;
@@ -109,7 +107,7 @@ export class MetaParserConfigItem {
     if (this._timer) {
       this._stopTimer();
     }
-    this._startTimer(this.onTimerTick.bind(this), this.CHANGE_APPLY_DELAY);
+    this._startTimer(this.onTimerTick.bind(this), 3000);
   }
 
   _stopTimer() {
