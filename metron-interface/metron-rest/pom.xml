@@ -31,6 +31,8 @@
         <powermock.version>1.6.4</powermock.version>
         <spring.boot.version>2.0.1.RELEASE</spring.boot.version>
         <spring.kerberos.version>1.0.1.RELEASE</spring.kerberos.version>
+        <spring.ldap.core.version>2.3.2.RELEASE</spring.ldap.core.version>
+        <spring.security.ldap.version>5.1.1.RELEASE</spring.security.ldap.version>
         <swagger.version>2.5.0</swagger.version>
         <mysql.client.version>5.1.40</mysql.client.version>
         <spring-kafka.version>2.0.4.RELEASE</spring-kafka.version>
@@ -116,6 +118,16 @@
                     <artifactId>log4j</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.springframework.ldap</groupId>
+          <artifactId>spring-ldap-core</artifactId>
+          <version>${spring.ldap.core.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.springframework.security</groupId>
+          <artifactId>spring-security-ldap</artifactId>
+          <version>${spring.security.ldap.version}</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>

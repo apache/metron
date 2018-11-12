@@ -188,9 +188,11 @@ See more detail on starting parsers [here](https://github.com/apache/metron/blob
 
 **Enrichment**
 
+__Note__ These recommendations are based on the deprecated split-join enrichment topology. See [Enrichment Performance](metron-enrichment/Performance.md) for tuning recommendations for the new default unified enrichment topology.
+
 This is a mapping of the various performance tuning properties for enrichments and how they are materialized.
 
-Flux file found here - $METRON_HOME/flux/enrichment/remote.yaml
+Flux file found here - $METRON_HOME/flux/enrichment/remote-splitjoin.yaml
 
 _Note 1:_ Changes to Flux file properties that are managed by Ambari will render Ambari unable to further manage the property.
 
@@ -457,6 +459,8 @@ usage: start_parser_topology.sh
 ```
 
 ### Enrichment Tuning
+
+__Note__ These tuning suggestions are based on the deprecated split-join topology.
 
 We landed on the same number of partitions for enrichemnt and indexing as we did for bro - 48.
 

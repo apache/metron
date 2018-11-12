@@ -271,6 +271,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
   @Override
   public void cleanup() {
+    super.cleanup();
     adapter.cleanup();
   }
 
