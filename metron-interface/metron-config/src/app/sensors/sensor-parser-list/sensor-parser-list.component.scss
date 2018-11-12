@@ -49,6 +49,10 @@ table tr td, table tr th {
 
 .config-table {
 
+  tr {
+    border-bottom: 1px solid #404040;
+  }
+
   & thead {
     & th:nth-child(1) {
       width: 40px;
@@ -57,6 +61,7 @@ table tr td, table tr th {
 
   & tbody {
     & td {
+      border: 0;
       height: 34px;
       line-height: 34px;
       vertical-align: middle;
@@ -107,4 +112,16 @@ table tr td, table tr th {
 
 .dragged-over {
   background: #1E434F;
+}
+
+.drop-before {
+  & td {
+    border-top: 1px solid #3F88B4 !important;
+  }
+}
+
+.drop-after {
+  & td {
+    border-bottom: 1px solid #3F88B4 !important;
+  }
 }

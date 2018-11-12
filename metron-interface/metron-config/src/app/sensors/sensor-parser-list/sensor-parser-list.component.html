@@ -62,8 +62,8 @@
           'dragged-over': sensor.getDraggedOver()
         }"
         (dragstart)="onDragStart(sensor, $event)"
-        (dragover)="onDragOver($event)"
-        (drop)="onDrop(sensor)"
+        (dragover)="onDragOver(sensor, $event)"
+        (drop)="onDrop(sensor, $event)"
         (dragenter)="onDragEnter(sensor, $event)"
         (dragleave)="onDragLeave(sensor, $event)"
       >

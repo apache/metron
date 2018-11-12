@@ -216,4 +216,39 @@ export class SensorParserConfigHistoryListController {
       sensor.setDraggedOver(value);
     })
   }
+
+  insertBefore(target: MetaParserConfigItem, sensor: MetaParserConfigItem) {
+
+    if (target.hasGroup() || sensor.hasGroup()) {
+      sensor.storePreviousState();
+      sensor.startTimer();
+      sensor.setProps({
+        groupName: (sensor.hasGroup() && !target.hasGroup()) ? '' : target.getGroup()
+      });
+    }
+
+    // reposition the sensor in the array
+    this._sensors = this._sensors.filter(s => s !== sensor);
+    const targetIndex = this._sensors.indexOf(target);
+    this._sensors.splice(targetIndex, 0, sensor);
+
+    this._next(this._sensors);
+  }
+
+  insertAfter(target: MetaParserConfigItem, sensor: MetaParserConfigItem) {
+    if (target.hasGroup() || sensor.hasGroup()) {
+      sensor.storePreviousState();
+      sensor.startTimer();
+      sensor.setProps({
+        groupName: (sensor.hasGroup() && !target.hasGroup()) ? '' : target.getGroup()
+      });
+    }
+
+    // reposition the sensor in the array
+    this._sensors = this._sensors.filter(s => s !== sensor);
+    const targetIndex = this._sensors.indexOf(target);
+    this._sensors.splice(targetIndex + 1, 0, sensor);
+
+    this._next(this._sensors);
+  }
 }

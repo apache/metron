@@ -364,18 +364,37 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
   onDragStart(sensor: MetaParserConfigItem, e: DragEvent) {
     this.sensorAggregateService.markSensorToBeMerged(sensor, 0);
-    e.dataTransfer.setDragImage((e.target as HTMLElement).parentElement, 0, 0);
+    e.dataTransfer.setDragImage((e.target as HTMLElement).parentElement, 10, 17);
   }
 
-  onDragOver(event: DragEvent) {
-    event.preventDefault();
+  onDragOver(sensor, e: DragEvent) {
+    const el = (e.currentTarget as HTMLElement);
+    const rect = el.getBoundingClientRect();
+    const mouseX = e.pageX;
+    const mouseY = e.pageY;
+
+
+    if (mouseX > rect.left + 8 && mouseY > rect.top + 8 && mouseX <= (rect.right - 8) && mouseY <= (rect.bottom - 8)) {
+      sensor.setDraggedOver(true);
+    } else {
+      sensor.setDraggedOver(false);
+    }
+
+    if (mouseY > rect.top && mouseY < (rect.top + 8)) {
+      el.classList.add('drop-before');
+    } else {
+      el.classList.remove('drop-before');
+    }
+    if (mouseY > rect.top && mouseY > (rect.bottom - 8) && mouseY <= rect.bottom) {
+      el.classList.add('drop-after');
+    } else {
+      el.classList.remove('drop-after');
+    }
+
+    e.preventDefault();
   }
 
   onDragEnter(sensor, e) {
-
-    setTimeout(() => {
-      sensor.setDraggedOver(true);
-    });
 
     const groupName = sensor.getGroup();
     if (!groupName) {
@@ -387,12 +406,15 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     });
   }
 
-  onDragLeave(sensor, e) {
-    const rect = e.currentTarget.getBoundingClientRect();
+  onDragLeave(sensor, e: DragEvent) {
+    const el = e.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
     const mouseX = e.pageX;
     const mouseY = e.pageY;
 
     if (mouseX < rect.left || mouseY < rect.top || mouseX >= rect.right || mouseY >= rect.bottom) {
+      el.classList.remove('drop-before');
+      el.classList.remove('drop-after');
       sensor.setDraggedOver(false);
 
       const groupName = sensor.getGroup();
@@ -404,20 +426,33 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDrop(sensor: MetaParserConfigItem) {
+  onDrop(sensor: MetaParserConfigItem, e: DragEvent) {
 
     this.sensorParserConfigHistoryListController.setAllHighlighted(false);
     this.sensorParserConfigHistoryListController.setAllDraggedOver(false);
 
-    if (sensor.isParent()) {
-      this.sensorParserConfigHistoryListController
-        .addToGroup(
-          sensor.getName(),
-          this.sensorAggregateService.getSensorsToBeMerged()[0],
-          { startTimer: true });
+    const el = e.currentTarget as HTMLElement;
+
+    if (el.classList.contains('drop-before')) {
+      el.classList.remove('drop-before');
+      this.sensorParserConfigHistoryListController.insertBefore(sensor, this.sensorAggregateService.getSensorsToBeMerged()[0]);
+    } else if (el.classList.contains('drop-after')) {
+      el.classList.remove('drop-after');
+      this.sensorParserConfigHistoryListController.insertAfter(sensor, this.sensorAggregateService.getSensorsToBeMerged()[0]);
     } else {
-      this.sensorAggregateService.markSensorToBeMerged(sensor, 1);
-      this.router.navigateByUrl('/sensors(dialog:sensor-aggregate)');
+      if (sensor.isParent()) {
+
+        // TODO handle if sensor is already in group
+
+        this.sensorParserConfigHistoryListController
+          .addToGroup(
+            sensor.getName(),
+            this.sensorAggregateService.getSensorsToBeMerged()[0],
+            { startTimer: true });
+      } else {
+        this.sensorAggregateService.markSensorToBeMerged(sensor, 1);
+        this.router.navigateByUrl('/sensors(dialog:sensor-aggregate)');
+      }
     }
   }
 
