@@ -867,7 +867,7 @@ public abstract class MetaAlertIntegrationTest {
   }
 
   @Test
-  public void shouldPatchAllowedMetaAlerts() throws Exception {
+  public void shouldPatchMetaAlertFields() throws Exception {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(2);
     alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
@@ -879,63 +879,108 @@ public abstract class MetaAlertIntegrationTest {
 
     // Load metaAlerts
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
-        Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
+            Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
     addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
 
-    // Verify load was successful
+    // ensure the test data was loaded
     findCreatedDocs(Arrays.asList(
-        new GetRequest("message_0", SENSOR_NAME),
-        new GetRequest("message_1", SENSOR_NAME),
-        new GetRequest("meta_alert", METAALERT_TYPE)));
+            new GetRequest("message_0", SENSOR_NAME),
+            new GetRequest("message_1", SENSOR_NAME),
+            new GetRequest("meta_alert", METAALERT_TYPE)));
 
-    Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
-    expectedMetaAlert.put(NAME_FIELD, "New Meta Alert");
-    {
-      // Verify a patch to a field other than "status" or "alert" can be patched
-      String namePatch = namePatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
-      PatchRequest patchRequest = JSONUtils.INSTANCE.load(namePatch, PatchRequest.class);
+    // patch the name field
+    String namePatch = namePatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
+    PatchRequest patchRequest = JSONUtils.INSTANCE.load(namePatch, PatchRequest.class);
+    metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
+
+    // ensure the alert was patched
+    assertEventually(() -> {
+      Document updated = metaDao.getLatest("meta_alert", METAALERT_TYPE);
+      Assert.assertEquals("New Meta Alert", updated.getDocument().get(NAME_FIELD));
+    });
+  }
+
+  @Test
+  public void shouldThrowExceptionIfPatchAlertField() throws Exception {
+    setupTypings();
+
+    // add 2 alerts to an active meta-alert
+    List<Map<String, Object>> alerts = buildAlerts(2);
+    alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
+    alerts.get(1).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+
+    // create an active meta-alert
+    Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
+            Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
+    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
+
+    // ensure the test data was loaded
+    findCreatedDocs(Arrays.asList(
+            new GetRequest("message_0", SENSOR_NAME),
+            new GetRequest("message_1", SENSOR_NAME),
+            new GetRequest("meta_alert", METAALERT_TYPE)));
+
+    // attempt to patch the alert field
+    try {
+      String alertPatch = alertPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
+      PatchRequest patchRequest = JSONUtils.INSTANCE.load(alertPatch, PatchRequest.class);
       metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
+      Assert.fail("A patch on the alert field should throw an exception");
 
-      findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
+    } catch (IllegalArgumentException iae) {
+      Assert.assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
+                      + "Please use the add/remove alert or update status functions instead.",
+              iae.getMessage());
     }
 
-    {
-      // Verify a patch to an alert field should throw an exception
-      try {
-        String alertPatch = alertPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
-        PatchRequest patchRequest = JSONUtils.INSTANCE.load(alertPatch, PatchRequest.class);
-        metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
+    // ensure the alert field was NOT changed
+    assertEventually(() -> {
+      Document updated = metaDao.getLatest("meta_alert", METAALERT_TYPE);
+      Assert.assertEquals(metaAlert.get(ALERT_FIELD), updated.getDocument().get(ALERT_FIELD));
+    });
+  }
 
-        Assert.fail("A patch on the alert field should throw an exception");
-      } catch (IllegalArgumentException iae) {
-        Assert.assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
-                + "Please use the add/remove alert or update status functions instead.",
-            iae.getMessage());
-      }
+  @Test
+  public void shouldThrowExceptionIfPatchStatusField() throws Exception {
+    setupTypings();
 
-      // Verify the metaAlert was not updated
-      findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
+    // add 2 alerts to an active meta-alert
+    List<Map<String, Object>> alerts = buildAlerts(2);
+    alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
+    alerts.get(1).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+
+    // create an active meta-alert
+    Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
+            Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
+    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
+
+    // ensure the test data was loaded
+    findCreatedDocs(Arrays.asList(
+            new GetRequest("message_0", SENSOR_NAME),
+            new GetRequest("message_1", SENSOR_NAME),
+            new GetRequest("meta_alert", METAALERT_TYPE)));
+
+    // Verify a patch to a status field should throw an exception
+    try {
+      String statusPatch = statusPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
+      PatchRequest patchRequest = JSONUtils.INSTANCE.load(statusPatch, PatchRequest.class);
+      metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
+      Assert.fail("A patch on the status field should throw an exception");
+
+    } catch (IllegalArgumentException iae) {
+      Assert.assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
+                      + "Please use the add/remove alert or update status functions instead.",
+              iae.getMessage());
     }
 
-    {
-      // Verify a patch to a status field should throw an exception
-      try {
-        String statusPatch = statusPatchRequest
-            .replace(META_INDEX_FLAG, getMetaAlertIndex());
-        PatchRequest patchRequest = JSONUtils.INSTANCE.load(statusPatch, PatchRequest.class);
-        metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
-
-        Assert.fail("A patch on the status field should throw an exception");
-      } catch (IllegalArgumentException iae) {
-        Assert.assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
-                + "Please use the add/remove alert or update status functions instead.",
-            iae.getMessage());
-      }
-
-      // Verify the metaAlert was not updated
-      findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
-    }
+    // ensure the status field was NOT changed
+    assertEventually(() -> {
+      Document updated = metaDao.getLatest("meta_alert", METAALERT_TYPE);
+      Assert.assertEquals(metaAlert.get(STATUS_FIELD), updated.getDocument().get(STATUS_FIELD));
+    });
   }
 
   protected void findUpdatedDoc(Map<String, Object> message0, String guid, String sensorType)
