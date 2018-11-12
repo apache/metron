@@ -102,7 +102,7 @@ export class MetaParserConfigItem {
   }
 
   _startTimer(fn, delay = DEFAULT_UNDO_TIMEOUT) {
-    this._timer = setTimeout(fn, delay);
+    this._timer = window.setTimeout(fn, delay);
   }
 
   startTimer() {
