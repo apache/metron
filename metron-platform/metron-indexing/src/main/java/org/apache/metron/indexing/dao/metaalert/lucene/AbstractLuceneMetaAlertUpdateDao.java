@@ -18,7 +18,19 @@
 
 package org.apache.metron.indexing.dao.metaalert.lucene;
 
-import static org.apache.metron.common.Constants.GUID;
+import org.apache.metron.common.Constants;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertUpdateDao;
+import org.apache.metron.indexing.dao.metaalert.MetaScores;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.indexing.dao.update.UpdateDao;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,19 +46,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.apache.metron.common.Constants;
-import org.apache.metron.indexing.dao.RetrieveLatestDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertUpdateDao;
-import org.apache.metron.indexing.dao.metaalert.MetaScores;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
-import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.UpdateDao;
+import static org.apache.metron.common.Constants.GUID;
 
 public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdateDao {
 
