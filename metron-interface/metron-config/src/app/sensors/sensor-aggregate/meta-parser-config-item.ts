@@ -18,6 +18,7 @@
 import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
 import { Subject, Observable } from 'rxjs';
 import { SensorParserConfigService } from 'app/service/sensor-parser-config.service';
+import { ThrowStmt } from '@angular/compiler';
 
 const DEFAULT_UNDO_TIMEOUT = 60000;
 
@@ -118,10 +119,15 @@ export class MetaParserConfigItem {
   private onTimerTick() {
     const service: SensorParserConfigService = this.parserConfigService;
     const saveFn: Function = this.isGroup() ? service.saveGroup : service.saveConfig;
+    // FIXME this is a hack because the original code wrote to manage SensorParserConfigHistory objects
+    // Group API differs from config API so we should hack this
+    const payload: any = (() => {
+      return !this.isGroup() ? this.getSensor().config : { name: this.getSensor().sensorName, description: 'Not yet managed... :(' };
+    })();
 
     this._stopTimer();
 
-    saveFn.bind(service)(this._sensor.sensorName, this._sensor.config)
+    saveFn.bind(service)(this._sensor.sensorName, payload)
       .subscribe(this._next.bind(this));
   }
 
