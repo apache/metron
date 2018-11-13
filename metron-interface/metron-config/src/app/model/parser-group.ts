@@ -1,6 +1,6 @@
 export class ParserGroupModel {
-  name: String;
-  description: String;
+  name: string;
+  description: string;
 
   constructor(rawJson: object) {
     if (rawJson['name']) {

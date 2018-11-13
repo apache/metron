@@ -20,6 +20,8 @@ import { SensorParserConfigHistory } from '../../model/sensor-parser-config-hist
 import { MetaParserConfigItem } from './meta-parser-config-item';
 import { Subject, Observable, Subscription } from 'rxjs';
 import { MetaParserConfigItemFactory } from './meta-parser-config-item-factory';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { ParserGroupModel } from '../../model/parser-group';
 
 @Injectable ()
 export class SensorParserConfigHistoryListController {
@@ -28,23 +30,12 @@ export class SensorParserConfigHistoryListController {
   _subscriptions: Subscription[] = [];
   changed$ = new Subject();
 
-  constructor(private metaParserConfigFactory: MetaParserConfigItemFactory) {}
+  constructor(
+    private metaParserConfigFactory: MetaParserConfigItemFactory,
+    private sensorParserConfigService: SensorParserConfigService
+  ) {}
 
   setSensors(sensors: SensorParserConfigHistory[]) {
-
-    /**
-     * Initially, the list handled by this controller doesn't include the group (root)
-     * elements. We need to create and add them to the list and "attach" all the parsers
-     * that belong to the newly created group element.
-     */
-    const collectGroups = () => {
-      this._sensors.forEach(sensor => {
-        if (sensor.getGroup()) {
-          // FIXME if possible. It was hard for me to realize that merge is happening here not in the sensor-parser-list.component #160
-          this.addToGroup(sensor.getGroup(), sensor, { silent: true });
-        }
-      });
-    }
 
     if (this._sensors && this._sensors.length) {
       this._sensors.forEach(sensor => {
@@ -61,9 +52,21 @@ export class SensorParserConfigHistoryListController {
       return sensorUndoable;
     });
 
-    collectGroups();
+    this.sensorParserConfigService.getAllGroups().subscribe((groups) => {
+      this._combineGroupsAndSensors(groups, this._sensors);
+      this._next(this._sensors);
+    });
+  }
 
-    this._next(this._sensors);
+  _combineGroupsAndSensors(groups: ParserGroupModel[], sensors: MetaParserConfigItem[]) {
+    groups.forEach((group, i) => {
+      this.createGroup(group.name, i);
+    });
+    const grouppedSensors = this._sensors.filter(s => s.hasGroup());
+    this._sensors = this._sensors.filter(s => !s.hasGroup());
+    grouppedSensors.forEach(s => {
+      this.addToGroup(s.getGroup(), s, { silent: true });
+    });
   }
 
   getSensors(): MetaParserConfigItem[] {
