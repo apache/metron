@@ -18,6 +18,7 @@
 package org.apache.metron.parsers.paloalto;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.json.simple.JSONObject;
@@ -25,11 +26,228 @@ import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
+
 public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @Before
   public void setUp() throws Exception {
     parser = new BasicPaloAltoFirewallParser();
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testParseSystem61() throws ParseException {
+    final String SYSTEM_61 = "1,2017/08/11 12:37:58,008900008659,SYSTEM,general,1,2017/08/11 11:37:58,vsys1,eventId_test,object_test,Futureuse1_test,futureuse2_test,management,high,Description_test,1354,0x0";
+
+    JSONObject actual = parser.parse(SYSTEM_61.getBytes()).get(0);
+
+    JSONObject expected = new JSONObject();
+    expected.put(BasicPaloAltoFirewallParser.PaloAltoDomain, "1");
+    expected.put(BasicPaloAltoFirewallParser.ReceiveTime, "2017/08/11 12:37:58");
+    expected.put(BasicPaloAltoFirewallParser.SerialNum, "008900008659");
+    expected.put(BasicPaloAltoFirewallParser.Type, "SYSTEM");
+    expected.put(BasicPaloAltoFirewallParser.ThreatContentType, "general");
+    expected.put(BasicPaloAltoFirewallParser.ConfigVersion, "1");
+    expected.put(BasicPaloAltoFirewallParser.GenerateTime, "2017/08/11 11:37:58");
+    expected.put(BasicPaloAltoFirewallParser.VirtualSystem, "vsys1");
+    expected.put(BasicPaloAltoFirewallParser.EventId, "eventId_test");
+    expected.put(BasicPaloAltoFirewallParser.Object, "object_test");
+    expected.put(BasicPaloAltoFirewallParser.Module, "management");
+    expected.put(BasicPaloAltoFirewallParser.Severity, "high");
+    expected.put(BasicPaloAltoFirewallParser.Description, "Description_test");
+    expected.put(BasicPaloAltoFirewallParser.Seqno, "1354");
+    expected.put(BasicPaloAltoFirewallParser.ActionFlags, "0x0");
+    expected.put(BasicPaloAltoFirewallParser.ParserVersion, 61);
+    expected.put("original_string", SYSTEM_61);
+    expected.put("timestamp", actual.get("timestamp"));
+
+    assertEquals(expected, actual);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testParseSystem80() throws ParseException {
+    final String SYSTEM_80 = "1,2017/08/11 12:37:58,008900008659,SYSTEM,general,1,2017/08/11 11:37:58,vsys1,eventId_test,object_test,Futureuse1_test,futureuse2_test,management,high,Description_test,1354,0x0,12,34,45,0,virSys1,dev-something200-01";
+
+    JSONObject actual = parser.parse(SYSTEM_80.getBytes()).get(0);
+
+    JSONObject expected = new JSONObject();
+    expected.put(BasicPaloAltoFirewallParser.PaloAltoDomain, "1");
+    expected.put(BasicPaloAltoFirewallParser.ReceiveTime, "2017/08/11 12:37:58");
+    expected.put(BasicPaloAltoFirewallParser.SerialNum, "008900008659");
+    expected.put(BasicPaloAltoFirewallParser.Type, "SYSTEM");
+    expected.put(BasicPaloAltoFirewallParser.ThreatContentType, "general");
+    expected.put(BasicPaloAltoFirewallParser.ConfigVersion, "1");
+    expected.put(BasicPaloAltoFirewallParser.GenerateTime, "2017/08/11 11:37:58");
+    expected.put(BasicPaloAltoFirewallParser.VirtualSystem, "vsys1");
+    expected.put(BasicPaloAltoFirewallParser.EventId, "eventId_test");
+    expected.put(BasicPaloAltoFirewallParser.Object, "object_test");
+    expected.put(BasicPaloAltoFirewallParser.Module, "management");
+    expected.put(BasicPaloAltoFirewallParser.Severity, "high");
+    expected.put(BasicPaloAltoFirewallParser.Description, "Description_test");
+    expected.put(BasicPaloAltoFirewallParser.Seqno, "1354");
+    expected.put(BasicPaloAltoFirewallParser.ActionFlags, "0x0");
+    expected.put(BasicPaloAltoFirewallParser.DGH1, "12");
+    expected.put(BasicPaloAltoFirewallParser.DGH2, "34");
+    expected.put(BasicPaloAltoFirewallParser.DGH3, "45");
+    expected.put(BasicPaloAltoFirewallParser.DGH4, "0");
+    expected.put(BasicPaloAltoFirewallParser.VSYSName, "virSys1");
+    expected.put(BasicPaloAltoFirewallParser.DeviceName, "dev-something200-01");
+
+    expected.put(BasicPaloAltoFirewallParser.ParserVersion, 80);
+    expected.put("original_string", SYSTEM_80);
+    expected.put("timestamp", actual.get("timestamp"));
+
+    assertEquals(expected, actual);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testParseConfig61NoCustomFields() throws ParseException {
+    final String CONFIG_61_customFields = "1,2017/08/11 12:37:58,008900008659,CONFIG,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded, config shared log-settings config,1354,0x0";
+
+    JSONObject actual = parser.parse(CONFIG_61_customFields.getBytes()).get(0);
+
+    JSONObject expected = new JSONObject();
+    expected.put(BasicPaloAltoFirewallParser.PaloAltoDomain, "1");
+    expected.put(BasicPaloAltoFirewallParser.ReceiveTime, "2017/08/11 12:37:58");
+    expected.put(BasicPaloAltoFirewallParser.SerialNum, "008900008659");
+    expected.put(BasicPaloAltoFirewallParser.Type, "CONFIG");
+    expected.put(BasicPaloAltoFirewallParser.ThreatContentType, "0");
+    expected.put(BasicPaloAltoFirewallParser.ConfigVersion, "1");
+    expected.put(BasicPaloAltoFirewallParser.GenerateTime, "2017/08/11 11:37:58");
+
+    expected.put(BasicPaloAltoFirewallParser.HOST, "192.168.14.162");
+    expected.put(BasicPaloAltoFirewallParser.VirtualSystem, "vsys1");
+    expected.put(BasicPaloAltoFirewallParser.Command, "edit");
+    expected.put(BasicPaloAltoFirewallParser.Admin, "admin");
+    expected.put(BasicPaloAltoFirewallParser.Client, "Web");
+    expected.put(BasicPaloAltoFirewallParser.Result, "Succeeded");
+    expected.put(BasicPaloAltoFirewallParser.ConfigurationPath, "config shared log-settings config");
+    expected.put(BasicPaloAltoFirewallParser.Seqno, "1354");
+    expected.put(BasicPaloAltoFirewallParser.ActionFlags, "0x0");
+
+    expected.put(BasicPaloAltoFirewallParser.ParserVersion, 61);
+    expected.put("original_string", CONFIG_61_customFields);
+    expected.put("timestamp", actual.get("timestamp"));
+
+    assertEquals(expected, actual);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testParseConfig61CustomFields() throws ParseException {
+    final String CONFIG_61_noCustomFields = "1,2017/08/11 12:37:58,008900008659,CONFIG,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded, config shared log-settings config,1354,0x0,/FatherNode/KidNode/GrandsonNode1,/FatherNode/KidNode/GrandsonNode2";
+
+    JSONObject actual = parser.parse(CONFIG_61_noCustomFields.getBytes()).get(0);
+
+    JSONObject expected = new JSONObject();
+    expected.put(BasicPaloAltoFirewallParser.PaloAltoDomain, "1");
+    expected.put(BasicPaloAltoFirewallParser.ReceiveTime, "2017/08/11 12:37:58");
+    expected.put(BasicPaloAltoFirewallParser.SerialNum, "008900008659");
+    expected.put(BasicPaloAltoFirewallParser.Type, "CONFIG");
+    expected.put(BasicPaloAltoFirewallParser.ThreatContentType, "0");
+    expected.put(BasicPaloAltoFirewallParser.ConfigVersion, "1");
+    expected.put(BasicPaloAltoFirewallParser.GenerateTime, "2017/08/11 11:37:58");
+
+    expected.put(BasicPaloAltoFirewallParser.HOST, "192.168.14.162");
+    expected.put(BasicPaloAltoFirewallParser.VirtualSystem, "vsys1");
+    expected.put(BasicPaloAltoFirewallParser.Command, "edit");
+    expected.put(BasicPaloAltoFirewallParser.Admin, "admin");
+    expected.put(BasicPaloAltoFirewallParser.Client, "Web");
+    expected.put(BasicPaloAltoFirewallParser.Result, "Succeeded");
+    expected.put(BasicPaloAltoFirewallParser.ConfigurationPath, "config shared log-settings config");
+    expected.put(BasicPaloAltoFirewallParser.Seqno, "1354");
+    expected.put(BasicPaloAltoFirewallParser.ActionFlags, "0x0");
+    expected.put(BasicPaloAltoFirewallParser.BeforeChangeDetail, "/FatherNode/KidNode/GrandsonNode1");
+    expected.put(BasicPaloAltoFirewallParser.AfterChangeDetail, "/FatherNode/KidNode/GrandsonNode2");
+
+    expected.put(BasicPaloAltoFirewallParser.ParserVersion, 61);
+    expected.put("original_string", CONFIG_61_noCustomFields);
+    expected.put("timestamp", actual.get("timestamp"));
+
+    assertEquals(expected, actual);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testParseConfig70And80NoCustomFields() throws ParseException {
+    final String CONFIG_70_80_noCustomFields = "1,2017/08/11 12:37:58,008900008659,CONFIG,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded, config shared log-settings config,1354,0x0,12,34,45,0,virSys1,dev-something200-01";
+
+    JSONObject actual = parser.parse(CONFIG_70_80_noCustomFields.getBytes()).get(0);
+
+    JSONObject expected = new JSONObject();
+    expected.put(BasicPaloAltoFirewallParser.PaloAltoDomain, "1");
+    expected.put(BasicPaloAltoFirewallParser.ReceiveTime, "2017/08/11 12:37:58");
+    expected.put(BasicPaloAltoFirewallParser.SerialNum, "008900008659");
+    expected.put(BasicPaloAltoFirewallParser.Type, "CONFIG");
+    expected.put(BasicPaloAltoFirewallParser.ThreatContentType, "0");
+    expected.put(BasicPaloAltoFirewallParser.ConfigVersion, "1");
+    expected.put(BasicPaloAltoFirewallParser.GenerateTime, "2017/08/11 11:37:58");
+
+    expected.put(BasicPaloAltoFirewallParser.HOST, "192.168.14.162");
+    expected.put(BasicPaloAltoFirewallParser.VirtualSystem, "vsys1");
+    expected.put(BasicPaloAltoFirewallParser.Command, "edit");
+    expected.put(BasicPaloAltoFirewallParser.Admin, "admin");
+    expected.put(BasicPaloAltoFirewallParser.Client, "Web");
+    expected.put(BasicPaloAltoFirewallParser.Result, "Succeeded");
+    expected.put(BasicPaloAltoFirewallParser.ConfigurationPath, "config shared log-settings config");
+    expected.put(BasicPaloAltoFirewallParser.Seqno, "1354");
+    expected.put(BasicPaloAltoFirewallParser.ActionFlags, "0x0");
+    expected.put(BasicPaloAltoFirewallParser.DGH1, "12");
+    expected.put(BasicPaloAltoFirewallParser.DGH2, "34");
+    expected.put(BasicPaloAltoFirewallParser.DGH3, "45");
+    expected.put(BasicPaloAltoFirewallParser.DGH4, "0");
+    expected.put(BasicPaloAltoFirewallParser.VSYSName, "virSys1");
+    expected.put(BasicPaloAltoFirewallParser.DeviceName, "dev-something200-01");
+
+    expected.put(BasicPaloAltoFirewallParser.ParserVersion, 80);
+    expected.put("original_string", CONFIG_70_80_noCustomFields);
+    expected.put("timestamp", actual.get("timestamp"));
+
+    assertEquals(expected, actual);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testParseConfig70And80CustomFields() throws ParseException {
+    final String CONFIG_70_80_customFields = "1,2017/08/11 12:37:58,008900008659,CONFIG,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded,config shared log-settings config,/FatherNode/KidNode/GrandsonNode1,/FatherNode/KidNode/GrandsonNode2,1354,0x0,12,34,45,0,virSys1,dev-something200-01";
+
+    JSONObject actual = parser.parse(CONFIG_70_80_customFields.getBytes()).get(0);
+
+    JSONObject expected = new JSONObject();
+    expected.put(BasicPaloAltoFirewallParser.PaloAltoDomain, "1");
+    expected.put(BasicPaloAltoFirewallParser.ReceiveTime, "2017/08/11 12:37:58");
+    expected.put(BasicPaloAltoFirewallParser.SerialNum, "008900008659");
+    expected.put(BasicPaloAltoFirewallParser.Type, "CONFIG");
+    expected.put(BasicPaloAltoFirewallParser.ThreatContentType, "0");
+    expected.put(BasicPaloAltoFirewallParser.ConfigVersion, "1");
+    expected.put(BasicPaloAltoFirewallParser.GenerateTime, "2017/08/11 11:37:58");
+
+    expected.put(BasicPaloAltoFirewallParser.HOST, "192.168.14.162");
+    expected.put(BasicPaloAltoFirewallParser.VirtualSystem, "vsys1");
+    expected.put(BasicPaloAltoFirewallParser.Command, "edit");
+    expected.put(BasicPaloAltoFirewallParser.Admin, "admin");
+    expected.put(BasicPaloAltoFirewallParser.Client, "Web");
+    expected.put(BasicPaloAltoFirewallParser.Result, "Succeeded");
+    expected.put(BasicPaloAltoFirewallParser.ConfigurationPath, "config shared log-settings config");
+    expected.put(BasicPaloAltoFirewallParser.BeforeChangeDetail, "/FatherNode/KidNode/GrandsonNode1");
+    expected.put(BasicPaloAltoFirewallParser.AfterChangeDetail, "/FatherNode/KidNode/GrandsonNode2");
+    expected.put(BasicPaloAltoFirewallParser.Seqno, "1354");
+    expected.put(BasicPaloAltoFirewallParser.ActionFlags, "0x0");
+    expected.put(BasicPaloAltoFirewallParser.DGH1, "12");
+    expected.put(BasicPaloAltoFirewallParser.DGH2, "34");
+    expected.put(BasicPaloAltoFirewallParser.DGH3, "45");
+    expected.put(BasicPaloAltoFirewallParser.DGH4, "0");
+    expected.put(BasicPaloAltoFirewallParser.VSYSName, "virSys1");
+    expected.put(BasicPaloAltoFirewallParser.DeviceName, "dev-something200-01");
+
+    expected.put(BasicPaloAltoFirewallParser.ParserVersion, 80);
+    expected.put("original_string", CONFIG_70_80_customFields);
+    expected.put("timestamp", actual.get("timestamp"));
+
+    assertEquals(expected, actual);
   }
 
   public static final String THREAT_60 = "1,2015/01/05 05:38:58,0006C110285,THREAT,vulnerability,1,2015/01/05 05:38:58,10.0.0.115,216.0.10.198,0.0.0.0,0.0.0.0,EX-Allow,example\\user.name,,web-browsing,vsys1,internal,external,ethernet1/2,ethernet1/1,LOG-Default,2015/01/05 05:38:58,12031,1,54180,80,0,0,0x80004000,tcp,reset-both,\"ad.aspx?f=300x250&id=12;tile=1;ord=67AF705D60B1119C0F18BEA336F9\",HTTP: IIS Denial Of Service Attempt(40019),any,high,client-to-server,347368099,0x0,10.0.0.0-10.255.255.255,US,0,,1200568889751109656,,";
@@ -88,6 +306,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
   }
 
   public static final String TRAFFIC_60 = "1,2015/01/05 12:51:33,0011C103117,TRAFFIC,end,1,2015/01/05 12:51:33,10.0.0.39,10.1.0.163,0.0.0.0,0.0.0.0,EX-Allow,,example\\\\user.name,ms-ds-smb,vsys1,v_external,v_internal,ethernet1/2,ethernet1/1,LOG-Default,2015/01/05 12:51:33,33760927,1,52688,445,0,0,0x401a,tcp,allow,2229,1287,942,10,2015/01/05 12:51:01,30,any,0,17754932062,0x0,10.0.0.0-10.255.255.255,10.0.0.0-10.255.255.255,0,6,";
+
   @SuppressWarnings("unchecked")
   @Test
   public void testParseTraffic60() throws ParseException {
@@ -142,6 +361,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
   }
 
   public static final String THREAT_70 = "1,2017/05/24 09:53:10,001801000001,THREAT,virus,0,2017/05/24 09:53:10,217.1.2.3,10.1.8.7,217.1.2.3,214.123.1.2,WLAN-Internet,,user,web-browsing,vsys1,Untrust,wifi_zone,ethernet1/1,vlan.1,Std-Log-Forward,2017/05/24 09:53:10,49567,1,80,51787,80,25025,0x400000,tcp,reset-both,\"abcdef310.exe\",Virus/Win32.WGeneric.lumeo(2457399),computer-and-internet-info,medium,server-to-client,329423829,0x0,DE,10.0.0.0-10.255.255.255,0,,0,,,1,,,\"\",\"\",,,,0,19,0,0,0,,PAN1,";
+
   @SuppressWarnings("unchecked")
   @Test
   public void testParseThreat70() throws ParseException {
@@ -202,6 +422,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
   }
 
   public static final String TRAFFIC_70 = "1,2017/05/25 21:38:13,001606000003,TRAFFIC,drop,1,2017/05/25 21:38:13,10.2.1.8,192.168.1.10,0.0.0.0,0.0.0.0,DropLog,,,not-applicable,vsys1,intern,VPN,vlan.1,,Std-Log-Forward,2017/05/25 21:38:13,0,1,137,137,0,0,0x0,udp,deny,114,114,0,1,2017/05/25 21:38:12,0,any,0,9953744,0x0,192.168.0.0-192.168.255.255,DE,0,1,0,policy-deny,19,0,0,0,,PAN1,from-policy";
+
   @SuppressWarnings("unchecked")
   @Test
   public void testParseTraffic70() throws ParseException {
@@ -262,6 +483,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
   }
 
   public static final String TRAFFIC_71 = "1,2017/05/31 23:59:57,0006C000005,TRAFFIC,drop,0,2017/05/31 23:59:57,185.94.1.1,201.1.4.5,0.0.0.0,0.0.0.0,DropLog,,,not-applicable,vsys1,untrust,untrust,vlan.1,,Standard-Syslog,2017/05/31 23:59:57,0,1,59836,123,0,0,0x0,udp,deny,60,60,0,1,2017/05/31 23:59:57,0,any,0,3433072193,0x0,RU,DE,0,1,0,policy-deny,16,11,0,0,,PAN1,from-policy";
+
   @SuppressWarnings("unchecked")
   @Test
   public void testParseTraffic71() throws ParseException {
@@ -322,6 +544,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
   }
 
   public static final String THREAT_71 = "1,2017/05/25 19:31:13,0006C000005,THREAT,url,0,2017/05/25 19:31:13,192.168.1.7,140.177.26.29,201.1.4.5,140.177.26.29,ms_out,,,ssl,vsys1,mgmt,untrust,vlan.199,vlan.1,Standard-Syslog,2017/05/25 19:31:13,50556,1,56059,443,14810,443,0x40b000,tcp,alert,\"settings-win.data.microsoft.com/\",(9999),computer-and-internet-info,informational,client-to-server,10030265,0x0,192.168.0.0-192.168.255.255,IE,0,,0,,,0,,,,,,,,0,16,11,0,0,,PAN1,";
+
   @SuppressWarnings("unchecked")
   @Test
   public void testParseThreat71() throws ParseException {
@@ -381,6 +604,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
   }
 
   public static final String THREAT_80 = "1,2018/02/01 21:29:03,001606000007,THREAT,vulnerability,1,2018/02/01 21:29:03,213.211.198.62,172.16.2.6,213.211.198.62,192.168.178.202,Outgoing,,,web-browsing,vsys1,internet,guest,ethernet1/1,ethernet1/2.2,test,2018/02/01 21:29:03,18720,1,80,53161,80,32812,0x402000,tcp,reset-server,\"www.eicar.org/download/eicar.com\",Eicar File Detected(39040),computer-and-internet-info,medium,server-to-client,27438839,0x0,Germany,172.16.0.0-172.31.255.255,0,,0,,,9,,,,,,,,0,0,0,0,0,,PAN1,,,,,0,,0,,N/A,code-execution,AppThreat-771-4450,0x0";
+
   @SuppressWarnings("unchecked")
   @Test
   public void testParseThreat80() throws ParseException {
@@ -445,6 +669,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
   }
 
   public static final String TRAFFIC_80 = "1,2018/02/01 21:24:11,001606000007,TRAFFIC,end,1,2018/02/01 21:24:11,172.16.2.31,134.19.6.22,192.168.18.2,134.19.6.22,Outgoing,,,ssl,vsys1,guest,internet,ethernet1/2.2,ethernet1/1,test,2018/02/01 21:24:11,19468,1,41537,443,12211,443,0x40001c,tcp,allow,7936,1731,6205,24,2018/02/01 21:00:42,1395,computer-and-internet-info,0,62977478,0x0,172.16.0.0-172.31.255.255,United States,0,14,10,tcp-rst-from-client,0,0,0,0,,PAN1,from-policy,,,0,,0,,N/A";
+
   @SuppressWarnings("unchecked")
   @Test
   public void testParseTraffic80() throws ParseException {
@@ -506,5 +731,24 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
     expected.put(BasicPaloAltoFirewallParser.DGH4, "0");
     expected.put(BasicPaloAltoFirewallParser.DeviceName, "PAN1");
     assertEquals(expected, actual);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testParseInvalidLogTypeMessage() throws ParseException {
+    final String unsupportedLogTypeMessage = "1,2017/08/11 12:37:58,008900008659,INVALIDlogType,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded, config shared log-settings config,1354,0x0";
+    List<JSONObject> actual = parser.parse(unsupportedLogTypeMessage.getBytes());
+
+    assertNull(actual);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testParseInvalidVersionMessage() throws ParseException {
+    final String invalidLengthMessage = "1,2017/08/11 12:37:58,008900008659,CONFIG,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded, config shared log-settings config";
+
+    JSONObject actual = parser.parse(invalidLengthMessage.getBytes()).get(0);
+    String expectedParserVersion = actual.get(BasicPaloAltoFirewallParser.ParserVersion).toString();
+    assertEquals(expectedParserVersion, "0");
   }
 }
