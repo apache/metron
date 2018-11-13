@@ -50,7 +50,7 @@ Any platform that supports these tools is suitable, but the following instructio
 1. Run the following command in a terminal to install all of the required tools.
 
     ```
-    brew cask install vagrant virtualbox docker ansible
+    brew cask install vagrant virtualbox docker 
     vagrant plugin install vagrant-hostmanager
     open /Applications/Docker.app
     ```
