@@ -17,6 +17,7 @@
  */
 import { Component } from '@angular/core';
 import { SensorAggregateService } from './sensor-aggregate.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'metron-config-sensor-aggregate',
@@ -24,13 +25,40 @@ import { SensorAggregateService } from './sensor-aggregate.service';
 })
 export class SensorAggregateComponent {
 
-  constructor(private aggregateService: SensorAggregateService) {}
+  allowMerge = true;
+
+  _forceCreate = false;
+
+  constructor(
+    private aggregateService: SensorAggregateService,
+    private router: Router
+    ) {}
 
   close() {
+    this._forceCreate = false;
     this.aggregateService.close();
   }
 
-  save(groupName: string, description: string) {
+  createNew(groupName: string, description: string) {
     this.aggregateService.save(groupName, description);
+  }
+
+  mergeOrCreate() {
+    if (this.allowMerge) {
+      this.addToExisting();
+    } else {
+      this._forceCreate = true;
+    }
+  }
+
+  addToExisting() {
+    this.aggregateService.save(
+      this.aggregateService.getTargetSensor().getGroup(),
+      ''
+    );
+  }
+
+  showCreateForm(): boolean {
+    return !this.aggregateService.doesTargetSensorHaveGroup() || this._forceCreate;
   }
 }

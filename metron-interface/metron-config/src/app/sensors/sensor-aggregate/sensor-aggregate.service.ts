@@ -59,4 +59,15 @@ export class SensorAggregateService {
 
     this.close();
   }
+
+  doesTargetSensorHaveGroup(): boolean {
+    if (this._sensorsToBeMerged.length < 2) {
+      return false;
+    }
+    return this.getTargetSensor().hasGroup();
+  }
+
+  getTargetSensor(): MetaParserConfigItem {
+    return this._sensorsToBeMerged[1];
+  }
 }

@@ -20,22 +20,36 @@
       Aggregate Sensors
     </div>
     <div>
-      <div>
-        <label>
-          <span>NAME *</span>
-          <input #groupNameInput type="text" />
-        </label>
+      <div *ngIf="showCreateForm()">
+        <div>
+          <label>
+            <span>NAME *</span>
+            <input #groupNameInput type="text" />
+          </label>
+        </div>
+        <div>
+          <label>
+            <span>DESCRIPTION</span>
+            <input #descriptionInput type="text" />
+          </label>
+        </div>
+        <div>
+          <button (click)="createNew(groupNameInput.value, descriptionInput.value)">SAVE</button>
+          <button (click)="close()">CANCEL</button>
+        </div>
       </div>
-      <div>
-        <label>
-          <span>DESCRIPTION</span>
-          <input #descriptionInput type="text" />
-        </label>
-      </div>
-      <div>
-        <button (click)="save(groupNameInput.value, descriptionInput.value)">SAVE</button>
-        <button (click)="close()">CANCEL</button>
+      <div *ngIf="!showCreateForm()">
+        JOIN BY GROUP
+        <div>
+          <button (click)="allowMerge = true">MERGE</button>
+          <button (click)="allowMerge = false">CREATE NEW</button>
+        </div>
+        <div>
+          <button (click)="mergeOrCreate()">SAVE</button>
+          <button (click)="close()">CANCEL</button>
+        </div>
       </div>
     </div>
+
   </div>
 </metron-config-metron-modal>

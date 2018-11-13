@@ -226,7 +226,7 @@ export class SensorParserConfigHistoryListController {
 
   insertBefore(target: MetaParserConfigItem, sensor: MetaParserConfigItem) {
 
-    if (target.hasGroup() || sensor.hasGroup()) {
+    if ((target.hasGroup() || sensor.hasGroup()) && target.getGroup() !== sensor.getGroup()) {
       sensor.storePreviousState();
       sensor.startTimer();
       sensor.setProps({
@@ -243,11 +243,18 @@ export class SensorParserConfigHistoryListController {
   }
 
   insertAfter(target: MetaParserConfigItem, sensor: MetaParserConfigItem) {
-    if (target.hasGroup() || sensor.hasGroup()) {
+
+    let newGroup;
+    if (target.isGroup()) {
+      newGroup = target.getName();
+    } else {
+      newGroup = target.getGroup() || '';
+    }
+    if (newGroup !== sensor.getGroup()) {
       sensor.storePreviousState();
       sensor.startTimer();
       sensor.setProps({
-        groupName: (sensor.hasGroup() && !target.hasGroup()) ? '' : target.getGroup()
+        groupName: newGroup
       });
     }
 

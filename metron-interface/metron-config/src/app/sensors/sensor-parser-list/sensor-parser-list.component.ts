@@ -435,39 +435,44 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDrop(sensor: MetaParserConfigItem, e: DragEvent) {
+  onDrop(referenceSensor: MetaParserConfigItem, e: DragEvent) {
 
     this.sensorParserConfigHistoryListController.setAllHighlighted(false);
     this.sensorParserConfigHistoryListController.setAllDraggedOver(false);
 
     const el = e.currentTarget as HTMLElement;
+    const draggedSensor = this.sensorAggregateService.getSensorsToBeMerged()[0];
 
-    if (el.classList.contains('drop-before')) {
-      el.classList.remove('drop-before');
-      this.sensorParserConfigHistoryListController.insertBefore(sensor, this.sensorAggregateService.getSensorsToBeMerged()[0]);
-    } else if (el.classList.contains('drop-after')) {
-      el.classList.remove('drop-after');
-      this.sensorParserConfigHistoryListController.insertAfter(sensor, this.sensorAggregateService.getSensorsToBeMerged()[0]);
-    } else {
-      if (sensor.isGroup()) {
-
-        // TODO handle if sensor is already in group
-
-        this.sensorParserConfigHistoryListController
-          .addToGroup(
-            sensor.getName(),
-            this.sensorAggregateService.getSensorsToBeMerged()[0],
-            { startTimer: true });
+    if (draggedSensor !== referenceSensor) {
+      if (el.classList.contains('drop-before')) {
+        this.sensorParserConfigHistoryListController.insertBefore(referenceSensor, draggedSensor);
+      } else if (el.classList.contains('drop-after')) {
+        this.sensorParserConfigHistoryListController.insertAfter(referenceSensor, draggedSensor);
       } else {
-        this.sensorAggregateService.markSensorToBeMerged(sensor, 1);
-        this.router.navigateByUrl('/sensors(dialog:sensor-aggregate)');
+        if (referenceSensor.isGroup()) {
+
+          this.sensorParserConfigHistoryListController
+            .addToGroup(
+              referenceSensor.getName(),
+              draggedSensor,
+              { startTimer: true });
+        } else {
+          this.sensorAggregateService.markSensorToBeMerged(referenceSensor, 1);
+          this.router.navigateByUrl('/sensors(dialog:sensor-aggregate)');
+        }
       }
     }
+
+    el.classList.remove('drop-before');
+    el.classList.remove('drop-after');
   }
 
   addSensorsToGroup(groupName: string, sensors: MetaParserConfigItem[]) {
-    this.sensorParserConfigHistoryListController.addToGroup(groupName, sensors[1], { startTimer: true });
-    this.sensorParserConfigHistoryListController.addToGroup(groupName, sensors[0], { startTimer: true });
+    sensors.reverse().forEach(sensor => {
+      if (sensor.getGroup() !== groupName) {
+        this.sensorParserConfigHistoryListController.addToGroup(groupName, sensor, { startTimer: true });
+      }
+    });
   }
 
   undo(sensor: MetaParserConfigItem, e) {
