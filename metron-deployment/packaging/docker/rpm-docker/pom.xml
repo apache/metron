@@ -150,7 +150,7 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-parsers-storm/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-parsing/metron-parsing-storm/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

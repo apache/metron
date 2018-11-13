@@ -60,7 +60,7 @@ Source13:       metron-alerts-%{full_version}-archive.tar.gz
 Source14:       metron-performance-%{full_version}-archive.tar.gz
 Source15:       metron-profiler-spark-%{full_version}-archive.tar.gz
 Source16:       metron-profiler-repl-%{full_version}-archive.tar.gz
-Source17:       metron-parsers-storm-%{full_version}-archive.tar.gz
+Source17:       metron-parsing-storm-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -152,23 +152,39 @@ This package installs the Metron Parser Common files
 %dir %{metron_home}/config/zookeeper/parsers
 %dir %{metron_home}/patterns
 %dir %{metron_home}/lib
-%{metron_home}/config/zookeeper/parsers/bro.json
 %{metron_home}/config/zookeeper/parsers/jsonMap.json
 %{metron_home}/config/zookeeper/parsers/jsonMapQuery.json
 %{metron_home}/config/zookeeper/parsers/jsonMapWrappedQuery.json
+%{metron_home}/patterns/common
+%attr(0644,root,root) %{metron_home}/lib/metron-parsers-common-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        parsers
+Summary:        Metron Advanced Parser Files
+Group:          Applications/Internet
+Provides:       parsers-common = %{version}
+
+%description    parsers-common
+This package installs the Metron Advanced Parser files
+
+%files          parsers-common
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/config
+%dir %{metron_home}/config/zookeeper
+%dir %{metron_home}/config/zookeeper/parsers
+%dir %{metron_home}/patterns
+%dir %{metron_home}/lib
+%{metron_home}/config/zookeeper/parsers/bro.json
 %{metron_home}/config/zookeeper/parsers/snort.json
 %{metron_home}/config/zookeeper/parsers/squid.json
 %{metron_home}/config/zookeeper/parsers/syslog5424.json
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
 %{metron_home}/config/zookeeper/parsers/asa.json
-%{metron_home}/patterns/asa
 %{metron_home}/patterns/common
-%{metron_home}/patterns/fireeye
-%{metron_home}/patterns/sourcefire
-%{metron_home}/patterns/squid
-%{metron_home}/patterns/websphere
-%{metron_home}/patterns/yaf
 %attr(0644,root,root) %{metron_home}/lib/metron-parsers-common-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -188,7 +204,7 @@ This package installs the Metron Parser Storm files
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/bin/start_parser_topology.sh
-%attr(0644,root,root) %{metron_home}/lib/metron-parsers-storm-%{full_version}-uber.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-parsing-storm-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -609,7 +625,7 @@ chkconfig --del metron-alerts-ui
 
 %changelog
 * Fri Oct 5 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
-- Split metron-parsers into metron-parsers-commmon and metron-parsers-storm
+- Split metron-parsers into metron-parsing and submodules
 * Thu Aug 30 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
 - Update compiled css file name for Alerts UI
 * Fri Aug 24 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
