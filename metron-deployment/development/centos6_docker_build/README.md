@@ -51,7 +51,6 @@ Any platform that supports these tools is suitable, but the following instructio
 
     ```
     brew cask install vagrant virtualbox docker ansible
-    brew cask install caskroom/versions/java8
     vagrant plugin install vagrant-hostmanager
     open /Applications/Docker.app
     ```
