@@ -40,6 +40,7 @@ export class SensorParserConfigHistoryListController {
     const collectGroups = () => {
       this._sensors.forEach(sensor => {
         if (sensor.getGroup()) {
+          // FIXME if possible. It was hard for me to realize that merge is happening here not in the sensor-parser-list.component #160
           this.addToGroup(sensor.getGroup(), sensor, { silent: true });
         }
       });
@@ -153,6 +154,9 @@ export class SensorParserConfigHistoryListController {
     let group = this.getGroup(groupName);
     if (!group) {
       group = this.createGroup(groupName, this._sensors.indexOf(sensor));
+      if (options.startTimer) {
+        group.startTimer();
+      }
     }
 
     if (options.startTimer) {

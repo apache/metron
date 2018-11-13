@@ -116,9 +116,12 @@ export class MetaParserConfigItem {
   }
 
   private onTimerTick() {
+    const service: SensorParserConfigService = this.parserConfigService;
+    const saveFn: Function = this.isParent() ? service.saveGroup : service.saveConfig;
+
     this._stopTimer();
-    this.parserConfigService
-      .saveConfig(this._sensor.sensorName, this._sensor.config)
+
+    saveFn.bind(service)(this._sensor.sensorName, this._sensor.config)
       .subscribe(this._next.bind(this));
   }
 

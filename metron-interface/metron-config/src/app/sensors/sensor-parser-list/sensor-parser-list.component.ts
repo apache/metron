@@ -155,6 +155,8 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
       }
     );
 
+    // FIXME: this codepart is not responsible for the merging of the list of groups and configs
+    // but the actual creation of new groups
     this._executeMergeSubscription = this.sensorAggregateService.executeMerge$
       .subscribe((value: {
         groupName: string,
