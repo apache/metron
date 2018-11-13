@@ -57,7 +57,7 @@
         (click)="onSensorRowSelect(sensor.getSensor(), $event)"
         [ngClass]="{
           'active': (selectedSensors.indexOf(sensor.getSensor()) != -1 || selectedSensor == sensor.getSensor()),
-          'parent': sensor.isParent(),
+          'parent': sensor.isGroup(),
           'highlighted': sensor.getHighlighted(),
           'dragged-over': sensor.getDraggedOver()
         }"
@@ -69,9 +69,9 @@
       >
       <td
         class="drag-handle"
-        [draggable]="!sensor.isParent() && !sensor.canUndo()"
+        [draggable]="!sensor.isGroup() && !sensor.canUndo()"
       >
-        <i *ngIf="!sensor.isParent() && !sensor.canUndo()" class="drag-handle-icon fa fa-ellipsis-v"></i>
+        <i *ngIf="!sensor.isGroup() && !sensor.canUndo()" class="drag-handle-icon fa fa-ellipsis-v"></i>
         <button
           class="undo"
           *ngIf="sensor.canUndo()"
@@ -81,7 +81,7 @@
         </button>
       </td>
       <td class="cell-name">
-        <span *ngIf="sensor.isParent()">
+        <span *ngIf="sensor.isGroup()">
           <i class="fa fa-caret-down group-caret-down-icon"></i>
           <i class="fa fa-th group-parent-label"></i>
         </span>
@@ -113,7 +113,7 @@
             title="Stop parser topology"
             class="fa fa-stop fa-lg"
             aria-hidden="true"
-            [hidden]="((sensor.getSensor().status != 'Running' && sensor.getSensor().status != 'Disabled') || sensor.getSensor().config['startStopInProgress'])"
+            [hidden]="!sensor.isStopable()"
             (click)="onStopSensor(sensor.getSensor(), $event)"
           >
           </i>
@@ -132,7 +132,7 @@
             title="Start parser topology"
             class="fa fa-play fa-lg"
             aria-hidden="true"
-            [hidden]="(sensor.getSensor().status != 'Stopped' || sensor.getSensor().config['startStopInProgress'])"
+            [hidden]="!sensor.isStartable()"
             (click)="onStartSensor(sensor.getSensor(), $event)"
           >
           </i>

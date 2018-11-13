@@ -449,7 +449,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
       el.classList.remove('drop-after');
       this.sensorParserConfigHistoryListController.insertAfter(sensor, this.sensorAggregateService.getSensorsToBeMerged()[0]);
     } else {
-      if (sensor.isParent()) {
+      if (sensor.isGroup()) {
 
         // TODO handle if sensor is already in group
 

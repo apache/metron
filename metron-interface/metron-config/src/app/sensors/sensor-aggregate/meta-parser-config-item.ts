@@ -30,7 +30,7 @@ export class MetaParserConfigItem {
   _cache: any = null;
   _previousIndex = -1;
 
-  _isParent: boolean;
+  _isGroup: boolean;
   _timer = -1;
 
   changed$ = new Subject();
@@ -71,12 +71,12 @@ export class MetaParserConfigItem {
     this._sensor.sensorName = name;
   }
 
-  setIsParent(value: boolean) {
-    this._isParent = value;
+  setIsGroup(value: boolean) {
+    this._isGroup = value;
   }
 
-  isParent() {
-    return this._isParent;
+  isGroup() {
+    return this._isGroup;
   }
 
   setStatus(status: string) {
@@ -117,7 +117,7 @@ export class MetaParserConfigItem {
 
   private onTimerTick() {
     const service: SensorParserConfigService = this.parserConfigService;
-    const saveFn: Function = this.isParent() ? service.saveGroup : service.saveConfig;
+    const saveFn: Function = this.isGroup() ? service.saveGroup : service.saveConfig;
 
     this._stopTimer();
 
@@ -156,5 +156,21 @@ export class MetaParserConfigItem {
 
   getPreviousState() {
     return this._cache;
+  }
+
+  isStartable() {
+    return this.isRootElement() &&
+      this.getSensor().status === 'Stopped' && this.getSensor().status !== 'Disabled'
+      && !this.getSensor().config['startStopInProgress'];
+  }
+
+  isStopable() {
+    return this.isRootElement() &&
+      this.getSensor().status === 'Running' && this.getSensor().status !== 'Disabled'
+      && !this.getSensor().config['startStopInProgress'];
+  }
+
+  isRootElement() {
+    return this.isGroup() || !this.hasGroup();
   }
 }

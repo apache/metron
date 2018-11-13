@@ -135,7 +135,7 @@ export class SensorParserConfigHistoryListController {
     const group = this.metaParserConfigFactory.create(new SensorParserConfigHistory());
 
     group.setName(groupName);
-    group.setIsParent(true);
+    group.setIsGroup(true);
 
     if (typeof at === 'undefined') {
       this._sensors.push(group);
