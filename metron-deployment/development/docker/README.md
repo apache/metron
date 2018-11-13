@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-This provides a Docker Container containing all of the prerequisites required to build Metron.  This allows you to easily build Metron without installing all of the build dependencies manually.
+This provides a Docker Container containing all of the prerequisites required to build Metron and deploying it with Ansible.  This allows you to easily build Metron without installing all of the build dependencies manually.
 
 ### Prerequisites
 
@@ -26,8 +26,8 @@ This provides a Docker Container containing all of the prerequisites required to
 
 1. Build the Docker container.
     ```
-    cd metron-deployment/packaging/docker/ansible-docker
-    docker build -t ansible-docker:latest .
+    cd metron-deployment/development/docker
+    docker build -t metron-build-docker:latest .
     ```
 
 1. Launch the container.
@@ -35,7 +35,7 @@ This provides a Docker Container containing all of the prerequisites required to
     docker run -it \
       -v `pwd`/../../../..:/root/metron \
       -v ~/.m2:/root/.m2 \
-      ansible-docker:latest bash
+      metron-build-docker:latest bash
     ```
 
     This maps the Metron source code along with your local Maven repository to the container.  This will prevent you from having to re-download all of these dependencies each time you build Metron.
@@ -45,12 +45,4 @@ This provides a Docker Container containing all of the prerequisites required to
     ```
     cd /root/metron
     mvn clean package -DskipTests
-    ```
 
-### Notes
-
-If you wish to use this build with a vagrant instance, then after building with rpms as above, modify
-your usual vagrant up command to skip the build role, as so:
-  ```
-  vagrant --ansible-skip-tags="build" up
-  ```

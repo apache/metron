@@ -18,34 +18,23 @@
 #
 
 
-#
-# This script runs IN the docker container
-#
+VAGRANT_PATH=`pwd`
+echo "setting the ansible configuration path"
+ANSIBLE_PATH=${VAGRANT_PATH}/ansible
+echo ${ANSIBLE_PATH}
+echo "setting the ssh key"
+VAGRANT_KEY_PATH=`pwd`/.vagrant/machines/node1/virtualbox
+echo ${VAGRANT_KEY_PATH}
 
-cd /root/metron
+# move over to the docker area
+cd ../docker || exit 1
+pwd
 
-# make sure we have the right c++ tools
-source /opt/rh/devtoolset-6/enable
-
-# give the option to skip building metron, in case they have already done so
-#read -p "  build metron? [yN] " -n 1 -r
-#echo
-#if [[ $REPLY =~ ^[Yy]$ ]]; then
-# USE TAGS
-#fi
-
-case $(sed --help 2>&1) in
-    *GNU*) sed_i() { sed -i "$@"; } ;;
-    *) sed_i() { sed -i '' "$@"; } ;;
-esac
-
-sed_i -e '/^node1.*/' ~/.ssh/known_hosts
-
-ansible-playbook  \
- -i /root/ansible_config/inventory \
- --skip-tags="solr,sensors" \
- --private-key="/root/vagrant_key/private_key" \
- --user="vagrant" \
- --become \
- --extra-vars="ansible_ssh_private_key_file=/root/vagrant_key/private_key" \
- /root/ansible_config/playbook.yml
+echo "===============Running Docker==============="
+docker run -it \
+ -v  ${VAGRANT_PATH}/../../..:/root/metron \
+ -v ~/.m2:/root/.m2 \
+ -v ${VAGRANT_PATH}:/root/vagrant \
+ -v ${ANSIBLE_PATH}:/root/ansible_config \
+ -v ${VAGRANT_KEY_PATH}:/root/vagrant_key \
+ metron-build-docker:latest bash

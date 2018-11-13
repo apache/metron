@@ -17,9 +17,6 @@
 FROM centos:centos6.9
 MAINTAINER Apache Metron
 
-COPY ansible.cfg /root/
-ENV ANSIBLE_CONFIG /root/ansible.cfg
-
 RUN yum install -y \
         tar \
         wget \

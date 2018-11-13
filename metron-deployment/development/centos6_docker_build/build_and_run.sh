@@ -17,26 +17,47 @@
 #  limitations under the License.
 #
 
+# Give the option to skip vagrant up, in case they already have something running
+read -p "  run vagrant up? [yN] " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+ vagrant up
+ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+fi
 
 VAGRANT_PATH=`pwd`
-echo "setting the ansible configuration path"
 ANSIBLE_PATH=${VAGRANT_PATH}/ansible
-echo ${ANSIBLE_PATH}
-echo "setting the ssh key"
 VAGRANT_KEY_PATH=`pwd`/.vagrant/machines/node1/virtualbox
-echo ${VAGRANT_KEY_PATH}
 
-# set the vagrant user
-VAGRANT_USER='vagrant'
 # move over to the docker area
-cd ../../packaging/docker/ansible-docker
-pwd
+cd ../docker || exit 1
 
+# Give the option to not build the docker container, which can take some time and not be necessary
+read -p "  build docker container? [yN] " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+ echo "docker build"
+ docker build -t metron-build-docker:latest .
+fi
+
+if [[ ! -d ~/.m2 ]]; then
+ mkdir ~/.m2
+fi
+DATE=`date`
+LOG_DATE=${DATE// /_}
+LOGNAME="metron-build-${LOG_DATE}.log"
 echo "===============Running Docker==============="
 docker run -it \
- -v `pwd`/../../../..:/root/metron \
+ -v ${VAGRANT_PATH}/../../..:/root/metron \
  -v ~/.m2:/root/.m2 \
  -v ${VAGRANT_PATH}:/root/vagrant \
  -v ${ANSIBLE_PATH}:/root/ansible_config \
  -v ${VAGRANT_KEY_PATH}:/root/vagrant_key \
- ansible-docker:latest bash
+ -v ${VAGRANT_PATH}/logs:/root/logs \
+ -e ANSIBLE_CONFIG='/root/ansible_config/ansible.cfg' \
+ -e ANSIBLE_LOG_PATH="/root/logs/${LOGNAME}" \
+ metron-build-docker:latest bash -c /root/vagrant/docker_run_ansible.sh
+
+rc=$?; if [[ ${rc} != 0 ]]; then
+ exit ${rc};
+fi
