@@ -74,6 +74,12 @@ table tr td, table tr th {
         & .drag-handle-icon {
           color: #3F88B4;
           cursor: grab;
+
+          & .drag-handle-part {
+            &:nth-child(2) {
+              margin-left: -2px;
+            }
+          }
         }
 
         &:hover {

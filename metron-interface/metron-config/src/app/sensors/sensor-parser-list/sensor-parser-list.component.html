@@ -71,7 +71,13 @@
         class="drag-handle"
         [draggable]="!sensor.isGroup() && !sensor.canUndo()"
       >
-        <i *ngIf="!sensor.isGroup() && !sensor.canUndo()" class="drag-handle-icon fa fa-ellipsis-v"></i>
+        <span
+          *ngIf="!sensor.isGroup() && !sensor.canUndo()"
+          class="drag-handle-icon"
+        >
+          <i class="fa fa-ellipsis-v drag-handle-part"></i>
+          <i class="fa fa-ellipsis-v drag-handle-part"></i>
+        </span>
         <button
           class="undo"
           *ngIf="sensor.canUndo()"
