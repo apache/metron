@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 import {SensorParserConfig} from './sensor-parser-config';
-export class SensorParserConfigHistory {
+import { ParserConfigListItem } from 'app/sensors/sensor-aggregate/parser-config-item';
+
+export class SensorParserConfigHistory implements ParserConfigListItem {
   sensorName: string;
   createdBy: string;
   modifiedBy: string;
@@ -31,8 +33,40 @@ export class SensorParserConfigHistory {
     this.config = new SensorParserConfig();
   }
 
+  getName() {
+    return this.sensorName;
+  }
+  setName(value: string) {
+    this.sensorName = value;
+  }
+
+  getConfig() {
+    return this.config;
+  }
   setConfig(config) {
     this.config = new SensorParserConfig(config);
+  }
+
+  getStatus(): string {
+    return this.status;
+  }
+  setStatus(value: string): void {
+    this.status = value;
+  }
+
+  // FIXME find a place for this data, seems odd
+  getHistory(): { latency: string, throughput: string, modifiedByDate: string, modifiedBy: string } {
+    return { latency: this.latency, throughput: this.throughput, modifiedByDate: this.modifiedByDate, modifiedBy: this.modifiedBy };
+  }
+  setHistory(value: { latency: string, throughput: string, modifiedByDate: string, modifiedBy: string }): void {
+    this.latency = value.latency;
+    this.throughput = value.throughput;
+    this.modifiedByDate = value.modifiedByDate;
+    this.modifiedBy = value.modifiedBy;
+  }
+
+  toJson(): string {
+    return JSON.stringify(this.config);
   }
 
   clone(): SensorParserConfigHistory {

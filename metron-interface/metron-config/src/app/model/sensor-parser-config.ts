@@ -43,7 +43,6 @@ export class SensorParserConfig {
   stormConfig: {};
   writerClassName: string;
   invalidWriterClassName: string;
-  startStopInProgress: boolean;
   group: string;
 
   constructor(config: any = {}) {
@@ -79,7 +78,6 @@ export class SensorParserConfig {
     clone.errorWriterNumTasks = this.errorWriterNumTasks;
     clone.spoutConfig = this.spoutConfig;
     clone.stormConfig = this.stormConfig;
-    clone.startStopInProgress = this.startStopInProgress;
     clone.group = this.group;
 
     return clone;
