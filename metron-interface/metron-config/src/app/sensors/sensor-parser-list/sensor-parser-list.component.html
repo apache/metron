@@ -164,7 +164,7 @@
             title="Delete parser configuration"
             class="fa fa-trash-o fa-lg"
             aria-hidden="true"
-            (click)="deleteSensor(sensor.getSensor(), $event)"
+            (click)="getDeleteFunc(sensor)(sensor.getSensor(), $event)"
           >
           </i>
       </td>

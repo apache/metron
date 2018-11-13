@@ -222,6 +222,18 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     }
   }
 
+  getDeleteFunc(sensor: MetaParserConfigItem) {
+    return sensor.isGroup() ? this.deleteGroup.bind(this) : this.deleteSensor.bind(this);
+  }
+
+  // FIXME: template calls sensor.getSensor() wich return with a SensorParserConfigHistory
+  deleteGroup(parserGroup: SensorParserConfigHistory, $event) {
+    $event.stopPropagation();
+    this.sensorParserConfigService.deleteGroups([parserGroup.sensorName])
+    .subscribe(this.batchDeleteResultHandler.bind(this));
+  }
+
+  // FIXME it could be a group as well
   deleteSensor(selectedSensorsToDelete: SensorParserConfigHistory[] | SensorParserConfigHistory, $event) {
     let sensorArray = [];
     if ($event) {
@@ -240,17 +252,18 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this.metronDialogBox.showConfirmationMessage(confirmationsMsg).subscribe(result => {
       if (result) {
         this.sensorParserConfigService.deleteConfigs(sensorNames)
-            .subscribe((deleteResult: {success: Array<string>, failure: Array<string>}) => {
-          if (deleteResult.success.length > 0) {
-            this.metronAlerts.showSuccessMessage('Deleted sensors: ' + deleteResult.success.join(', '));
-          }
-
-          if (deleteResult.failure.length > 0) {
-            this.metronAlerts.showErrorMessage('Unable to deleted sensors: ' + deleteResult.failure.join(', '));
-          }
-        });
+            .subscribe(this.batchDeleteResultHandler.bind(this));
       }
     });
+  }
+
+  batchDeleteResultHandler(deleteResult: {success: Array<string>, failure: Array<string>}) {
+    if (deleteResult.success.length > 0) {
+      this.metronAlerts.showSuccessMessage('Deleted sensors: ' + deleteResult.success.join(', '));
+    }
+    if (deleteResult.failure.length > 0) {
+      this.metronAlerts.showErrorMessage('Unable to deleted sensors: ' + deleteResult.failure.join(', '));
+    }
   }
 
   onDeleteSensor() {
