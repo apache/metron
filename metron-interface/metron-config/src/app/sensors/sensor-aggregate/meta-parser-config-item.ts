@@ -18,7 +18,6 @@
 import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
 import { Subject, Observable } from 'rxjs';
 import { SensorParserConfigService } from 'app/service/sensor-parser-config.service';
-import { ParserGroupModel } from 'app/model/parser-group';
 
 const DEFAULT_UNDO_TIMEOUT = 60000;
 
@@ -26,11 +25,7 @@ export class MetaParserConfigItem {
 
   private parserConfigService: SensorParserConfigService;
 
-  startStopInProgress = false;
-
-  // FIXME Rename SensorParserConfigHistory to ParserConfigModel or something meaningfull
-  // FIXME is _ for marking private?
-  _sensor: SensorParserConfigHistory | ParserGroupModel = null;
+  _sensor: SensorParserConfigHistory = null;
 
   _cache: any = null;
   _previousIndex = -1;
@@ -43,36 +38,37 @@ export class MetaParserConfigItem {
   _highlighted = false;
   _draggedOver = false;
 
-  constructor(item: SensorParserConfigHistory | ParserGroupModel,
+  constructor(sensor: SensorParserConfigHistory,
     parserConfigService: SensorParserConfigService) {
-    this._sensor = item; // FIXME this is not a sensor, this is a group or a config item
+    this._sensor = sensor;
     this.parserConfigService = parserConfigService;
   }
 
-  getSensor(): SensorParserConfigHistory | ParserGroupModel {
+  getSensor(): SensorParserConfigHistory {
     return this._sensor;
   }
 
   setProps(props) {
+
     if (typeof props.groupName !== 'undefined') {
-      this._sensor.getConfig().group = props.groupName;
+      this._sensor.config.group = props.groupName;
     }
   }
 
   hasGroup(): boolean {
-    return !!this._sensor.getConfig().group;
+    return !!this._sensor.config.group;
   }
 
   getGroup(): string {
-    return this._sensor.getConfig().group;
+    return this._sensor.config.group;
   }
 
   getName(): string {
-    return this._sensor.getName();
+    return this._sensor.sensorName;
   }
 
   setName(name: string) {
-    this._sensor.setName(name);
+    this._sensor.sensorName = name;
   }
 
   setIsGroup(value: boolean) {
@@ -125,7 +121,7 @@ export class MetaParserConfigItem {
 
     this._stopTimer();
 
-    saveFn.bind(service)(this._sensor.getName(), this._sensor.getConfig())
+    saveFn.bind(service)(this._sensor.sensorName, this._sensor.config)
       .subscribe(this._next.bind(this));
   }
 
@@ -165,13 +161,13 @@ export class MetaParserConfigItem {
   isStartable() {
     return this.isRootElement() &&
       this.getSensor().status === 'Stopped' && this.getSensor().status !== 'Disabled'
-      && !this.startStopInProgress;
+      && !this.getSensor().config['startStopInProgress'];
   }
 
   isStopable() {
     return this.isRootElement() &&
       this.getSensor().status === 'Running' && this.getSensor().status !== 'Disabled'
-      && !this.startStopInProgress;
+      && !this.getSensor().config['startStopInProgress'];
   }
 
   isRootElement() {

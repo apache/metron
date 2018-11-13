@@ -120,7 +120,7 @@ export class SensorParserConfigHistoryListController {
   getGroup(groupName: string): MetaParserConfigItem | null {
     let i = 0, len = this._sensors.length;
     for (; i < len; i++) {
-      if (this._sensors[i].getSensor().getName() === groupName) {
+      if (this._sensors[i].getSensor().sensorName === groupName) {
         return this._sensors[i];
       }
     }
@@ -132,7 +132,7 @@ export class SensorParserConfigHistoryListController {
    * @param at - The array index where you want to inject the group after creation
    */
   createGroup(groupName: string, at?: number): MetaParserConfigItem {
-    const group = this.metaParserConfigFactory.create(new ParserGroupModel({ name: groupName }));
+    const group = this.metaParserConfigFactory.create(new SensorParserConfigHistory());
 
     group.setName(groupName);
     group.setIsGroup(true);
