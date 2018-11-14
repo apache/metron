@@ -1,0 +1,334 @@
+#!/bin/bash
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+# Creates and sets up the actual release artifacts into dev
+# See https://cwiki.apache.org/confluence/display/METRON/Release+Process
+
+
+set -eo pipefail
+
+# define constants
+# Git repos
+# To add a new submodule, add the repo name, upstream Git repo, and update the getrepo() selection function.
+# if versioning of the submodule isn't x.y.z format, retrieval of the git tag must also be adjusted.
+METRON_REPO_NAME="metron"
+BRO_PLUGIN_REPO_NAME="metron-bro-plugin-kafka"
+METRON_UPSTREAM="https://git-wip-us.apache.org/repos/asf/${METRON_REPO_NAME}.git"
+BRO_PLUGIN_UPSTREAM="https://git-wip-us.apache.org/repos/asf/${BRO_PLUGIN_REPO_NAME}.git"
+
+DEV_REPO="https://dist.apache.org/repos/dist/dev/metron"
+RELEASE_REPO=" https://dist.apache.org/repos/dist/release/metron"
+PLUGIN_GIT_REPO="https://git-wip-us.apache.org/repos/asf/${BRO_PLUGIN_REPO_NAME}.git"
+
+RC_PREFIX=rc
+UPPER_RC_PREFIX="$(tr '[:lower:]' '[:upper:]' <<< ${RC_PREFIX})"
+TAG_POSTFIX="-release"
+
+CONFIG_FILE=~/.metron-prepare-release-candidate
+# does a config file already exist?
+if [ -f $CONFIG_FILE ]; then
+  . $CONFIG_FILE
+  echo "  ...using settings from $CONFIG_FILE"
+fi
+
+# apache id of committer (you)
+if [ -z "${APACHE_NAME}" ]; then
+  read -p "  your apache userid [${APACHE_NAME}]: " INPUT
+  [ -n "$INPUT" ] && APACHE_NAME=$INPUT
+
+  # write setting to config file
+  echo "APACHE_NAME=$APACHE_NAME" >> $CONFIG_FILE
+fi
+
+# apache email addr of committer (you)
+if [ -z "${APACHE_EMAIL}" ]; then
+  APACHE_EMAIL=${APACHE_NAME}@apache.org
+  read -p "  your apache email [${APACHE_EMAIL}]: " INPUT
+  [ -n "$INPUT" ] && APACHE_EMAIL=$INPUT
+
+  # write setting to config file, so it is not needed next time
+  echo "APACHE_EMAIL=$APACHE_EMAIL" >> $CONFIG_FILE
+fi
+
+# which repo?  metron or metron-bro-plugin-kafka
+getrepo() {
+  echo "    [1] ${METRON_REPO_NAME}"
+  echo "    [2] ${BRO_PLUGIN_REPO_NAME}"
+  read -p "  which repo? [1]: " INPUT
+  case "${INPUT}" in
+    [Bb][Rr][Oo]|[Mm][Ee][Tt][Rr][Oo][Nn]-[Bb][Rr][Oo]-[Pp][Ll][Uu][Gg][Ii][Nn]-[Kk][Aa][Ff][Kk][Aa]|*metron-bro-plugin-kafka\.git|2)
+      INPUT="${BRO_PLUGIN_UPSTREAM}" ;;
+    [Mm][Ee][Tt][Rr][Oo][Nn]|*metron\.git|1|'')
+      INPUT="${METRON_UPSTREAM}" ;;
+    *)
+      echo "Invalid repo, provided \"${INPUT}\".  Please choose between ${METRON_REPO_NAME} or ${BRO_PLUGIN_REPO_NAME}"
+      return 1
+      ;;
+  esac
+  [ -n "$INPUT" ] && UPSTREAM=$INPUT
+  return 0
+}
+until getrepo; do :; done
+
+CHOSEN_REPO=$(basename ${UPSTREAM%%.git})
+# Need the capitalized version of the repos some naming
+CAPITAL_REPO="$(tr '[:lower:]' '[:upper:]' <<< ${CHOSEN_REPO:0:1})${CHOSEN_REPO:1}"
+
+getcurrentversion() {
+  # currently released version. Used for CHANGES file
+  read -p "  current version: " CURRENT_VERSION
+  if ! [[ "${CURRENT_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    printf "  Please enter a valid x.y.z version\n"
+    return 1
+  fi
+  return 0
+}
+until getcurrentversion; do : ; done
+
+# version that we're building an RC for
+getversion() {
+  read -p "  version being built: " VERSION
+  if ! [[ "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    printf "  Please enter a valid x.y.z version\n"
+    return 1
+  fi
+  return 0
+  }
+until getversion; do : ; done
+
+# RC number we're building
+getrcnum() {
+read -p "  release candidate number: " RC_NUM
+  if [[ "${RC_NUM}" =~ ^[0-9]+$ ]]; then
+    RC="${RC_PREFIX}${RC_NUM}"
+    return 0
+  else
+    printf "  Please enter an integer\n"
+    return 1
+  fi
+}
+until getrcnum; do : ; done
+
+# define default values
+TMPDIR="$HOME/tmp"
+WORKDIR="$TMPDIR/${CHOSEN_REPO}-${VERSION}"
+
+# warn the user if the working directory exists
+if [ -d "$WORKDIR" ]; then
+  read -p "  directory exists [$WORKDIR].  overwrite existing directory? [y/n] " -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    exit 1
+  fi
+fi
+
+# Clear out the existing work directory
+rm -rf "$WORKDIR"
+mkdir "$WORKDIR"
+
+getbaserev() {
+  read -p "  base revision branch or hash for release candidate [master]: " GIT_REF
+  GIT_REF=${GIT_REF:-master}
+
+  # check to see if we were given branch
+  git rev-parse -q --verify ${GIT_REF} >> /dev/null
+  if [[ $? -ne 0 ]]; then
+    # check to see if we were given hash
+    git cat-file -e ${GIT_REF}
+    if [[ $? -ne 0 ]]; then
+      "Unable to find git revision"
+      return 1
+    fi
+  fi
+  return 0
+}
+until getbaserev; do : ; done
+
+# Signing key
+getkey() {
+  read -s -p "  signing key id in 8-byte format (e.g. BADDCAFEDEADBEEF): " SIGNING_KEY
+  printf "\n"
+  if ! [[ "${SIGNING_KEY}" =~ ^[A-F0-9]{16}$ ]]; then
+    printf "  Please enter a valid signing key\n"
+    return 1
+  fi
+  return 0
+}
+
+until getkey; do : ; done
+
+# Determine if this is a practice run or not.
+getpractice() {
+  read -p "  do a live run (push to remote repositories?) [y/n] " INPUT
+  case "${INPUT}" in
+    y)
+      PRACTICE_RUN=false
+      return 0 ;;
+    n)
+      PRACTICE_RUN=true
+      return 0 ;;
+    *)
+      printf "Please enter 'y' or 'n'\n"
+      return 1
+      ;;
+  esac
+}
+until getpractice; do : ; done
+
+## Prepare everything for building the release artifacts
+
+# Fetch the SVN repos. Always needed regardless of what's being released.
+fetch_svn_repo () { 
+  local SVN_REPO=$1
+  local SVN_DIR=$2
+  mkdir "$SVN_DIR"
+  cd "$SVN_DIR"
+  printf "Checking out repo: %s\n" "$SVN_REPO" "$(basename $SVN_DIR)"
+  svn co -q $SVN_REPO
+  cd "$(dirname $WORKDIR)"
+}
+
+fetch_svn_repo "$DEV_REPO" "$WORKDIR/dev"
+fetch_svn_repo "$RELEASE_REPO" "$WORKDIR/release"
+
+# Fetch the appropriate Git repo. Only need what we're releasing
+GIT_DIR="$WORKDIR/${CHOSEN_REPO}"
+printf "Checking out git repo: %s\n" "$UPSTREAM"
+git clone $UPSTREAM "${GIT_DIR}"
+cd "${GIT_DIR}"
+git fetch --tags
+
+# Create the release branch in the Git repo
+printf "Creating branch: %s_%s\n" "${CAPITAL_REPO}" "$VERSION"
+printf "Using git rev: %s\n" ${GIT_REF}
+cd "$GIT_DIR"
+git checkout ${GIT_REF}
+git checkout -b "${CAPITAL_REPO}_${VERSION}"
+
+if [ "${PRACTICE_RUN}" = true ]; then
+  printf "This is a practice run. Not running <git push --set-upstream origin %s_%s>\n" "${CAPITAL_REPO}" "$VERSION"
+else
+  printf "Pushing branch %s_%s\n" "${CAPITAL_REPO}" "$VERSION"
+  git push --set-upstream origin "${CAPITAL_REPO}_${VERSION}"
+fi
+
+# Create directory for release artifacts
+if [ "${CHOSEN_REPO}" = "${METRON_REPO_NAME}" ]; then
+  ART_DIR="$WORKDIR/dev/metron/${VERSION}-${UPPER_RC_PREFIX}${RC_NUM}"
+else
+  # We're using a sub module, so put it in it's own directory.
+  ART_DIR="$WORKDIR/dev/metron/${CHOSEN_REPO}/${VERSION}-${UPPER_RC_PREFIX}${RC_NUM}"
+fi
+mkdir -p "$ART_DIR"
+
+# Setup various parameters we need for the release artifacts
+if [ "${CHOSEN_REPO}" = "${METRON_REPO_NAME}" ]; then
+  CORE_PREFIX="apache-metron_"
+  ARTIFACT_PREFIX="${CORE_PREFIX}"
+  TAG_VERSION="${CURRENT_VERSION}"
+  TAG="${CORE_PREFIX}${TAG_VERSION}${TAG_POSTFIX}"
+elif [ "${CHOSEN_REPO}" = "${BRO_PLUGIN_REPO_NAME}" ]; then
+  BRO_PLUGIN_PREFIX="apache-metron-bro-plugin-kafka_"
+  ARTIFACT_PREFIX="${BRO_PLUGIN_PREFIX}"
+  TAG_VERSION="${CURRENT_VERSION}"
+  TAG="${BRO_PLUGIN_PREFIX}${TAG_VERSION}${TAG_POSTFIX}"
+else
+  # If we ever add new modules, add them as needed.
+  printf "Unrecognized module: %s\n" "${CHOSEN_REPO}"
+  exit 1
+fi
+ARTIFACT="${ARTIFACT_PREFIX}${VERSION}-${RC}"
+
+## Do the work of actually creating the release artifacts
+printf "Creating tentative git tag <%s%s-%s>. Do not push this tag until RC is ready for community review.\n" "${TAG_PREFIX}" "$VERSION" "$RC"
+cd "$GIT_DIR"
+git checkout "${CAPITAL_REPO}_${VERSION}"
+# The branch only exists if this is not a practice run
+if [ "${PRACTICE_RUN}" = false ]; then
+  printf "Pulling latest state of branch\n"
+  git pull
+fi
+git tag "${ARTIFACT}"
+
+# Create the rc tarball from the tag
+printf "Creating the RC tarball for tag %s\n" "$ARTIFACT"
+git archive "--prefix=${ARTIFACT}/" "${ARTIFACT}" | gzip > "${ARTIFACT}.tar.gz"
+
+# Create signing hash files
+printf "Creating the SHA hash files\n"
+gpg --print-md SHA512 ${ARTIFACT}.tar.gz > ${ARTIFACT}.tar.gz.sha512
+gpg --print-md SHA256 ${ARTIFACT}.tar.gz > ${ARTIFACT}.tar.gz.sha256
+
+# Sign the release tarball
+printf "Signing the release tarball\n"
+gpg -u ${SIGNING_KEY} --armor --output ${ARTIFACT}.tar.gz.asc --detach-sig ${ARTIFACT}.tar.gz
+if [[ $? -ne 0 ]]; then
+  # gpg will print out an error on its own
+  exit 1
+fi
+
+# Setup the release artifacts
+printf "Copying release artifacts\n"
+mv "${GIT_DIR}/${ARTIFACT}.tar.gz" "$ART_DIR"
+mv "${ARTIFACT}.tar.gz.sha512" "$ART_DIR"
+mv "${ARTIFACT}.tar.gz.sha256" "$ART_DIR"
+mv "${ARTIFACT}.tar.gz.asc" "$ART_DIR"
+
+# Create the CHANGES file
+# Do this by getting all commits in current branch that aren't in current release. Filter out any merges by making sure lines start with blankspace followed by "METRON"
+# i.e. make sure the lines starts with a ticket number to avoid merge commits into feature branches
+printf "Creating CHANGES file\n"
+git log "${CAPITAL_REPO}_${VERSION}" "^tags/${TAG}" --no-merges | grep -E "^[[:blank:]]+METRON" | sed 's/\[//g' | sed 's/\]//g' | grep -v "http" > "${ART_DIR}/CHANGES"
+if [[ $? -ne 0 ]]; then
+  "Error creating CHANGES file"
+  exit 1
+fi
+
+printf "Extracting LICENSE, NOTICE, and KEYS from tarball\n" # Only pull from core
+cd ${ART_DIR}
+
+if [ "${CHOSEN_REPO}" = "${BRO_PLUGIN_REPO_NAME}" ]; then
+  # Bro's convention for the LICENSE is different, so the file is called COPYING
+  tar --strip-components=1 -zxvf "${ARTIFACT}.tar.gz" "${ARTIFACT}/COPYING"
+else
+  tar --strip-components=1 -zxvf "${ARTIFACT}.tar.gz" "${ARTIFACT}/LICENSE"
+fi
+
+# TODO figure out what to do for bro repo here. The KEYS file only needs to live in the /dist root, rather than in each sub repo.
+# Should we have a separate process for adding to the KEYS file without doing a Metron release?
+#tar --strip-components=1 -zxvf "${ARTIFACT}.tar.gz" "${ARTIFACT}/KEYS"
+tar --strip-components=1 -zxvf "${ARTIFACT}.tar.gz" "${ARTIFACT}/NOTICE"
+
+# Add the directory and commit to subversion
+COMMIT_DIR=$(basename ${ART_DIR})
+if [ "${PRACTICE_RUN}" = true ]; then
+  printf "This is a practice run. Not running the following commands:\n"
+  printf "<svn add %s>\n" ${COMMIT_DIR}
+  printf "<svn commit -m \"Adding artifacts for %s %s\">\n" "${CHOSEN_REPO}" "${COMMIT_DIR}"
+else
+  printf "Adding artifacts for Metron ${VERSION}-${UPPER_RC_PREFIX}${RC_NUM} to dev SVN\n"
+  # Metron goes in the root of the dir, submodules go in folder
+  if [ "${CHOSEN_REPO}" = "${METRON_REPO_NAME}" ]; then
+    cd "$WORKDIR/dev/metron/"
+  else
+    cd "$WORKDIR/dev/metron/${CHOSEN_REPO}"
+  fi
+  svn add ${COMMIT_DIR}
+  svn commit -m "Adding artifacts for ${CHOSEN_REPO} ${COMMIT_DIR}"
+fi
+

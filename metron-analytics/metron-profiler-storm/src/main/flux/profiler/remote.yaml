@@ -77,8 +77,15 @@ components:
         className: "java.util.ArrayList"
         configMethods:
             -   name: "add"
-                args:
-                    - "value"
+                args: ["value"]
+            -   name: "add"
+                args: ["topic"]
+            -   name: "add"
+                args: ["partition"]
+            -   name: "add"
+                args: ["offset"]
+            -   name: "add"
+                args: ["timestamp"]
 
     -   id: "kafkaConfig"
         className: "org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder"

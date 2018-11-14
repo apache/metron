@@ -69,6 +69,9 @@ public class SampleGrokParserTest extends GrokParserTest {
   }
 
   @Override
+  public String getMultiLine() { return "false"; }
+
+  @Override
   public String getGrokPath() {
     return "../metron-integration-test/src/main/sample/patterns/test";
   }

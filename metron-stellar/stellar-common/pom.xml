@@ -18,7 +18,7 @@
     <parent>
         <artifactId>metron-stellar</artifactId>
         <groupId>org.apache.metron</groupId>
-        <version>0.6.0</version>
+        <version>0.6.1</version>
     </parent>
     <artifactId>stellar-common</artifactId>
     <name>stellar-common</name>
@@ -33,6 +33,17 @@
           <groupId>com.github.ben-manes.caffeine</groupId>
           <artifactId>caffeine</artifactId>
           <version>${global_caffeine_version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${global_hadoop_version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>asm</groupId>
+              <artifactId>asm</artifactId>
+            </exclusion>
+          </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -213,11 +224,40 @@
             <version>1.0.2</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${global_httpclient_version}</version>
+        </dependency>
+        <dependency>
             <!-- junit dependency added with default scope to allow inclusion of StellarProcessorUtils in main jar.
                  It is excluded from the uber-jar. -->
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${global_junit_version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.mock-server</groupId>
+          <artifactId>mockserver-netty</artifactId>
+          <version>3.10.8</version>
+          <scope>test</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>ch.qos.logback</groupId>
+              <artifactId>logback-classic</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.mock-server</groupId>
+          <artifactId>mockserver-client-java</artifactId>
+          <version>3.10.8</version>
+          <scope>test</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>ch.qos.logback</groupId>
+              <artifactId>logback-classic</artifactId>
+            </exclusion>
+          </exclusions>
         </dependency>
     </dependencies>
     <build>

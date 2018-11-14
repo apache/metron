@@ -119,7 +119,6 @@ public class ZKConfigurationsCacheIntegrationTest {
   @Multiline
   public static String globalConfig;
 
-  public static File profilerDir = new File("../../metron-analytics/metron-profiler-storm/src/test/config/zookeeper");
   public ConfigurationsCache cache;
 
   public ZKServerComponent zkComponent;
@@ -154,7 +153,7 @@ public class ZKConfigurationsCacheIntegrationTest {
     }
     {
       //profiler
-      byte[] config = IOUtils.toByteArray(new FileInputStream(new File(profilerDir, "/event-time-test/profiler.json")));
+      byte[] config = IOUtils.toByteArray(new FileInputStream(new File("src/test/resources/profiler/profiler.json")));
       ConfigurationsUtils.writeProfilerConfigToZookeeper( config, client);
     }
     {
@@ -284,7 +283,7 @@ public class ZKConfigurationsCacheIntegrationTest {
     }
     //profiler
     {
-      File inFile = new File(profilerDir, "/event-time-test/profiler.json");
+      File inFile = new File("src/test/resources/profiler/profiler.json");
       ProfilerConfig expectedConfig = JSONUtils.INSTANCE.load(inFile, ProfilerConfig.class);
       ProfilerConfigurations config = cache.get( ProfilerConfigurations.class);
       assertEventually(() -> Assert.assertEquals(expectedConfig, config.getProfilerConfig()));

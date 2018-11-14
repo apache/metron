@@ -20,11 +20,11 @@ METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/$METRON_VERSION
 TOPOLOGY_JAR=${project.artifactId}-$METRON_VERSION-uber.jar
 
-# there are two enrichment topologies.  by default, the split-join enrichment topology is executed
+# There are two enrichment topologies. By default, the unified enrichment topology is executed. Split-join is now deprecated.
 SPLIT_JOIN_ARGS="--remote $METRON_HOME/flux/enrichment/remote-splitjoin.yaml --filter $METRON_HOME/config/enrichment-splitjoin.properties"
 UNIFIED_ARGS="--remote $METRON_HOME/flux/enrichment/remote-unified.yaml --filter $METRON_HOME/config/enrichment-unified.properties"
 
 # by passing in different args, the user can execute an alternative enrichment topology
-ARGS=${@:-$SPLIT_JOIN_ARGS}
+ARGS=${@:-$UNIFIED_ARGS}
 
 storm jar $METRON_HOME/lib/$TOPOLOGY_JAR org.apache.storm.flux.Flux $ARGS

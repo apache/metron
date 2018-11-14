@@ -70,6 +70,9 @@ sequence files.
 
 ## Configuration
 
+The configuration properties for PCAP sensor is managed via Ambari at Services -> Metron -> Config -> PCAP tab.
+Note that changes to PCAP sensor config properties via Ambari requires restarting the Metron PCAP service.
+
 The configuration file for the Flux topology is located at
 `$METRON_HOME/config/pcap.properties` and the possible options
 are as follows:

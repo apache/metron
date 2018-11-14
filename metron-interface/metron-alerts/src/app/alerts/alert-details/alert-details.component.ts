@@ -29,10 +29,11 @@ import {PatchRequest} from '../../model/patch-request';
 import {Patch} from '../../model/patch';
 import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
-import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
 import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {GlobalConfigService} from '../../service/global-config.service';
+import { DialogService } from 'app/service/dialog.service';
+import { ConfirmationType } from 'app/model/confirmation-type';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -83,7 +84,7 @@ export class AlertDetailsComponent implements OnInit {
               private updateService: UpdateService,
               private alertsService: AlertsService,
               private authenticationService: AuthenticationService,
-              private metronDialogBox: MetronDialogBox,
+              private dialogService: DialogService,
               globalConfigService: GlobalConfigService) {
     this.globalConfigService = globalConfigService;
   }
@@ -249,8 +250,8 @@ export class AlertDetailsComponent implements OnInit {
       commentText += ' \'' + this.alertCommentsWrapper[index].alertComment.comment + '\'';
     }
 
-    this.metronDialogBox.showConfirmationMessage(commentText).subscribe(response => {
-      if (response) {
+    const confirmedSubscription = this.dialogService.launchDialog(commentText).subscribe(action => {
+      if (action === ConfirmationType.Confirmed) {
         let deletedCommentWrapper = this.alertCommentsWrapper.splice(index, 1)[0];
         let commentRequest = new CommentAddRemoveRequest();
         commentRequest.guid = this.alertSource.guid;
@@ -268,6 +269,7 @@ export class AlertDetailsComponent implements OnInit {
               this.alertCommentsWrapper.sort((a, b) => b.alertComment.timestamp - a.alertComment.timestamp);
             });
       }
+      confirmedSubscription.unsubscribe();
     });
   }
 }

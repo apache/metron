@@ -46,11 +46,11 @@ import org.junit.rules.ExpectedException;
 public abstract class SearchIntegrationTest {
   /**
    * [
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "ttl": "data 1", "guid":"bro_1"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "score": 50.0, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "ttl": "data 2", "guid":"bro_2"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "score": 20.0, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "ttl": "data 3", "guid":"bro_3"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "ttl": "data 4", "guid":"bro_4"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "score": 98.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "ttl": "data 5", "guid":"bro_5"}
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "method": "bro data 1", "ttl": "data 1", "guid":"bro_1"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "score": 50.0, "is_alert":false, "location_point": "48.5839,7.7455", "method": "bro data 2", "ttl": "data 2", "guid":"bro_2"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "score": 20.0, "is_alert":true, "location_point": "50.0,7.7455", "method": "bro data 3", "ttl": "data 3", "guid":"bro_3"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "method": "bro data 4", "ttl": "data 4", "guid":"bro_4"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "score": 98.0, "is_alert":true, "location_point": "48.5839,7.7455", "method": "bro data 5", "ttl": "data 5", "guid":"bro_5"}
    * ]
    */
   @Multiline
@@ -58,11 +58,11 @@ public abstract class SearchIntegrationTest {
 
   /**
    * [
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "ttl": 1, "guid":"snort_1", "threat:triage:score":10.0},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "ttl": 2, "guid":"snort_2", "threat:triage:score":20.0},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "ttl": 3, "guid":"snort_3"},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "ttl": 4, "guid":"snort_4"},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "ttl": 5, "guid":"snort_5"}
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "sig_generator": "sig_generator 1", "ttl": 1, "guid":"snort_1", "threat:triage:score":10.0},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "sig_generator": "sig_generator 2", "ttl": 2, "guid":"snort_2", "threat:triage:score":20.0},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "sig_generator": "sig_generator 3", "ttl": 3, "guid":"snort_3"},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "sig_generator": "sig_generator 4", "ttl": 4, "guid":"snort_4"},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "sig_generator": "sig_generator 5", "ttl": 5, "guid":"snort_5"}
    * ]
    */
   @Multiline
@@ -272,7 +272,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "facetFields": ["snort_field"],
+   * "facetFields": ["sig_generator"],
    * "indices": ["bro", "snort"],
    * "query": "*:*",
    * "from": 0,
@@ -698,14 +698,14 @@ public abstract class SearchIntegrationTest {
 
     Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
     Assert.assertEquals(1, facetCounts.size());
-    Map<String, Long> snortFieldCounts = facetCounts.get("snort_field");
+    Map<String, Long> snortFieldCounts = facetCounts.get("sig_generator");
     Assert.assertEquals(5, snortFieldCounts.size());
 
-    Assert.assertEquals(1L, snortFieldCounts.get("50").longValue());
-    Assert.assertEquals(1L, snortFieldCounts.get("40").longValue());
-    Assert.assertEquals(1L, snortFieldCounts.get("30").longValue());
-    Assert.assertEquals(1L, snortFieldCounts.get("20").longValue());
-    Assert.assertEquals(1L, snortFieldCounts.get("10").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("sig_generator 5").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("sig_generator 4").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("sig_generator 3").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("sig_generator 2").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("sig_generator 1").longValue());
     response.getFacetCounts();
   }
 

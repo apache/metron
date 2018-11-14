@@ -188,9 +188,11 @@ See more detail on starting parsers [here](https://github.com/apache/metron/blob
 
 **Enrichment**
 
+__Note__ These recommendations are based on the deprecated split-join enrichment topology. See [Enrichment Performance](metron-enrichment/Performance.md) for tuning recommendations for the new default unified enrichment topology.
+
 This is a mapping of the various performance tuning properties for enrichments and how they are materialized.
 
-Flux file found here - $METRON_HOME/flux/enrichment/remote.yaml
+Flux file found here - $METRON_HOME/flux/enrichment/remote-splitjoin.yaml
 
 _Note 1:_ Changes to Flux file properties that are managed by Ambari will render Ambari unable to further manage the property.
 
@@ -410,7 +412,7 @@ And we ran our bro parser topology with the following options. We did not need t
 though you could certainly do so if necessary. Notice that we only needed 1 worker.
 
 ```
-/usr/metron/0.6.0/bin/start_parser_topology.sh \
+/usr/metron/0.6.1/bin/start_parser_topology.sh \
     -e ~metron/.storm/storm-bro.config \
     -esc ~/.storm/spout-bro.config \
     -k $BROKERLIST \
@@ -457,6 +459,8 @@ usage: start_parser_topology.sh
 ```
 
 ### Enrichment Tuning
+
+__Note__ These tuning suggestions are based on the deprecated split-join topology.
 
 We landed on the same number of partitions for enrichemnt and indexing as we did for bro - 48.
 
@@ -594,7 +598,7 @@ export KAFKA_HOME=$HDP_HOME/kafka-broker
 export STORM_UI=http://node1:8744
 export ELASTIC=http://node1:9200
 export ZOOKEEPER=node1:2181
-export METRON_VERSION=0.6.0
+export METRON_VERSION=0.6.1
 export METRON_HOME=/usr/metron/${METRON_VERSION}
 ```
 

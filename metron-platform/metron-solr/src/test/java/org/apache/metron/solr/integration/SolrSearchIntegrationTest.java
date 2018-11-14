@@ -133,7 +133,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
 
       // Bro only field in the dynamic catch all
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("bro_field"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("method"));
 
       // A field is in both bro and snort and they have different types.
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("ttl"));
@@ -169,7 +169,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
 
       // Snort only field in the dynamic catch all
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("snort_field"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("sig_generator"));
 
       // A field is in both bro and snort and they have different types.
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
@@ -211,10 +211,10 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     Assert.assertEquals(FieldType.OTHER, fieldTypes.get("timestamp"));
 
     // Bro only field in the dynamic catch all
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("bro_field"));
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("method"));
 
     // Snort only field in the dynamic catch all
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("snort_field"));
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("sig_generator"));
 
     // A field is in both bro and snort and they have different types.
     Assert.assertEquals(FieldType.OTHER, fieldTypes.get("ttl"));

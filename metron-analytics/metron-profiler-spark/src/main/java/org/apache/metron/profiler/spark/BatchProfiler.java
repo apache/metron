@@ -26,6 +26,8 @@ import org.apache.metron.profiler.spark.function.GroupByPeriodFunction;
 import org.apache.metron.profiler.spark.function.HBaseWriterFunction;
 import org.apache.metron.profiler.spark.function.MessageRouterFunction;
 import org.apache.metron.profiler.spark.function.ProfileBuilderFunction;
+import org.apache.metron.profiler.spark.reader.TelemetryReader;
+import org.apache.metron.profiler.spark.reader.TelemetryReaders;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
@@ -40,8 +42,7 @@ import java.util.Properties;
 
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_BEGIN;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_END;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_FORMAT;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_PATH;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_READER;
 import static org.apache.spark.sql.functions.sum;
 
 /**
@@ -54,6 +55,7 @@ public class BatchProfiler implements Serializable {
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private TimestampParser timestampParser;
+  private TelemetryReader reader;
 
   public BatchProfiler() {
     this.timestampParser = new TimestampParser();
@@ -77,17 +79,10 @@ public class BatchProfiler implements Serializable {
 
     LOG.debug("Building {} profile(s)", profiles.getProfiles().size());
     Map<String, String> globals = Maps.fromProperties(globalProperties);
-    String inputFormat = TELEMETRY_INPUT_FORMAT.get(profilerProps, String.class);
-    String inputPath = TELEMETRY_INPUT_PATH.get(profilerProps, String.class);
-    LOG.debug("Loading telemetry from '{}'", inputPath);
-
-    // fetch the archived telemetry
-    Dataset<String> telemetry = spark
-            .read()
-            .options(Maps.fromProperties(readerProps))
-            .format(inputFormat)
-            .load(inputPath)
-            .as(Encoders.STRING());
+    
+    // fetch the archived telemetry using the input reader
+    TelemetryReader reader = TelemetryReaders.create(TELEMETRY_INPUT_READER.get(profilerProps, String.class));
+    Dataset<String> telemetry = reader.read(spark, profilerProps, readerProps);
     LOG.debug("Found {} telemetry record(s)", telemetry.cache().count());
 
     // find all routes for each message

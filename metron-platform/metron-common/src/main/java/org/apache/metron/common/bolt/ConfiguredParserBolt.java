@@ -17,9 +17,11 @@
  */
 package org.apache.metron.common.bolt;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,4 +38,15 @@ public abstract class ConfiguredParserBolt extends ConfiguredBolt<ParserConfigur
     return getConfigurations().getSensorParserConfig(sensorType);
   }
 
+  @Override
+  public void cleanup() {
+    // This method may not be called in production.
+    // See https://storm.apache.org/releases/1.0.6/javadocs/org/apache/storm/task/IBolt.html#cleanup-- for more detail.
+    super.cleanup();
+    try {
+      StellarFunctions.close();
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
+    }
+  }
 }

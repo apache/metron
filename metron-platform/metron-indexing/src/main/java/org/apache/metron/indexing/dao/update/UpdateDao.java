@@ -18,7 +18,6 @@
 package org.apache.metron.indexing.dao.update;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.common.utils.JSONUtils;
@@ -33,25 +32,27 @@ public interface UpdateDao {
    *
    * @param update The document to replace from the index.
    * @param index The index where the document lives.
+   * @return The updated document
    * @throws IOException If an error occurs during the update.
    */
-  void update(Document update, Optional<String> index) throws IOException;
+  Document update(Document update, Optional<String> index) throws IOException;
 
   /**
    * Similar to the update method but accepts multiple documents and performs updates in batch.
    *
    * @param updates A map of the documents to update to the index where they live.
+   * @return The updated documents.
    * @throws IOException If an error occurs during the updates.
    */
-  void batchUpdate(Map<Document, Optional<String>> updates) throws IOException;
+  Map<Document, Optional<String>> batchUpdate(Map<Document, Optional<String>> updates) throws IOException;
 
-  void addCommentToAlert(CommentAddRemoveRequest request) throws IOException;
+  Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException;
 
-  void removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException;
+  Document removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException;
 
-  void addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException;
+  Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException;
 
-  void removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException;
+  Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException;
 
 
   /**
@@ -59,14 +60,15 @@ public interface UpdateDao {
    * https://tools.ietf.org/html/rfc6902)
    * @param request The patch request
    * @param timestamp Optionally a timestamp to set. If not specified then current time is used.
+   * @return The patched document.
    * @throws OriginalNotFoundException If the original is not found, then it cannot be patched.
    * @throws IOException If an error occurs while patching.
    */
-  default void patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request
+  default Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request
       , Optional<Long> timestamp
   ) throws OriginalNotFoundException, IOException {
     Document d = getPatchedDocument(retrieveLatestDao, request, timestamp);
-    update(d, Optional.ofNullable(request.getIndex()));
+    return update(d, Optional.ofNullable(request.getIndex()));
   }
 
   default Document getPatchedDocument(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
@@ -94,15 +96,16 @@ public interface UpdateDao {
    * Replace a document in an index.
    * @param request The replacement request.
    * @param timestamp The timestamp (optional) of the update.  If not specified, then current time will be used.
+   * @return The replaced document.
    * @throws IOException If an error occurs during replacement.
    */
-  default void replace(ReplaceRequest request, Optional<Long> timestamp)
+  default Document replace(ReplaceRequest request, Optional<Long> timestamp)
       throws IOException {
     Document d = new Document(request.getReplacement(),
         request.getGuid(),
         request.getSensorType(),
         timestamp.orElse(System.currentTimeMillis())
     );
-    update(d, Optional.ofNullable(request.getIndex()));
+    return update(d, Optional.ofNullable(request.getIndex()));
   }
 }

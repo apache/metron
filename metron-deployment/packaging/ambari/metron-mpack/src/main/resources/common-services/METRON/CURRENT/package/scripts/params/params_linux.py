@@ -58,7 +58,17 @@ metron_management_ui_port = status_params.metron_management_ui_port
 metron_alerts_ui_host = status_params.metron_alerts_ui_host
 metron_alerts_ui_port = status_params.metron_alerts_ui_port
 metron_jvm_flags = config['configurations']['metron-rest-env']['metron_jvm_flags']
-metron_spring_profiles_active = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
+
+# Construct the profiles as a temp variable first. Only the first time it's set will carry through
+metron_spring_profiles_temp = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
+if config['configurations']['metron-security-env']['metron.ldap.enabled']:
+    if metron_spring_profiles_temp:
+        metron_spring_profiles_active = metron_spring_profiles_temp + ',ldap'
+    else:
+        metron_spring_profiles_active = 'ldap'
+else:
+    metron_spring_profiles_active = metron_spring_profiles_temp
+
 metron_jdbc_driver = config['configurations']['metron-rest-env']['metron_jdbc_driver']
 metron_jdbc_url = config['configurations']['metron-rest-env']['metron_jdbc_url']
 metron_jdbc_username = config['configurations']['metron-rest-env']['metron_jdbc_username']
@@ -241,6 +251,7 @@ client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_
 enrichment_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 profiler_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 indexing_topology_worker_childopts = client_jaas_arg if security_enabled else ''
+pcap_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 metron_jvm_flags += (' ' + client_jaas_arg) if security_enabled else ''
 topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
 # Needed for storm.config, because it needs Java String
@@ -265,6 +276,21 @@ if security_enabled:
     # Check wether Solr mpack is installed
     if 'solr-config-env' in config['configurations']:
         solr_principal_name = solr_principal_name.replace('_HOST', hostname_lowercase)
+
+# LDAP
+metron_ldap_url = config['configurations']['metron-security-env']['metron.ldap.url']
+metron_ldap_userdn = config['configurations']['metron-security-env']['metron.ldap.bind.dn']
+metron_ldap_password = config['configurations']['metron-security-env']['metron.ldap.bind.password']
+metron_ldap_user_pattern = config['configurations']['metron-security-env']['metron.ldap.user.dnpattern']
+metron_ldap_user_password = config['configurations']['metron-security-env']['metron.ldap.user.password']
+metron_ldap_user_dnbase = config['configurations']['metron-security-env']['metron.ldap.user.basedn']
+metron_ldap_user_searchbase = config['configurations']['metron-security-env']['metron.ldap.user.searchbase']
+metron_ldap_user_searchfilter = config['configurations']['metron-security-env']['metron.ldap.user.searchfilter']
+metron_ldap_group_searchbase = config['configurations']['metron-security-env']['metron.ldap.group.searchbase']
+metron_ldap_group_searchfilter = config['configurations']['metron-security-env']['metron.ldap.group.searchfilter']
+metron_ldap_group_role = config['configurations']['metron-security-env']['metron.ldap.group.roleattribute']
+metron_ldap_ssl_truststore = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore']
+metron_ldap_ssl_truststore_password = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore.password']
 
 # Management UI
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
@@ -387,18 +413,32 @@ bolt_hdfs_rotation_policy = config['configurations']['metron-indexing-env']['bol
 bolt_hdfs_rotation_policy_units = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_units']
 bolt_hdfs_rotation_policy_count = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_count']
 
-# Pcap
-metron_pcap_topology = 'pcap'
-pcap_input_topic = 'pcap'
-pcap_base_path = config['configurations']['metron-rest-env']['pcap_base_path']
-pcap_base_interim_result_path = config['configurations']['metron-rest-env']['pcap_base_interim_result_path']
-pcap_final_output_path = config['configurations']['metron-rest-env']['pcap_final_output_path']
-pcap_page_size = config['configurations']['metron-rest-env']['pcap_page_size']
-pcap_yarn_queue = config['configurations']['metron-rest-env']['pcap_yarn_queue']
-pcap_finalizer_threadpool_size= config['configurations']['metron-rest-env']['pcap_finalizer_threadpool_size']
+# PCAP
+metron_pcap_topology = status_params.metron_pcap_topology
+pcap_input_topic = status_params.pcap_input_topic
+pcap_base_path = config['configurations']['metron-pcap-env']['pcap_base_path']
+pcap_base_interim_result_path = config['configurations']['metron-pcap-env']['pcap_base_interim_result_path']
+pcap_final_output_path = config['configurations']['metron-pcap-env']['pcap_final_output_path']
+pcap_page_size = config['configurations']['metron-pcap-env']['pcap_page_size']
+pcap_yarn_queue = config['configurations']['metron-pcap-env']['pcap_yarn_queue']
+pcap_finalizer_threadpool_size= config['configurations']['metron-pcap-env']['pcap_finalizer_threadpool_size']
 pcap_configured_flag_file = status_params.pcap_configured_flag_file
 pcap_perm_configured_flag_file = status_params.pcap_perm_configured_flag_file
 pcap_acl_configured_flag_file = status_params.pcap_acl_configured_flag_file
+pcap_topology_workers = config['configurations']['metron-pcap-env']['pcap_topology_workers']
+if not len(pcap_topology_worker_childopts) == 0:
+    pcap_topology_worker_childopts += ' '
+pcap_topology_worker_childopts += config['configurations']['metron-pcap-env']['pcap_topology_worker_childopts']
+spout_kafka_topic_pcap = config['configurations']['metron-pcap-env']['spout_kafka_topic_pcap']
+hdfs_sync_every = config['configurations']['metron-pcap-env']['hdfs_sync_every']
+hdfs_replication_factor = config['configurations']['metron-pcap-env']['hdfs_replication_factor']
+kafka_pcap_start = config['configurations']['metron-pcap-env']['kafka_pcap_start']
+kafka_pcap_numpackets = config['configurations']['metron-pcap-env']['kafka_pcap_numpackets']
+kafka_pcap_maxtimems = config['configurations']['metron-pcap-env']['kafka_pcap_maxtimems']
+kafka_pcap_tsscheme = config['configurations']['metron-pcap-env']['kafka_pcap_tsscheme']
+kafka_pcap_out = config['configurations']['metron-pcap-env']['kafka_pcap_out']
+kafka_pcap_ts_granularity = config['configurations']['metron-pcap-env']['kafka_pcap_ts_granularity']
+kafka_spout_parallelism = config['configurations']['metron-pcap-env']['kafka_spout_parallelism']
 
 
 # MapReduce

@@ -158,6 +158,16 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
             putMetronEnvProperty("zeppelin_server_url", zeppelinServerUrl)
 
+        #Suggest Zookeeper quorum
+        if "solr-cloud" in services["configurations"]:
+            zookeeperHost = self.getComponentHostNames(services, "ZOOKEEPER", "ZOOKEEPER_SERVER")[0]
+            zookeeperClientPort = services["configurations"]["zoo.cfg"]["properties"]["clientPort"]
+            solrZkDir = services["configurations"]["solr-cloud"]["properties"]["solr_cloud_zk_directory"]
+            solrZookeeperUrl = zookeeperHost + ":" + zookeeperClientPort + solrZkDir
+            putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
+            putMetronEnvProperty("solr_zookeeper_url", solrZookeeperUrl)
+
+
     def validateSTORMSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
         # Determine if the cluster is secured
         is_secured = self.isSecurityEnabled(services)

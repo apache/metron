@@ -207,7 +207,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     }
     UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.ERROR);
     verify(outputCollector, times(5)).ack(tuple);
-    verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), any(Values.class));
+    verify(outputCollector, times(5)).emit(eq(Constants.ERROR_STREAM), any(Values.class));
     verify(outputCollector, times(1)).reportError(any(Throwable.class));
   }
 

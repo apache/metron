@@ -16,6 +16,7 @@ target/
 *.tmp
 *.bak
 *.class
+*.pyc
 
 tmp/**
 tmp/**/*
