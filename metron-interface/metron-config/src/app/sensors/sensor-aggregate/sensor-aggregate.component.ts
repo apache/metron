@@ -22,6 +22,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'metron-config-sensor-aggregate',
   templateUrl: './sensor-aggregate.component.html',
+  styleUrls: ['./sensor-aggregate.component.scss']
 })
 export class SensorAggregateComponent {
 

@@ -1,0 +1,75 @@
+$base-gutter: 20px;
+
+.aggregate-sensors-pane {
+  padding: $base-gutter;
+}
+
+.form-title {
+  margin-bottom: $base-gutter;
+}
+
+.form-fields {
+  border-top: 1px solid #2B576B;
+  border-bottom: 1px solid #2B576B;
+  padding: $base-gutter 0 0;
+  margin-bottom: $base-gutter;
+}
+
+.form-field {
+
+  margin-bottom: $base-gutter;
+
+  label {
+    display: block;
+  }
+
+  & .label-text {
+    display: block;
+  }
+
+  & input {
+    width: 100%;
+  }
+}
+
+.save-button {
+  background-color: #006ea0;
+  border-color: #006ea0;
+  color: white;
+  font-size: 14px;
+  width: 32%;
+}
+
+.switch-buttons {
+  margin-bottom: $base-gutter;
+
+  & button {
+    appearance: none;
+    display: inline-block;
+    color: #999;
+    border-color: #4D4D4D;
+    width: 139px;
+    height: 35px;
+    line-height: 35px;
+    vertical-align: middle;
+    font-size: 14px;
+    cursor: pointer;
+    background: #404040;
+    outline: none;
+
+    &:first-child {
+      border-right: none;
+    }
+
+    &:nth-child(2) {
+      border-left: none;
+    }
+
+    &.active {
+      color: #fff;
+      background: #2C5E6B;
+      border-color: #2C5E6B;
+      cursor: default;
+    }
+  }
+}
