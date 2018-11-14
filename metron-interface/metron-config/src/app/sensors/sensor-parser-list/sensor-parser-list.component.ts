@@ -227,34 +227,42 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   // FIXME: template calls sensor.getSensor() wich return with a SensorParserConfigHistory
-  deleteGroup(parserGroup: SensorParserConfigHistory, $event) {
-    $event.stopPropagation();
-    this.sensorParserConfigService.deleteGroups([parserGroup.sensorName])
-    .subscribe(this.batchDeleteResultHandler.bind(this));
-  }
-
-  // FIXME it could be a group as well
-  deleteSensor(selectedSensorsToDelete: SensorParserConfigHistory[] | SensorParserConfigHistory, $event) {
-    let sensorArray = [];
+  deleteGroup(items: SensorParserConfigHistory[] | SensorParserConfigHistory, $event) {
     if ($event) {
       $event.stopPropagation();
     }
+    this.deleteParserConfigListItems(this.sensorParserConfigService.deleteGroups, items);
+  }
 
-    if (Array.isArray(selectedSensorsToDelete)) {
-      sensorArray = selectedSensorsToDelete;
-    } else {
-      sensorArray = [selectedSensorsToDelete];
+  // FIXME it could be a group as well, deleteSensor is not apropiate name anymore but it used other places
+  // so I leave it as it is for now and create getDeleteFunc to manage group deletion.
+  deleteSensor(items: SensorParserConfigHistory[] | SensorParserConfigHistory, $event) {
+    if ($event) {
+      $event.stopPropagation();
     }
+    this.deleteParserConfigListItems(this.sensorParserConfigService.deleteConfigs, items);
+  }
 
-    let sensorNames = sensorArray.map(sensor => { return sensor.sensorName; });
-    let confirmationsMsg = 'Are you sure you want to delete sensor(s) ' + sensorNames.join(', ') + ' ?';
-
-    this.metronDialogBox.showConfirmationMessage(confirmationsMsg).subscribe(result => {
-      if (result) {
-        this.sensorParserConfigService.deleteConfigs(sensorNames)
-            .subscribe(this.batchDeleteResultHandler.bind(this));
+  private deleteParserConfigListItems(
+    typeSpecificDeleteFn: Function,
+    items: SensorParserConfigHistory[] | SensorParserConfigHistory
+    ) {
+      let itemsArr = [];
+      if (Array.isArray(items)) {
+        itemsArr = items;
+      } else {
+        itemsArr = [items];
       }
-    });
+
+      const itemNames = itemsArr.map(item => { return item.sensorName; });
+      const confirmationsMsg = 'Are you sure you want to delete sensor(s) ' + itemNames.join(', ') + ' ?';
+
+      this.metronDialogBox.showConfirmationMessage(confirmationsMsg).subscribe(result => {
+        if (result) {
+          typeSpecificDeleteFn.call(this.sensorParserConfigService, itemNames)
+            .subscribe(this.batchDeleteResultHandler.bind(this));
+        }
+      });
   }
 
   batchDeleteResultHandler(deleteResult: {success: Array<string>, failure: Array<string>}) {

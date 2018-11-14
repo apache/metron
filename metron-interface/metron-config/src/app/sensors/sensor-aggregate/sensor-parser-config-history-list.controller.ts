@@ -37,6 +37,8 @@ export class SensorParserConfigHistoryListController {
 
   setSensors(sensors: SensorParserConfigHistory[]) {
 
+    this._next([]);
+
     if (this._sensors && this._sensors.length) {
       this._sensors.forEach(sensor => {
         sensor.destroy();

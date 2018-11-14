@@ -85,8 +85,7 @@ export class SensorParserConfigService {
           observer.next(result);
           observer.complete();
         }
-        // TODO: what about this?
-        // this.dataChangedSource.next(groupNames);
+        this.dataChangedSource.next(groupNames);
       };
       from(groupNames).pipe(
         mergeMap(this.deleteGroup.bind(this)),
