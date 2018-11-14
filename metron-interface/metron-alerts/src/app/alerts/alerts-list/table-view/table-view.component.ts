@@ -141,14 +141,14 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
   onSort(sortEvent: SortEvent) {
     let sortOrder = (sortEvent.sortOrder === Sort.ASC ? 'asc' : 'desc');
-    let sortBy = sortEvent.sortBy === 'id' ? 'guid' : sortEvent.sortBy;
+    let sortBy = sortEvent.sortBy === 'id' ? '_uid' : sortEvent.sortBy;
     this.queryBuilder.setSort(sortBy, sortOrder);
     this.onRefreshData.emit(true);
   }
 
   getValue(alert: Alert, column: ColumnMetadata, formatData: boolean) {
     if (column.name === 'id') {
-      return this.formatValue(column, alert[column.name]);
+      return this.formatValue(column, alert['id']);
     }
 
     return this.getValueFromSource(alert.source, column, formatData);
@@ -158,9 +158,6 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
     let returnValue = '';
     try {
       switch (column.name) {
-        case 'id':
-          returnValue = alertSource['guid'];
-          break;
         case 'alert_status':
           returnValue = alertSource['alert_status'] ? alertSource['alert_status'] : 'NEW';
           break;
@@ -218,7 +215,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   addFilter(field: string, value: string) {
-    field = (field === 'id') ? 'guid' : field;
+    field = (field === 'id') ? '_id' : field;
     this.onAddFilter.emit(new Filter(field, value));
   }
 

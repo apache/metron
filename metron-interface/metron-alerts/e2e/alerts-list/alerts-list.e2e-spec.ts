@@ -24,9 +24,9 @@ import { loadTestData, deleteTestData } from '../utils/e2e_util';
 describe('Test spec for all ui elements & list view', function() {
   let page: MetronAlertsPage;
   let loginPage: LoginPage;
-  let columnNames = [ '', 'Score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichm...:country',
+  let columnNames = [ '', 'Score', 'guid', 'timestamp', 'source:type', 'ip_src_addr', 'enrichm...:country',
                       'ip_dst_addr', 'host', 'alert_status', '', '', ''];
-  let colNamesColumnConfig = [ 'score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
+  let colNamesColumnConfig = [ 'score', 'guid', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
                                 'ip_dst_addr', 'host', 'alert_status' ];
 
   beforeAll(async function() : Promise<any> {
@@ -136,16 +136,17 @@ describe('Test spec for all ui elements & list view', function() {
   });
 
   it('should select columns from table configuration', async function() : Promise<any> {
-    let newColNamesColumnConfig = [ 'score', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
-      'ip_dst_addr', 'host', 'alert_status', 'guid' ];
-
     await page.clickConfigureTable();
-    expect(await page.getSelectedColumnNames()).toEqual(colNamesColumnConfig, 'for default selected column names');
-    await page.toggleSelectCol('id');
-    await page.toggleSelectCol('guid');
-    expect(await page.getSelectedColumnNames()).toEqual(newColNamesColumnConfig, 'for guid added to selected column names');
-    await page.saveConfigureColumns();
+    expect(await page.getSelectedColumnNames()).toEqual(colNamesColumnConfig, 'expect default selected column names');
 
+    // remove the 'guid' column and add the 'id' column
+    await page.toggleSelectCol('guid');
+    await page.toggleSelectCol('id');
+
+    let expectedColumns = [ 'score', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
+      'ip_dst_addr', 'host', 'alert_status', 'id' ];
+    expect(await page.getSelectedColumnNames()).toEqual(expectedColumns, 'expect "id" field added and "guid" field removed from visible columns');
+    await page.saveConfigureColumns();
   });
 
   it('should have all time-range controls', async function() : Promise<any> {
