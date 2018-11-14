@@ -18,7 +18,7 @@
 #
 METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/$METRON_VERSION
-TOPOLOGY_JAR=metron-parsing-storm-$METRON_VERSION-uber.jar
+TOPOLOGY_JAR=metron-parsing-framework-storm-$METRON_VERSION-uber.jar
 PARSER_CONTRIB=${PARSER_CONTRIB:-$METRON_HOME/parser_contrib}
 EXTRA_ARGS="$@"
 

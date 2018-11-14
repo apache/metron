@@ -58,7 +58,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     // First check the basic parsers dir.
     File configsRoot = new File("../" + TestConstants.PARSER_COMMON_CONFIGS_PATH);
     File parsersRoot = new File(configsRoot, "parsers");
-    System.out.println("Workspace: " + System.getProperty("user'dir"));
+    System.out.println("Workspace: " + System.getProperty("user.dir"));
     System.out.println("Parsers root: " + parsersRoot);
     if (!Files.exists(new File(parsersRoot, sensorType + ".json").toPath())) {
       // Use the main parsers configs
@@ -70,7 +70,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
 
   public void runTest(ParserDriver driver) throws Exception {
     String sensorType = driver.getSensorType();
-    inputMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.RAW));
+    inputMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath("..", sensorType, TestDataType.RAW));
 
     ProcessorResult<List<byte[]>> result = driver.run(inputMessages);
     List<byte[]> outputMessages = result.getResult();

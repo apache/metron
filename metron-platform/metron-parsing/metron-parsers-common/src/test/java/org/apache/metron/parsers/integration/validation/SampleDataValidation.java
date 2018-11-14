@@ -35,7 +35,7 @@ public class SampleDataValidation implements ParserValidation {
 
   @Override
   public void validate(String sensorType, List<byte[]> actualMessages) throws Exception {
-    List<byte[]> expectedMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.PARSED));
+    List<byte[]> expectedMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath("..", sensorType, TestDataType.PARSED));
     Assert.assertEquals(expectedMessages.size(), actualMessages.size());
     for (int i = 0; i < actualMessages.size(); i++) {
       String expectedMessage = new String(expectedMessages.get(i));

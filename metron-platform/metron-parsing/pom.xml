@@ -31,6 +31,6 @@
   <modules>
     <module>metron-parsers</module>
     <module>metron-parsers-common</module>
-    <module>metron-parsing-storm</module>
+    <module>metron-parsing-framework-storm</module>
   </modules>
 </project>

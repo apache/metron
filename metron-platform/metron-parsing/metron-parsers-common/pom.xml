@@ -141,11 +141,6 @@
             <version>${global_junit_version}</version>
             <scope>test</scope>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.google.guava</groupId>-->
-            <!--<artifactId>guava</artifactId>-->
-            <!--<version>${global_guava_version}</version>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -204,12 +199,6 @@
             <artifactId>commons-cli</artifactId>
             <version>1.2</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.apache.metron</groupId>-->
-            <!--<artifactId>metron-test-utilities</artifactId>-->
-            <!--<version>${project.parent.version}</version>-->
-            <!--<scope>test</scope>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-integration-test</artifactId>
@@ -227,11 +216,6 @@
             <artifactId>json-path</artifactId>
             <version>2.3.0</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.github.palindromicity</groupId>-->
-            <!--<artifactId>simple-syslog-5424</artifactId>-->
-            <!--<version>${global_simple_syslog_version}</version>-->
-        <!--</dependency>-->
     </dependencies>
     <build>
         <plugins>

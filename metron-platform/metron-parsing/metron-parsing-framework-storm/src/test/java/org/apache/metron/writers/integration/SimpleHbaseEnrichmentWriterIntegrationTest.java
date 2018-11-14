@@ -101,9 +101,11 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
 
     SensorParserConfig parserConfig = JSONUtils.INSTANCE.load(parserConfigJSON, SensorParserConfig.class);
 
+    System.out.println("Workspace: " + System.getProperty("user.dir"));
+    System.out.println("Configs path: ../" + TestConstants.SAMPLE_CONFIG_PATH);
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
-            .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
+            .withGlobalConfigsPath("../" + TestConstants.SAMPLE_CONFIG_PATH)
             .withParserSensorConfig(sensorType, parserConfig);
 
     ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()

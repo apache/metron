@@ -32,6 +32,7 @@ import org.apache.curator.test.TestingServer;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.junit.After;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
