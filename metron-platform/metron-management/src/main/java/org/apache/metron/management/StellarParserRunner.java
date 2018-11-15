@@ -18,7 +18,6 @@
 package org.apache.metron.management;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.ParserRunnerImpl;
@@ -27,12 +26,10 @@ import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static org.apache.metron.common.message.metadata.RawMessageStrategies.DEFAULT;
@@ -78,7 +75,7 @@ public class StellarParserRunner {
         List<ParserRunnerResults<JSONObject>> results = messages
                 .stream()
                 .map(str -> str.getBytes())
-                .map(msg -> DEFAULT.get(emptyMap(), msg, false, emptyMap()))
+                .map(bytes -> DEFAULT.get(emptyMap(), bytes, false, emptyMap()))
                 .map(msg -> runner.execute(sensorType, msg, parserConfigurations))
                 .collect(Collectors.toList());
 

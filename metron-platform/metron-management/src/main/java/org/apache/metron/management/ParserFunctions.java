@@ -111,7 +111,7 @@ public class ParserFunctions {
 
       List<String> messages = new ArrayList<>();
       if(hasArg(inputArgName, 1, String.class, args)) {
-        // the input is a single message as a strign
+        // the input is a single message as a string
         String msg = getArg(inputArgName, 1, String.class, args);
         messages.add(msg);
 
