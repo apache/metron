@@ -17,8 +17,7 @@
 #  limitations under the License.
 #
 
-
-VAGRANT_PATH=`pwd`
+VAGRANT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 echo "setting the ansible configuration path"
 ANSIBLE_PATH=${VAGRANT_PATH}/ansible
 echo ${ANSIBLE_PATH}
