@@ -28,9 +28,12 @@ import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -224,5 +227,48 @@ public class DateFunctionsTest {
   @Test(expected = ParseException.class)
   public void testDayOfYearNull() {
     Object result = run("DAY_OF_YEAR(nada)");
+  }
+
+  @Test
+  public void testDateFormat() {
+    Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzz', epoch, 'EST')");
+    assertEquals("Thu Aug 25 2016 08:27:10 EST", result);
+  }
+
+  /**
+   * Test that the String returned is formatted as specified.
+   * LocalDate.parse will throw if it is not.
+   * @throws Exception
+   */
+  @Test
+  public void testDateFormatDefault() throws Exception {
+    Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzzz')");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd yyyy hh:mm:ss zzzz");
+    LocalDate.parse(result.toString(), formatter);
+  }
+
+  @Test
+  public void testDateFormatNow() {
+    Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzz', 'GMT')");
+    assertTrue(result.toString().endsWith("GMT"));
+  }
+
+  @Test
+  public void testDateFormatDefaultTimezone() {
+    Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzzz', epoch)");
+    assertTrue(result.toString().endsWith(TimeZone.getDefault().getDisplayName(true, 1)));
+  }
+
+  /**
+   * If refer to variable that does not exist, expect ParseException.
+   */
+  @Test(expected = ParseException.class)
+  public void testDateFormatNull() {
+    Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzz', nada, 'EST')");
+  }
+
+  @Test(expected = ParseException.class)
+  public void testDateFormatInvalid() {
+    Object result = run("DATE_FORMAT('INVALID DATE FORMAT', epoch, 'EST')");
   }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,32 +15,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.metron.parsers;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Serializable;
+import java.io.StringReader;
+import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TimeZone;
+
 
 public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
@@ -48,6 +59,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   protected transient Grok grok;
   protected String grokPath;
+  protected boolean multiLine = false;
   protected String patternLabel;
   protected List<String> timeFields = new ArrayList<>();
   protected String timestampField;
@@ -55,8 +67,13 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected String patternsCommonDir = "/patterns/common";
 
   @Override
+  @SuppressWarnings("unchecked")
   public void configure(Map<String, Object> parserConfig) {
     this.grokPath = (String) parserConfig.get("grokPath");
+    String multiLineString = (String) parserConfig.get("multiLine");
+    if (!StringUtils.isBlank(multiLineString)) {
+      multiLine = Boolean.parseBoolean(multiLineString);
+    }
     this.patternLabel = (String) parserConfig.get("patternLabel");
     this.timestampField = (String) parserConfig.get("timestampField");
     List<String> timeFieldsParam = (List<String>) parserConfig.get("timeFields");
@@ -126,11 +143,73 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   @SuppressWarnings("unchecked")
   @Override
-  public List<JSONObject> parse(byte[] rawMessage) {
+  public Optional<MessageParserResult<JSONObject>> parseOptionalResult(byte[] rawMessage) {
     if (grok == null) {
       init();
     }
+    if (multiLine) {
+      return parseMultiLine(rawMessage);
+    }
+    return parseSingleLine(rawMessage);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Optional<MessageParserResult<JSONObject>> parseMultiLine(byte[] rawMessage) {
     List<JSONObject> messages = new ArrayList<>();
+    Map<Object,Throwable> errors = new HashMap<>();
+    String originalMessage = null;
+    // read the incoming raw data as if it may have multiple lines of logs
+    // if there is only only one line, it will just get processed.
+    try (BufferedReader reader = new BufferedReader(new StringReader(new String(rawMessage, StandardCharsets.UTF_8)))) {
+      while ((originalMessage = reader.readLine()) != null) {
+        LOG.debug("Grok parser parsing message: {}", originalMessage);
+        try {
+          Match gm = grok.match(originalMessage);
+          gm.captures();
+          JSONObject message = new JSONObject();
+          message.putAll(gm.toMap());
+
+          if (message.size() == 0) {
+            Throwable rte = new RuntimeException("Grok statement produced a null message. Original message was: "
+                    + originalMessage + " and the parsed message was: " + message + " . Check the pattern at: "
+                    + grokPath);
+            errors.put(originalMessage, rte);
+            continue;
+          }
+          message.put("original_string", originalMessage);
+          for (String timeField : timeFields) {
+            String fieldValue = (String) message.get(timeField);
+            if (fieldValue != null) {
+              message.put(timeField, toEpoch(fieldValue));
+            }
+          }
+          if (timestampField != null) {
+            message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
+          }
+          message.remove(patternLabel);
+          postParse(message);
+          messages.add(message);
+          LOG.debug("Grok parser parsed message: {}", message);
+        } catch (Exception e) {
+          LOG.error(e.getMessage(), e);
+          errors.put(originalMessage, e);
+        }
+      }
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
+      Exception innerException = new IllegalStateException("Grok parser Error: "
+              + e.getMessage()
+              + " on "
+              + originalMessage, e);
+      return Optional.of(new DefaultMessageParserResult<>(innerException));
+    }
+    return Optional.of(new DefaultMessageParserResult<>(messages, errors));
+  }
+
+  @SuppressWarnings("unchecked")
+  private Optional<MessageParserResult<JSONObject>> parseSingleLine(byte[] rawMessage) {
+    List<JSONObject> messages = new ArrayList<>();
+    Map<Object,Throwable> errors = new HashMap<>();
     String originalMessage = null;
     try {
       originalMessage = new String(rawMessage, "UTF-8");
@@ -140,30 +219,36 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       JSONObject message = new JSONObject();
       message.putAll(gm.toMap());
 
-      if (message.size() == 0)
-        throw new RuntimeException("Grok statement produced a null message. Original message was: "
+      if (message.size() == 0) {
+        Throwable rte = new RuntimeException("Grok statement produced a null message. Original message was: "
                 + originalMessage + " and the parsed message was: " + message + " . Check the pattern at: "
                 + grokPath);
-
-      message.put("original_string", originalMessage);
-      for (String timeField : timeFields) {
-        String fieldValue = (String) message.get(timeField);
-        if (fieldValue != null) {
-          message.put(timeField, toEpoch(fieldValue));
+        errors.put(originalMessage, rte);
+      } else {
+        message.put("original_string", originalMessage);
+        for (String timeField : timeFields) {
+          String fieldValue = (String) message.get(timeField);
+          if (fieldValue != null) {
+            message.put(timeField, toEpoch(fieldValue));
+          }
         }
+        if (timestampField != null) {
+          message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
+        }
+        message.remove(patternLabel);
+        postParse(message);
+        messages.add(message);
+        LOG.debug("Grok parser parsed message: {}", message);
       }
-      if (timestampField != null) {
-        message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
-      }
-      message.remove(patternLabel);
-      postParse(message);
-      messages.add(message);
-      LOG.debug("Grok parser parsed message: {}", message);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
-      throw new IllegalStateException("Grok parser Error: " + e.getMessage() + " on " + originalMessage , e);
+      Exception innerException = new IllegalStateException("Grok parser Error: "
+              + e.getMessage()
+              + " on "
+              + originalMessage, e);
+      return Optional.of(new DefaultMessageParserResult<>(innerException));
     }
-    return messages;
+    return Optional.of(new DefaultMessageParserResult<JSONObject>(messages, errors));
   }
 
   @Override

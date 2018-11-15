@@ -17,16 +17,12 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import com.google.common.base.Joiner;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
-import org.apache.metron.common.configuration.enrichment.threatintel.RuleScore;
-import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
-import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
@@ -34,8 +30,6 @@ import org.apache.metron.enrichment.utils.ThreatIntelUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;

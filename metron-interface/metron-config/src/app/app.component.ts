@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 import {Component} from '@angular/core';
-import './rxjs-operators';
 import {AuthenticationService} from './service/authentication.service';
 
 
@@ -28,7 +27,7 @@ import {AuthenticationService} from './service/authentication.service';
 
 export class AppComponent {
 
-  loggedIn: boolean = false;
+  loggedIn = false;
 
   constructor(private authService: AuthenticationService) {
     this.authService.onLoginEvent.subscribe(result => {

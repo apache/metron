@@ -67,6 +67,11 @@ public class Context implements Serializable {
      * is in the cache, then the cached result will be returned instead of recomputing.
      */
     CACHE
+    ,
+    /**
+     * This capability indicates that a http client (i.e. a CloseableHttpClient, specifically) is available.
+     */
+    HTTP_CLIENT
   }
 
   public enum ActivityType {

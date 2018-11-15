@@ -59,6 +59,49 @@ For instance, an `es.date.format` of `yyyy.MM.dd.HH` would have the consequence 
 roll hourly, whereas an `es.date.format` of `yyyy.MM.dd` would have the consequence that the indices would
 roll daily.
 
+### `es.client.settings`
+
+This field in global config allows you to specify Elasticsearch REST client options. These are used in conjunction with the previously mentioned Elasticsearch properties
+when setting up client connections to an Elasticsearch cluster. The available properties should be supplied as an object map. Current available options are as follows:
+
+| Property Name                       | Type      | Required? | Default Value  | Description                                                                                                                                                         |
+|-------------------------------------|-----------|-----------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| connection.timeout.millis           | Integer   | No        | 1000           | Sets connection timeout.                                                                                                                                            |
+| socket.timeout.millis               | Integer   | No        | 30000          | Sets socket timeout.                                                                                                                                                |
+| max.retry.timeout.millis            | Integer   | No        | 30000          | Sets the maximum timeout (in milliseconds) to honour in case of multiple retries of the same request.                                                               |
+| num.client.connection.threads       | Integer   | No        | 1              | Number of worker threads used by the connection manager. Defaults to Runtime.getRuntime().availableProcessors().                                                    |
+| xpack.username                      | String    | No        | null           | X-Pack username.                                                                                                                                                    |
+| xpack.password.file                 | String    | No        | null           | 1-line HDFS file where the X-Pack password is set.                                                                                                                  |
+| ssl.enabled                         | Boolean   | No        | false          | Turn on SSL connections.                                                                                                                                            |
+| keystore.type                       | String    | No        | "jks"          | Allows you to specify a keytstore type. See https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#KeyStore for more details.           |
+| keystore.path                       | String    | No        | null           | Path to the Trust Store that holds your Elasticsearch certificate authorities and certificate.                                                                      |
+| keystore.password.file              | String    | No        | null           | 1-line HDFS file where the keystore password is set.                                                                                                                |
+
+__Note:__ The migration from Elasticsearch's TransportClient to the Java REST client has resulted in some existing properties to change. Below is a mapping of the old properties to the new ones:
+
+| Old Property Name                      | New Property Name                   |
+|----------------------------------------|-------------------------------------|
+| client.transport.ping_timeout          | n/a                                 |
+| n/a                                    | connection.timeout.millis           |
+| n/a                                    | socket.timeout.millis               |
+| n/a                                    | max.retry.timeout.millis            |
+| n/a                                    | num.client.connection.threads       |
+| es.client.class                        | n/a                                 |
+| es.xpack.username                      | xpack.username                      |
+| es.xpack.password.file                 | xpack.password.file                 |
+| xpack.security.transport.ssl.enabled   | ssl.enabled                         |
+| xpack.ssl.key                          | n/a                                 |
+| xpack.ssl.certificate                  | n/a                                 |
+| xpack.ssl.certificate_authorities      | n/a                                 |
+| n/a                                    | keystore.type                       |
+| keystore.path                          | keystore.path                       |
+| n/a                                    | keystore.password.file              |
+
+__Notes:__
+* The transport client implementation provides for a 'xpack.security.user' property, however we never used this property directly. Rather, in order to secure the password we used custom properties for user/pass. These properties have been carried over as `xpack.username` and `xpack.password.file`.
+* See [https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_common_configuration.html](https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_common_configuration.html) for more specifics on the new client properties.
+* Other notes on JSSE - [https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html)
+
 ## Upgrading to 5.6.2
 
 Users should be prepared to re-index when migrating from Elasticsearch 2.3.3 to 5.6.2. There are a number of template changes, most notably around
@@ -269,9 +312,27 @@ Notes on other settings for types in ES
 * [https://www.elastic.co/guide/en/elasticsearch/reference/5.6/breaking_50_mapping_changes.html](https://www.elastic.co/guide/en/elasticsearch/reference/5.6/breaking_50_mapping_changes.html)
 * [https://www.elastic.co/blog/strings-are-dead-long-live-strings](https://www.elastic.co/blog/strings-are-dead-long-live-strings)
 
+### Metron Properties
+
+Metron depends on some internal fields being defined in sensor templates.  A field is defined in Elasticsearch by adding an entry to the `properties` section of the template:
+```
+"properties": {
+  "metron_field": {
+    "type": "keyword"
+  }
+}
+```
+
+The following is a list of properties that need to be defined along with their type:
+* source:type - keyword
+* alert_status - keyword
+* metron_alert - nested
+
 ## Using Metron with Elasticsearch 5.6.2
 
-There is a requirement that all sensors templates have a nested `metron_alert` field defined.  This field is a dummy field.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
+Although infrequent, sometimes an internal field is added in Metron and existing templates must be updated.  The following steps outlines how to do this, using `metron_alert` as an example.
+
+With the addition of the meta alert feature, there is a requirement that all sensors templates have a nested `metron_alert` field defined.  This field is a dummy field.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
 
 Without this field, an error will be thrown during ALL searches (including from UIs, resulting in no alerts being found for any sensor). This error will be found in the REST service's logs.
 

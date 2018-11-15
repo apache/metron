@@ -17,26 +17,23 @@
  */
 package org.apache.metron.parsers.topology;
 
-import java.io.Serializable;
-import org.apache.metron.parsers.bolt.WriterHandler;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 
-public class ParserComponents implements Serializable {
+import java.io.Serializable;
+
+public class ParserComponent implements Serializable {
   private static final long serialVersionUID = 7880346740026374665L;
 
   private MessageParser<JSONObject> messageParser;
   private MessageFilter<JSONObject> filter;
-  private WriterHandler writer;
 
-  public ParserComponents(
+  public ParserComponent(
       MessageParser<JSONObject> messageParser,
-      MessageFilter<JSONObject> filter,
-      WriterHandler writer) {
+      MessageFilter<JSONObject> filter) {
     this.messageParser = messageParser;
     this.filter = filter;
-    this.writer = writer;
   }
 
   public MessageParser<JSONObject> getMessageParser() {
@@ -47,10 +44,6 @@ public class ParserComponents implements Serializable {
     return filter;
   }
 
-  public WriterHandler getWriter() {
-    return writer;
-  }
-
   public void setMessageParser(
       MessageParser<JSONObject> messageParser) {
     this.messageParser = messageParser;
@@ -59,9 +52,5 @@ public class ParserComponents implements Serializable {
   public void setFilter(
       MessageFilter<JSONObject> filter) {
     this.filter = filter;
-  }
-
-  public void setWriter(WriterHandler writer) {
-    this.writer = writer;
   }
 }
