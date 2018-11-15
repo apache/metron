@@ -46,6 +46,11 @@ fi
 DATE=`date`
 LOG_DATE=${DATE// /_}
 LOGNAME="metron-build-${LOG_DATE}.log"
+
+# get the node1 ip address so we can add it to the docker hosts
+NODE1_IP=$(grep 'node1' /etc/hosts | awk '{print $1}')
+if [[ -z "${NODE1_IP}" ]]; then exit 1; fi
+
 echo "===============Running Docker==============="
 docker run -it \
  -v ${VAGRANT_PATH}/../../..:/root/metron \
@@ -56,6 +61,7 @@ docker run -it \
  -v ${VAGRANT_PATH}/logs:/root/logs \
  -e ANSIBLE_CONFIG='/root/ansible_config/ansible.cfg' \
  -e ANSIBLE_LOG_PATH="/root/logs/${LOGNAME}" \
+ --add-host="node1:${NODE1_IP}" \
  metron-build-docker:latest bash -c /root/vagrant/docker_run_ansible.sh
 
 rc=$?; if [[ ${rc} != 0 ]]; then
