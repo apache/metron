@@ -15,18 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// import 'rxjs/Rx'; // adds ALL RxJS statics & operators to Observable
+import { Injectable } from '@angular/core';
+import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest} from '@angular/common/http';
+import { Observable } from 'rxjs';
 
-// See node_module/rxjs/Rxjs.js
-// Import just the rxjs statics and operators we need for THIS app.
-
-// Statics
-import 'rxjs/add/observable/throw';
-
-// Operators
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/operator/debounceTime';
-import 'rxjs/add/operator/distinctUntilChanged';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/switchMap';
-import 'rxjs/add/operator/toPromise';
+@Injectable()
+export class DefaultHeadersInterceptor implements HttpInterceptor {
+   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Clone the request and replace the original headers with
+    // cloned headers, updated with the authorization.
+    const authReq = req.clone({
+      setHeaders: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}
+    });
+    return next.handle(authReq);
+  }
+ }
