@@ -223,14 +223,14 @@ public class RestFunctions {
      * @return
      * @throws IOException
      */
-    private Object doGet(RestConfig restConfig, HttpGet httpGet, HttpClientContext httpClientContext) throws IOException {
+    protected Object doGet(RestConfig restConfig, HttpGet httpGet, HttpClientContext httpClientContext) throws IOException {
 
       // Schedule a command to abort the httpGet request if the timeout is exceeded
       ScheduledFuture scheduledFuture = scheduledExecutorService.schedule(httpGet::abort, restConfig.getTimeout(), TimeUnit.MILLISECONDS);
       CloseableHttpResponse response;
       try {
         response = httpClient.execute(httpGet, httpClientContext);
-      } catch(IOException e) {
+      } catch(Exception e) {
         // Report a timeout if the httpGet request was aborted.  Otherwise rethrow exception.
         if (httpGet.isAborted()) {
           throw new IOException(String.format("Total Stellar REST request time to %s exceeded the configured timeout of %d ms.", httpGet.getURI().toString(), restConfig.getTimeout()));

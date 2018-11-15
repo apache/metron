@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ModuleWithProviders} from '@angular/core';
+import { NgModule } from '@angular/core';
 import {Routes, RouterModule} from '@angular/router';
 import {AuthGuard} from './shared/auth-guard';
 import {LoginGuard} from './shared/login-guard';
@@ -30,4 +30,10 @@ export const routes: Routes = [
 export const appRoutingProviders: any[] = [
 ];
 
-export const routing: ModuleWithProviders = RouterModule.forRoot(routes);
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
+  providers: []
+})
+
+export class MetronConfigRoutingModule { }
