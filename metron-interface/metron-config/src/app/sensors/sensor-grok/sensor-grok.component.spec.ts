@@ -17,26 +17,26 @@
  */
 
 import { TestBed, async, ComponentFixture } from '@angular/core/testing';
-import {SimpleChange} from '@angular/core';
-import {Http} from '@angular/http';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {MetronAlerts} from '../../shared/metron-alerts';
-import {KafkaService} from '../../service/kafka.service';
-import {Observable} from 'rxjs/Observable';
-import {ParseMessageRequest} from '../../model/parse-message-request';
-import {SensorGrokComponent} from './sensor-grok.component';
-import {GrokValidationService} from '../../service/grok-validation.service';
-import {SensorGrokModule} from './sensor-grok.module';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import '../../rxjs-operators';
+import { SimpleChange } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { KafkaService } from '../../service/kafka.service';
+import { Observable, throwError } from 'rxjs';
+import { ParseMessageRequest } from '../../model/parse-message-request';
+import { SensorGrokComponent } from './sensor-grok.component';
+import { GrokValidationService } from '../../service/grok-validation.service';
+import { SensorGrokModule } from './sensor-grok.module';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
 
 class MockSensorParserConfigService {
-
   private parsedMessage: string;
 
-  public parseMessage(parseMessageRequest: ParseMessageRequest): Observable<{}> {
+  public parseMessage(
+    parseMessageRequest: ParseMessageRequest
+  ): Observable<{}> {
     if (this.parsedMessage === 'ERROR') {
-      return Observable.throw({'_body': JSON.stringify({'abc': 'def'}) });
+      return throwError({ _body: JSON.stringify({ abc: 'def' }) });
     }
 
     return Observable.create(observer => {
@@ -54,21 +54,21 @@ class MockGrokValidationService {
   public list(): Observable<string[]> {
     return Observable.create(observer => {
       observer.next({
-        'BASE10NUM': '(?<![0-9.+-])(?>[+-]?(?:(?:[0-9]+(?:\\.[0-9]+)?)|(?:\\.[0-9]+)))',
-        'BASE16FLOAT': '\\b(?<![0-9A-Fa-f.])(?:[+-]?(?:0x)?(?:(?:[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]*)?)|(?:\\.[0-9A-Fa-f]+)))\\b',
-        'BASE16NUM': '(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))',
-        'CISCOMAC': '(?:(?:[A-Fa-f0-9]{4}\\.){2}[A-Fa-f0-9]{4})',
-        'COMMONMAC': '(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})',
-        'DATA': '.*?'
+        BASE10NUM:
+          '(?<![0-9.+-])(?>[+-]?(?:(?:[0-9]+(?:\\.[0-9]+)?)|(?:\\.[0-9]+)))',
+        BASE16FLOAT:
+          '\\b(?<![0-9A-Fa-f.])(?:[+-]?(?:0x)?(?:(?:[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]*)?)|(?:\\.[0-9A-Fa-f]+)))\\b',
+        BASE16NUM: '(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))',
+        CISCOMAC: '(?:(?:[A-Fa-f0-9]{4}\\.){2}[A-Fa-f0-9]{4})',
+        COMMONMAC: '(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})',
+        DATA: '.*?'
       });
       observer.complete();
     });
   }
 }
 
-class MockKafkaService {
-
-}
+class MockKafkaService {}
 
 describe('Component: SensorGrok', () => {
   let component: SensorGrokComponent;
@@ -81,19 +81,19 @@ describe('Component: SensorGrok', () => {
       imports: [SensorGrokModule],
       providers: [
         MetronAlerts,
-        {provide: Http},
-        {provide: KafkaService, useClass: MockKafkaService},
-        {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
-        {provide: GrokValidationService, useClass: MockGrokValidationService},
-
+        { provide: HttpClient },
+        { provide: KafkaService, useClass: MockKafkaService },
+        {
+          provide: SensorParserConfigService,
+          useClass: MockSensorParserConfigService
+        },
+        { provide: GrokValidationService, useClass: MockGrokValidationService }
       ]
-    }).compileComponents()
-        .then(() => {
-          fixture = TestBed.createComponent(SensorGrokComponent);
-          component = fixture.componentInstance;
-          sensorParserConfigService = fixture.debugElement.injector.get(SensorParserConfigService);
-          grokValidationService = fixture.debugElement.injector.get(GrokValidationService);
-        });
+    });
+    fixture = TestBed.createComponent(SensorGrokComponent);
+    component = fixture.componentInstance;
+    sensorParserConfigService = TestBed.get(SensorParserConfigService);
+    grokValidationService = TestBed.get(GrokValidationService);
   }));
 
   it('should create an instance', () => {
@@ -113,21 +113,27 @@ describe('Component: SensorGrok', () => {
     spyOn(component.sampleData, 'getNextSample');
 
     let changes = {
-      'showGrok': new SimpleChange(true, false)
+      showGrok: new SimpleChange(true, false, true)
     };
     component.ngOnChanges(changes);
     expect(component.sampleData.getNextSample['calls'].count()).toEqual(0);
 
     changes = {
-      'showGrok': new SimpleChange(false, true)
+      showGrok: new SimpleChange(false, true, false)
     };
 
-    component.grokStatement = 'STATEMENT_1 grok statement 1\nSTATEMENT_2 grok statement 2\n';
+    component.grokStatement =
+      'STATEMENT_1 grok statement 1\nSTATEMENT_2 grok statement 2\n';
     component.patternLabel = 'STATEMENT_2';
     component.ngOnChanges(changes);
-    expect(component.newGrokStatement).toEqual('STATEMENT_1 grok statement 1\nSTATEMENT_2 grok statement 2\n');
+    expect(component.newGrokStatement).toEqual(
+      'STATEMENT_1 grok statement 1\nSTATEMENT_2 grok statement 2\n'
+    );
     expect(component.newPatternLabel).toEqual('STATEMENT_2');
-    expect(component.availablePatternLabels).toEqual(['STATEMENT_1', 'STATEMENT_2']);
+    expect(component.availablePatternLabels).toEqual([
+      'STATEMENT_1',
+      'STATEMENT_2'
+    ]);
 
     component.grokStatement = '';
     component.patternLabel = 'PATTERN_LABEL';
@@ -142,24 +148,25 @@ describe('Component: SensorGrok', () => {
   }));
 
   it('should test grok statement validation', async(() => {
-
     let parsedMessage = {
-      'action': 'TCP_MISS',
-      'bytes': 337891,
-      'code': 200,
-      'elapsed': 415,
-      'ip_dst_addr': '207.109.73.154',
-      'ip_src_addr': '127.0.0.1',
-      'method': 'GET',
-      'timestamp': '1467011157.401',
-      'url': 'http://www.aliexpress.com/af/shoes.html?'
+      action: 'TCP_MISS',
+      bytes: 337891,
+      code: 200,
+      elapsed: 415,
+      ip_dst_addr: '207.109.73.154',
+      ip_src_addr: '127.0.0.1',
+      method: 'GET',
+      timestamp: '1467011157.401',
+      url: 'http://www.aliexpress.com/af/shoes.html?'
     };
     sensorParserConfigService.setParsedMessage(parsedMessage);
 
-    let sampleData = '1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? ' +
+    let sampleData =
+      '1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? ' +
       '- DIRECT/207.109.73.154 text/html';
-    let grokStatement = 'SQUID_DELIMITED %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} ' +
-      '%{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}';
+    let grokStatement =
+      'SQUID_DELIMITED %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} ' +
+      '%{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}';
 
     component.sensorParserConfig = new SensorParserConfig();
     component.sensorParserConfig.sensorTopic = 'squid';
@@ -171,8 +178,17 @@ describe('Component: SensorGrok', () => {
 
     component.onSampleDataChanged(sampleData);
     expect(component.parsedMessage).toEqual(parsedMessage);
-    expect(component.parsedMessageKeys).toEqual(['action', 'bytes', 'code', 'elapsed', 'ip_dst_addr',
-      'ip_src_addr', 'method', 'timestamp', 'url']);
+    expect(component.parsedMessageKeys).toEqual([
+      'action',
+      'bytes',
+      'code',
+      'elapsed',
+      'ip_dst_addr',
+      'ip_src_addr',
+      'method',
+      'timestamp',
+      'url'
+    ]);
 
     sensorParserConfigService.setParsedMessage('ERROR');
     component.onTestGrokStatement();
@@ -195,8 +211,12 @@ describe('Component: SensorGrok', () => {
 
     component.onSaveGrok();
 
-    expect(component.onSaveGrokStatement.emit).toHaveBeenCalledWith('grok statement');
-    expect(component.onSavePatternLabel.emit).toHaveBeenCalledWith('PATTERN_LABEL');
+    expect(component.onSaveGrokStatement.emit).toHaveBeenCalledWith(
+      'grok statement'
+    );
+    expect(component.onSavePatternLabel.emit).toHaveBeenCalledWith(
+      'PATTERN_LABEL'
+    );
     expect(component.hideGrok.emit).toHaveBeenCalled();
     fixture.destroy();
   });
@@ -230,5 +250,4 @@ describe('Component: SensorGrok', () => {
     component.newPatternLabel = 'LABEL_2';
     expect(component.isSaveDisabled()).toEqual(false);
   });
-
 });

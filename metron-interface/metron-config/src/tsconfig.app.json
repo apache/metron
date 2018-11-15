@@ -1,0 +1,23 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../out-tsc/app",
+    "module": "es2015",
+    "baseUrl": "",
+    "types": [
+      "jquery",
+      "bootstrap",
+      "ace",
+      "node"
+    ],
+    "typeRoots": [ "../node_modules/@types" ]
+  },
+  "exclude": [
+    "test.ts",
+    "**/*.spec.ts"
+  ],
+  "angularCompilerOptions": {
+    "preserveWhitespaces": true
+  },
+}
+
