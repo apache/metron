@@ -39,7 +39,7 @@ case $(sed --help 2>&1) in
     *) sed_i() { sed -i '' "$@"; } ;;
 esac
 
-sed_i -e '/^node1.*/' ~/.ssh/known_hosts
+sed_i -e '/^node1.*/d' ~/.ssh/known_hosts
 
 ansible-playbook  \
  -i /root/ansible_config/inventory \
