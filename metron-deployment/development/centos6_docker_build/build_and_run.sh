@@ -27,7 +27,7 @@ fi
 
 VAGRANT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 ANSIBLE_PATH=${VAGRANT_PATH}/ansible
-VAGRANT_KEY_PATH=`pwd`/.vagrant/machines/node1/virtualbox
+VAGRANT_KEY_PATH=${VAGRANT_PATH}/.vagrant/machines/node1/virtualbox
 
 # move over to the docker area
 cd ../docker || exit 1
