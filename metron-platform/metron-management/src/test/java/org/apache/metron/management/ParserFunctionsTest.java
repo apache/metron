@@ -21,6 +21,8 @@ package org.apache.metron.management;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
@@ -66,7 +68,8 @@ public class ParserFunctionsTest {
     variables = new HashMap<>();
     functionResolver = new SimpleFunctionResolver()
             .withClass(ParserFunctions.ParseFunction.class)
-            .withClass(ParserFunctions.InitializeFunction.class);
+            .withClass(ParserFunctions.InitializeFunction.class)
+            .withClass(ParserFunctions.ConfigFunction.class);
     context = new Context.Builder().build();
     executor = new DefaultStellarStatefulExecutor(functionResolver, context);
   }
@@ -201,6 +204,17 @@ public class ParserFunctionsTest {
     Assert.assertEquals(2, messages.size());
     Assert.assertEquals(1, messages.stream().filter(msg -> isBro(msg)).count());
     Assert.assertEquals(1, messages.stream().filter(msg -> isError(msg)).count());
+  }
+
+  @Test
+  public void testConfig() throws Exception {
+    // initialize the parser
+    set("config", broParserConfig);
+    assign("parser", "PARSER_INIT('bro', config)");
+
+    String config = execute("PARSER_CONFIG(parser)", String.class);
+    Assert.assertNotNull(config);
+    Assert.assertNotNull(SensorParserConfig.fromBytes(config.getBytes()));
   }
 
   private boolean isError(JSONObject message) {

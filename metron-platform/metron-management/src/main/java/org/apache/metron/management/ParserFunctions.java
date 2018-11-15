@@ -19,6 +19,7 @@
 
 package org.apache.metron.management;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
@@ -43,8 +44,8 @@ public class ParserFunctions {
           name = "INIT",
           description = "Initialize a parser to parse messages.",
           params = {
-                  "config - A map containing the sensor type as key and the sensor configuration as value.",
-                  "globals - An optional map of global configuration values."
+                  "sensorType - The type of sensor to parse.",
+                  "config - The parser configuration."
           },
           returns = "A parser that can be used to parse messages."
   )
@@ -57,14 +58,15 @@ public class ParserFunctions {
       StellarParserRunner parser = new StellarParserRunner(sensorType);
 
       // handle the parser configuration argument
-      if(hasArg("config", 1, String.class, args)) {
+      String configArgName = "config";
+      if(hasArg(configArgName, 1, String.class, args)) {
         // parser config passed in as a string
-        String arg = getArg("config", 1, String.class, args);
+        String arg = getArg(configArgName, 1, String.class, args);
         parser.withParserConfiguration(arg);
 
       } else {
         // parser configuration passed in as a map
-        Map<String, Object> arg = getArg("config", 1, Map.class, args);
+        Map<String, Object> arg = getArg(configArgName, 1, Map.class, args);
         parser.withParserConfiguration(arg);
       }
 
@@ -83,6 +85,7 @@ public class ParserFunctions {
           name = "PARSE",
           description = "Parse a message.",
           params = {
+                  "parser - The parser created with PARSER_INIT.",
                   "input - A message or list of messages to parse."
           },
           returns = "A list of messages that result from parsing the input."
@@ -91,7 +94,7 @@ public class ParserFunctions {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      StellarParserRunner parser = getArg("config", 0, StellarParserRunner.class, args);
+      StellarParserRunner parser = getArg("parser", 0, StellarParserRunner.class, args);
       parser.withContext(context);
 
       List<String> messages = getMessages(args);
@@ -104,15 +107,17 @@ public class ParserFunctions {
      * @return The list of messages to parse.
      */
     private List<String> getMessages(List<Object> args) {
+      String inputArgName = "input";
+
       List<String> messages = new ArrayList<>();
-      if(hasArg("input", 1, String.class, args)) {
+      if(hasArg(inputArgName, 1, String.class, args)) {
         // the input is a single message as a strign
-        String msg = getArg("input", 1, String.class, args);
+        String msg = getArg(inputArgName, 1, String.class, args);
         messages.add(msg);
 
-      } else if(hasArg("input", 1, List.class, args)) {
+      } else if(hasArg(inputArgName, 1, List.class, args)) {
         // the input is a list of messages
-        List<Object> arg1 = getArg("input", 1, List.class, args);
+        List<Object> arg1 = getArg(inputArgName, 1, List.class, args);
         for(Object object: arg1) {
           String msg = String.class.cast(object);
           messages.add(msg);
@@ -133,6 +138,24 @@ public class ParserFunctions {
     @Override
     public boolean isInitialized() {
       return true;
+    }
+  }
+
+  @Stellar(
+          namespace = "PARSER",
+          name = "CONFIG",
+          description = "Returns the configuration of the parser",
+          params = {
+                  "parser - The parser created with PARSER_INIT."
+          },
+          returns = "The parser configuration."
+  )
+  public static class ConfigFunction extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+      StellarParserRunner parser = getArg("parser", 0, StellarParserRunner.class, args);
+      return parser.toJSON();
     }
   }
 }

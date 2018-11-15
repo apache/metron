@@ -18,6 +18,7 @@
 package org.apache.metron.management;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.ParserRunnerImpl;
@@ -26,6 +27,7 @@ import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -45,12 +47,16 @@ public class StellarParserRunner {
     private String sensorType;
     private ParserConfigurations parserConfigurations;
     private Context context;
+    private int successCount;
+    private int errorCount;
 
     /**
      * @param sensorType The sensor type of the messages to parse.
      */
     public StellarParserRunner(String sensorType) {
         this.sensorType = sensorType;
+        this.successCount = 0;
+        this.errorCount = 0;
     }
 
     public List<JSONObject> parse(List<String> messages) {
@@ -77,15 +83,22 @@ public class StellarParserRunner {
                 .collect(Collectors.toList());
 
         // aggregate both successes and errors into a list that can be returned
-        Stream<JSONObject> successes = results
+        List<JSONObject> successes = results
                 .stream()
-                .flatMap(result -> result.getMessages().stream());
-        Stream<JSONObject> errors = results
+                .flatMap(result -> result.getMessages().stream())
+                .collect(Collectors.toList());
+        successCount += successes.size();
+
+        List<JSONObject> errors = results
                 .stream()
                 .flatMap(result -> result.getErrors().stream())
-                .map(err -> err.getJSONObject());
-        return Stream.concat(successes, errors)
+                .map(err -> err.getJSONObject())
                 .collect(Collectors.toList());
+        errorCount += errors.size();
+
+        // return a list of both successes and errors
+        successes.addAll(errors);
+        return successes;
     }
 
     public StellarParserRunner withParserConfiguration(String sensorConfig) {
@@ -108,6 +121,17 @@ public class StellarParserRunner {
         return this;
     }
 
+    /**
+     * @return The JSON configuration of the parser.
+     */
+    public String toJSON() {
+        try {
+            return parserConfigurations.getSensorParserConfig(sensorType).toJSON();
+        } catch(JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public ParserConfigurations getParserConfigurations() {
         return parserConfigurations;
     }
@@ -125,10 +149,7 @@ public class StellarParserRunner {
 
     @Override
     public String toString() {
-        try {
-            return parserConfigurations.getSensorParserConfig(sensorType).toJSON();
-        } catch(JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        // this is is displayed in the REPL; nothing useful to show
+        return String.format("Parser{%d successful, %d error(s)}", successCount, errorCount);
     }
 }

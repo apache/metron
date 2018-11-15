@@ -129,4 +129,20 @@ public class StellarParserRunnerTest {
         Assert.assertTrue(error.containsKey(ERROR_HASH.getName()));
         Assert.assertTrue(error.containsKey(Constants.GUID));
     }
+
+    @Test
+    public void testToString() {
+        List<String> toParse = new ArrayList<>();
+        toParse.add(broMessage);
+        toParse.add("{DAS}");
+
+        // parse the messages
+        StellarParserRunner runner = new StellarParserRunner("bro")
+                .withParserConfiguration(broParserConfig)
+                .withContext(Context.EMPTY_CONTEXT());
+        List<JSONObject> messages = runner.parse(toParse);
+
+        // toString() should tally the number of successes and failures
+        Assert.assertEquals("Parser{1 successful, 1 error(s)}", runner.toString());
+    }
 }
