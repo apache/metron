@@ -15,22 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import {Alert} from '../model/alert';
+
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {HttpUtil} from '../utils/httpUtil';
-import { RestError } from '../model/rest-error';
-import {AppConfigService} from "./app-config.service";
 
 @Injectable()
-export class AlertsService {
+export class AppConfigService {
 
-  constructor(private http: HttpClient, private appConfigService: AppConfigService) {}
+  private appConfig;
 
-  public escalate(alerts: Alert[]): Observable<Object | RestError> {
-    return this.http.post(this.appConfigService.getApiRoot() + '/alerts/ui/escalate', alerts).pipe(
-    catchError(HttpUtil.handleError));
+  constructor(private http: HttpClient) { }
+
+  loadAppConfig() {
+    return this.http.get('assets/app-config.json')
+            .toPromise()
+            .then(data => {
+              this.appConfig = data;
+            });
+  }
+
+  getApiRoot() {
+    return this.appConfig['apiRoot'];
   }
 }

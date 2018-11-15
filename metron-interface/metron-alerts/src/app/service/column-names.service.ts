@@ -59,10 +59,6 @@ export class ColumnNamesService {
 
   constructor(private dataSource: DataSource) {}
 
-  list(): Promise<ColumnNames[]> {
-    return this.dataSource.getAlertTableColumnNames().toPromise();
-  }
-
   save(columns: ColumnNames[]): Observable<{}> {
     return this.dataSource.saveAlertTableColumnNames(columns);
   }
