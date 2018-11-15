@@ -26,7 +26,7 @@ import java.util.List;
 import static java.lang.String.format;
 
 /**
- *
+ * Contains utility functionality that is useful across all of the Stellar management functions.
  */
 public class Functions {
 
