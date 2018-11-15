@@ -108,7 +108,7 @@ export class MetaParserConfigItem {
     if (this._timer) {
       this._stopTimer();
     }
-    this._startTimer(this.onTimerTick.bind(this), 3000);
+    this._startTimer(this.onTimerTick.bind(this), DEFAULT_UNDO_TIMEOUT);
   }
 
   _stopTimer() {
