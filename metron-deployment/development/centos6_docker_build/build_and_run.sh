@@ -48,8 +48,9 @@ LOG_DATE=${DATE// /_}
 LOGNAME="metron-build-${LOG_DATE}.log"
 
 # get the node1 ip address so we can add it to the docker hosts
-NODE1_IP=$(grep 'node1' /etc/hosts | awk '{print $1}')
+NODE1_IP=$(awk '/^hosts/{flag=1; next} /}]/{flag=0} flag' ${VAGRANT_PATH}/Vagrantfile | grep  "^\s*ip:" | awk -F'"' '{print $2}')
 if [[ -z "${NODE1_IP}" ]]; then exit 1; fi
+echo "Using NODE1 IP ${NODE1_IP}"
 
 echo "===============Running Docker==============="
 docker run -it \
