@@ -20,16 +20,17 @@ package org.apache.metron.parsers.paloalto;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import org.apache.metron.parsers.BasicParser;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.apache.metron.parsers.BasicParser;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BasicPaloAltoFirewallParser extends BasicParser {
 
