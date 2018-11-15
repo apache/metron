@@ -25,7 +25,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
  rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 fi
 
-VAGRANT_PATH=`pwd`
+VAGRANT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 ANSIBLE_PATH=${VAGRANT_PATH}/ansible
 VAGRANT_KEY_PATH=`pwd`/.vagrant/machines/node1/virtualbox
 
