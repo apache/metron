@@ -32,8 +32,6 @@ import { GlobalConfigService } from '../../../service/global-config.service';
 import { MetaAlertService } from '../../../service/meta-alert.service';
 import { DialogService } from 'app/service/dialog.service';
 import {AppConfigService} from "../../../service/app-config.service";
-import {defer} from "rxjs/index";
-import {PcapService} from "../../../pcap/service/pcap.service";
 
 @Component({selector: 'metron-table-pagination', template: ''})
 class MetronTablePaginationComponent {
