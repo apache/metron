@@ -1,0 +1,5 @@
+<rules>
+  <rule dir="IN" name="METRON-REST/metron-rest/inbound" pattern="*://*:*/**/metron-rest/{path=**}?{**}">
+    <rewrite template="{$serviceUrl[METRON-REST]}/{path=**}?{**}"/>
+  </rule>
+</rules>

@@ -30,7 +30,7 @@ export class AuthenticationService {
   private static USER_NOT_VERIFIED = 'USER-NOT-VERIFIED';
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
   loginUrl = this.appConfigService.getApiRoot() + '/user';
-  logoutUrl = '/logout';
+  logoutUrl = this.appConfigService.getApiRoot() + '/logout';
   onLoginEvent: ReplaySubject<boolean> = new ReplaySubject<boolean>();
   $onLoginEvent = this.onLoginEvent.asObservable();
 

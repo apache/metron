@@ -25,6 +25,7 @@ public class MetronRestConstants {
   public static final String TEST_PROFILE = "test";
   public static final String LDAP_PROFILE = "ldap";
   public static final String DOCKER_PROFILE = "docker";
+  public static final String KNOX_PROFILE = "knox";
   public static final String CSRF_ENABLE_PROFILE = "csrf-enable";
 
   public static final String GROK_TEMP_PATH_SPRING_PROPERTY = "grok.path.temp";

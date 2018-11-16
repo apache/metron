@@ -38,7 +38,7 @@ export class AlertSearchDirective implements AfterViewInit, OnChanges {
     const el = elementRef.nativeElement;
     el.classList.add('editor');
 
-    ace.config.set('basePath', '/assets/ace');
+    ace.config.set('basePath', 'assets/ace');
 
     this.editor = ace.edit(el);
     this.editor.$blockScrolling = Infinity;

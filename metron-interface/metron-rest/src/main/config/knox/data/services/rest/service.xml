@@ -1,0 +1,6 @@
+<service role="METRON-REST" name="metron-rest" version="0.6.1">
+  <routes>
+    <route path="/metron-rest/**"/>
+  </routes>
+  <dispatch classname="org.apache.hadoop.gateway.dispatch.PassAllHeadersDispatch"/>
+</service>

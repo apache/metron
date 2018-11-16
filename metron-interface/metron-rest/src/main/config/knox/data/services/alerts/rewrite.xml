@@ -1,0 +1,14 @@
+<rules>
+  <rule dir="IN" name="METRON-ALERTS/metron-alerts/inbound/root" pattern="*://*:*/**/metron-alerts/">
+    <rewrite template="{$serviceUrl[METRON-ALERTS-UI]}/"/>
+  </rule>
+  <rule dir="IN" name="METRON-ALERTS/metron-alerts/inbound/path" pattern="*://*:*/**/metron-alerts/{**}">
+    <rewrite template="{$serviceUrl[METRON-ALERTS-UI]}/{**}"/>
+  </rule>
+  <rule dir="IN" name="METRON-ALERTS/metron-alerts/inbound/query" pattern="*://*:*/**/metron-alerts/{**}?{**}">
+    <rewrite template="{$serviceUrl[METRON-ALERTS]}/{**}?{**}"/>
+  </rule>
+  <!--rule dir="OUT" name="METRON-ALERTS/alerts/outbound/path" pattern="*://*:*/{path=**}">
+    <rewrite template="{$frontend[path]}/alerts/{path=**}"/>
+  </rule-->
+</rules>

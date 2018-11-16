@@ -1,0 +1,8 @@
+<service role="METRON-ALERTS" name="metron-alerts" version="0.6.1">
+  <routes>
+    <route path="/metron-alerts/"/>
+    <route path="/metron-alerts/**"/>
+    <route path="/metron-alerts/**?**"/>
+  </routes>
+  <dispatch classname="org.apache.hadoop.gateway.dispatch.PassAllHeadersDispatch"/>
+</service>
