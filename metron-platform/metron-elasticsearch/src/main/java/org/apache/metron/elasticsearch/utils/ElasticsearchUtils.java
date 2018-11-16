@@ -17,55 +17,35 @@
  */
 package org.apache.metron.elasticsearch.utils;
 
-import static java.lang.String.format;
-
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.utils.HDFSUtils;
-import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
-import org.apache.metron.netty.utils.NettyRuntimeWrapper;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.bytes.BytesReference;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ElasticsearchUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String ES_CLIENT_CLASS_DEFAULT = "org.elasticsearch.transport.client.PreBuiltTransportClient";
-  private static final String PWD_FILE_CONFIG_KEY = "es.xpack.password.file";
-  private static final String USERNAME_CONFIG_KEY = "es.xpack.username";
-  private static final String TRANSPORT_CLIENT_USER_KEY = "xpack.security.user";
-
-
   private static ThreadLocal<Map<String, SimpleDateFormat>> DATE_FORMAT_CACHE
           = ThreadLocal.withInitial(() -> new HashMap<>());
 
@@ -78,10 +58,6 @@ public class ElasticsearchUtils {
    * index name should be 'bro_index_2017.10.03.19'.
    */
   public static final String INDEX_NAME_DELIMITER = "_index";
-
-  public static SimpleDateFormat getIndexFormat(WriterConfiguration configurations) {
-    return getIndexFormat(configurations.getGlobalConfig());
-  }
 
   public static SimpleDateFormat getIndexFormat(Map<String, Object> globalConfig) {
     String format = (String) globalConfig.get("es.date.format");
@@ -103,135 +79,16 @@ public class ElasticsearchUtils {
     return indexName;
   }
 
-  /**
-   * Extracts the base index name from a full index name.
-   *
-   * For example, given an index named 'bro_index_2017.01.01.01', the base
-   * index name is 'bro'.
-   *
-   * @param indexName The full index name including delimiter and date postfix.
-   * @return The base index name.
-   */
-  public static String getBaseIndexName(String indexName) {
-
-    String[] parts = indexName.split(INDEX_NAME_DELIMITER);
-    if(parts.length < 1 || StringUtils.isEmpty(parts[0])) {
-      String msg = format("Unexpected index name; index=%s, delimiter=%s", indexName, INDEX_NAME_DELIMITER);
-      throw new IllegalStateException(msg);
-    }
-
-    return parts[0];
-  }
-
-  /**
-   * Instantiates an Elasticsearch client based on es.client.class, if set. Defaults to
-   * org.elasticsearch.transport.client.PreBuiltTransportClient.
-   *
-   * @param globalConfiguration Metron global config
-   * @return
-   */
-  public static TransportClient getClient(Map<String, Object> globalConfiguration) {
-    Set<String> customESSettings = new HashSet<>();
-    customESSettings.addAll(Arrays.asList("es.client.class", USERNAME_CONFIG_KEY, PWD_FILE_CONFIG_KEY));
-    Settings.Builder settingsBuilder = Settings.builder();
-    Map<String, String> esSettings = getEsSettings(globalConfiguration);
-    for (Map.Entry<String, String> entry : esSettings.entrySet()) {
-      String key = entry.getKey();
-      String value = entry.getValue();
-      if (!customESSettings.contains(key)) {
-        settingsBuilder.put(key, value);
-      }
-    }
-    settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
-    settingsBuilder.put("client.transport.ping_timeout", esSettings.getOrDefault("client.transport.ping_timeout","500s"));
-    setXPackSecurityOrNone(settingsBuilder, esSettings);
-
-    try {
-      LOG.info("Number of available processors in Netty: {}", NettyRuntimeWrapper.availableProcessors());
-      // Netty sets available processors statically and if an attempt is made to set it more than
-      // once an IllegalStateException is thrown by NettyRuntime.setAvailableProcessors(NettyRuntime.java:87)
-      // https://discuss.elastic.co/t/getting-availableprocessors-is-already-set-to-1-rejecting-1-illegalstateexception-exception/103082
-      // https://discuss.elastic.co/t/elasticsearch-5-4-1-availableprocessors-is-already-set/88036
-      System.setProperty("es.set.netty.runtime.available.processors", "false");
-      TransportClient client = createTransportClient(settingsBuilder.build(), esSettings);
-      for (HostnamePort hp : getIps(globalConfiguration)) {
-        client.addTransportAddress(
-                new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
-        );
-      }
-      return client;
-    } catch (UnknownHostException exception) {
-      throw new RuntimeException(exception);
-    }
-  }
-
-  private static Map<String, String> getEsSettings(Map<String, Object> config) {
-    return ConversionUtils
-        .convertMap((Map<String, Object>) config.getOrDefault("es.client.settings", new HashMap<String, Object>()),
-            String.class);
-  }
-
-  /*
-   * Append Xpack security settings (if any)
-   */
-  private static void setXPackSecurityOrNone(Settings.Builder settingsBuilder, Map<String, String> esSettings) {
-
-    if (esSettings.containsKey(PWD_FILE_CONFIG_KEY)) {
-
-      if (!esSettings.containsKey(USERNAME_CONFIG_KEY) || StringUtils.isEmpty(esSettings.get(USERNAME_CONFIG_KEY))) {
-        throw new IllegalArgumentException("X-pack username is required and cannot be empty");
-      }
-
-      settingsBuilder.put(
-         TRANSPORT_CLIENT_USER_KEY,
-         esSettings.get(USERNAME_CONFIG_KEY) + ":" + getPasswordFromFile(esSettings.get(PWD_FILE_CONFIG_KEY))
-      );
-    }
-  }
-
-  /*
-   * Single password on first line
-   */
-  private static String getPasswordFromFile(String hdfsPath) {
-    List<String> lines = null;
-    try {
-      lines = HDFSUtils.readFile(hdfsPath);
-    } catch (IOException e) {
-      throw new IllegalArgumentException(
-          format("Unable to read XPack password file from HDFS location '%s'", hdfsPath), e);
-    }
-    if (lines.size() == 0) {
-      throw new IllegalArgumentException(format("No password found in file '%s'", hdfsPath));
-    }
-    return lines.get(0);
-  }
-
-  /**
-   * Constructs ES transport client from the provided ES settings additional es config
-   *
-   * @param settings client settings
-   * @param esSettings client type to instantiate
-   * @return client with provided settings
-   */
-  private static TransportClient createTransportClient(Settings settings,
-      Map<String, String> esSettings) {
-    String esClientClassName = (String) esSettings
-        .getOrDefault("es.client.class", ES_CLIENT_CLASS_DEFAULT);
-    return ReflectionUtils
-        .createInstance(esClientClassName, new Class[]{Settings.class, Class[].class},
-            new Object[]{settings, new Class[0]});
-  }
-
   public static class HostnamePort {
-    String hostname;
-    Integer port;
+    public String hostname;
+    public Integer port;
     public HostnamePort(String hostname, Integer port) {
       this.hostname = hostname;
       this.port = port;
     }
   }
 
-  protected static List<HostnamePort> getIps(Map<String, Object> globalConfiguration) {
+  public static List<HostnamePort> getIps(Map<String, Object> globalConfiguration) {
     Object ipObj = globalConfiguration.get("es.ip");
     Object portObj = globalConfiguration.get("es.port");
     if(ipObj == null) {
@@ -335,30 +192,29 @@ public class ElasticsearchUtils {
    * @param qb A QueryBuilder that provides the query to be run.
    * @return A SearchResponse containing the appropriate results.
    */
-  public static  SearchResponse queryAllResults(TransportClient transportClient,
+  public static  SearchResponse queryAllResults(RestHighLevelClient transportClient,
       QueryBuilder qb,
       String index,
       int pageSize
-  ) {
-    SearchRequestBuilder searchRequestBuilder = transportClient
-        .prepareSearch(index)
-        .addStoredField("*")
-        .setFetchSource(true)
-        .setQuery(qb)
-        .setSize(pageSize);
-    org.elasticsearch.action.search.SearchResponse esResponse = searchRequestBuilder
-        .execute()
-        .actionGet();
+  ) throws IOException {
+    org.elasticsearch.action.search.SearchRequest request = new org.elasticsearch.action.search.SearchRequest();
+    SearchSourceBuilder builder = new SearchSourceBuilder();
+    builder.query(qb);
+    builder.size(pageSize);
+    builder.fetchSource(true);
+    builder.storedField("*");
+    request.source(builder);
+    request.indices(index);
+
+    org.elasticsearch.action.search.SearchResponse esResponse = transportClient.search(request);
     List<SearchResult> allResults = getSearchResults(esResponse);
     long total = esResponse.getHits().getTotalHits();
     if (total > pageSize) {
       int pages = (int) (total / pageSize) + 1;
       for (int i = 1; i < pages; i++) {
         int from = i * pageSize;
-        searchRequestBuilder.setFrom(from);
-        esResponse = searchRequestBuilder
-            .execute()
-            .actionGet();
+        builder.from(from);
+        esResponse = transportClient.search(request);
         allResults.addAll(getSearchResults(esResponse));
       }
     }

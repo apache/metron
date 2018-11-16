@@ -1095,7 +1095,7 @@ public abstract class MetaAlertIntegrationTest {
   protected abstract long getMatchingMetaAlertCount(String fieldName, String fieldValue)
       throws IOException, InterruptedException;
 
-  protected abstract void setupTypings();
+  protected abstract void setupTypings() throws IOException;
 
   // Get the base index name without any adjustments (e.g. without ES's "_index")
   protected abstract String getTestIndexName();
