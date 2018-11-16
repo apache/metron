@@ -17,6 +17,11 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -36,12 +41,6 @@ import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 public class ElasticsearchDao implements IndexDao {
 

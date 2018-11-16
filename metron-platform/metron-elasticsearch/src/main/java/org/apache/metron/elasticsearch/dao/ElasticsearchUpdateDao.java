@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
 import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 public class ElasticsearchUpdateDao implements UpdateDao {
@@ -76,7 +75,8 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
     for (Map.Entry<Document, Optional<String>> entry : updates.entrySet()) {
       Document document = entry.getKey();
-      String indexName = entry.getValue().orElse(getIndexName(document, indexPostfix));
+      Optional<String> optionalIndex = entry.getValue();
+      String indexName = optionalIndex.orElse(getIndexName(document, indexPostfix));
       documentWriter.addDocument(document, indexName);
     }
 
@@ -92,9 +92,8 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     // write the documents. if any document fails, raise an exception.
     documentWriter.write();
     if(failures > 0) {
-      int batchSize = updates.entrySet().size();
-      String error = format("Failed to update all documents; %d of %d failed", failures, batchSize);
-      throw new IOException(error, lastException);
+      String msg = String.format("Failed to update all; %d of %d update(s) failed", failures, updates.entrySet().size());
+      throw new IOException(msg, lastException);
     }
 
     return updates;
@@ -175,9 +174,9 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   }
 
   protected Optional<String> findIndexNameByGUID(String guid, String sensorType) throws IOException {
-    return retrieveLatestDao.searchByGuid(guid,
-        sensorType,
-        hit -> Optional.ofNullable(hit.getIndex())
-    );
+    return retrieveLatestDao.searchByGuid(
+            guid,
+            sensorType,
+            hit -> Optional.ofNullable(hit.getIndex()));
   }
 }

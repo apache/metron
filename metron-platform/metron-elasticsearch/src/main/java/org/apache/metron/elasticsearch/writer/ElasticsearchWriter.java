@@ -77,7 +77,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
 
-    // only create the document writer, if one not already set. useful for testing.
+    // only create the document writer, if one does not already exist. useful for testing.
     if(documentWriter == null) {
       client = ElasticsearchClientFactory.create(globalConfiguration);
       documentWriter = new ElasticsearchBulkDocumentWriter<>(client);

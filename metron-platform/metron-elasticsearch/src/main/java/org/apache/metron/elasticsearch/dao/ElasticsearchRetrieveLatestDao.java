@@ -117,6 +117,11 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
     } catch(InvalidSearchException e) {
       throw new IOException(e);
     }
+    SearchRequest request = new SearchRequest();
+    SearchSourceBuilder builder = new SearchSourceBuilder();
+    builder.query(query);
+    builder.size(guids.size());
+    request.source(builder);
 
     // transform the search hits to results using the callback
     List<T> results = new ArrayList<>();
