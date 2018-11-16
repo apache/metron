@@ -22,6 +22,7 @@ import static java.lang.String.format;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
@@ -179,7 +180,7 @@ public class ElasticsearchClientConfig extends AbstractMapDecorator<String, Obje
    */
   public Optional<Path> getKeyStorePath() {
     if (ElasticsearchClientOptions.KEYSTORE_PATH.containsOption(this)) {
-      return Optional.of(ElasticsearchClientOptions.KEYSTORE_PATH.get(this, Path.class));
+      return Optional.of(Paths.get(ElasticsearchClientOptions.KEYSTORE_PATH.get(this, String.class)));
     }
     return Optional.empty();
   }

@@ -45,7 +45,6 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private transient ElasticsearchClient client;
   private AccessConfig accessConfig;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
   private BulkDocumentWriter<Document> documentWriter;
@@ -55,7 +54,6 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   public ElasticsearchUpdateDao(ElasticsearchClient client,
       AccessConfig accessConfig,
       ElasticsearchRetrieveLatestDao searchDao) {
-    this.client = client;
     this.accessConfig = accessConfig;
     this.retrieveLatestDao = searchDao;
     this.documentWriter = new ElasticsearchBulkDocumentWriter<>(client);
@@ -94,7 +92,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     // write the documents. if any document fails, raise an exception.
     documentWriter.write();
     if(failures > 0) {
-      String msg = String.format("Failed to update all documents; %d of %d update(s) failed", failures, updates.entrySet().size());
+      String msg = String.format("Failed to update all; %d of %d update(s) failed", failures, updates.entrySet().size());
       throw new IOException(msg, lastException);
     }
 
@@ -176,9 +174,9 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   }
 
   protected Optional<String> findIndexNameByGUID(String guid, String sensorType) throws IOException {
-    return retrieveLatestDao.searchByGuid(guid,
-        sensorType,
-        hit -> Optional.ofNullable(hit.getIndex())
-    );
+    return retrieveLatestDao.searchByGuid(
+            guid,
+            sensorType,
+            hit -> Optional.ofNullable(hit.getIndex()));
   }
 }
