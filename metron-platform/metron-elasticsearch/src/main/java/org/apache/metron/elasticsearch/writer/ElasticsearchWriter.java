@@ -24,6 +24,7 @@ import org.apache.metron.common.field.FieldNameConverters;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
@@ -65,7 +66,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
 
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
-    client = ElasticsearchUtils.getClient(globalConfiguration);
+    client = ElasticsearchClientFactory.create(globalConfiguration);
     dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
   }
 
@@ -77,7 +78,6 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     final String indexPostfix = dateFormat.format(new Date());
     BulkRequest bulkRequest = new BulkRequest();
-    //BulkRequestBuilder bulkRequest = client.prepareBulk();
     for(JSONObject message: messages) {
 
       JSONObject esDoc = new JSONObject();

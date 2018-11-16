@@ -22,6 +22,7 @@ import static java.lang.String.format;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
@@ -30,11 +31,14 @@ import org.apache.commons.collections4.map.AbstractMapDecorator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.utils.HDFSUtils;
 
+/**
+ * Access configuration options for the ES client.
+ */
 public class ElasticsearchClientConfig extends AbstractMapDecorator<String, Object> {
 
-  private static Integer THIRTY_SECONDS_IN_MILLIS = 30_000;
-  private static Integer ONE_SECONDS_IN_MILLIS = 1_000;
-  private static String DEFAULT_KEYSTORE_TYPE = "JKS";
+  private static final Integer THIRTY_SECONDS_IN_MILLIS = 30_000;
+  private static final Integer ONE_SECONDS_IN_MILLIS = 1_000;
+  private static final String DEFAULT_KEYSTORE_TYPE = "JKS";
 
   /**
    * Initialize config from provided settings Map.
@@ -125,6 +129,13 @@ public class ElasticsearchClientConfig extends AbstractMapDecorator<String, Obje
   }
 
   /**
+   * http by default, https if ssl is enabled.
+   */
+  public String getConnectionScheme() {
+    return isSSLEnabled() ? "https" : "http";
+  }
+
+  /**
    * @return Number of threads to use for client connection.
    */
   public Optional<Integer> getNumClientConnectionThreads() {
@@ -169,7 +180,7 @@ public class ElasticsearchClientConfig extends AbstractMapDecorator<String, Obje
    */
   public Optional<Path> getKeyStorePath() {
     if (ElasticsearchClientOptions.KEYSTORE_PATH.containsOption(this)) {
-      return Optional.of(ElasticsearchClientOptions.KEYSTORE_PATH.get(this, Path.class));
+      return Optional.of(Paths.get(ElasticsearchClientOptions.KEYSTORE_PATH.get(this, String.class)));
     }
     return Optional.empty();
   }
