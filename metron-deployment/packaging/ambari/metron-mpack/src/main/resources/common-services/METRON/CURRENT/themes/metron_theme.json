@@ -489,10 +489,6 @@
           "subsection-name": "subsection-index-settings"
         },
         {
-          "config": "metron-env/es_binary_port",
-          "subsection-name": "subsection-index-settings"
-        },
-        {
           "config": "metron-env/es_http_port",
           "subsection-name": "subsection-index-settings"
         },
@@ -1001,12 +997,6 @@
     "widgets": [
       {
         "config": "metron-env/es_hosts",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/es_binary_port",
         "widget": {
           "type": "text-field"
         }
