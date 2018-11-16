@@ -917,6 +917,53 @@ public class BasicStellarTest {
   }
 
   @Test
+  public void testShortCircuit_nestedIf() throws Exception {
+    // Single nested
+    // IF true
+    //   THEN IF true
+    //     THEN 'a'
+    //   ELSE 'b'
+    // ELSE 'c'
+    Assert.assertEquals("a", run("IF true THEN IF true THEN 'a' ELSE 'b' ELSE 'c'", new HashMap<>()));
+    Assert.assertEquals("b", run("IF true THEN IF false THEN 'a' ELSE 'b' ELSE 'c'", new HashMap<>()));
+    Assert.assertEquals("c", run("IF false THEN IF false THEN 'a' ELSE 'b' ELSE 'c'", new HashMap<>()));
+
+    // 3 layer deep
+    // IF true
+    //   THEN IF true
+    //     THEN IF true
+    //       THEN 'a'
+    //     ELSE 'b'
+    //   ELSE 'c'
+    // ELSE 'd'
+    Assert.assertEquals("a", run("IF true THEN IF true THEN IF true THEN 'a' ELSE 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("b", run("IF true THEN IF true THEN IF false THEN 'a' ELSE 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("c", run("IF true THEN IF false THEN IF true THEN 'a' ELSE 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("c", run("IF true THEN IF false THEN IF false THEN 'a' ELSE 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("d", run("IF false THEN IF true THEN IF true THEN 'a' ELSE 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("d", run("IF false THEN IF true THEN IF false THEN 'a' ELSE 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("d", run("IF false THEN IF false THEN IF true THEN 'a' ELSE 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("d", run("IF false THEN IF false THEN IF false THEN 'a' ELSE 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+
+    // Nested inside inner if
+    // IF true
+    //   THEN IF true
+    //     THEN 'a'
+    //   ELSE IF true
+    //     THEN 'b'
+    //   ELSE 'c'
+    // ELSE 'd'
+    Assert.assertEquals("a", run("IF true THEN IF true THEN 'a' ELSE IF true THEN 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("a", run("IF true THEN IF true THEN 'a' ELSE IF false THEN 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("b", run("IF true THEN IF false THEN 'a' ELSE IF true THEN 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("c", run("IF true THEN IF false THEN 'a' ELSE IF false THEN 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("d", run("IF false THEN IF true THEN 'a' ELSE IF true THEN 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("d", run("IF false THEN IF true THEN 'a' ELSE IF false THEN 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("d", run("IF false THEN IF false THEN 'a' ELSE IF true THEN 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+    Assert.assertEquals("d", run("IF false THEN IF false THEN 'a' ELSE IF false THEN 'b' ELSE 'c' ELSE 'd'", new HashMap<>()));
+  }
+
+  @Test
   public void testShortCircuit_boolean() throws Exception {
     Assert.assertTrue(runPredicate("'metron' in ['metron', 'metronicus', 'mortron'] or (true or THROW('exception'))", new DefaultVariableResolver(x -> null,x -> false)));
     Assert.assertTrue(runPredicate("true or (true or THROW('exception'))", new DefaultVariableResolver(x -> null,x -> false)));
