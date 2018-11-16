@@ -25,7 +25,7 @@ import { HttpUtil } from '../../utils/httpUtil';
 import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
 import { PcapStatusResponse } from '../model/pcap-status-response';
-import {AppConfigService} from "../../service/app-config.service";
+import { AppConfigService } from '../../service/app-config.service';
 
 @Injectable()
 export class PcapService {
@@ -62,7 +62,7 @@ export class PcapService {
   }
 
   public getRunningJob(): Observable<PcapStatusResponse[]> {
-    return this.http.get(this.appConfigService.getApiRoot() + `/pcap?state=RUNNING`).pipe(
+    return this.http.get(this.appConfigService.getApiRoot() + '/pcap?state=RUNNING').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );

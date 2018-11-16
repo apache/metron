@@ -28,7 +28,7 @@ import { PcapRequest } from '../model/pcap.request';
 import { of, defer } from 'rxjs';
 import { RestError } from '../../model/rest-error';
 import { ConfirmationPopoverModule } from 'angular-confirmation-popover';
-import {AppConfigService} from "../../service/app-config.service";
+import { AppConfigService } from '../../service/app-config.service';
 
 @Component({
   selector: 'app-pcap-filters',

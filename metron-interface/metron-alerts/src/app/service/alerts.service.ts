@@ -22,7 +22,7 @@ import {Alert} from '../model/alert';
 import { HttpClient } from '@angular/common/http';
 import {HttpUtil} from '../utils/httpUtil';
 import { RestError } from '../model/rest-error';
-import {AppConfigService} from "./app-config.service";
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class AlertsService {

@@ -28,6 +28,7 @@ export class AppConfigService {
 
   loadAppConfig() {
     return this.http.get('assets/app-config.json')
+            // APP_INITIALIZER only supports promises
             .toPromise()
             .then(data => {
               this.appConfig = data;

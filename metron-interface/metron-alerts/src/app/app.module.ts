@@ -49,7 +49,7 @@ import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.i
 import { DialogService } from './service/dialog.service';
 import { MetronDialogComponent } from './shared/metron-dialog/metron-dialog.component';
 import {PcapModule} from './pcap/pcap.module';
-import {AppConfigService} from "./service/app-config.service";
+import { AppConfigService } from './service/app-config.service';
 
 export function initConfig(appConfigService: AppConfigService) {
   return () => appConfigService.loadAppConfig();

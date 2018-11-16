@@ -33,7 +33,7 @@ import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapRequest } from '../model/pcap.request';
 import { fakePdml, fakePacket } from '../model/pdml.mock';
 import { fakePcapStatusResponse, fakePcapRequest } from '../model/pcap.mock';
-import {AppConfigService} from "../../service/app-config.service";
+import { AppConfigService } from '../../service/app-config.service';
 
 const jobId = 'job_1234567890123_4567';
 let pdmlJsonMock = fakePdml;

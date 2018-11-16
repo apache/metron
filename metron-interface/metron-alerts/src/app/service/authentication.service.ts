@@ -22,7 +22,7 @@ import {Router} from '@angular/router';
 import { ReplaySubject } from 'rxjs';
 import { GlobalConfigService } from './global-config.service';
 import { DataSource } from './data-source';
-import {AppConfigService} from "./app-config.service";
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class AuthenticationService {

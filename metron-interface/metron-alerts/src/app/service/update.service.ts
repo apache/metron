@@ -28,7 +28,7 @@ import {Utils} from '../utils/utils';
 import {Patch} from '../model/patch';
 import { GlobalConfigService } from './global-config.service';
 import {CommentAddRemoveRequest} from "../model/comment-add-remove-request";
-import {AppConfigService} from "./app-config.service";
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class UpdateService {

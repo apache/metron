@@ -26,7 +26,7 @@ import {Alert} from '../model/alert';
 import { HttpClient } from '@angular/common/http';
 import {MetaAlertCreateRequest} from '../model/meta-alert-create-request';
 import {MetaAlertAddRemoveRequest} from '../model/meta-alert-add-remove-request';
-import {AppConfigService} from "./app-config.service";
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class MetaAlertService {

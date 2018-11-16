@@ -30,7 +30,7 @@ import { RestError } from '../model/rest-error';
 import {INDEXES} from '../utils/constants';
 import {ColumnMetadata} from '../model/column-metadata';
 import {QueryBuilder} from '../alerts/alerts-list/query-builder';
-import {AppConfigService} from "./app-config.service";
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class SearchService {

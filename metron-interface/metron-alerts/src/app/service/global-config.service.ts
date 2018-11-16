@@ -21,7 +21,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {HttpUtil} from '../utils/httpUtil';
-import {AppConfigService} from "./app-config.service";
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class GlobalConfigService {
