@@ -27,10 +27,7 @@ import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.dao.ElasticsearchRetrieveLatestDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.integration.UnableToStartException;
-import org.apache.metron.integration.utils.TestUtils;
 import org.elasticsearch.client.Response;
 import org.hamcrest.CoreMatchers;
 import org.json.simple.JSONObject;
@@ -45,7 +42,6 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -135,36 +131,6 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
 
             // the document ID and GUID should not be the same, since the document ID was auto-generated
             assertNotEquals(found.getDocument(), found.getGuid());
-        });
-
-        // expect the document ID to exist since it was just written to the index
-        assertTrue(toWrite.getDocumentID().isPresent());
-    }
-
-    @Test
-    public void testWriteWhenDefineDocumentID() throws Exception {
-        // the writer should explicitly define the document ID
-        writer.setDefineDocumentId(true);
-
-        // no document ID exists yet as it has not been written to an index
-        Document toWrite = Document.fromJSON(createMessage());
-        assertFalse(toWrite.getDocumentID().isPresent());
-
-        // write the document
-        writer.addDocument(toWrite, "bro_index");
-        writer.write();
-
-        // the document should exist and have a document ID
-        assertEventually(() -> {
-            Document found = retrieveDao.getLatest(toWrite.getGuid(), toWrite.getSensorType());
-            assertNotNull("No document found", found);
-            assertEquals(toWrite.getGuid(), found.getGuid());
-            assertEquals(toWrite.getSensorType(), found.getSensorType());
-            assertEquals(toWrite.getDocument(), found.getDocument());
-
-            // the document ID should be equal to the GUID, since it was explicitly set by the writer
-            assertTrue(found.getDocumentID().isPresent());
-            assertEquals(toWrite.getGuid(), toWrite.getDocumentID().get());
         });
 
         // expect the document ID to exist since it was just written to the index

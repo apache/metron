@@ -25,7 +25,6 @@ import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.support.WriteRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,29 +63,12 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     private Optional<FailureListener> onFailure;
     private ElasticsearchClient client;
     private List<Indexable> documents;
-    private boolean defineDocumentId;
 
     public ElasticsearchBulkDocumentWriter(ElasticsearchClient client) {
         this.client = client;
         this.onSuccess = Optional.empty();
         this.onFailure = Optional.empty();
         this.documents = new ArrayList<>();
-        this.defineDocumentId = false;
-    }
-
-    /**
-     * By default, the {@link ElasticsearchBulkDocumentWriter} does not explicitly define
-     * the document ID. In most cases this is the most performant option.
-     *
-     * If set to true, the document ID will be explicitly set to the Metron GUID.  The
-     * Metron GUID is a randomized UUID generated with Java's `UUID.randomUUID()`. Using a
-     * randomized UUID for the Elasticsearch document ID can negatively impact indexing
-     * performance.
-     *
-     * @param defineDocumentId If the document ID should be defined.
-     */
-    public void setDefineDocumentId(boolean defineDocumentId) {
-        this.defineDocumentId = defineDocumentId;
     }
 
     @Override
@@ -168,11 +150,6 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
         if(document.getDocumentID().isPresent()) {
             documentID = document.getDocumentID().get();
             LOG.debug("Updating an existing document with known doc ID; docID={}, guid={}, sensorType={}",
-                    documentID, document.getGuid(), document.getSensorType());
-
-        } else if(defineDocumentId) {
-            documentID = document.getGuid();
-            LOG.debug("Creating document and setting doc ID to guid; docID={}, guid={}, sensorType={}",
                     documentID, document.getGuid(), document.getSensorType());
 
         } else {
