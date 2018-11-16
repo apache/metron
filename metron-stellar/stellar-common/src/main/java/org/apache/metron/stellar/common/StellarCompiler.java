@@ -230,8 +230,7 @@ public class StellarCompiler extends StellarBaseListener {
                   Token<?> t = it.next();
                   if (t.getUnderlyingType() == IfExpr.class) {
                     innerIfCount++;
-                  }
-                  if (t.getUnderlyingType() == ElseExpr.class) {
+                  } else if (t.getUnderlyingType() == ElseExpr.class) {
                     if (innerIfCount == 0) {
                       break;
                     } else {
