@@ -48,12 +48,18 @@ import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.i
 import { SensorAggregateModule } from './sensors/sensor-aggregate/sensor-aggregate.module';
 import { SensorAggregateService } from './sensors/sensor-aggregate/sensor-aggregate.service';
 import { SensorParserConfigHistoryListController } from './sensors/sensor-aggregate/sensor-parser-config-history-list.controller';
+import { StoreModule } from '@ngrx/store';
+import { EffectsModule } from '@ngrx/effects'
+import { parserConfigsReducer } from './sensors/parser-configs.reducers';
+import { SensorParserListEffects } from './sensors/sensor-parser-list/sensor-parser-list.effects';
 
 
 @NgModule({
   imports: [ BrowserModule, FormsModule, ReactiveFormsModule, HttpClientModule, SensorParserListModule,
     SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule, MetronConfigRoutingModule,
-    SensorAggregateModule ],
+    SensorAggregateModule,
+    EffectsModule.forRoot([ SensorParserListEffects ]),
+    StoreModule.forRoot({ parserConfigs: parserConfigsReducer }) ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
   providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,

@@ -25,9 +25,13 @@ import {StormService} from '../../service/storm.service';
 import {TopologyStatus} from '../../model/topology-status';
 import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
 import { SensorAggregateService } from '../sensor-aggregate/sensor-aggregate.service';
-import { Subscription } from 'rxjs';
+import { Subscription, Observable } from 'rxjs';
 import { SensorParserConfigHistoryListController } from '../sensor-aggregate/sensor-parser-config-history-list.controller';
 import { MetaParserConfigItem } from '../sensor-aggregate/meta-parser-config-item';
+import { Store } from '@ngrx/store';
+import { ParserGroupModel } from 'app/model/parser-group';
+import { ParserLoadSuccess } from '../parser-configs.actions';
+import { ParserListInitialized } from './sensor-parser-list.actions';
 
 
 @Component({
@@ -49,47 +53,36 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   _executeMergeSubscription: Subscription;
   sensorsToRender: MetaParserConfigItem[];
 
+  private parserConfigs$: Observable<SensorParserConfigHistory[]>;
+  private groupConfigs$: Observable<ParserGroupModel[]>;
+  private mergedConfigs$: Observable<MetaParserConfigItem[]>;
+
+  private isStatusPolling: boolean;
+
   constructor(private sensorParserConfigService: SensorParserConfigService,
               private stormService: StormService,
               private router: Router,
               private metronAlerts:  MetronAlerts,
               private metronDialogBox: MetronDialogBox,
               private sensorAggregateService: SensorAggregateService,
-              private sensorParserConfigHistoryListController: SensorParserConfigHistoryListController) {
+              private sensorParserConfigHistoryListController: SensorParserConfigHistoryListController,
+              private store: Store<{
+                parserConfigs: SensorParserConfigHistory[],
+                groupConfigs: ParserGroupModel[],
+                mergedConfigs: MetaParserConfigItem[] }>) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/sensors') {
         this.onNavigationStart();
       }
     });
-  }
 
-  getSensors(justOnce: boolean) {
-    this.sensorParserConfigService.getAllConfig().subscribe(
-      (results: {string: SensorParserConfig}) => {
-        this.sensors = [];
-        for (let sensorName of Object.keys(results)) {
-          let sensorParserConfigHistory = new SensorParserConfigHistory();
-          sensorParserConfigHistory.sensorName = sensorName;
-          sensorParserConfigHistory.setConfig(results[sensorName]);
-          this.sensors.push(sensorParserConfigHistory);
-        }
-        this.selectedSensors = [];
-        this.count = this.sensors.length;
-
-        this.sensorParserConfigHistoryListController.setSensors(this.sensors);
-
-        if (!justOnce) {
-          this.getStatus();
-          this.pollStatus();
-        } else {
-          this.getStatus();
-        }
-
-      }
-    );
+    this.parserConfigs$ = store.select('parserConfigs');
+    this.groupConfigs$ = store.select('groupConfigs');
+    this.mergedConfigs$ = store.select('mergedConfigs');
   }
 
   private pollStatus() {
+    this.isStatusPolling = true;
     this.stormService.pollGetAll().subscribe(
         (results: TopologyStatus[]) => {
           this.sensorsStatus = results;
@@ -148,10 +141,23 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.getSensors(false);
+    this.parserConfigs$.subscribe((parserConfigs: SensorParserConfigHistory[]) => {
+      this.sensors = parserConfigs;
+      this.selectedSensors = [];
+      this.count = this.sensors.length;
+
+      this.sensorParserConfigHistoryListController.setSensors(this.sensors);
+
+      if (!this.isStatusPolling) {
+        this.pollStatus();
+      }
+    })
+
+    this.store.dispatch(new ParserListInitialized());
+
     this.sensorParserConfigService.dataChanged$.subscribe(
       data => {
-        this.getSensors(true);
+        this.store.dispatch(new ParserListInitialized());
       }
     );
 
