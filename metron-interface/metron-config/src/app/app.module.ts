@@ -51,14 +51,14 @@ import { SensorParserConfigHistoryListController } from './sensors/sensor-aggreg
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects'
 import { parserConfigsReducer } from './sensors/parser-configs.reducers';
-import { SensorParserListEffects } from './sensors/sensor-parser-list/sensor-parser-list.effects';
+import { ParserConfigEffects } from './sensors/parser-configs.effects';
 
 
 @NgModule({
   imports: [ BrowserModule, FormsModule, ReactiveFormsModule, HttpClientModule, SensorParserListModule,
     SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule, MetronConfigRoutingModule,
     SensorAggregateModule,
-    EffectsModule.forRoot([ SensorParserListEffects ]),
+    EffectsModule.forRoot([ ParserConfigEffects ]),
     StoreModule.forRoot({ parserConfigs: parserConfigsReducer }) ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
   providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,

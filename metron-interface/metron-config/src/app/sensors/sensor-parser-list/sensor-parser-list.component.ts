@@ -30,8 +30,7 @@ import { SensorParserConfigHistoryListController } from '../sensor-aggregate/sen
 import { MetaParserConfigItem } from '../sensor-aggregate/meta-parser-config-item';
 import { Store } from '@ngrx/store';
 import { ParserGroupModel } from 'app/model/parser-group';
-import { ParserLoadSuccess } from '../parser-configs.actions';
-import { ParserListInitialized } from './sensor-parser-list.actions';
+import { ParserLoadingStart } from '../parser-configs.actions';
 
 
 @Component({
@@ -153,11 +152,11 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
       }
     })
 
-    this.store.dispatch(new ParserListInitialized());
+    this.store.dispatch(new ParserLoadingStart());
 
     this.sensorParserConfigService.dataChanged$.subscribe(
       data => {
-        this.store.dispatch(new ParserListInitialized());
+        this.store.dispatch(new ParserLoadingStart());
       }
     );
 
