@@ -27,7 +27,7 @@ bro_crontab_job: "{{ bro_home }}/bin/broctl cron"
 bro_clean_job: "rm -rf {{ bro_home }}/spool/tmp/*"
 
 # Bro kafka plugin
-metron_bro_plugin_kafka_version: "0.1"
+metron_bro_plugin_kafka_version: "0.3"
 python27_bin: /opt/rh/python27/root/usr/bin
 python27_lib: /opt/rh/python27/root/usr/lib64
 git29_bin: /opt/rh/rh-git29/root/usr/bin
