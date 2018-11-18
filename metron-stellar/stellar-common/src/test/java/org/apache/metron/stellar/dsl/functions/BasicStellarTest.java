@@ -18,11 +18,22 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.validate;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
@@ -38,12 +49,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.util.*;
-
-import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
-import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.validate;
-import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
 
 @SuppressWarnings("ALL")
 public class BasicStellarTest {
@@ -72,6 +77,7 @@ public class BasicStellarTest {
     public boolean isInitialized() {
       return true;
     }
+
   }
 
   @Stellar(
@@ -98,6 +104,7 @@ public class BasicStellarTest {
     public boolean isInitialized() {
       return true;
     }
+
   }
 
   @Test
@@ -1638,4 +1645,5 @@ public class BasicStellarTest {
     checkFalsey("{}");
     checkFalsey("LIST_ADD([])");
   }
+
 }

@@ -18,6 +18,10 @@
 package org.apache.metron.elasticsearch.integration;
 
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,9 +29,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.adrianwalker.multilinestring.Multiline;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.nio.entity.NStringEntity;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -40,10 +48,13 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.integration.InMemoryComponent;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.action.support.WriteRequest;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -58,33 +69,38 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   private static String dateFormat = "yyyy.MM.dd.HH";
   private static String broTemplatePath = "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/bro_index.template";
   private static String snortTemplatePath = "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/snort_index.template";
-  private static final int MAX_RETRIES = 10;
-  private static final int SLEEP_MS = 500;
+  protected static final String BRO_INDEX = "bro_index_2017.01.01.01";
+  protected static final String SNORT_INDEX = "snort_index_2017.01.01.02";
+  protected static Map<String, Object> globalConfig;
+  protected static RestClient lowLevelClient;
+  protected static RestHighLevelClient highLevelClient;
   protected static IndexDao dao;
 
   @BeforeClass
   public static void setup() throws Exception {
     indexComponent = startIndex();
-    dao = createDao();
+    globalConfig = new HashMap<String, Object>() {{
+      put("es.clustername", "metron");
+      put("es.port", "9200");
+      put("es.ip", "localhost");
+      put("es.date.format", dateFormat);
+    }};
+    ElasticsearchClient esClient = ElasticsearchClientFactory.create(globalConfig);
+    lowLevelClient = esClient.getLowLevelClient();
+    highLevelClient = esClient.getHighLevelClient();
+    dao = createDao(globalConfig);
     // The data is all static for searches, so we can set it up beforehand, and it's faster
     loadTestData();
   }
 
-  protected static IndexDao createDao() {
-    AccessConfig config = new AccessConfig();
-    config.setMaxSearchResults(100);
-    config.setMaxSearchGroups(100);
-    config.setGlobalConfigSupplier( () ->
-            new HashMap<String, Object>() {{
-              put("es.clustername", "metron");
-              put("es.port", "9300");
-              put("es.ip", "localhost");
-              put("es.date.format", dateFormat);
-            }}
-    );
+  protected static IndexDao createDao(Map<String, Object> globalConfig) {
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setMaxSearchResults(100);
+    accessConfig.setMaxSearchGroups(100);
+    accessConfig.setGlobalConfigSupplier(() -> globalConfig);
 
     IndexDao dao = new ElasticsearchDao();
-    dao.init(config);
+    dao.init(accessConfig);
     return dao;
   }
 
@@ -98,51 +114,64 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   }
 
   protected static void loadTestData() throws ParseException, IOException {
-    ElasticSearchComponent es = (ElasticSearchComponent) indexComponent;
-
+    // add bro template
     JSONObject broTemplate = JSONUtils.INSTANCE.load(new File(broTemplatePath), JSONObject.class);
     addTestFieldMappings(broTemplate, "bro_doc");
-    es.getClient().admin().indices().prepareCreate("bro_index_2017.01.01.01")
-        .addMapping("bro_doc", JSONUtils.INSTANCE.toJSON(broTemplate.get("mappings"), false)).get();
+    String broTemplateJson = JSONUtils.INSTANCE.toJSON(broTemplate, true);
+    HttpEntity broEntity = new NStringEntity(broTemplateJson, ContentType.APPLICATION_JSON);
+    Response response = lowLevelClient.performRequest("PUT", "/_template/bro_template", Collections.emptyMap(), broEntity);
+    assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
+    // add snort template
     JSONObject snortTemplate = JSONUtils.INSTANCE.load(new File(snortTemplatePath), JSONObject.class);
     addTestFieldMappings(snortTemplate, "snort_doc");
-    es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
-        .addMapping("snort_doc", JSONUtils.INSTANCE.toJSON(snortTemplate.get("mappings"), false)).get();
+    String snortTemplateJson = JSONUtils.INSTANCE.toJSON(snortTemplate, true);
+    HttpEntity snortEntity = new NStringEntity(snortTemplateJson, ContentType.APPLICATION_JSON);
+    response = lowLevelClient.performRequest("PUT", "/_template/snort_template", Collections.emptyMap(), snortEntity);
+    assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
+    // create bro index
+    response = lowLevelClient.performRequest("PUT", BRO_INDEX);
+    assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
+    // create snort index
+    response = lowLevelClient.performRequest("PUT", SNORT_INDEX);
+    assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
 
-    BulkRequestBuilder bulkRequest = es.getClient().prepareBulk()
-        .setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
-    JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
-    for (Object o : broArray) {
-      JSONObject jsonObject = (JSONObject) o;
-      IndexRequestBuilder indexRequestBuilder = es.getClient()
-          .prepareIndex("bro_index_2017.01.01.01", "bro_doc");
-      indexRequestBuilder = indexRequestBuilder.setId((String) jsonObject.get("guid"));
-      indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
-      indexRequestBuilder = indexRequestBuilder
-          .setTimestamp(jsonObject.get("timestamp").toString());
-      bulkRequest.add(indexRequestBuilder);
+    JSONArray broRecords = (JSONArray) new JSONParser().parse(broData);
+
+    BulkRequest bulkRequest = new BulkRequest();
+    for (Object o : broRecords) {
+      JSONObject json = (JSONObject) o;
+      IndexRequest indexRequest = new IndexRequest(BRO_INDEX, "bro_doc", (String) json.get("guid"));
+      indexRequest.source(json);
+      indexRequest.timestamp(json.get("timestamp").toString());
+      bulkRequest.add(indexRequest);
     }
-    JSONArray snortArray = (JSONArray) new JSONParser().parse(snortData);
-    for (Object o : snortArray) {
-      JSONObject jsonObject = (JSONObject) o;
-      IndexRequestBuilder indexRequestBuilder = es.getClient()
-          .prepareIndex("snort_index_2017.01.01.02", "snort_doc");
-      indexRequestBuilder = indexRequestBuilder.setId((String) jsonObject.get("guid"));
-      indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
-      indexRequestBuilder = indexRequestBuilder
-          .setTimestamp(jsonObject.get("timestamp").toString());
-      bulkRequest.add(indexRequestBuilder);
+    bulkRequest.setRefreshPolicy(RefreshPolicy.WAIT_UNTIL);
+    BulkResponse bulkResponse = highLevelClient.bulk(bulkRequest);
+    assertFalse(bulkResponse.hasFailures());
+    assertThat(bulkResponse.status().getStatus(), equalTo(200));
+
+    JSONArray snortRecords = (JSONArray) new JSONParser().parse(snortData);
+
+    bulkRequest = new BulkRequest();
+    for (Object o : snortRecords) {
+      JSONObject json = (JSONObject) o;
+      IndexRequest indexRequest = new IndexRequest(SNORT_INDEX, "snort_doc", (String) json.get("guid"));
+      indexRequest.source(json);
+      indexRequest.timestamp(json.get("timestamp").toString());
+      bulkRequest.add(indexRequest);
     }
-    BulkResponse bulkResponse = bulkRequest.execute().actionGet();
-    if (bulkResponse.hasFailures()) {
-      throw new RuntimeException("Failed to index test data");
-    }
+    bulkRequest.setRefreshPolicy(RefreshPolicy.WAIT_UNTIL);
+    bulkResponse = highLevelClient.bulk(bulkRequest);
+    assertFalse(bulkResponse.hasFailures());
+    assertThat(bulkResponse.status().getStatus(), equalTo(200));
   }
 
   /**
    * Add test fields to a template with defined types in case they are not defined in the sensor template shipped with Metron.
    * This is useful for testing certain cases, for example faceting on fields of various types.
-   * @param template
+   * Template follows this pattern:
+   * { "mappings" : { "xxx_doc" : { "properties" : { ... }}}}
+   * @param template - this method has side effects - template is modified with field mappings.
    * @param docType
    */
   private static void addTestFieldMappings(JSONObject template, String docType) {
@@ -168,12 +197,11 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     dao.search(request);
   }
 
-
-
   @Override
   public void returns_column_metadata_for_specified_indices() throws Exception {
     // getColumnMetadata with only bro
     {
+      Assert.assertEquals(262, dao.getColumnMetadata(Collections.singletonList("bro")).size());
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
       Assert.assertEquals(262, fieldTypes.size());
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("method"));
@@ -188,11 +216,11 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("ttl"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("metron_alert"));
     }
     // getColumnMetadata with only snort
     {
+      Assert.assertEquals(32, dao.getColumnMetadata(Collections.singletonList("snort")).size());
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
       Assert.assertEquals(32, fieldTypes.size());
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("sig_generator"));
@@ -214,6 +242,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   @Override
   public void returns_column_data_for_multiple_indices() throws Exception {
+    Assert.assertEquals(277, dao.getColumnMetadata(Arrays.asList("bro", "snort")).size());
     Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
     Assert.assertEquals(277, fieldTypes.size());
 
@@ -274,9 +303,9 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   @Override
   protected String getIndexName(String sensorType) {
     if ("bro".equals(sensorType)) {
-      return "bro_index_2017.01.01.01";
+      return BRO_INDEX;
     } else {
-      return "snort_index_2017.01.01.02";
+      return SNORT_INDEX;
     }
   }
 }

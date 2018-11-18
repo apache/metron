@@ -36,6 +36,7 @@ import org.apache.metron.stellar.common.shell.StellarAutoCompleter;
 import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
 import org.apache.metron.stellar.common.utils.JSONUtils;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.jboss.aesh.complete.CompleteOperation;
 import org.jboss.aesh.complete.Completion;
 import org.jboss.aesh.console.AeshConsoleCallback;
@@ -337,6 +338,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   private void handleQuit() {
     try {
       console.stop();
+      StellarFunctions.close();
     } catch (Throwable e) {
       e.printStackTrace();
     }

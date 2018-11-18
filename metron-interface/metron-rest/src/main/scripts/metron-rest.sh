@@ -17,8 +17,8 @@
 # limitations under the License.
 #
 
-if [ -z "${METRON_JDBC_PASSWORD}" ]; then
-    echo "METRON_JDBC_PASSWORD unset. Exiting."
+if [ -z "${METRON_JDBC_PASSWORD}" ] && [ -z "${METRON_LDAP_PASSWORD}" ]; then
+    echo "Authentication password unset. Exiting."
     exit 1
 fi
 ## Join a list by a character
@@ -35,6 +35,7 @@ METRON_REST_PORT=8082
 METRON_SYSCONFIG="${METRON_SYSCONFIG:-/etc/default/metron}"
 METRON_LOG_DIR="${METRON_LOG_DIR:-/var/log/metron}"
 METRON_PID_FILE="${METRON_PID_FILE:-/var/run/metron/metron-rest.pid}"
+
 PARSER_CONTRIB=${PARSER_CONTRIB:-$METRON_HOME/parser_contrib}
 INDEXING_CONTRIB=${INDEXING_CONTRIB:-$METRON_HOME/indexing_contrib}
 PARSER_LIB=$(find $METRON_HOME/lib/ -name metron-parsers*.jar)
@@ -112,6 +113,24 @@ METRON_REST_CLASSPATH+=":${indexing_files[0]}"
 
 echo "METRON_REST_CLASSPATH=${METRON_REST_CLASSPATH}"
 
+echo "METRON_JDBC_DRIVER=${METRON_JDBC_DRIVER}"
+echo "METRON_JDBC_URL=${METRON_JDBC_URL}"
+echo "METRON_JDBC_USERNAME=${METRON_JDBC_USERNAME}"
+echo "METRON_JDBC_PLATFORM=${METRON_JDBC_PLATFORM}"
+
+echo "METRON_LDAP_URL=${METRON_LDAP_URL}"
+echo "METRON_LDAP_USERDN=${METRON_LDAP_USERDN}"
+
+echo "METRON_LDAP_USER_PATTERN=${METRON_LDAP_USER_PATTERN}"
+echo "METRON_LDAP_USER_PASSWORD=${METRON_LDAP_USER_PASSWORD}"
+echo "METRON_LDAP_USER_SEARCHBASE=${METRON_LDAP_USER_SEARCHBASE}"
+echo "METRON_LDAP_USER_SEARCHFILTER=${METRON_LDAP_USER_SEARCHFILTER}"
+
+echo "METRON_LDAP_GROUP_SEARCHBASE=${METRON_LDAP_GROUP_SEARCHBASE}"
+echo "METRON_LDAP_GROUP_SEARCHFILTER=${METRON_LDAP_GROUP_SEARCHFILTER}"
+echo "METRON_LDAP_GROUP_ROLE=${METRON_LDAP_GROUP_ROLE}"
+echo "METRON_LDAP_SSL_TRUSTSTORE=${METRON_LDAP_SSL_TRUSTSTORE}"
+
 #Use Solr daos if ra indexing writer set to Solr
 if [[ ${METRON_RA_INDEXING_WRITER} == "Solr" ]]; then
     METRON_INDEX_DAO=" --index.dao.impl=org.apache.metron.solr.dao.SolrDao,org.apache.metron.indexing.dao.HBaseDao"
@@ -123,6 +142,11 @@ if [[ ${METRON_RA_INDEXING_WRITER} == "Solr" ]]; then
     METRON_SPRING_OPTIONS+=${METRON_INDEX_DAO}
     METRON_SPRING_OPTIONS+=${METRON_METAALERT_DAO}
     METRON_SPRING_OPTIONS+=${METRON_WRITER_NAME}
+fi
+
+if [ -n "${METRON_LDAP_SSL_TRUSTSTORE}" ]; then
+  METRON_JVMFLAGS+=" -Djavax.net.ssl.trustStore=${METRON_LDAP_SSL_TRUSTSTORE}"
+  METRON_JVMFLAGS+=" -Djavax.net.ssl.trustStorePassword=${METRON_LDAP_SSL_TRUSTSTORE_PASSWORD}"
 fi
 
 echo "Starting application"

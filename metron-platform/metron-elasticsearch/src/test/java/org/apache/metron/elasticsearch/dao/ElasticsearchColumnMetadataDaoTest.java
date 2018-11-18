@@ -18,24 +18,22 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import org.elasticsearch.action.ActionFuture;
-import org.elasticsearch.action.admin.indices.get.GetIndexRequestBuilder;
-import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
-import org.elasticsearch.client.AdminClient;
-import org.elasticsearch.client.IndicesAdminClient;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.elasticsearch.utils.FieldMapping;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests the ElasticsearchColumnMetadata class.
@@ -47,7 +45,7 @@ public class ElasticsearchColumnMetadataDaoTest {
    * @return An object to test.
    */
   public ElasticsearchColumnMetadataDao setup(String[] indices) {
-    return setup(indices, ImmutableOpenMap.of());
+    return setup(indices, new HashMap<>());
   }
 
   /**
@@ -57,32 +55,23 @@ public class ElasticsearchColumnMetadataDaoTest {
    */
   public ElasticsearchColumnMetadataDao setup(
           String[] indices,
-          ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings) {
+          Map<String, FieldMapping> mappings) {
+    ElasticsearchClient client = new ElasticsearchClient(mock(RestClient.class), mock(RestHighLevelClient.class)) {
+      @Override
+      public String[] getIndices() throws IOException {
+        return indices;
+      }
 
-    AdminClient adminClient = mock(AdminClient.class);
-    IndicesAdminClient indicesAdminClient = mock(IndicesAdminClient.class);
-    GetIndexRequestBuilder getIndexRequestBuilder = mock(GetIndexRequestBuilder.class);
-    GetIndexResponse getIndexResponse = mock(GetIndexResponse.class);
-    ActionFuture getMappingsActionFuture = mock(ActionFuture.class);
-    GetMappingsResponse getMappingsResponse = mock(GetMappingsResponse.class);
-
-    // setup the mocks so that a set of indices are available to the DAO
-    when(adminClient.indices()).thenReturn(indicesAdminClient);
-    when(indicesAdminClient.prepareGetIndex()).thenReturn(getIndexRequestBuilder);
-    when(getIndexRequestBuilder.setFeatures()).thenReturn(getIndexRequestBuilder);
-    when(getIndexRequestBuilder.get()).thenReturn(getIndexResponse);
-    when(getIndexResponse.getIndices()).thenReturn(indices);
-
-    // setup the mocks so that a set of mappings are available to the DAO
-    when(indicesAdminClient.getMappings(any())).thenReturn(getMappingsActionFuture);
-    when(getMappingsActionFuture.actionGet()).thenReturn(getMappingsResponse);
-    when(getMappingsResponse.getMappings()).thenReturn(mappings);
-
-    return new ElasticsearchColumnMetadataDao(adminClient);
+      @Override
+      public Map<String, FieldMapping> getMappingByIndex(String[] indices) throws IOException {
+        return mappings;
+      }
+    };
+    return new ElasticsearchColumnMetadataDao(client);
   }
 
   @Test
-  public void testGetOneLatestIndex() {
+  public void testGetOneLatestIndex() throws IOException {
 
     // setup
     String[] existingIndices = new String[] {
@@ -105,7 +94,7 @@ public class ElasticsearchColumnMetadataDaoTest {
   }
 
   @Test
-  public void testGetLatestIndices() {
+  public void testGetLatestIndices() throws IOException {
     // setup
     String[] existingIndices = new String[] {
             "bro_index_2017.10.03.19",
@@ -127,7 +116,7 @@ public class ElasticsearchColumnMetadataDaoTest {
   }
 
   @Test
-  public void testLatestIndicesWhereNoneExist() {
+  public void testLatestIndicesWhereNoneExist() throws IOException {
 
     // setup - there are no existing indices
     String[] existingIndices = new String[] {};

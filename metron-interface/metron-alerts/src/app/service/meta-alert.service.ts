@@ -26,6 +26,7 @@ import {Alert} from '../model/alert';
 import { HttpClient } from '@angular/common/http';
 import {MetaAlertCreateRequest} from '../model/meta-alert-create-request';
 import {MetaAlertAddRemoveRequest} from '../model/meta-alert-add-remove-request';
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class MetaAlertService {
@@ -33,7 +34,7 @@ export class MetaAlertService {
   alertChangedSource = new Subject<MetaAlertAddRemoveRequest>();
   alertChanged$ = this.alertChangedSource.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private appConfigService: AppConfigService) {
   }
 
   get selectedAlerts(): Alert[] {
@@ -45,13 +46,13 @@ export class MetaAlertService {
   }
 
   public create(metaAlertCreateRequest: MetaAlertCreateRequest): Observable<{}> {
-    let url = '/api/v1/metaalert/create';
+    let url = this.appConfigService.getApiRoot() + '/metaalert/create';
     return this.http.post(url, metaAlertCreateRequest).pipe(
     catchError(HttpUtil.handleError));
   }
 
   public addAlertsToMetaAlert(metaAlertAddRemoveRequest: MetaAlertAddRemoveRequest) {
-    let url = '/api/v1/metaalert/add/alert';
+    let url = this.appConfigService.getApiRoot() + '/metaalert/add/alert';
     return this.http.post(url, metaAlertAddRemoveRequest).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
@@ -61,7 +62,7 @@ export class MetaAlertService {
   }
 
   public  removeAlertsFromMetaAlert(metaAlertAddRemoveRequest: MetaAlertAddRemoveRequest) {
-    let url = '/api/v1/metaalert/remove/alert';
+    let url = this.appConfigService.getApiRoot() + '/metaalert/remove/alert';
     return this.http.post(url, metaAlertAddRemoveRequest).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
@@ -71,7 +72,7 @@ export class MetaAlertService {
   }
 
   public updateMetaAlertStatus(guid: string, status: string) {
-    let url = `/api/v1/metaalert/update/status/${guid}/${status}`;
+    let url = this.appConfigService.getApiRoot() + `/metaalert/update/status/${guid}/${status}`;
     return this.http.post(url, {}).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
