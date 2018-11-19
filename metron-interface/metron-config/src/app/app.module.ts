@@ -53,12 +53,14 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EffectsModule } from '@ngrx/effects'
 import { parserReducer } from './sensors/parser-configs.reducers';
 import { ParserConfigEffects } from './sensors/parser-configs.effects';
+import { SensorsModule } from './sensors/sensors.module';
 
 
 @NgModule({
-  imports: [ BrowserModule, FormsModule, ReactiveFormsModule, HttpClientModule, SensorParserListModule,
-    SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule, MetronConfigRoutingModule,
-    SensorAggregateModule,
+  imports: [
+    BrowserModule, FormsModule, ReactiveFormsModule, HttpClientModule,
+    GeneralSettingsModule, MetronConfigRoutingModule,
+    SensorsModule,
     EffectsModule.forRoot([ ParserConfigEffects ]),
     StoreModule.forRoot({
       parsers: parserReducer
@@ -66,12 +68,12 @@ import { ParserConfigEffects } from './sensors/parser-configs.effects';
     StoreDevtoolsModule.instrument(),
   ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
-  providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
-    SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
-    StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
-    GlobalConfigService, MetronAlerts, MetronDialogBox, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
-    { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true }, SensorAggregateService,
-    SensorParserConfigHistoryListController],
+  providers: [
+    AuthenticationService, AuthGuard, LoginGuard,
+    GlobalConfigService, MetronAlerts, MetronDialogBox,
+    { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
+    { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true },
+  ],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule {
