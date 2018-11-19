@@ -31,13 +31,20 @@ import { SensorParserConfigHistoryService } from '../service/sensor-parser-confi
 import { SensorParserConfigService } from '../service/sensor-parser-config.service';
 import { KafkaService } from '../service/kafka.service';
 import { StormService } from '../service/storm.service';
+import { EffectsModule } from '@ngrx/effects';
+import { ParserConfigEffects } from './parser-configs.effects';
+import { StoreModule } from '@ngrx/store';
+import { reducers } from './reducers';
 
 @NgModule ({
   imports: [
     SensorParserListModule,
     SensorParserConfigReadonlyModule,
     SensorParserConfigModule,
-    SensorAggregateModule ],
+    SensorAggregateModule,
+    EffectsModule.forFeature([ ParserConfigEffects ]),
+    StoreModule.forFeature('parsers', reducers),
+  ],
   declarations: [],
   providers: [
     SensorParserConfigService,

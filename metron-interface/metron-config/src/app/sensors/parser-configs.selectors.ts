@@ -3,9 +3,8 @@ import { MetaParserConfigItem } from './sensor-aggregate/meta-parser-config-item
 import { SensorParserConfigHistory } from '../model/sensor-parser-config-history';
 import { ParserGroupModel } from '../model/parser-group';
 import { TopologyStatus } from '../model/topology-status';
-import { AppState } from 'app/app.state';
 
-const getGroups = (state: AppState) => {
+const getGroups = (state) => {
 
   const historyInstances = state.parsers.groupConfigs.map((group: ParserGroupModel) => {
     const historyWrapper = new SensorParserConfigHistory();
@@ -16,7 +15,7 @@ const getGroups = (state: AppState) => {
   return enrichWithStatusInfo(historyInstances, state.parsers.parserStatus, 'name');
 }
 
-const getParsers = (state: AppState) => {
+const getParsers = (state) => {
   return enrichWithStatusInfo(state.parsers.parserConfigs, state.parsers.parserStatus);
 };
 
@@ -37,7 +36,7 @@ function enrichWithStatusInfo(items = [], statuses = [], nameField = 'sensorName
   });
 }
 
-const getStatus = (state: AppState) => {
+const getStatus = (state) => {
   return state.parsers.parserStatus;
 };
 
