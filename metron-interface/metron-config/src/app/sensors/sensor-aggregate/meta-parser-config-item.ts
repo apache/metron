@@ -40,7 +40,7 @@ export class MetaParserConfigItem {
   _draggedOver = false;
 
   constructor(sensor: SensorParserConfigHistory,
-    parserConfigService: SensorParserConfigService) {
+    parserConfigService?: SensorParserConfigService) {
     this._sensor = sensor;
     this.parserConfigService = parserConfigService;
   }
