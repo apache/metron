@@ -30,5 +30,17 @@ export class ParserConfigEffects {
     })
   );
 
+  // @Effect()
+  // loadParserStatus$: Observable<Action> = this.actions$.pipe(
+  //   ofType(ParserConfigsActions.LoadStatusStart),
+  //   mergeMap(() => {
+  //     return this.parserService.getAllConfig().pipe(
+  //       map((results: { string: SensorParserConfig }) => {
+          
+  //       })
+  //     )
+  //   })
+  // );
+
   constructor(private parserService: SensorParserConfigService, private actions$: Actions) {}
 }

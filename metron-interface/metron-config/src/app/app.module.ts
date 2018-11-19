@@ -51,7 +51,7 @@ import { SensorParserConfigHistoryListController } from './sensors/sensor-aggreg
 import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EffectsModule } from '@ngrx/effects'
-import { parserConfigsReducer } from './sensors/parser-configs.reducers';
+import { parserConfigsReducer, groupConfigsReducer, parserStatusReducer } from './sensors/parser-configs.reducers';
 import { ParserConfigEffects } from './sensors/parser-configs.effects';
 
 
@@ -60,8 +60,13 @@ import { ParserConfigEffects } from './sensors/parser-configs.effects';
     SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule, MetronConfigRoutingModule,
     SensorAggregateModule,
     EffectsModule.forRoot([ ParserConfigEffects ]),
-    StoreModule.forRoot({ parserConfigs: parserConfigsReducer }),
-    StoreDevtoolsModule.instrument() ],
+    StoreModule.forRoot({
+      parserConfigs: parserConfigsReducer,
+      groupConfigs: groupConfigsReducer,
+      parserStatus: parserStatusReducer,
+    }),
+    StoreDevtoolsModule.instrument(),
+  ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
   providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
