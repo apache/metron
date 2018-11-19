@@ -3,32 +3,27 @@ import { MetaParserConfigItem } from './sensor-aggregate/meta-parser-config-item
 import { SensorParserConfigHistory } from '../model/sensor-parser-config-history';
 import { ParserGroupModel } from '../model/parser-group';
 import { TopologyStatus } from '../model/topology-status';
+import { AppState } from 'app/app.state';
 
-const getGroups = (state) => {
-  return state.groupConfigs.map((group: ParserGroupModel) => {
+const getGroups = (state: AppState) => {
+
+  const historyInstances = state.parsers.groupConfigs.map((group: ParserGroupModel) => {
     const historyWrapper = new SensorParserConfigHistory();
     historyWrapper.sensorName = group.name;
     historyWrapper.setConfig(group);
-
-    const belongingStatus: TopologyStatus = state.parserStatus.find((status) => {
-      return group.name === status.name;
-    });
-
-    if (belongingStatus) {
-      historyWrapper.status = belongingStatus.status;
-      historyWrapper.latency = belongingStatus.latency.toString();
-      historyWrapper.throughput = belongingStatus.throughput.toString();
-      // FIXME where edit date and edited by information coming from?
-    }
-
     return historyWrapper;
   });
+  return enrichWithStatusInfo(historyInstances, state.parsers.parserStatus, 'name');
+}
+
+const getParsers = (state: AppState) => {
+  return enrichWithStatusInfo(state.parsers.parserConfigs, state.parsers.parserStatus);
 };
 
-const getParsers = (state) => {
-  return state.parserConfigs.map((config) => {
-    const belongingStatus: TopologyStatus = state.parserStatus.find((status) => {
-      return config.sensorName === status.name;
+function enrichWithStatusInfo(items = [], statuses = [], nameField = 'sensorName') {
+  return items.map((config) => {
+    const belongingStatus: TopologyStatus = statuses.find((status) => {
+      return config[nameField] === status.name;
     });
 
     if (belongingStatus) {
@@ -40,12 +35,10 @@ const getParsers = (state) => {
 
     return config;
   });
+}
 
-
-};
-
-const getStatus = (state) => {
-  return state.parserStatus;
+const getStatus = (state: AppState) => {
+  return state.parsers.parserStatus;
 };
 
 export const getMergedConfigs = createSelector(

@@ -51,7 +51,7 @@ import { SensorParserConfigHistoryListController } from './sensors/sensor-aggreg
 import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EffectsModule } from '@ngrx/effects'
-import { parserConfigsReducer, groupConfigsReducer, parserStatusReducer } from './sensors/parser-configs.reducers';
+import { parserReducer } from './sensors/parser-configs.reducers';
 import { ParserConfigEffects } from './sensors/parser-configs.effects';
 
 
@@ -61,9 +61,7 @@ import { ParserConfigEffects } from './sensors/parser-configs.effects';
     SensorAggregateModule,
     EffectsModule.forRoot([ ParserConfigEffects ]),
     StoreModule.forRoot({
-      parserConfigs: parserConfigsReducer,
-      groupConfigs: groupConfigsReducer,
-      parserStatus: parserStatusReducer,
+      parsers: parserReducer
     }),
     StoreDevtoolsModule.instrument(),
   ],
