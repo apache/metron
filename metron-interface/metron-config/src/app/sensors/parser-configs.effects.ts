@@ -1,46 +1,47 @@
 import { Effect, Actions, ofType } from '@ngrx/effects'
-import { Observable } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 import { Action } from '@ngrx/store';
 import { Injectable } from '@angular/core';
-import { mergeMap, map } from 'rxjs/operators';
+import { mergeMap, map, switchMap } from 'rxjs/operators';
 import { SensorParserConfigService } from 'app/service/sensor-parser-config.service';
 import { SensorParserConfig } from 'app/model/sensor-parser-config';
 import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-history';
-import { ParserLoadingSuccess, ParserConfigsActions } from './parser-configs.actions';
+import { ParserLoadingSuccess, ParserConfigsActions, GroupLoadingSuccess, StatusLoadingSuccess } from './parser-configs.actions';
+import { StormService } from '../service/storm.service';
 
 @Injectable()
 export class ParserConfigEffects {
 
   @Effect()
-  initialized$: Observable<Action> = this.actions$.pipe(
+  loadData$: Observable<Action> = this.actions$.pipe(
     ofType(ParserConfigsActions.LoadParserStart),
-    mergeMap(() => {
-      return this.parserService.getAllConfig().pipe(
-        map((results: { string: SensorParserConfig }) => {
-          const resultArray: SensorParserConfigHistory[] = Object.keys(results).map((sensorName) => {
+    mergeMap((action) => {
+      return forkJoin(
+        this.parserService.getAllConfig(),
+        this.parserService.getAllGroups(),
+        this.stormService.getAll(),
+      ).pipe(
+          switchMap(([ configs, groups, statuses ]) => {
+          const configsArray: SensorParserConfigHistory[] = Object.keys(configs).map((sensorName) => {
             const sensorParserConfigHistory = new SensorParserConfigHistory();
             sensorParserConfigHistory.sensorName = sensorName;
-            sensorParserConfigHistory.setConfig(results[sensorName]);
+            sensorParserConfigHistory.setConfig(configs[sensorName]);
             return sensorParserConfigHistory;
           });
 
-          return new ParserLoadingSuccess(resultArray);
+          return [
+            new ParserLoadingSuccess(configsArray),
+            new GroupLoadingSuccess(groups),
+            new StatusLoadingSuccess(statuses),
+          ];
         })
       )
     })
   );
 
-  // @Effect()
-  // loadParserStatus$: Observable<Action> = this.actions$.pipe(
-  //   ofType(ParserConfigsActions.LoadStatusStart),
-  //   mergeMap(() => {
-  //     return this.parserService.getAllConfig().pipe(
-  //       map((results: { string: SensorParserConfig }) => {
-          
-  //       })
-  //     )
-  //   })
-  // );
-
-  constructor(private parserService: SensorParserConfigService, private actions$: Actions) {}
+  constructor(
+    private parserService: SensorParserConfigService,
+    private stormService: StormService,
+    private actions$: Actions
+  ) {}
 }

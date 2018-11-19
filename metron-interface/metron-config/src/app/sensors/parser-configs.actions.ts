@@ -1,6 +1,8 @@
 import { Action } from '@ngrx/store';
 import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-history';
 import { SensorParserStatus } from '../model/sensor-parser-status';
+import { ParserGroupModel } from '../model/parser-group';
+import { TopologyStatus } from '../model/topology-status';
 
 export enum ParserConfigsActions {
   LoadParsersSuccess = '[Parser Configs List] Loading parsers success',
@@ -32,16 +34,16 @@ export class ParserLoadingSuccess implements Action {
 }
 
 export class GroupLoadingStart implements Action {
-  readonly type = ParserConfigsActions.LoadStatusStart;
+  readonly type = ParserConfigsActions.LoadGroupsStart;
 }
 export class GroupLoadingFailed implements Action {
-  readonly type = ParserConfigsActions.LoadStatusFailed;
+  readonly type = ParserConfigsActions.LoadGroupsFailed;
 }
 export class GroupLoadingSuccess implements Action {
-  readonly type = ParserConfigsActions.LoadStatusSuccess;
-  readonly groupConfigs: SensorParserConfigHistory[];
+  readonly type = ParserConfigsActions.LoadGroupsSuccess;
+  readonly groupConfigs: ParserGroupModel[];
 
-  constructor(readonly payload: SensorParserConfigHistory[]) {
+  constructor(readonly payload: ParserGroupModel[]) {
     this.groupConfigs = payload;
   }
 }
@@ -54,9 +56,9 @@ export class StatusLoadingFailed implements Action {
 }
 export class StatusLoadingSuccess implements Action {
   readonly type = ParserConfigsActions.LoadStatusSuccess;
-  readonly parserStatus: SensorParserStatus[];
+  readonly parserStatus: TopologyStatus[];
 
-  constructor(readonly payload: SensorParserStatus[]) {
+  constructor(readonly payload: TopologyStatus[]) {
     this.parserStatus = payload;
   }
 }

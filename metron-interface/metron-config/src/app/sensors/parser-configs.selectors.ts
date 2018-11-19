@@ -1,26 +1,51 @@
 import { createSelector } from '@ngrx/store';
 import { MetaParserConfigItem } from './sensor-aggregate/meta-parser-config-item';
 import { SensorParserConfigHistory } from '../model/sensor-parser-config-history';
+import { ParserGroupModel } from '../model/parser-group';
+import { TopologyStatus } from '../model/topology-status';
 
-export const getGroups = (state) => {
+const getGroups = (state) => {
+  return state.groupConfigs.map((group: ParserGroupModel) => {
+    const historyWrapper = new SensorParserConfigHistory();
+    historyWrapper.sensorName = group.name;
+    historyWrapper.setConfig(group);
 
-  // TODO: it's hardcoded for now, see below.
-  //return state.parserGroups;
+    const belongingStatus: TopologyStatus = state.parserStatus.find((status) => {
+      return group.name === status.name;
+    });
 
+    if (belongingStatus) {
+      historyWrapper.status = belongingStatus.status;
+      historyWrapper.latency = belongingStatus.latency.toString();
+      historyWrapper.throughput = belongingStatus.throughput.toString();
+      // FIXME where edit date and edited by information coming from?
+    }
 
-  // TODO: it's temporary.
-  // Remove this and uncomment the lines above if groups are available from the state.
-  return [{
-    name: 'TheMostHappiestGroup',
-    description: 'This is a nice group indeed'
-  }, {
-    name: 'ANiceGroup',
-    description: 'This is not a political party'
-  }];
+    return historyWrapper;
+  });
 };
 
-export const getParsers = (state) => {
-  return state.parserConfigs;
+const getParsers = (state) => {
+  return state.parserConfigs.map((config) => {
+    const belongingStatus: TopologyStatus = state.parserStatus.find((status) => {
+      return config.sensorName === status.name;
+    });
+
+    if (belongingStatus) {
+      config.status = belongingStatus.status;
+      config.latency = belongingStatus.latency.toString();
+      config.throughput = belongingStatus.throughput.toString();
+      // FIXME where edit date and edited by information coming from?
+    }
+
+    return config;
+  });
+
+
+};
+
+const getStatus = (state) => {
+  return state.parserStatus;
 };
 
 export const getMergedConfigs = createSelector(
@@ -30,13 +55,12 @@ export const getMergedConfigs = createSelector(
     let result = [];
 
     groups.forEach((group, i) => {
-      const metaGroupItem = new MetaParserConfigItem(new SensorParserConfigHistory());
-      metaGroupItem.setName(group.name);
+      const metaGroupItem = new MetaParserConfigItem(group);
       metaGroupItem.setIsGroup(true);
       result = result.concat(metaGroupItem);
 
       const configsForGroup = parsers
-        .filter(parser => parser.config && parser.config.group === group.name)
+        .filter(parser => parser.config && parser.config.group === group.sensorName)
         .map(parser => new MetaParserConfigItem(parser));
 
       result = result.concat(configsForGroup);
