@@ -424,8 +424,14 @@ This package installs the Metron Rest %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/config/rest_application.yml
+%{metron_home}/config/knox/conf/topologies/metron.xml
+%{metron_home}/config/knox/data/services/alerts/rewrite.xml
+%{metron_home}/config/knox/data/services/alerts/service.xml
+%{metron_home}/config/knox/data/services/rest/rewrite.xml
+%{metron_home}/config/knox/data/services/rest/service.xml
 %{metron_home}/bin/metron-rest.sh
 %{metron_home}/bin/pcap_to_pdml.sh
+%{metron_home}/bin/install_metron_knox.sh
 %attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

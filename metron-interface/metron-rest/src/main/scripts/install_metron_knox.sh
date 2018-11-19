@@ -22,9 +22,9 @@ KNOX_HOME=${KNOX_HOME:-/usr/hdp/current/knox-server}
 KNOX_METRON_REST_DIR=$KNOX_HOME/data/services/metron-rest/$METRON_VERSION
 KNOX_METRON_ALERTS_DIR=$KNOX_HOME/data/services/metron-alerts/$METRON_VERSION
 
-mkdir -p KNOX_METRON_REST_DIR
-mkdir -p KNOX_METRON_ALERTS_DIR
+mkdir -p $KNOX_METRON_REST_DIR
+mkdir -p $KNOX_METRON_ALERTS_DIR
 
 cp $METRON_HOME/config/knox/data/services/rest/* $KNOX_METRON_REST_DIR
 cp $METRON_HOME/config/knox/data/services/alerts/* $KNOX_METRON_ALERTS_DIR
-cp $METRON_HOME/config/knox/conf/topologies/metron.xml $KNOX_HOME/topologies
+cp $METRON_HOME/config/knox/conf/topologies/metron.xml $KNOX_HOME/conf/topologies
