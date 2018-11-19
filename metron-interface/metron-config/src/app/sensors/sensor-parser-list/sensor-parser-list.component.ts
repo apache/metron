@@ -34,6 +34,7 @@ import { ParserLoadingStart } from '../parser-configs.actions';
 import { SensorParserStatus } from '../../model/sensor-parser-status';
 
 import * as parserSelectors from '../parser-configs.selectors';
+import { SensorParserStatus } from '../../model/sensor-parser-status';
 
 @Component({
   selector: 'metron-config-sensor-parser-list',
@@ -83,8 +84,6 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this.groupConfigs$ = store.select('groupConfigs');
     this.parserStatus$ = store.select('parserStatus');
     this.mergedConfigs$ = store.pipe(select(parserSelectors.getMergedConfigs));
-
-
   }
 
   private pollStatus() {
