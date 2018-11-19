@@ -28,6 +28,7 @@ import { PcapRequest } from '../model/pcap.request';
 import { of, defer } from 'rxjs';
 import { RestError } from '../../model/rest-error';
 import { ConfirmationPopoverModule } from 'angular-confirmation-popover';
+import { AppConfigService } from '../../service/app-config.service';
 
 @Component({
   selector: 'app-pcap-filters',
@@ -60,6 +61,13 @@ class FakePcapService {
   }
 }
 
+class FakeAppConfigService {
+
+  getApiRoot() {
+    return '/api/v1'
+  }
+}
+
 describe('PcapPanelComponent', () => {
   let component: PcapPanelComponent;
   let fixture: ComponentFixture<PcapPanelComponent>;
@@ -77,6 +85,7 @@ describe('PcapPanelComponent', () => {
       ],
       providers: [
         { provide: PcapService, useClass: FakePcapService },
+        { provide: AppConfigService, useClass: FakeAppConfigService }
       ]
     })
     .compileComponents();

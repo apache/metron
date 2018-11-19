@@ -337,6 +337,8 @@ org.springframework:spring-web:jar:5.0.5.RELEASE:compile,The Apache Software Lic
 org.springframework:spring-webmvc:jar:3.2.6.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/SpringSource/spring-framework
 org.springframework:spring-webmvc:jar:4.3.3.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
 org.springframework:spring-webmvc:jar:5.0.5.RELEASE:compile,The Apache Software License, Version 2.0,https://github.com/spring-projects/spring-framework
+org.springframework.ldap:spring-ldap-core:jar:2.3.2.RELEASE:compile,ASLv2,https://spring.io/projects/spring-ldap
+org.springframework.security:spring-security-ldap:jar:5.1.1.RELEASE:compile,ASLv2,https://spring.io/projects/spring-security
 org.tukaani:xz:jar:1.0:compile,Public Domain,http://tukaani.org/xz/java.html
 org.xerial.snappy:snappy-java:jar:1.0.4.1:compile,The Apache Software License, Version 2.0,http://code.google.com/p/snappy-java/
 org.xerial.snappy:snappy-java:jar:1.1.1.7:compile,The Apache Software License, Version 2.0,https://github.com/xerial/snappy-java
@@ -485,3 +487,5 @@ org.sonatype.sisu:sisu-inject-plexus:jar:2.2.2:compile
 com.zaxxer:HikariCP:jar:2.7.8:compile,ASLv2,https://github.com/brettwooldridge/HikariCP
 org.hibernate.validator:hibernate-validator:jar:6.0.9.Final:compile,ASLv2,https://github.com/hibernate/hibernate-validator
 com.github.palindromicity:simple-syslog-5424:jar:0.0.9:compile,ASLv2,https://github.com/palindromicity/simple-syslog-5424
+org.elasticsearch.client:elasticsearch-rest-high-level-client:jar:5.6.2:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch.plugin:aggs-matrix-stats-client:jar:5.6.2:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt

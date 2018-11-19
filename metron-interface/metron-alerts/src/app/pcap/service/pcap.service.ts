@@ -25,6 +25,7 @@ import { HttpUtil } from '../../utils/httpUtil';
 import { PcapRequest } from '../model/pcap.request';
 import { Pdml } from '../model/pdml';
 import { PcapStatusResponse } from '../model/pcap-status-response';
+import { AppConfigService } from '../../service/app-config.service';
 
 @Injectable()
 export class PcapService {
@@ -34,7 +35,7 @@ export class PcapService {
     'X-Requested-With': 'XMLHttpRequest'
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private appConfigService: AppConfigService) {}
 
   public pollStatus(id: string): Observable<{}> {
     return interval(this.statusInterval * 1000).pipe(
@@ -47,47 +48,47 @@ export class PcapService {
   public submitRequest(
     pcapRequest: PcapRequest
   ): Observable<PcapStatusResponse> {
-    return this.http.post('/api/v1/pcap/fixed', pcapRequest).pipe(
+    return this.http.post(this.appConfigService.getApiRoot() + '/pcap/fixed', pcapRequest).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public getStatus(id: string): Observable<PcapStatusResponse> {
-    return this.http.get(`/api/v1/pcap/${id}`).pipe(
+    return this.http.get(this.appConfigService.getApiRoot() + `/pcap/${id}`).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public getRunningJob(): Observable<PcapStatusResponse[]> {
-    return this.http.get(`/api/v1/pcap?state=RUNNING`).pipe(
+    return this.http.get(this.appConfigService.getApiRoot() + '/pcap?state=RUNNING').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public getPackets(id: string, pageId: number): Observable<Pdml> {
-    return this.http.get(`/api/v1/pcap/${id}/pdml?page=${pageId}`).pipe(
+    return this.http.get(this.appConfigService.getApiRoot() + `/pcap/${id}/pdml?page=${pageId}`).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public getPcapRequest(id: string): Observable<PcapRequest> {
-    return this.http.get(`/api/v1/pcap/${id}/config`).pipe(
+    return this.http.get(this.appConfigService.getApiRoot() + `/pcap/${id}/config`).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public getDownloadUrl(id: string, pageId: number) {
-    return `/api/v1/pcap/${id}/raw?page=${pageId}`;
+    return this.appConfigService.getApiRoot() + `/pcap/${id}/raw?page=${pageId}`;
   }
 
   public cancelQuery(queryId: string) {
     return this.http
-      .delete(`/api/v1/pcap/kill/${queryId}`)
+      .delete(this.appConfigService.getApiRoot() + `/pcap/kill/${queryId}`)
       .pipe(catchError(HttpUtil.handleError));
   }
 }

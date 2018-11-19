@@ -21,14 +21,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {HttpUtil} from '../utils/httpUtil';
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class GlobalConfigService {
-  url = 'api/v1/global/config';
+  url = this.appConfigService.getApiRoot() + '/global/config';
 
   private globalConfig = {};
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private appConfigService: AppConfigService) {}
 
   public get(): Observable<{}> {
     return this.http.get(this.url).pipe(

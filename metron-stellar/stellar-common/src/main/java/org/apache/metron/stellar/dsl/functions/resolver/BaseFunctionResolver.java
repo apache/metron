@@ -23,6 +23,7 @@ import static java.lang.String.format;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
@@ -58,9 +59,15 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
    */
   protected Context context;
 
+  /**
+   * Indicates if closed has been called on this resolver.
+   */
+  private boolean closed;
+
   public BaseFunctionResolver() {
     // memoize provides lazy initialization and thread-safety (the ugly cast is necessary for serialization)
     functions = Suppliers.memoize((Supplier<Map<String, StellarFunctionInfo>> & Serializable) this::resolveFunctions);
+    closed = false;
   }
 
   /**
@@ -92,6 +99,43 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
   @Override
   public void initialize(Context context) {
     this.context = context;
+  }
+
+  /**
+   * Makes an attempt to close all Stellar functions. Calling close multiple times has no effect.
+   * @throws IOException Catches all exceptions and summarizes them.
+   */
+  @Override
+  public void close() throws IOException {
+    if (!closed) {
+      LOG.info("Calling close() on Stellar functions.");
+      Map<String, Throwable> errors = new HashMap<>();
+      for (StellarFunctionInfo info : getFunctionInfo()) {
+        try {
+          info.getFunction().close();
+        } catch (Throwable t) {
+          errors.put(info.getName(), t);
+        }
+      }
+      if (!errors.isEmpty()) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Unable to close Stellar functions:");
+        for (Map.Entry<String, Throwable> e : errors.entrySet()) {
+          Throwable throwable = e.getValue();
+          String eText = String
+              .format("Exception - Function: %s; Message: %s; Cause: %s", e.getKey(),
+                  throwable.getMessage(),
+                  throwable.getCause());
+          sb.append(System.lineSeparator());
+          sb.append(eText);
+        }
+        closed = true;
+        throw new IOException(sb.toString());
+      }
+      closed = true;
+    } else {
+      LOG.info("close() already called on Stellar functions - skipping.");
+    }
   }
 
   /**

@@ -22,13 +22,14 @@ import {Router} from '@angular/router';
 import { ReplaySubject } from 'rxjs';
 import { GlobalConfigService } from './global-config.service';
 import { DataSource } from './data-source';
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class AuthenticationService {
 
   private static USER_NOT_VERIFIED = 'USER-NOT-VERIFIED';
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
-  loginUrl = '/api/v1/user';
+  loginUrl = this.appConfigService.getApiRoot() + '/user';
   logoutUrl = '/logout';
   onLoginEvent: ReplaySubject<boolean> = new ReplaySubject<boolean>();
   $onLoginEvent = this.onLoginEvent.asObservable();
@@ -36,12 +37,13 @@ export class AuthenticationService {
   constructor(private http: HttpClient,
               private router: Router,
               private globalConfigService: GlobalConfigService,
-              private dataSource: DataSource) {
+              private dataSource: DataSource,
+              private appConfigService: AppConfigService) {
     this.init();
   }
 
   public init() {
-      this.getCurrentUser({responseType: 'text'}).subscribe((response) => {
+      this.getCurrentUser({ headers: new HttpHeaders({'Accept': 'text/plain'}), responseType: 'text'}).subscribe((response) => {
         this.currentUser = response.toString();
         if (this.currentUser) {
           this.onLoginEvent.next(true);
@@ -54,7 +56,7 @@ export class AuthenticationService {
 
   public login(username: string, password: string, onError): void {
     let credentials = btoa(username + ':' + password);
-    this.getCurrentUser({ headers: new HttpHeaders({'Authorization': `Basic ${credentials}`}), responseType: 'text' })
+    this.getCurrentUser({ headers: new HttpHeaders({'Authorization': `Basic ${credentials}`, 'Accept': 'text/plain'}), responseType: 'text' })
         .subscribe((response) => {
           this.currentUser = response.toString();
           this.router.navigateByUrl('/alerts-list');

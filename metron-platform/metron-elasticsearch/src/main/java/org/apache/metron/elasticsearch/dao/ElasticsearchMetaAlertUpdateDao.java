@@ -199,7 +199,7 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
    * @param alertGuid The GUID of the child alert
    * @return The Elasticsearch response containing the meta alerts
    */
-  protected SearchResponse getMetaAlertsForAlert(String alertGuid) {
+  protected SearchResponse getMetaAlertsForAlert(String alertGuid) throws IOException {
     QueryBuilder qb = boolQuery()
         .must(
             nestedQuery(
@@ -212,7 +212,7 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
         )
         .must(termQuery(MetaAlertConstants.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
     return ElasticsearchUtils
-        .queryAllResults(elasticsearchDao.getClient(), qb, getConfig().getMetaAlertIndex(),
+        .queryAllResults(elasticsearchDao.getClient().getHighLevelClient(), qb, getConfig().getMetaAlertIndex(),
             pageSize);
   }
 
