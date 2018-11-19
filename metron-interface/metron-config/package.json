@@ -34,6 +34,7 @@
     "@angular/router": "^6.1.8",
     "@ngrx/effects": "^6.1.2",
     "@ngrx/store": "^6.1.2",
+    "@ngrx/store-devtools": "^6.1.2",
     "@types/ace": "0.0.32",
     "@types/bootstrap": "^4.1.2",
     "@types/jasmine": "~2.8.6",
