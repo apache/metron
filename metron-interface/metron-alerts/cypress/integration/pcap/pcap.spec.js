@@ -25,6 +25,11 @@ context('PCAP Tab', () => {
       url: '/api/v1/user',
       response: 'user'
     });
+    cy.route({
+        method: 'POST',
+        url: '/api/v1/logout',
+        response: []
+    });
 
     cy.route('GET', 'config', 'fixture:config.json');
     cy.route('POST', 'search', 'fixture:search.json');
@@ -50,7 +55,7 @@ context('PCAP Tab', () => {
     cy.wait('@runningJobs').its('url').should('include', '?state=RUNNING');
   });
 
-  it('submitting PCAP job request', () => {
+  it.only('submitting PCAP job request', () => {
     cy.contains('PCAP').click();
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json')
       .as('postingPcapJob');
