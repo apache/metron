@@ -72,7 +72,8 @@ Any platform that supports these tools is suitable, but the following instructio
         This allows you to skip Vagrant up if you have already started the vm.
     - Do you want to build the docker machine?
         This allows you to skip building the docker machine if you have already done so, providing there are no changes to the Docker file and configuration that need to be picked up.
-
+    - ansible skip tags?  The default is to skip sensors and solr.  If you want to change that input  comma separated tags, such as sensor-stubs,solr.
+    
 ### Explore Metron
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.

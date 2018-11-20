@@ -43,7 +43,6 @@ sed_i -e '/^node1.*/d' ~/.ssh/known_hosts
 
 ansible-playbook  \
  -i /root/ansible_config/inventory \
- --skip-tags="solr,sensors" \
  --private-key="/root/vagrant_key/private_key" \
  --user="vagrant" \
  --become \

@@ -28,6 +28,7 @@ fi
 VAGRANT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 ANSIBLE_PATH=${VAGRANT_PATH}/ansible
 VAGRANT_KEY_PATH=${VAGRANT_PATH}/.vagrant/machines/node1/virtualbox
+A_SKIP_TAGS="sensors,solr"
 
 # move over to the docker area
 cd ../docker || exit 1
@@ -40,9 +41,16 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
  docker build -t metron-build-docker:latest .
 fi
 
+read -p "  ansible skip tags [$A_SKIP_TAGS]: " INPUT
+[ -n "$INPUT" ] && A_SKIP_TAGS=${INPUT}
+
+
+echo "$A_SKIP_TAGS"
+
 if [[ ! -d ~/.m2 ]]; then
  mkdir ~/.m2
 fi
+
 DATE=`date`
 LOG_DATE=${DATE// /_}
 LOGNAME="metron-build-${LOG_DATE}.log"
@@ -62,6 +70,7 @@ docker run -it \
  -v ${VAGRANT_PATH}/logs:/root/logs \
  -e ANSIBLE_CONFIG='/root/ansible_config/ansible.cfg' \
  -e ANSIBLE_LOG_PATH="/root/logs/${LOGNAME}" \
+ -e ANSIBLE_SKIP_TAGS=${A_SKIP_TAGS} \
  --add-host="node1:${NODE1_IP}" \
  metron-build-docker:latest bash -c /root/vagrant/docker_run_ansible.sh
 
