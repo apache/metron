@@ -127,7 +127,7 @@ public class Constants {
     }
   }
 
-   public static enum ParserConfigConstants {
+   public enum ParserConfigConstants {
     //@formatter:off
     RECORD_TYPE("recordType"),
     RECORD_TYPE_REGEX("recordTypeRegex"),
@@ -140,14 +140,6 @@ public class Constants {
     //@formatter:on
     private final String name;
     private static Map<String, ParserConfigConstants> nameToField;
-
-    static {
-      nameToField = new HashMap<>();
-      for (final ParserConfigConstants f : ParserConfigConstants.values()) {
-        nameToField.put(f.getName(), f);
-      }
-    }
-
 
     ParserConfigConstants(String name) {
       this.name = name;
