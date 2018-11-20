@@ -55,7 +55,7 @@ context('PCAP Tab', () => {
     cy.wait('@runningJobs').its('url').should('include', '?state=RUNNING');
   });
 
-  it.only('submitting PCAP job request', () => {
+  it('submitting PCAP job request', () => {
     cy.contains('PCAP').click();
     cy.route('POST', '/api/v1/pcap/fixed', 'fixture:pcap.status-00.json')
       .as('postingPcapJob');
