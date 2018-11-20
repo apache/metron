@@ -27,6 +27,7 @@ import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,7 +69,9 @@ public class StellarParserRunner {
 
     private List<JSONObject> doParse(List<String> messages) {
         // initialize
-        ParserRunnerImpl runner = new ParserRunnerImpl(Collections.singleton(sensorType));
+        HashSet<String> sensorTypes = new HashSet<>();
+        sensorTypes.add(sensorType);
+        ParserRunnerImpl runner = new ParserRunnerImpl(sensorTypes);
         runner.init(() -> parserConfigurations, context);
 
         // parse each message
