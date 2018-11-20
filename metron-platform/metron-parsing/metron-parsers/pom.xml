@@ -70,13 +70,7 @@
     <dependency>
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-parsers-common</artifactId>
-      <version>0.6.1</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.metron</groupId>
-      <artifactId>metron-parsers-common</artifactId>
-      <version>0.6.1</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
 
