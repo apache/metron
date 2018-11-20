@@ -20,24 +20,30 @@
 
 package org.apache.metron.profiler;
 
-import com.google.common.base.Ticker;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.github.benmanes.caffeine.cache.RemovalListener;
+import com.github.benmanes.caffeine.cache.Ticker;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 
@@ -99,7 +105,7 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
           long periodDurationMillis,
           long profileTimeToLiveMillis,
           long maxNumberOfRoutes) {
-    this(periodDurationMillis, profileTimeToLiveMillis, maxNumberOfRoutes, Ticker.systemTicker());
+    this(periodDurationMillis, profileTimeToLiveMillis, maxNumberOfRoutes, Ticker.systemTicker(), Optional.empty());
   }
 
   /**
@@ -110,12 +116,14 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
    * @param maxNumberOfRoutes The max number of unique routes to maintain.  After this is exceeded, lesser
    *                          used routes will be evicted from the internal cache.
    * @param ticker The ticker used to drive time for the caches.  Only needs set for testing.
+   * @param cacheMaintenanceExecutor The executor responsible for running cache maintenance tasks. Only needed for testing.
    */
   public DefaultMessageDistributor(
           long periodDurationMillis,
           long profileTimeToLiveMillis,
           long maxNumberOfRoutes,
-          Ticker ticker) {
+          Ticker ticker,
+          Optional<Executor> cacheMaintenanceExecutor) {
 
     if(profileTimeToLiveMillis < periodDurationMillis) {
       throw new IllegalStateException(format(
@@ -126,22 +134,34 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
     this.periodDurationMillis = periodDurationMillis;
 
     // build the cache of active profiles
-    this.activeCache = CacheBuilder
+    Caffeine<Integer, ProfileBuilder> activeCacheBuilder = Caffeine
             .newBuilder()
             .maximumSize(maxNumberOfRoutes)
             .expireAfterAccess(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
             .removalListener(new ActiveCacheRemovalListener())
-            .ticker(ticker)
-            .build();
+            .ticker(ticker);
+    if (cacheMaintenanceExecutor.isPresent()) {
+      activeCacheBuilder.executor(cacheMaintenanceExecutor.get());
+    }
+    if (LOG.isDebugEnabled()) {
+      activeCacheBuilder.recordStats();
+    }
+    this.activeCache = activeCacheBuilder.build();
 
     // build the cache of expired profiles
-    this.expiredCache = CacheBuilder
+    Caffeine<Integer, ProfileBuilder> expiredCacheBuilder = Caffeine
             .newBuilder()
             .maximumSize(maxNumberOfRoutes)
             .expireAfterWrite(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
             .removalListener(new ExpiredCacheRemovalListener())
-            .ticker(ticker)
-            .build();
+            .ticker(ticker);
+    if (cacheMaintenanceExecutor.isPresent()) {
+      expiredCacheBuilder.executor(cacheMaintenanceExecutor.get());
+    }
+    if (LOG.isDebugEnabled()) {
+      expiredCacheBuilder.recordStats();
+    }
+    this.expiredCache = expiredCacheBuilder.build();
   }
 
   /**
@@ -219,8 +239,9 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
   private void cacheMaintenance() {
     activeCache.cleanUp();
     expiredCache.cleanUp();
-
-    LOG.debug("Cache maintenance complete: activeCacheSize={}, expiredCacheSize={}", activeCache.size(), expiredCache.size());
+    LOG.debug("Cache maintenance triggered: activeCacheStats={}, expiredCacheStats={}",
+            activeCache.stats().toString(),
+            expiredCache.stats().toString());
   }
 
   /**
@@ -256,14 +277,14 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
   public ProfileBuilder getBuilder(MessageRoute route, Context context) throws ExecutionException {
     ProfileConfig profile = route.getProfileDefinition();
     String entity = route.getEntity();
-    return activeCache.get(
-            cacheKey(profile, entity),
-            () -> new DefaultProfileBuilder.Builder()
+    Function<Integer, ProfileBuilder> profileCreator = (k) ->
+            new DefaultProfileBuilder.Builder()
                     .withDefinition(profile)
                     .withEntity(entity)
                     .withPeriodDurationMillis(periodDurationMillis)
                     .withContext(context)
-                    .build());
+                    .build();
+    return activeCache.get(cacheKey(profile, entity), profileCreator);
   }
 
   /**
@@ -299,15 +320,13 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
   private class ActiveCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder>, Serializable {
 
     @Override
-    public void onRemoval(RemovalNotification<Integer, ProfileBuilder> notification) {
-
-      ProfileBuilder expired = notification.getValue();
+    public void onRemoval(@Nullable Integer key, @Nullable ProfileBuilder expired, @Nonnull RemovalCause cause) {
       LOG.warn("Profile expired from active cache; profile={}, entity={}",
               expired.getDefinition().getProfile(),
               expired.getEntity());
 
       // add the profile to the expired cache
-      expiredCache.put(notification.getKey(), expired);
+      expiredCache.put(key, expired);
     }
   }
 
@@ -317,23 +336,20 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
   private class ExpiredCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder>, Serializable {
 
     @Override
-    public void onRemoval(RemovalNotification<Integer, ProfileBuilder> notification) {
-
-      if(notification.wasEvicted()) {
-
+    public void onRemoval(@Nullable Integer key, @Nullable ProfileBuilder expired, @Nonnull RemovalCause cause) {
+      if(cause.wasEvicted()) {
         // the expired profile was NOT flushed in time
-        ProfileBuilder expired = notification.getValue();
-        LOG.warn("Expired profile NOT flushed before removal, some state lost; profile={}, entity={}",
+        LOG.warn("Expired profile NOT flushed before removal, some state lost; profile={}, entity={}, cause={}",
                 expired.getDefinition().getProfile(),
-                expired.getEntity());
+                expired.getEntity(),
+                cause);
 
       } else {
-
         // the expired profile was flushed successfully
-        ProfileBuilder expired = notification.getValue();
-        LOG.debug("Expired profile successfully flushed; profile={}, entity={}",
+        LOG.debug("Expired profile successfully flushed; profile={}, entity={}, cause={}",
                 expired.getDefinition().getProfile(),
-                expired.getEntity());
+                expired.getEntity(),
+                cause);
       }
     }
   }
