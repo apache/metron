@@ -5,18 +5,17 @@ import { ParserGroupModel } from '../model/parser-group';
 import { TopologyStatus } from '../model/topology-status';
 
 const getGroups = (state) => {
-
-  const historyInstances = state.parsers.groupConfigs.map((group: ParserGroupModel) => {
+  const historyInstances = state.sensors.groups.items.map((group: ParserGroupModel) => {
     const historyWrapper = new SensorParserConfigHistory();
     historyWrapper.sensorName = group.name;
     historyWrapper.setConfig(group);
     return historyWrapper;
   });
-  return enrichWithStatusInfo(historyInstances, state.parsers.parserStatus, 'name');
+  return enrichWithStatusInfo(historyInstances, state.sensors.statuses.items, 'name');
 }
 
 const getParsers = (state) => {
-  return enrichWithStatusInfo(state.parsers.parserConfigs, state.parsers.parserStatus);
+  return enrichWithStatusInfo(state.sensors.parsers.items, state.sensors.statuses.items);
 };
 
 function enrichWithStatusInfo(items = [], statuses = [], nameField = 'sensorName') {
@@ -35,10 +34,6 @@ function enrichWithStatusInfo(items = [], statuses = [], nameField = 'sensorName
     return config;
   });
 }
-
-const getStatus = (state) => {
-  return state.parsers.parserStatus;
-};
 
 export const getMergedConfigs = createSelector(
   getGroups,

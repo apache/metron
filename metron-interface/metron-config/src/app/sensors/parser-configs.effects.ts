@@ -29,8 +29,8 @@ export class ParserConfigEffects {
             return sensorParserConfigHistory;
           });
           return new ParsersActions.LoadSuccess({
-            parsers: configs,
-            groups: configs,
+            parsers: configsArray,
+            groups: groups,
             statuses: statuses,
           } as ParsersActions.LoadSuccesActionPayload);
         })

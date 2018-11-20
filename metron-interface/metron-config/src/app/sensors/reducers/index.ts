@@ -13,11 +13,11 @@ import { ParserConfigsActions } from '../parser-configs.actions';
 export interface SensorState {
   parsers: ParserState;
   groups: GroupState;
-  status: StatusState;
+  statuses: StatusState;
 }
 
 export const reducers: ActionReducerMap<SensorState, any> = {
   parsers: parserConfigsReducer,
   groups: groupConfigsReducer,
-  status: parserStatusReducer,
+  statuses: parserStatusReducer,
 }
