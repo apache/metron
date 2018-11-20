@@ -18,7 +18,6 @@ package org.apache.metron.parsers.regex;
 import com.google.common.base.CaseFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.Constants.ParserConfigConstants;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -399,4 +398,37 @@ public class RegularExpressionsParser extends BasicParser {
     this.parserConfig = parserConfig;
   }
 
+  enum ParserConfigConstants {
+    //@formatter:off
+    RECORD_TYPE("recordType"),
+    RECORD_TYPE_REGEX("recordTypeRegex"),
+    REGEX("regex"),
+    FIELDS("fields"),
+    MESSAGE_HEADER("messageHeaderRegex"),
+    ORIGINAL("original_string"),
+    TIMESTAMP("timestamp"),
+    CONVERT_CAMELCASE_TO_UNDERSCORE("convertCamelCaseToUnderScore");
+    //@formatter:on
+    private final String name;
+    private static Map<String, ParserConfigConstants> nameToField;
+
+    ParserConfigConstants(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    static {
+      nameToField = new HashMap<>();
+      for (ParserConfigConstants f : ParserConfigConstants.values()) {
+        nameToField.put(f.getName(), f);
+      }
+    }
+
+    public static ParserConfigConstants fromString(String fieldName) {
+      return nameToField.get(fieldName);
+    }
+  }
 }
