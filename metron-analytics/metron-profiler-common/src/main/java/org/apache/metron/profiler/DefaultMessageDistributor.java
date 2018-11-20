@@ -25,6 +25,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
 import com.github.benmanes.caffeine.cache.Ticker;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.stellar.dsl.Context;
@@ -39,6 +40,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -102,7 +105,7 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
           long periodDurationMillis,
           long profileTimeToLiveMillis,
           long maxNumberOfRoutes) {
-    this(periodDurationMillis, profileTimeToLiveMillis, maxNumberOfRoutes, Ticker.systemTicker());
+    this(periodDurationMillis, profileTimeToLiveMillis, maxNumberOfRoutes, Ticker.systemTicker(), Optional.empty());
   }
 
   /**
@@ -113,12 +116,14 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
    * @param maxNumberOfRoutes The max number of unique routes to maintain.  After this is exceeded, lesser
    *                          used routes will be evicted from the internal cache.
    * @param ticker The ticker used to drive time for the caches.  Only needs set for testing.
+   * @param cacheMaintenanceExecutor The executor responsible for running cache maintenance tasks. Only needed for testing.
    */
   public DefaultMessageDistributor(
           long periodDurationMillis,
           long profileTimeToLiveMillis,
           long maxNumberOfRoutes,
-          Ticker ticker) {
+          Ticker ticker,
+          Optional<Executor> cacheMaintenanceExecutor) {
 
     if(profileTimeToLiveMillis < periodDurationMillis) {
       throw new IllegalStateException(format(
@@ -135,10 +140,13 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
             .expireAfterAccess(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
             .removalListener(new ActiveCacheRemovalListener())
             .ticker(ticker);
-    if(LOG.isDebugEnabled()) {
+    if (cacheMaintenanceExecutor.isPresent()) {
+      activeCacheBuilder.executor(cacheMaintenanceExecutor.get());
+    }
+    if (LOG.isDebugEnabled()) {
       activeCacheBuilder.recordStats();
     }
-    this.activeCache =  activeCacheBuilder.build();
+    this.activeCache = activeCacheBuilder.build();
 
     // build the cache of expired profiles
     Caffeine<Integer, ProfileBuilder> expiredCacheBuilder = Caffeine
@@ -147,7 +155,10 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
             .expireAfterWrite(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
             .removalListener(new ExpiredCacheRemovalListener())
             .ticker(ticker);
-    if(LOG.isDebugEnabled()) {
+    if (cacheMaintenanceExecutor.isPresent()) {
+      expiredCacheBuilder.executor(cacheMaintenanceExecutor.get());
+    }
+    if (LOG.isDebugEnabled()) {
       expiredCacheBuilder.recordStats();
     }
     this.expiredCache = expiredCacheBuilder.build();
@@ -328,15 +339,17 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
     public void onRemoval(@Nullable Integer key, @Nullable ProfileBuilder expired, @Nonnull RemovalCause cause) {
       if(cause.wasEvicted()) {
         // the expired profile was NOT flushed in time
-        LOG.warn("Expired profile NOT flushed before removal, some state lost; profile={}, entity={}",
+        LOG.warn("Expired profile NOT flushed before removal, some state lost; profile={}, entity={}, cause={}",
                 expired.getDefinition().getProfile(),
-                expired.getEntity());
+                expired.getEntity(),
+                cause);
 
       } else {
         // the expired profile was flushed successfully
-        LOG.debug("Expired profile successfully flushed; profile={}, entity={}",
+        LOG.debug("Expired profile successfully flushed; profile={}, entity={}, cause={}",
                 expired.getDefinition().getProfile(),
-                expired.getEntity());
+                expired.getEntity(),
+                cause);
       }
     }
   }
