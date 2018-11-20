@@ -129,22 +129,28 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
     this.periodDurationMillis = periodDurationMillis;
 
     // build the cache of active profiles
-    this.activeCache = Caffeine
+    Caffeine<Integer, ProfileBuilder> activeCacheBuilder = Caffeine
             .newBuilder()
             .maximumSize(maxNumberOfRoutes)
             .expireAfterAccess(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
             .removalListener(new ActiveCacheRemovalListener())
-            .ticker(ticker)
-            .build();
+            .ticker(ticker);
+    if(LOG.isDebugEnabled()) {
+      activeCacheBuilder.recordStats();
+    }
+    this.activeCache =  activeCacheBuilder.build();
 
     // build the cache of expired profiles
-    this.expiredCache = Caffeine
+    Caffeine<Integer, ProfileBuilder> expiredCacheBuilder = Caffeine
             .newBuilder()
             .maximumSize(maxNumberOfRoutes)
             .expireAfterWrite(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
             .removalListener(new ExpiredCacheRemovalListener())
-            .ticker(ticker)
-            .build();
+            .ticker(ticker);
+    if(LOG.isDebugEnabled()) {
+      expiredCacheBuilder.recordStats();
+    }
+    this.expiredCache = expiredCacheBuilder.build();
   }
 
   /**
