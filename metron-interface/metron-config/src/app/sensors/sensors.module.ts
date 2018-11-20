@@ -43,7 +43,7 @@ import { reducers } from './reducers';
     SensorParserConfigModule,
     SensorAggregateModule,
     EffectsModule.forFeature([ ParserConfigEffects ]),
-    StoreModule.forFeature('parsers', reducers),
+    StoreModule.forFeature('sensors', reducers),
   ],
   declarations: [],
   providers: [

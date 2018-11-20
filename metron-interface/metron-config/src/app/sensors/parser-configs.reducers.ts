@@ -1,65 +1,45 @@
 import { Action, State } from '@ngrx/store';
-import { ParserConfigsActions, ParserLoadingSuccess, StatusLoadingSuccess, GroupLoadingSuccess } from './parser-configs.actions';
 import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-history';
 import { SensorParserStatus } from '../model/sensor-parser-status';
 import { TopologyStatus } from '../model/topology-status';
 import { ParserGroupModel } from '../model/parser-group';
+import * as ParsersActions from './parser-configs.actions';
 
 export const initialParser: SensorParserConfigHistory[] = [];
 export const initialGroup: ParserGroupModel[] = [];
 export const initialStatus: TopologyStatus[] = [];
 
+
 export interface ParserState {
-  parserConfigs: SensorParserConfigHistory[]
+  items: SensorParserConfigHistory[];
 }
 
 export interface GroupState {
-  groupConfigs: ParserGroupModel[]
+  items: ParserGroupModel[];
 }
 
 export interface StatusState {
-  parserStatus: TopologyStatus[]
+  items: TopologyStatus[];
 }
 
 const initialParserState: ParserState = {
-  parserConfigs: []
+  items: []
 }
 
 const initialGroupState: GroupState = {
-  groupConfigs: []
+  items: []
 }
 
 const initialStatusState: StatusState = {
-  parserStatus: []
+  items: []
 }
-
-// export function parserReducer(parserState: ParserState = initialParserState, action: Action): ParserState {
-//   switch (action.type) {
-//     case ParserConfigsActions.LoadParsersSuccess:
-//       return {
-//         ...parserState,
-//         parserConfigs: parserConfigsReducer(parserState.parserConfigs, action)
-//       }
-//     case ParserConfigsActions.LoadGroupsSuccess:
-//       return {
-//         ...parserState,
-//         groupConfigs: groupConfigsReducer(parserState.groupConfigs, action)
-//       }
-//     case ParserConfigsActions.LoadStatusSuccess:
-//       return {
-//         ...parserState,
-//         parserStatus: parserStatusReducer(parserState.parserStatus, action)
-//       }
-//     default:
-//       return parserState;
-//   }
-// }
 
 export function parserConfigsReducer(state: ParserState = initialParserState, action: Action): ParserState {
   switch (action.type) {
-    case ParserConfigsActions.LoadParsersSuccess:
+    case ParsersActions.ParserConfigsActions.LoadSuccess:
       return {
-        parserConfigs: (action as ParserLoadingSuccess).payload
+        ...state,
+        items: (action as ParsersActions.LoadSuccess).payload.parsers
       };
 
     default:
@@ -69,9 +49,10 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
 
 export function groupConfigsReducer(state: GroupState = initialGroupState, action: Action): GroupState {
   switch (action.type) {
-    case ParserConfigsActions.LoadGroupsSuccess:
+    case ParsersActions.ParserConfigsActions.LoadSuccess:
       return {
-        groupConfigs: (action as GroupLoadingSuccess).payload
+        ...state,
+        items: (action as ParsersActions.LoadSuccess).payload.groups
       }
 
     default:
@@ -81,9 +62,10 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
 
 export function parserStatusReducer(state: StatusState = initialStatusState, action: Action): StatusState {
   switch (action.type) {
-    case ParserConfigsActions.LoadStatusSuccess:
+    case ParsersActions.ParserConfigsActions.LoadSuccess:
       return {
-        parserStatus: (action as StatusLoadingSuccess).payload
+        ...state,
+        items: (action as ParsersActions.LoadSuccess).payload.statuses
       }
 
     default:
