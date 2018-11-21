@@ -98,9 +98,9 @@
       </td>
       <td>{{ getParserType(sensor.getSensor().config) }}</td>
       <td
-        [ngClass]="{'warning-text': ['Stopped', 'Stopping', 'Disabled'].includes(sensor.getSensor().status)}"
+        [ngClass]="{'warning-text': ['KILLED', 'STOPPING', 'INACTIVE'].includes(sensor.getSensor().status)}"
       >
-        {{ sensor.hasGroup() ? '' : sensor.getSensor().status }}
+        {{ sensor.hasGroup() ? '' : sensor.getSensor().status | sensorStatus }}
       </td>
       <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().latency }}</td>
       <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().throughput }}</td>
@@ -128,7 +128,7 @@
             title="Disable parser topology"
             class="fa fa-ban fa-lg"
             aria-hidden="true"
-            [hidden]="(sensor.getSensor().status != 'Running'  || sensor.getSensor().config['startStopInProgress'])"
+            [hidden]="(sensor.getSensor().status != 'ACTIVE' || sensor.getSensor().config['startStopInProgress'])"
             (click)="onDisableSensor(sensor.getSensor(), $event)"
           >
           </i>
@@ -147,7 +147,7 @@
             title="Enable parser topology"
             class="fa fa-check-circle-o fa-lg"
             aria-hidden="true"
-            [hidden]="(sensor.getSensor().status != 'Disabled' || sensor.getSensor().config['startStopInProgress'])"
+            [hidden]="(sensor.getSensor().status != 'INACTIVE' || sensor.getSensor().config['startStopInProgress'])"
             (click)="onEnableSensor(sensor.getSensor(), $event)"
           >
           </i>

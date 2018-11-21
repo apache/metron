@@ -15,17 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import {routing} from './sensor-parser-list.routing';
-import {SensorParserListComponent} from './sensor-parser-list.component';
-import {SharedModule} from '../../shared/shared.module';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
-import {MetronTableModule} from '../../shared/metron-table/metron-table.module';
-import { SensorStatusPipe } from './sensor-status.pipe';
+import { Pipe, PipeTransform } from '@angular/core';
 
-@NgModule ({
-  imports: [ routing, SharedModule, MetronTableModule ],
-  declarations: [ SensorParserListComponent, SensorStatusPipe ],
-  providers: [{ provide: APP_CONFIG, useValue: METRON_REST_CONFIG }]
-})
-export class SensorParserListModule { }
+@Pipe({name: 'sensorStatus'})
+export class SensorStatusPipe implements PipeTransform {
+  transform(status: string): string {
+    switch (status) {
+      case 'ACTIVE':
+        return 'Running';
+      case 'KILLED':
+        return 'Stopped';
+      case 'INACTIVE':
+        return 'Disabled';
+      case 'STOPPING':
+        return 'Stopping';
+      default:
+        return 'Stopped';
+    }
+  }
+}
