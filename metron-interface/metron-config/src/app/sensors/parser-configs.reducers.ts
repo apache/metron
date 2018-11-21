@@ -4,6 +4,7 @@ import { SensorParserStatus } from '../model/sensor-parser-status';
 import { TopologyStatus } from '../model/topology-status';
 import { ParserGroupModel } from './models/parser-group.model';
 import * as ParsersActions from './parser-configs.actions';
+import { ParserMetaInfoModel } from './models/parser-meta-info.model';
 
 export const initialParser: SensorParserConfigHistory[] = [];
 export const initialGroup: ParserGroupModel[] = [];
@@ -11,11 +12,11 @@ export const initialStatus: TopologyStatus[] = [];
 
 
 export interface ParserState {
-  items: SensorParserConfigHistory[];
+  items: ParserMetaInfoModel[];
 }
 
 export interface GroupState {
-  items: ParserGroupModel[];
+  items: ParserMetaInfoModel[];
 }
 
 export interface StatusState {

@@ -26,6 +26,7 @@ import { RestError } from '../model/rest-error';
 import { IAppConfig } from '../app.config.interface';
 import { APP_CONFIG } from '../app.config';
 import { ParserGroupModel } from '../sensors/models/parser-group.model';
+import { ParserModel } from 'app/sensors/models/parser.model';
 
 @Injectable()
 export class SensorParserConfigService {
@@ -116,7 +117,7 @@ export class SensorParserConfigService {
 
   public saveConfig(
     name: string,
-    sensorParserConfig: ParserConfigModel
+    sensorParserConfig: ParserModel
   ): Observable<ParserConfigModel> {
     return this.http
       .post(this.parserConfigEndpoint + '/' + name, JSON.stringify(sensorParserConfig))

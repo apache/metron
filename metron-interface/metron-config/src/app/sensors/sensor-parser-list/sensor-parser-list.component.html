@@ -54,7 +54,7 @@
     </thead>
     <tbody>
     <tr *ngFor="let sensor of sensorsToRender"
-        (click)="onSensorRowSelect(sensor.getConfig(), $event)"
+        (click)="onSensorRowSelect(sensor, $event)"
         [ngClass]="{
           'active': (selectedSensors.indexOf(sensor.getConfig()) != -1 || selectedSensor == sensor.getConfig()),
           'parent': sensor.isGroup(),
@@ -120,7 +120,7 @@
             class="fa fa-stop fa-lg"
             aria-hidden="true"
             [hidden]="!sensor.isStopable()"
-            (click)="onStopSensor(sensor.getConfig(), $event)"
+            (click)="onStopSensor(sensor, $event)"
           >
           </i>
           <i
@@ -129,7 +129,7 @@
             class="fa fa-ban fa-lg"
             aria-hidden="true"
             [hidden]="(sensor.getStatus().status != 'ACTIVE' || sensor.startStopInProgress)"
-            (click)="onDisableSensor(sensor.getConfig(), $event)"
+            (click)="onDisableSensor(sensor, $event)"
           >
           </i>
 
@@ -139,7 +139,7 @@
             class="fa fa-play fa-lg"
             aria-hidden="true"
             [hidden]="!sensor.isStartable()"
-            (click)="onStartSensor(sensor.getConfig(), $event)"
+            (click)="onStartSensor(sensor, $event)"
           >
           </i>
           <i
@@ -148,7 +148,7 @@
             class="fa fa-check-circle-o fa-lg"
             aria-hidden="true"
             [hidden]="(sensor.getStatus().status != 'INACTIVE' || sensor.startStopInProgress)"
-            (click)="onEnableSensor(sensor.getConfig(), $event)"
+            (click)="onEnableSensor(sensor, $event)"
           >
           </i>
           <i
@@ -156,7 +156,7 @@
             title="Edit parser topology"
             class="fa fa-pencil fa-lg"
             aria-hidden="true"
-            (click)="navigateToSensorEdit(sensor.getConfig(), $event)"
+            (click)="navigateToSensorEdit(sensor, $event)"
           >
           </i>
           <i
@@ -174,7 +174,7 @@
           class="fontawesome-checkbox"
           type="checkbox"
           name="{{sensor.getConfig().getName()}}"
-          (click)="onRowSelected(sensor.getConfig(), $event)"
+          (click)="onRowSelected(sensor, $event)"
         >
         <label attr.for="{{ sensor.getConfig().getName() }}"></label>
       </td>
