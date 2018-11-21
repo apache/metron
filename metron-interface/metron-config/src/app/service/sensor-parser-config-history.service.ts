@@ -23,7 +23,7 @@ import { HttpUtil } from '../util/httpUtil';
 import { IAppConfig } from '../app.config.interface';
 import { SensorParserConfigHistory } from '../model/sensor-parser-config-history';
 import { APP_CONFIG } from '../app.config';
-import { SensorParserConfig } from '../model/sensor-parser-config';
+import { ParserConfigModel } from '../sensors/models/parser-config.model';
 import { RestError } from '../model/rest-error';
 
 @Injectable()
@@ -37,7 +37,7 @@ export class SensorParserConfigHistoryService {
 
   public get(name: string): Observable<RestError | SensorParserConfigHistory> {
     return this.http.get(this.url + '/' + name).pipe(
-      map((response: SensorParserConfig) => {
+      map((response: ParserConfigModel) => {
         let sensorParserConfigHistory = new SensorParserConfigHistory();
         sensorParserConfigHistory.config = response;
         return sensorParserConfigHistory;
@@ -48,9 +48,9 @@ export class SensorParserConfigHistoryService {
 
   public getAll(): Observable<SensorParserConfigHistory[] | RestError> {
     return this.http.get(this.url).pipe(
-      map((response: SensorParserConfig[]) => {
+      map((response: ParserConfigModel[]) => {
         let sensorParserConfigHistoryArray = [];
-        let sensorParserConfigs: SensorParserConfig[] = response;
+        let sensorParserConfigs: ParserConfigModel[] = response;
         for (let sensorParserConfig of sensorParserConfigs) {
           let sensorParserConfigHistory = new SensorParserConfigHistory();
           sensorParserConfigHistory.config = sensorParserConfig;

@@ -18,12 +18,12 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
-import { MetaParserConfigItem } from './meta-parser-config-item';
+import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 
 @Injectable ()
 export class SensorAggregateService {
 
-  _sensorsToBeMerged: MetaParserConfigItem[] = [];
+  _sensorsToBeMerged: ParserMetaInfoModel[] = [];
 
   executeMerge$ = new Subject();
 
@@ -35,7 +35,7 @@ export class SensorAggregateService {
     ];
   }
 
-  markSensorToBeMerged(sensor: MetaParserConfigItem, index: number) {
+  markSensorToBeMerged(sensor: ParserMetaInfoModel, index: number) {
     this._sensorsToBeMerged[index] = sensor;
   }
 
@@ -67,7 +67,7 @@ export class SensorAggregateService {
     return this.getTargetSensor().hasGroup();
   }
 
-  getTargetSensor(): MetaParserConfigItem {
+  getTargetSensor(): ParserMetaInfoModel {
     return this._sensorsToBeMerged[1];
   }
 }

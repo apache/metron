@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
+import {ParserConfigModel} from '../models/parser-config.model';
 
 declare var ace: any;
 
@@ -29,12 +29,12 @@ declare var ace: any;
 export class SensorStormSettingsComponent implements OnChanges {
 
   @Input() showStormSettings: boolean;
-  @Input() sensorParserConfig: SensorParserConfig;
+  @Input() sensorParserConfig: ParserConfigModel;
 
   @Output() hideStormSettings: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onStormSettingsChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  newSensorParserConfig: SensorParserConfig = new SensorParserConfig();
+  newSensorParserConfig: ParserConfigModel = new ParserConfigModel();
   newSpoutConfig: string = '{}';
   newStormConfig: string = '{}';
 
@@ -46,7 +46,7 @@ export class SensorStormSettingsComponent implements OnChanges {
 
   init(): void {
     if (this.sensorParserConfig) {
-      this.newSensorParserConfig = Object.assign(new SensorParserConfig(), this.sensorParserConfig);
+      this.newSensorParserConfig = Object.assign(new ParserConfigModel(), this.sensorParserConfig);
       this.newSpoutConfig = JSON.stringify(this.sensorParserConfig.spoutConfig, null, '\t');
       this.newStormConfig = JSON.stringify(this.sensorParserConfig.stormConfig, null, '\t');
     }

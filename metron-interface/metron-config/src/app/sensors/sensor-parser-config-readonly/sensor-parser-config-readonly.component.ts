@@ -31,7 +31,7 @@ import { RiskLevelRule } from '../../model/risk-level-rule';
 import { HdfsService } from '../../service/hdfs.service';
 import { RestError } from '../../model/rest-error';
 import { GrokValidationService } from '../../service/grok-validation.service';
-import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParserConfigModel } from '../models/parser-config.model';
 
 @Component({
   selector: 'metron-config-sensor-parser-readonly',
@@ -43,7 +43,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   startStopInProgress: boolean = false;
   kafkaTopic: KafkaTopic = new KafkaTopic();
   sensorParserConfigHistory: SensorParserConfigHistory = new SensorParserConfigHistory();
-  sensorParserConfig: SensorParserConfig = new SensorParserConfig();
+  sensorParserConfig: ParserConfigModel = new ParserConfigModel();
   topologyStatus: TopologyStatus = new TopologyStatus();
   sensorEnrichmentConfig: SensorEnrichmentConfig = new SensorEnrichmentConfig();
   grokStatement = {};

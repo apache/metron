@@ -17,7 +17,7 @@
  */
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
-import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParserConfigModel } from '../models/parser-config.model';
 import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MetronAlerts } from '../../shared/metron-alerts';
@@ -57,7 +57,7 @@ export class SensorParserConfigComponent implements OnInit {
   transformsValidationForm: FormGroup;
 
   sensorName: string = '';
-  sensorParserConfig: SensorParserConfig = new SensorParserConfig();
+  sensorParserConfig: ParserConfigModel = new ParserConfigModel();
   sensorEnrichmentConfig: SensorEnrichmentConfig = new SensorEnrichmentConfig();
   indexingConfigurations: IndexingConfigurations = new IndexingConfigurations();
 
@@ -122,7 +122,7 @@ export class SensorParserConfigComponent implements OnInit {
       this.sensorName = id;
       this.sensorParserConfigService
         .getConfig(id)
-        .subscribe((results: SensorParserConfig) => {
+        .subscribe((results: ParserConfigModel) => {
           this.sensorParserConfig = results;
           this.sensorNameValid = true;
           this.getKafkaStatus();
@@ -182,7 +182,7 @@ export class SensorParserConfigComponent implements OnInit {
         }
       );
     } else {
-      this.sensorParserConfig = new SensorParserConfig();
+      this.sensorParserConfig = new ParserConfigModel();
       this.sensorParserConfig.parserClassName =
         'org.apache.metron.parsers.GrokParser';
       this.sensorParserConfigService.getAllConfig().subscribe((results: {}) => {
@@ -469,7 +469,7 @@ export class SensorParserConfigComponent implements OnInit {
       );
   }
 
-  isGrokParser(sensorParserConfig: SensorParserConfig): boolean {
+  isGrokParser(sensorParserConfig: ParserConfigModel): boolean {
     if (sensorParserConfig && sensorParserConfig.parserClassName) {
       return (
         sensorParserConfig.parserClassName ===

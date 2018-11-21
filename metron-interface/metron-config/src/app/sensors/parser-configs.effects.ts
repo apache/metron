@@ -4,7 +4,7 @@ import { Action } from '@ngrx/store';
 import { Injectable } from '@angular/core';
 import { mergeMap, map, switchMap } from 'rxjs/operators';
 import { SensorParserConfigService } from 'app/service/sensor-parser-config.service';
-import { SensorParserConfig } from 'app/model/sensor-parser-config';
+import { ParserConfigModel } from './models/parser-config.model';
 import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-history';
 import * as ParsersActions from './parser-configs.actions';
 import { StormService } from '../service/storm.service';

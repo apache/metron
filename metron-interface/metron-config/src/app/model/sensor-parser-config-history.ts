@@ -15,24 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {SensorParserConfig} from './sensor-parser-config';
+import {ParserConfigModel} from '../sensors/models/parser-config.model';
 export class SensorParserConfigHistory {
   sensorName: string;
   createdBy: string;
   modifiedBy: string;
   createdDate: string;
   modifiedByDate: string;
-  config: SensorParserConfig;
+  config: ParserConfigModel;
   status: string;
   latency: string;
   throughput: string;
 
   constructor() {
-    this.config = new SensorParserConfig();
+    this.config = new ParserConfigModel();
   }
 
   setConfig(config) {
-    this.config = new SensorParserConfig(config);
+    this.config = new ParserConfigModel(config);
   }
 
   clone(): SensorParserConfigHistory {

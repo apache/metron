@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
+import {ParserConfigModel} from '../models/parser-config.model';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
 import {IndexingConfigurations, SensorIndexingConfig} from '../../model/sensor-indexing-config';
 
@@ -31,7 +31,7 @@ declare var ace: any;
 export class SensorRawJsonComponent implements OnChanges {
 
   @Input() showRawJson: boolean;
-  @Input() sensorParserConfig: SensorParserConfig;
+  @Input() sensorParserConfig: ParserConfigModel;
   @Input() sensorEnrichmentConfig: SensorEnrichmentConfig;
   @Input() indexingConfigurations: IndexingConfigurations;
 
