@@ -27,7 +27,7 @@ import { SensorParserListComponent } from './sensor-parser-list.component';
 import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
 import { MetronAlerts } from '../../shared/metron-alerts';
 import { TopologyStatus } from '../../model/topology-status';
-import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParserConfigModel } from '../models/parser-config.model';
 import { AuthenticationService } from '../../service/authentication.service';
 import { SensorParserListModule } from './sensor-parser-list.module';
 import { MetronDialogBox } from '../../shared/metron-dialog-box';
@@ -72,7 +72,7 @@ class MockSensorParserConfigService extends SensorParserConfigService {
     this.sensorParserConfigs = sensorParserConfigs;
   }
 
-  public getAll(): Observable<{ string: SensorParserConfig }> {
+  public getAll(): Observable<{ string: ParserConfigModel }> {
     return Observable.create(observer => {
       observer.next(this.sensorParserConfigs);
       observer.complete();
@@ -193,8 +193,8 @@ describe('Component: SensorParserList', () => {
   it('getSensors should call getStatus and poll status and all variables should be initialised', async(() => {
     let sensorParserConfigHistory1 = new SensorParserConfigHistory();
     let sensorParserConfigHistory2 = new SensorParserConfigHistory();
-    let sensorParserConfig1 = new SensorParserConfig();
-    let sensorParserConfig2 = new SensorParserConfig();
+    let sensorParserConfig1 = new ParserConfigModel();
+    let sensorParserConfig2 = new ParserConfigModel();
 
     sensorParserConfigHistory1.sensorName = 'squid';
     sensorParserConfigHistory2.sensorName = 'bro';
@@ -244,11 +244,11 @@ describe('Component: SensorParserList', () => {
   it('getParserType should return the Type of Parser', async(() => {
     let component: SensorParserListComponent = fixture.componentInstance;
 
-    let sensorParserConfig1 = new SensorParserConfig();
+    let sensorParserConfig1 = new ParserConfigModel();
     sensorParserConfig1.sensorTopic = 'squid';
     sensorParserConfig1.parserClassName =
       'org.apache.metron.parsers.GrokParser';
-    let sensorParserConfig2 = new SensorParserConfig();
+    let sensorParserConfig2 = new ParserConfigModel();
     sensorParserConfig2.sensorTopic = 'bro';
     sensorParserConfig2.parserClassName =
       'org.apache.metron.parsers.bro.BasicBroParser';
@@ -297,7 +297,7 @@ describe('Component: SensorParserList', () => {
     let event = { target: { checked: true } };
 
     let sensorParserConfigHistory = new SensorParserConfigHistory();
-    let sensorParserConfig = new SensorParserConfig();
+    let sensorParserConfig = new ParserConfigModel();
 
     sensorParserConfig.sensorTopic = 'squid';
     sensorParserConfigHistory.config = sensorParserConfig;
@@ -317,8 +317,8 @@ describe('Component: SensorParserList', () => {
   it('onSelectDeselectAll should populate items into selected stack', async(() => {
     let component: SensorParserListComponent = fixture.componentInstance;
 
-    let sensorParserConfig1 = new SensorParserConfig();
-    let sensorParserConfig2 = new SensorParserConfig();
+    let sensorParserConfig1 = new ParserConfigModel();
+    let sensorParserConfig2 = new ParserConfigModel();
     let sensorParserConfigHistory1 = new SensorParserConfigHistory();
     let sensorParserConfigHistory2 = new SensorParserConfigHistory();
 
@@ -385,7 +385,7 @@ describe('Component: SensorParserList', () => {
     let component: SensorParserListComponent = fixture.componentInstance;
 
     let sensorParserConfigHistory = new SensorParserConfigHistory();
-    let sensorParserConfig = new SensorParserConfig();
+    let sensorParserConfig = new ParserConfigModel();
 
     sensorParserConfig.sensorTopic = 'squid';
     sensorParserConfigHistory.config = sensorParserConfig;
@@ -407,8 +407,8 @@ describe('Component: SensorParserList', () => {
     let component: SensorParserListComponent = fixture.componentInstance;
     let sensorParserConfigHistory1 = new SensorParserConfigHistory();
     let sensorParserConfigHistory2 = new SensorParserConfigHistory();
-    let sensorParserConfig1 = new SensorParserConfig();
-    let sensorParserConfig2 = new SensorParserConfig();
+    let sensorParserConfig1 = new ParserConfigModel();
+    let sensorParserConfig2 = new ParserConfigModel();
 
     sensorParserConfigHistory1.sensorName = 'squid';
     sensorParserConfigHistory2.sensorName = 'bro';
@@ -444,7 +444,7 @@ describe('Component: SensorParserList', () => {
     event.stopPropagation = jasmine.createSpy('stopPropagation');
 
     let sensorParserConfigHistory1 = new SensorParserConfigHistory();
-    let sensorParserConfig1 = new SensorParserConfig();
+    let sensorParserConfig1 = new ParserConfigModel();
 
     sensorParserConfig1.sensorTopic = 'squid';
     sensorParserConfigHistory1.config = sensorParserConfig1;
@@ -473,7 +473,7 @@ describe('Component: SensorParserList', () => {
     event.stopPropagation = jasmine.createSpy('stopPropagation');
 
     let sensorParserConfigHistory1 = new SensorParserConfigHistory();
-    let sensorParserConfig1 = new SensorParserConfig();
+    let sensorParserConfig1 = new ParserConfigModel();
 
     sensorParserConfig1.sensorTopic = 'squid';
     sensorParserConfigHistory1.config = sensorParserConfig1;
@@ -502,7 +502,7 @@ describe('Component: SensorParserList', () => {
     event.stopPropagation = jasmine.createSpy('stopPropagation');
 
     let sensorParserConfigHistory1 = new SensorParserConfigHistory();
-    let sensorParserConfig1 = new SensorParserConfig();
+    let sensorParserConfig1 = new ParserConfigModel();
 
     sensorParserConfig1.sensorTopic = 'squid';
     sensorParserConfigHistory1.config = sensorParserConfig1;
@@ -531,7 +531,7 @@ describe('Component: SensorParserList', () => {
     event.stopPropagation = jasmine.createSpy('stopPropagation');
 
     let sensorParserConfigHistory1 = new SensorParserConfigHistory();
-    let sensorParserConfig1 = new SensorParserConfig();
+    let sensorParserConfig1 = new ParserConfigModel();
 
     sensorParserConfig1.sensorTopic = 'squid';
     sensorParserConfigHistory1.config = sensorParserConfig1;
@@ -574,13 +574,13 @@ describe('Component: SensorParserList', () => {
       let sensorParserConfigHistory6 = new SensorParserConfigHistory();
       let sensorParserConfigHistory7 = new SensorParserConfigHistory();
 
-      let sensorParserConfig1 = new SensorParserConfig();
-      let sensorParserConfig2 = new SensorParserConfig();
-      let sensorParserConfig3 = new SensorParserConfig();
-      let sensorParserConfig4 = new SensorParserConfig();
-      let sensorParserConfig5 = new SensorParserConfig();
-      let sensorParserConfig6 = new SensorParserConfig();
-      let sensorParserConfig7 = new SensorParserConfig();
+      let sensorParserConfig1 = new ParserConfigModel();
+      let sensorParserConfig2 = new ParserConfigModel();
+      let sensorParserConfig3 = new ParserConfigModel();
+      let sensorParserConfig4 = new ParserConfigModel();
+      let sensorParserConfig5 = new ParserConfigModel();
+      let sensorParserConfig6 = new ParserConfigModel();
+      let sensorParserConfig7 = new ParserConfigModel();
 
       sensorParserConfig1.sensorTopic = 'squid';
       sensorParserConfigHistory1['status'] = 'Running';
