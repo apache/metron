@@ -17,7 +17,7 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { SensorParserConfigService } from './sensor-parser-config.service';
-import { SensorParserConfig } from '../model/sensor-parser-config';
+import { ParserConfigModel } from '../sensors/models/parser-config.model';
 import { ParseMessageRequest } from '../model/parse-message-request';
 import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 import {
@@ -25,7 +25,7 @@ import {
   HttpTestingController,
   TestRequest
 } from '@angular/common/http/testing';
-import { ParserGroupModel } from 'app/model/parser-group';
+import { ParserGroupModel } from '../sensors/models/parser-group.model';
 import { noop } from 'rxjs';
 
 describe('SensorParserConfigService', () => {
@@ -48,19 +48,19 @@ describe('SensorParserConfigService', () => {
     mockBackend.verify();
   });
 
-  let sensorParserConfig = new SensorParserConfig();
+  let sensorParserConfig = new ParserConfigModel();
   sensorParserConfig.sensorTopic = 'bro';
   sensorParserConfig.parserClassName = 'parserClass';
   sensorParserConfig.parserConfig = { field: 'value' };
   let availableParsers = [{ Grok: 'org.apache.metron.parsers.GrokParser' }];
   let parseMessageRequest = new ParseMessageRequest();
-  parseMessageRequest.sensorParserConfig = new SensorParserConfig();
+  parseMessageRequest.sensorParserConfig = new ParserConfigModel();
   parseMessageRequest.sensorParserConfig.sensorTopic = 'bro';
   parseMessageRequest.sampleData = 'sampleData';
   let parsedMessage = { field: 'value' };
-  let sensorParserConfig1 = new SensorParserConfig();
+  let sensorParserConfig1 = new ParserConfigModel();
   sensorParserConfig1.sensorTopic = 'bro1';
-  let sensorParserConfig2 = new SensorParserConfig();
+  let sensorParserConfig2 = new ParserConfigModel();
   sensorParserConfig2.sensorTopic = 'bro2';
 
   it('post', () => {

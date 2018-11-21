@@ -19,13 +19,13 @@ import { Injectable, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject, from, of } from 'rxjs';
 import { catchError, map, take, mergeMap, finalize } from 'rxjs/operators';
-import { SensorParserConfig } from '../model/sensor-parser-config';
+import { ParserConfigModel } from '../sensors/models/parser-config.model';
 import { HttpUtil } from '../util/httpUtil';
 import { ParseMessageRequest } from '../model/parse-message-request';
 import { RestError } from '../model/rest-error';
 import { IAppConfig } from '../app.config.interface';
 import { APP_CONFIG } from '../app.config';
-import { ParserGroupModel } from 'app/model/parser-group';
+import { ParserGroupModel } from '../sensors/models/parser-group.model';
 
 @Injectable()
 export class SensorParserConfigService {
@@ -100,7 +100,7 @@ export class SensorParserConfigService {
     return observable;
   }
 
-  public getConfig(name: string): Observable<SensorParserConfig> {
+  public getConfig(name: string): Observable<ParserConfigModel> {
     return this.http.get(this.parserConfigEndpoint + '/' + name).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
@@ -116,8 +116,8 @@ export class SensorParserConfigService {
 
   public saveConfig(
     name: string,
-    sensorParserConfig: SensorParserConfig
-  ): Observable<SensorParserConfig> {
+    sensorParserConfig: ParserConfigModel
+  ): Observable<ParserConfigModel> {
     return this.http
       .post(this.parserConfigEndpoint + '/' + name, JSON.stringify(sensorParserConfig))
       .pipe(

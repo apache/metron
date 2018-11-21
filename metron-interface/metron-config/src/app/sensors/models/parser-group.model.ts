@@ -1,4 +1,6 @@
-export class ParserGroupModel {
+import { ParserModel } from './parser.model';
+
+export class ParserGroupModel implements ParserModel {
   name: string;
   description: string;
 
@@ -9,5 +11,13 @@ export class ParserGroupModel {
       throw new Error('Json response not contains name');
     }
     this.description = rawJson['description'] || '';
+  }
+
+  getName(): string {
+    return this.name;
+  }
+
+  setName(value: string) {
+    this.name = value;
   }
 }

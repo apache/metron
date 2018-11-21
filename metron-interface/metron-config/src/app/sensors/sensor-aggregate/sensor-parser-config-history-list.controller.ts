@@ -17,21 +17,19 @@
  */
 import { Injectable } from '@angular/core';
 import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
-import { MetaParserConfigItem } from './meta-parser-config-item';
+import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { Subject, Observable, Subscription } from 'rxjs';
-import { MetaParserConfigItemFactory } from './meta-parser-config-item-factory';
 import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
-import { ParserGroupModel } from '../../model/parser-group';
+import { ParserGroupModel } from '../models/parser-group.model';
 
 @Injectable ()
 export class SensorParserConfigHistoryListController {
 
-  _sensors: MetaParserConfigItem[];
+  _sensors: ParserMetaInfoModel[];
   _subscriptions: Subscription[] = [];
   changed$ = new Subject();
 
   constructor(
-    private metaParserConfigFactory: MetaParserConfigItemFactory,
     private sensorParserConfigService: SensorParserConfigService
   ) {}
 
@@ -60,7 +58,7 @@ export class SensorParserConfigHistoryListController {
     });
   }
 
-  _combineGroupsAndSensors(groups: ParserGroupModel[], sensors: MetaParserConfigItem[]) {
+  _combineGroupsAndSensors(groups: ParserGroupModel[], sensors: ParserMetaInfoModel[]) {
     groups.forEach((group, i) => {
       this.createGroup(group.name, i);
     });
@@ -71,14 +69,14 @@ export class SensorParserConfigHistoryListController {
     });
   }
 
-  getSensors(): MetaParserConfigItem[] {
+  getSensors(): ParserMetaInfoModel[] {
     return [
       ...(this._sensors || [])
     ];
   }
 
-  isChanged(): Observable<MetaParserConfigItem[]> {
-    return this.changed$.asObservable() as Observable<MetaParserConfigItem[]>;
+  isChanged(): Observable<ParserMetaInfoModel[]> {
+    return this.changed$.asObservable() as Observable<ParserMetaInfoModel[]>;
   }
 
   _next(sensors) {
@@ -119,7 +117,7 @@ export class SensorParserConfigHistoryListController {
     return lastIndex;
   }
 
-  getGroup(groupName: string): MetaParserConfigItem | null {
+  getGroup(groupName: string): ParserMetaInfoModel | null {
     let i = 0, len = this._sensors.length;
     for (; i < len; i++) {
       if (this._sensors[i].getSensor().sensorName === groupName) {
@@ -206,7 +204,7 @@ export class SensorParserConfigHistoryListController {
     }
   }
 
-  getByName(name: string): MetaParserConfigItem {
+  getByName(name: string): ParserMetaInfoModel {
     return this._sensors.find(sensor => sensor.getName() === name);
   }
 
@@ -222,7 +220,7 @@ export class SensorParserConfigHistoryListController {
     })
   }
 
-  insertBefore(target: MetaParserConfigItem, sensor: MetaParserConfigItem) {
+  insertBefore(target: ParserMetaInfoModel, sensor: ParserMetaInfoModel) {
 
     if ((target.hasGroup() || sensor.hasGroup()) && target.getGroup() !== sensor.getGroup()) {
       sensor.storePreviousState();
@@ -240,7 +238,7 @@ export class SensorParserConfigHistoryListController {
     this._next(this._sensors);
   }
 
-  insertAfter(target: MetaParserConfigItem, sensor: MetaParserConfigItem) {
+  insertAfter(target: ParserMetaInfoModel, sensor: ParserMetaInfoModel) {
 
     let newGroup;
     if (target.isGroup()) {

@@ -2,7 +2,7 @@ import { Action, State } from '@ngrx/store';
 import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-history';
 import { SensorParserStatus } from '../model/sensor-parser-status';
 import { TopologyStatus } from '../model/topology-status';
-import { ParserGroupModel } from '../model/parser-group';
+import { ParserGroupModel } from './models/parser-group.model';
 import * as ParsersActions from './parser-configs.actions';
 
 export const initialParser: SensorParserConfigHistory[] = [];

@@ -15,8 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {FieldTransformer} from './field-transformer';
-export class SensorParserConfig {
+import {FieldTransformer} from '../../model/field-transformer';
+import { ParserModel } from './parser.model';
+export class ParserConfigModel implements ParserModel {
   cacheConfig: Object;
   errorTopic: any;
   errorWriterClassName: string;
@@ -59,7 +60,7 @@ export class SensorParserConfig {
   }
 
   clone() {
-    const clone = new SensorParserConfig();
+    const clone = new ParserConfigModel();
 
     clone.parserClassName = this.parserClassName;
     clone.filterClassName = this.filterClassName;
@@ -83,5 +84,13 @@ export class SensorParserConfig {
     clone.group = this.group;
 
     return clone;
+  }
+
+  getName(): string {
+    return this.sensorTopic;
+  }
+
+  setName(value: string) {
+    this.sensorTopic = value;
   }
 }

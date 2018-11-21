@@ -17,7 +17,7 @@
  */
 import {Component, OnInit, ViewChild, OnDestroy} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
+import {ParserConfigModel} from '../models/parser-config.model';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
 import {MetronAlerts} from '../../shared/metron-alerts';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
@@ -27,9 +27,9 @@ import {SensorParserConfigHistory} from '../../model/sensor-parser-config-histor
 import { SensorAggregateService } from '../sensor-aggregate/sensor-aggregate.service';
 import { Subscription, Observable } from 'rxjs';
 import { SensorParserConfigHistoryListController } from '../sensor-aggregate/sensor-parser-config-history-list.controller';
-import { MetaParserConfigItem } from '../sensor-aggregate/meta-parser-config-item';
+import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { Store, select } from '@ngrx/store';
-import { ParserGroupModel } from 'app/model/parser-group';
+import { ParserGroupModel } from '../models/parser-group.model';
 import * as ParsersActions from '../parser-configs.actions';
 import * as parserSelectors from '../parser-configs.selectors';
 import { SensorParserStatus } from '../../model/sensor-parser-status';
@@ -53,10 +53,10 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   selectedSensors: SensorParserConfigHistory[] = [];
   enableAutoRefresh = true;
   _executeMergeSubscription: Subscription;
-  sensorsToRender: MetaParserConfigItem[];
+  sensorsToRender: ParserMetaInfoModel[];
 
   private parserConfigs$: Observable<SensorState>;
-  private mergedConfigs$: Observable<MetaParserConfigItem[]>;
+  private mergedConfigs$: Observable<ParserMetaInfoModel[]>;
 
   private isStatusPolling: boolean;
 
@@ -78,7 +78,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this.mergedConfigs$ = store.pipe(select(parserSelectors.getMergedConfigs));
   }
 
-  getParserType(sensor: SensorParserConfig): string {
+  getParserType(sensor: ParserConfigModel): string {
     if (!sensor.parserClassName) {
       return '';
     }
@@ -115,7 +115,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this._executeMergeSubscription = this.sensorAggregateService.executeMerge$
       .subscribe((value: {
         groupName: string,
-        sensors: MetaParserConfigItem[]
+        sensors: ParserMetaInfoModel[]
       }) => {
         if (!value.groupName || !value.sensors.length) {
           // there's nothing to group
@@ -177,7 +177,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     }
   }
 
-  getDeleteFunc(sensor: MetaParserConfigItem) {
+  getDeleteFunc(sensor: ParserMetaInfoModel) {
     return sensor.isGroup() ? this.deleteGroup.bind(this) : this.deleteSensor.bind(this);
   }
 
@@ -364,7 +364,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this.selectedSensors = [];
   }
 
-  onDragStart(sensor: MetaParserConfigItem, e: DragEvent) {
+  onDragStart(sensor: ParserMetaInfoModel, e: DragEvent) {
     this.sensorAggregateService.markSensorToBeMerged(sensor, 0);
     e.dataTransfer.setDragImage((e.target as HTMLElement).parentElement, 10, 17);
   }
@@ -428,7 +428,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDrop(referenceSensor: MetaParserConfigItem, e: DragEvent) {
+  onDrop(referenceSensor: ParserMetaInfoModel, e: DragEvent) {
 
     this.sensorParserConfigHistoryListController.setAllHighlighted(false);
     this.sensorParserConfigHistoryListController.setAllDraggedOver(false);
@@ -460,7 +460,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     el.classList.remove('drop-after');
   }
 
-  addSensorsToGroup(groupName: string, sensors: MetaParserConfigItem[]) {
+  addSensorsToGroup(groupName: string, sensors: ParserMetaInfoModel[]) {
     sensors.reverse().forEach(sensor => {
       if (sensor.getGroup() !== groupName) {
         this.sensorParserConfigHistoryListController.addToGroup(groupName, sensor, { startTimer: true });
@@ -468,7 +468,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     });
   }
 
-  undo(sensor: MetaParserConfigItem, e) {
+  undo(sensor: ParserMetaInfoModel, e) {
     e.stopPropagation();
     this.sensorParserConfigHistoryListController.restorePreviousState(sensor);
   }

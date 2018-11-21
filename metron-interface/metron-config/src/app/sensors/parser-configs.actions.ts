@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
 import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-history';
 import { SensorParserStatus } from '../model/sensor-parser-status';
-import { ParserGroupModel } from '../model/parser-group';
+import { ParserGroupModel } from './models/parser-group.model';
 import { TopologyStatus } from '../model/topology-status';
 
 export enum ParserConfigsActions {
