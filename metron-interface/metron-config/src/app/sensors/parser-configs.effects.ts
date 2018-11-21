@@ -32,7 +32,7 @@ export class ParserConfigEffects {
             parsers: configsArray,
             groups: groups,
             statuses: statuses,
-          } as ParsersActions.LoadSuccesActionPayload);
+          });
         })
       )
     })
