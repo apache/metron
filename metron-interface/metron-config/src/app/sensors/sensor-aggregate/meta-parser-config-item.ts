@@ -41,6 +41,10 @@ export class MetaParserConfigItem {
   _highlighted = false;
   _draggedOver = false;
 
+  isPhantom = false;
+  isDirty = false;
+  isDeleted = false;
+
   constructor(sensor: SensorParserConfigHistory,
     parserConfigService?: SensorParserConfigService) {
     this._sensor = sensor;
