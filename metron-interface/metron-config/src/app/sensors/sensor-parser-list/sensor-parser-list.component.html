@@ -54,9 +54,9 @@
     </thead>
     <tbody>
     <tr *ngFor="let sensor of sensorsToRender"
-        (click)="onSensorRowSelect(sensor.getSensor(), $event)"
+        (click)="onSensorRowSelect(sensor.getConfig(), $event)"
         [ngClass]="{
-          'active': (selectedSensors.indexOf(sensor.getSensor()) != -1 || selectedSensor == sensor.getSensor()),
+          'active': (selectedSensors.indexOf(sensor.getConfig()) != -1 || selectedSensor == sensor.getConfig()),
           'parent': sensor.isGroup(),
           'highlighted': sensor.getHighlighted(),
           'dragged-over': sensor.getDraggedOver()
@@ -69,22 +69,22 @@
       >
       <td
         class="drag-handle"
-        [draggable]="!sensor.isGroup() && !sensor.canUndo()"
+        [draggable]="!sensor.isGroup()"
       >
         <span
-          *ngIf="!sensor.isGroup() && !sensor.canUndo()"
+          *ngIf="!sensor.isGroup()"
           class="drag-handle-icon"
         >
           <i class="fa fa-ellipsis-v drag-handle-part"></i>
           <i class="fa fa-ellipsis-v drag-handle-part"></i>
         </span>
-        <button
+        <!-- button
           class="undo"
           *ngIf="sensor.isChanged()"
           (click)="undo(sensor, $event)"
         >
           UNDO
-        </button>
+        </button -->
       </td>
       <td class="cell-name">
         <span *ngIf="sensor.isGroup()">
@@ -94,11 +94,11 @@
         <span class="indentation" *ngIf="!!sensor.hasGroup()">
           ---
         </span>
-        {{ sensor.getSensor().getName() }}
+        {{ sensor.getConfig().getName() }}
       </td>
-      <td>{{ getParserType(sensor.getSensor()) }}</td>
+      <td>{{ getParserType(sensor.getConfig()) }}</td>
       <td
-        [ngClass]="{'warning-text': ['KILLED', 'STOPPING', 'INACTIVE'].includes(sensor.getSensor().status)}"
+        [ngClass]="{'warning-text': ['KILLED', 'STOPPING', 'INACTIVE'].includes(sensor.getStatus().status)}"
       >
         {{ sensor.hasGroup() ? '' : sensor.getStatus().status | sensorStatus }}
       </td>
@@ -111,7 +111,7 @@
             data-toggle="tooltip"
             title="Operation in progress"
             class="fa fa-circle-o-notch fa-spin fa-lg fa-fw"
-            [hidden]="!sensor.getSensor().config['startStopInProgress']"
+            [hidden]="!sensor.startStopInProgress"
           >
           </i>
           <i
@@ -120,7 +120,7 @@
             class="fa fa-stop fa-lg"
             aria-hidden="true"
             [hidden]="!sensor.isStopable()"
-            (click)="onStopSensor(sensor.getSensor(), $event)"
+            (click)="onStopSensor(sensor.getConfig(), $event)"
           >
           </i>
           <i
@@ -129,7 +129,7 @@
             class="fa fa-ban fa-lg"
             aria-hidden="true"
             [hidden]="(sensor.getStatus().status != 'ACTIVE' || sensor.startStopInProgress)"
-            (click)="onDisableSensor(sensor.getSensor(), $event)"
+            (click)="onDisableSensor(sensor.getConfig(), $event)"
           >
           </i>
 
@@ -139,7 +139,7 @@
             class="fa fa-play fa-lg"
             aria-hidden="true"
             [hidden]="!sensor.isStartable()"
-            (click)="onStartSensor(sensor.getSensor(), $event)"
+            (click)="onStartSensor(sensor.getConfig(), $event)"
           >
           </i>
           <i
@@ -148,7 +148,7 @@
             class="fa fa-check-circle-o fa-lg"
             aria-hidden="true"
             [hidden]="(sensor.getStatus().status != 'INACTIVE' || sensor.startStopInProgress)"
-            (click)="onEnableSensor(sensor.getSensor(), $event)"
+            (click)="onEnableSensor(sensor.getConfig(), $event)"
           >
           </i>
           <i
@@ -156,7 +156,7 @@
             title="Edit parser topology"
             class="fa fa-pencil fa-lg"
             aria-hidden="true"
-            (click)="navigateToSensorEdit(sensor.getSensor(), $event)"
+            (click)="navigateToSensorEdit(sensor.getConfig(), $event)"
           >
           </i>
           <i
@@ -164,19 +164,19 @@
             title="Delete parser configuration"
             class="fa fa-trash-o fa-lg"
             aria-hidden="true"
-            (click)="getDeleteFunc(sensor)(sensor.getSensor(), $event)"
+            (click)="getDeleteFunc(sensor)(sensor.getConfig(), $event)"
           >
           </i>
       </td>
       <td>
         <input
-          id="{{ sensor.getSensor().getName() }}"
+          id="{{ sensor.getConfig().getName() }}"
           class="fontawesome-checkbox"
           type="checkbox"
-          name="{{sensor.getSensor().getName()}}"
-          (click)="onRowSelected(sensor.getSensor(), $event)"
+          name="{{sensor.getConfig().getName()}}"
+          (click)="onRowSelected(sensor.getConfig(), $event)"
         >
-        <label attr.for="{{ sensor.getSensor().getName() }}"></label>
+        <label attr.for="{{ sensor.getConfig().getName() }}"></label>
       </td>
     </tr>
     </tbody>

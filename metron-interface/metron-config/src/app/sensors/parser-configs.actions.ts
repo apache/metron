@@ -3,6 +3,7 @@ import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-histor
 import { SensorParserStatus } from '../model/sensor-parser-status';
 import { ParserGroupModel } from './models/parser-group.model';
 import { TopologyStatus } from '../model/topology-status';
+import { ParserMetaInfoModel } from './models/parser-meta-info.model';
 
 export enum ParserConfigsActions {
   LoadStart = '[Parser Configs List] Loading parsers start',
@@ -16,8 +17,8 @@ export class LoadStart implements Action {
 }
 
 export interface LoadSuccesActionPayload {
-  parsers: SensorParserConfigHistory[],
-  groups: ParserGroupModel[],
+  parsers: ParserMetaInfoModel[],
+  groups: ParserMetaInfoModel[],
   statuses: TopologyStatus[],
 }
 

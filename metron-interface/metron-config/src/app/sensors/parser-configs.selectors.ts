@@ -5,67 +5,40 @@ import { ParserGroupModel } from './models/parser-group.model';
 import { TopologyStatus } from '../model/topology-status';
 
 const getGroups = (state) => {
-  const historyInstances = state.sensors.groups.items.map((group: ParserGroupModel) => {
-    const historyWrapper = new SensorParserConfigHistory();
-    historyWrapper.sensorName = group.name;
-    historyWrapper.setConfig(group);
-    return historyWrapper;
-  });
-  return enrichWithStatusInfo(historyInstances, state.sensors.statuses.items, 'name');
+  return state.sensors.groups.items;
 }
 
 const getParsers = (state) => {
-  return enrichWithStatusInfo(state.sensors.parsers.items, state.sensors.statuses.items);
+  return state.sensors.parsers.items;
 };
 
 const getStatuses = (state) => {
-  return state.sensors.statuses;
+  return state.sensors.statuses.items;
 };
-
-function enrichWithStatusInfo(items = [], statuses = [], nameField = 'sensorName') {
-  return items.map((config) => {
-    const belongingStatus: TopologyStatus = statuses.find((status) => {
-      return config[nameField] === status.name;
-    });
-
-    if (belongingStatus) {
-      config.status = belongingStatus.status;
-      config.latency = belongingStatus.latency.toString();
-      config.throughput = belongingStatus.throughput.toString();
-      // FIXME where edit date and edited by information coming from?
-    }
-
-    return config;
-  });
-}
 
 export const getMergedConfigs = createSelector(
   getGroups,
   getParsers,
   getStatuses,
-  (groups, parsers, statuses): ParserMetaInfoModel[] => {
+  (groups: ParserMetaInfoModel[], parsers: ParserMetaInfoModel[], statuses: TopologyStatus[]): ParserMetaInfoModel[] => {
     let result: ParserMetaInfoModel[] = [];
 
     groups.forEach((group, i) => {
-      const metaGroupItem = new ParserMetaInfoModel(group);
-      metaGroupItem.setIsGroup(true);
-      result = result.concat(metaGroupItem);
+      result = result.concat(group);
 
       const configsForGroup = parsers
-        .filter(parser => parser.config && parser.config.group === group.sensorName)
-        .map(parser => new ParserMetaInfoModel(parser));
+        .filter(parser => parser.getConfig() && parser.getConfig().group === group.getName())
 
       result = result.concat(configsForGroup);
     });
 
     result = result.concat(
       parsers
-        .filter(parser => !parser.config || !parser.config.group)
-        .map(parser => new ParserMetaInfoModel(parser))
+        .filter(parser => !parser.getConfig() || !parser.getConfig().group)
       );
 
     result = result.map((item) => {
-      let status: TopologyStatus = statuses.items.find(stat => {
+      let status: TopologyStatus = statuses.find(stat => {
         return stat.name === item.getName();
       });
       if (status) {

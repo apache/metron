@@ -9,6 +9,8 @@ import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-histor
 import * as ParsersActions from './parser-configs.actions';
 import { StormService } from '../service/storm.service';
 import { TopologyStatus } from '../model/topology-status';
+import { ParserMetaInfoModel } from './models/parser-meta-info.model';
+import { ParserGroupModel } from './models/parser-group.model';
 
 @Injectable()
 export class ParserConfigEffects {
@@ -23,15 +25,18 @@ export class ParserConfigEffects {
         this.stormService.getAll(),
       ).pipe(
           map(([ configs, groups, statuses ]) => {
-          const configsArray: SensorParserConfigHistory[] = Object.keys(configs).map((sensorName) => {
-            const sensorParserConfigHistory = new SensorParserConfigHistory();
-            sensorParserConfigHistory.sensorName = sensorName;
-            sensorParserConfigHistory.setConfig(configs[sensorName]);
-            return sensorParserConfigHistory;
+          const configsArray: ParserMetaInfoModel[] = Object.keys(configs).map((name) => {
+            const metaInfo = new ParserMetaInfoModel(new ParserConfigModel(configs[name]));
+            return metaInfo;
+          });
+          const groupsArray: ParserMetaInfoModel[] =  groups.map((group) => {
+            const metaInfo = new ParserMetaInfoModel(new ParserGroupModel(group));
+            metaInfo.setIsGroup(true);
+            return metaInfo;
           });
           return new ParsersActions.LoadSuccess({
             parsers: configsArray,
-            groups: groups,
+            groups: groupsArray,
             statuses: statuses,
           });
         })

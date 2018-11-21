@@ -111,7 +111,7 @@ export class SensorParserConfigHistoryListController {
   getGroup(groupName: string): ParserMetaInfoModel | null {
     let i = 0, len = this._sensors.length;
     for (; i < len; i++) {
-      if (this._sensors[i].getSensor().getName() === groupName) {
+      if (this._sensors[i].getConfig().getName() === groupName) {
         return this._sensors[i];
       }
     }

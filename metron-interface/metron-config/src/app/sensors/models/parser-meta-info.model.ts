@@ -27,7 +27,7 @@ export class ParserMetaInfoModel {
 
   private config: ParserModel = null;
 
-  _status: TopologyStatus = null;
+  _status: TopologyStatus = new TopologyStatus();
 
   _previousIndex = -1;
 
@@ -58,7 +58,7 @@ export class ParserMetaInfoModel {
     return this._status;
   }
 
-  getSensor(): ParserModel {
+  getConfig(): ParserModel {
     return this.config;
   }
 
