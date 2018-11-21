@@ -168,10 +168,10 @@ describe('SensorParserConfigService', () => {
     });
 
     it('creating/editing single parser group by name', () => {
-      sensorParserConfigService.saveGroup('TestGroup', {
+      sensorParserConfigService.saveGroup('TestGroup', new ParserGroupModel({
         name: 'TestGroupName1',
         description: 'TestDesc1'
-      }).subscribe();
+      })).subscribe();
 
       const request = mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup');
       expect(request.request.method).toEqual('POST');

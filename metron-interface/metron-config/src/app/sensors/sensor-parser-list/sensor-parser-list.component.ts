@@ -470,7 +470,6 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
   undo(sensor: ParserMetaInfoModel, e) {
     e.stopPropagation();
-    this.sensorParserConfigHistoryListController.restorePreviousState(sensor);
   }
 
   ngOnDestroy() {
