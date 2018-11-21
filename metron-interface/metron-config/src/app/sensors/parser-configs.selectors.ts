@@ -1,5 +1,5 @@
 import { createSelector } from '@ngrx/store';
-import { ParserModel } from './models/parser.model';
+import { ParserMetaInfoModel } from './models/parser-meta-info.model';
 import { SensorParserConfigHistory } from '../model/sensor-parser-config-history';
 import { ParserGroupModel } from './models/parser-group.model';
 import { TopologyStatus } from '../model/topology-status';
@@ -43,17 +43,17 @@ export const getMergedConfigs = createSelector(
   getGroups,
   getParsers,
   getStatuses,
-  (groups, parsers, statuses): ParserModel[] => {
-    let result: ParserModel[] = [];
+  (groups, parsers, statuses): ParserMetaInfoModel[] => {
+    let result: ParserMetaInfoModel[] = [];
 
     groups.forEach((group, i) => {
-      const metaGroupItem = new ParserModel(group);
+      const metaGroupItem = new ParserMetaInfoModel(group);
       metaGroupItem.setIsGroup(true);
       result = result.concat(metaGroupItem);
 
       const configsForGroup = parsers
         .filter(parser => parser.config && parser.config.group === group.sensorName)
-        .map(parser => new ParserModel(parser));
+        .map(parser => new ParserMetaInfoModel(parser));
 
       result = result.concat(configsForGroup);
     });
@@ -61,7 +61,7 @@ export const getMergedConfigs = createSelector(
     result = result.concat(
       parsers
         .filter(parser => !parser.config || !parser.config.group)
-        .map(parser => new ParserModel(parser))
+        .map(parser => new ParserMetaInfoModel(parser))
       );
 
     result = result.map((item) => {
