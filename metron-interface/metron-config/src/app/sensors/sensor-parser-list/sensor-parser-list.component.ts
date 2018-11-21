@@ -30,8 +30,6 @@ import { SensorParserConfigHistoryListController } from '../sensor-aggregate/sen
 import { MetaParserConfigItem } from '../sensor-aggregate/meta-parser-config-item';
 import { Store, select } from '@ngrx/store';
 import { ParserGroupModel } from 'app/model/parser-group';
-import { ParserLoadingStart } from '../parser-configs.actions';
-
 import * as ParsersActions from '../parser-configs.actions';
 import * as parserSelectors from '../parser-configs.selectors';
 import { SensorParserStatus } from '../../model/sensor-parser-status';
