@@ -104,8 +104,8 @@
       </td>
       <td>{{ sensor.hasGroup() ? '' : sensor.getStatus() | latency }}</td>
       <td>{{ sensor.hasGroup() ? '' : sensor.getStatus() | throughput }}</td>
-      <td>{{ sensor.hasGroup() ? '' : sensor.getStatus().modifiedByDate }}</td>
-      <td>{{ sensor.hasGroup() ? '' : sensor.getStatus().modifiedBy }}</td>
+      <td>{{ sensor.hasGroup() ? '' : sensor.modifiedByDate }}</td>
+      <td>{{ sensor.hasGroup() ? '' : sensor.modifiedBy }}</td>
       <td class="icon-container">
           <i
             data-toggle="tooltip"
@@ -147,7 +147,7 @@
             title="Enable parser topology"
             class="fa fa-check-circle-o fa-lg"
             aria-hidden="true"
-            [hidden]="(sensor.getSensor().status != 'INACTIVE' || sensor.getSensor().config['startStopInProgress'])"
+            [hidden]="(sensor.getStatus().status != 'INACTIVE' || sensor.startStopInProgress)"
             (click)="onEnableSensor(sensor.getSensor(), $event)"
           >
           </i>
@@ -170,13 +170,13 @@
       </td>
       <td>
         <input
-          id="{{ sensor.getSensor().sensorName }}"
+          id="{{ sensor.getSensor().getName() }}"
           class="fontawesome-checkbox"
           type="checkbox"
-          name="{{sensor.getSensor().sensorName}}"
+          name="{{sensor.getSensor().getName()}}"
           (click)="onRowSelected(sensor.getSensor(), $event)"
         >
-        <label attr.for="{{ sensor.getSensor().sensorName }}"></label>
+        <label attr.for="{{ sensor.getSensor().getName() }}"></label>
       </td>
     </tr>
     </tbody>

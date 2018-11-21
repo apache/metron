@@ -43,6 +43,8 @@ export class ParserMetaInfoModel {
   isDeleted = false;
 
   startStopInProgress: boolean;
+  modifiedByDate: string;
+  modifiedBy: string;
 
   constructor(config: ParserModel) {
     this.config = config;
