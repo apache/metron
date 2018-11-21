@@ -80,7 +80,7 @@
         </span>
         <button
           class="undo"
-          *ngIf="sensor.canUndo()"
+          *ngIf="sensor.isChanged()"
           (click)="undo(sensor, $event)"
         >
           UNDO
@@ -94,18 +94,18 @@
         <span class="indentation" *ngIf="!!sensor.hasGroup()">
           ---
         </span>
-        {{ sensor.getSensor().sensorName }}
+        {{ sensor.getSensor().getName() }}
       </td>
-      <td>{{ getParserType(sensor.getSensor().config) }}</td>
+      <td>{{ getParserType(sensor.getSensor()) }}</td>
       <td
         [ngClass]="{'warning-text': ['KILLED', 'STOPPING', 'INACTIVE'].includes(sensor.getSensor().status)}"
       >
-        {{ sensor.hasGroup() ? '' : sensor.getSensor().status | sensorStatus }}
+        {{ sensor.hasGroup() ? '' : sensor.getStatus().status | sensorStatus }}
       </td>
       <td>{{ sensor.hasGroup() ? '' : sensor.getStatus() | latency }}</td>
       <td>{{ sensor.hasGroup() ? '' : sensor.getStatus() | throughput }}</td>
-      <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().modifiedByDate }}</td>
-      <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().modifiedBy }}</td>
+      <td>{{ sensor.hasGroup() ? '' : sensor.getStatus().modifiedByDate }}</td>
+      <td>{{ sensor.hasGroup() ? '' : sensor.getStatus().modifiedBy }}</td>
       <td class="icon-container">
           <i
             data-toggle="tooltip"
@@ -128,7 +128,7 @@
             title="Disable parser topology"
             class="fa fa-ban fa-lg"
             aria-hidden="true"
-            [hidden]="(sensor.getSensor().status != 'ACTIVE' || sensor.getSensor().config['startStopInProgress'])"
+            [hidden]="(sensor.getStatus().status != 'ACTIVE' || sensor.startStopInProgress)"
             (click)="onDisableSensor(sensor.getSensor(), $event)"
           >
           </i>
