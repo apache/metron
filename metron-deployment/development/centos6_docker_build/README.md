@@ -61,18 +61,20 @@ Any platform that supports these tools is suitable, but the following instructio
 
 1. Deploy Metron
 
-    ```
+ ```bash
     cd metron-deployment/development/centos6_docker
-    ./build_and_run.sh
-    ```
-    
-    You will be prompted during the script.
-    
-    - Do you want to run Vagrant up?
-        This allows you to skip Vagrant up if you have already started the vm.
-    - Do you want to build the docker machine?
-        This allows you to skip building the docker machine if you have already done so, providing there are no changes to the Docker file and configuration that need to be picked up.
-    - ansible skip tags?  The default is to skip sensors and solr.  If you want to change that input  comma separated tags, such as sensor-stubs,solr.
+    ./build_and_run.sh -h
+ ```
+ ```bash   
+    usage: ./build_and_run.sh
+        --skip-vagrant-up               skip vagrant up
+        --force-docker-build            force build docker machine
+        --skip-tags='tag,tag2,tag3'     the ansible skip tags
+        -h/--help                       Usage information.
+
+    example: to skip vagrant up and force docker build with two tags
+        build_and_run.sh -skip-vagrant-up --force-docker-build --skip-tags='solr,sensors'
+ ```
     
 ### Explore Metron
 
