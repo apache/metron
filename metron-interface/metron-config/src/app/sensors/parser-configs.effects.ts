@@ -8,6 +8,7 @@ import { SensorParserConfig } from 'app/model/sensor-parser-config';
 import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-history';
 import * as ParsersActions from './parser-configs.actions';
 import { StormService } from '../service/storm.service';
+import { TopologyStatus } from '../model/topology-status';
 
 @Injectable()
 export class ParserConfigEffects {
@@ -35,6 +36,19 @@ export class ParserConfigEffects {
           });
         })
       )
+    })
+  );
+
+  @Effect()
+  startPolling$: Observable<Action> = this.actions$.pipe(
+    ofType(ParsersActions.ParserConfigsActions.StartPolling),
+    switchMap((action) => {
+      return this.stormService.pollGetAll()
+        .pipe(
+          map((statuses: TopologyStatus[]) => {
+            return new ParsersActions.PollStatusSuccess({statuses})
+          })
+        )
     })
   );
 

@@ -165,10 +165,6 @@ export class SensorParserConfigHistoryListController {
     }
 
     if (options.startTimer) {
-      // when we merge to parsers together, their status is "stopping"
-      // until the timer expires.
-      group.setStatus('Stopping');
-
       // basically you can undo the this action until the time expires.
       // when you undo this action you want the previous state back therefore we store it.
       sensor.storePreviousState();

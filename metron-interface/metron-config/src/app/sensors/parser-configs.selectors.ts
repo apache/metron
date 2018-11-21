@@ -18,6 +18,10 @@ const getParsers = (state) => {
   return enrichWithStatusInfo(state.sensors.parsers.items, state.sensors.statuses.items);
 };
 
+const getStatuses = (state) => {
+  return state.sensors.statuses;
+};
+
 function enrichWithStatusInfo(items = [], statuses = [], nameField = 'sensorName') {
   return items.map((config) => {
     const belongingStatus: TopologyStatus = statuses.find((status) => {
@@ -38,8 +42,9 @@ function enrichWithStatusInfo(items = [], statuses = [], nameField = 'sensorName
 export const getMergedConfigs = createSelector(
   getGroups,
   getParsers,
-  (groups, parsers) => {
-    let result = [];
+  getStatuses,
+  (groups, parsers, statuses): MetaParserConfigItem[] => {
+    let result: MetaParserConfigItem[] = [];
 
     groups.forEach((group, i) => {
       const metaGroupItem = new MetaParserConfigItem(group);
@@ -58,6 +63,16 @@ export const getMergedConfigs = createSelector(
         .filter(parser => !parser.config || !parser.config.group)
         .map(parser => new MetaParserConfigItem(parser))
       );
+
+    result = result.map((item) => {
+      let status: TopologyStatus = statuses.items.find(stat => {
+        return stat.name === item.getName();
+      });
+      if (status) {
+        item.setStatus(status);
+      }
+      return item;
+    });
 
     return result;
   }

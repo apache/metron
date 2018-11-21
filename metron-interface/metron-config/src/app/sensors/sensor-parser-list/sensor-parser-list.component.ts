@@ -32,7 +32,7 @@ import { Store, select } from '@ngrx/store';
 import { ParserGroupModel } from 'app/model/parser-group';
 import { ParserLoadingStart } from '../parser-configs.actions';
 
-import * as ParsersAction from '../parser-configs.actions';
+import * as ParsersActions from '../parser-configs.actions';
 import * as parserSelectors from '../parser-configs.selectors';
 import { SensorParserStatus } from '../../model/sensor-parser-status';
 import { ParserState } from '../parser-configs.reducers';
@@ -80,43 +80,6 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this.mergedConfigs$ = store.pipe(select(parserSelectors.getMergedConfigs));
   }
 
-  private pollStatus() {
-    this.isStatusPolling = true;
-    this.stormService.pollGetAll().subscribe(
-        (results: TopologyStatus[]) => {
-          this.sensorsStatus = results;
-          this.updateSensorStatus();
-        },
-        error => {
-          this.updateSensorStatus();
-        }
-    );
-  }
-
-  private getStatus() {
-    this.stormService.getAll().subscribe(
-      (results: TopologyStatus[]) => {
-        this.sensorsStatus = results;
-        this.updateSensorStatus();
-      },
-      error => {
-        this.updateSensorStatus();
-      }
-    );
-  }
-
-  updateSensorStatus() {
-      for (let sensor of this.sensors) {
-
-        let status: TopologyStatus = this.sensorsStatus.find(stat => {
-          return stat.name === sensor.sensorName;
-        });
-
-        sensor['latency'] = status && status.status === 'ACTIVE' ? (status.latency + 'ms') : '-';
-        sensor['throughput'] = status && status.status === 'ACTIVE' ? (Math.round(status.throughput * 100) / 100) + 'kb/s' : '-';
-      }
-  }
-
   getParserType(sensor: SensorParserConfig): string {
     if (!sensor.parserClassName) {
       return '';
@@ -130,24 +93,23 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
       this.sensors = state.parsers.items;
       this.selectedSensors = [];
       this.count = this.sensors.length;
-
-      this.sensorParserConfigHistoryListController.setSensors(this.sensors);
-
-      if (!this.isStatusPolling) {
-        this.pollStatus();
-      }
     })
 
-    this.store.dispatch(new ParsersAction.LoadStart());
+    this.store.dispatch(new ParsersActions.LoadStart());
 
     this.sensorParserConfigService.dataChanged$.subscribe(
       data => {
-        this.store.dispatch(new ParsersAction.LoadStart());
+        this.store.dispatch(new ParsersActions.LoadStart());
       }
     );
 
     this.mergedConfigs$.subscribe((mergedConfigs) => {
       this.sensorsToRender = mergedConfigs;
+
+      if (!this.isStatusPolling) {
+        this.isStatusPolling = true;
+        this.store.dispatch(new ParsersActions.StartPolling());
+      }
     });
 
     // FIXME: this codepart is not responsible for the merging of the list of groups and configs

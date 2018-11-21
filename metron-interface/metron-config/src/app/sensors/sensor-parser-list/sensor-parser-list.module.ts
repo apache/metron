@@ -22,10 +22,17 @@ import {SharedModule} from '../../shared/shared.module';
 import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
 import {MetronTableModule} from '../../shared/metron-table/metron-table.module';
 import { SensorStatusPipe } from './sensor-status.pipe';
+import { SensorParserLatencyPipe } from './sensor-parser-latency.pipe';
+import { SensorParserThroughputPipe } from './sensor-parser-throughput.pipe';
 
 @NgModule ({
   imports: [ routing, SharedModule, MetronTableModule ],
-  declarations: [ SensorParserListComponent, SensorStatusPipe ],
+  declarations: [
+    SensorParserListComponent,
+    SensorStatusPipe,
+    SensorParserLatencyPipe,
+    SensorParserThroughputPipe,
+  ],
   providers: [{ provide: APP_CONFIG, useValue: METRON_REST_CONFIG }]
 })
 export class SensorParserListModule { }

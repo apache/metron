@@ -102,8 +102,8 @@
       >
         {{ sensor.hasGroup() ? '' : sensor.getSensor().status | sensorStatus }}
       </td>
-      <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().latency }}</td>
-      <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().throughput }}</td>
+      <td>{{ sensor.hasGroup() ? '' : sensor.getStatus() | latency }}</td>
+      <td>{{ sensor.hasGroup() ? '' : sensor.getStatus() | throughput }}</td>
       <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().modifiedByDate }}</td>
       <td>{{ sensor.hasGroup() ? '' : sensor.getSensor().modifiedBy }}</td>
       <td class="icon-container">

@@ -63,6 +63,7 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
 export function parserStatusReducer(state: StatusState = initialStatusState, action: Action): StatusState {
   switch (action.type) {
     case ParsersActions.ParserConfigsActions.LoadSuccess:
+    case ParsersActions.ParserConfigsActions.PollStatusSuccess:
       return {
         ...state,
         items: (action as ParsersActions.LoadSuccess).payload.statuses

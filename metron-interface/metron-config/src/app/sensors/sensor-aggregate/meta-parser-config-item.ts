@@ -19,6 +19,7 @@ import { SensorParserConfigHistory } from '../../model/sensor-parser-config-hist
 import { Subject, Observable } from 'rxjs';
 import { SensorParserConfigService } from 'app/service/sensor-parser-config.service';
 import { ThrowStmt } from '@angular/compiler';
+import { TopologyStatus } from '../../model/topology-status';
 
 const DEFAULT_UNDO_TIMEOUT = 60000;
 
@@ -27,6 +28,7 @@ export class MetaParserConfigItem {
   private parserConfigService: SensorParserConfigService;
 
   _sensor: SensorParserConfigHistory = null;
+  _status: TopologyStatus = null;
 
   _cache: any = null;
   _previousIndex = -1;
@@ -43,6 +45,14 @@ export class MetaParserConfigItem {
     parserConfigService?: SensorParserConfigService) {
     this._sensor = sensor;
     this.parserConfigService = parserConfigService;
+  }
+
+  setStatus(status: TopologyStatus) {
+    this._status = status;
+  }
+
+  getStatus(): TopologyStatus {
+    return this._status;
   }
 
   getSensor(): SensorParserConfigHistory {
@@ -78,10 +88,6 @@ export class MetaParserConfigItem {
 
   isGroup() {
     return this._isGroup;
-  }
-
-  setStatus(status: string) {
-    this._sensor.status = status;
   }
 
   setHighlighted(value: boolean) {

@@ -16,23 +16,11 @@
  * limitations under the License.
  */
 import { Pipe, PipeTransform } from '@angular/core';
+import { TopologyStatus } from '../../model/topology-status';
 
-@Pipe({ name: 'sensorStatus' })
-export class SensorStatusPipe implements PipeTransform {
-  transform(status: string): string {
-    switch (status) {
-      case 'ACTIVE':
-        return 'Running';
-      case 'KILLED':
-        return 'Stopped';
-      case 'INACTIVE':
-        return 'Disabled';
-      case 'STOPPING':
-        return 'Stopping';
-      case 'ERROR':
-        return 'Error';
-      default:
-        return 'Stopped';
-    }
+@Pipe({ name: 'throughput' })
+export class SensorParserThroughputPipe implements PipeTransform {
+  transform(status: TopologyStatus): string {
+    return status && status.status === 'ACTIVE' ? (Math.round(status.throughput * 100) / 100) + 'kb/s' : '-';
   }
 }
