@@ -21,6 +21,7 @@ import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { Subject, Observable, Subscription } from 'rxjs';
 import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
 import { ParserGroupModel } from '../models/parser-group.model';
+import { ParserConfigModel } from '../models/parser-config.model';
 
 @Injectable ()
 export class SensorParserConfigHistoryListController {
@@ -33,18 +34,12 @@ export class SensorParserConfigHistoryListController {
     private sensorParserConfigService: SensorParserConfigService
   ) {}
 
-  setSensors(sensors: SensorParserConfigHistory[]) {
+  setSensors(sensors: ParserConfigModel[]) {
 
     this._next([]);
 
-    if (this._sensors && this._sensors.length) {
-      this._sensors.forEach(sensor => {
-        sensor.destroy();
-      });
-    }
-
     this._sensors = sensors.map((sensor, i) => {
-      const sensorUndoable = this.metaParserConfigFactory.create(sensor);
+      const sensorUndoable = new ParserMetaInfoModel(sensor);
 
       this._subscriptions.push(
         sensorUndoable.isChanged().subscribe(() => this._next(this._sensors)),
@@ -93,10 +88,6 @@ export class SensorParserConfigHistoryListController {
 
     this._subscriptions.length = 0;
 
-    this._sensors.forEach(sensor => {
-      sensor.destroy();
-    });
-
     this._sensors.length = 0;
   }
 
@@ -120,7 +111,7 @@ export class SensorParserConfigHistoryListController {
   getGroup(groupName: string): ParserMetaInfoModel | null {
     let i = 0, len = this._sensors.length;
     for (; i < len; i++) {
-      if (this._sensors[i].getSensor().sensorName === groupName) {
+      if (this._sensors[i].getSensor().getName() === groupName) {
         return this._sensors[i];
       }
     }
@@ -131,8 +122,10 @@ export class SensorParserConfigHistoryListController {
    * @param groupName - create a new group with this group name
    * @param at - The array index where you want to inject the group after creation
    */
-  createGroup(groupName: string, at?: number): MetaParserConfigItem {
-    const group = this.metaParserConfigFactory.create(new SensorParserConfigHistory());
+  createGroup(groupName: string, at?: number): ParserMetaInfoModel {
+    const group = new ParserMetaInfoModel(new ParserGroupModel({
+      name: groupName
+    }));
 
     group.setName(groupName);
     group.setIsGroup(true);
@@ -152,21 +145,11 @@ export class SensorParserConfigHistoryListController {
    * @param options.startTimer - whether we should start a timer on the parser (undoable)
    * @param options.silent - If it's true, it won't call next on the changed$ observer
    */
-  addToGroup(groupName: string, sensor: MetaParserConfigItem, options: any = {}) {
+  addToGroup(groupName: string, sensor: ParserMetaInfoModel, options: any = {}) {
 
     let group = this.getGroup(groupName);
     if (!group) {
       group = this.createGroup(groupName, this._sensors.indexOf(sensor));
-      if (options.startTimer) {
-        group.startTimer();
-      }
-    }
-
-    if (options.startTimer) {
-      // basically you can undo the this action until the time expires.
-      // when you undo this action you want the previous state back therefore we store it.
-      sensor.storePreviousState();
-      sensor.startTimer();
     }
 
     // update the sensor
@@ -177,27 +160,6 @@ export class SensorParserConfigHistoryListController {
     // reposition the sensor in the array
     this._sensors = this._sensors.filter(s => s !== sensor);
     this._sensors.splice(this.findLastItemIndexInGroup(groupName) + 1, 0, sensor);
-
-    if (!options.silent) {
-      this._next(this._sensors);
-    }
-  }
-
-  /**
-   * @param sensor
-   * @param options.silent - If it's true, it won't call next on the changed$ observer
-   */
-  restorePreviousState(sensor: MetaParserConfigItem, options: any = {}) {
-
-    const previous = sensor.getPreviousState();
-    const previousGroup = previous.config.group;
-    const groupName = sensor.getGroup();
-
-    sensor.restorePreviousState();
-
-    // reposition the sensor in the array
-    this._sensors = this._sensors.filter(s => s !== sensor);
-    this._sensors.splice(this.findLastItemIndexInGroup(previousGroup || groupName) + 1, 0, sensor);
 
     if (!options.silent) {
       this._next(this._sensors);
@@ -223,8 +185,6 @@ export class SensorParserConfigHistoryListController {
   insertBefore(target: ParserMetaInfoModel, sensor: ParserMetaInfoModel) {
 
     if ((target.hasGroup() || sensor.hasGroup()) && target.getGroup() !== sensor.getGroup()) {
-      sensor.storePreviousState();
-      sensor.startTimer();
       sensor.setProps({
         groupName: (sensor.hasGroup() && !target.hasGroup()) ? '' : target.getGroup()
       });
@@ -247,8 +207,6 @@ export class SensorParserConfigHistoryListController {
       newGroup = target.getGroup() || '';
     }
     if (newGroup !== sensor.getGroup()) {
-      sensor.storePreviousState();
-      sensor.startTimer();
       sensor.setProps({
         groupName: newGroup
       });
