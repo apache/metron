@@ -264,7 +264,12 @@
         <dependency>
             <groupId>com.github.palindromicity</groupId>
             <artifactId>simple-syslog-5424</artifactId>
-            <version>${global_simple_syslog_version}</version>
+            <version>${global_simple_syslog_5424_version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.palindromicity</groupId>
+            <artifactId>simple-syslog-3164</artifactId>
+            <version>${global_simple_syslog_3164_version}</version>
         </dependency>
     </dependencies>
     <build>
