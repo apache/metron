@@ -20,7 +20,7 @@ import { async, TestBed, ComponentFixture } from '@angular/core/testing';
 import { SensorRawJsonComponent } from './sensor-raw-json.component';
 import { SharedModule } from '../../shared/shared.module';
 import { SimpleChanges, SimpleChange } from '@angular/core';
-import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParserConfigModel } from '../../sensors/models/parser-config.model';
 import {
   SensorEnrichmentConfig,
   EnrichmentConfig,
@@ -35,7 +35,7 @@ describe('Component: SensorRawJsonComponent', () => {
   let sensorParserConfigString =
     '{"parserClassName":"org.apache.metron.parsers.bro.BasicBroParser","sensorTopic":"bro",' +
     '"parserConfig": {},"fieldTransformations":[]}';
-  let sensorParserConfig: SensorParserConfig = new SensorParserConfig();
+  let sensorParserConfig: ParserConfigModel = new ParserConfigModel();
   sensorParserConfig.sensorTopic = 'bro';
   sensorParserConfig.parserClassName =
     'org.apache.metron.parsers.bro.BasicBroParser';
@@ -46,7 +46,7 @@ describe('Component: SensorRawJsonComponent', () => {
         "errorWriterClassName": "org.example.errorWriterClassName",
         "filterClassName": "org.example.filterClassName", "invalidWriterClassName": "org.example.invalidWriterClassName"}`;
   let sensorParserConfigWithClassName = Object.assign(
-    new SensorParserConfig(),
+    new ParserConfigModel(),
     sensorParserConfig
   );
   sensorParserConfigWithClassName.writerClassName =
@@ -171,7 +171,7 @@ describe('Component: SensorRawJsonComponent', () => {
   it('should save the fields', () => {
     spyOn(component.hideRawJson, 'emit');
     spyOn(component.onRawJsonChanged, 'emit');
-    component.sensorParserConfig = new SensorParserConfig();
+    component.sensorParserConfig = new ParserConfigModel();
     component.sensorEnrichmentConfig = new SensorEnrichmentConfig();
     component.indexingConfigurations = new IndexingConfigurations();
 

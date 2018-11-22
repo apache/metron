@@ -31,7 +31,7 @@ import { KafkaService } from '../../service/kafka.service';
 import { KafkaTopic } from '../../model/kafka-topic';
 import { GrokValidationService } from '../../service/grok-validation.service';
 import { MetronAlerts } from '../../shared/metron-alerts';
-import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParserConfigModel } from '../../sensors/models/parser-config.model';
 import { ParseMessageRequest } from '../../model/parse-message-request';
 import { SensorParserContext } from '../../model/sensor-parser-context';
 import { AuthenticationService } from '../../service/authentication.service';
@@ -67,9 +67,9 @@ class MockActivatedRoute {
 
 class MockSensorParserConfigService extends SensorParserConfigService {
   private name: string;
-  private sensorParserConfig: SensorParserConfig;
+  private sensorParserConfig: ParserConfigModel;
   private parsedMessage: any;
-  private postedSensorParserConfig: SensorParserConfig;
+  private postedSensorParserConfig: ParserConfigModel;
   private throwError: boolean;
 
   constructor(
@@ -81,8 +81,8 @@ class MockSensorParserConfigService extends SensorParserConfigService {
 
   public post(
     name: string,
-    sensorParserConfig: SensorParserConfig
-  ): Observable<SensorParserConfig> {
+    sensorParserConfig: ParserConfigModel
+  ): Observable<ParserConfigModel> {
     if (this.throwError) {
       let error = new RestError();
       error.message = 'SensorParserConfig post error';
@@ -95,7 +95,7 @@ class MockSensorParserConfigService extends SensorParserConfigService {
     });
   }
 
-  public get(name: string): Observable<SensorParserConfig> {
+  public get(name: string): Observable<ParserConfigModel> {
     return Observable.create(observer => {
       observer.next(this.sensorParserConfig);
       observer.complete();
@@ -132,7 +132,7 @@ class MockSensorParserConfigService extends SensorParserConfigService {
 
   public setSensorParserConfig(
     name: string,
-    sensorParserConfig: SensorParserConfig
+    sensorParserConfig: ParserConfigModel
   ) {
     this.name = name;
     this.sensorParserConfig = sensorParserConfig;
@@ -627,7 +627,7 @@ describe('Component: SensorParserConfig', () => {
 
   it('should createForms', async(() => {
     component.sensorParserConfig = Object.assign(
-      new SensorParserConfig(),
+      new ParserConfigModel(),
       squidSensorParserConfig
     );
     component.createForms();
@@ -664,7 +664,7 @@ describe('Component: SensorParserConfig', () => {
     );
     component.init('new');
 
-    let expectedSensorParserConfig = new SensorParserConfig();
+    let expectedSensorParserConfig = new ParserConfigModel();
     expectedSensorParserConfig.parserClassName =
       'org.apache.metron.parsers.GrokParser';
     expect(component.sensorParserConfig).toEqual(expectedSensorParserConfig);
@@ -679,7 +679,7 @@ describe('Component: SensorParserConfig', () => {
 
     spyOn(component, 'getKafkaStatus');
     let sensorParserConfig = Object.assign(
-      new SensorParserConfig(),
+      new ParserConfigModel(),
       squidSensorParserConfig
     );
     sensorParserConfigService.setSensorParserConfig(
@@ -701,7 +701,7 @@ describe('Component: SensorParserConfig', () => {
 
     component.init('squid');
     expect(component.sensorParserConfig).toEqual(
-      Object.assign(new SensorParserConfig(), squidSensorParserConfig)
+      Object.assign(new ParserConfigModel(), squidSensorParserConfig)
     );
     expect(component.sensorNameValid).toEqual(true);
     expect(component.getKafkaStatus).toHaveBeenCalled();
@@ -748,7 +748,7 @@ describe('Component: SensorParserConfig', () => {
       'Could not find grok statement in HDFS or classpath at /patterns/squid'
     );
 
-    sensorParserConfig = new SensorParserConfig();
+    sensorParserConfig = new ParserConfigModel();
     sensorParserConfig.sensorTopic = 'bro';
     sensorParserConfigService.setSensorParserConfig('bro', sensorParserConfig);
     component.showAdvancedParserConfiguration = false;
@@ -953,7 +953,7 @@ describe('Component: SensorParserConfig', () => {
       transformation: 'MTL',
       config: { url_host: 'TO_LOWER(URL_TO_HOST(url))' }
     });
-    let sensorParserConfigSave: SensorParserConfig = new SensorParserConfig();
+    let sensorParserConfigSave: ParserConfigModel = new ParserConfigModel();
     sensorParserConfigSave.sensorTopic = 'squid';
     sensorParserConfigSave.parserClassName =
       'org.apache.metron.parsers.GrokParser';

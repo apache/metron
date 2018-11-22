@@ -20,13 +20,13 @@ import { async, TestBed, ComponentFixture } from '@angular/core/testing';
 import { SensorStormSettingsComponent } from './sensor-storm-settings.component';
 import { SharedModule } from '../../shared/shared.module';
 import { SimpleChanges, SimpleChange } from '@angular/core';
-import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParserConfigModel } from '../../sensors/models/parser-config.model';
 import { SensorStormSettingsModule } from './sensor-storm-settings.module';
 
 describe('Component: SensorStormSettingsComponent', () => {
   let fixture: ComponentFixture<SensorStormSettingsComponent>;
   let component: SensorStormSettingsComponent;
-  let sensorParserConfig: SensorParserConfig = new SensorParserConfig();
+  let sensorParserConfig: ParserConfigModel = new ParserConfigModel();
   sensorParserConfig.sensorTopic = 'bro';
   sensorParserConfig.parserClassName =
     'org.apache.metron.parsers.bro.BasicBroParser';
@@ -73,7 +73,7 @@ describe('Component: SensorStormSettingsComponent', () => {
 
   it('should initialise the fields', () => {
     component.init();
-    expect(component.newSensorParserConfig).toEqual(new SensorParserConfig());
+    expect(component.newSensorParserConfig).toEqual(new ParserConfigModel());
 
     component.sensorParserConfig = sensorParserConfig;
     component.init();
@@ -123,7 +123,7 @@ describe('Component: SensorStormSettingsComponent', () => {
   });
 
   it('hasSpoutConfigChanged should properly detect changes', () => {
-    let sensorParserConfigWithSpoutConfig = new SensorParserConfig();
+    let sensorParserConfigWithSpoutConfig = new ParserConfigModel();
     sensorParserConfigWithSpoutConfig.spoutConfig = {};
     component.sensorParserConfig = sensorParserConfigWithSpoutConfig;
     component.newSpoutConfig = '{}';
@@ -144,7 +144,7 @@ describe('Component: SensorStormSettingsComponent', () => {
   });
 
   it('hasStormConfigChanged should properly detect changes', () => {
-    let sensorParserConfigWithStormConfig = new SensorParserConfig();
+    let sensorParserConfigWithStormConfig = new ParserConfigModel();
     sensorParserConfigWithStormConfig.stormConfig = {};
     component.sensorParserConfig = sensorParserConfigWithStormConfig;
     component.newStormConfig = '{}';

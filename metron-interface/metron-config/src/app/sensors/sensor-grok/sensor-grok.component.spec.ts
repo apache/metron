@@ -27,7 +27,7 @@ import { ParseMessageRequest } from '../../model/parse-message-request';
 import { SensorGrokComponent } from './sensor-grok.component';
 import { GrokValidationService } from '../../service/grok-validation.service';
 import { SensorGrokModule } from './sensor-grok.module';
-import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParserConfigModel } from '../../sensors/models/parser-config.model';
 
 class MockSensorParserConfigService {
   private parsedMessage: string;
@@ -168,7 +168,7 @@ describe('Component: SensorGrok', () => {
       'SQUID_DELIMITED %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} ' +
       '%{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}';
 
-    component.sensorParserConfig = new SensorParserConfig();
+    component.sensorParserConfig = new ParserConfigModel();
     component.sensorParserConfig.sensorTopic = 'squid';
     component.newGrokStatement = grokStatement;
 
