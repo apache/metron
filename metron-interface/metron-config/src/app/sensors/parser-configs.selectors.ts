@@ -16,26 +16,33 @@ const getStatuses = (state) => {
   return state.sensors.statuses.items;
 };
 
+const getLayoutOrder = (state) => {
+  return state.sensors.layout.order;
+};
+
 export const getMergedConfigs = createSelector(
   getGroups,
   getParsers,
   getStatuses,
-  (groups: ParserMetaInfoModel[], parsers: ParserMetaInfoModel[], statuses: TopologyStatus[]): ParserMetaInfoModel[] => {
+  getLayoutOrder,
+  (
+    groups: ParserMetaInfoModel[],
+    parsers: ParserMetaInfoModel[],
+    statuses: TopologyStatus[],
+    order: string[]
+  ): ParserMetaInfoModel[] => {
     let result: ParserMetaInfoModel[] = [];
-
-    groups.forEach((group, i) => {
-      result = result.concat(group);
-
-      const configsForGroup = parsers
-        .filter(parser => parser.getConfig() && parser.getConfig().group === group.getName())
-
-      result = result.concat(configsForGroup);
-    });
-
-    result = result.concat(
-      parsers
-        .filter(parser => !parser.getConfig() || !parser.getConfig().group)
-      );
+    result = order.map((id: string) => {
+      const group = groups.find(g => g.getName() === id);
+      if (group) {
+        return group;
+      }
+      const parserConfig = parsers.find(p => p.getName() === id);
+      if (parserConfig) {
+        return parserConfig;
+      }
+      return null;
+    }).filter(Boolean);
 
     result = result.map((item) => {
       let status: TopologyStatus = statuses.find(stat => {

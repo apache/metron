@@ -46,8 +46,6 @@ import {SensorIndexingConfigService} from './service/sensor-indexing-config.serv
 import {HdfsService} from './service/hdfs.service';
 import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.interceptor';
 import { SensorAggregateModule } from './sensors/sensor-aggregate/sensor-aggregate.module';
-import { SensorAggregateService } from './sensors/sensor-aggregate/sensor-aggregate.service';
-import { SensorParserConfigHistoryListController } from './sensors/sensor-aggregate/sensor-parser-config-history-list.controller';
 import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EffectsModule } from '@ngrx/effects'

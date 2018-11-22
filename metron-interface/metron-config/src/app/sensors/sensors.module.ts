@@ -20,11 +20,9 @@ import { SensorParserListModule } from './sensor-parser-list/sensor-parser-list.
 import { SensorParserConfigReadonlyModule } from './sensor-parser-config-readonly/sensor-parser-config-readonly.module';
 import { SensorParserConfigModule } from './sensor-parser-config/sensor-parser-config.module';
 import { SensorAggregateModule } from './sensor-aggregate/sensor-aggregate.module';
-import { SensorParserConfigHistoryListController } from './sensor-aggregate/sensor-parser-config-history-list.controller';
 import { GrokValidationService } from '../service/grok-validation.service';
 import { StellarService } from '../service/stellar.service';
 import { HdfsService } from '../service/hdfs.service';
-import { SensorAggregateService } from './sensor-aggregate/sensor-aggregate.service';
 import { SensorIndexingConfigService } from '../service/sensor-indexing-config.service';
 import { SensorEnrichmentConfigService } from '../service/sensor-enrichment-config.service';
 import { SensorParserConfigHistoryService } from '../service/sensor-parser-config-history.service';
@@ -49,8 +47,7 @@ import { reducers } from './reducers';
   providers: [
     SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
-    StormService, KafkaService, GrokValidationService, StellarService, HdfsService, SensorAggregateService,
-    SensorParserConfigHistoryListController
+    StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
   ],
 })
 export class SensorsModule { }

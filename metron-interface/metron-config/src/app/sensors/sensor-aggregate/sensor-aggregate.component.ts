@@ -15,51 +15,102 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { SensorAggregateService } from './sensor-aggregate.service';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { LayoutState } from '../parser-configs.reducers';
+import { Observable } from 'rxjs';
+import { SensorState } from '../reducers';
+import * as ParsersActions from '../parser-configs.actions';
 
 @Component({
   selector: 'metron-config-sensor-aggregate',
   templateUrl: './sensor-aggregate.component.html',
   styleUrls: ['./sensor-aggregate.component.scss']
 })
-export class SensorAggregateComponent {
+export class SensorAggregateComponent implements OnInit {
+
+  private forceCreate = false;
+  private draggedId: string;
+  private dropTargetId: string;
+  private layout$: Observable<SensorState>;
+  private targetGroup: string;
 
   allowMerge = true;
 
-  _forceCreate = false;
-
   constructor(
-    private aggregateService: SensorAggregateService,
-    private router: Router
-    ) {}
+    private router: Router,
+    private store: Store<{}>
+  ) {
+    this.layout$ = store.select('sensors');
+  }
+
+  ngOnInit() {
+    this.layout$.subscribe((state: SensorState) => {
+      this.draggedId = state.layout.dnd.draggedId;
+      this.dropTargetId = state.layout.dnd.dropTargetId;
+      this.targetGroup = state.layout.dnd.targetGroup;
+    });
+  }
 
   close() {
-    this._forceCreate = false;
-    this.aggregateService.close();
+    this.forceCreate = false;
+    this.router.navigateByUrl('/sensors');
   }
 
   createNew(groupName: string, description: string) {
-    this.aggregateService.save(groupName, description);
+
+    this.store.dispatch(new ParsersActions.CreateGroup(groupName));
+
+    if (!this.targetGroup) {
+      this.store.dispatch(new ParsersActions.AggregateParsers({
+        groupName,
+        parserIds: [
+          this.dropTargetId,
+          this.draggedId,
+        ]
+      }));
+    } else {
+      const parserIds = [this.draggedId, this.dropTargetId];
+      this.store.dispatch(new ParsersActions.AddToGroup({
+        groupName,
+        parserIds
+      }));
+      parserIds.forEach((parserId) => {
+        this.store.dispatch(new ParsersActions.InjectAfter({
+          reference: groupName,
+          parserId,
+        }));
+      });
+    }
+
+    this.close();
   }
 
   mergeOrCreate() {
     if (this.allowMerge) {
       this.addToExisting();
     } else {
-      this._forceCreate = true;
+      this.forceCreate = true;
     }
   }
 
   addToExisting() {
-    this.aggregateService.save(
-      this.aggregateService.getTargetSensor().getGroup(),
-      ''
-    );
+
+    this.store.dispatch(new ParsersActions.AddToGroup({
+      groupName: this.targetGroup,
+      parserIds: [this.draggedId]
+    }));
+
+    this.store.dispatch(new ParsersActions.InjectAfter({
+      reference: this.dropTargetId,
+      parserId: this.draggedId,
+    }));
+
+    this.close();
   }
 
   showCreateForm(): boolean {
-    return !this.aggregateService.doesTargetSensorHaveGroup() || this._forceCreate;
+    return !this.targetGroup || this.forceCreate;
   }
 }

@@ -26,17 +26,10 @@ import { ParserModel } from './parser.model';
 export class ParserMetaInfoModel {
 
   private config: ParserModel = null;
-
-  _status: TopologyStatus = new TopologyStatus();
-
-  _previousIndex = -1;
-
-  _isGroup: boolean;
-
-  changed$ = new Subject();
-
-  _highlighted = false;
-  _draggedOver = false;
+  private status: TopologyStatus = new TopologyStatus();
+  private _isGroup: boolean;
+  private isHighlighted = false;
+  private isDraggedOver = false;
 
   isPhantom = false;
   isDirty = false;
@@ -51,11 +44,11 @@ export class ParserMetaInfoModel {
   }
 
   setStatus(status: TopologyStatus) {
-    this._status = status;
+    this.status = status;
   }
 
   getStatus(): TopologyStatus {
-    return this._status;
+    return this.status;
   }
 
   getConfig(): ParserModel {
@@ -94,27 +87,19 @@ export class ParserMetaInfoModel {
   }
 
   setHighlighted(value: boolean) {
-    this._highlighted = value;
+    this.isHighlighted = value;
   }
 
   getHighlighted(): boolean {
-    return this._highlighted;
+    return this.isHighlighted;
   }
 
   setDraggedOver(value: boolean) {
-    this._draggedOver = value;
+    this.isDraggedOver = value;
   }
 
   getDraggedOver(): boolean {
-    return this._draggedOver;
-  }
-
-  isChanged(): Observable<any> {
-    return this.changed$.asObservable();
-  }
-
-  _next() {
-    this.changed$.next();
+    return this.isDraggedOver;
   }
 
   isStartable() {

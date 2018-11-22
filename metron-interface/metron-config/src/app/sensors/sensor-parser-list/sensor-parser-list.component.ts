@@ -24,9 +24,7 @@ import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {StormService} from '../../service/storm.service';
 import {TopologyStatus} from '../../model/topology-status';
 import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
-import { SensorAggregateService } from '../sensor-aggregate/sensor-aggregate.service';
 import { Subscription, Observable } from 'rxjs';
-import { SensorParserConfigHistoryListController } from '../sensor-aggregate/sensor-parser-config-history-list.controller';
 import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { Store, select } from '@ngrx/store';
 import { ParserGroupModel } from '../models/parser-group.model';
@@ -36,6 +34,7 @@ import { SensorParserStatus } from '../../model/sensor-parser-status';
 import { ParserState } from '../parser-configs.reducers';
 import { SensorState } from '../reducers';
 import { ParserModel } from '../models/parser.model';
+import * as DragAndDropActions from '../parser-configs-dnd.actions';
 
 @Component({
   selector: 'metron-config-sensor-parser-list',
@@ -53,21 +52,19 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   selectedSensor: ParserMetaInfoModel;
   selectedSensors: ParserMetaInfoModel[] = [];
   enableAutoRefresh = true;
-  _executeMergeSubscription: Subscription;
   sensorsToRender: ParserMetaInfoModel[];
 
   private parserConfigs$: Observable<SensorState>;
   private mergedConfigs$: Observable<ParserMetaInfoModel[]>;
 
   private isStatusPolling: boolean;
+  private draggedElement: ParserMetaInfoModel;
 
   constructor(private sensorParserConfigService: SensorParserConfigService,
               private stormService: StormService,
               private router: Router,
               private metronAlerts:  MetronAlerts,
               private metronDialogBox: MetronDialogBox,
-              private sensorAggregateService: SensorAggregateService,
-              private sensorParserConfigHistoryListController: SensorParserConfigHistoryListController,
               private store: Store<SensorState>) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/sensors') {
@@ -110,27 +107,6 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
         this.store.dispatch(new ParsersActions.StartPolling());
       }
     });
-
-    // FIXME: this codepart is not responsible for the merging of the list of groups and configs
-    // but the actual creation of new groups
-    this._executeMergeSubscription = this.sensorAggregateService.executeMerge$
-      .subscribe((value: {
-        groupName: string,
-        sensors: ParserMetaInfoModel[]
-      }) => {
-        if (!value.groupName || !value.sensors.length) {
-          // there's nothing to group
-          return;
-        }
-        this.addSensorsToGroup(value.groupName, value.sensors);
-      });
-
-    // TODO: unsubscribe
-    // this.sensorParserConfigHistoryListController.isChanged().subscribe(
-    //   (sensors: MetaParserConfigItem[]) => {
-    //     this.sensorsToRender = sensors;
-    //   }
-    // );
   }
 
   addAddSensor() {
@@ -253,7 +229,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
   onStopSensors() {
     for (let sensor of this.selectedSensors) {
-      if (sensor['status'] === 'ACTIVE' || sensor['status'] === 'INACTIVE') {
+      if (sensor.getStatus().status === 'ACTIVE' || sensor.getStatus().status === 'INACTIVE') {
         this.onStopSensor(sensor, null);
       }
     }
@@ -278,7 +254,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
   onStartSensors() {
     for (let sensor of this.selectedSensors) {
-      if (sensor['status'] === 'Stopped') {
+      if (sensor.getStatus().status === 'KILLED') {
         this.onStartSensor(sensor, null);
       }
     }
@@ -308,7 +284,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
   onDisableSensors() {
     for (let sensor of this.selectedSensors) {
-      if (sensor['status'] === 'Running') {
+      if (sensor.getStatus().status === 'ACTIVE') {
         this.onDisableSensor(sensor, null);
       }
     }
@@ -333,7 +309,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
   onEnableSensors() {
     for (let sensor of this.selectedSensors) {
-      if (sensor['status'] === 'INACTIVE') {
+      if (sensor.getStatus().status === 'INACTIVE') {
         this.onEnableSensor(sensor, null);
       }
     }
@@ -365,9 +341,10 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this.selectedSensors = [];
   }
 
-  onDragStart(sensor: ParserMetaInfoModel, e: DragEvent) {
-    this.sensorAggregateService.markSensorToBeMerged(sensor, 0);
+  onDragStart(metaInfo: ParserMetaInfoModel, e: DragEvent) {
+    this.draggedElement = metaInfo;
     e.dataTransfer.setDragImage((e.target as HTMLElement).parentElement, 10, 17);
+    this.store.dispatch(new DragAndDropActions.SetDragged(metaInfo.getName()));
   }
 
   onDragOver(sensor, e: DragEvent) {
@@ -376,11 +353,16 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     const mouseX = e.pageX;
     const mouseY = e.pageY;
 
-
     if (mouseX > rect.left + 8 && mouseY > rect.top + 8 && mouseX <= (rect.right - 8) && mouseY <= (rect.bottom - 8)) {
-      sensor.setDraggedOver(true);
+      this.store.dispatch(new ParsersActions.SetDraggedOver({
+        id: sensor.getName(),
+        value: true,
+      }));
     } else {
-      sensor.setDraggedOver(false);
+      this.store.dispatch(new ParsersActions.SetDraggedOver({
+        id: sensor.getName(),
+        value: false,
+      }));
     }
 
     if (mouseY > rect.top && mouseY < (rect.top + 8)) {
@@ -398,14 +380,15 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onDragEnter(sensor, e) {
-
     const groupName = sensor.getGroup();
     if (!groupName) {
       return;
     }
     setTimeout(() => {
-      const group = this.sensorParserConfigHistoryListController.getByName(groupName);
-      group.setHighlighted(true);
+      this.store.dispatch(new ParsersActions.SetHighlighted({
+        id: groupName,
+        value: true,
+      }));
     });
   }
 
@@ -418,63 +401,67 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     if (mouseX < rect.left || mouseY < rect.top || mouseX >= rect.right || mouseY >= rect.bottom) {
       el.classList.remove('drop-before');
       el.classList.remove('drop-after');
-      sensor.setDraggedOver(false);
+      this.store.dispatch(new ParsersActions.SetDraggedOver({
+        id: sensor.getName(),
+        value: false,
+      }));
 
       const groupName = sensor.getGroup();
       if (!groupName) {
         return;
       }
-      const group = this.sensorParserConfigHistoryListController.getByName(groupName);
-      group.setHighlighted(false);
+      this.store.dispatch(new ParsersActions.SetHighlighted({
+        id: groupName,
+        value: false,
+      }));
     }
   }
 
-  onDrop(referenceSensor: ParserMetaInfoModel, e: DragEvent) {
-
-    this.sensorParserConfigHistoryListController.setAllHighlighted(false);
-    this.sensorParserConfigHistoryListController.setAllDraggedOver(false);
-
+  onDrop(referenceMetaInfo: ParserMetaInfoModel, e: DragEvent) {
+    this.store.dispatch(new ParsersActions.SetAllHighlighted(false));
+    this.store.dispatch(new ParsersActions.SetAllDraggedOver(false));
     const el = e.currentTarget as HTMLElement;
-    const draggedSensor = this.sensorAggregateService.getSensorsToBeMerged()[0];
+    const dragged = this.draggedElement;
+    if (dragged.getName() !== referenceMetaInfo.getName()) {
 
-    if (draggedSensor !== referenceSensor) {
+      if (el.classList.contains('drop-before') || el.classList.contains('drop-after')) {
+        if (referenceMetaInfo.hasGroup()) {
+          this.store.dispatch(new ParsersActions.AddToGroup({
+            groupName: referenceMetaInfo.getName(),
+            parserIds: [dragged.getName()]
+          }));
+        }
+      }
       if (el.classList.contains('drop-before')) {
-        this.sensorParserConfigHistoryListController.insertBefore(referenceSensor, draggedSensor);
+        this.store.dispatch(new ParsersActions.InjectBefore({
+          reference: referenceMetaInfo.getName(),
+          parserId: dragged.getName(),
+        }));
       } else if (el.classList.contains('drop-after')) {
-        this.sensorParserConfigHistoryListController.insertAfter(referenceSensor, draggedSensor);
+        this.store.dispatch(new ParsersActions.InjectAfter({
+          reference: referenceMetaInfo.getName(),
+          parserId: dragged.getName(),
+        }));
       } else {
-        if (referenceSensor.isGroup()) {
-
-          this.sensorParserConfigHistoryListController
-            .addToGroup(
-              referenceSensor.getName(),
-              draggedSensor,
-              { startTimer: true });
+        if (referenceMetaInfo.isGroup()) {
+          this.store.dispatch(new ParsersActions.AddToGroup({
+            groupName: referenceMetaInfo.getName(),
+            parserIds: [dragged.getName()]
+          }));
+          this.store.dispatch(new ParsersActions.InjectAfter({
+            reference: referenceMetaInfo.getName(),
+            parserId: dragged.getName(),
+          }));
         } else {
-          this.sensorAggregateService.markSensorToBeMerged(referenceSensor, 1);
+          this.store.dispatch(new DragAndDropActions.SetDropTarget(referenceMetaInfo.getName()));
+          this.store.dispatch(new DragAndDropActions.SetTargetGroup(referenceMetaInfo.getConfig().group || ''));
           this.router.navigateByUrl('/sensors(dialog:sensor-aggregate)');
         }
       }
     }
-
     el.classList.remove('drop-before');
     el.classList.remove('drop-after');
   }
 
-  addSensorsToGroup(groupName: string, sensors: ParserMetaInfoModel[]) {
-    sensors.reverse().forEach(sensor => {
-      if (sensor.getGroup() !== groupName) {
-        this.sensorParserConfigHistoryListController.addToGroup(groupName, sensor, { startTimer: true });
-      }
-    });
-  }
-
-  undo(sensor: ParserMetaInfoModel, e) {
-    e.stopPropagation();
-  }
-
-  ngOnDestroy() {
-    this._executeMergeSubscription.unsubscribe();
-    this.sensorParserConfigHistoryListController.tearDown();
-  }
+  ngOnDestroy() { }
 }
