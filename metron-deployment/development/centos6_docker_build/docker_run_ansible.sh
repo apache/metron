@@ -34,12 +34,8 @@ source /opt/rh/devtoolset-6/enable
 # USE TAGS
 #fi
 
-case $(sed --help 2>&1) in
-    *GNU*) sed_i() { sed -i "$@"; } ;;
-    *) sed_i() { sed -i '' "$@"; } ;;
-esac
 
-sed_i -e '/^node1.*/d' ~/.ssh/known_hosts
+sed -i -e '/^node1.*/d' ~/.ssh/known_hosts
 
 ansible-playbook  \
  -i /root/ansible_config/inventory \
