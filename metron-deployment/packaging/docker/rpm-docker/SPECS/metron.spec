@@ -540,6 +540,7 @@ This package installs the Metron Alerts UI %{metron_home}
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/Roboto/LICENSE.txt
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/Roboto/*.ttf
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/images/*
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/app-config.json
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -583,8 +583,6 @@ def check_indexer_parameters():
         missing.append("metron-env/es_cluster_name")
       if not config['configurations']['metron-env']['es_hosts']:
         missing.append("metron-env/es_hosts")
-      if not config['configurations']['metron-env']['es_binary_port']:
-        missing.append("metron-env/es_binary_port")
       if not config['configurations']['metron-env']['es_date_format']:
         missing.append("metron-env/es_date_format")
 

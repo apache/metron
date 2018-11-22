@@ -15,22 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import {Alert} from '../model/alert';
-import { HttpClient } from '@angular/common/http';
-import {HttpUtil} from '../utils/httpUtil';
-import { RestError } from '../model/rest-error';
-import {AppConfigService} from './app-config.service';
+package org.apache.metron.elasticsearch.utils;
 
-@Injectable()
-export class AlertsService {
+import org.apache.commons.collections4.map.AbstractMapDecorator;
 
-  constructor(private http: HttpClient, private appConfigService: AppConfigService) {}
+import java.util.HashMap;
+import java.util.Map;
 
-  public escalate(alerts: Alert[]): Observable<Object | RestError> {
-    return this.http.post(this.appConfigService.getApiRoot() + '/alerts/ui/escalate', alerts).pipe(
-    catchError(HttpUtil.handleError));
+/**
+ * Typedef that maps Elasticsearch field names to types.
+ */
+public class FieldProperties extends AbstractMapDecorator<String, Object> {
+  public FieldProperties() {
+    super(new HashMap<>());
+  }
+
+  public FieldProperties(Map<String, Object> m) {
+    super(m);
   }
 }

@@ -60,6 +60,7 @@ import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
+import static org.apache.metron.management.Functions.getArg;
 
 /**
  * Defines the following Kafka-related functions available in Stellar.
@@ -1053,23 +1054,5 @@ public class KafkaFunctions {
     properties.put(MESSAGE_VIEW_PROPERTY, MESSAGE_VIEW_SIMPLE);
 
     return properties;
-  }
-
-  /**
-   * Get an argument from a list of arguments.
-   *
-   * @param argName The name of the argument.
-   * @param index The index within the list of arguments.
-   * @param clazz The type expected.
-   * @param args All of the arguments.
-   * @param <T> The type of the argument expected.
-   */
-  public static <T> T getArg(String argName, int index, Class<T> clazz, List<Object> args) {
-    if(index >= args.size()) {
-      throw new IllegalArgumentException(format("missing '%s'; expected at least %d argument(s), found %d",
-              argName, index+1, args.size()));
-    }
-
-    return ConversionUtils.convert(args.get(index), clazz);
   }
 }

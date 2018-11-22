@@ -22,6 +22,8 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchDao;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 
+import java.io.IOException;
+
 public interface MetaAlertSearchDao extends SearchDao {
 
   /**
@@ -30,6 +32,6 @@ public interface MetaAlertSearchDao extends SearchDao {
    * @return All meta alerts with a child alert having the GUID
    * @throws InvalidSearchException If a problem occurs with the search
    */
-  SearchResponse getAllMetaAlertsForAlert(String guid) throws InvalidSearchException;
+  SearchResponse getAllMetaAlertsForAlert(String guid) throws InvalidSearchException, IOException;
 
 }
