@@ -18,8 +18,8 @@
     <div class="metron-slider-pane fill load-right-to-left dialog1x">
       <div class="metron-readonly-pane">
       <div class="row">
-        <div class="col-xs-12 form-title">{{selectedSensorName}}
-          <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i>
+        <div class="col-sm-12 form-title">{{selectedSensorName}}
+          <i class="fa fa-times float-right close-button" aria-hidden="true" (click)="goBack()"></i>
         </div>
       </div>
 
@@ -30,31 +30,31 @@
           </div>
 
             <div  *ngSwitchCase="'SPACER'" class="row">
-                <div class="col-xs-12">&nbsp;</div>
+                <div class="col-sm-12">&nbsp;</div>
             </div>
 
           <div  *ngSwitchCase="'TITLE'" class="row">
-            <div class="col-xs-12 form-sub-title">{{ item.value }}</div>
+            <div class="col-sm-12 form-sub-title">{{ item.value }}</div>
           </div>
 
           <div *ngSwitchDefault class="row">
-            <div *ngIf="item.label!=''" class="col-xs-6 form-label" [ngClass]="{'form-value font-weight-bold': item.boldTitle}">{{ item.label }}</div>
-            <div *ngIf="item.model == 'sensorParserConfig'" class="col-xs-6  px-0 pull-left form-value">{{ sensorParserConfig[item.value] ? sensorParserConfig[item.value] : "-" }}</div>
-            <div *ngIf="item.model == 'sensorParserConfigHistory'" class="col-xs-6  px-0 pull-left form-value">{{ sensorParserConfigHistory[item.value] ? sensorParserConfigHistory[item.value] : "-" }}</div>
-            <div *ngIf="item.model == 'kafkaTopic'" class="col-xs-6  px-0 pull-left form-value">{{ kafkaTopic[item.value] ? kafkaTopic[item.value] : "-" }}</div>
-            <div *ngIf="item.model == 'topologyStatus'" class="col-xs-6  px-0  pull-left form-value">{{ getTopologyStatus(item.value) }}</div>
+            <div *ngIf="item.label!=''" class="col-sm-6 form-label" [ngClass]="{'form-value font-weight-bold': item.boldTitle}">{{ item.label }}</div>
+            <div *ngIf="item.model == 'sensorParserConfig'" class="col-sm-6  px-0 float-left form-value">{{ sensorParserConfig[item.value] ? sensorParserConfig[item.value] : "-" }}</div>
+            <div *ngIf="item.model == 'sensorParserConfigHistory'" class="col-sm-6  px-0 float-left form-value">{{ sensorParserConfigHistory[item.value] ? sensorParserConfigHistory[item.value] : "-" }}</div>
+            <div *ngIf="item.model == 'kafkaTopic'" class="col-sm-6  px-0 float-left form-value">{{ kafkaTopic[item.value] ? kafkaTopic[item.value] : "-" }}</div>
+            <div *ngIf="item.model == 'topologyStatus'" class="col-sm-6  px-0  float-left form-value">{{ getTopologyStatus(item.value) }}</div>
 
             <div *ngIf="item.model == 'grokStatement' && sensorParserConfigHistory.config.parserClassName === 'org.apache.metron.parsers.GrokParser'" style="border: none">
-              <div class="col-xs-12 form-sub-title">Grok Statement</div>
-              <div id="collapseGrok" class="col-xs-12  pull-left form-value panel-collapse collapse"></div>
-              <div class="col-xs-12  pull-left form-value grok" [innerHtml]="grokStatement"></div>
-              <a *ngIf="grokStatement.length>0" class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseGrok" aria-expanded="false" aria-controls="collapseGrok"  #grokLink (click)="grokLink.text=(grokLink.text==='show more')?'show less':'show more'">show more</a>
-              <div class="px-1"> <div class="col-xs-12 form-seperator"></div> </div>
+              <div class="col-sm-12 form-sub-title">Grok Statement</div>
+              <div id="collapseGrok" class="col-sm-12  float-left form-value panel-collapse collapse"></div>
+              <div class="col-sm-12  float-left form-value grok" [innerHtml]="grokStatement"></div>
+              <a *ngIf="grokStatement.length>0" class="collapsed blue-label font-weight-bold col-sm-8 col-sm-push-4" data-toggle="collapse" href="#collapseGrok" aria-expanded="false" aria-controls="collapseGrok"  #grokLink (click)="grokLink.text=(grokLink.text==='show more')?'show less':'show more'">show more</a>
+              <div class="px-3"> <div class="col-sm-12 form-seperator"></div> </div>
             </div>
 
             <div *ngIf="item.model == 'transforms'">
 
-              <div id="collapseTransform" class="col-xs-12  pull-left form-value panel-collapse collapse">
+              <div id="collapseTransform" class="col-sm-12  float-left form-value panel-collapse collapse">
                 <div class="form-sub-sub-title">Transforms</div>
                 <div>
                   <div *ngFor="let results of transformsConfigKeys" >
@@ -65,24 +65,24 @@
               </div>
 
               <div class="transforms">
-                <div class="col-xs-12 form-sub-sub-title">Transforms</div>
-                <div class="col-xs-12 form-label " [innerHtml]="getTransformsOutput()"></div>
+                <div class="col-sm-12 form-sub-sub-title">Transforms</div>
+                <div class="col-sm-12 form-label " [innerHtml]="getTransformsOutput()"></div>
               </div>
-              <a *ngIf="transformsConfigKeys.length>0"  class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseTransform" aria-expanded="false" aria-controls="collapseTransform" (click)="toggleTransformLink()">{{transformLinkText}}</a>
+              <a *ngIf="transformsConfigKeys.length>0"  class="collapsed blue-label font-weight-bold col-sm-8 col-sm-push-4" data-toggle="collapse" href="#collapseTransform" aria-expanded="false" aria-controls="collapseTransform" (click)="toggleTransformLink()">{{transformLinkText}}</a>
             </div>
             <div *ngIf="item.model == 'threatTriageRules'" class="threat-triage-rules">
-              <div class="col-xs-6 form-label">AGGREGATOR</div><div class="col-xs-6 form-value">{{sensorEnrichmentConfig.threatIntel.triageConfig.aggregator}}</div>
-              <div id="collapseThreatTriage" class="col-xs-12  pull-left form-value panel-collapse collapse">
+              <div class="col-sm-6 form-label">AGGREGATOR</div><div class="col-sm-6 form-value">{{sensorEnrichmentConfig.threatIntel.triageConfig.aggregator}}</div>
+              <div id="collapseThreatTriage" class="col-sm-12  float-left form-value panel-collapse collapse">
                 <div>
-                  <div class="col-xs-6 form-sub-sub-title">NAME</div><div class="col-xs-6 form-sub-sub-title">SCORE</div>
+                  <div class="col-sm-6 form-sub-sub-title">NAME</div><div class="col-sm-6 form-sub-sub-title">SCORE</div>
                   <div *ngFor="let riskLevelRule of rules" >
-                    <div class="col-xs-6 form-label">{{ getDisplayName(riskLevelRule) }}</div>
-                    <div class="col-xs-6 form-value">{{ riskLevelRule.score }}</div>
+                    <div class="col-sm-6 form-label">{{ getDisplayName(riskLevelRule) }}</div>
+                    <div class="col-sm-6 form-value">{{ riskLevelRule.score }}</div>
                   </div>
                 </div>
               </div>
-              <div  class="col-xs-12 form-label threatIntel">{{ getRuleDisplayName() }}</div>
-              <a *ngIf="rules.length>0" class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseThreatTriage" aria-expanded="false" aria-controls="collapseThreatTriage" (click)="toggleThreatTriageLink()">{{threatTriageLinkText}}</a>
+              <div  class="col-sm-12 form-label threatIntel">{{ getRuleDisplayName() }}</div>
+              <a *ngIf="rules.length>0" class="collapsed blue-label font-weight-bold col-sm-8 col-sm-push-4" data-toggle="collapse" href="#collapseThreatTriage" aria-expanded="false" aria-controls="collapseThreatTriage" (click)="toggleThreatTriageLink()">{{threatTriageLinkText}}</a>
             </div>
           </div>
         </div>
@@ -90,18 +90,18 @@
     </div>
 
       <div class="metron-button-bar" >
-          <div class="row pl-0 py-1">
+          <div class="row pl-0 py-3">
             <button class="btn btn-primary" type="button" (click)="onEditSensor()"  [disabled]="startStopInProgress">EDIT</button>
 
-            <button class="btn btn-primary" type="button" (click)="onStartSensor()" [disabled]="startStopInProgress" [hidden]="isStartHidden()">START</button>
-            <button class="btn form-enable-disable-button" type="button" (click)="onStopSensor()" [disabled]="startStopInProgress" [hidden]="isStopHidden()">STOP</button>
+            <button class="btn btn-primary ml-1" type="button" (click)="onStartSensor()" [disabled]="startStopInProgress" [hidden]="isStartHidden()">START</button>
+            <button class="btn form-enable-disable-button ml-1" type="button" (click)="onStopSensor()" [disabled]="startStopInProgress" [hidden]="isStopHidden()">STOP</button>
 
-            <button class="btn btn-primary" type="button" (click)="onEnableSensor()" [disabled]="startStopInProgress" [hidden]="isEnableHidden()" >ENABLE</button>
-            <button class="btn form-enable-disable-button" type="button" (click)="onDisableSensor()" [disabled]="startStopInProgress" [hidden]="isDisableHidden()">DISABLE</button>
+            <button class="btn btn-primary ml-1" type="button" (click)="onEnableSensor()" [disabled]="startStopInProgress" [hidden]="isEnableHidden()" >ENABLE</button>
+            <button class="btn form-enable-disable-button ml-1" type="button" (click)="onDisableSensor()" [disabled]="startStopInProgress" [hidden]="isDisableHidden()">DISABLE</button>
 
-            <button class="btn btn-link delete" type="button" (click)="onDeleteSensor()"> Delete </button>
+            <button class="btn btn-link delete ml-1" type="button" (click)="onDeleteSensor()"> Delete </button>
 
-            <div class="start-stop-progress"> <i class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!startStopInProgress"></i> </div>
+            <div class="start-stop-progress ml-1"> <i class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!startStopInProgress"></i> </div>
           </div>
       </div>
     </div>
