@@ -127,6 +127,16 @@
           </i>
           <i
             data-toggle="tooltip"
+            title="Start parser topology"
+            class="fa fa-play fa-lg"
+            aria-hidden="true"
+            [hidden]="sensor.isStopable()"
+            (click)="onStartSensor(sensor, $event)"
+          >
+          </i>
+
+          <i
+            data-toggle="tooltip"
             title="Disable parser topology"
             class="fa fa-ban fa-lg"
             aria-hidden="true"
@@ -135,15 +145,6 @@
           >
           </i>
 
-          <i
-            data-toggle="tooltip"
-            title="Start parser topology"
-            class="fa fa-play fa-lg"
-            aria-hidden="true"
-            [hidden]="sensor.isStopable()"
-            (click)="onStartSensor(sensor, $event)"
-          >
-          </i>
           <i
             data-toggle="tooltip"
             title="Enable parser topology"
