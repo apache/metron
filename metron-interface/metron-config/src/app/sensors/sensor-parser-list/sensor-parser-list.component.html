@@ -56,7 +56,7 @@
     <tr *ngFor="let sensor of sensorsToRender"
         (click)="onSensorRowSelect(sensor, $event)"
         [ngClass]="{
-          'active': (selectedSensors.indexOf(sensor.getConfig()) != -1 || selectedSensor == sensor.getConfig()),
+          'active': isSelected(sensor),
           'parent': sensor.isGroup(),
           'highlighted': sensor.getHighlighted(),
           'dragged-over': sensor.getDraggedOver()
