@@ -130,7 +130,7 @@
             title="Disable parser topology"
             class="fa fa-ban fa-lg"
             aria-hidden="true"
-            [hidden]="(sensor.getStatus().status != 'ACTIVE' || sensor.startStopInProgress)"
+            [hidden]="(!sensor.isActive() || sensor.startStopInProgress)"
             (click)="onDisableSensor(sensor, $event)"
           >
           </i>
@@ -149,7 +149,7 @@
             title="Enable parser topology"
             class="fa fa-check-circle-o fa-lg"
             aria-hidden="true"
-            [hidden]="(sensor.getStatus().status != 'INACTIVE' || sensor.startStopInProgress)"
+            [hidden]="(sensor.isActive() || sensor.startStopInProgress)"
             (click)="onEnableSensor(sensor, $event)"
           >
           </i>

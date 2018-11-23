@@ -111,4 +111,8 @@ export class ParserMetaInfoModel {
   isRootElement() {
     return this.isGroup() || !this.hasGroup();
   }
+
+  isActive() {
+    return this.getStatus().status === 'ACTIVE';
+  }
 }
