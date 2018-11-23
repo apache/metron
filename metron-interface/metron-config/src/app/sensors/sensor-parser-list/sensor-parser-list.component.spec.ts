@@ -567,25 +567,25 @@ describe('Component: SensorParserList', () => {
       let sensorParserConfigHistory7 = new ParserMetaInfoModel(sensorParserConfig7);
 
       sensorParserConfig1.sensorTopic = 'squid';
-      sensorParserConfigHistory1['status'] = 'Running';
+      sensorParserConfigHistory1.getStatus().status = 'Running';
 
       sensorParserConfig2.sensorTopic = 'bro';
-      sensorParserConfigHistory2['status'] = 'Stopped';
+      sensorParserConfigHistory2.getStatus().status = 'Stopped';
 
       sensorParserConfig3.sensorTopic = 'test';
-      sensorParserConfigHistory3['status'] = 'Stopped';
+      sensorParserConfigHistory3.getStatus().status = 'Stopped';
 
       sensorParserConfig4.sensorTopic = 'test1';
-      sensorParserConfigHistory4['status'] = 'Stopped';
+      sensorParserConfigHistory4.getStatus().status = 'Stopped';
 
       sensorParserConfig5.sensorTopic = 'test2';
-      sensorParserConfigHistory5['status'] = 'Running';
+      sensorParserConfigHistory5.getStatus().status = 'Running';
 
       sensorParserConfig6.sensorTopic = 'test2';
-      sensorParserConfigHistory6['status'] = 'Disabled';
+      sensorParserConfigHistory6.getStatus().status = 'Disabled';
 
       sensorParserConfig7.sensorTopic = 'test3';
-      sensorParserConfigHistory7['status'] = 'Disabled';
+      sensorParserConfigHistory7.getStatus().status = 'Disabled';
 
       component.selectedSensors = [
         sensorParserConfigHistory1,
