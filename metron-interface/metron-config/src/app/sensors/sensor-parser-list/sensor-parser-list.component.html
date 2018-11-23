@@ -93,7 +93,7 @@
         <span class="indentation" *ngIf="!!sensor.hasGroup()">
           ---
         </span>
-        {{ sensor.getConfig().getName() }}
+        {{ sensor.getName() }}
         <span class="change-type deleted" *ngIf="sensor.isDeleted">(deleted)</span>
         <span class="change-type dirty" *ngIf="sensor.isDirty">(dirty)</span>
         <span class="change-type phantom" *ngIf="sensor.isPhantom">(phantom)</span>
@@ -173,15 +173,15 @@
       </td>
       <td>
         <input
-          id="{{ sensor.getConfig().getName() }}"
+          id="{{ sensor.getName() }}"
           class="fontawesome-checkbox"
           type="checkbox"
-          name="{{sensor.getConfig().getName()}}"
+          name="{{sensor.getName()}}"
           (change)="onRowSelected(sensor, $event)"
           (click)="$event.stopPropagation()"
         >
         <label
-          attr.for="{{ sensor.getConfig().getName() }}"
+          attr.for="{{ sensor.getName() }}"
           (click)="$event.stopPropagation()"
         ></label>
       </td>
