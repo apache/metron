@@ -140,7 +140,7 @@
             title="Start parser topology"
             class="fa fa-play fa-lg"
             aria-hidden="true"
-            [hidden]="!sensor.isStartable()"
+            [hidden]="sensor.isStopable()"
             (click)="onStartSensor(sensor, $event)"
           >
           </i>

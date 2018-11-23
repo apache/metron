@@ -102,12 +102,6 @@ export class ParserMetaInfoModel {
     return this.isDraggedOver;
   }
 
-  isStartable() {
-    return this.isRootElement() &&
-      this.getStatus().status === 'KILLED' && this.getStatus().status !== 'INACTIVE'
-      && !this.startStopInProgress;
-  }
-
   isStopable() {
     return this.isRootElement() &&
       this.getStatus().status === 'ACTIVE' && this.getStatus().status !== 'INACTIVE'
