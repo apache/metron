@@ -19,6 +19,7 @@ export enum ParserConfigsActions {
   SetDraggedOver = '[Parser Configs List] Set dragged over',
   SetAllHighlighted = '[Parser Configs List] Set all highlighted',
   SetAllDraggedOver = '[Parser Configs List] Set all dragged over',
+  MarkAsDeleted = '[Parser Configs List] Mark as deleted',
 }
 
 export class LoadStart implements Action {
@@ -106,4 +107,11 @@ export class SetAllHighlighted implements Action {
 export class SetAllDraggedOver implements Action {
   readonly type = ParserConfigsActions.SetAllDraggedOver;
   constructor(readonly payload: boolean) {}
+}
+
+export class MarkAsDeleted implements Action {
+  readonly type = ParserConfigsActions.MarkAsDeleted;
+  constructor(readonly payload: {
+    parserIds: string[]
+  }) {}
 }

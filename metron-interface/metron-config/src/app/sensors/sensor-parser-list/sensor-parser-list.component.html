@@ -26,7 +26,7 @@
             ACTIONS
           </button>
           <div class="dropdown-menu dropdown-menu-right metron-bg-inverse" aria-labelledby="dropdownMenu1">
-            <span class="dropdown-item" data-action="Delete" (click)="onDeleteSensor()" [class.disabled]="selectedSensors.length == 0">Delete</span>
+            <span class="dropdown-item" data-action="Delete" (click)="onDeleteSelectedItems()" [class.disabled]="selectedSensors.length == 0">Delete</span>
             <span class="dropdown-item" data-action="Enable" (click)="onEnableSensors()" [class.disabled]="selectedSensors.length == 0">Enable</span>
             <span class="dropdown-item" data-action="Disable" (click)="onDisableSensors()" [class.disabled]="selectedSensors.length == 0">Disable</span>
             <span class="dropdown-item" data-action="Start" (click)="onStartSensors()" [class.disabled]="selectedSensors.length == 0">Start</span>
@@ -94,6 +94,9 @@
           ---
         </span>
         {{ sensor.getConfig().getName() }}
+        <span class="change-type deleted" *ngIf="sensor.isDeleted">(deleted)</span>
+        <span class="change-type dirty" *ngIf="sensor.isDirty">(dirty)</span>
+        <span class="change-type phantom" *ngIf="sensor.isPhantom">(phantom)</span>
       </td>
       <td>{{ getParserType(sensor.getConfig()) }}</td>
       <td
@@ -163,7 +166,7 @@
             title="Delete parser configuration"
             class="fa fa-trash-o fa-lg"
             aria-hidden="true"
-            (click)="getDeleteFunc(sensor)(sensor.getConfig(), $event)"
+            (click)="onDeleteItem(sensor, $event)"
           >
           </i>
       </td>
@@ -173,9 +176,13 @@
           class="fontawesome-checkbox"
           type="checkbox"
           name="{{sensor.getConfig().getName()}}"
-          (click)="onRowSelected(sensor, $event)"
+          (change)="onRowSelected(sensor, $event)"
+          (click)="$event.stopPropagation()"
         >
-        <label attr.for="{{ sensor.getConfig().getName() }}"></label>
+        <label
+          attr.for="{{ sensor.getConfig().getName() }}"
+          (click)="$event.stopPropagation()"
+        ></label>
       </td>
     </tr>
     </tbody>

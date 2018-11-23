@@ -47,16 +47,13 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   @ViewChild('table') table;
 
   count = 0;
-  sensors: ParserMetaInfoModel[] = [];
   sensorsStatus: TopologyStatus[] = [];
   selectedSensor: ParserMetaInfoModel;
   selectedSensors: ParserMetaInfoModel[] = [];
   enableAutoRefresh = true;
   sensorsToRender: ParserMetaInfoModel[];
 
-  private parserConfigs$: Observable<SensorState>;
   private mergedConfigs$: Observable<ParserMetaInfoModel[]>;
-
   private isStatusPolling: boolean;
   private draggedElement: ParserMetaInfoModel;
 
@@ -72,7 +69,6 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.parserConfigs$ = store.select('sensors');
     this.mergedConfigs$ = store.pipe(select(parserSelectors.getMergedConfigs));
   }
 
@@ -85,12 +81,6 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.parserConfigs$.subscribe((state: SensorState) => {
-      this.sensors = state.parsers.items;
-      this.selectedSensors = [];
-      this.count = this.sensors.length;
-    })
-
     this.store.dispatch(new ParsersActions.LoadStart());
 
     this.sensorParserConfigService.dataChanged$.subscribe(
@@ -101,6 +91,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
     this.mergedConfigs$.subscribe((mergedConfigs) => {
       this.sensorsToRender = mergedConfigs;
+      this.count = this.sensorsToRender.length;
 
       if (!this.isStatusPolling) {
         this.isStatusPolling = true;
@@ -119,11 +110,11 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     event.stopPropagation();
   }
 
-  onRowSelected(sensor: ParserMetaInfoModel, $event) {
+  onRowSelected(parserConfig: ParserMetaInfoModel, $event) {
     if ($event.target.checked) {
-      this.selectedSensors.push(sensor);
+      this.selectedSensors.push(parserConfig);
     } else {
-      this.selectedSensors.splice(this.selectedSensors.indexOf(sensor), 1);
+      this.selectedSensors.splice(this.selectedSensors.indexOf(parserConfig), 1);
     }
   }
 
@@ -135,83 +126,46 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     }
 
     if ($event.target.checked) {
-      this.selectedSensors = this.sensors.slice(0);
+      this.selectedSensors = this.sensorsToRender.slice(0);
     } else {
       this.selectedSensors = [];
     }
   }
 
-  onSensorRowSelect(sensor: ParserMetaInfoModel, $event) {
-    if ($event.target.type !== 'checkbox' && $event.target.parentElement.firstChild.type !== 'checkbox') {
+  onSensorRowSelect(sensor: ParserMetaInfoModel) {
+    if (this.selectedSensor === sensor) {
+      this.selectedSensor = null;
+      this.router.navigateByUrl('/sensors');
+      return;
+    }
+    this.selectedSensor = sensor;
+    this.router.navigateByUrl('/sensors(dialog:sensors-readonly/' + sensor.getName() + ')');
+  }
 
-      if (this.selectedSensor === sensor) {
-        this.selectedSensor = null;
-        this.router.navigateByUrl('/sensors');
-        return;
+  showConfirm(message: string, callback: Function) {
+    this.metronDialogBox.showConfirmationMessage(message).subscribe(callback);
+  }
+
+  onDeleteSelectedItems() {
+    const names = this.selectedSensors.map(p => p.getName());
+    this.showConfirm('Are you sure you want to delete ' + names.join(', ') + ' ?', (confirmed: boolean) => {
+      if (confirmed) {
+        this.store.dispatch(new ParsersActions.MarkAsDeleted({
+          parserIds: names
+        }));
       }
-      this.selectedSensor = sensor;
-      this.router.navigateByUrl('/sensors(dialog:sensors-readonly/' + sensor.getName() + ')');
-    }
+    });
   }
 
-  getDeleteFunc(sensor: ParserMetaInfoModel) {
-    return sensor.isGroup() ? this.deleteGroup.bind(this) : this.deleteSensor.bind(this);
-  }
-
-  // FIXME: template calls sensor.getSensor() wich return with a SensorParserConfigHistory
-  deleteGroup(items: ParserModel[] | ParserModel, $event) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-
-    this.deleteParserConfigListItems((itemNames) => {
-      this.sensors.filter((item: ParserMetaInfoModel) => {
-        return item.getConfig().group && itemNames.includes(item.getConfig().group);
-      }).map((item: ParserMetaInfoModel) => {
-        item.getConfig().group = undefined;
-        return item;
-      }).forEach((item: ParserMetaInfoModel) => {
-        this.sensorParserConfigService.saveConfig(item.getName(), item.getConfig())
-          .subscribe();
-      });
-
-      return this.sensorParserConfigService.deleteGroups(itemNames);
-    }, items);
-  }
-
-  // FIXME it could be a group as well, deleteSensor is not apropiate name anymore but it used other places
-  // so I leave it as it is for now and create getDeleteFunc to manage group deletion.
-  deleteSensor(items: ParserModel[] | ParserModel, $event: Event | null) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.deleteParserConfigListItems(this.sensorParserConfigService.deleteConfigs, items);
-  }
-
-  private deleteParserConfigListItems(
-    typeSpecificDeleteFn: Function,
-    items: ParserModel[] | ParserModel
-    ) {
-      const itemNames = this.getListOfItemNames(items);
-      const confirmationsMsg = 'Are you sure you want to delete sensor(s) ' + itemNames.join(', ') + ' ?';
-
-      this.metronDialogBox.showConfirmationMessage(confirmationsMsg).subscribe(result => {
-        if (result) {
-          typeSpecificDeleteFn.call(this.sensorParserConfigService, itemNames)
-            .subscribe(this.batchUpdateResultHandler.bind(this));
-        }
-      });
-  }
-
-  private getListOfItemNames(items: ParserModel[] | ParserModel) {
-    let itemsArr = [];
-      if (Array.isArray(items)) {
-        itemsArr = items;
-      } else {
-        itemsArr = [items];
+  onDeleteItem(item: ParserMetaInfoModel, e: Event) {
+    this.showConfirm('Are you sure you want to delete ' + item.getName() + ' ?', (confirmed: boolean) => {
+      if (confirmed) {
+        this.store.dispatch(new ParsersActions.MarkAsDeleted({
+          parserIds: [item.getName()]
+        }));
       }
-
-    return itemsArr.map(item => { return item.sensorName; });
+    });
+    e.stopPropagation();
   }
 
   private batchUpdateResultHandler(deleteResult: {success: Array<string>, failure: Array<string>}) {
@@ -221,10 +175,6 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     if (deleteResult.failure.length > 0) {
       this.metronAlerts.showErrorMessage('Unable to deleted sensors: ' + deleteResult.failure.join(', '));
     }
-  }
-
-  onDeleteSensor() {
-    this.deleteSensor(this.selectedSensors, null);
   }
 
   onStopSensors() {
@@ -423,11 +373,10 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     const el = e.currentTarget as HTMLElement;
     const dragged = this.draggedElement;
     if (dragged.getName() !== referenceMetaInfo.getName()) {
-
       if (el.classList.contains('drop-before') || el.classList.contains('drop-after')) {
-        if (referenceMetaInfo.hasGroup()) {
+        if (referenceMetaInfo.getGroup() !== dragged.getGroup()) {
           this.store.dispatch(new ParsersActions.AddToGroup({
-            groupName: referenceMetaInfo.getName(),
+            groupName: referenceMetaInfo.hasGroup() ? referenceMetaInfo.getGroup() : '',
             parserIds: [dragged.getName()]
           }));
         }

@@ -73,10 +73,28 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
         items: state.items.map(item => {
           if (a.payload.parserIds.includes(item.getName())) {
             item.getConfig().group = a.payload.groupName;
+            item.isDirty = true;
           }
           return item;
         })
       };
+    }
+
+    case ParsersActions.ParserConfigsActions.MarkAsDeleted: {
+      const a = (action as ParsersActions.MarkAsDeleted);
+      return {
+        ...state,
+        items: state.items.map(item => {
+          if (a.payload.parserIds.includes(item.getName())) {
+            item.isDeleted = true;
+          }
+          if (a.payload.parserIds.includes(item.getGroup())) {
+            item.getConfig().group = '';
+            item.isDirty = true;
+          }
+          return item;
+        })
+      }
     }
 
     case ParsersActions.ParserConfigsActions.SetHighlighted: {
@@ -143,12 +161,25 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
       const a = (action as ParsersActions.CreateGroup);
       const group = new ParserMetaInfoModel(new ParserGroupModel({ name: a.payload }));
       group.setIsGroup(true);
+      group.isPhantom = true;
       return {
         ...state,
         items: [
           ...state.items,
           group
         ]
+      }
+    }
+    case ParsersActions.ParserConfigsActions.MarkAsDeleted: {
+      const a = (action as ParsersActions.MarkAsDeleted);
+      return {
+        ...state,
+        items: state.items.map(item => {
+          if (a.payload.parserIds.includes(item.getName())) {
+            item.isDeleted = true;
+          }
+          return item;
+        })
       }
     }
     case ParsersActions.ParserConfigsActions.SetHighlighted: {

@@ -131,3 +131,20 @@ table tr td, table tr th {
     border-bottom: 1px solid #3F88B4 !important;
   }
 }
+
+.change-type {
+  font-size: 10px;
+  font-style: italic;
+
+  &.deleted {
+    color: red;
+  }
+
+  &.phantom {
+    color: cyan;
+  }
+
+  &.dirty {
+    color: green;
+  }
+}
