@@ -1,0 +1,6 @@
+{
+  "parserClassName":"org.apache.metron.parsers.syslog.Syslog3164Parser",
+  "sensorTopic":"syslog3164",
+  "parserConfig": {
+  }
+}

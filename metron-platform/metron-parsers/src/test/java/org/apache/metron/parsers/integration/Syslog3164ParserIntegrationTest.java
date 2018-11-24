@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,29 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.parsers.integration;
 
-package org.apache.metron.parsers.syslog;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
 
-import com.github.palindromicity.syslog.AllowableDeviations;
-import com.github.palindromicity.syslog.SyslogParser;
-import com.github.palindromicity.syslog.SyslogParserBuilder;
-import com.github.palindromicity.syslog.SyslogSpecification;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.io.Serializable;
-import java.util.EnumSet;
-import java.util.Map;
-
-
-/**
- * Parser for RFC 3164 messages.
- */
-public class Syslog3164Parser extends BaseSyslogParser implements Serializable {
+public class Syslog3164ParserIntegrationTest extends ParserIntegrationTest {
+  @Override
+  String getSensorType() {
+    return "syslog3164";
+  }
 
   @Override
-  public SyslogParser buildSyslogParser(Map<String, Object> config) {
-    return new SyslogParserBuilder()
-            .forSpecification(SyslogSpecification.RFC_3164)
-            .withDeviations(EnumSet.of(AllowableDeviations.PRIORITY, AllowableDeviations.VERSION))
-            .build();
+  List<ParserValidation> getValidations() {
+    return new ArrayList<ParserValidation>() {{
+      add(new SampleDataValidation());
+    }};
   }
 }
