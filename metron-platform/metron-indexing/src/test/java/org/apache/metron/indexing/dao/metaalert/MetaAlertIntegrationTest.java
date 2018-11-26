@@ -756,43 +756,62 @@ public abstract class MetaAlertIntegrationTest {
   }
 
   @Test
-  public void shouldEscalateMetaAlert() throws Exception {
-    String guid = "meta_alert";
-    Map<String, Object> metaAlert = createMetaAlert(guid);
+  public void shouldSortMetaAlertsByAlertStatus() throws Exception {
+    final String guid = "meta_alert";
     setupTypings();
 
-    // create the patch
+    // will sort meta-alerts by 'alert_status'
+    SortField sortField = new SortField();
+    sortField.setField("alert_status");
+    sortField.setSortOrder("asc");
+
+    // create a meta alert and then escalate it
+    createMetaAlert(guid);
+    escalateMetaAlert(guid);
+
+    // expect to find the meta-alert that was escalated
+    Assert.assertEquals(1, searchForMetaAlerts(sortField).getTotal());
+  }
+
+  private void escalateMetaAlert(String guid) throws Exception {
+    // create the patch that 'escalates' the meta-alert
     Map<String, Object> patch = new HashMap<>();
     patch.put("op", "add");
     patch.put("path", "/alert_status");
     patch.put("value", "escalate");
 
-    // create the patch request
+    // 'escalate' the meta-alert
     PatchRequest patchRequest = new PatchRequest();
     patchRequest.setGuid(guid);
     patchRequest.setIndex(getMetaAlertIndex());
     patchRequest.setSensorType(METAALERT_TYPE);
     patchRequest.setPatch(Collections.singletonList(patch));
-
     metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
 
     // ensure the alert status was changed to 'escalate'
     assertEventually(() -> {
-      Document updated = metaDao.getLatest("meta_alert", METAALERT_TYPE);
+      Document updated = metaDao.getLatest(guid, METAALERT_TYPE);
       Assert.assertEquals("escalate", updated.getDocument().get("alert_status"));
     });
+  }
 
-    final List<String> indices = Arrays.asList(getTestIndexFullName(), getMetaAlertIndex());
+  /**
+   * Searches for meta-alerts while sorting the results by a field.
+   * @param sortBy The field to sort the search results by.
+   * @return The search results.
+   * @throws InvalidSearchException
+   */
+  private SearchResponse searchForMetaAlerts(SortField sortBy) throws InvalidSearchException {
+
+    // submit a search that sorts by "alert_status"
     SearchRequest searchRequest = new SearchRequest();
-    searchRequest.setSize(10);
-    searchRequest.setIndices(indices);
     searchRequest.setFrom(0);
+    searchRequest.setSize(10);
+    searchRequest.setIndices(Arrays.asList(getTestIndexName(), METAALERT_TYPE));
     searchRequest.setQuery("*:*");
+    searchRequest.setSort(Collections.singletonList(sortBy));
 
-    SearchResponse response = metaDao.search(searchRequest);
-    Assert.assertTrue(response.getTotal() > 0);
-
-    // TODO then search again?
+    return metaDao.search(searchRequest);
   }
 
   @Test

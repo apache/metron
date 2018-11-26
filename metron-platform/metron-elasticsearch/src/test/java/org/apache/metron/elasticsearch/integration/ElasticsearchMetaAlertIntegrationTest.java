@@ -114,7 +114,8 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
            "ip_src_addr" : { "type" : "keyword" },
            "score" : { "type" : "integer" },
            "metron_alert" : { "type" : "nested" },
-           "source:type" : { "type" : "keyword"}
+           "source:type" : { "type" : "keyword"},
+           "alert_status": { "type": "keyword" }
          }
      }
    }
