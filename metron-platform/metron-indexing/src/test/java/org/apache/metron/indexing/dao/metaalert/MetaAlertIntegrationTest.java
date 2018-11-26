@@ -734,27 +734,6 @@ public abstract class MetaAlertIntegrationTest {
         searchResponse.getResults().get(0).getSource().get(STATUS_FIELD));
   }
 
-  private Map<String, Object> createMetaAlert(String guid) throws Exception {
-    // create and index 2 normal alerts
-    List<Map<String, Object>> alerts = buildAlerts(2);
-    alerts.get(0).put(METAALERT_FIELD, Collections.singletonList(guid));
-    alerts.get(1).put(METAALERT_FIELD, Collections.singletonList(guid));
-    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
-
-    // create and index a meta-alert
-    Map<String, Object> metaAlert = buildMetaAlert(guid, MetaAlertStatus.ACTIVE,
-            Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
-    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
-
-    // ensure the test alerts were loaded
-    findCreatedDocs(Arrays.asList(
-            new GetRequest("message_0", SENSOR_NAME),
-            new GetRequest("message_1", SENSOR_NAME),
-            new GetRequest("meta_alert", METAALERT_TYPE)));
-
-    return metaAlert;
-  }
-
   @Test
   public void shouldSortMetaAlertsByAlertStatus() throws Exception {
     final String guid = "meta_alert";
@@ -775,6 +754,27 @@ public abstract class MetaAlertIntegrationTest {
     // when meta-alert 'esclated', it should work
     escalateMetaAlert(guid);
     Assert.assertEquals(1, searchForMetaAlerts(sortField).getTotal());
+  }
+
+  private Map<String, Object> createMetaAlert(String guid) throws Exception {
+    // create and index 2 normal alerts
+    List<Map<String, Object>> alerts = buildAlerts(2);
+    alerts.get(0).put(METAALERT_FIELD, Collections.singletonList(guid));
+    alerts.get(1).put(METAALERT_FIELD, Collections.singletonList(guid));
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+
+    // create and index a meta-alert
+    Map<String, Object> metaAlert = buildMetaAlert(guid, MetaAlertStatus.ACTIVE,
+            Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
+    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
+
+    // ensure the test alerts were loaded
+    findCreatedDocs(Arrays.asList(
+            new GetRequest("message_0", SENSOR_NAME),
+            new GetRequest("message_1", SENSOR_NAME),
+            new GetRequest("meta_alert", METAALERT_TYPE)));
+
+    return metaAlert;
   }
 
   private void escalateMetaAlert(String guid) throws Exception {
