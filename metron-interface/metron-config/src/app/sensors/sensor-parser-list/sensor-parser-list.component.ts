@@ -429,7 +429,6 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   ngOnDestroy() { }
 
   isSelected(sensor) {
-    // return this.selectedSensors.indexOf(sensor.getConfig()) !== -1 || this.selectedSensor === sensor.getConfig();
     return this.selectedSensors.find(s => {
       if (s.getName() === sensor.getName()) {
         return true;
