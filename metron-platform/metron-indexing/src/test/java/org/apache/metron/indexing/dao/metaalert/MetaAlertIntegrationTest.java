@@ -760,16 +760,20 @@ public abstract class MetaAlertIntegrationTest {
     final String guid = "meta_alert";
     setupTypings();
 
-    // will sort meta-alerts by 'alert_status'
+    // should be able to sort meta-alert search results by 'alert_status'
     SortField sortField = new SortField();
     sortField.setField("alert_status");
     sortField.setSortOrder("asc");
 
-    // create a meta alert and then escalate it
-    createMetaAlert(guid);
-    escalateMetaAlert(guid);
+    // when no meta-alerts exist, it should work
+    Assert.assertEquals(0, searchForMetaAlerts(sortField).getTotal());
 
-    // expect to find the meta-alert that was escalated
+    // when meta-alert just created, it should work
+    createMetaAlert(guid);
+    Assert.assertEquals(1, searchForMetaAlerts(sortField).getTotal());
+
+    // when meta-alert 'esclated', it should work
+    escalateMetaAlert(guid);
     Assert.assertEquals(1, searchForMetaAlerts(sortField).getTotal());
   }
 
