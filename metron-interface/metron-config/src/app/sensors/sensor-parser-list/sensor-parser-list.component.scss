@@ -55,13 +55,13 @@ table tr td, table tr th {
   }
 
   .dirty {
-    background-color: rgba(0, 255, 0, 0.1);
-    border-left: 4px solid green;
+    background-color: rgba(255, 255, 0, 0.1);
+    border-left: 4px solid yellow;
   }
 
   .phantom {
-    background-color: rgba(255, 255, 0, 0.1);
-    border-left: 4px solid yellow;
+    background-color: rgba(0, 255, 0, 0.1);
+    border-left: 4px solid green;
   }
 
   .deleted {
