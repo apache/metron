@@ -374,9 +374,13 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     const dragged = this.draggedElement;
     if (dragged.getName() !== referenceMetaInfo.getName() && !referenceMetaInfo.isDeleted) {
       if (el.classList.contains('drop-before') || el.classList.contains('drop-after')) {
-        if (referenceMetaInfo.getGroup() !== dragged.getGroup()) {
+        if (referenceMetaInfo.getGroup() !== dragged.getGroup() || referenceMetaInfo.isGroup()) {
           this.store.dispatch(new ParsersActions.AddToGroup({
-            groupName: referenceMetaInfo.hasGroup() ? referenceMetaInfo.getGroup() : '',
+            groupName: referenceMetaInfo.hasGroup()
+              ? referenceMetaInfo.getGroup()
+              : referenceMetaInfo.isGroup()
+                ? referenceMetaInfo.getName()
+                : '',
             parserIds: [dragged.getName()]
           }));
         }
