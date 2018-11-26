@@ -51,6 +51,22 @@ table tr td, table tr th {
 
   tr {
     border-bottom: 1px solid #404040;
+    border-left: 4px solid transparent;
+  }
+
+  .dirty {
+    background-color: rgba(0, 255, 0, 0.1);
+    border-left: 4px solid green;
+  }
+
+  .phantom {
+    background-color: rgba(255, 255, 0, 0.1);
+    border-left: 4px solid yellow;
+  }
+
+  .deleted {
+    background-color: rgba(255, 0, 0, 0.1);
+    border-left: 4px solid red;
   }
 
   & thead {
@@ -132,23 +148,6 @@ table tr td, table tr th {
 .drop-after {
   & td {
     border-bottom: 1px solid #3F88B4 !important;
-  }
-}
-
-.change-type {
-  font-size: 10px;
-  font-style: italic;
-
-  &.deleted {
-    color: red;
-  }
-
-  &.phantom {
-    color: cyan;
-  }
-
-  &.dirty {
-    color: green;
   }
 }
 

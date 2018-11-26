@@ -59,7 +59,10 @@
           'active': isSelected(sensor),
           'parent': sensor.isGroup(),
           'highlighted': sensor.getHighlighted(),
-          'dragged-over': sensor.getDraggedOver()
+          'dragged-over': sensor.getDraggedOver(),
+          'dirty': sensor.isDirty,
+          'deleted': sensor.isDeleted,
+          'phantom': sensor.isPhantom
         }"
         (dragstart)="onDragStart(sensor, $event)"
         (dragover)="onDragOver(sensor, $event)"
@@ -94,9 +97,6 @@
           ---
         </span>
         {{ sensor.getName() }}
-        <span class="change-type deleted" *ngIf="sensor.isDeleted">(deleted)</span>
-        <span class="change-type dirty" *ngIf="sensor.isDirty">(dirty)</span>
-        <span class="change-type phantom" *ngIf="sensor.isPhantom">(phantom)</span>
       </td>
       <td>{{ getParserType(sensor.getConfig()) }}</td>
       <td
