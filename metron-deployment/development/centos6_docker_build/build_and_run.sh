@@ -122,8 +122,7 @@ LOGNAME="metron-build-${LOG_DATE}.log"
 echo "Log will be found on host at ${VAGRANT_PATH}/logs/$LOGNAME"
 
 # get the node1 ip address so we can add it to the docker hosts
-#shellcheck disable=SC1117
-NODE1_IP=$(awk '/^\s*hosts/{flag=1; next} /}]/{flag=0} flag' "${VAGRANT_PATH}/Vagrantfile" | grep  "^\s*ip:" | awk -F'"' '{print $2}')
+NODE1_IP=$(awk '/^\s*hosts/{flag=1; next} /}]/{flag=0} flag' "${VAGRANT_PATH}/Vagrantfile" | grep  "^\\s*ip:" | awk -F'"' '{print $2}')
 if [[ -z "${NODE1_IP}" ]]; then echo "no node ip found" && exit 1; fi
 echo "Using NODE1 IP ${NODE1_IP}"
 
