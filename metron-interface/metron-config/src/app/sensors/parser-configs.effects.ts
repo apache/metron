@@ -1,8 +1,8 @@
 import { Effect, Actions, ofType } from '@ngrx/effects'
 import { Observable, forkJoin } from 'rxjs';
-import { Action } from '@ngrx/store';
+import { Action, Store, select } from '@ngrx/store';
 import { Injectable } from '@angular/core';
-import { mergeMap, map, switchMap } from 'rxjs/operators';
+import { mergeMap, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { SensorParserConfigService } from 'app/service/sensor-parser-config.service';
 import { ParserConfigModel } from './models/parser-config.model';
 import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-history';
@@ -11,9 +11,12 @@ import { StormService } from '../service/storm.service';
 import { TopologyStatus } from '../model/topology-status';
 import { ParserMetaInfoModel } from './models/parser-meta-info.model';
 import { ParserGroupModel } from './models/parser-group.model';
+import { SensorState } from './reducers';
 
 @Injectable()
 export class ParserConfigEffects {
+
+  private sensorState$: Observable<SensorState>
 
   @Effect()
   loadData$: Observable<Action> = this.actions$.pipe(
@@ -38,7 +41,7 @@ export class ParserConfigEffects {
             parsers: configsArray,
             groups: groupsArray,
             statuses: statuses,
-          });
+          } as ParsersActions.LoadSuccesActionPayload);
         })
       )
     })
@@ -57,9 +60,25 @@ export class ParserConfigEffects {
     })
   );
 
+  @Effect()
+  applyChanges: Observable<Action> = this.actions$.pipe(
+    ofType(ParsersActions.ParserConfigsActions.ApplyChanges),
+    withLatestFrom(this.store.select('sensors')),
+    mergeMap(([ action, state ]) => {
+      return forkJoin(
+        this.parserService.syncConfigs(state.parsers.items),
+        this.parserService.syncGroups(state.groups.items),
+      ).pipe(
+        map(() => {
+          return new ParsersActions.LoadStart();
+      }));
+    })
+  )
+
   constructor(
     private parserService: SensorParserConfigService,
     private stormService: StormService,
-    private actions$: Actions
+    private actions$: Actions,
+    private store: Store<SensorState>
   ) {}
 }

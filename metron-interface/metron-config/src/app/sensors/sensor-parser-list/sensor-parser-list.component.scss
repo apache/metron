@@ -60,6 +60,9 @@ table tr td, table tr th {
   }
 
   & tbody {
+
+    border-bottom: 2px solid #404040;
+
     & td {
       border: 0;
       height: 34px;
@@ -147,4 +150,15 @@ table tr td, table tr th {
   &.dirty {
     color: green;
   }
+}
+
+.sensor-button {
+  width: 140px;
+  margin-right: .4em;
+}
+.save-button {
+  background-color: #006ea0;
+  border-color: #006ea0;
+  color: white;
+  font-size: 14px;
 }

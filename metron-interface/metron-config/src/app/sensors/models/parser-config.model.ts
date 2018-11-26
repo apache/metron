@@ -53,6 +53,7 @@ export class ParserConfigModel implements ParserModel {
       this[key] = config[key];
     });
 
+    this.group = config.group || '';
     this.parserConfig = config.parserConfig || {};
     this.fieldTransformations = config.fieldTransformations || [];
     this.spoutConfig = config.spoutConfig || {};

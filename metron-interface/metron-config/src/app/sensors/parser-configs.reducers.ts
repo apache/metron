@@ -72,8 +72,10 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
         ...state,
         items: state.items.map(item => {
           if (a.payload.parserIds.includes(item.getName())) {
-            item.getConfig().group = a.payload.groupName;
-            item.isDirty = true;
+            if (item.getConfig().group !== a.payload.groupName) {
+              item.getConfig().group = a.payload.groupName;
+              item.isDirty = true;
+            }
           }
           return item;
         })
@@ -89,8 +91,10 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
             item.isDeleted = true;
           }
           if (a.payload.parserIds.includes(item.getGroup())) {
-            item.getConfig().group = '';
-            item.isDirty = true;
+            if (item.getConfig().group) {
+              item.getConfig().group = '';
+              item.isDirty = true;
+            }
           }
           return item;
         })
