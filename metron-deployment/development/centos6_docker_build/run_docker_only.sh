@@ -18,22 +18,17 @@
 #
 
 VAGRANT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-echo "setting the ansible configuration path"
-ANSIBLE_PATH=${VAGRANT_PATH}/ansible
-echo ${ANSIBLE_PATH}
-echo "setting the ssh key"
-VAGRANT_KEY_PATH=`pwd`/.vagrant/machines/node1/virtualbox
-echo ${VAGRANT_KEY_PATH}
+ANSIBLE_PATH="${VAGRANT_PATH}/ansible"
+VAGRANT_KEY_PATH=$(pwd)/.vagrant/machines/node1/virtualbox
 
 # move over to the docker area
 cd ../docker || exit 1
-pwd
 
 echo "===============Running Docker==============="
 docker run -it \
- -v  ${VAGRANT_PATH}/../../..:/root/metron \
+ -v  "${VAGRANT_PATH}/../../..:/root/metron" \
  -v ~/.m2:/root/.m2 \
- -v ${VAGRANT_PATH}:/root/vagrant \
- -v ${ANSIBLE_PATH}:/root/ansible_config \
- -v ${VAGRANT_KEY_PATH}:/root/vagrant_key \
+ -v "${VAGRANT_PATH}:/root/vagrant" \
+ -v "${ANSIBLE_PATH}:/root/ansible_config" \
+ -v "${VAGRANT_KEY_PATH}:/root/vagrant_key" \
  metron-build-docker:latest bash

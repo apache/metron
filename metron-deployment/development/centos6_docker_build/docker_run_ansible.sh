@@ -25,15 +25,9 @@
 cd /root/metron || exit 1
 
 # make sure we have the right c++ tools
+
+#shellcheck disable=SC1091
 source /opt/rh/devtoolset-6/enable
-
-# give the option to skip building metron, in case they have already done so
-#read -p "  build metron? [yN] " -n 1 -r
-#echo
-#if [[ $REPLY =~ ^[Yy]$ ]]; then
-# USE TAGS
-#fi
-
 
 sed -i -e '/^node1.*/d' ~/.ssh/known_hosts
 

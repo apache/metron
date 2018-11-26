@@ -28,7 +28,7 @@ function help {
  echo "    -h/--help                       Usage information."
  echo " "
  echo "example: to skip vagrant up and force docker build with two tags"
- echo "   build_and_run.sh -skip-vagrant-up --force-docker-build --skip-tags='solr,sensors'"
+ echo "   build_and_run.sh --skip-vagrant-up --force-docker-build --skip-tags='solr,sensors'"
  echo " "
 }
 
@@ -116,26 +116,28 @@ if [[ ! -d ~/.m2 ]]; then
  mkdir ~/.m2
 fi
 
-DATE=`date`
+DATE=$(date)
 LOG_DATE=${DATE// /_}
 LOGNAME="metron-build-${LOG_DATE}.log"
+echo "Log will be found on host at ${VAGRANT_PATH}/logs/$LOGNAME"
 
 # get the node1 ip address so we can add it to the docker hosts
-NODE1_IP=$(awk '/^\s*hosts/{flag=1; next} /}]/{flag=0} flag' ${VAGRANT_PATH}/Vagrantfile | grep  "^\s*ip:" | awk -F'"' '{print $2}')
-if [[ -z "${NODE1_IP}" ]]; then exit 1; fi
+#shellcheck disable=SC1117
+NODE1_IP=$(awk '/^\s*hosts/{flag=1; next} /}]/{flag=0} flag' "${VAGRANT_PATH}/Vagrantfile" | grep  "^\s*ip:" | awk -F'"' '{print $2}')
+if [[ -z "${NODE1_IP}" ]]; then echo "no node ip found" && exit 1; fi
 echo "Using NODE1 IP ${NODE1_IP}"
 
 echo "===============Running Docker==============="
 docker run -it \
- -v ${VAGRANT_PATH}/../../..:/root/metron \
+ -v "${VAGRANT_PATH}/../../..:/root/metron" \
  -v ~/.m2:/root/.m2 \
- -v ${VAGRANT_PATH}:/root/vagrant \
- -v ${ANSIBLE_PATH}:/root/ansible_config \
- -v ${VAGRANT_KEY_PATH}:/root/vagrant_key \
- -v ${VAGRANT_PATH}/logs:/root/logs \
+ -v "${VAGRANT_PATH}:/root/vagrant" \
+ -v "${ANSIBLE_PATH}:/root/ansible_config" \
+ -v "${VAGRANT_KEY_PATH}:/root/vagrant_key" \
+ -v "${VAGRANT_PATH}/logs:/root/logs" \
  -e ANSIBLE_CONFIG='/root/ansible_config/ansible.cfg' \
  -e ANSIBLE_LOG_PATH="/root/logs/${LOGNAME}" \
- -e ANSIBLE_SKIP_TAGS=${A_SKIP_TAGS} \
+ -e ANSIBLE_SKIP_TAGS="${A_SKIP_TAGS}" \
  --add-host="node1:${NODE1_IP}" \
  metron-build-docker:latest bash -c /root/vagrant/docker_run_ansible.sh
 
