@@ -179,6 +179,7 @@
           name="{{sensor.getName()}}"
           (change)="onRowSelected(sensor, $event)"
           (click)="$event.stopPropagation()"
+          [checked]="isSelected(sensor)"
         >
         <label
           attr.for="{{ sensor.getName() }}"
