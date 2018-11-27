@@ -745,15 +745,15 @@ public abstract class MetaAlertIntegrationTest {
     sortField.setSortOrder("asc");
 
     // when no meta-alerts exist, it should work
-    Assert.assertEquals(0, searchForMetaAlerts(sortField).getTotal());
+    Assert.assertEquals(0, searchForSortedMetaAlerts(sortField).getTotal());
 
     // when meta-alert just created, it should work
     createMetaAlert(guid);
-    Assert.assertEquals(1, searchForMetaAlerts(sortField).getTotal());
+    Assert.assertEquals(1, searchForSortedMetaAlerts(sortField).getTotal());
 
     // when meta-alert 'esclated', it should work
     escalateMetaAlert(guid);
-    Assert.assertEquals(1, searchForMetaAlerts(sortField).getTotal());
+    Assert.assertEquals(1, searchForSortedMetaAlerts(sortField).getTotal());
   }
 
   private Map<String, Object> createMetaAlert(String guid) throws Exception {
@@ -764,8 +764,7 @@ public abstract class MetaAlertIntegrationTest {
     addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
 
     // create and index a meta-alert
-    Map<String, Object> metaAlert = buildMetaAlert(guid, MetaAlertStatus.ACTIVE,
-            Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
+    Map<String, Object> metaAlert = buildMetaAlert(guid, MetaAlertStatus.ACTIVE, Optional.of(alerts));
     addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
 
     // ensure the test alerts were loaded
@@ -773,7 +772,6 @@ public abstract class MetaAlertIntegrationTest {
             new GetRequest("message_0", SENSOR_NAME),
             new GetRequest("message_1", SENSOR_NAME),
             new GetRequest("meta_alert", METAALERT_TYPE)));
-
     return metaAlert;
   }
 
@@ -799,22 +797,13 @@ public abstract class MetaAlertIntegrationTest {
     });
   }
 
-  /**
-   * Searches for meta-alerts while sorting the results by a field.
-   * @param sortBy The field to sort the search results by.
-   * @return The search results.
-   * @throws InvalidSearchException
-   */
-  private SearchResponse searchForMetaAlerts(SortField sortBy) throws InvalidSearchException {
-
-    // submit a search that sorts by "alert_status"
+  private SearchResponse searchForSortedMetaAlerts(SortField sortBy) throws InvalidSearchException {
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setFrom(0);
     searchRequest.setSize(10);
     searchRequest.setIndices(Arrays.asList(getTestIndexName(), METAALERT_TYPE));
     searchRequest.setQuery("*:*");
     searchRequest.setSort(Collections.singletonList(sortBy));
-
     return metaDao.search(searchRequest);
   }
 
