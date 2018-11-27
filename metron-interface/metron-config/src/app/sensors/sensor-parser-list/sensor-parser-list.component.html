@@ -18,7 +18,7 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col-lg-10 px-0">
-        <div class="metron-title"> {{componentName}} ({{count}}) </div>
+        <div class="metron-title"> {{ componentName }} ({{ sensors.length }}) </div>
       </div>
       <div class="col-lg-2">
         <div class="dropdown float-right">
@@ -49,11 +49,11 @@
       <th>Last Updated</th>
       <th>Last Editor</th>
       <th style="width:100px"></th>
-      <th style="width:50px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="onSelectDeselectAll($event)"><label for="select-deselect-all"></label></th>
+      <th style="width:50px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="onSelectDeselectAll(sensors, $event)"><label for="select-deselect-all"></label></th>
     </tr>
     </thead>
     <tbody>
-    <tr *ngFor="let sensor of sensorsToRender"
+    <tr *ngFor="let sensor of sensors"
         (click)="onSensorRowSelect(sensor, $event)"
         [ngClass]="{
           'active': isSelected(sensor),

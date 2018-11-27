@@ -15,10 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface ParserModel {
-  group?: string,
+import { NgModule } from '@angular/core';
+import { routing } from './sensor-parser-aggregate-sidebar.routing';
+import { SensorParserAggregateSidebarComponent } from './sensor-parser-aggregate-sidebar.component';
+import { SharedModule } from '../../shared/shared.module';
 
-  setName(value: string)
-
-  getName(): string
-}
+@NgModule({
+  imports: [
+    routing,
+    SharedModule
+  ],
+  declarations: [
+    SensorParserAggregateSidebarComponent
+  ],
+})
+export class SensorParserAggregateSidebarModule {}

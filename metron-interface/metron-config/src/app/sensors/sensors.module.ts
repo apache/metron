@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { NgModule } from '@angular/core';
 import { SensorParserListModule } from './sensor-parser-list/sensor-parser-list.module';
 import { SensorParserConfigReadonlyModule } from './sensor-parser-config-readonly/sensor-parser-config-readonly.module';
 import { SensorParserConfigModule } from './sensor-parser-config/sensor-parser-config.module';
-import { SensorAggregateModule } from './sensor-aggregate/sensor-aggregate.module';
+import { SensorParserAggregateSidebarModule } from './sensor-parser-aggregate-sidebar/sensor-parser-aggregate-sidebar.module';
 import { GrokValidationService } from '../service/grok-validation.service';
 import { StellarService } from '../service/stellar.service';
 import { HdfsService } from '../service/hdfs.service';
@@ -30,7 +31,7 @@ import { SensorParserConfigService } from '../service/sensor-parser-config.servi
 import { KafkaService } from '../service/kafka.service';
 import { StormService } from '../service/storm.service';
 import { EffectsModule } from '@ngrx/effects';
-import { ParserConfigEffects } from './parser-configs.effects';
+import { effects } from './effects';
 import { StoreModule } from '@ngrx/store';
 import { reducers } from './reducers';
 
@@ -39,15 +40,21 @@ import { reducers } from './reducers';
     SensorParserListModule,
     SensorParserConfigReadonlyModule,
     SensorParserConfigModule,
-    SensorAggregateModule,
-    EffectsModule.forFeature([ ParserConfigEffects ]),
+    SensorParserAggregateSidebarModule,
+    EffectsModule.forFeature(effects),
     StoreModule.forFeature('sensors', reducers),
   ],
   declarations: [],
   providers: [
     SensorParserConfigService,
-    SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
-    StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
+    SensorParserConfigHistoryService,
+    SensorEnrichmentConfigService,
+    SensorIndexingConfigService,
+    StormService,
+    KafkaService,
+    GrokValidationService,
+    StellarService,
+    HdfsService,
   ],
 })
 export class SensorsModule { }

@@ -15,18 +15,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { routing } from './sensor-aggregate.routing';
-import { SensorAggregateComponent } from './sensor-aggregate.component';
-import { SharedModule } from '../../shared/shared.module';
 
-@NgModule({
-  imports: [
-    routing,
-    SharedModule
-  ],
-  declarations: [
-    SensorAggregateComponent
-  ],
-})
-export class SensorAggregateModule {}
+export * from './sensors.actions';

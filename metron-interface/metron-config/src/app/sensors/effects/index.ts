@@ -15,13 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ModuleWithProviders }  from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { SensorAggregateComponent } from './sensor-aggregate.component';
-import { AuthGuard } from '../../shared/auth-guard';
 
-const routes: Routes = [
-  { path: 'sensor-aggregate', component: SensorAggregateComponent, canActivate: [ AuthGuard ], outlet: 'dialog'}
-];
+ import { SensorsEffects } from './sensors.effects';
 
-export const routing: ModuleWithProviders = RouterModule.forChild(routes);
+ export * from './sensors.effects';
+
+ export const effects = [ SensorsEffects ];

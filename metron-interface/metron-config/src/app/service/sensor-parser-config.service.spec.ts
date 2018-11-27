@@ -29,7 +29,7 @@ import { ParserGroupModel } from '../sensors/models/parser-group.model';
 import { noop } from 'rxjs';
 import { ParserMetaInfoModel } from '../sensors/models/parser-meta-info.model';
 
-fdescribe('SensorParserConfigService', () => {
+describe('SensorParserConfigService', () => {
   let mockBackend: HttpTestingController;
   let sensorParserConfigService: SensorParserConfigService;
 

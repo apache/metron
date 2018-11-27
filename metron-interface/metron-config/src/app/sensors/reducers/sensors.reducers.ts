@@ -1,17 +1,26 @@
-import { Action, State } from '@ngrx/store';
-import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-history';
-import { SensorParserStatus } from '../model/sensor-parser-status';
-import { TopologyStatus } from '../model/topology-status';
-import { ParserGroupModel } from './models/parser-group.model';
-import * as ParsersActions from './parser-configs.actions';
-import { ParserMetaInfoModel } from './models/parser-meta-info.model';
-import * as DragAndDropActions from './parser-configs-dnd.actions';
-import { ParserConfigModel } from './models/parser-config.model';
-
-export const initialParser: SensorParserConfigHistory[] = [];
-export const initialGroup: ParserGroupModel[] = [];
-export const initialStatus: TopologyStatus[] = [];
-
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { Action, createSelector, createFeatureSelector } from '@ngrx/store';
+import { TopologyStatus } from '../../model/topology-status';
+import { ParserGroupModel } from '../models/parser-group.model';
+import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
+import * as fromActions from '../actions';
+import { State, SensorState } from './';
 
 export interface ParserState {
   items: ParserMetaInfoModel[];
@@ -25,7 +34,7 @@ export interface StatusState {
   items: TopologyStatus[];
 }
 
-interface DragNDropState {
+export interface DragNDropState {
   draggedId: string,
   dropTargetId: string,
   targetGroup: string,
@@ -59,15 +68,15 @@ const initialLayoutState: LayoutState = {
 
 export function parserConfigsReducer(state: ParserState = initialParserState, action: Action): ParserState {
   switch (action.type) {
-    case ParsersActions.ParserConfigsActions.LoadSuccess:
+    case fromActions.SensorsActionTypes.LoadSuccess:
       return {
         ...state,
-        items: (action as ParsersActions.LoadSuccess).payload.parsers
+        items: (action as fromActions.LoadSuccess).payload.parsers
       };
 
-    case ParsersActions.ParserConfigsActions.AggregateParsers:
-    case ParsersActions.ParserConfigsActions.AddToGroup: {
-      const a = (action as ParsersActions.AggregateParsers);
+    case fromActions.SensorsActionTypes.AggregateParsers:
+    case fromActions.SensorsActionTypes.AddToGroup: {
+      const a = (action as fromActions.AggregateParsers);
       return {
         ...state,
         items: state.items.map(item => {
@@ -82,8 +91,8 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
       };
     }
 
-    case ParsersActions.ParserConfigsActions.MarkAsDeleted: {
-      const a = (action as ParsersActions.MarkAsDeleted);
+    case fromActions.SensorsActionTypes.MarkAsDeleted: {
+      const a = (action as fromActions.MarkAsDeleted);
       return {
         ...state,
         items: state.items.map(item => {
@@ -101,8 +110,8 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
       }
     }
 
-    case ParsersActions.ParserConfigsActions.SetHighlighted: {
-      const a = (action as ParsersActions.SetHighlighted);
+    case fromActions.SensorsActionTypes.SetHighlighted: {
+      const a = (action as fromActions.SetHighlighted);
       return {
         ...state,
         items: state.items.map(item => {
@@ -114,8 +123,8 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
       };
     }
 
-    case ParsersActions.ParserConfigsActions.SetAllHighlighted: {
-      const a = (action as ParsersActions.SetAllHighlighted);
+    case fromActions.SensorsActionTypes.SetAllHighlighted: {
+      const a = (action as fromActions.SetAllHighlighted);
       return {
         ...state,
         items: state.items.map(item => {
@@ -125,8 +134,8 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
       };
     }
 
-    case ParsersActions.ParserConfigsActions.SetDraggedOver: {
-      const a = (action as ParsersActions.SetDraggedOver);
+    case fromActions.SensorsActionTypes.SetDraggedOver: {
+      const a = (action as fromActions.SetDraggedOver);
       return {
         ...state,
         items: state.items.map(item => {
@@ -138,8 +147,8 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
       };
     }
 
-    case ParsersActions.ParserConfigsActions.SetAllDraggedOver: {
-      const a = (action as ParsersActions.SetAllDraggedOver);
+    case fromActions.SensorsActionTypes.SetAllDraggedOver: {
+      const a = (action as fromActions.SetAllDraggedOver);
       return {
         ...state,
         items: state.items.map(item => {
@@ -156,13 +165,13 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
 
 export function groupConfigsReducer(state: GroupState = initialGroupState, action: Action): GroupState {
   switch (action.type) {
-    case ParsersActions.ParserConfigsActions.LoadSuccess:
+    case fromActions.SensorsActionTypes.LoadSuccess:
       return {
         ...state,
-        items: (action as ParsersActions.LoadSuccess).payload.groups
+        items: (action as fromActions.LoadSuccess).payload.groups
       }
-    case ParsersActions.ParserConfigsActions.CreateGroup: {
-      const a = (action as ParsersActions.CreateGroup);
+    case fromActions.SensorsActionTypes.CreateGroup: {
+      const a = (action as fromActions.CreateGroup);
       const group = new ParserMetaInfoModel(new ParserGroupModel({ name: a.payload }));
       group.setIsGroup(true);
       group.isPhantom = true;
@@ -174,8 +183,8 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
         ]
       }
     }
-    case ParsersActions.ParserConfigsActions.MarkAsDeleted: {
-      const a = (action as ParsersActions.MarkAsDeleted);
+    case fromActions.SensorsActionTypes.MarkAsDeleted: {
+      const a = (action as fromActions.MarkAsDeleted);
       return {
         ...state,
         items: state.items.map(item => {
@@ -186,8 +195,8 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
         })
       }
     }
-    case ParsersActions.ParserConfigsActions.SetHighlighted: {
-      const a = (action as ParsersActions.SetHighlighted);
+    case fromActions.SensorsActionTypes.SetHighlighted: {
+      const a = (action as fromActions.SetHighlighted);
       return {
         ...state,
         items: state.items.map(item => {
@@ -199,8 +208,8 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
       };
     }
 
-    case ParsersActions.ParserConfigsActions.SetAllHighlighted: {
-      const a = (action as ParsersActions.SetAllHighlighted);
+    case fromActions.SensorsActionTypes.SetAllHighlighted: {
+      const a = (action as fromActions.SetAllHighlighted);
       return {
         ...state,
         items: state.items.map(item => {
@@ -210,8 +219,8 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
       };
     }
 
-    case ParsersActions.ParserConfigsActions.SetDraggedOver: {
-      const a = (action as ParsersActions.SetDraggedOver);
+    case fromActions.SensorsActionTypes.SetDraggedOver: {
+      const a = (action as fromActions.SetDraggedOver);
       return {
         ...state,
         items: state.items.map(item => {
@@ -223,8 +232,8 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
       };
     }
 
-    case ParsersActions.ParserConfigsActions.SetAllDraggedOver: {
-      const a = (action as ParsersActions.SetAllDraggedOver);
+    case fromActions.SensorsActionTypes.SetAllDraggedOver: {
+      const a = (action as fromActions.SetAllDraggedOver);
       return {
         ...state,
         items: state.items.map(item => {
@@ -240,11 +249,11 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
 
 export function parserStatusReducer(state: StatusState = initialStatusState, action: Action): StatusState {
   switch (action.type) {
-    case ParsersActions.ParserConfigsActions.LoadSuccess:
-    case ParsersActions.ParserConfigsActions.PollStatusSuccess:
+    case fromActions.SensorsActionTypes.LoadSuccess:
+    case fromActions.SensorsActionTypes.PollStatusSuccess:
       return {
         ...state,
-        items: (action as ParsersActions.LoadSuccess).payload.statuses
+        items: (action as fromActions.LoadSuccess).payload.statuses
       }
 
     default:
@@ -254,12 +263,12 @@ export function parserStatusReducer(state: StatusState = initialStatusState, act
 
 export function layoutReducer(state: LayoutState = initialLayoutState, action: Action): LayoutState {
   switch (action.type) {
-    case ParsersActions.ParserConfigsActions.LoadSuccess: {
-      const payload = (action as ParsersActions.LoadSuccess).payload;
+    case fromActions.SensorsActionTypes.LoadSuccess: {
+      const payload = (action as fromActions.LoadSuccess).payload;
       const groups: ParserMetaInfoModel[] = payload.groups;
       const parsers: ParserMetaInfoModel[] = payload.parsers;
       let order: string[] = [];
-      groups.forEach((group, i) => {
+      groups.forEach((group) => {
         order = order.concat(group.getName());
         const configsForGroup = parsers
           .filter(parser => parser.getConfig() && parser.getConfig().group === group.getName())
@@ -279,41 +288,41 @@ export function layoutReducer(state: LayoutState = initialLayoutState, action: A
       };
     }
 
-    case DragAndDropActions.DragAndDropActionTypes.SetDragged: {
+    case fromActions.SensorsActionTypes.SetDragged: {
 
       return {
         ...state,
         dnd: {
           ...state.dnd,
-          draggedId: (action as DragAndDropActions.SetDragged).payload
+          draggedId: (action as fromActions.SetDragged).payload
         }
       };
     }
 
-    case DragAndDropActions.DragAndDropActionTypes.SetDropTarget: {
+    case fromActions.SensorsActionTypes.SetDropTarget: {
 
       return {
         ...state,
         dnd: {
           ...state.dnd,
-          dropTargetId: (action as DragAndDropActions.SetDropTarget).payload
+          dropTargetId: (action as fromActions.SetDropTarget).payload
         }
       };
     }
 
-    case DragAndDropActions.DragAndDropActionTypes.SetTargetGroup: {
+    case fromActions.SensorsActionTypes.SetTargetGroup: {
 
       return {
         ...state,
         dnd: {
           ...state.dnd,
-          targetGroup: (action as DragAndDropActions.SetTargetGroup).payload
+          targetGroup: (action as fromActions.SetTargetGroup).payload
         }
       };
     }
 
-    case ParsersActions.ParserConfigsActions.CreateGroup: {
-      const a = (action as ParsersActions.CreateGroup);
+    case fromActions.SensorsActionTypes.CreateGroup: {
+      const a = (action as fromActions.CreateGroup);
       return {
         ...state,
         order: [
@@ -323,9 +332,9 @@ export function layoutReducer(state: LayoutState = initialLayoutState, action: A
       };
     }
 
-    case ParsersActions.ParserConfigsActions.AggregateParsers: {
+    case fromActions.SensorsActionTypes.AggregateParsers: {
       let order = state.order.slice(0);
-      const a = (action as ParsersActions.AggregateParsers);
+      const a = (action as fromActions.AggregateParsers);
       const reference: string = a.payload.parserIds[0];
       const referenceIndex = order.indexOf(reference);
       const dragged: string = a.payload.parserIds[1];
@@ -347,9 +356,9 @@ export function layoutReducer(state: LayoutState = initialLayoutState, action: A
       }
     }
 
-    case ParsersActions.ParserConfigsActions.InjectAfter: {
+    case fromActions.SensorsActionTypes.InjectAfter: {
       let order = state.order.slice(0);
-      const a = (action as ParsersActions.InjectAfter);
+      const a = (action as fromActions.InjectAfter);
       const referenceIndex = order.indexOf(a.payload.reference);
 
       order = order.map(id => {
@@ -369,9 +378,9 @@ export function layoutReducer(state: LayoutState = initialLayoutState, action: A
       };
     }
 
-    case ParsersActions.ParserConfigsActions.InjectBefore: {
+    case fromActions.SensorsActionTypes.InjectBefore: {
       let order = state.order.slice(0);
-      const a = (action as ParsersActions.InjectBefore);
+      const a = (action as fromActions.InjectBefore);
       const referenceIndex = order.indexOf(a.payload.reference);
 
       order = order.map(id => {
@@ -395,4 +404,85 @@ export function layoutReducer(state: LayoutState = initialLayoutState, action: A
       return state;
   }
 }
+
+/**
+ * Selectors
+ */
+
+ export const getSensorsState = createFeatureSelector<State, SensorState>('sensors');
+
+export const getGroups = createSelector(
+  getSensorsState,
+  (state: SensorState): ParserMetaInfoModel[] => {
+    return state.groups.items;
+  }
+);
+
+export const getParsers = createSelector(
+  getSensorsState,
+  (state: SensorState): ParserMetaInfoModel[] => {
+    return state.parsers.items;
+  }
+);
+
+export const getStatuses = createSelector(
+  getSensorsState,
+  (state: SensorState): TopologyStatus[] => {
+    return state.statuses.items;
+  }
+);
+
+export const getLayoutOrder = createSelector(
+  getSensorsState,
+  (state: SensorState): string[] => {
+    return state.layout.order;
+  }
+);
+
+export const getMergedConfigs = createSelector(
+  getGroups,
+  getParsers,
+  getStatuses,
+  getLayoutOrder,
+  (
+    groups: ParserMetaInfoModel[],
+    parsers: ParserMetaInfoModel[],
+    statuses: TopologyStatus[],
+    order: string[]
+  ): ParserMetaInfoModel[] => {
+    let result: ParserMetaInfoModel[] = [];
+    result = order.map((id: string) => {
+      const group = groups.find(g => g.getName() === id);
+      if (group) {
+        return group;
+      }
+      const parserConfig = parsers.find(p => p.getName() === id);
+      if (parserConfig) {
+        return parserConfig;
+      }
+      return null;
+    }).filter(Boolean);
+
+    result = result.map((item) => {
+      let status: TopologyStatus = statuses.find(stat => {
+        return stat.name === item.getName();
+      });
+      if (status) {
+        item.setStatus(status);
+      }
+      return item;
+    });
+
+    return result;
+  }
+);
+
+export const isDirty = createSelector(
+  getGroups,
+  getParsers,
+  (groups: ParserMetaInfoModel[], parsers: ParserMetaInfoModel[]): boolean => {
+    const isChanged = (item) => item.isDeleted || item.isDirty || item.isPhantom;
+    return groups.some(isChanged) || parsers.some(isChanged)
+  }
+);
 
