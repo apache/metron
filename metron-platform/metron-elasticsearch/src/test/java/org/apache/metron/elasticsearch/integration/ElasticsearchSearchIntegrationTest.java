@@ -38,6 +38,7 @@ import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchDao;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
@@ -165,38 +166,34 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
     // setup the classes required to write the test data
     AccessConfig accessConfig = createAccessConfig();
-    ElasticsearchClient client = ElasticsearchClientFactory.create(createGlobalConfig());
-    ElasticsearchRetrieveLatestDao retrieveLatestDao = new ElasticsearchRetrieveLatestDao(client);
-    ElasticsearchColumnMetadataDao columnMetadataDao = new ElasticsearchColumnMetadataDao(client);
-    ElasticsearchRequestSubmitter requestSubmitter = new ElasticsearchRequestSubmitter(client);
-    ElasticsearchUpdateDao updateDao = new ElasticsearchUpdateDao(client, accessConfig, retrieveLatestDao);
-    ElasticsearchSearchDao searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao, requestSubmitter);
+    ElasticsearchDao elasticDao = new ElasticsearchDao();
+    elasticDao.init(accessConfig);
 
     // write the test documents for Bro
     List<String> broDocuments = new ArrayList<>();
     for (Object broObject: (JSONArray) new JSONParser().parse(broData)) {
       broDocuments.add(((JSONObject) broObject).toJSONString());
     }
-    es.add(updateDao, BRO_INDEX, "bro", broDocuments);
+    es.add(elasticDao, BRO_INDEX, "bro", broDocuments);
 
     // write the test documents for Snort
     List<String> snortDocuments = new ArrayList<>();
     for (Object snortObject: (JSONArray) new JSONParser().parse(snortData)) {
       snortDocuments.add(((JSONObject) snortObject).toJSONString());
     }
-    es.add(updateDao, SNORT_INDEX, "snort", snortDocuments);
+    es.add(elasticDao, SNORT_INDEX, "snort", snortDocuments);
 
     // wait until the test documents are visible
-    assertEventually(() -> Assert.assertEquals(10, findAll(searchDao).getTotal()));
+    assertEventually(() -> Assert.assertEquals(10, findAll(elasticDao).getTotal()));
   }
 
   /**
    * Finds all documents that are indexed.
    *
-   * @param searchDao The {@link ElasticsearchSearchDao} that is used to search for documents.
+   * @param searchDao The {@link SearchDao} that is used to search for documents.
    * @return The search response.
    */
-  private static SearchResponse findAll(ElasticsearchSearchDao searchDao) {
+  private static SearchResponse findAll(SearchDao searchDao) {
     try {
       SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
       return searchDao.search(request);
