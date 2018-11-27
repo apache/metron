@@ -135,7 +135,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
         .put("path.data",dataDir.getAbsolutePath())
         .put("path.home", indexDir.getAbsoluteFile())
         .put("transport.type", "netty4")
-        .put("http.enabled", "false");
+        .put("http.enabled", "true");
 
     if (extraElasticSearchSettings != null) {
       settingsBuilder = settingsBuilder.put(extraElasticSearchSettings);
@@ -277,7 +277,9 @@ public class ElasticSearchComponent implements InMemoryComponent {
   @Override
   public void stop() {
     try {
-      node.close();
+      if(node != null) {
+        node.close();
+      }
     } catch (IOException e) {
       throw new RuntimeException("Unable to stop node." , e);
     }

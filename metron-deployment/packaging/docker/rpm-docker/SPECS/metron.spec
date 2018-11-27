@@ -461,15 +461,16 @@ This package installs the Metron Management UI %{metron_home}
 %attr(0755,root,root) %{metron_home}/web/expressjs/node_modules/.bin/*
 %attr(0755,root,root) %{metron_home}/web/expressjs/server.js
 %attr(0644,root,root) %{metron_home}/web/expressjs/package.json
+%attr(0644,root,root) %{metron_home}/web/management-ui/styles.*.css
 %attr(0644,root,root) %{metron_home}/web/management-ui/favicon.ico
 %attr(0644,root,root) %{metron_home}/web/management-ui/index.html
 %attr(0644,root,root) %{metron_home}/web/management-ui/*.js
-%attr(0644,root,root) %{metron_home}/web/management-ui/*.js.gz
 %attr(0644,root,root) %{metron_home}/web/management-ui/*.ttf
 %attr(0644,root,root) %{metron_home}/web/management-ui/*.svg
 %attr(0644,root,root) %{metron_home}/web/management-ui/*.eot
 %attr(0644,root,root) %{metron_home}/web/management-ui/*.woff
 %attr(0644,root,root) %{metron_home}/web/management-ui/*.woff2
+%attr(0644,root,root) %{metron_home}/web/management-ui/3rdpartylicenses.txt
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/*.js
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/LICENSE
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/snippets/*.js
@@ -539,6 +540,7 @@ This package installs the Metron Alerts UI %{metron_home}
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/Roboto/LICENSE.txt
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/Roboto/*.ttf
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/images/*
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/app-config.json
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -589,6 +591,8 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Wed Oct 31 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
+- Update files in Management UI from Angular upgrade
 * Thu Aug 30 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
 - Update compiled css file name for Alerts UI
 * Fri Aug 24 2018 Apache Metron <dev@metron.apache.org> - 0.6.1

@@ -43,6 +43,7 @@ DESC=
 APACHE_NAME=
 APACHE_EMAIL=
 GITHUB_NAME=
+CHOSEN_REPO=
 
 #
 # Initialize the variables from the default configuration file, if it exists
@@ -174,7 +175,7 @@ function setup_code {
     if [ ! -d "$WORK" ]; then
 
         REPO_NAME="metron"
-        if [ -z $1 ]; then
+        if [ -n $1 ]; then
             REPO_NAME=$1
         fi
 

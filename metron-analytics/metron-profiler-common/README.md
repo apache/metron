@@ -28,7 +28,7 @@ The Profiler is a feature extraction mechanism that can generate a profile descr
 
 This is achieved by summarizing the telemetry data consumed by Metron over tumbling windows. A summary statistic is applied to the data received within a given window.  Collecting these values across many windows result in a time series that is useful for analysis.
 
-Any field contained within a message can be used to generate a profile.  A profile can even be produced by combining fields that originate in different data sources.  A user has considerable power to transform the data used in a profile by leveraging the Stellar language. 
+Any field contained within a message can be used to generate a profile.  A profile can even be produced by combining fields that originate in different data sources.  A user has considerable power to transform the data used in a profile by leveraging the Stellar language.
 
 There are three separate ports of the Profiler that share this common code base.
 * The [Storm Profiler](../metron-profiler-storm/README.md) builds low-latency profiles over streaming data sets.
@@ -58,12 +58,12 @@ Let's start with a simple example. The following profile maintains a count of th
       "profile": "hello-world",
       "foreach": "ip_src_addr",
       "init": {
-        "count": 0
+        "count": "0"
       },
       "update": {
         "count": "count + 1"
       },
-      "result": "count",
+      "result": "count"
     }
   ]
 }
@@ -321,7 +321,7 @@ It is important to note that the Profiler can persist any serializable Object, n
     ```
     $ source /etc/default/metron
     $ bin/stellar -z $ZOOKEEPER
-    
+
     [Stellar]>>> stats := PROFILE_GET( "example4", "10.0.0.1", PROFILE_FIXED(30, "MINUTES"))
     [org.apache.metron.common.math.stats.OnlineStatisticsProvider@79fe4ab9, ...]
     ```
@@ -330,10 +330,10 @@ It is important to note that the Profiler can persist any serializable Object, n
     ```
     [Stellar]>>> aStat := GET_FIRST(stats)
     org.apache.metron.common.math.stats.OnlineStatisticsProvider@79fe4ab9
-    
+
     [Stellar]>>> STATS_MEAN(aStat)
     15979.0625
-    
+
     [Stellar]>>> STATS_PERCENTILE(aStat, 90)
     30310.958
     ```
@@ -341,7 +341,7 @@ It is important to note that the Profiler can persist any serializable Object, n
 1. Merge all of the profile measurements over the past 30 minutes into a single sketch and calculate the 90th percentile.
     ```
     [Stellar]>>> merged := STATS_MERGE( stats)
-    
+
     [Stellar]>>> STATS_PERCENTILE(merged, 90)
     29810.992
     ```

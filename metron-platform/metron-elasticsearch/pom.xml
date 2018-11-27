@@ -73,6 +73,17 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.4.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.plugin</groupId>
+            <artifactId>transport-netty4-client</artifactId>
+            <version>${global_elasticsearch_version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-hbase</artifactId>
             <version>${project.parent.version}</version>
@@ -267,7 +278,6 @@
                                 </excludes>
                             </artifactSet>
                             <transformers>
-                                <transformer implementation="org.atteo.classindex.ClassIndexTransformer"/>
                                 <transformer
                                   implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                                      <resources>
@@ -281,13 +291,15 @@
                                 <!--transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
                                     <addHeader>false</addHeader>
                                     <projectName>${project.name}</projectName>
-                                </transformer-->
+                                </transformer>-->
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass></mainClass>
                                 </transformer>
+                                <!-- ClassIndexTransformer needs to go LAST. For some reason it will clobber other transformers from operating when it is put first -->
+                                <transformer implementation="org.atteo.classindex.ClassIndexTransformer"/>
                             </transformers>
                         </configuration>
                     </execution>

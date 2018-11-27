@@ -28,18 +28,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
-import org.elasticsearch.client.transport.TransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +48,11 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private transient TransportClient client;
+  private transient ElasticsearchClient client;
   private AccessConfig accessConfig;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
 
-  public ElasticsearchUpdateDao(TransportClient client,
+  public ElasticsearchUpdateDao(ElasticsearchClient client,
       AccessConfig accessConfig,
       ElasticsearchRetrieveLatestDao searchDao) {
     this.client = client;
@@ -68,7 +69,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
     IndexRequest indexRequest = buildIndexRequest(update, sensorType, indexName);
     try {
-      IndexResponse response = client.index(indexRequest).get();
+      IndexResponse response = client.getHighLevelClient().index(indexRequest);
 
       ShardInfo shardInfo = response.getShardInfo();
       int failed = shardInfo.getFailed();
@@ -87,7 +88,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     String indexPostfix = ElasticsearchUtils
         .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
 
-    BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
+    BulkRequest bulkRequestBuilder = new BulkRequest();
 
     // Get the indices we'll actually be using for each Document.
     for (Map.Entry<Document, Optional<String>> updateEntry : updates.entrySet()) {
@@ -103,7 +104,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
       bulkRequestBuilder.add(indexRequest);
     }
 
-    BulkResponse bulkResponse = bulkRequestBuilder.get();
+    BulkResponse bulkResponse = client.getHighLevelClient().bulk(bulkRequestBuilder);
     if (bulkResponse.hasFailures()) {
       LOG.error("Bulk Request has failures: {}", bulkResponse.buildFailureMessage());
       throw new IOException(
@@ -181,13 +182,13 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     return update(newVersion, Optional.empty());
   }
 
-  protected String getIndexName(Document update, Optional<String> index, String indexPostFix) {
+  protected String getIndexName(Document update, Optional<String> index, String indexPostFix) throws IOException {
     return index.orElse(getIndexName(update.getGuid(), update.getSensorType())
         .orElse(ElasticsearchUtils.getIndexName(update.getSensorType(), indexPostFix, null))
     );
   }
 
-  protected Optional<String> getIndexName(String guid, String sensorType) {
+  protected Optional<String> getIndexName(String guid, String sensorType) throws IOException {
     return retrieveLatestDao.searchByGuid(guid,
         sensorType,
         hit -> Optional.ofNullable(hit.getIndex())
