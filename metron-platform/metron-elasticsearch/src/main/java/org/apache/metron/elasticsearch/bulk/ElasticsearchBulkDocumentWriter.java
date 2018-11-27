@@ -89,14 +89,11 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     public void write() {
         try {
             // create an index request for each document
-            List<DocWriteRequest> requests = documents
-                    .stream()
-                    .map(ix -> createRequest(ix.document, ix.index))
-                    .collect(Collectors.toList());
-
-            // create one bulk request to wrap each of the index requests
             BulkRequest bulkRequest = new BulkRequest();
-            bulkRequest.add(requests);
+            for(Indexable doc: documents) {
+                DocWriteRequest request = createRequest(doc.document, doc.index);
+                bulkRequest.add(request);
+            }
 
             // submit the request and handle the response
             BulkResponse bulkResponse = client.getHighLevelClient().bulk(bulkRequest);

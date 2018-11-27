@@ -133,9 +133,10 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     // add successful tuples to the response
     BulkWriterResponse response = new BulkWriterResponse();
-    documentWriter.onSuccess(docs -> {
-      List<Tuple> successfulTuples = docs.stream().map(doc -> doc.getTuple()).collect(Collectors.toList());
-      response.addAllSuccesses(successfulTuples);
+    documentWriter.onSuccess(successes -> {
+      for(TupleBasedDocument doc: successes) {
+        response.addSuccess(doc.getTuple());
+      }
     });
 
     // add any failed tuples to the response
