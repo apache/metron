@@ -23,6 +23,7 @@ import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.enrichment.adapters.asn.AsnDatabase;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.test.utils.UnitTestHelper;
@@ -179,6 +180,8 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
     String baseDir = UnitTestHelper.findDir("GeoLite");
     File geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
     globalConfig.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
+    File asnHdfsFile = new File(new File(baseDir), "GeoLite2-ASN.tar.gz");
+    globalConfig.put(AsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());
     threatIntelJoinBolt.getConfigurations().updateGlobalConfig(globalConfig);
     threatIntelJoinBolt.withMaxCacheSize(100);
     threatIntelJoinBolt.withMaxTimeRetain(10000);
