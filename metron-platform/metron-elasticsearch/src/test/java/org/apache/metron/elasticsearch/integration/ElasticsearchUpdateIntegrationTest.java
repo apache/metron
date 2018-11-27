@@ -55,6 +55,7 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   private static final String CF = "p";
   private static MockHTable table;
   private static IndexDao hbaseDao;
+  private static IndexDao elasticsearchDao;
 
   @Override
   protected String getIndexName() {
@@ -77,15 +78,17 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     MockHBaseTableProvider.addToCache(TABLE_NAME, CF);
     table = (MockHTable) tableProvider.getTable(config, TABLE_NAME);
 
-    hbaseDao = new HBaseDao();
-    AccessConfig accessConfig = new AccessConfig();
-    accessConfig.setTableProvider(tableProvider);
     Map<String, Object> globalConfig = createGlobalConfig();
     globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
     globalConfig.put(HBaseDao.HBASE_CF, CF);
+
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setTableProvider(tableProvider);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
 
-    MultiIndexDao dao = new MultiIndexDao(hbaseDao, createDao());
+    hbaseDao = new HBaseDao();
+    elasticsearchDao = createDao();
+    MultiIndexDao dao = new MultiIndexDao(hbaseDao, elasticsearchDao);
     dao.init(accessConfig);
     setDao(dao);
   }
@@ -117,7 +120,7 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   @Override
   protected void addTestData(String indexName, String sensorType,
       List<Map<String, Object>> docs) throws Exception {
-    es.add(getDao(), index, SENSOR_NAME
+    es.add(elasticsearchDao, index, SENSOR_NAME
         , Iterables.transform(docs,
             m -> {
               try {
