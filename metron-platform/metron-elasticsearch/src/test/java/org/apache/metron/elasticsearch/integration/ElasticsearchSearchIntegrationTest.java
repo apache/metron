@@ -156,11 +156,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       snortDocuments.add(((JSONObject) snortObject).toJSONString());
     }
     es.add(SNORT_INDEX, "snort", snortDocuments);
-
-    // wait until the test documents are visible
-    ElasticsearchDao elasticDao = new ElasticsearchDao();
-    elasticDao.init(accessConfig);
-    assertEventually(() -> Assert.assertEquals(10, findAll(elasticDao).getTotal()));
   }
 
   /**
