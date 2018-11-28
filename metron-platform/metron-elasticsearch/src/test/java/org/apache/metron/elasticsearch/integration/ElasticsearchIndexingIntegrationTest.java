@@ -18,10 +18,10 @@
 package org.apache.metron.elasticsearch.integration;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.field.DeDotFieldNameConverter;
 import org.apache.metron.common.field.FieldNameConverter;
 import org.apache.metron.common.field.FieldNameConverters;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
+import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.integration.IndexingIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.InMemoryComponent;
@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -67,10 +68,22 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
 
   @Override
   public InMemoryComponent getSearchComponent(final Properties topologyProperties) {
+    Map<String, Object> globalConfig = new HashMap<String, Object>() {
+      {
+        put("es.clustername", "metron");
+        put("es.port", "9200");
+        put("es.ip", "localhost");
+        put("es.date.format", dateFormat);
+      }
+    };
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setGlobalConfigSupplier(() -> globalConfig);
+
     return new ElasticSearchComponent.Builder()
             .withHttpPort(9211)
             .withIndexDir(new File(indexDir))
             .withMapping(index, "yaf_doc", mapping)
+            .withAccessConfig(accessConfig)
             .build();
   }
 

@@ -71,6 +71,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
   private static IndexDao esDao;
   private static ElasticSearchComponent es;
+  private static AccessConfig accessConfig;
 
   protected static final String INDEX_DIR = "target/elasticsearch_meta";
   private static String POSTFIX= new SimpleDateFormat(DATE_FORMAT).format(new Date());
@@ -127,10 +128,25 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     // Ensure ES can retry as needed.
     MAX_RETRIES = 10;
 
-    // setup the client
+    Map<String, Object> globalConfig = new HashMap<String, Object>() {
+      {
+        put("es.clustername", "metron");
+        put("es.port", "9200");
+        put("es.ip", "localhost");
+        put("es.date.format", DATE_FORMAT);
+      }
+    };
+
+    accessConfig = new AccessConfig();
+    accessConfig.setMaxSearchResults(1000);
+    accessConfig.setMaxSearchGroups(100);
+    accessConfig.setGlobalConfigSupplier(() -> globalConfig);
+
+    // start elasticsearch
     es = new ElasticSearchComponent.Builder()
             .withHttpPort(9211)
             .withIndexDir(new File(INDEX_DIR))
+            .withAccessConfig(accessConfig)
             .build();
     es.start();
   }
@@ -140,21 +156,9 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     es.createIndexWithMapping(METAALERTS_INDEX, METAALERT_DOC, template.replace("%MAPPING_NAME%", METAALERT_TYPE));
     es.createIndexWithMapping(INDEX, "test_doc", template.replace("%MAPPING_NAME%", "test"));
 
-    AccessConfig accessConfig = new AccessConfig();
-    Map<String, Object> globalConfig = new HashMap<String, Object>() {
-      {
-        put("es.clustername", "metron");
-        put("es.port", "9200");
-        put("es.ip", "localhost");
-        put("es.date.format", DATE_FORMAT);
-      }
-    };
-    accessConfig.setMaxSearchResults(1000);
-    accessConfig.setGlobalConfigSupplier(() -> globalConfig);
-    accessConfig.setMaxSearchGroups(100);
-
     esDao = new ElasticsearchDao();
     esDao.init(accessConfig);
+
     ElasticsearchMetaAlertDao elasticsearchMetaDao = new ElasticsearchMetaAlertDao(esDao);
     elasticsearchMetaDao.setPageSize(5);
     metaDao = elasticsearchMetaDao;
@@ -322,7 +326,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   @Override
   protected void addRecords(List<Map<String, Object>> inputData, String index, String docType)
           throws IOException, ParseException {
-    es.add(esDao, index, docType, inputData.stream().map(m -> {
+    es.add(index, docType, inputData.stream().map(m -> {
               try {
                 return JSONUtils.INSTANCE.toJSON(m, true);
               } catch (JsonProcessingException e) {
