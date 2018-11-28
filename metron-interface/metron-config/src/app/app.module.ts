@@ -32,10 +32,16 @@ import { GeneralSettingsModule } from './general-settings/general-settings.modul
 import { GlobalConfigService } from './service/global-config.service';
 import { APP_CONFIG, METRON_REST_CONFIG } from './app.config';
 import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.interceptor';
-import { StoreModule } from '@ngrx/store';
+import { StoreModule, MetaReducer } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EffectsModule } from '@ngrx/effects'
 import { SensorsModule } from './sensors/sensors.module';
+import { storeFreeze } from 'ngrx-store-freeze';
+import { environment } from '../environments/environment';
+
+export const metaReducers: MetaReducer<{}>[] = !environment.production
+? [storeFreeze]
+: [];
 
 @NgModule({
   imports: [
@@ -47,7 +53,7 @@ import { SensorsModule } from './sensors/sensors.module';
     MetronConfigRoutingModule,
     SensorsModule,
     EffectsModule.forRoot([]),
-    StoreModule.forRoot({}),
+    StoreModule.forRoot({}, { metaReducers }),
     StoreDevtoolsModule.instrument(),
   ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],

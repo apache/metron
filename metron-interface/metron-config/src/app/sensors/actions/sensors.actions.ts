@@ -29,10 +29,6 @@ export enum SensorsActionTypes {
   AddToGroup = '[Sensors] Add to a group',
   InjectBefore = '[Sensors] Inject before',
   InjectAfter = '[Sensors] Inject after',
-  SetHighlighted = '[Sensors] Set highlighted',
-  SetDraggedOver = '[Sensors] Set dragged over',
-  SetAllHighlighted = '[Sensors] Set all highlighted',
-  SetAllDraggedOver = '[Sensors] Set all dragged over',
   MarkAsDeleted = '[Sensors] Mark as deleted',
   ApplyChanges = '[Sensors] Apply changes',
   ApplyChangesSuccess = '[Sensors] Apply changes success',
@@ -100,32 +96,6 @@ export class InjectAfter implements Action {
     reference: string,
     parserId: string,
   }) {}
-}
-
-export class SetHighlighted implements Action {
-  readonly type = SensorsActionTypes.SetHighlighted;
-  constructor(readonly payload: {
-    value: boolean,
-    id: string,
-  }) {}
-}
-
-export class SetDraggedOver implements Action {
-  readonly type = SensorsActionTypes.SetDraggedOver;
-  constructor(readonly payload: {
-    value: boolean,
-    id: string,
-  }) {}
-}
-
-export class SetAllHighlighted implements Action {
-  readonly type = SensorsActionTypes.SetAllHighlighted;
-  constructor(readonly payload: boolean) {}
-}
-
-export class SetAllDraggedOver implements Action {
-  readonly type = SensorsActionTypes.SetAllDraggedOver;
-  constructor(readonly payload: boolean) {}
 }
 
 export class MarkAsDeleted implements Action {

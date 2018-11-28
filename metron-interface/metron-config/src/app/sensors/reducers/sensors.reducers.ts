@@ -21,6 +21,7 @@ import { ParserGroupModel } from '../models/parser-group.model';
 import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import * as fromActions from '../actions';
 import { State, SensorState } from './';
+import { ParserConfigModel } from '../models/parser-config.model';
 
 export interface ParserState {
   items: ParserMetaInfoModel[];
@@ -80,10 +81,15 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
       return {
         ...state,
         items: state.items.map(item => {
-          if (a.payload.parserIds.includes(item.getName())) {
-            if (item.getConfig().group !== a.payload.groupName) {
-              item.getConfig().group = a.payload.groupName;
-              item.isDirty = true;
+          if (a.payload.parserIds.includes(item.config.getName())) {
+            if (item.config.group !== a.payload.groupName) {
+              const config = (item.config as ParserConfigModel).clone();
+              config.group = a.payload.groupName;
+              return {
+                ...item,
+                isDirty: true,
+                config,
+              };
             }
           }
           return item;
@@ -96,66 +102,26 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
       return {
         ...state,
         items: state.items.map(item => {
-          if (a.payload.parserIds.includes(item.getName())) {
-            item.isDeleted = true;
+          if (a.payload.parserIds.includes(item.config.getName())) {
+            item = {
+              ...item,
+              isDeleted: true
+            };
           }
-          if (a.payload.parserIds.includes(item.getGroup())) {
-            if (item.getConfig().group) {
-              item.getConfig().group = '';
-              item.isDirty = true;
+          if (a.payload.parserIds.includes(item.config.group)) {
+            if (item.config.group) {
+              const config = (item.config as ParserConfigModel).clone();
+              config.group = '';
+              item = {
+                ...item,
+                isDirty: true,
+                config,
+              };
             }
           }
           return item;
         })
       }
-    }
-
-    case fromActions.SensorsActionTypes.SetHighlighted: {
-      const a = (action as fromActions.SetHighlighted);
-      return {
-        ...state,
-        items: state.items.map(item => {
-          if (a.payload.id === item.getName()) {
-            item.setHighlighted(a.payload.value);
-          }
-          return item;
-        })
-      };
-    }
-
-    case fromActions.SensorsActionTypes.SetAllHighlighted: {
-      const a = (action as fromActions.SetAllHighlighted);
-      return {
-        ...state,
-        items: state.items.map(item => {
-          item.setHighlighted(a.payload);
-          return item;
-        })
-      };
-    }
-
-    case fromActions.SensorsActionTypes.SetDraggedOver: {
-      const a = (action as fromActions.SetDraggedOver);
-      return {
-        ...state,
-        items: state.items.map(item => {
-          if (a.payload.id === item.getName()) {
-            item.setDraggedOver(a.payload.value);
-          }
-          return item;
-        })
-      };
-    }
-
-    case fromActions.SensorsActionTypes.SetAllDraggedOver: {
-      const a = (action as fromActions.SetAllDraggedOver);
-      return {
-        ...state,
-        items: state.items.map(item => {
-          item.setDraggedOver(a.payload);
-          return item;
-        })
-      };
     }
 
     default:
@@ -172,9 +138,11 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
       }
     case fromActions.SensorsActionTypes.CreateGroup: {
       const a = (action as fromActions.CreateGroup);
-      const group = new ParserMetaInfoModel(new ParserGroupModel({ name: a.payload }));
-      group.setIsGroup(true);
-      group.isPhantom = true;
+      const group = {
+        config: new ParserGroupModel({ name: a.payload }),
+        isGroup: true,
+        isPhantom: true,
+      };
       return {
         ...state,
         items: [
@@ -188,60 +156,17 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
       return {
         ...state,
         items: state.items.map(item => {
-          if (a.payload.parserIds.includes(item.getName())) {
-            item.isDeleted = true;
+          if (a.payload.parserIds.includes(item.config.getName())) {
+            return {
+              ...item,
+              isDeleted: true
+            };
           }
           return item;
         })
       }
     }
-    case fromActions.SensorsActionTypes.SetHighlighted: {
-      const a = (action as fromActions.SetHighlighted);
-      return {
-        ...state,
-        items: state.items.map(item => {
-          if (a.payload.id === item.getName()) {
-            item.setHighlighted(a.payload.value);
-          }
-          return item;
-        })
-      };
-    }
 
-    case fromActions.SensorsActionTypes.SetAllHighlighted: {
-      const a = (action as fromActions.SetAllHighlighted);
-      return {
-        ...state,
-        items: state.items.map(item => {
-          item.setHighlighted(a.payload);
-          return item;
-        })
-      };
-    }
-
-    case fromActions.SensorsActionTypes.SetDraggedOver: {
-      const a = (action as fromActions.SetDraggedOver);
-      return {
-        ...state,
-        items: state.items.map(item => {
-          if (a.payload.id === item.getName()) {
-            item.setDraggedOver(a.payload.value);
-          }
-          return item;
-        })
-      };
-    }
-
-    case fromActions.SensorsActionTypes.SetAllDraggedOver: {
-      const a = (action as fromActions.SetAllDraggedOver);
-      return {
-        ...state,
-        items: state.items.map(item => {
-          item.setDraggedOver(a.payload);
-          return item;
-        })
-      };
-    }
     default:
       return state;
   }
@@ -269,17 +194,17 @@ export function layoutReducer(state: LayoutState = initialLayoutState, action: A
       const parsers: ParserMetaInfoModel[] = payload.parsers;
       let order: string[] = [];
       groups.forEach((group) => {
-        order = order.concat(group.getName());
+        order = order.concat(group.config.getName());
         const configsForGroup = parsers
-          .filter(parser => parser.getConfig() && parser.getConfig().group === group.getName())
-          .map(parser => parser.getName());
+          .filter(parser => parser.config && parser.config.group === group.config.getName())
+          .map(parser => parser.config.getName());
           order = order.concat(configsForGroup);
       });
 
       order = order.concat(
         parsers
-          .filter(parser => !parser.getConfig().group)
-          .map(parser => parser.getName())
+          .filter(parser => !parser.config.group)
+          .map(parser => parser.config.getName())
         );
 
       return {
@@ -452,11 +377,11 @@ export const getMergedConfigs = createSelector(
   ): ParserMetaInfoModel[] => {
     let result: ParserMetaInfoModel[] = [];
     result = order.map((id: string) => {
-      const group = groups.find(g => g.getName() === id);
+      const group = groups.find(g => g.config.getName() === id);
       if (group) {
         return group;
       }
-      const parserConfig = parsers.find(p => p.getName() === id);
+      const parserConfig = parsers.find(p => p.config.getName() === id);
       if (parserConfig) {
         return parserConfig;
       }
@@ -465,12 +390,12 @@ export const getMergedConfigs = createSelector(
 
     result = result.map((item) => {
       let status: TopologyStatus = statuses.find(stat => {
-        return stat.name === item.getName();
+        return stat.name === item.config.getName();
       });
-      if (status) {
-        item.setStatus(status);
-      }
-      return item;
+      return {
+        ...item,
+        status: status ? status : new TopologyStatus(),
+      };
     });
 
     return result;

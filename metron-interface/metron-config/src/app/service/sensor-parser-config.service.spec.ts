@@ -26,7 +26,6 @@ import {
   TestRequest
 } from '@angular/common/http/testing';
 import { ParserGroupModel } from '../sensors/models/parser-group.model';
-import { noop } from 'rxjs';
 import { ParserMetaInfoModel } from '../sensors/models/parser-meta-info.model';
 
 describe('SensorParserConfigService', () => {
@@ -209,19 +208,19 @@ describe('SensorParserConfigService', () => {
 
     function getTestGroups() {
       return [
-        new ParserMetaInfoModel(new ParserGroupModel({ name: 'TestGroup01', description: '' })),
-        new ParserMetaInfoModel(new ParserGroupModel({ name: 'TestGroup02', description: '' })),
-        new ParserMetaInfoModel(new ParserGroupModel({ name: 'TestGroup03', description: '' })),
-        new ParserMetaInfoModel(new ParserGroupModel({ name: 'TestGroup04', description: '' })),
+        { config: new ParserGroupModel({ name: 'TestGroup01', description: '' }) },
+        { config: new ParserGroupModel({ name: 'TestGroup02', description: '' }) },
+        { config: new ParserGroupModel({ name: 'TestGroup03', description: '' }) },
+        { config: new ParserGroupModel({ name: 'TestGroup04', description: '' }) },
       ];
     }
 
     function getTestConfigs() {
       return [
-        new ParserMetaInfoModel(new ParserConfigModel({ sensorTopic: 'TestConfig01' })),
-        new ParserMetaInfoModel(new ParserConfigModel({ sensorTopic: 'TestConfig02' })),
-        new ParserMetaInfoModel(new ParserConfigModel({ sensorTopic: 'TestConfig03' })),
-        new ParserMetaInfoModel(new ParserConfigModel({ sensorTopic: 'TestConfig04' })),
+        { config: new ParserConfigModel({ sensorTopic: 'TestConfig01' }) },
+        { config: new ParserConfigModel({ sensorTopic: 'TestConfig02' }) },
+        { config: new ParserConfigModel({ sensorTopic: 'TestConfig03' }) },
+        { config: new ParserConfigModel({ sensorTopic: 'TestConfig04' }) },
       ];
     }
 

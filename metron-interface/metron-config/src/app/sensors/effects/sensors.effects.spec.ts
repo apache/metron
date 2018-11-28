@@ -35,12 +35,12 @@ describe('parser-config.actions.ts', () => {
   function fillStoreWithTestData() {
     store.dispatch(new fromActions.LoadSuccess({
       parsers: [
-        new ParserMetaInfoModel(new ParserGroupModel({ name: 'TestGroup01', description: '' })),
-        new ParserMetaInfoModel(new ParserGroupModel({ name: 'TestGroup02', description: '' })),
+        { config: new ParserGroupModel({ name: 'TestGroup01', description: '' }) },
+        { config: new ParserGroupModel({ name: 'TestGroup02', description: '' }) },
       ],
       groups: [
-        new ParserMetaInfoModel(new ParserConfigModel({ sensorTopic: 'TestConfig01' })),
-        new ParserMetaInfoModel(new ParserConfigModel({ sensorTopic: 'TestConfig02' })),
+        { config: new ParserConfigModel({ sensorTopic: 'TestConfig01' }) },
+        { config: new ParserConfigModel({ sensorTopic: 'TestConfig02' }) },
       ],
       statuses: []
     }));

@@ -43,12 +43,16 @@ export class SensorsEffects {
       ).pipe(
           map(([ configs, groups, statuses ]) => {
           const configsArray: ParserMetaInfoModel[] = Object.keys(configs).map((name) => {
-            const metaInfo = new ParserMetaInfoModel(new ParserConfigModel(configs[name]));
+            const metaInfo: ParserMetaInfoModel = {
+              config: new ParserConfigModel(configs[name])
+            };
             return metaInfo;
           });
           const groupsArray: ParserMetaInfoModel[] =  groups.map((group) => {
-            const metaInfo = new ParserMetaInfoModel(new ParserGroupModel(group));
-            metaInfo.setIsGroup(true);
+            const metaInfo: ParserMetaInfoModel = {
+              config: new ParserGroupModel(group),
+              isGroup: true
+            };
             return metaInfo;
           });
           return new fromActions.LoadSuccess({

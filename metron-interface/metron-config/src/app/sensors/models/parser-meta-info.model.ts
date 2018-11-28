@@ -15,104 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ParserConfigModel } from './parser-config.model';
-import { ParserGroupModel } from './parser-group.model'
-import { Subject, Observable } from 'rxjs';
-import { SensorParserConfigService } from 'app/service/sensor-parser-config.service';
-import { ThrowStmt } from '@angular/compiler';
 import { TopologyStatus } from '../../model/topology-status';
 import { ParserModel } from './parser.model';
 
-export class ParserMetaInfoModel {
-
-  private config: ParserModel = null;
-  private status: TopologyStatus = new TopologyStatus();
-  private _isGroup: boolean;
-  private isHighlighted = false;
-  private isDraggedOver = false;
-
-  isPhantom = false;
-  isDirty = false;
-  isDeleted = false;
-
-  startStopInProgress: boolean;
-  modifiedByDate: string;
-  modifiedBy: string;
-
-  constructor(config: ParserModel) {
-    this.config = config;
-  }
-
-  setStatus(status: TopologyStatus) {
-    this.status = status;
-  }
-
-  getStatus(): TopologyStatus {
-    return this.status;
-  }
-
-  getConfig(): ParserModel {
-    return this.config;
-  }
-
-  setProps(props) {
-
-    if (typeof props.groupName !== 'undefined') {
-      this.config.group = props.groupName;
-    }
-  }
-
-  hasGroup(): boolean {
-    return !!this.config.group;
-  }
-
-  getGroup(): string {
-    return this.config.group;
-  }
-
-  getName(): string {
-    return this.config.getName();
-  }
-
-  setName(name: string) {
-    this.config.setName(name);
-  }
-
-  setIsGroup(value: boolean) {
-    this._isGroup = value;
-  }
-
-  isGroup() {
-    return this._isGroup;
-  }
-
-  setHighlighted(value: boolean) {
-    this.isHighlighted = value;
-  }
-
-  getHighlighted(): boolean {
-    return this.isHighlighted;
-  }
-
-  setDraggedOver(value: boolean) {
-    this.isDraggedOver = value;
-  }
-
-  getDraggedOver(): boolean {
-    return this.isDraggedOver;
-  }
-
-  isStopable() {
-    return this.isRootElement() &&
-      this.getStatus().status === 'ACTIVE' && this.getStatus().status !== 'INACTIVE'
-      && !this.startStopInProgress;
-  }
-
-  isRootElement() {
-    return this.isGroup() || !this.hasGroup();
-  }
-
-  isActive() {
-    return this.getStatus().status === 'ACTIVE';
-  }
+export interface ParserMetaInfoModel {
+  config: ParserModel;
+  status?: TopologyStatus;
+  isGroup?: boolean;
+  isHighlighted?: boolean;
+  isDraggedOver?: boolean;
+  isPhantom?: boolean;
+  isDirty?: boolean;
+  isDeleted?: boolean;
+  startStopInProgress?: boolean;
+  modifiedByDate?: string;
+  modifiedBy?: string;
 }

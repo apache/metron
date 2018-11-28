@@ -57,9 +57,9 @@
         (click)="onSensorRowSelect(sensor, $event)"
         [ngClass]="{
           'active': isSelected(sensor),
-          'parent': sensor.isGroup(),
-          'highlighted': sensor.getHighlighted(),
-          'dragged-over': sensor.getDraggedOver(),
+          'parent': sensor.isGroup,
+          'highlighted': sensor.config.getName() === highlightedElementId,
+          'dragged-over': sensor.config.getName() === draggedOverElementId,
           'dirty': sensor.isDirty,
           'deleted': sensor.isDeleted,
           'phantom': sensor.isPhantom
@@ -72,42 +72,36 @@
       >
       <td
         class="drag-handle"
-        [draggable]="!sensor.isGroup()"
+        [draggable]="!sensor.isGroup"
       >
         <span
-          *ngIf="!sensor.isGroup()"
+          *ngIf="!sensor.isGroup"
           class="drag-handle-icon"
         >
           <i class="fa fa-ellipsis-v drag-handle-part"></i>
           <i class="fa fa-ellipsis-v drag-handle-part"></i>
         </span>
-        <!-- button
-          class="undo"
-          *ngIf="sensor.isChanged()"
-        >
-          UNDO
-        </button -->
       </td>
       <td class="cell-name">
-        <span *ngIf="sensor.isGroup()">
+        <span *ngIf="sensor.isGroup">
           <i class="fa fa-caret-down group-caret-down-icon"></i>
           <i class="fa fa-th group-parent-label"></i>
         </span>
-        <span class="indentation" *ngIf="!!sensor.hasGroup()">
+        <span class="indentation" *ngIf="!!hasGroup(sensor)">
           ---
         </span>
-        {{ sensor.getName() }}
+        {{ sensor.config.getName() }}
       </td>
-      <td>{{ getParserType(sensor.getConfig()) }}</td>
+      <td>{{ getParserType(sensor.config) }}</td>
       <td
-        [ngClass]="{'warning-text': ['KILLED', 'STOPPING', 'INACTIVE'].includes(sensor.getStatus().status)}"
+        [ngClass]="{'warning-text': ['KILLED', 'STOPPING', 'INACTIVE'].includes(sensor.status.status)}"
       >
-        {{ sensor.hasGroup() ? '' : sensor.getStatus().status | sensorStatus }}
+        {{ hasGroup(sensor) ? '' : sensor.status.status | sensorStatus }}
       </td>
-      <td>{{ sensor.hasGroup() ? '' : sensor.getStatus() | latency }}</td>
-      <td>{{ sensor.hasGroup() ? '' : sensor.getStatus() | throughput }}</td>
-      <td>{{ sensor.hasGroup() ? '' : sensor.modifiedByDate }}</td>
-      <td>{{ sensor.hasGroup() ? '' : sensor.modifiedBy }}</td>
+      <td>{{ hasGroup(sensor) ? '' : sensor.status | latency }}</td>
+      <td>{{ hasGroup(sensor) ? '' : sensor.status | throughput }}</td>
+      <td>{{ hasGroup(sensor) ? '' : sensor.modifiedByDate }}</td>
+      <td>{{ hasGroup(sensor) ? '' : sensor.modifiedBy }}</td>
       <td class="icon-container">
           <i
             data-toggle="tooltip"
@@ -121,7 +115,7 @@
             title="Stop parser topology"
             class="fa fa-stop fa-lg"
             aria-hidden="true"
-            [hidden]="!sensor.isStopable() || sensor.hasGroup()"
+            [hidden]="!isStopable(sensor) || hasGroup(sensor)"
             (click)="onStopSensor(sensor, $event)"
           >
           </i>
@@ -130,7 +124,7 @@
             title="Start parser topology"
             class="fa fa-play fa-lg"
             aria-hidden="true"
-            [hidden]="sensor.isStopable() || sensor.hasGroup()"
+            [hidden]="isStopable(sensor) || hasGroup(sensor)"
             (click)="onStartSensor(sensor, $event)"
           >
           </i>
@@ -140,7 +134,7 @@
             title="Disable parser topology"
             class="fa fa-ban fa-lg"
             aria-hidden="true"
-            [hidden]="((!sensor.isActive() || sensor.startStopInProgress) || sensor.hasGroup())"
+            [hidden]="((!isActive(sensor) || sensor.startStopInProgress) || hasGroup(sensor))"
             (click)="onDisableSensor(sensor, $event)"
           >
           </i>
@@ -150,7 +144,7 @@
             title="Enable parser topology"
             class="fa fa-check-circle-o fa-lg"
             aria-hidden="true"
-            [hidden]="((sensor.isActive() || sensor.startStopInProgress) || sensor.hasGroup())"
+            [hidden]="((isActive(sensor) || sensor.startStopInProgress) || hasGroup(sensor))"
             (click)="onEnableSensor(sensor, $event)"
           >
           </i>
@@ -173,16 +167,16 @@
       </td>
       <td>
         <input
-          id="{{ sensor.getName() }}"
+          id="{{ sensor.config.getName() }}"
           class="fontawesome-checkbox"
           type="checkbox"
-          name="{{sensor.getName()}}"
+          name="{{sensor.config.getName()}}"
           (change)="onRowSelected(sensor, $event)"
           (click)="$event.stopPropagation()"
           [checked]="isSelected(sensor)"
         >
         <label
-          attr.for="{{ sensor.getName() }}"
+          attr.for="{{ sensor.config.getName() }}"
           (click)="$event.stopPropagation()"
         ></label>
       </td>
