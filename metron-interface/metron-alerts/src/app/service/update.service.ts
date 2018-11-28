@@ -28,6 +28,7 @@ import {Utils} from '../utils/utils';
 import {Patch} from '../model/patch';
 import { GlobalConfigService } from './global-config.service';
 import {CommentAddRemoveRequest} from "../model/comment-add-remove-request";
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class UpdateService {
@@ -38,14 +39,14 @@ export class UpdateService {
   alertCommentChangedSource = new Subject<CommentAddRemoveRequest>();
   alertCommentChanged$ = this.alertCommentChangedSource.asObservable();
 
-  constructor(private http: HttpClient, private globalConfigService: GlobalConfigService) {
+  constructor(private http: HttpClient, private globalConfigService: GlobalConfigService, private appConfigService: AppConfigService) {
     this.globalConfigService.get().subscribe((config: {}) => {
       this.sourceType = config['source.type.field'];
     });
   }
 
   public addComment(commentRequest: CommentAddRemoveRequest, fireChangeListener = true): Observable<{}> {
-    let url = '/api/v1/update/add/comment';
+    let url = this.appConfigService.getApiRoot() + '/update/add/comment';
     return this.http.post(url, commentRequest).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
@@ -57,7 +58,7 @@ export class UpdateService {
   }
 
   public removeComment(commentRequest: CommentAddRemoveRequest, fireChangeListener = true): Observable<{}> {
-    let url = '/api/v1/update/remove/comment';
+    let url = this.appConfigService.getApiRoot() + '/update/remove/comment';
     return this.http.post(url, commentRequest).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
@@ -69,7 +70,7 @@ export class UpdateService {
   }
 
   public patch(patchRequest: PatchRequest, fireChangeListener = true): Observable<{}> {
-    let url = '/api/v1/update/patch';
+    let url = this.appConfigService.getApiRoot() + '/update/patch';
     return this.http.patch(url, patchRequest).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
