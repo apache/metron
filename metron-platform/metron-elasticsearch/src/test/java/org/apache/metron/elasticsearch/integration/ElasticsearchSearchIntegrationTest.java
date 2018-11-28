@@ -33,7 +33,6 @@ import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchDao;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
@@ -51,7 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +58,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -156,22 +153,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       snortDocuments.add(((JSONObject) snortObject).toJSONString());
     }
     es.add(SNORT_INDEX, "snort", snortDocuments);
-  }
-
-  /**
-   * Finds all documents that are indexed.
-   *
-   * @param searchDao The {@link SearchDao} that is used to search for documents.
-   * @return The search response.
-   */
-  private static SearchResponse findAll(SearchDao searchDao) {
-    try {
-      SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
-      return searchDao.search(request);
-
-    } catch(IOException | InvalidSearchException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**

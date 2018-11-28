@@ -93,7 +93,7 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   }
 
   @Before
-  public void setup() throws IOException {
+  public void setup() {
     hbaseDao = new HBaseDao();
     elasticsearchDao = new ElasticsearchDao();
     MultiIndexDao dao = new MultiIndexDao(hbaseDao, elasticsearchDao);
