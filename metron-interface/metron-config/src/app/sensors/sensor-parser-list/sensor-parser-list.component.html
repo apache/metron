@@ -184,9 +184,21 @@
     </tbody>
   </table>
 
-  <div *ngIf="isDirty$ | async">
-    <button (click)="onApply()" class="btn sensor-button save-button">APPLY</button>
-    <button (click)="onDiscard()" class="btn sensor-button form-enable-disable-button">DISCARD ALL</button>
+  <div>
+    <button
+      (click)="onApply()"
+      class="btn sensor-button save-button"
+      [disabled]="!(isDirty$ | async)"
+    >
+      APPLY
+    </button>
+    <button
+      (click)="onDiscard()"
+      class="btn sensor-button form-enable-disable-button"
+      [disabled]="!(isDirty$ | async)"
+    >
+      DISCARD ALL
+    </button>
   </div>
 
   <div class="metron-add-button hexa-button" (click)="addAddSensor()">
