@@ -21,8 +21,9 @@
     <artifactId>metron-parsing</artifactId>
     <version>0.6.1</version>
   </parent>
-  <artifactId>metron-parsing-framework-storm</artifactId>
-  <name>metron-parsing-framework-storm</name>
+  <artifactId>metron-parsing-storm</artifactId>
+  <name>metron-parsing-storm</name>
+  <description>Metron code for running parsers on Apache Storm</description>
   <url>https://metron.apache.org/</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -447,7 +447,7 @@
               <name>metron-parsers</name>
             </package>
             <package>
-              <name>metron-parsing-framework-storm</name>
+              <name>metron-parsing-storm</name>
             </package>
             <package>
               <name>metron-enrichment</name>

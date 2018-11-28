@@ -120,7 +120,7 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-parsing/metron-parsing-framework-storm/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-parsing/metron-parsing-storm/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

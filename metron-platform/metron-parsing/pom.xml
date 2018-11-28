@@ -12,7 +12,7 @@
     <groupId>org.apache.metron</groupId>
     <version>0.6.1</version>
   </parent>
-  <description>Parsing for Metron</description>
+  <description>Metron parsers and platform support</description>
   <url>https://metron.apache.org/</url>
   <scm>
     <connection>scm:git:https://git-wip-us.apache.org/repos/asf/metron.git</connection>
@@ -31,6 +31,6 @@
   <modules>
     <module>metron-parsers</module>
     <module>metron-parsers-common</module>
-    <module>metron-parsing-framework-storm</module>
+    <module>metron-parsing-storm</module>
   </modules>
 </project>

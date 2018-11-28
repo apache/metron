@@ -60,7 +60,7 @@ Source13:       metron-alerts-%{full_version}-archive.tar.gz
 Source14:       metron-performance-%{full_version}-archive.tar.gz
 Source15:       metron-profiler-spark-%{full_version}-archive.tar.gz
 Source16:       metron-profiler-repl-%{full_version}-archive.tar.gz
-Source17:       metron-parsing-framework-storm-%{full_version}-archive.tar.gz
+Source17:       metron-parsing-storm-%{full_version}-archive.tar.gz
 Source18:        metron-parsers-%{full_version}-archive.tar.gz
 
 %description
@@ -196,22 +196,22 @@ This package installs the Metron Bundled Parser files
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-%package        parsing-framework-storm
+%package        parsing-storm
 Summary:        Metron Parser Storm Files
 Group:          Applications/Internet
-Provides:       parsing-framework-storm = %{version}
+Provides:       parsing-storm = %{version}
 
-%description    parsing-framework-storm
+%description    parsing-storm
 This package installs the Metron Parser Storm files
 
-%files          parsing-framework-storm
+%files          parsing-storm
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/bin/start_parser_topology.sh
-%attr(0644,root,root) %{metron_home}/lib/metron-parsing-framework-storm-%{full_version}-uber.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-parsing-storm-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

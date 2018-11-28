@@ -201,7 +201,7 @@ transformation which can be done to a message.  This transformation can
 * Remove existing fields of a message
 
 For platform specific configs, see the README of the appropriate project. This would include settings such as parallelism of individual components and general configuration.
-* [Storm](metron-parsing-framework-storm/README.md#parser-configuration)
+* [Storm](metron-parsing-storm/README.md#parser-configuration)
 
 ### Metadata
 
@@ -516,7 +516,7 @@ https://github.com/thekrakken/java-grok
 # Starting the Parser
 
 Starting a particular parser on a running Metron deployment is dependent on the platform being run on. Please see the appropriate platform-specific README.
-* [Storm](metron-parsing-framework-stormREADME.md#starting-the-parser-topology)
+* [Storm](metron-parsing-storm/README.md#starting-the-parser-topology)
 
 For all platforms, you will need to provide
 * Zookeeper Quorum
@@ -533,7 +533,7 @@ are a few knobs to tune to get the most out of your system.
 When using aggregated parsers, it's highly recommended to aggregate parsers with similar velocity and parser complexity together.
 
 Platform specific notes can be found in the appropriate README
-* [Storm](metron-parsing-framework-storm/README.md)
+* [Storm](metron-parsing-storm/README.md)
 
 # Notes on Adding a New Sensor
 In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
