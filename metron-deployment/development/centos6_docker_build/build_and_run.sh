@@ -126,6 +126,54 @@ NODE1_IP=$(awk '/^\s*hosts/{flag=1; next} /}]/{flag=0} flag' "${VAGRANT_PATH}/Va
 if [[ -z "${NODE1_IP}" ]]; then echo "no node ip found" && exit 1; fi
 echo "Using NODE1 IP ${NODE1_IP}"
 
+# need to setup the Cypress cache
+unameOut="$(uname -s)"
+case "${unameOut}" in
+ Linux*)     CYPRESS_CACHE=~/.cache/Cypress;;
+ Darwin*)    CYPRESS_CACHE=~/.Library/caches/Cypress;;
+esac
+
+if [ -z "$CYPRESS_CACHE" ]; then
+  echo "No Cypress Cache Found";
+  echo "===============Running Docker==============="
+  docker run -it \
+   -v "${VAGRANT_PATH}/../../..:/root/metron" \
+   -v ~/.m2:/root/.m2 \
+   -v "${VAGRANT_PATH}:/root/vagrant" \
+   -v "${ANSIBLE_PATH}:/root/ansible_config" \
+   -v "${VAGRANT_KEY_PATH}:/root/vagrant_key" \
+   -v "${VAGRANT_PATH}/logs:/root/logs" \
+   -e ANSIBLE_CONFIG='/root/ansible_config/ansible.cfg' \
+   -e ANSIBLE_LOG_PATH="/root/logs/${LOGNAME}" \
+   -e ANSIBLE_SKIP_TAGS="${A_SKIP_TAGS}" \
+   --add-host="node1:${NODE1_IP}" \
+   metron-build-docker:latest bash -c /root/vagrant/docker_run_ansible.sh
+
+  rc=$?; if [[ ${rc} != 0 ]]; then
+  exit ${rc};
+  fi
+else
+  echo "Cypres Cache is set to '$CYPRESS_CACHE'";
+  echo "===============Running Docker==============="
+  docker run -it \
+  -v "${VAGRANT_PATH}/../../..:/root/metron" \
+  -v ~/.m2:/root/.m2 \
+  -v "${VAGRANT_PATH}:/root/vagrant" \
+  -v "${ANSIBLE_PATH}:/root/ansible_config" \
+  -v "${VAGRANT_KEY_PATH}:/root/vagrant_key" \
+  -v "${VAGRANT_PATH}/logs:/root/logs" \
+  -v "${CYPRESS_CACHE} :/root/.cache/Cypress" \
+  -e ANSIBLE_CONFIG='/root/ansible_config/ansible.cfg' \
+  -e ANSIBLE_LOG_PATH="/root/logs/${LOGNAME}" \
+  -e ANSIBLE_SKIP_TAGS="${A_SKIP_TAGS}" \
+  --add-host="node1:${NODE1_IP}" \
+  metron-build-docker:latest bash -c /root/vagrant/docker_run_ansible.sh
+
+  rc=$?; if [[ ${rc} != 0 ]]; then
+  exit ${rc};
+  fi
+fi
+
 echo "===============Running Docker==============="
 docker run -it \
  -v "${VAGRANT_PATH}/../../..:/root/metron" \
