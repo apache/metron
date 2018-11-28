@@ -15,21 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "_variables.scss";
 
-.navigation{
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
-  background-color: $gray-light;
-  border-right: solid 1px #4d4d4d;
-  border-top: solid 1px #4d4d4d;
-  border-bottom: solid 1px #4d4d4d;
-  bottom: 0px;
-  padding-left: 0px;
-  width: 240px;
-}
+@Injectable()
+export class AppConfigService {
 
-.content{
-  background: $gray-dark;
-  border: none;
-  flex: 1;
+  private appConfig;
+
+  constructor(private http: HttpClient) { }
+
+  loadAppConfig() {
+    return this.http.get('assets/app-config.json')
+            // APP_INITIALIZER only supports promises
+            .toPromise()
+            .then(data => {
+              this.appConfig = data;
+            });
+  }
+
+  getApiRoot() {
+    return this.appConfig['apiRoot'];
+  }
 }

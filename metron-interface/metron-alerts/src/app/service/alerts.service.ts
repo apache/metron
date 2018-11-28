@@ -22,14 +22,15 @@ import {Alert} from '../model/alert';
 import { HttpClient } from '@angular/common/http';
 import {HttpUtil} from '../utils/httpUtil';
 import { RestError } from '../model/rest-error';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class AlertsService {
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private appConfigService: AppConfigService) {}
 
   public escalate(alerts: Alert[]): Observable<Object | RestError> {
-    return this.http.post('/api/v1/alerts/ui/escalate', alerts).pipe(
+    return this.http.post(this.appConfigService.getApiRoot() + '/alerts/ui/escalate', alerts).pipe(
     catchError(HttpUtil.handleError));
   }
 }
