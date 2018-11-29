@@ -42,9 +42,9 @@ export class LoadStart implements Action {
 }
 
 export interface LoadSuccesActionPayload {
-  parsers: ParserMetaInfoModel[],
-  groups: ParserMetaInfoModel[],
-  statuses: TopologyStatus[],
+  parsers?: ParserMetaInfoModel[],
+  groups?: ParserMetaInfoModel[],
+  statuses?: TopologyStatus[],
 }
 
 export class LoadSuccess implements Action {

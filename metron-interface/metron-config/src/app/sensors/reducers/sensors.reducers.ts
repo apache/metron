@@ -36,9 +36,9 @@ export interface StatusState {
 }
 
 export interface DragNDropState {
-  draggedId: string,
-  dropTargetId: string,
-  targetGroup: string,
+  draggedId?: string,
+  dropTargetId?: string,
+  targetGroup?: string,
 }
 
 export interface LayoutState {
@@ -46,19 +46,19 @@ export interface LayoutState {
   dnd: DragNDropState
 }
 
-const initialParserState: ParserState = {
+export const initialParserState: ParserState = {
   items: []
 }
 
-const initialGroupState: GroupState = {
+export const initialGroupState: GroupState = {
   items: []
 }
 
-const initialStatusState: StatusState = {
+export const initialStatusState: StatusState = {
   items: []
 }
 
-const initialLayoutState: LayoutState = {
+export const initialLayoutState: LayoutState = {
   order: [],
   dnd: {
     draggedId: '',
