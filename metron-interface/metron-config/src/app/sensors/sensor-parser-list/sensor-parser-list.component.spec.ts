@@ -387,7 +387,8 @@ describe('Component: SensorParserList', () => {
     let sensorParserConfig = new ParserConfigModel();
     sensorParserConfig.sensorTopic = 'squid';
     let sensorParserConfigHistory = {
-      config: sensorParserConfig
+      config: sensorParserConfig,
+      startStopInProgress: false
     }
 
     component.toggleStartStopInProgress(sensorParserConfigHistory);
