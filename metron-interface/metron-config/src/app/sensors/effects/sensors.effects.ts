@@ -79,7 +79,7 @@ export class SensorsEffects {
   );
 
   @Effect()
-  applyChanges: Observable<Action> = this.actions$.pipe(
+  applyChanges$: Observable<Action> = this.actions$.pipe(
     ofType(fromActions.SensorsActionTypes.ApplyChanges),
     withLatestFrom(this.store.pipe(select(fromReducers.getSensorsState))),
     mergeMap(([ , state ]) => {

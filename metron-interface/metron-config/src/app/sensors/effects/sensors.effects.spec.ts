@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-import { StoreModule, Store, combineReducers } from '@ngrx/store';
+import { StoreModule, Store, combineReducers, Action } from '@ngrx/store';
 import { SensorsEffects } from './sensors.effects';
 import { SensorsModule } from '../sensors.module';
 import { HttpClient } from '@angular/common/http';
@@ -30,22 +30,25 @@ import { ParserConfigModel } from '../models/parser-config.model';
 import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
 import { Injectable } from '@angular/core';
 import { ApplyChanges } from '../actions';
+import { of } from 'rxjs';
 
 
 @Injectable()
 class FakeParserService {
-  syncConfigs = jasmine.createSpy();
-  syncGroups = jasmine.createSpy();
+  syncConfigs = jasmine.createSpy().and.returnValue(of({}));
+  syncGroups = jasmine.createSpy().and.returnValue(of({}));
+  getAllConfig = jasmine.createSpy().and.returnValue(of([]));
+  getAllGroups = jasmine.createSpy().and.returnValue(of([]));
 }
 
-fdescribe('parser-config.actions.ts', () => {
+describe('sensor.effects.ts', () => {
   let store: Store<fromModule.State>;
   let service: FakeParserService;
+  let effects: SensorsEffects;
   let testParsers: ParserMetaInfoModel[];
   let testGroups: ParserMetaInfoModel[];
 
   function fillStoreWithTestData() {
-
     testParsers = [
       { config: new ParserConfigModel({ sensorTopic: 'TestConfig01' })},
       { config: new ParserConfigModel({ sensorTopic: 'TestConfig02' })},
@@ -79,18 +82,27 @@ fdescribe('parser-config.actions.ts', () => {
 
     store = TestBed.get(Store);
     service = TestBed.get(SensorParserConfigService);
+    effects = TestBed.get(SensorsEffects);
 
-    fillStoreWithTestData()
+    fillStoreWithTestData();
   });
 
   it('Should pass state of parsers to service.syncConfigs() on action ApplyChanges', () => {
     store.dispatch(new fromActions.ApplyChanges());
     expect(service.syncConfigs).toHaveBeenCalledWith(testParsers);
-  })
+  });
 
   it('Should pass state of groups to service.syncGroup() on action ApplyChanges', () => {
     store.dispatch(new fromActions.ApplyChanges());
     expect(service.syncGroups).toHaveBeenCalledWith(testGroups);
-  })
+  });
+
+  it('Should return with an LoadStart action when syncConfigs() and syncGroups() finished', () => {
+    effects.applyChanges$.subscribe((result: Action) => {
+      expect(result.type).toBeDefined(fromActions.SensorsActionTypes.LoadStart);
+    });
+
+    store.dispatch(new fromActions.ApplyChanges());
+  });
 
 });
