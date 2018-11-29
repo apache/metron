@@ -121,7 +121,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onSensorRowSelect(sensor: ParserMetaInfoModel) {
-    if (this.selectedSensor === sensor) {
+    if (this.selectedSensor && this.selectedSensor.getName() === sensor.getName()) {
       this.selectedSensor = null;
       this.router.navigateByUrl('/sensors');
       return;

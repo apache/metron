@@ -79,7 +79,7 @@ class MockSensorParserConfigService extends SensorParserConfigService {
     super(http2, config2);
   }
 
-  public post(
+  public saveConfig(
     name: string,
     sensorParserConfig: ParserConfigModel
   ): Observable<ParserConfigModel> {
@@ -95,14 +95,14 @@ class MockSensorParserConfigService extends SensorParserConfigService {
     });
   }
 
-  public get(name: string): Observable<ParserConfigModel> {
+  public getConfig(name: string): Observable<ParserConfigModel> {
     return Observable.create(observer => {
       observer.next(this.sensorParserConfig);
       observer.complete();
     });
   }
 
-  public getAll(): Observable<{}> {
+  public getAllConfig(): Observable<{}> {
     return Observable.create(observer => {
       let results = {};
       results[this.name] = this.sensorParserConfig;
