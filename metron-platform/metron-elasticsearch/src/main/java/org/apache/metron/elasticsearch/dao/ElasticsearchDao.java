@@ -39,6 +39,7 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +64,9 @@ public class ElasticsearchDao implements IndexDao {
   private ElasticsearchRequestSubmitter requestSubmitter;
 
   private AccessConfig accessConfig;
+  private WriteRequest.RefreshPolicy refreshPolicy;
 
-  protected ElasticsearchDao(ElasticsearchClient client,
+  public ElasticsearchDao(ElasticsearchClient client,
       AccessConfig config,
       ElasticsearchSearchDao searchDao,
       ElasticsearchUpdateDao updateDao,
@@ -83,6 +85,7 @@ public class ElasticsearchDao implements IndexDao {
 
   public ElasticsearchDao() {
     //uninitialized.
+    refreshPolicy = WriteRequest.RefreshPolicy.NONE;
   }
 
   public AccessConfig getAccessConfig() {
@@ -100,10 +103,10 @@ public class ElasticsearchDao implements IndexDao {
       this.accessConfig = config;
       this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client);
       this.requestSubmitter = new ElasticsearchRequestSubmitter(this.client);
-      this.searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao,
-          requestSubmitter);
+      this.searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao, requestSubmitter);
       this.retrieveLatestDao = new ElasticsearchRetrieveLatestDao(client);
-      this.updateDao = new ElasticsearchUpdateDao(client, accessConfig, retrieveLatestDao);
+      this.updateDao = new ElasticsearchUpdateDao(client, accessConfig, retrieveLatestDao)
+              .withRefreshPolicy(refreshPolicy);
     }
 
     if (columnMetadataDao == null) {
@@ -185,6 +188,11 @@ public class ElasticsearchDao implements IndexDao {
   @Override
   public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
     return this.updateDao.removeCommentFromAlert(request, latest);
+  }
+
+  public ElasticsearchDao withRefreshPolicy(WriteRequest.RefreshPolicy refreshPolicy) {
+    this.refreshPolicy = refreshPolicy;
+    return this;
   }
 
   protected Optional<String> getIndexName(String guid, String sensorType) throws IOException {
