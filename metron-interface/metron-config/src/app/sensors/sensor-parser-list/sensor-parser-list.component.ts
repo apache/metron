@@ -19,7 +19,6 @@ import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { Router, NavigationStart } from '@angular/router';
 import { ParserConfigModel } from '../models/parser-config.model';
 import { MetronAlerts } from '../../shared/metron-alerts';
-import { MetronDialogBox } from '../../shared/metron-dialog-box';
 import { StormService } from '../../service/storm.service';
 import { TopologyStatus } from '../../model/topology-status';
 import { Observable, Subscription } from 'rxjs';
@@ -55,7 +54,6 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   constructor(private stormService: StormService,
               private router: Router,
               private metronAlerts:  MetronAlerts,
-              private metronDialogBox: MetronDialogBox,
               private store: Store<fromReducers.State>) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/sensors') {
@@ -130,29 +128,16 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this.router.navigateByUrl('/sensors(dialog:sensors-readonly/' + sensor.config.getName() + ')');
   }
 
-  showConfirm(message: string, callback: Function) {
-    this.metronDialogBox.showConfirmationMessage(message).subscribe(callback);
-  }
-
   onDeleteSelectedItems() {
-    const names = this.selectedSensors.map(p => p.config.getName());
-    this.showConfirm('Are you sure you want to delete ' + names.join(', ') + ' ?', (confirmed: boolean) => {
-      if (confirmed) {
-        this.store.dispatch(new fromActions.MarkAsDeleted({
-          parserIds: names
-        }));
-      }
-    });
+    this.store.dispatch(new fromActions.MarkAsDeleted({
+      parserIds: this.selectedSensors.map(p => p.config.getName()),
+    }));
   }
 
   onDeleteItem(item: ParserMetaInfoModel, e: Event) {
-    this.showConfirm('Are you sure you want to delete ' + item.config.getName() + ' ?', (confirmed: boolean) => {
-      if (confirmed) {
-        this.store.dispatch(new fromActions.MarkAsDeleted({
-          parserIds: [item.config.getName()]
-        }));
-      }
-    });
+    this.store.dispatch(new fromActions.MarkAsDeleted({
+      parserIds: [item.config.getName()]
+    }));
     e.stopPropagation();
   }
 
