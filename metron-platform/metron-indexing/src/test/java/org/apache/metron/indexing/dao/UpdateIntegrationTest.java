@@ -14,17 +14,6 @@
  */
 package org.apache.metron.indexing.dao;
 
-import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.hbase.client.Get;
@@ -41,7 +30,18 @@ import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+import static org.hamcrest.CoreMatchers.hasItem;
 
 public abstract class UpdateIntegrationTest {
 
