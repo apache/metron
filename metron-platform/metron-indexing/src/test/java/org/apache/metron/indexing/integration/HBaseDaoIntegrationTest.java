@@ -18,6 +18,18 @@
 
 package org.apache.metron.indexing.integration;
 
+import static org.apache.metron.indexing.dao.HBaseDao.HBASE_CF;
+import static org.apache.metron.indexing.dao.HBaseDao.HBASE_TABLE;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -31,19 +43,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static org.apache.metron.indexing.dao.HBaseDao.HBASE_CF;
-import static org.apache.metron.indexing.dao.HBaseDao.HBASE_TABLE;
-import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
 
