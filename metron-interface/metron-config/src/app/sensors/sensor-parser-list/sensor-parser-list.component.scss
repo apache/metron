@@ -147,3 +147,7 @@ table tr td, table tr th {
   color: white;
   font-size: 14px;
 }
+
+.dropdown .disabled {
+  pointer-events: none;
+}
