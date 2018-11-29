@@ -109,14 +109,14 @@ public abstract class UpdateIntegrationTest {
       }}, Optional.empty());
 
       Assert.assertEquals(message0, update.getDocument());
-      Assert.assertEquals(10, getMockHTable().size());
+      Assert.assertEquals(1, getMockHTable().size());
       findUpdatedDoc(message0, guid, SENSOR_NAME);
       {
         //ensure hbase is up to date
         Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
         Result r = getMockHTable().get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
-        Assert.assertEquals(2, columns.size());
+        Assert.assertEquals(1, columns.size());
         Assert.assertEquals(message0
             , JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
                 , JSONUtils.MAP_SUPPLIER)
@@ -148,7 +148,7 @@ public abstract class UpdateIntegrationTest {
         setIndex(getIndexName());
       }}, Optional.empty());
       Assert.assertEquals(message0, update.getDocument());
-      Assert.assertEquals(10, getMockHTable().size());
+      Assert.assertEquals(1, getMockHTable().size());
       Document doc = getDao().getLatest(guid, SENSOR_NAME);
       Assert.assertEquals(message0, doc.getDocument());
       findUpdatedDoc(message0, guid, SENSOR_NAME);
@@ -157,7 +157,7 @@ public abstract class UpdateIntegrationTest {
         Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
         Result r = getMockHTable().get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
-        Assert.assertEquals(3, columns.size());
+        Assert.assertEquals(2, columns.size());
         Assert.assertEquals(message0, JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
             , JSONUtils.MAP_SUPPLIER)
         );

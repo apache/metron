@@ -17,7 +17,6 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
-import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
@@ -26,6 +25,7 @@ import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
+import org.elasticsearch.action.support.WriteRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
 
   private AccessConfig accessConfig;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
-  private BulkDocumentWriter<Document> documentWriter;
+  private ElasticsearchBulkDocumentWriter<Document> documentWriter;
   private int failures;
   private Throwable lastException;
 
@@ -56,7 +56,8 @@ public class ElasticsearchUpdateDao implements UpdateDao {
       ElasticsearchRetrieveLatestDao searchDao) {
     this.accessConfig = accessConfig;
     this.retrieveLatestDao = searchDao;
-    this.documentWriter = new ElasticsearchBulkDocumentWriter<>(client);
+    this.documentWriter = new ElasticsearchBulkDocumentWriter<>(client)
+            .withRefreshPolicy(WriteRequest.RefreshPolicy.NONE);
   }
 
   @Override
@@ -78,6 +79,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
       Optional<String> optionalIndex = entry.getValue();
       String indexName = optionalIndex.orElse(getIndexName(document, indexPostfix));
       documentWriter.addDocument(document, indexName);
+
     }
 
     // record failures so that a checked exception can be thrown later; cannot throw checked exception in listener
@@ -166,6 +168,11 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     }
 
     return update(newVersion, Optional.empty());
+  }
+
+  public ElasticsearchUpdateDao withRefreshPolicy(WriteRequest.RefreshPolicy refreshPolicy) {
+    documentWriter.withRefreshPolicy(refreshPolicy);
+    return this;
   }
 
   protected String getIndexName(Document update, String indexPostFix) throws IOException {

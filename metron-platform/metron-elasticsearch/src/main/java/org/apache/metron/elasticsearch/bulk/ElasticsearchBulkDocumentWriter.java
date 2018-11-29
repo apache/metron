@@ -25,6 +25,7 @@ import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.support.WriteRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,12 +62,14 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     private Optional<FailureListener> onFailure;
     private ElasticsearchClient client;
     private List<Indexable> documents;
+    private WriteRequest.RefreshPolicy refreshPolicy;
 
     public ElasticsearchBulkDocumentWriter(ElasticsearchClient client) {
         this.client = client;
         this.onSuccess = Optional.empty();
         this.onFailure = Optional.empty();
         this.documents = new ArrayList<>();
+        this.refreshPolicy = WriteRequest.RefreshPolicy.NONE;
     }
 
     @Override
@@ -90,6 +93,7 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
         try {
             // create an index request for each document
             BulkRequest bulkRequest = new BulkRequest();
+            bulkRequest.setRefreshPolicy(refreshPolicy);
             for(Indexable doc: documents) {
                 DocWriteRequest request = createRequest(doc.document, doc.index);
                 bulkRequest.add(request);
@@ -122,6 +126,11 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     @Override
     public int size() {
         return documents.size();
+    }
+
+    public ElasticsearchBulkDocumentWriter<D> withRefreshPolicy(WriteRequest.RefreshPolicy refreshPolicy) {
+        this.refreshPolicy = refreshPolicy;
+        return this;
     }
 
     private IndexRequest createRequest(D document, String index) {
