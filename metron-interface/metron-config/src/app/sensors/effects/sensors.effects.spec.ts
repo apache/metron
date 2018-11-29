@@ -21,27 +21,43 @@ import { SensorsEffects } from './sensors.effects';
 import { SensorsModule } from '../sensors.module';
 import { HttpClient } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import * as fromReducers from '../reducers';
+import * as fromModule from '../reducers';
 import { EffectsModule } from '@ngrx/effects';
 import * as fromActions from '../actions';
 import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { ParserGroupModel } from '../models/parser-group.model';
 import { ParserConfigModel } from '../models/parser-config.model';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { Injectable } from '@angular/core';
+import { ApplyChanges } from '../actions';
 
 
-describe('parser-config.actions.ts', () => {
-  let store: Store<fromReducers.State>;
+@Injectable()
+class FakeParserService {
+  syncConfigs = jasmine.createSpy();
+  syncGroups = jasmine.createSpy();
+}
+
+fdescribe('parser-config.actions.ts', () => {
+  let store: Store<fromModule.State>;
+  let service: FakeParserService;
+  let testParsers: ParserMetaInfoModel[];
+  let testGroups: ParserMetaInfoModel[];
 
   function fillStoreWithTestData() {
+
+    testParsers = [
+      { config: new ParserConfigModel({ sensorTopic: 'TestConfig01' })},
+      { config: new ParserConfigModel({ sensorTopic: 'TestConfig02' })},
+    ];
+    testGroups = [
+      { config: new ParserGroupModel({ name: 'TestGroup01', description: '' })},
+      { config: new ParserGroupModel({ name: 'TestGroup02', description: '' })},
+    ];
+
     store.dispatch(new fromActions.LoadSuccess({
-      parsers: [
-        { config: new ParserGroupModel({ name: 'TestGroup01', description: '' }) },
-        { config: new ParserGroupModel({ name: 'TestGroup02', description: '' }) },
-      ],
-      groups: [
-        { config: new ParserConfigModel({ sensorTopic: 'TestConfig01' }) },
-        { config: new ParserConfigModel({ sensorTopic: 'TestConfig02' }) },
-      ],
+      parsers: testParsers,
+      groups: testGroups,
       statuses: []
     }));
   }
@@ -50,27 +66,31 @@ describe('parser-config.actions.ts', () => {
     TestBed.configureTestingModule({
       imports: [
         SensorsModule,
-        StoreModule.forRoot({ sensors: combineReducers(fromReducers.reducers) }),
+        StoreModule.forRoot({ sensors: combineReducers(fromModule.reducers) }),
         EffectsModule.forRoot([]),
         HttpClientTestingModule
       ],
       providers: [
         SensorsEffects,
         HttpClient,
+        { provide: SensorParserConfigService, useClass: FakeParserService }
       ]
     });
 
     store = TestBed.get(Store);
+    service = TestBed.get(SensorParserConfigService);
 
     fillStoreWithTestData()
   });
 
-  it('Should POST /sensor/parser/group on action ApplyChanges', () => {
+  it('Should pass state of parsers to service.syncConfigs() on action ApplyChanges', () => {
     store.dispatch(new fromActions.ApplyChanges());
+    expect(service.syncConfigs).toHaveBeenCalledWith(testParsers);
   })
 
-  it('Should POST /sensor/parser/config on action ApplyChanges', () => {
-
+  it('Should pass state of groups to service.syncGroup() on action ApplyChanges', () => {
+    store.dispatch(new fromActions.ApplyChanges());
+    expect(service.syncGroups).toHaveBeenCalledWith(testGroups);
   })
 
 });
