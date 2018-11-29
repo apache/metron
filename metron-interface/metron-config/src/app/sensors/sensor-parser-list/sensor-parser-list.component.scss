@@ -32,7 +32,7 @@ table tr td, table tr th {
   color: #A042B4;
 }
 
-.parent {
+.parent:not(.active) {
   background: #272727;
 }
 
@@ -111,20 +111,6 @@ table tr td, table tr th {
       }
     }
   }
-}
-
-.undo {
-  background: #1E434F;
-  color: #428EBC;
-  border: 1px solid #2B576B;
-  font-size: 9px;
-  line-height: 14px;
-  vertical-align: middle;
-  padding: 0 3px;
-  position: absolute;
-  top: 9px;
-  left: -16px;
-  cursor: pointer;
 }
 
 .indentation {
