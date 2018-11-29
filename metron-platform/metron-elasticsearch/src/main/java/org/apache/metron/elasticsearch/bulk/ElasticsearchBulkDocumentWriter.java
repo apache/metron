@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Writes documents to an Elasticsearch index in bulk.
@@ -103,15 +102,16 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
             BulkResponse bulkResponse = client.getHighLevelClient().bulk(bulkRequest);
             List<D> successful = handleBulkResponse(bulkResponse, documents);
 
-            // notify the success callback
+            // notify the success listeners
             onSuccess.ifPresent(listener -> listener.onSuccess(successful));
             LOG.debug("Wrote document(s) to Elasticsearch; batchSize={}, success={}, failed={}, took={} ms",
                     documents.size(), successful.size(), documents.size() - successful.size(), bulkResponse.getTookInMillis());
 
         } catch(IOException e) {
-            // failed to submit bulk request; all documents failed
+            // assume all documents have failed. notify the failure listeners
             if(onFailure.isPresent()) {
-                for(D failed: getDocuments()) {
+                for(Indexable indexable: documents) {
+                    D failed = indexable.document;
                     onFailure.get().onFailure(failed, e, ExceptionUtils.getRootCauseMessage(e));
                 }
             }
@@ -174,14 +174,20 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
             }
         } else {
             // all requests succeeded
-            successful.addAll(getDocuments());
+            for(Indexable success: documents) {
+                successful.add(success.document);
+            }
         }
 
         return successful;
     }
 
     private List<D> getDocuments() {
-        return documents.stream().map(ix -> ix.document).collect(Collectors.toList());
+        List<D> results = new ArrayList<>();
+        for(Indexable indexable: documents) {
+            results.add(indexable.document);
+        }
+        return results;
     }
 
     private D getDocument(int index) {
