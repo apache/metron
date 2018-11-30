@@ -25,12 +25,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
-import org.apache.metron.elasticsearch.dao.ElasticsearchColumnMetadataDao;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
-import org.apache.metron.elasticsearch.dao.ElasticsearchRequestSubmitter;
-import org.apache.metron.elasticsearch.dao.ElasticsearchRetrieveLatestDao;
-import org.apache.metron.elasticsearch.dao.ElasticsearchSearchDao;
-import org.apache.metron.elasticsearch.dao.ElasticsearchUpdateDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -55,7 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +58,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -78,59 +71,43 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   protected static final String BRO_INDEX = "bro_index_2017.01.01.01";
   protected static final String SNORT_INDEX = "snort_index_2017.01.01.02";
   protected static Map<String, Object> globalConfig;
+  protected static AccessConfig accessConfig;
   protected static RestClient lowLevelClient;
   protected static RestHighLevelClient highLevelClient;
   protected static IndexDao dao;
 
   @BeforeClass
   public static void setup() throws Exception {
-    indexComponent = startIndex();
-    globalConfig = new HashMap<String, Object>() {{
+    globalConfig =  new HashMap<String, Object>() {{
       put("es.clustername", "metron");
       put("es.port", "9200");
       put("es.ip", "localhost");
       put("es.date.format", dateFormat);
     }};
-    ElasticsearchClient esClient = ElasticsearchClientFactory.create(globalConfig);
-    lowLevelClient = esClient.getLowLevelClient();
-    highLevelClient = esClient.getHighLevelClient();
-    dao = createDao(globalConfig);
-    // The data is all static for searches, so we can set it up beforehand, and it's faster
-    loadTestData();
-  }
 
-  protected static Map<String, Object> createGlobalConfig() {
-    return new HashMap<String, Object>() {{
-      put("es.clustername", "metron");
-      put("es.port", "9200");
-      put("es.ip", "localhost");
-      put("es.date.format", dateFormat);
-    }};
-  }
-
-  protected static AccessConfig createAccessConfig() {
-    AccessConfig config = new AccessConfig();
-    config.setMaxSearchResults(100);
-    config.setMaxSearchGroups(100);
-    config.setGlobalConfigSupplier(() -> createGlobalConfig());
-    return config;
-  }
-
-  protected static IndexDao createDao(Map<String, Object> globalConfig) {
-    AccessConfig accessConfig = new AccessConfig();
+    accessConfig = new AccessConfig();
     accessConfig.setMaxSearchResults(100);
     accessConfig.setMaxSearchGroups(100);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
 
-    IndexDao dao = new ElasticsearchDao();
+    indexComponent = startIndex();
+
+    ElasticsearchClient esClient = ElasticsearchClientFactory.create(globalConfig);
+    lowLevelClient = esClient.getLowLevelClient();
+    highLevelClient = esClient.getHighLevelClient();
+
+    dao = new ElasticsearchDao();
     dao.init(accessConfig);
-    return dao;
+
+    // The data is all static for searches, so we can set it up beforehand, and it's faster
+    loadTestData();
   }
 
   protected static InMemoryComponent startIndex() throws Exception {
     InMemoryComponent es = new ElasticSearchComponent.Builder()
             .withHttpPort(9211)
             .withIndexDir(new File(indexDir))
+            .withAccessConfig(accessConfig)
             .build();
     es.start();
     return es;
@@ -163,47 +140,19 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     response = lowLevelClient.performRequest("PUT", SNORT_INDEX);
     assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
 
-    // setup the classes required to write the test data
-    AccessConfig accessConfig = createAccessConfig();
-    ElasticsearchClient client = ElasticsearchClientFactory.create(createGlobalConfig());
-    ElasticsearchRetrieveLatestDao retrieveLatestDao = new ElasticsearchRetrieveLatestDao(client);
-    ElasticsearchColumnMetadataDao columnMetadataDao = new ElasticsearchColumnMetadataDao(client);
-    ElasticsearchRequestSubmitter requestSubmitter = new ElasticsearchRequestSubmitter(client);
-    ElasticsearchUpdateDao updateDao = new ElasticsearchUpdateDao(client, accessConfig, retrieveLatestDao);
-    ElasticsearchSearchDao searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao, requestSubmitter);
-
     // write the test documents for Bro
     List<String> broDocuments = new ArrayList<>();
     for (Object broObject: (JSONArray) new JSONParser().parse(broData)) {
       broDocuments.add(((JSONObject) broObject).toJSONString());
     }
-    es.add(updateDao, BRO_INDEX, "bro", broDocuments);
+    es.add(BRO_INDEX, "bro", broDocuments);
 
     // write the test documents for Snort
     List<String> snortDocuments = new ArrayList<>();
     for (Object snortObject: (JSONArray) new JSONParser().parse(snortData)) {
       snortDocuments.add(((JSONObject) snortObject).toJSONString());
     }
-    es.add(updateDao, SNORT_INDEX, "snort", snortDocuments);
-
-    // wait until the test documents are visible
-    assertEventually(() -> Assert.assertEquals(10, findAll(searchDao).getTotal()));
-  }
-
-  /**
-   * Finds all documents that are indexed.
-   *
-   * @param searchDao The {@link ElasticsearchSearchDao} that is used to search for documents.
-   * @return The search response.
-   */
-  private static SearchResponse findAll(ElasticsearchSearchDao searchDao) {
-    try {
-      SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
-      return searchDao.search(request);
-
-    } catch(IOException | InvalidSearchException e) {
-      throw new RuntimeException(e);
-    }
+    es.add(SNORT_INDEX, "snort", snortDocuments);
   }
 
   /**

@@ -36,6 +36,7 @@ import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -58,7 +59,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test
-    public void testSuccess() {
+    public void shouldWriteSuccessfully() {
         // create a writer where all writes will be successful
         float probabilityOfSuccess = 1.0F;
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
@@ -77,7 +78,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test
-    public void testSuccesses() {
+    public void shouldWriteManySuccessfully() {
         // create a writer where all writes will be successful
         float probabilityOfSuccess = 1.0F;
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
@@ -98,7 +99,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test
-    public void testFailure() {
+    public void shouldHandleWriteFailure() {
         // create a writer where all writes will fail
         float probabilityOfSuccess = 0.0F;
         BulkDocumentWriterStub<TupleBasedDocument> docWriter = new BulkDocumentWriterStub<>(probabilityOfSuccess);
@@ -120,7 +121,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test
-    public void testFailures() {
+    public void shouldHandleManyWriteFailures() {
         // create a writer where all writes will fail
         float probabilityOfSuccess = 0.0F;
         BulkDocumentWriterStub<TupleBasedDocument> docWriter = new BulkDocumentWriterStub<>(probabilityOfSuccess);
@@ -144,7 +145,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test
-    public void testPartialFailures() {
+    public void shouldHandlePartialFailures() {
         // create a writer where some will fails and some will succeed
         float probabilityOfSuccess = 0.5F;
         BulkDocumentWriterStub<TupleBasedDocument> docWriter = new BulkDocumentWriterStub<>(probabilityOfSuccess);
@@ -170,7 +171,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testWhenNumberOfMessagesDoesNotMatchTuples() {
+    public void shouldCheckIfNumberOfMessagesMatchNumberOfTuples() {
         // create a writer where all writes will be successful
         float probabilityOfSuccess = 1.0F;
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
@@ -183,6 +184,46 @@ public class ElasticsearchWriterTest {
 
         esWriter.write("bro", writerConfiguration, tuples, messages);
         fail("expected exception");
+    }
+
+    @Test
+    public void shouldWriteSuccessfullyWhenMessageTimestampIsString() {
+        // create a writer where all writes will be successful
+        float probabilityOfSuccess = 1.0F;
+        ElasticsearchWriter esWriter = new ElasticsearchWriter();
+        esWriter.setDocumentWriter(new BulkDocumentWriterStub<>(probabilityOfSuccess));
+        esWriter.init(stormConf, topologyContext, writerConfiguration);
+
+        // create a message where the timestamp is expressed as a string
+        List<Tuple> tuples = createTuples(1);
+        List<JSONObject> messages = createMessages(1);
+        messages.get(0).put(Constants.Fields.TIMESTAMP.getName(), new Long(System.currentTimeMillis()).toString());
+
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+
+        // response should only contain successes
+        assertFalse(response.hasErrors());
+        assertTrue(response.getSuccesses().contains(tuples.get(0)));
+    }
+
+    @Test
+    public void shouldWriteSuccessfullyWhenMissingGUID() {
+        // create a writer where all writes will be successful
+        float probabilityOfSuccess = 1.0F;
+        ElasticsearchWriter esWriter = new ElasticsearchWriter();
+        esWriter.setDocumentWriter(new BulkDocumentWriterStub<>(probabilityOfSuccess));
+        esWriter.init(stormConf, topologyContext, writerConfiguration);
+
+        // create a message where the GUID is missing
+        List<Tuple> tuples = createTuples(1);
+        List<JSONObject> messages = createMessages(1);
+        assertNotNull(messages.get(0).remove(Constants.GUID));
+
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+
+        // response should only contain successes
+        assertFalse(response.hasErrors());
+        assertTrue(response.getSuccesses().contains(tuples.get(0)));
     }
 
     private JSONObject message() {

@@ -17,36 +17,11 @@
  */
 package org.apache.metron.elasticsearch.integration.components;
 
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
-
-import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.commons.io.FileUtils;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.elasticsearch.client.ElasticsearchClient;
-import org.apache.metron.elasticsearch.dao.ElasticsearchColumnMetadataDao;
-import org.apache.metron.elasticsearch.dao.ElasticsearchRequestSubmitter;
-import org.apache.metron.elasticsearch.dao.ElasticsearchRetrieveLatestDao;
-import org.apache.metron.elasticsearch.dao.ElasticsearchSearchDao;
-import org.apache.metron.elasticsearch.dao.ElasticsearchUpdateDao;
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
@@ -58,10 +33,8 @@ import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsRequest;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.common.settings.Settings;
@@ -71,10 +44,22 @@ import org.elasticsearch.node.NodeValidationException;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.transport.Netty4Plugin;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
 
 public class ElasticSearchComponent implements InMemoryComponent {
 
@@ -96,6 +81,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
     private File indexDir;
     private Map<String, String> extraElasticSearchSettings = null;
     private List<Mapping> mappings = new ArrayList<>();
+    private AccessConfig accessConfig = new AccessConfig();
 
     public Builder withMapping(String index, String docType, String mapping) {
       mappings.add(new Mapping(index, docType, mapping));
@@ -118,8 +104,13 @@ public class ElasticSearchComponent implements InMemoryComponent {
       return this;
     }
 
+    public Builder withAccessConfig(AccessConfig accessConfig) {
+      this.accessConfig = accessConfig;
+      return this;
+    }
+
     public ElasticSearchComponent build() {
-      return new ElasticSearchComponent(httpPort, indexDir, extraElasticSearchSettings, mappings);
+      return new ElasticSearchComponent(httpPort, indexDir, extraElasticSearchSettings, mappings, accessConfig);
     }
   }
 
@@ -130,13 +121,16 @@ public class ElasticSearchComponent implements InMemoryComponent {
   private File indexDir;
   private Map<String, String> extraElasticSearchSettings;
   private List<Mapping> mappings;
+  private AccessConfig accessConfig;
+  private IndexDao indexDao;
 
   public ElasticSearchComponent(int httpPort, File indexDir,
-      Map<String, String> extraElasticSearchSettings, List<Mapping> mappings) {
+      Map<String, String> extraElasticSearchSettings, List<Mapping> mappings, AccessConfig accessConfig) {
     this.httpPort = httpPort;
     this.indexDir = indexDir;
     this.extraElasticSearchSettings = extraElasticSearchSettings;
     this.mappings = mappings;
+    this.accessConfig = accessConfig;
   }
 
   @Override
@@ -174,6 +168,10 @@ public class ElasticSearchComponent implements InMemoryComponent {
           client.admin().indices().prepareCreate(m.index)
             .addMapping(m.docType, m.mapping).get();
     }
+
+    indexDao = new ElasticsearchDao()
+            .withRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
+    indexDao.init(accessConfig);
   }
 
   private void cleanDir(File dir) throws IOException {
@@ -215,14 +213,14 @@ public class ElasticSearchComponent implements InMemoryComponent {
     return client;
   }
 
-  public void add(UpdateDao updateDao, String indexName, String sensorType, String... docs)
+  public void add(String indexName, String sensorType, String... docs)
           throws IOException, ParseException {
     List<String> d = new ArrayList<>();
     Collections.addAll(d, docs);
-    add(updateDao, indexName, sensorType, d);
+    add(indexName, sensorType, d);
   }
 
-  public void add(UpdateDao updateDao, String indexName, String sensorType, Iterable<String> docs)
+  public void add(String indexName, String sensorType, Iterable<String> docs)
           throws IOException, ParseException {
 
     // create a collection of indexable documents
@@ -234,7 +232,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
     }
 
     // write the documents
-    updateDao.batchUpdate(documents);
+    indexDao.batchUpdate(documents);
   }
 
   /**

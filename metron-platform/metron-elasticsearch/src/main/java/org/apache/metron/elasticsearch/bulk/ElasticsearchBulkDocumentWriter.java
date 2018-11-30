@@ -25,6 +25,7 @@ import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.support.WriteRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -63,12 +63,14 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     private Optional<FailureListener> onFailure;
     private ElasticsearchClient client;
     private List<Indexable> documents;
+    private WriteRequest.RefreshPolicy refreshPolicy;
 
     public ElasticsearchBulkDocumentWriter(ElasticsearchClient client) {
         this.client = client;
         this.onSuccess = Optional.empty();
         this.onFailure = Optional.empty();
         this.documents = new ArrayList<>();
+        this.refreshPolicy = WriteRequest.RefreshPolicy.NONE;
     }
 
     @Override
@@ -91,24 +93,27 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     public void write() {
         try {
             // create an index request for each document
-            List<DocWriteRequest> requests = documents
-                    .stream()
-                    .map(ix -> createRequest(ix.document, ix.index))
-                    .collect(Collectors.toList());
+            BulkRequest bulkRequest = new BulkRequest();
+            bulkRequest.setRefreshPolicy(refreshPolicy);
+            for(Indexable doc: documents) {
+                DocWriteRequest request = createRequest(doc.document, doc.index);
+                bulkRequest.add(request);
+            }
 
-            // submit one bulk request and handle the response
-            BulkResponse bulkResponse = client.getHighLevelClient().bulk(new BulkRequest().add(requests));
+            // submit the request and handle the response
+            BulkResponse bulkResponse = client.getHighLevelClient().bulk(bulkRequest);
             List<D> successful = handleBulkResponse(bulkResponse, documents);
 
-            // notify the success callback
+            // notify the success listeners
             onSuccess.ifPresent(listener -> listener.onSuccess(successful));
             LOG.debug("Wrote document(s) to Elasticsearch; batchSize={}, success={}, failed={}, took={} ms",
                     documents.size(), successful.size(), documents.size() - successful.size(), bulkResponse.getTookInMillis());
 
         } catch(IOException e) {
-            // failed to submit bulk request; all documents failed
+            // assume all documents have failed. notify the failure listeners
             if(onFailure.isPresent()) {
-                for(D failed: getDocuments()) {
+                for(Indexable indexable: documents) {
+                    D failed = indexable.document;
                     onFailure.get().onFailure(failed, e, ExceptionUtils.getRootCauseMessage(e));
                 }
             }
@@ -125,6 +130,11 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
         return documents.size();
     }
 
+    public ElasticsearchBulkDocumentWriter<D> withRefreshPolicy(WriteRequest.RefreshPolicy refreshPolicy) {
+        this.refreshPolicy = refreshPolicy;
+        return this;
+    }
+
     private IndexRequest createRequest(D document, String index) {
         if(document.getTimestamp() == null) {
             throw new IllegalArgumentException("Document must contain the timestamp");
@@ -135,6 +145,7 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
                 .type(document.getSensorType() + "_doc")
                 .index(index)
                 .id(documentID(document))
+                .index(index)
                 .timestamp(document.getTimestamp().toString());
     }
 
@@ -190,10 +201,6 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
         }
 
         return successful;
-    }
-
-    private List<D> getDocuments() {
-        return documents.stream().map(ix -> ix.document).collect(Collectors.toList());
     }
 
     private D getDocument(int index) {

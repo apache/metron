@@ -156,20 +156,21 @@ public class StellarCompiler extends StellarBaseListener {
     public Object apply(ExpressionState state) {
       Deque<Token<?>> instanceDeque = new ArrayDeque<>();
       {
-        boolean skipElse = false;
+        int skipElseCount = 0;
         boolean skipMatchClauses = false;
         Token<?> token = null;
         for (Iterator<Token<?>> it = getTokenDeque().descendingIterator(); it.hasNext(); ) {
           token = it.next();
           //if we've skipped an else previously, then we need to skip the deferred tokens associated with the else.
-          if (skipElse && token.getUnderlyingType() == ElseExpr.class) {
+          if (skipElseCount > 0 && token.getUnderlyingType() == ElseExpr.class) {
             while (it.hasNext()) {
               token = it.next();
               if (token.getUnderlyingType() == EndConditional.class) {
                 break;
               }
             }
-            skipElse = false;
+            // We've completed a single else.
+            skipElseCount--;
           }
           if (skipMatchClauses && (token.getUnderlyingType() == MatchClauseEnd.class
               || token.getUnderlyingType() == MatchClauseCheckExpr.class)) {
@@ -219,14 +220,22 @@ public class StellarCompiler extends StellarBaseListener {
               //short circuit the if/then/else
               instanceDeque.pop();
               if((Boolean)curr.getValue()) {
-                //choose then
-                skipElse = true;
+                //choose then.  Need to make sure we're keeping track of nesting.
+                skipElseCount++;
               } else {
                 //choose else
+                // Need to count in case we see another if-else, to avoid breaking on wrong else.
+                int innerIfCount = 0;
                 while (it.hasNext()) {
                   Token<?> t = it.next();
-                  if (t.getUnderlyingType() == ElseExpr.class) {
-                    break;
+                  if (t.getUnderlyingType() == IfExpr.class) {
+                    innerIfCount++;
+                  } else if (t.getUnderlyingType() == ElseExpr.class) {
+                    if (innerIfCount == 0) {
+                      break;
+                    } else {
+                      innerIfCount--;
+                    }
                   }
                 }
               }
