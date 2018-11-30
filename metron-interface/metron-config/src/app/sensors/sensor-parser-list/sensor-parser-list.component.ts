@@ -418,6 +418,10 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
       && this.isRootElement(sensor);
   }
 
+  isDeletedOrPhantom(sensor: ParserMetaInfoModel) {
+    return !!sensor.isDeleted || !!sensor.isPhantom;
+  }
+
   setDraggedOver(id: string) {
     this.draggedOverElementId = id;
   }
