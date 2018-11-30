@@ -58,7 +58,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test
-    public void testSuccess() {
+    public void shouldWriteSuccessfully() {
         // create a writer where all writes will be successful
         float probabilityOfSuccess = 1.0F;
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
@@ -77,7 +77,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test
-    public void testSuccesses() {
+    public void shouldWriteManySuccessfully() {
         // create a writer where all writes will be successful
         float probabilityOfSuccess = 1.0F;
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
@@ -98,7 +98,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test
-    public void testFailure() {
+    public void shouldHandleWriteFailure() {
         // create a writer where all writes will fail
         float probabilityOfSuccess = 0.0F;
         BulkDocumentWriterStub<TupleBasedDocument> docWriter = new BulkDocumentWriterStub<>(probabilityOfSuccess);
@@ -120,7 +120,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test
-    public void testFailures() {
+    public void shouldHandleManyWriteFailures() {
         // create a writer where all writes will fail
         float probabilityOfSuccess = 0.0F;
         BulkDocumentWriterStub<TupleBasedDocument> docWriter = new BulkDocumentWriterStub<>(probabilityOfSuccess);
@@ -144,7 +144,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test
-    public void testPartialFailures() {
+    public void shouldHandlePartialFailures() {
         // create a writer where some will fails and some will succeed
         float probabilityOfSuccess = 0.5F;
         BulkDocumentWriterStub<TupleBasedDocument> docWriter = new BulkDocumentWriterStub<>(probabilityOfSuccess);
@@ -170,7 +170,7 @@ public class ElasticsearchWriterTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testWhenNumberOfMessagesDoesNotMatchTuples() {
+    public void shouldCheckIfNumberOfMessagesMatchNumberOfTuples() {
         // create a writer where all writes will be successful
         float probabilityOfSuccess = 1.0F;
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
