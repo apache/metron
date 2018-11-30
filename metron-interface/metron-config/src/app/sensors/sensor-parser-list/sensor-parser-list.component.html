@@ -117,6 +117,7 @@
             aria-hidden="true"
             [hidden]="!isStoppable(sensor)"
             (click)="onStopSensor(sensor, $event)"
+            data-qe-id="stop-parser-button"
           >
           </i>
           <i
@@ -126,6 +127,7 @@
             aria-hidden="true"
             [hidden]="!isStartable(sensor)"
             (click)="onStartSensor(sensor, $event)"
+            data-qe-id="start-parser-button"
           >
           </i>
 
@@ -134,8 +136,9 @@
             title="Disable parser topology"
             class="fa fa-ban fa-lg"
             aria-hidden="true"
-            [hidden]="!isDisablable(sensor)"
+            [hidden]="!isDisableable(sensor)"
             (click)="onDisableSensor(sensor, $event)"
+            data-qe-id="disable-parser-button"
           >
           </i>
 
@@ -144,8 +147,9 @@
             title="Enable parser topology"
             class="fa fa-check-circle-o fa-lg"
             aria-hidden="true"
-            [hidden]="!isEnablable(sensor)"
+            [hidden]="!isEnableable(sensor)"
             (click)="onEnableSensor(sensor, $event)"
+            data-qe-id="enable-parser-button"
           >
           </i>
           <i

@@ -22,7 +22,7 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { DebugElement, Inject } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { Router, NavigationStart } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { SensorParserListComponent } from './sensor-parser-list.component';
 import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
 import { MetronAlerts } from '../../shared/metron-alerts';
@@ -153,6 +153,29 @@ describe('Component: SensorParserList', () => {
   let metronAlerts: MetronAlerts;
   let metronDialog: MetronDialogBox;
   let dialogEl: DebugElement;
+  let sensors = [
+    {
+      config: new ParserConfigModel(),
+      status: {
+        status: 'KILLED'
+      },
+      isGroup: false
+    },
+    {
+      config: new ParserConfigModel(),
+      status: {
+        status: 'INACTIVE'
+      },
+      isGroup: false
+    },
+    {
+      config: new ParserConfigModel(),
+      status: {
+        status: 'ACTIVE'
+      },
+      isGroup: false
+    }
+  ];
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -160,7 +183,12 @@ describe('Component: SensorParserList', () => {
       providers: [
         { provide: HttpClient },
         { provide: Store, useValue: {
-          pipe: () => {}
+          pipe: () => {
+            return of(sensors)
+          },
+          dispatch: () => {
+
+          }
         } },
         { provide: Location, useClass: SpyLocation },
         { provide: AuthenticationService, useClass: MockAuthenticationService },
@@ -629,4 +657,93 @@ describe('Component: SensorParserList', () => {
       fixture.destroy();
     })
   );
+
+  it('isStoppable() should return true unless a sensor is KILLED', async(() => {
+    const component = Object.create( SensorParserListComponent.prototype );
+    const sensorParserConfig1 = new ParserConfigModel();
+    let sensor: ParserMetaInfoModel = { config: sensorParserConfig1, status: new TopologyStatus() };
+
+    sensor.status.status = 'KILLED';
+    expect(component.isStoppable(sensor)).toBe(false);
+
+    sensor.status.status = 'ACTIVE';
+    expect(component.isStoppable(sensor)).toBe(true);
+
+    sensor.status.status = 'INACTIVE';
+    expect(component.isStoppable(sensor)).toBe(true);
+  }));
+
+  it('isStartable() should return true only when a parser is KILLED', async(() => {
+    const component = Object.create( SensorParserListComponent.prototype );
+    const sensorParserConfig1 = new ParserConfigModel();
+    let sensor: ParserMetaInfoModel = { config: sensorParserConfig1, status: new TopologyStatus() };
+
+    sensor.status.status = 'KILLED';
+    expect(component.isStartable(sensor)).toBe(true);
+
+    sensor.status.status = 'ACTIVE';
+    expect(component.isStartable(sensor)).toBe(false);
+
+    sensor.status.status = 'INACTIVE';
+    expect(component.isStartable(sensor)).toBe(false);
+  }));
+
+  it('isEnableable() should return true only when a parser is ACTIVE', async(() => {
+    const component = Object.create( SensorParserListComponent.prototype );
+    const sensorParserConfig1 = new ParserConfigModel();
+    let sensor: ParserMetaInfoModel = { config: sensorParserConfig1, status: new TopologyStatus() };
+
+    sensor.status.status = 'KILLED';
+    expect(component.isEnableable(sensor)).toBe(false);
+
+    sensor.status.status = 'ACTIVE';
+    expect(component.isEnableable(sensor)).toBe(true);
+
+    sensor.status.status = 'INACTIVE';
+    expect(component.isEnableable(sensor)).toBe(false);
+  }));
+
+  it('isDisableable() should return true only when a parser is INACTIVE', async(() => {
+    const component = Object.create( SensorParserListComponent.prototype );
+    const sensorParserConfig1 = new ParserConfigModel();
+    let sensor: ParserMetaInfoModel = { config: sensorParserConfig1, status: new TopologyStatus() };
+
+    sensor.status.status = 'KILLED';
+    expect(component.isDisableable(sensor)).toBe(false);
+
+    sensor.status.status = 'ACTIVE';
+    expect(component.isDisableable(sensor)).toBe(false);
+
+    sensor.status.status = 'INACTIVE';
+    expect(component.isDisableable(sensor)).toBe(true);
+  }));
+
+  it('should hide parser controls when they cannot be used', async(() => {
+    fixture.detectChanges();
+
+    const stopButtons = fixture.debugElement.queryAll(By.css('[data-qe-id="stop-parser-button"]'));
+    const startButtons = fixture.debugElement.queryAll(By.css('[data-qe-id="start-parser-button"]'));
+    const enableButtons = fixture.debugElement.queryAll(By.css('[data-qe-id="enable-parser-button"]'));
+    const disableButtons = fixture.debugElement.queryAll(By.css('[data-qe-id="disable-parser-button"]'));
+
+    // !KILLED status should show stop button
+    expect(stopButtons[0].properties.hidden).toBe(true);
+    expect(stopButtons[1].properties.hidden).toBe(false);
+    expect(stopButtons[2].properties.hidden).toBe(false);
+
+    // KILLED status should only show start button
+    expect(startButtons[0].properties.hidden).toBe(false);
+    expect(startButtons[1].properties.hidden).toBe(true);
+    expect(startButtons[2].properties.hidden).toBe(true);
+
+    // ACTIVE status should show enable buttons
+    expect(enableButtons[0].properties.hidden).toBe(true);
+    expect(enableButtons[1].properties.hidden).toBe(true);
+    expect(enableButtons[2].properties.hidden).toBe(false);
+
+    // INACTIVE status should show disable buttons
+    expect(disableButtons[0].properties.hidden).toBe(true);
+    expect(disableButtons[1].properties.hidden).toBe(false);
+    expect(disableButtons[2].properties.hidden).toBe(true);
+  }));
 });
