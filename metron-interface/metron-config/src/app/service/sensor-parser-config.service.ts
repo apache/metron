@@ -125,9 +125,6 @@ export class SensorParserConfigService {
         }
       }),
       catchError(HttpUtil.handleError),
-      reduce((acc, request) => {
-        return acc.concat(request);
-      }, [])
     )
   }
 

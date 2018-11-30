@@ -30,7 +30,9 @@ import { ParserConfigModel } from '../models/parser-config.model';
 import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
 import { Injectable } from '@angular/core';
 import { ApplyChanges } from '../actions';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { RestError } from '../../model/rest-error';
 
 
 @Injectable()
@@ -41,9 +43,16 @@ class FakeParserService {
   getAllGroups = jasmine.createSpy().and.returnValue(of([]));
 }
 
+@Injectable()
+class FakeMetronAlerts {
+  showErrorMessage = jasmine.createSpy();
+  showSuccessMessage = jasmine.createSpy();
+}
+
 describe('sensor.effects.ts', () => {
   let store: Store<fromModule.State>;
   let service: FakeParserService;
+  let userNotificationSvc: MetronAlerts;
   let effects: SensorsEffects;
   let testParsers: ParserMetaInfoModel[];
   let testGroups: ParserMetaInfoModel[];
@@ -76,12 +85,14 @@ describe('sensor.effects.ts', () => {
       providers: [
         SensorsEffects,
         HttpClient,
-        { provide: SensorParserConfigService, useClass: FakeParserService }
+        { provide: SensorParserConfigService, useClass: FakeParserService },
+        { provide: MetronAlerts, useClass: FakeMetronAlerts },
       ]
     });
 
     store = TestBed.get(Store);
     service = TestBed.get(SensorParserConfigService);
+    userNotificationSvc = TestBed.get(MetronAlerts);
     effects = TestBed.get(SensorsEffects);
 
     fillStoreWithTestData();
@@ -103,6 +114,17 @@ describe('sensor.effects.ts', () => {
     });
 
     store.dispatch(new fromActions.ApplyChanges());
+  });
+
+  it('Should show notification when operation SUCCESSFULL', () => {
+    store.dispatch(new fromActions.ApplyChanges());
+    expect(userNotificationSvc.showSuccessMessage).toHaveBeenCalled();
+  });
+
+  it('Should show notification when operation FAILED', () => {
+    service.syncConfigs = jasmine.createSpy().and.callFake(params => throwError(new RestError()));
+    store.dispatch(new fromActions.ApplyChanges());
+    expect(userNotificationSvc.showErrorMessage).toHaveBeenCalled();
   });
 
 });

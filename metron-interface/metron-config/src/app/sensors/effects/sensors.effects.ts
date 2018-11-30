@@ -19,7 +19,7 @@ import { Effect, Actions, ofType } from '@ngrx/effects'
 import { Observable, forkJoin } from 'rxjs';
 import { Action, Store, select } from '@ngrx/store';
 import { Injectable } from '@angular/core';
-import { mergeMap, map, switchMap, withLatestFrom } from 'rxjs/operators';
+import { mergeMap, map, switchMap, withLatestFrom, catchError } from 'rxjs/operators';
 import { SensorParserConfigService } from 'app/service/sensor-parser-config.service';
 import { ParserConfigModel } from '../models/parser-config.model';
 import * as fromActions from '../actions';
@@ -28,6 +28,8 @@ import { TopologyStatus } from '../../model/topology-status';
 import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { ParserGroupModel } from '../models/parser-group.model';
 import * as fromReducers from '../reducers';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { RestError } from '../../model/rest-error';
 
 @Injectable()
 export class SensorsEffects {
@@ -87,7 +89,14 @@ export class SensorsEffects {
         this.parserService.syncConfigs(state.parsers.items),
         this.parserService.syncGroups(state.groups.items),
       ).pipe(
+        catchError((error) => {
+          console.error(error);
+          this.alertSvc.showErrorMessage('Applying changes FAILED');
+          return error;
+        }),
         map(() => {
+          console.log('Changes successfully syncronized with the server');
+          this.alertSvc.showSuccessMessage('Changes applied');
           return new fromActions.LoadStart();
       }));
     })
@@ -97,6 +106,7 @@ export class SensorsEffects {
     private parserService: SensorParserConfigService,
     private stormService: StormService,
     private actions$: Actions,
-    private store: Store<fromReducers.State>
+    private store: Store<fromReducers.State>,
+    private alertSvc: MetronAlerts
   ) {}
 }
