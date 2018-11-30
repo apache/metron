@@ -18,6 +18,7 @@
 package org.apache.metron.elasticsearch.writer;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.field.FieldNameConverter;
@@ -45,6 +46,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.apache.metron.stellar.common.Constants.Fields.TIMESTAMP;
 
 /**
  * A {@link BulkMessageWriter} that writes messages to Elasticsearch.
@@ -118,13 +120,16 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       // define the document id
       String guid = String.class.cast(source.get(Constants.GUID));
       if(guid == null) {
-        LOG.info("Missing '{}' field; document ID will be auto-generated.", Constants.GUID);
+        LOG.warn("Missing '{}' field; document ID will be auto-generated.", Constants.GUID);
       }
 
       // define the document timestamp
-      Long timestamp = Long.class.cast(source.get(Constants.Fields.TIMESTAMP.getName()));
-      if(timestamp == null) {
-        LOG.info("Missing '{}' field; timestamp will be set to system time.", Constants.Fields.TIMESTAMP.getName());
+      Long timestamp = null;
+      Object value = source.get(TIMESTAMP.getName());
+      if(value != null) {
+        timestamp = Long.parseLong(value.toString());
+      } else {
+        LOG.warn("Missing '{}' field; timestamp will be set to system time.", TIMESTAMP.getName());
       }
 
       TupleBasedDocument document = new TupleBasedDocument(source, guid, sensorType, timestamp, tuple);

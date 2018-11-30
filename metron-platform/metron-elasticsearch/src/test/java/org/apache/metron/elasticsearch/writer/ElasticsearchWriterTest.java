@@ -185,6 +185,26 @@ public class ElasticsearchWriterTest {
         fail("expected exception");
     }
 
+    @Test
+    public void shouldWriteSuccessfullyWhenMessageTimestampIsString() {
+        // create a writer where all writes will be successful
+        float probabilityOfSuccess = 1.0F;
+        ElasticsearchWriter esWriter = new ElasticsearchWriter();
+        esWriter.setDocumentWriter(new BulkDocumentWriterStub<>(probabilityOfSuccess));
+        esWriter.init(stormConf, topologyContext, writerConfiguration);
+
+        // create a message where the timestamp is expressed as a string
+        List<Tuple> tuples = createTuples(1);
+        List<JSONObject> messages = createMessages(1);
+        messages.get(0).put(Constants.Fields.TIMESTAMP.getName(), new Long(System.currentTimeMillis()).toString());
+
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+
+        // response should only contain successes
+        assertFalse(response.hasErrors());
+        assertTrue(response.getSuccesses().contains(tuples.get(0)));
+    }
+
     private JSONObject message() {
         JSONObject message = new JSONObject();
         message.put(Constants.GUID, UUID.randomUUID().toString());
