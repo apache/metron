@@ -61,7 +61,7 @@ export class SensorParserConfigService {
     );
   }
 
-  public saveGroup(name: string, group: ParserGroupModel): Observable<RestError | ParserGroupModel> {
+  public saveGroup(name: string, group: ParserGroupModel | ParserModel): Observable<RestError | ParserGroupModel> {
     return this.http.post(`${this.parserGroupEndpoint}/${name}`, group).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
@@ -104,30 +104,24 @@ export class SensorParserConfigService {
   }
 
   syncConfigs(configs: ParserMetaInfoModel[]): any {
-    return from(configs).pipe(
-      filter(config => !!(config.isDeleted || config.isDirty || config.isPhantom)),
-      mergeMap((config: ParserMetaInfoModel) => {
-        if (config.isDeleted) {
-          return this.deleteConfig(config.config.getName());
-        } else {
-          return this.saveConfig(config.config.getName(), config.config as ParserConfigModel);
-        }
-      }),
-      catchError(HttpUtil.handleError),
-      reduce((acc, request) => {
-        return acc.concat(request);
-      }, [])
-    )
+    return this.sync(configs, this.saveConfig, this.deleteConfig);
   }
 
   syncGroups(groups: ParserMetaInfoModel[]) {
-    return from(groups).pipe(
-      filter(group => !!(group.isDeleted || group.isDirty || group.isPhantom)),
-      mergeMap((group: ParserMetaInfoModel) => {
-        if (group.isDeleted) {
-          return this.deleteGroup(group.config.getName());
+    return this.sync(groups, this.saveGroup, this.deleteGroup);
+  }
+
+  private sync(
+    items: ParserMetaInfoModel[],
+    saveFn: Function, deleteFn: Function
+  ) {
+    return from(items).pipe(
+      filter(item => !!(item.isDeleted || item.isDirty || item.isPhantom)),
+      mergeMap((changedItem: ParserMetaInfoModel) => {
+        if (changedItem.isDeleted) {
+          return deleteFn.call(this, changedItem.config.getName());
         } else {
-          return this.saveGroup(group.config.getName(), group.config as ParserGroupModel);
+          return saveFn.call(this, changedItem.config.getName(), changedItem.config);
         }
       }),
       catchError(HttpUtil.handleError),

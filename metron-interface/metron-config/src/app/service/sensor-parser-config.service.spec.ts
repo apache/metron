@@ -428,7 +428,7 @@ describe('SensorParserConfigService', () => {
         requests[1].flush(requests[1].request.body);
     });
 
-    fit('error throwing in syncConfigs()', () => {
+    it('error throwing in syncConfigs()', () => {
       const testData = getTestConfigs();
 
       markElementOnIndexAs(testData, [2], DirtyFlags.CHANGED);
@@ -445,7 +445,7 @@ describe('SensorParserConfigService', () => {
         request.flush('Invalid request parameters', { status: 404, statusText: 'Bad Request' });
     });
 
-    fit('error throwing in syncConfigs()', () => {
+    it('error throwing in syncConfigs()', () => {
       const testData = getTestGroups();
 
       markElementOnIndexAs(testData, [1], DirtyFlags.CHANGED);
