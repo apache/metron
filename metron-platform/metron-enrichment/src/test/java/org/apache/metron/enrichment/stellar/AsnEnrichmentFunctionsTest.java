@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.metron.enrichment.adapters.asn.AsnDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.asn.AsnDatabase;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;

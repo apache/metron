@@ -27,8 +27,8 @@ import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.performance.PerformanceLogger;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
-import org.apache.metron.enrichment.adapters.asn.AsnDatabase;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.asn.AsnDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.parallel.EnrichmentContext;
@@ -357,7 +357,8 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
     messageGetter = this.getterStrategy.get(messageFieldName);
     enricher = new ParallelEnricher(enrichmentsByType, ConcurrencyContext.get(strategy), captureCacheStats);
     perfLog = new PerformanceLogger(() -> getConfigurations().getGlobalConfig(), Perf.class.getName());
-    GeoLiteDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(GeoLiteDatabase.GEO_HDFS_FILE));
+    GeoLiteCityDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(
+        GeoLiteCityDatabase.GEO_HDFS_FILE));
     AsnDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(AsnDatabase.ASN_HDFS_FILE));
     initializeStellar();
     enrichmentContext = new EnrichmentContext(StellarFunctions.FUNCTION_RESOLVER(), stellarContext);

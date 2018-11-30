@@ -18,10 +18,10 @@
 package org.apache.metron.enrichment.stellar;
 
 import ch.hsr.geohash.WGS84Point;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
-import org.apache.metron.enrichment.adapters.geo.hash.DistanceStrategies;
-import org.apache.metron.enrichment.adapters.geo.hash.DistanceStrategy;
-import org.apache.metron.enrichment.adapters.geo.hash.GeoHashUtil;
+import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.geo.hash.DistanceStrategies;
+import org.apache.metron.enrichment.adapters.maxmind.geo.hash.DistanceStrategy;
+import org.apache.metron.enrichment.adapters.maxmind.geo.hash.GeoHashUtil;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
@@ -62,8 +62,8 @@ public class GeoHashFunctions {
       Optional<WGS84Point> point = GeoHashUtil.INSTANCE.toPoint(hash);
       if(point.isPresent()) {
         Map<String, Object> ret = new HashMap<>();
-        ret.put(GeoLiteDatabase.GeoProps.LONGITUDE.getSimpleName(), point.get().getLongitude());
-        ret.put(GeoLiteDatabase.GeoProps.LATITUDE.getSimpleName(), point.get().getLatitude());
+        ret.put(GeoLiteCityDatabase.GeoProps.LONGITUDE.getSimpleName(), point.get().getLongitude());
+        ret.put(GeoLiteCityDatabase.GeoProps.LATITUDE.getSimpleName(), point.get().getLatitude());
         return ret;
       }
       return null;

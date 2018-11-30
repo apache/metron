@@ -30,7 +30,8 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.utils.CompressionStrategies;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.asn.AsnDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -45,55 +46,74 @@ import java.util.Map;
 public class GeoEnrichmentLoader {
 
   private static final String DEFAULT_RETRIES = "2";
+  private static final String GEO_CITY_URL_DEFAULT = "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz";
+  private static final String ASN_URL_DEFAULT = "http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz";
 
   private static abstract class OptionHandler implements Function<String, Option> {
   }
 
   public enum GeoEnrichmentOptions {
     HELP("h", new GeoEnrichmentLoader.OptionHandler() {
-      @Nullable
       @Override
       public Option apply(@Nullable String s) {
         return new Option(s, "help", false, "Generate Help screen");
       }
-    }), GEO_URL("g", new GeoEnrichmentLoader.OptionHandler() {
-      @Nullable
+    }),
+    ASN_URL("a", new GeoEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
-        Option o = new Option(s, "geo_url", true, "GeoIP URL - defaults to http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz");
+        Option o = new Option(s, "asn_url", true, "GeoIP URL - " + ASN_URL_DEFAULT);
         o.setArgName("GEO_URL");
         o.setRequired(false);
         return o;
       }
-    }), REMOTE_DIR("r", new GeoEnrichmentLoader.OptionHandler() {
-      @Nullable
+    }),
+    GEO_URL("g", new GeoEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
-        Option o = new Option(s, "remote_dir", true, "HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/<epoch millis>/");
+        Option o = new Option(s, "geo_url", true, "GeoIP URL - defaults to " + GEO_CITY_URL_DEFAULT);
+        o.setArgName("GEO_URL");
+        o.setRequired(false);
+        return o;
+      }
+    }),
+    REMOTE_GEO_DIR("r", new GeoEnrichmentLoader.OptionHandler() {
+      @Override
+      public Option apply(@Nullable String s) {
+        Option o = new Option(s, "remote_dir", true, "HDFS directory to land formatted GeoLite2 City file - defaults to /apps/metron/geo/<epoch millis>/");
         o.setArgName("REMOTE_DIR");
         o.setRequired(false);
         return o;
       }
-    }), RETRIES("re", new GeoEnrichmentLoader.OptionHandler() {
-      @Nullable
+    }),
+    REMOTE_ASN_DIR("ra", new GeoEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
-        Option o = new Option(s, "retries", true, "Number of geo db download retries, after an initial failure.");
+        Option o = new Option(s, "remote_asn_dir", true, "HDFS directory to land formatted GeoLite2 ASN file - defaults to /apps/metron/asn/<epoch millis>/");
+        o.setArgName("REMOTE_DIR");
+        o.setRequired(false);
+        return o;
+      }
+    }),
+    RETRIES("re", new GeoEnrichmentLoader.OptionHandler() {
+      @Override
+      public Option apply(@Nullable String s) {
+        Option o = new Option(s, "retries", true, "Number of GeoLite2 database download retries, after an initial failure.");
         o.setArgName("RETRIES");
         o.setRequired(false);
         return o;
       }
-    }), TMP_DIR("t", new GeoEnrichmentLoader.OptionHandler() {
-      @Nullable
+    }),
+    TMP_DIR("t", new GeoEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
-        Option o = new Option(s, "tmp_dir", true, "Directory for landing the temporary GeoIP data - defaults to /tmp");
+        Option o = new Option(s, "tmp_dir", true, "Directory for landing the temporary GeoLite2 data - defaults to /tmp");
         o.setArgName("TMP_DIR");
         o.setRequired(false);
         return o;
       }
-    }), ZK_QUORUM("z", new GeoEnrichmentLoader.OptionHandler() {
-      @Nullable
+    }),
+    ZK_QUORUM("z", new GeoEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
         Option o = new Option(s, "zk_quorum", true, "Zookeeper Quorum URL (zk1:port,zk2:port,...)");
@@ -154,37 +174,53 @@ public class GeoEnrichmentLoader {
     }
   }
 
-  protected void loadGeoIpDatabase(CommandLine cli) throws IOException {
+  protected void loadGeoLiteDatabase(CommandLine cli) throws IOException {
     // Retrieve the database file
     System.out.println("Retrieving GeoLite2 archive");
-    String url = GeoEnrichmentOptions.GEO_URL.get(cli, "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz");
+
+    String geo_url = GeoEnrichmentOptions.GEO_URL.get(cli, GEO_CITY_URL_DEFAULT);
+    String asn_url = GeoEnrichmentOptions.ASN_URL.get(cli, ASN_URL_DEFAULT);
+
     String tmpDir = GeoEnrichmentOptions.TMP_DIR.get(cli, "/tmp") + "/"; // Make sure there's a file separator at the end
     int numRetries = Integer.parseInt(GeoEnrichmentOptions.RETRIES.get(cli, DEFAULT_RETRIES));
     File localGeoFile = null;
+    File localAsnFile = null;
     try {
-      localGeoFile = downloadGeoFile(url, tmpDir, numRetries);
+      localGeoFile = downloadGeoFile(geo_url, tmpDir, numRetries);
+      localAsnFile = downloadGeoFile(asn_url, tmpDir, numRetries);
     } catch (IllegalStateException ies) {
       System.err.println("Failed to download geo db file. Aborting");
       System.exit(5);
     }
     // Want to delete the tar in event of failure
     localGeoFile.deleteOnExit();
+    localAsnFile.deleteOnExit();
     System.out.println("GeoIP files downloaded successfully");
 
-    // Push the file to HDFS and update Configs to ensure clients get new view
+    // Push the Geo file to HDFS and update Configs to ensure clients get new view
     String zookeeper = GeoEnrichmentOptions.ZK_QUORUM.get(cli);
     long millis = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
-    String hdfsLoc = GeoEnrichmentOptions.REMOTE_DIR.get(cli, "/apps/metron/geo/" + millis);
-    System.out.println("Putting GeoLite2 file into HDFS at: " + hdfsLoc);
+    String hdfsGeoLoc = GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli, "/apps/metron/geo/" + millis);
+    System.out.println("Putting GeoLite City file into HDFS at: " + hdfsGeoLoc);
 
-    // Put into HDFS
+    // Put Geo into HDFS
     Path srcPath = new Path(localGeoFile.getAbsolutePath());
-    Path dstPath = new Path(hdfsLoc);
+    Path dstPath = new Path(hdfsGeoLoc);
     putDbFile(srcPath, dstPath);
-    pushConfig(srcPath, dstPath, zookeeper);
+    pushConfig(srcPath, dstPath, GeoLiteCityDatabase.GEO_HDFS_FILE, zookeeper);
+
+    // Push the ASN file to HDFS and update Configs to ensure clients get new view
+    String hdfsAsnLoc = GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli, "/apps/metron/asn/" + millis);
+    System.out.println("Putting ASN file into HDFS at: " + hdfsAsnLoc);
+
+    // Put ASN into HDFS
+    srcPath = new Path(localAsnFile.getAbsolutePath());
+    dstPath = new Path(hdfsAsnLoc);
+    putDbFile(srcPath, dstPath);
+    pushConfig(srcPath, dstPath, AsnDatabase.ASN_HDFS_FILE, zookeeper);
 
     System.out.println("GeoLite2 file placement complete");
-    System.out.println("Successfully created and updated new GeoIP information");
+    System.out.println("Successfully created and updated new GeoLite information");
   }
 
   protected File downloadGeoFile(String urlStr, String tmpDir, int  numRetries) {
@@ -225,7 +261,7 @@ public class GeoEnrichmentLoader {
     return localFile;
   }
 
-  protected void pushConfig(Path srcPath, Path dstPath, String zookeeper) {
+  protected void pushConfig(Path srcPath, Path dstPath, String configName, String zookeeper) {
     System.out.println("Beginning update of global configs");
     try (CuratorFramework client = ConfigurationsUtils.getClient(zookeeper)) {
       client.start();
@@ -236,10 +272,10 @@ public class GeoEnrichmentLoader {
               JSONUtils.MAP_SUPPLIER);
 
       // Update the global config and push it back
-      global.put(GeoLiteDatabase.GEO_HDFS_FILE, dstPath.toString() + "/" + srcPath.getName());
+      global.put(configName, dstPath.toString() + "/" + srcPath.getName());
       ConfigurationsUtils.writeGlobalConfigToZookeeper(global, client);
     } catch (Exception e) {
-      System.err.println("Unable to load new GeoIP info into HDFS: " + e);
+      System.err.println("Unable to load new GeoLite2 config for " + configName + " into HDFS: " + e);
       e.printStackTrace();
       System.exit(2);
     }
@@ -260,6 +296,6 @@ public class GeoEnrichmentLoader {
     CommandLine cli = GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
 
     GeoEnrichmentLoader loader = new GeoEnrichmentLoader();
-    loader.loadGeoIpDatabase(cli);
+    loader.loadGeoLiteDatabase(cli);
   }
 }

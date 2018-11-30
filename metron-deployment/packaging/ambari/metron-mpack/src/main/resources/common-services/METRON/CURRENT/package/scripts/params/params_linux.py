@@ -308,6 +308,7 @@ threat_triage_score_field = config['configurations']['metron-rest-env']['threat_
 # Enrichment
 metron_enrichment_topology = status_params.metron_enrichment_topology
 geoip_url = config['configurations']['metron-enrichment-env']['geoip_url']
+asn_url = config['configurations']['metron-enrichment-env']['asn_url']
 enrichment_host_known_hosts = config['configurations']['metron-enrichment-env']['enrichment_host_known_hosts']
 
 # Enrichment - Kafka

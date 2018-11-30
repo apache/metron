@@ -90,7 +90,7 @@ public class GeoEnrichmentLoaderTest {
     CommandLine cli = GeoEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
 
     GeoEnrichmentLoader loader = new MockGeoEnrichmentLoader();
-    loader.loadGeoIpDatabase(cli);
+    loader.loadGeoLiteDatabase(cli);
     Configuration config = new Configuration();
     FileSystem fs = FileSystem.get(config);
     assertTrue(fs.exists(new Path(remoteDir + "/" + dbFile.getName())));

@@ -24,7 +24,7 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.common.StellarProcessor;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -86,7 +86,7 @@ public class GeoEnrichmentFunctionsTest {
   @Before
   public void setup() throws Exception {
     context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG
-            , () -> ImmutableMap.of(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath())
+            , () -> ImmutableMap.of(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath())
     )
             .build();
   }

@@ -110,6 +110,31 @@ class EnrichmentCommands:
         Logger.info("Done intializing GeoIP data")
         self.set_geo_configured()
 
+    def init_asn(self):
+        Logger.info("Creating HDFS location for GeoIP database")
+        self.__params.HdfsResource(self.__params.geoip_hdfs_dir,
+                                   type="directory",
+                                   action="create_on_execute",
+                                   owner=self.__params.metron_user,
+                                   group=self.__params.metron_group,
+                                   mode=0755,
+                                   )
+
+        Logger.info("Creating and loading GeoIp database")
+        command_template = """{0}/bin/geo_enrichment_load.sh \
+                                -g {1} \
+                                -r {2} \
+                                -z {3}"""
+        command = command_template.format(self.__params.metron_home,
+                                          self.__params.asn_url,
+                                          self.__params.geoip_hdfs_dir,
+                                          self.__params.zookeeper_quorum
+                                          )
+        Logger.info("Executing command " + command)
+        Execute(command, user=self.__params.metron_user, tries=1, logoutput=True)
+        Logger.info("Done intializing GeoIP data")
+        self.set_geo_configured()
+
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for enrichment')
         # All errors go to indexing topics, so create it here if it's not already

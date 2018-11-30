@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
@@ -94,6 +94,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private final List<byte[]> inputMessages = getInputMessages(sampleParsedPath);
 
   private static File geoHdfsFile;
+  private static File asnHdfsFile;
 
   protected String fluxPath() {
     return "../metron-enrichment/src/main/flux/enrichment/remote-splitjoin.yaml";
@@ -119,6 +120,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public static void setupOnce() throws ParseException {
     String baseDir = UnitTestHelper.findDir("GeoLite");
     geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+    asnHdfsFile = new File(new File(baseDir), "GeoLite2-ASN.tar.gz");
   }
 
   /**
@@ -188,7 +190,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       config.put(SimpleHBaseEnrichmentFunctions.ACCESS_TRACKER_TYPE_CONF, "PERSISTENT_BLOOM");
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_TABLE, trackerHBaseTableName);
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_CF, cf);
-      config.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
+      config.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
       globalConfigStr = JSONUtils.INSTANCE.toJSON(config, true);
     }
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
