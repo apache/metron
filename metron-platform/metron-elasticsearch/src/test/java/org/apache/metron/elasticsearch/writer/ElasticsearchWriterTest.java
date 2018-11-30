@@ -36,6 +36,7 @@ import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -197,6 +198,26 @@ public class ElasticsearchWriterTest {
         List<Tuple> tuples = createTuples(1);
         List<JSONObject> messages = createMessages(1);
         messages.get(0).put(Constants.Fields.TIMESTAMP.getName(), new Long(System.currentTimeMillis()).toString());
+
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+
+        // response should only contain successes
+        assertFalse(response.hasErrors());
+        assertTrue(response.getSuccesses().contains(tuples.get(0)));
+    }
+
+    @Test
+    public void shouldWriteSuccessfullyWhenMissingGUID() {
+        // create a writer where all writes will be successful
+        float probabilityOfSuccess = 1.0F;
+        ElasticsearchWriter esWriter = new ElasticsearchWriter();
+        esWriter.setDocumentWriter(new BulkDocumentWriterStub<>(probabilityOfSuccess));
+        esWriter.init(stormConf, topologyContext, writerConfiguration);
+
+        // create a message where the GUID is missing
+        List<Tuple> tuples = createTuples(1);
+        List<JSONObject> messages = createMessages(1);
+        assertNotNull(messages.get(0).remove(Constants.GUID));
 
         BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
 
