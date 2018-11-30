@@ -84,8 +84,6 @@ for i in "$@"; do
    UNKNOWN_OPTION="${i#*=}"
    echo "Error: unknown option: $UNKNOWN_OPTION"
    help
-   exit 0
-   shift
   ;;
  esac
 done
