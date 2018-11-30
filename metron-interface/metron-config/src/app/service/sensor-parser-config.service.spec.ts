@@ -27,6 +27,9 @@ import {
 } from '@angular/common/http/testing';
 import { ParserGroupModel } from '../sensors/models/parser-group.model';
 import { ParserMetaInfoModel } from '../sensors/models/parser-meta-info.model';
+import { catchError } from 'rxjs/operators';
+import { RestError } from '../model/rest-error';
+import { noop } from 'rxjs';
 
 describe('SensorParserConfigService', () => {
   let mockBackend: HttpTestingController;
@@ -423,6 +426,40 @@ describe('SensorParserConfigService', () => {
         requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig03'));
         requests[0].flush(requests[0].request.body);
         requests[1].flush(requests[1].request.body);
+    });
+
+    fit('error throwing in syncConfigs()', () => {
+      const testData = getTestConfigs();
+
+      markElementOnIndexAs(testData, [2], DirtyFlags.CHANGED);
+
+      sensorParserConfigService.syncConfigs(testData)
+        .subscribe(
+          noop,
+          (error) => {
+            expect(error).toBeDefined();
+          }
+        );
+
+        const request = mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig03');
+        request.flush('Invalid request parameters', { status: 404, statusText: 'Bad Request' });
+    });
+
+    fit('error throwing in syncConfigs()', () => {
+      const testData = getTestGroups();
+
+      markElementOnIndexAs(testData, [1], DirtyFlags.CHANGED);
+
+      sensorParserConfigService.syncGroups(testData)
+        .subscribe(
+          noop,
+          (error) => {
+            expect(error).toBeDefined();
+          }
+        );
+
+        const request = mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup02');
+        request.flush('Invalid request parameters', { status: 404, statusText: 'Bad Request' });
     });
   })
 });

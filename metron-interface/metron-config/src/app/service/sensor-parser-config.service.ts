@@ -113,6 +113,7 @@ export class SensorParserConfigService {
           return this.saveConfig(config.config.getName(), config.config as ParserConfigModel);
         }
       }),
+      catchError(HttpUtil.handleError),
       reduce((acc, request) => {
         return acc.concat(request);
       }, [])
@@ -129,6 +130,7 @@ export class SensorParserConfigService {
           return this.saveGroup(group.config.getName(), group.config as ParserGroupModel);
         }
       }),
+      catchError(HttpUtil.handleError),
       reduce((acc, request) => {
         return acc.concat(request);
       }, [])
