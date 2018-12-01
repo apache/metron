@@ -18,18 +18,9 @@
 
 package org.apache.metron.stellar.dsl.functions.resolver;
 
-import static java.lang.String.format;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import java.io.IOException;
-import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -37,6 +28,16 @@ import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.stellar.dsl.StellarFunctionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static java.lang.String.format;
 
 /**
  * The base implementation of a function resolver that provides a means for lazy
@@ -237,8 +238,9 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
     try {
       return clazz.getConstructor().newInstance();
 
-    } catch (Exception e) {
-      LOG.error("Unable to load {} because {}", clazz.getName(), e.getMessage(), e);
+    } catch (Exception | NoClassDefFoundError e) {
+      String className = clazz != null ? clazz.getName() : "null";
+      LOG.error("Unable to load {} because {}", className, e.getMessage(), e);
       return null;
     }
   }
