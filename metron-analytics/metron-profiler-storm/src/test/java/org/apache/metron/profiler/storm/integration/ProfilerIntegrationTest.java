@@ -61,9 +61,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.code.tempusfugit.temporal.Duration.seconds;
-import static com.google.code.tempusfugit.temporal.Timeout.timeout;
-import static com.google.code.tempusfugit.temporal.WaitFor.waitOrTimeout;
+import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
@@ -77,7 +75,9 @@ import static org.apache.metron.profiler.storm.KafkaEmitter.PERIOD_ID_FIELD;
 import static org.apache.metron.profiler.storm.KafkaEmitter.PERIOD_START_FIELD;
 import static org.apache.metron.profiler.storm.KafkaEmitter.PROFILE_FIELD;
 import static org.apache.metron.profiler.storm.KafkaEmitter.TIMESTAMP_FIELD;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -278,25 +278,24 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     // wait until the profile flushes both periods.  the first period will flush immediately as subsequent messages
     // advance time.  the next period contains all of the remaining messages, so there are no other messages to
     // advance time.  because of this the next period only flushes after the time-to-live expires
-    waitOrTimeout(() -> profilerTable.getPutLog().size() >= 6, timeout(seconds(90)));
-    {
-      // there are 14 messages in the first period and 12 in the next where ip_src_addr = 192.168.66.1
-      List results = execute("PROFILE_GET('count-by-ip', '192.168.66.1', window)", List.class);
-      assertEquals(14, results.get(0));
-      assertEquals(12, results.get(1));
-    }
-    {
-      // there are 36 messages in the first period and 38 in the next where ip_src_addr = 192.168.138.158
-      List results = execute("PROFILE_GET('count-by-ip', '192.168.138.158', window)", List.class);
-      assertEquals(36, results.get(0));
-      assertEquals(38, results.get(1));
-    }
-    {
-      // in all there are 50 messages in the first period and 50 messages in the next
-      List results = execute("PROFILE_GET('total-count', 'total', window)", List.class);
-      assertEquals(50, results.get(0));
-      assertEquals(50, results.get(1));
-    }
+
+    // there are 14 messages in the first period and 12 in the next where ip_src_addr = 192.168.66.1
+    assertEventually(() -> {
+      List<Integer> results = execute("PROFILE_GET('count-by-ip', '192.168.66.1', window)", List.class);
+      assertThat(results, hasItems(14, 12));
+      }, TimeUnit.SECONDS.toMillis(120));
+
+    // there are 36 messages in the first period and 38 in the next where ip_src_addr = 192.168.138.158
+    assertEventually(() -> {
+      List<Integer> results = execute("PROFILE_GET('count-by-ip', '192.168.138.158', window)", List.class);
+      assertThat(results, hasItems(36, 38));
+      }, TimeUnit.SECONDS.toMillis(120));
+
+    // in all there are 50 (36+14) messages in the first period and 50 (38+12) messages in the next
+    assertEventually(() -> {
+      List<Integer> results = execute("PROFILE_GET('total-count', 'total', window)", List.class);
+      assertThat(results, hasItems(50, 50));
+      }, TimeUnit.SECONDS.toMillis(120));
   }
 
   /**
@@ -333,7 +332,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     kafkaComponent.writeMessages(inputTopic, messages);
 
     // wait until the profile is flushed
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0, timeout(seconds(90)));
+    assertEventually(() -> assertTrue(profilerTable.getPutLog().size() > 0), TimeUnit.SECONDS.toMillis(90));
 
     // validate the measurements written by the batch profiler using `PROFILE_GET`
     // the 'window' looks up to 5 hours before the max timestamp contained in the test data
@@ -371,6 +370,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Multiline
   private static String profileWithTriageResult;
 
+  private List<byte[]> outputMessages;
   @Test
   public void testProfileWithTriageResult() throws Exception {
     uploadConfigToZookeeper(ProfilerConfig.fromJSON(profileWithTriageResult));
@@ -381,10 +381,10 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     kafkaComponent.writeMessages(inputTopic, telemetry);
 
     // wait until the triage message is output to kafka
-    waitOrTimeout(() -> kafkaComponent.readMessages(outputTopic).size() > 0, timeout(seconds(90)));
-
-    List<byte[]> outputMessages = kafkaComponent.readMessages(outputTopic);
-    assertEquals(1, outputMessages.size());
+    assertEventually(() -> {
+      outputMessages = kafkaComponent.readMessages(outputTopic);
+      assertEquals(1, outputMessages.size());
+    }, TimeUnit.SECONDS.toMillis(90));
 
     // validate the triage message
     JSONObject message = (JSONObject) new JSONParser().parse(new String(outputMessages.get(0), "UTF-8"));
