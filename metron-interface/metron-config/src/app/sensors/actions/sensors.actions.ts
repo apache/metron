@@ -18,6 +18,7 @@
 import { Action } from '@ngrx/store';
 import { TopologyStatus } from '../../model/topology-status';
 import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
+import { TopologyResponse } from '../../model/topology-response';
 
 export enum SensorsActionTypes {
   LoadStart = '[Sensors] Load sensors',
@@ -34,7 +35,19 @@ export enum SensorsActionTypes {
   ApplyChangesSuccess = '[Sensors] Apply changes success',
   SetDragged = '[Sensors] Set dragged element',
   SetDropTarget = '[Sensors] Set drop target',
-  SetTargetGroup = '[Sensors] Set target group'
+  SetTargetGroup = '[Sensors] Set target group',
+  StartSensor = '[Sensors] Start sensor',
+  StartSensorSuccess = '[Sensors] Start sensor success',
+  StartSensorFailure = '[Sensors] Start sensor failure',
+  StopSensor = '[Sensors] Stop sensor',
+  StopSensorSuccess = '[Sensors] Stop sensor success',
+  StopSensorFailure = '[Sensors] Stop sensor failure',
+  EnableSensor = '[Sensors] Enable sensor',
+  EnableSensorSuccess = '[Sensors] Enable sensor success',
+  EnableSensorFailure = '[Sensors] Enable sensor failure',
+  DisableSensor = '[Sensors] Disable sensor',
+  DisableSensorSuccess = '[Sensors] Disable sensor success',
+  DisableSensorFailure = '[Sensors] Disable sensor failure',
 }
 
 export class LoadStart implements Action {
@@ -127,3 +140,97 @@ export class SetTargetGroup implements Action {
   readonly type = SensorsActionTypes.SetTargetGroup;
   constructor(readonly payload: string) {}
 }
+
+export class StartSensor implements Action {
+  readonly type = SensorsActionTypes.StartSensor;
+  constructor(readonly payload: { parser: ParserMetaInfoModel }) {}
+}
+
+export class StartSensorSuccess implements Action {
+  readonly type = SensorsActionTypes.StartSensorSuccess;
+  constructor(readonly payload: {
+    status: TopologyResponse,
+    parser: ParserMetaInfoModel,
+  }) {}
+}
+
+export class StartSensorFailure implements Action {
+  readonly type = SensorsActionTypes.StartSensorFailure;
+  constructor(readonly payload: {
+    status: TopologyResponse,
+    parser: ParserMetaInfoModel,
+  }) {}
+}
+
+export class StopSensor implements Action {
+  readonly type = SensorsActionTypes.StopSensor;
+  constructor(readonly payload: { parser: ParserMetaInfoModel }) {}
+}
+
+export class StopSensorSuccess implements Action {
+  readonly type = SensorsActionTypes.StopSensorSuccess;
+  constructor(readonly payload: {
+    status: TopologyResponse,
+    parser: ParserMetaInfoModel,
+  }) {}
+}
+
+export class StopSensorFailure implements Action {
+  readonly type = SensorsActionTypes.StopSensorFailure;
+  constructor(readonly payload: {
+    status: TopologyResponse,
+    parser: ParserMetaInfoModel,
+  }) {}
+}
+
+export class EnableSensor implements Action {
+  readonly type = SensorsActionTypes.EnableSensor;
+  constructor(readonly payload: { parser: ParserMetaInfoModel }) {}
+}
+
+export class EnableSensorSuccess implements Action {
+  readonly type = SensorsActionTypes.EnableSensorSuccess;
+  constructor(readonly payload: {
+    status: TopologyResponse,
+    parser: ParserMetaInfoModel,
+  }) {}
+}
+
+export class EnableSensorFailure implements Action {
+  readonly type = SensorsActionTypes.EnableSensorFailure;
+  constructor(readonly payload: {
+    status: TopologyResponse,
+    parser: ParserMetaInfoModel,
+  }) {}
+}
+
+export class DisableSensor implements Action {
+  readonly type = SensorsActionTypes.DisableSensor;
+  constructor(readonly payload: { parser: ParserMetaInfoModel }) {}
+}
+
+export class DisableSensorSuccess implements Action {
+  readonly type = SensorsActionTypes.DisableSensorSuccess;
+  constructor(readonly payload: {
+    status: TopologyResponse,
+    parser: ParserMetaInfoModel,
+  }) {}
+}
+
+export class DisableSensorFailure implements Action {
+  readonly type = SensorsActionTypes.DisableSensorFailure;
+  constructor(readonly payload: {
+    status: TopologyResponse,
+    parser: ParserMetaInfoModel,
+  }) {}
+}
+
+export type SensorControlAction = StartSensor | StopSensor | EnableSensor | DisableSensor;
+export type SensorControlResponseAction = StartSensorSuccess
+  | StartSensorFailure
+  | StopSensorSuccess
+  | StopSensorFailure
+  | EnableSensorSuccess
+  | EnableSensorFailure
+  | DisableSensorSuccess
+  | DisableSensorFailure;

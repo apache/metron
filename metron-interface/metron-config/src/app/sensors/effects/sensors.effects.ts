@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Effect, Actions, ofType } from '@ngrx/effects'
-import { Observable, forkJoin } from 'rxjs';
+import { Observable, forkJoin, of } from 'rxjs';
 import { Action, Store, select } from '@ngrx/store';
 import { Injectable } from '@angular/core';
 import { mergeMap, map, switchMap, withLatestFrom, catchError } from 'rxjs/operators';
@@ -29,7 +29,8 @@ import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { ParserGroupModel } from '../models/parser-group.model';
 import * as fromReducers from '../reducers';
 import { MetronAlerts } from '../../shared/metron-alerts';
-import { RestError } from '../../model/rest-error';
+import { TopologyResponse } from '../../model/topology-response';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable()
 export class SensorsEffects {
@@ -102,6 +103,30 @@ export class SensorsEffects {
     })
   )
 
+  @Effect()
+  startSensor$: Observable<Action> = this.actions$.pipe(
+    ofType(fromActions.SensorsActionTypes.StartSensor),
+    switchMap(this.getControlSwitchMapHandlerFor('start'))
+  )
+
+  @Effect()
+  stopSensor$: Observable<Action> = this.actions$.pipe(
+    ofType(fromActions.SensorsActionTypes.StopSensor),
+    switchMap(this.getControlSwitchMapHandlerFor('stop'))
+  )
+
+  @Effect()
+  enableSensor$: Observable<Action> = this.actions$.pipe(
+    ofType(fromActions.SensorsActionTypes.EnableSensor),
+    switchMap(this.getControlSwitchMapHandlerFor('enable'))
+  )
+
+  @Effect()
+  disableSensor$: Observable<Action> = this.actions$.pipe(
+    ofType(fromActions.SensorsActionTypes.DisableSensor),
+    switchMap(this.getControlSwitchMapHandlerFor('disable'))
+  )
+
   constructor(
     private parserService: SensorParserConfigService,
     private stormService: StormService,
@@ -109,4 +134,64 @@ export class SensorsEffects {
     private store: Store<fromReducers.State>,
     private alertSvc: MetronAlerts
   ) {}
+
+  /**
+   * For each sensor control opearation the switchMap handler does almost the same with
+   * a few differences. This helper method is for dealing with the differences and includes the
+   * majority of the functionality (DRY).
+   */
+  getControlSwitchMapHandlerFor(type: 'start' | 'stop' | 'enable' | 'disable') {
+    let serviceMethod;
+    let actionMessage;
+    let statusString;
+    switch (type) {
+      case 'start': {
+        serviceMethod = 'startParser';
+        actionMessage = 'start';
+        statusString = 'Started';
+        break;
+      }
+      case 'stop': {
+        serviceMethod = 'stopParser';
+        actionMessage = 'stop';
+        statusString = 'Stopped';
+        break;
+      }
+      case 'enable': {
+        serviceMethod = 'activateParser';
+        actionMessage = 'enable';
+        statusString = 'Enabled';
+        break;
+      }
+      case 'disable': {
+        serviceMethod = 'deactivateParser';
+        actionMessage = 'disable';
+        statusString = 'Disabled';
+        break;
+      }
+    }
+    return (action: fromActions.SensorControlAction) => {
+      return this.stormService[serviceMethod](action.payload.parser.config.getName())
+        .pipe(
+          catchError((error) => of(error)),
+          map((result: TopologyResponse | HttpErrorResponse) => {
+            if (result instanceof HttpErrorResponse || result.status === 'ERROR') {
+              this.alertSvc.showErrorMessage(
+                'Unable to ' + actionMessage + ' sensor ' + action.payload.parser.config.getName() + ': ' + result.message
+              );
+              return new fromActions.DisableSensorFailure({
+                status: { status: 'ERROR', message: result.message },
+                parser: action.payload.parser,
+              });
+            }
+            this.alertSvc.showSuccessMessage(statusString + ' sensor ' + action.payload.parser.config.getName());
+            return new fromActions.DisableSensorSuccess({
+              status: result,
+              parser: action.payload.parser,
+            });
+          })
+        )
+      };
+  }
+
 }

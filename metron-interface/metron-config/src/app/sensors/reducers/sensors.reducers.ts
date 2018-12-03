@@ -124,6 +124,48 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
       }
     }
 
+    case fromActions.SensorsActionTypes.StartSensor:
+    case fromActions.SensorsActionTypes.StopSensor:
+    case fromActions.SensorsActionTypes.EnableSensor:
+    case fromActions.SensorsActionTypes.DisableSensor: {
+      const a = action as fromActions.SensorControlAction;
+      return {
+        ...state,
+        items: state.items.map((item) => {
+          if (a.payload.parser.config.getName() === item.config.getName()) {
+            return {
+              ...item,
+              startStopInProgress: true
+            };
+          }
+          return item;
+        })
+      };
+    }
+
+    case fromActions.SensorsActionTypes.StartSensorSuccess:
+    case fromActions.SensorsActionTypes.StartSensorFailure:
+    case fromActions.SensorsActionTypes.StopSensorSuccess:
+    case fromActions.SensorsActionTypes.StopSensorFailure:
+    case fromActions.SensorsActionTypes.EnableSensorSuccess:
+    case fromActions.SensorsActionTypes.EnableSensorFailure:
+    case fromActions.SensorsActionTypes.DisableSensorSuccess:
+    case fromActions.SensorsActionTypes.DisableSensorFailure: {
+      const a = action as fromActions.SensorControlResponseAction;
+      return {
+        ...state,
+        items: state.items.map((item) => {
+          if (a.payload.parser.config.getName() === item.config.getName()) {
+            return {
+              ...item,
+              startStopInProgress: false
+            };
+          }
+          return item;
+        })
+      };
+    }
+
     default:
       return state;
   }
@@ -166,6 +208,47 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
         })
       }
     }
+    case fromActions.SensorsActionTypes.StartSensor:
+    case fromActions.SensorsActionTypes.StopSensor:
+    case fromActions.SensorsActionTypes.EnableSensor:
+    case fromActions.SensorsActionTypes.DisableSensor: {
+      const a = action as fromActions.SensorControlAction;
+      return {
+        ...state,
+        items: state.items.map((item) => {
+          if (a.payload.parser.config.getName() === item.config.getName()) {
+            return {
+              ...item,
+              startStopInProgress: true
+            };
+          }
+          return item;
+        })
+      };
+    }
+
+    case fromActions.SensorsActionTypes.StartSensorSuccess:
+    case fromActions.SensorsActionTypes.StartSensorFailure:
+    case fromActions.SensorsActionTypes.StopSensorSuccess:
+    case fromActions.SensorsActionTypes.StopSensorFailure:
+    case fromActions.SensorsActionTypes.EnableSensorSuccess:
+    case fromActions.SensorsActionTypes.EnableSensorFailure:
+    case fromActions.SensorsActionTypes.DisableSensorSuccess:
+    case fromActions.SensorsActionTypes.DisableSensorFailure: {
+      const a = action as fromActions.SensorControlResponseAction;
+      return {
+        ...state,
+        items: state.items.map((item) => {
+          if (a.payload.parser.config.getName() === item.config.getName()) {
+            return {
+              ...item,
+              startStopInProgress: false
+            };
+          }
+          return item;
+        })
+      };
+    }
 
     default:
       return state;
@@ -180,6 +263,29 @@ export function parserStatusReducer(state: StatusState = initialStatusState, act
         ...state,
         items: (action as fromActions.LoadSuccess).payload.statuses
       }
+
+    case fromActions.SensorsActionTypes.StartSensorSuccess:
+    case fromActions.SensorsActionTypes.StartSensorFailure:
+    case fromActions.SensorsActionTypes.StopSensorSuccess:
+    case fromActions.SensorsActionTypes.StopSensorFailure:
+    case fromActions.SensorsActionTypes.EnableSensorSuccess:
+    case fromActions.SensorsActionTypes.EnableSensorFailure:
+    case fromActions.SensorsActionTypes.DisableSensorSuccess:
+    case fromActions.SensorsActionTypes.DisableSensorFailure: {
+      const a = action as fromActions.SensorControlResponseAction;
+      return {
+        ...state,
+        items: state.items.map(item => {
+          if (item.name === a.payload.parser.config.getName()) {
+            return {
+              ...item,
+              status: a.payload.status.status,
+            };
+          }
+          return item;
+        })
+      };
+    }
 
     default:
       return state;

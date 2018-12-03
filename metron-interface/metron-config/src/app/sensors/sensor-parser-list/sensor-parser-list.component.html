@@ -94,7 +94,7 @@
       </td>
       <td>{{ getParserType(sensor.config) }}</td>
       <td
-        [ngClass]="{'warning-text': ['KILLED', 'STOPPING', 'INACTIVE'].includes(sensor.status.status)}"
+        [ngClass]="{'warning-text': ['KILLED', 'STOPPING', 'INACTIVE', 'ERROR'].includes(sensor.status.status)}"
       >
         {{ hasGroup(sensor) ? '' : sensor.status.status | sensorStatus }}
       </td>

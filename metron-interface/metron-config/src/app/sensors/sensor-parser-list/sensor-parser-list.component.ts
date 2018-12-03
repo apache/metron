@@ -150,16 +150,10 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onStopSensor(sensor: ParserMetaInfoModel, event) {
-    this.toggleStartStopInProgress(sensor);
 
-    this.stormService.stopParser(sensor.config.getName()).subscribe(() => {
-        this.metronAlerts.showSuccessMessage('Stopped sensor ' + sensor.config.getName());
-        this.toggleStartStopInProgress(sensor);
-      },
-      () => {
-        this.metronAlerts.showErrorMessage('Unable to stop sensor ' + sensor.config.getName());
-        this.toggleStartStopInProgress(sensor);
-      });
+    this.store.dispatch(new fromActions.StopSensor({
+      parser: sensor,
+    }));
 
     if (event !== null) {
       event.stopPropagation();
@@ -175,21 +169,10 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onStartSensor(sensor: ParserMetaInfoModel, event) {
-    this.toggleStartStopInProgress(sensor);
 
-    this.stormService.startParser(sensor.config.getName()).subscribe(result => {
-        if (result['status'] === 'ERROR') {
-          this.metronAlerts.showErrorMessage('Unable to start sensor ' + sensor.config.getName() + ': ' + result['message']);
-        } else {
-          this.metronAlerts.showSuccessMessage('Started sensor ' + sensor.config.getName());
-        }
-
-        this.toggleStartStopInProgress(sensor);
-      },
-      () => {
-        this.metronAlerts.showErrorMessage('Unable to start sensor ' + sensor.config.getName());
-        this.toggleStartStopInProgress(sensor);
-      });
+    this.store.dispatch(new fromActions.StartSensor({
+      parser: sensor,
+    }));
 
     if (event !== null) {
       event.stopPropagation();
@@ -205,16 +188,10 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onDisableSensor(sensor: ParserMetaInfoModel, event) {
-    this.toggleStartStopInProgress(sensor);
 
-    this.stormService.deactivateParser(sensor.config.getName()).subscribe(() => {
-        this.metronAlerts.showSuccessMessage('Disabled sensor ' + sensor.config.getName());
-        this.toggleStartStopInProgress(sensor);
-      },
-      () => {
-        this.metronAlerts.showErrorMessage('Unable to disable sensor ' + sensor.config.getName());
-        this.toggleStartStopInProgress(sensor);
-      });
+    this.store.dispatch(new fromActions.DisableSensor({
+      parser: sensor,
+    }));
 
     if (event !== null) {
       event.stopPropagation();
@@ -230,24 +207,14 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onEnableSensor(sensor: ParserMetaInfoModel, event) {
-    this.toggleStartStopInProgress(sensor);
 
-    this.stormService.activateParser(sensor.config.getName()).subscribe(() => {
-        this.metronAlerts.showSuccessMessage('Enabled sensor ' + sensor.config.getName());
-        this.toggleStartStopInProgress(sensor);
-      },
-      () => {
-        this.metronAlerts.showErrorMessage('Unable to enabled sensor ' + sensor.config.getName());
-        this.toggleStartStopInProgress(sensor);
-      });
+    this.store.dispatch(new fromActions.EnableSensor({
+      parser: sensor,
+    }));
 
     if (event != null) {
       event.stopPropagation();
     }
-  }
-
-  toggleStartStopInProgress(sensor: ParserMetaInfoModel) {
-    sensor.startStopInProgress = !sensor.startStopInProgress;
   }
 
   onNavigationStart() {
