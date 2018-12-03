@@ -395,13 +395,13 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   isStoppable(sensor: ParserMetaInfoModel) {
-    return this.isRootElement(sensor)
-      && sensor.status.status !== 'KILLED'
-      && !sensor.startStopInProgress;
+    return sensor.status.status && sensor.status.status !== 'KILLED'
+      && !sensor.startStopInProgress
+      && this.isRootElement(sensor);
   }
 
   isStartable(sensor: ParserMetaInfoModel) {
-    return sensor.status.status === 'KILLED'
+    return (!sensor.status.status || sensor.status.status === 'KILLED')
       && !sensor.startStopInProgress
       && this.isRootElement(sensor);
   }
