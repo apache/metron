@@ -38,7 +38,7 @@ import org.junit.rules.TemporaryFolder;
 public class GeoEnrichmentLoaderTest {
   private class MockGeoEnrichmentLoader extends GeoEnrichmentLoader {
     @Override
-    protected void pushConfig(Path srcPath, Path dstPath, String zookeeper) {
+    protected void pushConfig(Path srcPath, Path dstPath, String configName, String zookeeper) {
     }
   }
 
@@ -62,7 +62,7 @@ public class GeoEnrichmentLoaderTest {
 
     CommandLine cli = GeoEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
     Assert.assertEquals("testGeoUrl", GeoEnrichmentLoader.GeoEnrichmentOptions.GEO_URL.get(cli).trim());
-    Assert.assertEquals("/test/remoteDir", GeoEnrichmentLoader.GeoEnrichmentOptions.REMOTE_DIR.get(cli).trim());
+    Assert.assertEquals("/test/remoteDir", GeoEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
     Assert.assertEquals("/test/tmpDir", GeoEnrichmentLoader.GeoEnrichmentOptions.TMP_DIR.get(cli).trim());
     Assert.assertEquals("test:2181", GeoEnrichmentLoader.GeoEnrichmentOptions.ZK_QUORUM.get(cli).trim());
   }
@@ -74,7 +74,7 @@ public class GeoEnrichmentLoaderTest {
 
     CommandLine cli = GeoEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
     Assert.assertEquals("testGeoUrl", GeoEnrichmentLoader.GeoEnrichmentOptions.GEO_URL.get(cli).trim());
-    Assert.assertEquals("/test/remoteDir", GeoEnrichmentLoader.GeoEnrichmentOptions.REMOTE_DIR.get(cli).trim());
+    Assert.assertEquals("/test/remoteDir", GeoEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
     Assert.assertEquals("/test/tmpDir", GeoEnrichmentLoader.GeoEnrichmentOptions.TMP_DIR.get(cli).trim());
     Assert.assertEquals("test:2181", GeoEnrichmentLoader.GeoEnrichmentOptions.ZK_QUORUM.get(cli).trim());
   }
