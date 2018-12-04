@@ -364,25 +364,29 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   isStoppable(sensor: ParserMetaInfoModel) {
     return sensor.status.status && sensor.status.status !== 'KILLED'
       && !sensor.startStopInProgress
-      && this.isRootElement(sensor);
+      && this.isRootElement(sensor)
+      && !this.isDeletedOrPhantom(sensor);
   }
 
   isStartable(sensor: ParserMetaInfoModel) {
     return (!sensor.status.status || sensor.status.status === 'KILLED')
       && !sensor.startStopInProgress
-      && this.isRootElement(sensor);
+      && this.isRootElement(sensor)
+      && !this.isDeletedOrPhantom(sensor);
   }
 
   isEnableable(sensor: ParserMetaInfoModel) {
     return sensor.status.status === 'ACTIVE'
       && !sensor.startStopInProgress
-      && this.isRootElement(sensor);
+      && this.isRootElement(sensor)
+      && !this.isDeletedOrPhantom(sensor);
   }
 
   isDisableable(sensor: ParserMetaInfoModel) {
     return sensor.status.status === 'INACTIVE'
       && !sensor.startStopInProgress
-      && this.isRootElement(sensor);
+      && this.isRootElement(sensor)
+      && !this.isDeletedOrPhantom(sensor);
   }
 
   isDeletedOrPhantom(sensor: ParserMetaInfoModel) {
