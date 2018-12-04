@@ -180,7 +180,7 @@ public class GetProfileTest {
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // execute - read the profile values - no groups
-    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))";
+    String expr = "PROFILE_GET(profile, entity, PROFILE_FIXED(4, 'HOURS'))";
     @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
