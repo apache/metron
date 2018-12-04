@@ -88,6 +88,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String TEST_RESOURCES = "../../metron-analytics/metron-profiler-storm/src/test";
   private static final String FLUX_PATH = "src/main/flux/profiler/remote.yaml";
+  private static final long timeout = TimeUnit.SECONDS.toMillis(90);
 
   public static final long startAt = 10;
   public static final String entity = "10.0.0.1";
@@ -259,7 +260,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void testEventTime() throws Exception {
-  long timeout = TimeUnit.SECONDS.toMillis(90);
     uploadConfigToZookeeper(ProfilerConfig.fromJSON(eventTimeProfile));
 
     // start the topology and write test messages to kafka
@@ -332,18 +332,18 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     List<String> messages = FileUtils.readLines(new File("src/test/resources/telemetry.json"));
     kafkaComponent.writeMessages(inputTopic, messages);
 
-    // wait until the profile is flushed
-    assertEventually(() -> assertTrue(profilerTable.getPutLog().size() > 0), TimeUnit.SECONDS.toMillis(90));
+    assertEventually(() -> {
+      // validate the measurements written by the batch profiler using `PROFILE_GET`
+      // the 'window' looks up to 5 hours before the max timestamp contained in the test data
+      assign("maxTimestamp", "1530978728982L");
+      assign("window", "PROFILE_WINDOW('from 5 hours ago', maxTimestamp)");
 
-    // validate the measurements written by the batch profiler using `PROFILE_GET`
-    // the 'window' looks up to 5 hours before the max timestamp contained in the test data
-    assign("maxTimestamp", "1530978728982L");
-    assign("window", "PROFILE_WINDOW('from 5 hours ago', maxTimestamp)");
+      // retrieve the stats stored by the profiler
+      List results = execute("PROFILE_GET('profile-with-stats', 'global', window)", List.class);
+      assertTrue(results.size() > 0);
+      assertTrue(results.get(0) instanceof OnlineStatisticsProvider);
 
-    // retrieve the stats stored by the profiler
-    List results = execute("PROFILE_GET('profile-with-stats', 'global', window)", List.class);
-    assertTrue(results.size() > 0);
-    assertTrue(results.get(0) instanceof OnlineStatisticsProvider);
+    }, timeout);
   }
 
   /**
@@ -385,7 +385,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     assertEventually(() -> {
       outputMessages = kafkaComponent.readMessages(outputTopic);
       assertEquals(1, outputMessages.size());
-    }, TimeUnit.SECONDS.toMillis(90));
+    }, timeout);
 
     // validate the triage message
     JSONObject message = (JSONObject) new JSONParser().parse(new String(outputMessages.get(0), "UTF-8"));
