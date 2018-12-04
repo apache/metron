@@ -61,6 +61,7 @@
     "codelyzer": "~4.2.1",
     "copy": "^0.3.0",
     "jasmine-core": "~2.99.1",
+    "jasmine-marbles": "^0.4.1",
     "jasmine-spec-reporter": "~4.2.1",
     "karma": "^3.0.0",
     "karma-chrome-launcher": "~2.2.0",

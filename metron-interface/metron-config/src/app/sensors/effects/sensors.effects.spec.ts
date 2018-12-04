@@ -19,21 +19,23 @@ import { TestBed } from '@angular/core/testing';
 import { StoreModule, Store, combineReducers, Action } from '@ngrx/store';
 import { SensorsEffects } from './sensors.effects';
 import { SensorsModule } from '../sensors.module';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import * as fromModule from '../reducers';
-import { EffectsModule } from '@ngrx/effects';
+import { EffectsModule, Actions } from '@ngrx/effects';
 import * as fromActions from '../actions';
 import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { ParserGroupModel } from '../models/parser-group.model';
 import { ParserConfigModel } from '../models/parser-config.model';
 import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
 import { Injectable } from '@angular/core';
-import { ApplyChanges } from '../actions';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Observable } from 'rxjs';
 import { MetronAlerts } from '../../shared/metron-alerts';
 import { RestError } from '../../model/rest-error';
-
+import { StormService } from '../../service/storm.service';
+import { cold, hot } from 'jasmine-marbles';
+import { TopologyResponse } from '../../model/topology-response';
+import { provideMockActions } from '@ngrx/effects/testing';
 
 @Injectable()
 class FakeParserService {
@@ -47,6 +49,14 @@ class FakeParserService {
 class FakeMetronAlerts {
   showErrorMessage = jasmine.createSpy();
   showSuccessMessage = jasmine.createSpy();
+}
+
+@Injectable()
+class FakeStormService {
+  startParser = jasmine.createSpy().and.returnValue(of(new TopologyResponse()));
+  stopParser = jasmine.createSpy().and.returnValue(of(new TopologyResponse()));
+  activateParser = jasmine.createSpy().and.returnValue(of(new TopologyResponse()));
+  deactivateParser = jasmine.createSpy().and.returnValue(of(new TopologyResponse()));
 }
 
 describe('sensor.effects.ts', () => {
@@ -126,5 +136,238 @@ describe('sensor.effects.ts', () => {
     store.dispatch(new fromActions.ApplyChanges());
     expect(userNotificationSvc.showErrorMessage).toHaveBeenCalled();
   });
-
 });
+
+describe('sensors control operation effects', () => {
+  let userNotificationSvc: MetronAlerts;
+  let effects: SensorsEffects;
+  let stormService: StormService;
+  let actions$: Observable<any>;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        SensorsModule,
+        StoreModule.forRoot({ sensors: combineReducers(fromModule.reducers) }),
+        EffectsModule.forRoot([]),
+        HttpClientTestingModule
+      ],
+      providers: [
+        SensorsEffects,
+        HttpClient,
+        { provide: MetronAlerts, useClass: FakeMetronAlerts },
+        { provide: StormService, useClass: FakeStormService },
+        provideMockActions(() => actions$),
+      ]
+    });
+
+    userNotificationSvc = TestBed.get(MetronAlerts);
+    effects = TestBed.get(SensorsEffects);
+    stormService = TestBed.get(StormService);
+    actions$ = TestBed.get(Actions);
+  });
+
+  it('startSensor$: dispatch success action with proper payload', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.StartSensor({ parser });
+    const successAction = new fromActions.StartSensorSuccess({
+      parser,
+      status: new TopologyResponse()
+    });
+    actions$ = hot('-a-', { a: action });
+    const expected = cold('-b', { b: successAction });
+    expect(effects.startSensor$).toBeObservable(expected);
+    expect(stormService.startParser).toHaveBeenCalledWith('foo');
+    expect(userNotificationSvc.showSuccessMessage).toHaveBeenCalledWith(
+      'Started sensor foo'
+    )
+  });
+
+  it('startSensor$: dispatch failure action with proper payload if it throws', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.StartSensor({ parser });
+    const error = new HttpErrorResponse({ error: new Error('some error') });
+    const status = new TopologyResponse('ERROR', error.message);
+    const failureAction = new fromActions.StartSensorFailure({
+      parser,
+      status
+    });
+    stormService.startParser = jasmine.createSpy().and.returnValue(of(error));
+    actions$ = hot('-a--', { a: action });
+    const expected = cold('-b', { b: failureAction });
+    expect(effects.startSensor$).toBeObservable(expected);
+    expect(userNotificationSvc.showErrorMessage).toHaveBeenCalledWith(
+      'Unable to start sensor foo: ' + error.message
+    )
+  });
+
+  it('startSensor$: dispatch failure action with proper payload if it is an error from the server', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.StartSensor({ parser });
+    const status = new TopologyResponse('ERROR', 'some error from server');
+    const failureAction = new fromActions.StartSensorFailure({
+      parser,
+      status
+    });
+    stormService.startParser = jasmine.createSpy().and.returnValue(of(status));
+    actions$ = hot('-a--', { a: action });
+    const expected = cold('-b', { b: failureAction });
+    expect(effects.startSensor$).toBeObservable(expected);
+    expect(userNotificationSvc.showErrorMessage).toHaveBeenCalledWith(
+      'Unable to start sensor foo: some error from server'
+    )
+  });
+
+  it('stopSensor$: dispatch success action with proper payload', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.StopSensor({ parser });
+    const successAction = new fromActions.StopSensorSuccess({
+      parser,
+      status: new TopologyResponse()
+    });
+    actions$ = hot('-a-', { a: action });
+    const expected = cold('-b', { b: successAction });
+    expect(effects.stopSensor$).toBeObservable(expected);
+    expect(stormService.stopParser).toHaveBeenCalledWith('foo');
+    expect(userNotificationSvc.showSuccessMessage).toHaveBeenCalledWith(
+      'Stopped sensor foo'
+    )
+  });
+
+  it('stopSensor$: dispatch failure action with proper payload if it throws', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.StopSensor({ parser });
+    const error = new HttpErrorResponse({ error: new Error('some error') });
+    const status = new TopologyResponse('ERROR', error.message);
+    const failureAction = new fromActions.StopSensorFailure({
+      parser,
+      status
+    });
+    stormService.stopParser = jasmine.createSpy().and.returnValue(of(error));
+    actions$ = hot('-a--', { a: action });
+    const expected = cold('-b', { b: failureAction });
+    expect(effects.stopSensor$).toBeObservable(expected);
+    expect(userNotificationSvc.showErrorMessage).toHaveBeenCalledWith(
+      'Unable to stop sensor foo: ' + error.message
+    )
+  });
+
+  it('stopSensor$: dispatch failure action with proper payload if it is an error from the server', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.StopSensor({ parser });
+    const status = new TopologyResponse('ERROR', 'some error from server');
+    const failureAction = new fromActions.StopSensorFailure({
+      parser,
+      status
+    });
+    stormService.stopParser = jasmine.createSpy().and.returnValue(of(status));
+    actions$ = hot('-a--', { a: action });
+    const expected = cold('-b', { b: failureAction });
+    expect(effects.stopSensor$).toBeObservable(expected);
+    expect(userNotificationSvc.showErrorMessage).toHaveBeenCalledWith(
+      'Unable to stop sensor foo: some error from server'
+    )
+  });
+
+  it('enableSensor$: dispatch success action with proper payload', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.EnableSensor({ parser });
+    const successAction = new fromActions.EnableSensorSuccess({
+      parser,
+      status: new TopologyResponse()
+    });
+    actions$ = hot('-a-', { a: action });
+    const expected = cold('-b', { b: successAction });
+    expect(effects.enableSensor$).toBeObservable(expected);
+    expect(stormService.activateParser).toHaveBeenCalledWith('foo');
+    expect(userNotificationSvc.showSuccessMessage).toHaveBeenCalledWith(
+      'Enabled sensor foo'
+    )
+  });
+
+  it('enableSensor$: dispatch failure action with proper payload if it throws', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.EnableSensor({ parser });
+    const error = new HttpErrorResponse({ error: new Error('some error') });
+    const status = new TopologyResponse('ERROR', error.message);
+    const failureAction = new fromActions.EnableSensorFailure({
+      parser,
+      status
+    });
+    stormService.activateParser = jasmine.createSpy().and.returnValue(of(error));
+    actions$ = hot('-a--', { a: action });
+    const expected = cold('-b', { b: failureAction });
+    expect(effects.enableSensor$).toBeObservable(expected);
+    expect(userNotificationSvc.showErrorMessage).toHaveBeenCalledWith(
+      'Unable to enable sensor foo: ' + error.message
+    )
+  });
+
+  it('enableSensor$: dispatch failure action with proper payload if it is an error from the server', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.EnableSensor({ parser });
+    const status = new TopologyResponse('ERROR', 'some error from server');
+    const failureAction = new fromActions.EnableSensorFailure({
+      parser,
+      status
+    });
+    stormService.activateParser = jasmine.createSpy().and.returnValue(of(status));
+    actions$ = hot('-a--', { a: action });
+    const expected = cold('-b', { b: failureAction });
+    expect(effects.enableSensor$).toBeObservable(expected);
+    expect(userNotificationSvc.showErrorMessage).toHaveBeenCalledWith(
+      'Unable to enable sensor foo: some error from server'
+    )
+  });
+
+  it('disableSensor$: dispatch success action with proper payload', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.DisableSensor({ parser });
+    const successAction = new fromActions.DisableSensorSuccess({
+      parser,
+      status: new TopologyResponse()
+    });
+    actions$ = hot('-a-', { a: action });
+    const expected = cold('-b', { b: successAction });
+    expect(effects.disableSensor$).toBeObservable(expected);
+    expect(stormService.deactivateParser).toHaveBeenCalledWith('foo');
+    expect(userNotificationSvc.showSuccessMessage).toHaveBeenCalledWith(
+      'Disabled sensor foo'
+    )
+  });
+
+  it('disableSensor$: dispatch failure action with proper payload if it throws', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.DisableSensor({ parser });
+    const error = new HttpErrorResponse({ error: new Error('some error') });
+    const status = new TopologyResponse('ERROR', error.message);
+    const failureAction = new fromActions.DisableSensorFailure({
+      parser,
+      status
+    });
+    stormService.deactivateParser = jasmine.createSpy().and.returnValue(of(error));
+    actions$ = hot('-a--', { a: action });
+    const expected = cold('-b', { b: failureAction });
+    expect(effects.disableSensor$).toBeObservable(expected);
+    expect(userNotificationSvc.showErrorMessage).toHaveBeenCalledWith(
+      'Unable to disable sensor foo: ' + error.message
+    )
+  });
+
+  it('disableSensor$: dispatch failure action with proper payload if it is an error from the server', () => {
+    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const action = new fromActions.DisableSensor({ parser });
+    const status = new TopologyResponse('ERROR', 'some error from server');
+    const failureAction = new fromActions.DisableSensorFailure({
+      parser,
+      status
+    });
+    stormService.deactivateParser = jasmine.createSpy().and.returnValue(of(status));
+    actions$ = hot('-a--', { a: action });
+    const expected = cold('-b', { b: failureAction });
+    expect(effects.disableSensor$).toBeObservable(expected);
+    expect(userNotificationSvc.showErrorMessage).toHaveBeenCalledWith(
+      'Unable to disable sensor foo: some error from server'
+    )
+  });
+})

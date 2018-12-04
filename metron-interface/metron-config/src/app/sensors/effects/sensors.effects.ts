@@ -140,33 +140,43 @@ export class SensorsEffects {
    * a few differences. This helper method is for dealing with the differences and includes the
    * majority of the functionality (DRY).
    */
-  getControlSwitchMapHandlerFor(type: 'start' | 'stop' | 'enable' | 'disable') {
+  private getControlSwitchMapHandlerFor(type: 'start' | 'stop' | 'enable' | 'disable') {
     let serviceMethod;
     let actionMessage;
     let statusString;
+    let SuccessAction;
+    let FailureAction;
     switch (type) {
       case 'start': {
         serviceMethod = 'startParser';
         actionMessage = 'start';
         statusString = 'Started';
+        SuccessAction = fromActions.StartSensorSuccess;
+        FailureAction = fromActions.StartSensorFailure;
         break;
       }
       case 'stop': {
         serviceMethod = 'stopParser';
         actionMessage = 'stop';
         statusString = 'Stopped';
+        SuccessAction = fromActions.StopSensorSuccess;
+        FailureAction = fromActions.StopSensorFailure;
         break;
       }
       case 'enable': {
         serviceMethod = 'activateParser';
         actionMessage = 'enable';
         statusString = 'Enabled';
+        SuccessAction = fromActions.EnableSensorSuccess;
+        FailureAction = fromActions.EnableSensorFailure;
         break;
       }
       case 'disable': {
         serviceMethod = 'deactivateParser';
         actionMessage = 'disable';
         statusString = 'Disabled';
+        SuccessAction = fromActions.DisableSensorSuccess;
+        FailureAction = fromActions.DisableSensorFailure;
         break;
       }
     }
@@ -179,13 +189,13 @@ export class SensorsEffects {
               this.alertSvc.showErrorMessage(
                 'Unable to ' + actionMessage + ' sensor ' + action.payload.parser.config.getName() + ': ' + result.message
               );
-              return new fromActions.DisableSensorFailure({
-                status: { status: 'ERROR', message: result.message },
+              return new FailureAction({
+                status: new TopologyResponse('ERROR', result.message),
                 parser: action.payload.parser,
               });
             }
             this.alertSvc.showSuccessMessage(statusString + ' sensor ' + action.payload.parser.config.getName());
-            return new fromActions.DisableSensorSuccess({
+            return new SuccessAction({
               status: result,
               parser: action.payload.parser,
             });
