@@ -92,7 +92,11 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
   navigateToSensorEdit(selectedSensor: ParserMetaInfoModel, event) {
     this.selectedSensor = selectedSensor;
-    this.router.navigateByUrl('/sensors(dialog:sensors-config/' + selectedSensor.config.getName() + ')');
+    if (selectedSensor.isGroup) {
+      this.router.navigateByUrl('/sensors(dialog:sensor-aggregate/' + selectedSensor.config.getName() + ')');
+    } else {
+      this.router.navigateByUrl('/sensors(dialog:sensors-config/' + selectedSensor.config.getName() + ')');
+    }
     event.stopPropagation();
   }
 

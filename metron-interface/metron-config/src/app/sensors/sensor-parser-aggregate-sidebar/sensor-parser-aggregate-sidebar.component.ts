@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Store, select } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import * as fromReducers from '../reducers';
 import * as fromActions from '../actions';
+import { getGroups, GroupState } from '../reducers';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'metron-config-sensor-aggregate',
@@ -35,12 +37,15 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
   private state$: Observable<fromReducers.SensorState>;
   private stateSub: Subscription;
   private targetGroup: string;
+  groups: GroupState;
+  name: string;
 
   allowMerge = true;
 
   constructor(
     private router: Router,
-    private store: Store<fromReducers.State>
+    private store: Store<fromReducers.State>,
+    private route: ActivatedRoute,
   ) {
     this.state$ = store.pipe(select(fromReducers.getSensorsState));
   }
@@ -50,6 +55,14 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
       this.draggedId = state.layout.dnd.draggedId;
       this.dropTargetId = state.layout.dnd.dropTargetId;
       this.targetGroup = state.layout.dnd.targetGroup;
+      this.groups = state.groups;
+    });
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.name = params['id'];
+      } else {
+        this.name = 'Aggregate: ' + [this.draggedId, this.dropTargetId].join(' + ') ;
+      }
     });
   }
 

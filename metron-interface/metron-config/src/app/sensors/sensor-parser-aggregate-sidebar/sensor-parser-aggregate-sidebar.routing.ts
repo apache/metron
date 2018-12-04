@@ -21,7 +21,8 @@ import { SensorParserAggregateSidebarComponent } from './sensor-parser-aggregate
 import { AuthGuard } from '../../shared/auth-guard';
 
 const routes: Routes = [
-  { path: 'sensor-aggregate', component: SensorParserAggregateSidebarComponent, canActivate: [ AuthGuard ], outlet: 'dialog'}
+  { path: 'sensor-aggregate', component: SensorParserAggregateSidebarComponent, canActivate: [ AuthGuard ], outlet: 'dialog'},
+  { path: 'sensor-aggregate/:id', component: SensorParserAggregateSidebarComponent, canActivate: [ AuthGuard ], outlet: 'dialog'}
 ];
 
 export const routing: ModuleWithProviders = RouterModule.forChild(routes);
