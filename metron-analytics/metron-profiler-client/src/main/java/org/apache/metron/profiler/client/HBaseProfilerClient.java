@@ -24,18 +24,17 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.common.utils.SerDeUtils;
+import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.metron.common.utils.SerDeUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * The default implementation of a ProfilerClient that fetches profile data persisted in HBase.
@@ -57,30 +56,16 @@ public class HBaseProfilerClient implements ProfilerClient {
    */
   private ColumnBuilder columnBuilder;
 
-  public HBaseProfilerClient(HTableInterface table, RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder) {
+  private long periodDurationMillis;
+
+  public HBaseProfilerClient(HTableInterface table,
+                             RowKeyBuilder rowKeyBuilder,
+                             ColumnBuilder columnBuilder,
+                             long periodDurationMillis) {
     setTable(table);
     setRowKeyBuilder(rowKeyBuilder);
     setColumnBuilder(columnBuilder);
-  }
-
-  /**
-   * Fetches all of the data values associated with a Profile.
-   *
-   * @param clazz       The type of values stored by the profile.
-   * @param profile     The name of the profile.
-   * @param entity      The name of the entity.
-   * @param groups      The groups used to sort the profile data.
-   * @param durationAgo How far in the past to fetch values from.
-   * @param unit        The time unit of 'durationAgo'.
-   * @param defaultValue The default value to specify.  If empty, the result will be sparse.
-   * @param <T>         The type of values stored by the Profile.
-   * @return A list of values.
-   */
-  @Override
-  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long durationAgo, TimeUnit unit, Optional<T> defaultValue) {
-    long end = System.currentTimeMillis();
-    long start = end - unit.toMillis(durationAgo);
-    return fetch(clazz, profile, entity, groups, start, end, defaultValue);
+    this.periodDurationMillis = periodDurationMillis;
   }
 
   /**
@@ -97,21 +82,15 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @return A list of values.
    */
   @Override
-  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long start, long end, Optional<T> defaultValue) {
-    byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
-    byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
-
-    // find all the row keys that satisfy this fetch
-    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, start, end);
-
-    // create a Get for each of the row keys
-    List<Get> gets = keysToFetch
-            .stream()
-            .map(k -> new Get(k).addColumn(columnFamily, columnQualifier))
-            .collect(Collectors.toList());
-
-    // get the 'gets'
-    return get(gets, columnQualifier, columnFamily, clazz, defaultValue);
+  public <T> List<ProfileMeasurement> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long start, long end, Optional<T> defaultValue) {
+    List<ProfilePeriod> periods = ProfilePeriod.visitPeriods(
+            start,
+            end,
+            periodDurationMillis,
+            TimeUnit.MILLISECONDS,
+            Optional.empty(),
+            period -> period);
+    return fetch(clazz, profile, entity, groups, periods, defaultValue);
   }
 
   /**
@@ -126,48 +105,55 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @return A list of values.
    */
   @Override
-  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods, Optional<T> defaultValue) {
-    byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
-    byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
+  public <T> List<ProfileMeasurement> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods, Optional<T> defaultValue) {
+    // create a list of profile measurements that need fetched
+    List<ProfileMeasurement> toFetch = new ArrayList<>();
+    for(ProfilePeriod period: periods) {
+      toFetch.add(new ProfileMeasurement()
+              .withProfileName(profile)
+              .withEntity(entity)
+              .withPeriod(period)
+              .withGroups(groups));
+    }
 
-    // find all the row keys that satisfy this fetch
-    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, periods);
-
-    // create a Get for each of the row keys
-    List<Get> gets = keysToFetch
-            .stream()
-            .map(k -> new Get(k).addColumn(columnFamily, columnQualifier))
-            .collect(Collectors.toList());
-
-    // get the 'gets'
-    return get(gets, columnQualifier, columnFamily, clazz, defaultValue);
+    // retrieve the measurement values from HBase
+    return doFetch(toFetch, clazz, defaultValue);
   }
 
-  /**
-   * Submits multiple Gets to HBase and deserialize the results.
-   *
-   * @param gets            The gets to submit to HBase.
-   * @param columnQualifier The column qualifier.
-   * @param columnFamily    The column family.
-   * @param clazz           The type expected in return.
-   * @param defaultValue The default value to specify.  If empty, the result will be sparse.
-   * @param <T>             The type expected in return.
-   * @return
-   */
-  private <T> List<T> get(List<Get> gets, byte[] columnQualifier, byte[] columnFamily, Class<T> clazz, Optional<T> defaultValue) {
-    List<T> values = new ArrayList<>();
+  private <T> List<ProfileMeasurement> doFetch(List<ProfileMeasurement> measurements, Class<T> clazz, Optional<T> defaultValue) {
+    List<ProfileMeasurement> values = new ArrayList<>();
 
+    // build the gets for HBase
+    byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
+    byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
+    List<Get> gets = new ArrayList<>();
+    for(ProfileMeasurement measurement: measurements) {
+      byte[] rowKey = rowKeyBuilder.rowKey(measurement);
+      Get get = new Get(rowKey).addColumn(columnFamily, columnQualifier);
+      gets.add(get);
+    }
+
+    // query HBase
     try {
       Result[] results = table.get(gets);
-      for(int i = 0;i < results.length;++i) {
+      for(int i = 0; i < results.length; ++i) {
         Result result = results[i];
+        ProfileMeasurement measurement = measurements.get(i);
+
         boolean exists = result.containsColumn(columnFamily, columnQualifier);
-        if(!exists && defaultValue.isPresent()) {
-          values.add(defaultValue.get());
-        }
-        else if(exists) {
-          byte[] val = result.getValue(columnFamily, columnQualifier);
-          values.add(SerDeUtils.fromBytes(val, clazz));
+        if(exists) {
+          // value found
+          byte[] value = result.getValue(columnFamily, columnQualifier);
+          measurement.withProfileValue(SerDeUtils.fromBytes(value, clazz));
+          values.add(measurement);
+
+        } else if(defaultValue.isPresent()) {
+          // no value found, use default value provided
+          measurement.withProfileValue(defaultValue.get());
+          values.add(measurement);
+
+        } else {
+          // no value found and no default provided. nothing to do
         }
       }
     } catch(IOException e) {
@@ -176,6 +162,7 @@ public class HBaseProfilerClient implements ProfilerClient {
 
     return values;
   }
+
 
   public void setTable(HTableInterface table) {
     this.table = table;

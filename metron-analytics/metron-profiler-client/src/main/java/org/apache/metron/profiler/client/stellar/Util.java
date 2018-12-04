@@ -20,12 +20,15 @@
 package org.apache.metron.profiler.client.stellar;
 
 import static java.lang.String.format;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang.StringUtils;
@@ -78,7 +81,6 @@ public class Util {
     validateCapabilities(context, required);
     @SuppressWarnings("unchecked")
     Map<String, Object> global = (Map<String, Object>) context.getCapability(GLOBAL_CONFIG).get();
-
     Map<String, Object> result = new HashMap<>(6);
 
     // extract the relevant parameters from global, the overrides and the defaults
@@ -99,7 +101,6 @@ public class Util {
     return result;
   }
 
-
   /**
    * Get an argument from a list of arguments.
    * @param index The index within the list of arguments.
@@ -113,5 +114,16 @@ public class Util {
     }
 
     return ConversionUtils.convert(args.get(index), clazz);
+  }
+
+  public static long getPeriodDurationInMillis(Map<String, Object> global) {
+    long duration = PROFILER_PERIOD.get(global, Long.class);
+    LOG.debug("profiler client: {}={}", PROFILER_PERIOD, duration);
+
+    String configuredUnits = PROFILER_PERIOD_UNITS.get(global, String.class);
+    TimeUnit units = TimeUnit.valueOf(configuredUnits);
+    LOG.debug("profiler client: {}={}", PROFILER_PERIOD_UNITS, units);
+
+    return units.toMillis(duration);
   }
 }

@@ -20,14 +20,24 @@
 
 package org.apache.metron.profiler.client.stellar;
 
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
-import static org.apache.metron.profiler.client.stellar.Util.getArg;
-import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.ProfilePeriod;
+import org.apache.metron.profiler.client.HBaseProfilerClient;
+import org.apache.metron.profiler.client.ProfilerClient;
+import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.RowKeyBuilder;
+import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
+import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -37,23 +47,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.apache.metron.stellar.dsl.Stellar;
-import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.profiler.ProfilePeriod;
-import org.apache.metron.profiler.client.HBaseProfilerClient;
-import org.apache.metron.profiler.client.ProfilerClient;
-import org.apache.metron.profiler.hbase.ColumnBuilder;
-import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
-import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
+import static org.apache.metron.profiler.client.stellar.Util.getArg;
+import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
+import static org.apache.metron.profiler.client.stellar.Util.getPeriodDurationInMillis;
 
 /**
  * A Stellar function that can retrieve data contained within a Profile.
@@ -90,10 +93,9 @@ import org.slf4j.LoggerFactory;
         params={
           "profile - The name of the profile.",
           "entity - The name of the entity.",
-          "periods - The list of profile periods to grab.  These are ProfilePeriod objects.",
-          "groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of "+
-                  "groupBy values used to filter the profile. Default is the " +
-                  "empty list, meaning groupBy was not used when creating the profile.",
+          "periods - The list of profile periods to fetch. Use PROFILE_WINDOW or PROFILE_FIXED.",
+          "groups - Optional - The groups to retrieve. Must correspond to the 'groupBy' " +
+                    "list used during profile creation. Defaults to an empty list, meaning no groups.",
           "config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter " +
                   "of the same name. Default is the empty Map, meaning no overrides."
         },
@@ -169,16 +171,24 @@ public class GetProfile implements StellarFunction {
       RowKeyBuilder rowKeyBuilder = getRowKeyBuilder(effectiveConfig);
       ColumnBuilder columnBuilder = getColumnBuilder(effectiveConfig);
       HTableInterface table = getTable(effectiveConfig);
-      client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
+      long periodDuration = getPeriodDurationInMillis(effectiveConfig);
+      client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, periodDuration);
       cachedConfigMap = effectiveConfig;
     }
     if(cachedConfigMap != null) {
       defaultValue = ProfilerClientConfig.PROFILER_DEFAULT_VALUE.get(cachedConfigMap);
     }
-    return client.fetch(Object.class, profile, entity, groups, periods.orElse(new ArrayList<>(0)), Optional.ofNullable(defaultValue));
+
+    List<ProfileMeasurement> measurements = client.fetch(Object.class, profile, entity, groups,
+            periods.orElse(new ArrayList<>(0)), Optional.ofNullable(defaultValue));
+
+    // return only the value of each profile measurement
+    List<Object> values = new ArrayList<>();
+    for(ProfileMeasurement m: measurements) {
+      values.add(m.getProfileValue());
+    }
+    return values;
   }
-
-
 
   /**
    * Get the groups defined by the user.

@@ -21,6 +21,7 @@
 package org.apache.metron.profiler;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -151,6 +152,8 @@ public class ProfilePeriod implements Serializable {
     return "ProfilePeriod{" +
             "period=" + period +
             ", durationMillis=" + durationMillis +
+            ", startTime=" + Instant.ofEpochMilli(getStartTimeMillis()).toString() +
+            ", endTime=" + Instant.ofEpochMilli(getEndTimeMillis()).toString() +
             '}';
   }
 

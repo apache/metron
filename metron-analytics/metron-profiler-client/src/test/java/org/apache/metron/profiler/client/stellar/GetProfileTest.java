@@ -89,9 +89,10 @@ public class GetProfileTest {
     final HTableInterface table = MockHBaseTableProvider.addToCache(tableName, columnFamily);
 
     // used to write values to be read during testing
+    long periodDurationMillis = TimeUnit.MINUTES.toMillis(15);
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
     ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
-    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table);
+    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table, periodDurationMillis);
 
     // global properties
     Map<String, Object> global = new HashMap<String, Object>() {{
@@ -176,7 +177,6 @@ public class GetProfileTest {
             .withProfileName("profile1")
             .withEntity("entity1")
             .withPeriod(startTime, periodDuration, periodUnits);
-
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // execute - read the profile values - no groups
@@ -186,6 +186,7 @@ public class GetProfileTest {
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
+    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -224,6 +225,7 @@ public class GetProfileTest {
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
+    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -262,6 +264,7 @@ public class GetProfileTest {
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
+    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -389,6 +392,7 @@ public class GetProfileTest {
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
+    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -446,5 +450,4 @@ public class GetProfileTest {
     // validate - expect to fail to read any values
     Assert.assertEquals(0, result.size());
   }
-
 }
