@@ -238,10 +238,14 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
    */
   private void cacheMaintenance() {
     activeCache.cleanUp();
+    LOG.debug("Active cache maintenance triggered: cacheStats={}, size={}",
+            activeCache.stats().toString());
+            //activeCache.estimatedSize());
+
     expiredCache.cleanUp();
-    LOG.debug("Cache maintenance triggered: activeCacheStats={}, expiredCacheStats={}",
-            activeCache.stats().toString(),
+    LOG.debug("Expired cache maintenance triggered: cacheStats={}, size={}",
             expiredCache.stats().toString());
+            //expiredCache.estimatedSize());
   }
 
   /**

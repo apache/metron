@@ -259,6 +259,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void testEventTime() throws Exception {
+  long timeout = TimeUnit.SECONDS.toMillis(90);
     uploadConfigToZookeeper(ProfilerConfig.fromJSON(eventTimeProfile));
 
     // start the topology and write test messages to kafka
@@ -283,19 +284,19 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     assertEventually(() -> {
       List<Integer> results = execute("PROFILE_GET('count-by-ip', '192.168.66.1', window)", List.class);
       assertThat(results, hasItems(14, 12));
-      }, TimeUnit.SECONDS.toMillis(120));
+      }, timeout);
 
     // there are 36 messages in the first period and 38 in the next where ip_src_addr = 192.168.138.158
     assertEventually(() -> {
       List<Integer> results = execute("PROFILE_GET('count-by-ip', '192.168.138.158', window)", List.class);
       assertThat(results, hasItems(36, 38));
-      }, TimeUnit.SECONDS.toMillis(120));
+      }, timeout);
 
     // in all there are 50 (36+14) messages in the first period and 50 (38+12) messages in the next
     assertEventually(() -> {
       List<Integer> results = execute("PROFILE_GET('total-count', 'total', window)", List.class);
       assertThat(results, hasItems(50, 50));
-      }, TimeUnit.SECONDS.toMillis(120));
+      }, timeout);
   }
 
   /**
