@@ -75,6 +75,7 @@ import static org.apache.metron.profiler.storm.KafkaEmitter.PERIOD_ID_FIELD;
 import static org.apache.metron.profiler.storm.KafkaEmitter.PERIOD_START_FIELD;
 import static org.apache.metron.profiler.storm.KafkaEmitter.PROFILE_FIELD;
 import static org.apache.metron.profiler.storm.KafkaEmitter.TIMESTAMP_FIELD;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -206,32 +207,11 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     Thread.sleep(sleep);
     kafkaComponent.writeMessages(inputTopic, message3);
 
-    // retrieve the profile measurement using PROFILE_GET
-    String profileGetExpression = "PROFILE_GET('processing-time-test', '10.0.0.1', PROFILE_FIXED('15', 'MINUTES'))";
-    List<Integer> measurements = execute(profileGetExpression, List.class);
-
-    // need to keep checking for measurements until the profiler has flushed one out
-    int attempt = 0;
-    while(measurements.size() == 0 && attempt++ < 10) {
-
-      // wait for the profiler to flush
-      sleep = windowDurationMillis;
-      LOG.debug("Waiting {} millis for profiler to flush", sleep);
-      Thread.sleep(sleep);
-
-      // do not write additional messages to advance time. this ensures that we are testing the "time to live"
-      // flush mechanism. the TTL setting defines when the profile will be flushed
-
-      // try again to retrieve the profile measurement
-      measurements = execute(profileGetExpression, List.class);
-    }
-
-    // expect to see only 1 measurement, but could be more (one for each period) depending on
-    // how long we waited for the flush to occur
-    assertTrue(measurements.size() > 0);
-
     // the profile should have counted 3 messages; the 3 test messages that were sent
-    assertEquals(3, measurements.get(0).intValue());
+    assertEventually(() -> {
+      List<Integer> results = execute("PROFILE_GET('processing-time-test', '10.0.0.1', PROFILE_FIXED('15', 'MINUTES'))", List.class);
+      assertThat(results, hasItem(3));
+    }, timeout);
   }
 
   /**
