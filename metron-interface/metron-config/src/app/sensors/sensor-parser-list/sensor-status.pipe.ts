@@ -31,10 +31,8 @@ export class SensorStatusPipe implements PipeTransform {
         return 'Stopping';
       case 'ERROR':
         return 'Error';
-      case undefined:
-        return 'No status info available';
       default:
-        return status;
+      return 'Stopped';
     }
   }
 }
