@@ -168,7 +168,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('startSensor$: dispatch success action with proper payload', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.StartSensor({ parser });
     const successAction = new fromActions.StartSensorSuccess({
       parser,
@@ -184,7 +184,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('startSensor$: dispatch failure action with proper payload if it throws', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.StartSensor({ parser });
     const error = new HttpErrorResponse({ error: new Error('some error') });
     const status = new TopologyResponse('ERROR', error.message);
@@ -202,7 +202,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('startSensor$: dispatch failure action with proper payload if it is an error from the server', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.StartSensor({ parser });
     const status = new TopologyResponse('ERROR', 'some error from server');
     const failureAction = new fromActions.StartSensorFailure({
@@ -219,7 +219,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('stopSensor$: dispatch success action with proper payload', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.StopSensor({ parser });
     const successAction = new fromActions.StopSensorSuccess({
       parser,
@@ -235,7 +235,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('stopSensor$: dispatch failure action with proper payload if it throws', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.StopSensor({ parser });
     const error = new HttpErrorResponse({ error: new Error('some error') });
     const status = new TopologyResponse('ERROR', error.message);
@@ -253,7 +253,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('stopSensor$: dispatch failure action with proper payload if it is an error from the server', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.StopSensor({ parser });
     const status = new TopologyResponse('ERROR', 'some error from server');
     const failureAction = new fromActions.StopSensorFailure({
@@ -270,7 +270,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('enableSensor$: dispatch success action with proper payload', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.EnableSensor({ parser });
     const successAction = new fromActions.EnableSensorSuccess({
       parser,
@@ -286,7 +286,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('enableSensor$: dispatch failure action with proper payload if it throws', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.EnableSensor({ parser });
     const error = new HttpErrorResponse({ error: new Error('some error') });
     const status = new TopologyResponse('ERROR', error.message);
@@ -304,7 +304,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('enableSensor$: dispatch failure action with proper payload if it is an error from the server', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.EnableSensor({ parser });
     const status = new TopologyResponse('ERROR', 'some error from server');
     const failureAction = new fromActions.EnableSensorFailure({
@@ -321,7 +321,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('disableSensor$: dispatch success action with proper payload', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.DisableSensor({ parser });
     const successAction = new fromActions.DisableSensorSuccess({
       parser,
@@ -337,7 +337,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('disableSensor$: dispatch failure action with proper payload if it throws', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.DisableSensor({ parser });
     const error = new HttpErrorResponse({ error: new Error('some error') });
     const status = new TopologyResponse('ERROR', error.message);
@@ -355,7 +355,7 @@ describe('sensors control operation effects', () => {
   });
 
   it('disableSensor$: dispatch failure action with proper payload if it is an error from the server', () => {
-    const parser = { config: new ParserConfigModel({ sensorTopic: 'foo' }) };
+    const parser = { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) };
     const action = new fromActions.DisableSensor({ parser });
     const status = new TopologyResponse('ERROR', 'some error from server');
     const failureAction = new fromActions.DisableSensorFailure({
