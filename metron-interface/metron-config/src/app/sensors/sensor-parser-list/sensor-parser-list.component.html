@@ -103,75 +103,73 @@
       <td>{{ hasGroup(sensor) ? '' : sensor.modifiedByDate }}</td>
       <td>{{ hasGroup(sensor) ? '' : sensor.modifiedBy }}</td>
       <td class="icon-container">
-          <div data-qe-id="parser-controls">
-            <i
-              data-toggle="tooltip"
-              title="Operation in progress"
-              class="fa fa-circle-o-notch fa-spin fa-lg fa-fw"
-              [hidden]="!sensor.startStopInProgress"
-            >
-            </i>
-            <i
-              data-toggle="tooltip"
-              title="Stop parser topology"
-              class="fa fa-stop fa-lg"
-              aria-hidden="true"
-              [hidden]="!isStoppable(sensor)"
-              (click)="onStopSensor(sensor, $event)"
-              data-qe-id="stop-parser-button"
-            >
-            </i>
-            <i
-              data-toggle="tooltip"
-              title="Start parser topology"
-              class="fa fa-play fa-lg"
-              aria-hidden="true"
-              [hidden]="!isStartable(sensor)"
-              (click)="onStartSensor(sensor, $event)"
-              data-qe-id="start-parser-button"
-            >
-            </i>
+        <i
+          data-toggle="tooltip"
+          title="Operation in progress"
+          class="fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+          [hidden]="!sensor.startStopInProgress"
+        >
+        </i>
+        <i
+          data-toggle="tooltip"
+          title="Stop parser topology"
+          class="fa fa-stop fa-lg"
+          aria-hidden="true"
+          [hidden]="!isStoppable(sensor)"
+          (click)="onStopSensor(sensor, $event)"
+          data-qe-id="stop-parser-button"
+        >
+        </i>
+        <i
+          data-toggle="tooltip"
+          title="Start parser topology"
+          class="fa fa-play fa-lg"
+          aria-hidden="true"
+          [hidden]="!isStartable(sensor)"
+          (click)="onStartSensor(sensor, $event)"
+          data-qe-id="start-parser-button"
+        >
+        </i>
 
-            <i
-              data-toggle="tooltip"
-              title="Disable parser topology"
-              class="fa fa-ban fa-lg"
-              aria-hidden="true"
-              [hidden]="!isDisableable(sensor)"
-              (click)="onDisableSensor(sensor, $event)"
-              data-qe-id="disable-parser-button"
-            >
-            </i>
+        <i
+          data-toggle="tooltip"
+          title="Disable parser topology"
+          class="fa fa-ban fa-lg"
+          aria-hidden="true"
+          [hidden]="!isDisableable(sensor)"
+          (click)="onDisableSensor(sensor, $event)"
+          data-qe-id="disable-parser-button"
+        >
+        </i>
 
-            <i
-              data-toggle="tooltip"
-              title="Enable parser topology"
-              class="fa fa-check-circle-o fa-lg"
-              aria-hidden="true"
-              [hidden]="!isEnableable(sensor)"
-              (click)="onEnableSensor(sensor, $event)"
-              data-qe-id="enable-parser-button"
-            >
-            </i>
-            <i
-              data-toggle="tooltip"
-              title="Edit parser topology"
-              class="fa fa-pencil fa-lg"
-              aria-hidden="true"
-              [hidden]="sensor.isDeleted"
-              (click)="navigateToSensorEdit(sensor, $event)"
-            >
-            </i>
-            <i
-              data-toggle="tooltip"
-              title="Delete parser configuration"
-              class="fa fa-trash-o fa-lg"
-              aria-hidden="true"
-              [hidden]="sensor.isDeleted"
-              (click)="onDeleteItem(sensor, $event)"
-            >
-            </i>
-          </div>
+        <i
+          data-toggle="tooltip"
+          title="Enable parser topology"
+          class="fa fa-check-circle-o fa-lg"
+          aria-hidden="true"
+          [hidden]="!isEnableable(sensor)"
+          (click)="onEnableSensor(sensor, $event)"
+          data-qe-id="enable-parser-button"
+        >
+        </i>
+        <i
+          data-toggle="tooltip"
+          title="Edit parser topology"
+          class="fa fa-pencil fa-lg"
+          aria-hidden="true"
+          [hidden]="sensor.isDeleted"
+          (click)="navigateToSensorEdit(sensor, $event)"
+        >
+        </i>
+        <i
+          data-toggle="tooltip"
+          title="Delete parser configuration"
+          class="fa fa-trash-o fa-lg"
+          aria-hidden="true"
+          [hidden]="sensor.isDeleted"
+          (click)="onDeleteItem(sensor, $event)"
+        >
+        </i>
       </td>
       <td>
         <div data-qe-id="sensor-select" [hidden]="isDeletedOrPhantom(sensor)">
