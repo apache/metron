@@ -157,6 +157,7 @@
           title="Edit parser topology"
           class="fa fa-pencil fa-lg"
           aria-hidden="true"
+          data-qe-id="edit-parser-button"
           [hidden]="sensor.isDeleted"
           (click)="navigateToSensorEdit(sensor, $event)"
         >
@@ -166,6 +167,7 @@
           title="Delete parser configuration"
           class="fa fa-trash-o fa-lg"
           aria-hidden="true"
+          data-qe-id="delete-parser-button"
           [hidden]="sensor.isDeleted"
           (click)="onDeleteItem(sensor, $event)"
         >
