@@ -576,7 +576,7 @@ describe('Component: SensorParserList', () => {
     expect(component.isDeletedOrPhantom(sensor)).toBe(true);
   }));
 
-  fit('should hide parser controls when they cannot be used', async(() => {
+  it('should hide parser controls when they cannot be used', async(() => {
     fixture.detectChanges();
 
     const stopButtons = fixture.debugElement.queryAll(By.css('[data-qe-id="stop-parser-button"]'));
