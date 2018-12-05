@@ -205,7 +205,7 @@ public class ParserTopologyBuilder {
             , KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST.name()
     );
     kafkaSpoutConfigOptions.putIfAbsent( ConsumerConfig.GROUP_ID_CONFIG
-            , inputTopic + "_parser"
+            , sensorType + "_parser"
     );
     if(securityProtocol.isPresent()) {
       kafkaSpoutConfigOptions.putIfAbsent("security.protocol", KafkaUtils.INSTANCE.normalizeProtocol(securityProtocol.get()));
