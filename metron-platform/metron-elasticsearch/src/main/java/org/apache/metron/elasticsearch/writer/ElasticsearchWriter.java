@@ -30,6 +30,7 @@ import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
@@ -118,7 +119,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       }
 
       // define the document id
-      String guid = String.class.cast(source.get(Constants.GUID));
+      String guid = ConversionUtils.convert(source.get(Constants.GUID), String.class);
       if(guid == null) {
         LOG.warn("Missing '{}' field; document ID will be auto-generated.", Constants.GUID);
       }
