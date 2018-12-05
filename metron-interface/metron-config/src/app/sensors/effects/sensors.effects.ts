@@ -45,9 +45,9 @@ export class SensorsEffects {
         this.stormService.getAll(),
       ).pipe(
           map(([ configs, groups, statuses ]) => {
-          const configsArray: ParserMetaInfoModel[] = Object.keys(configs).map((name) => {
+          const configsArray: ParserMetaInfoModel[] = Object.keys(configs).map((configId) => {
             const metaInfo: ParserMetaInfoModel = {
-              config: new ParserConfigModel(configs[name])
+              config: new ParserConfigModel(configId, configs[configId])
             };
             return metaInfo;
           });

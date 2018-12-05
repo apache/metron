@@ -53,13 +53,13 @@ describe('sensors: parsers configs reducer', () => {
   it('should aggregate parsers on AggregateParsers', () => {
     const groupName = 'Foo group';
     const parserIds = [
-      'Parser config 2',
+      'Parser Config ID 02',
     ]
     const previousState: fromReducers.ParserState = {
       items: [{
-        config: new ParserConfigModel({ sensorTopic: 'Parser config 1'})
+        config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'Kafka/Sensor Topic ID 1'})
       }, {
-        config: new ParserConfigModel({ sensorTopic: 'Parser config 2'})
+        config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'Kafka/Sensor Topic ID 2'})
       }]
     };
     const action = new fromActionts.AggregateParsers({
@@ -71,20 +71,20 @@ describe('sensors: parsers configs reducer', () => {
     expect(newState.items[0]).toBe(previousState.items[0]);
     expect(newState.items[1]).not.toBe(previousState.items[1]);
     expect(newState.items[1].isDirty).toBe(true);
-    expect(newState.items[1].config.getName()).toBe('Parser config 2');
+    expect(newState.items[1].config.getName()).toBe('Parser Config ID 02');
     expect(newState.items[1].config.group).toEqual(groupName);
   });
 
   it('should set group on AddToGroup', () => {
     const groupName = 'Foo group';
     const parserIds = [
-      'Parser config 2',
+      'Parser Config ID 02',
     ]
     const previousState: fromReducers.ParserState = {
       items: [{
-        config: new ParserConfigModel({ sensorTopic: 'Parser config 1'})
+        config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'Kafka/Sensor Topic ID 1'})
       }, {
-        config: new ParserConfigModel({ sensorTopic: 'Parser config 2'})
+        config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'Kafka/Sensor Topic ID 2'})
       }]
     };
     const action = new fromActionts.AddToGroup({
@@ -96,17 +96,17 @@ describe('sensors: parsers configs reducer', () => {
     expect(newState.items[0]).toBe(previousState.items[0]);
     expect(newState.items[1]).not.toBe(previousState.items[1]);
     expect(newState.items[1].isDirty).toBe(true);
-    expect(newState.items[1].config.getName()).toBe('Parser config 2');
+    expect(newState.items[1].config.getName()).toBe('Parser Config ID 02');
     expect(newState.items[1].config.group).toEqual(groupName);
   });
 
   it('should mark items as deleted on MarkAsDeleted', () => {
-    const parserIds = ['Parser config 2'];
+    const parserIds = ['Parser Config ID 02'];
     const previousState: fromReducers.ParserState = {
       items: [{
-        config: new ParserConfigModel({ sensorTopic: 'Parser config 1'})
+        config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'Kafka/Sensor Topic ID 1'})
       }, {
-        config: new ParserConfigModel({ sensorTopic: 'Parser config 2'})
+        config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'Kafka/Sensor Topic ID 2'})
       }]
     };
     const action = new fromActionts.MarkAsDeleted({ parserIds });
@@ -121,9 +121,9 @@ describe('sensors: parsers configs reducer', () => {
     const parserIds = [groupName];
     const previousState: fromReducers.ParserState = {
       items: [{
-        config: new ParserConfigModel({ sensorTopic: 'Parser config 1'})
+        config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'Kafka/Sensor Topic ID 1'})
       }, {
-        config: new ParserConfigModel({ sensorTopic: 'Parser config 2', group: groupName})
+        config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'Kafka/Sensor Topic ID 2', group: groupName})
       }]
     };
     const action = new fromActionts.MarkAsDeleted({ parserIds });
@@ -254,10 +254,10 @@ describe('sensors: layout reducer', () => {
     const previousState = { order: [], dnd: {} };
     const action = new fromActionts.LoadSuccess({
       parsers: [
-        { config: new ParserConfigModel({ sensorTopic: 'sensor topic 1', group: 'group 2' }) },
-        { config: new ParserConfigModel({ sensorTopic: 'sensor topic 2', group: 'group 2' }) },
-        { config: new ParserConfigModel({ sensorTopic: 'sensor topic 3' }) },
-        { config: new ParserConfigModel({ sensorTopic: 'sensor topic 4', group: 'group 1' }) },
+        { config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'sensor topic 1', group: 'group 2' }) },
+        { config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'sensor topic 2', group: 'group 2' }) },
+        { config: new ParserConfigModel('Parser Config ID 03', { sensorTopic: 'sensor topic 3' }) },
+        { config: new ParserConfigModel('Parser Config ID 04', { sensorTopic: 'sensor topic 4', group: 'group 1' }) },
       ],
       groups: [
         { config: new ParserGroupModel({ name: 'group 1' }) },
@@ -268,11 +268,11 @@ describe('sensors: layout reducer', () => {
     expect(newState.order).not.toBe(previousState.order);
     expect(newState.order).toEqual([
       'group 1',
-      'sensor topic 4',
+      'Parser Config ID 04',
       'group 2',
-      'sensor topic 1',
-      'sensor topic 2',
-      'sensor topic 3',
+      'Parser Config ID 01',
+      'Parser Config ID 02',
+      'Parser Config ID 03',
     ]);
   });
 
@@ -470,8 +470,8 @@ describe('sensors: selectors', () => {
       sensors: {
         parsers: {
           items: [
-            { config: new ParserConfigModel({ sensorTopic: 'parser config 1' }) },
-            { config: new ParserConfigModel({ sensorTopic: 'parser config 2', group: 'group 1' }) },
+            { config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'Kafka/Sensor Topic ID 1' }) },
+            { config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'Kafka/Sensor Topic ID 2', group: 'group 1' }) },
           ]
         },
         groups: {
@@ -482,15 +482,15 @@ describe('sensors: selectors', () => {
         },
         statuses: {
           items: [
-            new TopologyStatus({ name: 'parser config 2' }),
-            new TopologyStatus({ name: 'parser config 1' }),
+            new TopologyStatus({ name: 'Parser Config ID 02' }),
+            new TopologyStatus({ name: 'Parser Config ID 01' }),
             new TopologyStatus({ name: 'group 2' }),
           ]
         },
         layout: {
           order: [
-            'parser config 2',
-            'parser config 1',
+            'Parser Config ID 02',
+            'Parser Config ID 01',
             'group 2',
             'group 1'
           ],
@@ -530,8 +530,8 @@ describe('sensors: selectors', () => {
       sensors: {
         parsers: {
           items: [
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 1' }) },
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 2' }) },
+            { config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'sensor topic 1' }) },
+            { config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'sensor topic 2' }) },
           ]
         },
         groups: {
@@ -549,8 +549,8 @@ describe('sensors: selectors', () => {
       sensors: {
         parsers: {
           items: [
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 1' }) },
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 2' }) },
+            { config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'sensor topic 1' }) },
+            { config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'sensor topic 2' }) },
           ]
         },
         groups: {
@@ -568,8 +568,8 @@ describe('sensors: selectors', () => {
       sensors: {
         parsers: {
           items: [
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 1' }) },
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 2' }), isDeleted: true },
+            { config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'sensor topic 1' }) },
+            { config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'sensor topic 2' }), isDeleted: true },
           ]
         },
         groups: {
@@ -587,8 +587,8 @@ describe('sensors: selectors', () => {
       sensors: {
         parsers: {
           items: [
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 1' }) },
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 2' }) },
+            { config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'sensor topic 1' }) },
+            { config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'sensor topic 2' }) },
           ]
         },
         groups: {
@@ -606,8 +606,8 @@ describe('sensors: selectors', () => {
       sensors: {
         parsers: {
           items: [
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 1' }), isDirty: true },
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 2' }) },
+            { config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'sensor topic 1' }), isDirty: true },
+            { config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'sensor topic 2' }) },
           ]
         },
         groups: {
@@ -625,8 +625,8 @@ describe('sensors: selectors', () => {
       sensors: {
         parsers: {
           items: [
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 1' }) },
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 2' }), isPhantom: true },
+            { config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'sensor topic 1' }) },
+            { config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'sensor topic 2' }), isPhantom: true },
           ]
         },
         groups: {
@@ -644,8 +644,8 @@ describe('sensors: selectors', () => {
       sensors: {
         parsers: {
           items: [
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 1' }) },
-            { config: new ParserConfigModel({ sensorTopic: 'sensor topic 2' }) },
+            { config: new ParserConfigModel('Parser Config ID 01', { sensorTopic: 'sensor topic 1' }) },
+            { config: new ParserConfigModel('Parser Config ID 02', { sensorTopic: 'sensor topic 2' }) },
           ]
         },
         groups: {

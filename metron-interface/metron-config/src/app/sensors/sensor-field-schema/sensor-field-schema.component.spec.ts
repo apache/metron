@@ -171,7 +171,7 @@ describe('Component: SensorFieldSchema', () => {
     configuration: {}
   };
   let sensorParserConfig = Object.assign(
-    new ParserConfigModel(),
+    new ParserConfigModel('TestConfigId01'),
     squidSensorConfigJson
   );
   let sensorEnrichmentConfig = Object.assign(
@@ -581,7 +581,7 @@ describe('Component: SensorFieldSchema', () => {
       codeFieldSchemaRow
     ];
 
-    component.sensorParserConfig = new ParserConfigModel();
+    component.sensorParserConfig = new ParserConfigModel('TestConfigId01');
     component.sensorParserConfig.parserClassName =
       'org.apache.metron.parsers.GrokParser';
     component.sensorParserConfig.sensorTopic = 'squid';

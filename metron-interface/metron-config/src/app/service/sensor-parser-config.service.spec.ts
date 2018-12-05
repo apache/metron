@@ -51,19 +51,19 @@ describe('SensorParserConfigService', () => {
     mockBackend.verify();
   });
 
-  let sensorParserConfig = new ParserConfigModel();
+  let sensorParserConfig = new ParserConfigModel('TestConfigId01');
   sensorParserConfig.sensorTopic = 'bro';
   sensorParserConfig.parserClassName = 'parserClass';
   sensorParserConfig.parserConfig = { field: 'value' };
   let availableParsers = [{ Grok: 'org.apache.metron.parsers.GrokParser' }];
   let parseMessageRequest = new ParseMessageRequest();
-  parseMessageRequest.sensorParserConfig = new ParserConfigModel();
+  parseMessageRequest.sensorParserConfig = new ParserConfigModel('TestConfigId02');
   parseMessageRequest.sensorParserConfig.sensorTopic = 'bro';
   parseMessageRequest.sampleData = 'sampleData';
   let parsedMessage = { field: 'value' };
-  let sensorParserConfig1 = new ParserConfigModel();
+  let sensorParserConfig1 = new ParserConfigModel('TestConfigId03');
   sensorParserConfig1.sensorTopic = 'bro1';
-  let sensorParserConfig2 = new ParserConfigModel();
+  let sensorParserConfig2 = new ParserConfigModel('TestConfigId04');
   sensorParserConfig2.sensorTopic = 'bro2';
 
   it('post', () => {
@@ -220,10 +220,10 @@ describe('SensorParserConfigService', () => {
 
     function getTestConfigs() {
       return [
-        { config: new ParserConfigModel({ sensorTopic: 'TestConfig01' }) },
-        { config: new ParserConfigModel({ sensorTopic: 'TestConfig02' }) },
-        { config: new ParserConfigModel({ sensorTopic: 'TestConfig03' }) },
-        { config: new ParserConfigModel({ sensorTopic: 'TestConfig04' }) },
+        { config: new ParserConfigModel('Parser_Config_ID_01', { sensorTopic: 'Kafka/Sensor Topic ID 01' }) },
+        { config: new ParserConfigModel('Parser_Config_ID_02', { sensorTopic: 'Kafka/Sensor Topic ID 02' }) },
+        { config: new ParserConfigModel('Parser_Config_ID_03', { sensorTopic: 'Kafka/Sensor Topic ID 03' }) },
+        { config: new ParserConfigModel('Parser_Config_ID_04', { sensorTopic: 'Kafka/Sensor Topic ID 04' }) },
       ];
     }
 
@@ -333,7 +333,7 @@ describe('SensorParserConfigService', () => {
 
       sensorParserConfigService.syncConfigs(testData).subscribe();
 
-      const request = mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig02');
+      const request = mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_02');
       expect(request.request.method).toEqual('DELETE');
     });
 
@@ -345,9 +345,9 @@ describe('SensorParserConfigService', () => {
       sensorParserConfigService.syncConfigs(testData).subscribe();
 
       const requests = [];
-      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig01'));
-      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig03'));
-      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig04'));
+      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_01'));
+      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_03'));
+      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_04'));
       expect(requests[0].request.method).toEqual('DELETE');
       expect(requests[1].request.method).toEqual('DELETE');
       expect(requests[2].request.method).toEqual('DELETE');
@@ -360,9 +360,9 @@ describe('SensorParserConfigService', () => {
 
       sensorParserConfigService.syncConfigs(testData).subscribe();
 
-      const request = mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig01');
+      const request = mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_01');
       expect(request.request.method).toEqual('POST');
-      expect(JSON.parse(request.request.body).sensorTopic).toEqual('TestConfig01');
+      expect(JSON.parse(request.request.body).sensorTopic).toEqual('Kafka/Sensor Topic ID 01');
     });
 
     it('syncronizing list of PARSER CONFIGS with the backend - MULTIPLE NEW', () => {
@@ -373,13 +373,13 @@ describe('SensorParserConfigService', () => {
       sensorParserConfigService.syncConfigs(testData).subscribe();
 
       const requests = [];
-      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig01'));
-      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig03'));
+      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_01'));
+      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_03'));
       expect(requests[0].request.method).toEqual('POST');
       expect(requests[1].request.method).toEqual('POST');
 
-      expect(JSON.parse(requests[0].request.body).sensorTopic).toEqual('TestConfig01');
-      expect(JSON.parse(requests[1].request.body).sensorTopic).toEqual('TestConfig03');
+      expect(JSON.parse(requests[0].request.body).sensorTopic).toEqual('Kafka/Sensor Topic ID 01');
+      expect(JSON.parse(requests[1].request.body).sensorTopic).toEqual('Kafka/Sensor Topic ID 03');
     });
 
     it('syncronizing list of PARSER CONFIGS with the backend - SINGLE CHANGED', () => {
@@ -389,9 +389,9 @@ describe('SensorParserConfigService', () => {
 
       sensorParserConfigService.syncConfigs(testData).subscribe();
 
-      const request = mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig04');
+      const request = mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_04');
       expect(request.request.method).toEqual('POST');
-      expect(JSON.parse(request.request.body).sensorTopic).toEqual('TestConfig04');
+      expect(JSON.parse(request.request.body).sensorTopic).toEqual('Kafka/Sensor Topic ID 04');
     });
 
     it('syncronizing list of PARSER CONFIGS with the backend - MULTIPLE CHANGED', () => {
@@ -402,13 +402,13 @@ describe('SensorParserConfigService', () => {
       sensorParserConfigService.syncConfigs(testData).subscribe();
 
       const requests = [];
-      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig01'));
-      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig03'));
+      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_01'));
+      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_03'));
       expect(requests[0].request.method).toEqual('POST');
       expect(requests[1].request.method).toEqual('POST');
 
-      expect(JSON.parse(requests[0].request.body).sensorTopic).toEqual('TestConfig01');
-      expect(JSON.parse(requests[1].request.body).sensorTopic).toEqual('TestConfig03');
+      expect(JSON.parse(requests[0].request.body).sensorTopic).toEqual('Kafka/Sensor Topic ID 01');
+      expect(JSON.parse(requests[1].request.body).sensorTopic).toEqual('Kafka/Sensor Topic ID 03');
     });
 
     it('syncronization of PARSER CONFIGS should return with an Observable array of successful/unsuccessful requests', () => {
@@ -422,8 +422,8 @@ describe('SensorParserConfigService', () => {
         });
 
         const requests = [];
-        requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig01'));
-        requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig03'));
+        requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_01'));
+        requests.push(mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_03'));
         requests[0].flush(requests[0].request.body);
         requests[1].flush(requests[1].request.body);
     });
@@ -441,7 +441,7 @@ describe('SensorParserConfigService', () => {
           }
         );
 
-        const request = mockBackend.expectOne('/api/v1/sensor/parser/config/TestConfig03');
+        const request = mockBackend.expectOne('/api/v1/sensor/parser/config/Parser_Config_ID_03');
         request.flush('Invalid request parameters', { status: 404, statusText: 'Bad Request' });
     });
 

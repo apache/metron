@@ -168,7 +168,7 @@ describe('Component: SensorGrok', () => {
       'SQUID_DELIMITED %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} ' +
       '%{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}';
 
-    component.sensorParserConfig = new ParserConfigModel();
+    component.sensorParserConfig = new ParserConfigModel('TestConfigId01');
     component.sensorParserConfig.sensorTopic = 'squid';
     component.newGrokStatement = grokStatement;
 

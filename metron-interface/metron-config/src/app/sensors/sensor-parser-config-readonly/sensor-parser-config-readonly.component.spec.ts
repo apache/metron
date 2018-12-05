@@ -328,7 +328,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
   it('should have sensorsService with parserName and grokPattern defined and kafkaService defined', async(() => {
     let sensorParserInfo = new SensorParserConfigHistory();
-    let sensorParserConfig = new ParserConfigModel();
+    let sensorParserConfig = new ParserConfigModel('TestConfigId01');
     let kafkaTopic = new KafkaTopic();
     let topologyStatus = new TopologyStatus();
 
@@ -425,7 +425,7 @@ describe('Component: SensorParserConfigReadonly', () => {
     let grokStatement = 'SQUID_DELIMITED squid grok statement';
     hdfsService.setContents(grokStatement);
     let sensorParserInfo = new SensorParserConfigHistory();
-    let sensorParserConfig = new ParserConfigModel();
+    let sensorParserConfig = new ParserConfigModel('TestConfigId01');
     sensorParserConfig.parserConfig = {};
 
     sensorParserConfig.parserConfig['grokPath'] = '/squid/grok/path';
@@ -439,7 +439,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
   it('setTransformsConfigKeys/getTransformsOutput should return the keys of the transforms config  ', async(() => {
     let sensorParserInfo = new SensorParserConfigHistory();
-    let sensorParserConfig = new ParserConfigModel();
+    let sensorParserConfig = new ParserConfigModel('TestConfigId01');
     let fieldTransformer1 = new FieldTransformer();
     let fieldTransformer2 = new FieldTransformer();
 
@@ -554,7 +554,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
   let setDataForSensorOperation = function() {
     let sensorParserInfo = new SensorParserConfigHistory();
-    let sensorParserConfig = new ParserConfigModel();
+    let sensorParserConfig = new ParserConfigModel('TestConfigId01');
     let kafkaTopic = new KafkaTopic();
     let topologyStatus = new TopologyStatus();
 

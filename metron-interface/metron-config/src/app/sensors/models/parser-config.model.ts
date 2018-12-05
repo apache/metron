@@ -18,6 +18,9 @@
 import {FieldTransformer} from '../../model/field-transformer';
 import { ParserModel } from './parser.model';
 export class ParserConfigModel implements ParserModel {
+
+  id: string;
+
   cacheConfig: Object;
   errorTopic: any;
   errorWriterClassName: string;
@@ -47,7 +50,9 @@ export class ParserConfigModel implements ParserModel {
   startStopInProgress: boolean;
   group: string;
 
-  constructor(config: any = {}) {
+  constructor(id: string, config: any = {}) {
+
+    this.id = id;
 
     Object.keys(config).forEach(key => {
       this[key] = config[key];
@@ -61,7 +66,7 @@ export class ParserConfigModel implements ParserModel {
   }
 
   clone() {
-    const clone = new ParserConfigModel();
+    const clone = new ParserConfigModel(this.id);
 
     clone.parserClassName = this.parserClassName;
     clone.filterClassName = this.filterClassName;
@@ -88,10 +93,10 @@ export class ParserConfigModel implements ParserModel {
   }
 
   getName(): string {
-    return this.sensorTopic;
+    return this.id;
   }
 
   setName(value: string) {
-    this.sensorTopic = value;
+    this.id = value;
   }
 }

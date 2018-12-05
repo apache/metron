@@ -26,7 +26,7 @@ import { SensorStormSettingsModule } from './sensor-storm-settings.module';
 describe('Component: SensorStormSettingsComponent', () => {
   let fixture: ComponentFixture<SensorStormSettingsComponent>;
   let component: SensorStormSettingsComponent;
-  let sensorParserConfig: ParserConfigModel = new ParserConfigModel();
+  let sensorParserConfig: ParserConfigModel = new ParserConfigModel('TestConfigId01');
   sensorParserConfig.sensorTopic = 'bro';
   sensorParserConfig.parserClassName =
     'org.apache.metron.parsers.bro.BasicBroParser';
@@ -73,7 +73,7 @@ describe('Component: SensorStormSettingsComponent', () => {
 
   it('should initialise the fields', () => {
     component.init();
-    expect(component.newSensorParserConfig).toEqual(new ParserConfigModel());
+    expect(component.newSensorParserConfig).toEqual(new ParserConfigModel('TestConfigId01'));
 
     component.sensorParserConfig = sensorParserConfig;
     component.init();
@@ -123,7 +123,7 @@ describe('Component: SensorStormSettingsComponent', () => {
   });
 
   it('hasSpoutConfigChanged should properly detect changes', () => {
-    let sensorParserConfigWithSpoutConfig = new ParserConfigModel();
+    let sensorParserConfigWithSpoutConfig = new ParserConfigModel('TestConfigId01');
     sensorParserConfigWithSpoutConfig.spoutConfig = {};
     component.sensorParserConfig = sensorParserConfigWithSpoutConfig;
     component.newSpoutConfig = '{}';
@@ -144,7 +144,7 @@ describe('Component: SensorStormSettingsComponent', () => {
   });
 
   it('hasStormConfigChanged should properly detect changes', () => {
-    let sensorParserConfigWithStormConfig = new ParserConfigModel();
+    let sensorParserConfigWithStormConfig = new ParserConfigModel('TestConfigId01');
     sensorParserConfigWithStormConfig.stormConfig = {};
     component.sensorParserConfig = sensorParserConfigWithStormConfig;
     component.newStormConfig = '{}';

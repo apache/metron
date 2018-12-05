@@ -27,9 +27,7 @@ export class SensorParserConfigHistory {
   latency: string;
   throughput: string;
 
-  constructor() {
-    this.config = new ParserConfigModel();
-  }
+  constructor() {}
 
   setConfig(config) {
     this.config = new ParserConfigModel(config);

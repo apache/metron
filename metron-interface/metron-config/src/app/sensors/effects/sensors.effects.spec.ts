@@ -69,8 +69,8 @@ describe('sensor.effects.ts', () => {
 
   function fillStoreWithTestData() {
     testParsers = [
-      { config: new ParserConfigModel({ sensorTopic: 'TestConfig01' })},
-      { config: new ParserConfigModel({ sensorTopic: 'TestConfig02' })},
+      { config: new ParserConfigModel('TestConfig01', { sensorTopic: 'TestKafkaTopicId01' })},
+      { config: new ParserConfigModel('TestConfig01', { sensorTopic: 'TestKafkaTopicId02' })},
     ];
     testGroups = [
       { config: new ParserGroupModel({ name: 'TestGroup01', description: '' })},

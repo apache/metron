@@ -43,7 +43,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   startStopInProgress: boolean = false;
   kafkaTopic: KafkaTopic = new KafkaTopic();
   sensorParserConfigHistory: SensorParserConfigHistory = new SensorParserConfigHistory();
-  sensorParserConfig: ParserConfigModel = new ParserConfigModel();
+  sensorParserConfig: ParserConfigModel = new ParserConfigModel('TestConfigId01');
   topologyStatus: TopologyStatus = new TopologyStatus();
   sensorEnrichmentConfig: SensorEnrichmentConfig = new SensorEnrichmentConfig();
   grokStatement = {};

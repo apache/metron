@@ -34,7 +34,7 @@ export class SensorStormSettingsComponent implements OnChanges {
   @Output() hideStormSettings: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onStormSettingsChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  newSensorParserConfig: ParserConfigModel = new ParserConfigModel();
+  newSensorParserConfig: ParserConfigModel = new ParserConfigModel('TestConfigId01');
   newSpoutConfig: string = '{}';
   newStormConfig: string = '{}';
 
@@ -46,7 +46,7 @@ export class SensorStormSettingsComponent implements OnChanges {
 
   init(): void {
     if (this.sensorParserConfig) {
-      this.newSensorParserConfig = Object.assign(new ParserConfigModel(), this.sensorParserConfig);
+      this.newSensorParserConfig = Object.assign(new ParserConfigModel('TestConfigId01'), this.sensorParserConfig);
       this.newSpoutConfig = JSON.stringify(this.sensorParserConfig.spoutConfig, null, '\t');
       this.newStormConfig = JSON.stringify(this.sensorParserConfig.stormConfig, null, '\t');
     }

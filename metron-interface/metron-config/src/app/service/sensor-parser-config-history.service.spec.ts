@@ -49,7 +49,7 @@ describe('SensorParserConfigHistoryService', () => {
 
   describe('when service functions', () => {
     let sensorParserConfigHistory = new SensorParserConfigHistory();
-    sensorParserConfigHistory.config = new ParserConfigModel();
+    sensorParserConfigHistory.config = new ParserConfigModel('TestConfigId01');
 
     it('get', () => {
       sensorParserConfigHistoryService.get('bro').subscribe(

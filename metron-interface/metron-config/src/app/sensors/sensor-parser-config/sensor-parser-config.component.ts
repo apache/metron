@@ -32,6 +32,10 @@ import { IndexingConfigurations } from '../../model/sensor-indexing-config';
 import { RestError } from '../../model/rest-error';
 import { HdfsService } from '../../service/hdfs.service';
 import { GrokValidationService } from '../../service/grok-validation.service';
+import { SensorState } from '../reducers';
+import { Store, select } from '@ngrx/store';
+import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
+import { filter } from 'rxjs/operators';
 
 export enum Pane {
   GROK,
@@ -57,7 +61,7 @@ export class SensorParserConfigComponent implements OnInit {
   transformsValidationForm: FormGroup;
 
   sensorName: string = '';
-  sensorParserConfig: ParserConfigModel = new ParserConfigModel();
+  sensorParserConfig: ParserConfigModel;
   sensorEnrichmentConfig: SensorEnrichmentConfig = new SensorEnrichmentConfig();
   indexingConfigurations: IndexingConfigurations = new IndexingConfigurations();
 
@@ -111,10 +115,9 @@ export class SensorParserConfigComponent implements OnInit {
     private grokValidationService: GrokValidationService,
     private router: Router,
     private kafkaService: KafkaService,
-    private hdfsService: HdfsService
-  ) {
-    this.sensorParserConfig.parserConfig = {};
-  }
+    private hdfsService: HdfsService,
+    // private store: Store<SensorState>,
+  ) {}
 
   init(id: string): void {
     if (id !== 'new') {
@@ -122,8 +125,8 @@ export class SensorParserConfigComponent implements OnInit {
       this.sensorName = id;
       this.sensorParserConfigService
         .getConfig(id)
-        .subscribe((results: ParserConfigModel) => {
-          this.sensorParserConfig = results;
+        .subscribe((parserConfig: {}) => {
+          this.sensorParserConfig = new ParserConfigModel(id, parserConfig);
           this.sensorNameValid = true;
           this.getKafkaStatus();
           if (Object.keys(this.sensorParserConfig.parserConfig).length > 0) {
@@ -182,7 +185,8 @@ export class SensorParserConfigComponent implements OnInit {
         }
       );
     } else {
-      this.sensorParserConfig = new ParserConfigModel();
+      // in case of new parser config
+      this.sensorParserConfig = new ParserConfigModel(id || '');
       this.sensorParserConfig.parserClassName =
         'org.apache.metron.parsers.GrokParser';
       this.sensorParserConfigService.getAllConfig().subscribe((results: {}) => {
@@ -199,6 +203,19 @@ export class SensorParserConfigComponent implements OnInit {
     this.createForms();
     this.getAvailableParsers();
   }
+
+  // TODO impl
+  // private findById(store: Store<SensorState>, id: string) {
+  //   this.store.pipe(
+  //     select('sensors.parsers.items'),
+  //     filter((parserConfig: ParserMetaInfoModel) => {
+
+  //     }),
+  //   )
+  //     .subscribe((parsers: ParserMetaInfoModel[]) => {
+
+  //     });
+  // }
 
   createSensorConfigForm(): FormGroup {
     let group: any = {};
