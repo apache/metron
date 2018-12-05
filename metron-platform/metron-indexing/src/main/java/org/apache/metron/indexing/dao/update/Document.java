@@ -18,12 +18,10 @@
 
 package org.apache.metron.indexing.dao.update;
 
-import org.apache.metron.common.utils.JSONUtils;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+import org.apache.metron.common.utils.JSONUtils;
 
 public class Document {
   Long timestamp;
@@ -92,28 +90,45 @@ public class Document {
   }
 
   @Override
+  public String toString() {
+    return "Document{" +
+        "timestamp=" + timestamp +
+        ", document=" + document +
+        ", guid='" + guid + '\'' +
+        ", sensorType='" + sensorType + '\'' +
+        '}';
+  }
+
+  @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof Document)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
     Document document1 = (Document) o;
-    return Objects.equals(timestamp, document1.timestamp) &&
-            Objects.equals(document, document1.document) &&
-            Objects.equals(guid, document1.guid) &&
-            Objects.equals(sensorType, document1.sensorType);
+
+    if (timestamp != null ? !timestamp.equals(document1.timestamp) : document1.timestamp != null) {
+      return false;
+    }
+    if (document != null ? !document.equals(document1.document) : document1.document != null) {
+      return false;
+    }
+    if (guid != null ? !guid.equals(document1.guid) : document1.guid != null) {
+      return false;
+    }
+    return sensorType != null ? sensorType.equals(document1.sensorType)
+        : document1.sensorType == null;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(timestamp, document, guid, sensorType);
-  }
-
-  @Override
-  public String toString() {
-    return "Document{" +
-            "timestamp=" + timestamp +
-            ", document=" + document +
-            ", guid='" + guid + '\'' +
-            ", sensorType='" + sensorType + '\'' +
-            '}';
+    int result = timestamp != null ? timestamp.hashCode() : 0;
+    result = 31 * result + (document != null ? document.hashCode() : 0);
+    result = 31 * result + (guid != null ? guid.hashCode() : 0);
+    result = 31 * result + (sensorType != null ? sensorType.hashCode() : 0);
+    return result;
   }
 }
