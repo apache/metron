@@ -20,26 +20,17 @@ package org.apache.metron.elasticsearch.bulk;
 import org.apache.metron.indexing.dao.update.Document;
 
 /**
- * Writes documents to an index in bulk.
- *
- * @param <D> The type of document to write.
+ * Indicates that a document was successfully written by a {@link BulkDocumentWriter}.
+ * @param <D> The type of document written.
  */
-public interface BulkDocumentWriter<D extends Document> {
+public class WriteSuccess <D extends Document> {
+  private D document;
 
-    /**
-     * Add a document to the batch.
-     * @param document The document to write.
-     * @param index The name of the index to write to.
-     */
-    void addDocument(D document, String index);
+  public WriteSuccess(D document) {
+    this.document = document;
+  }
 
-    /**
-     * @return The number of documents waiting to be written.
-     */
-    int size();
-
-    /**
-     * Write all documents in the batch.
-     */
-    BulkDocumentWriterResults write();
+  public D getDocument() {
+    return document;
+  }
 }

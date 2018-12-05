@@ -34,7 +34,6 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Writes documents to an Elasticsearch index in bulk.
@@ -57,38 +56,25 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    private Optional<SuccessListener> onSuccess;
-    private Optional<FailureListener> onFailure;
     private ElasticsearchClient client;
     private List<Indexable> documents;
     private WriteRequest.RefreshPolicy refreshPolicy;
 
     public ElasticsearchBulkDocumentWriter(ElasticsearchClient client) {
         this.client = client;
-        this.onSuccess = Optional.empty();
-        this.onFailure = Optional.empty();
         this.documents = new ArrayList<>();
         this.refreshPolicy = WriteRequest.RefreshPolicy.NONE;
     }
 
     @Override
-    public void onSuccess(SuccessListener<D> onSuccess) {
-        this.onSuccess = Optional.of(onSuccess);
+    public void addDocument(D document, String indexName) {
+        documents.add(new Indexable(document, indexName));
+        LOG.debug("Adding document to batch; document={}, index={}", document, indexName);
     }
 
     @Override
-    public void onFailure(FailureListener<D> onFailure) {
-        this.onFailure = Optional.of(onFailure);
-    }
-
-    @Override
-    public void addDocument(D document, String index) {
-        documents.add(new Indexable(document, index));
-        LOG.debug("Adding document to batch; document={}, index={}", document, index);
-    }
-
-    @Override
-    public void write() {
+    public BulkDocumentWriterResults<D> write() {
+        BulkDocumentWriterResults<D> results = new BulkDocumentWriterResults<>();
         try {
             // create an index request for each document
             BulkRequest bulkRequest = new BulkRequest();
@@ -100,20 +86,13 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
 
             // submit the request and handle the response
             BulkResponse bulkResponse = client.getHighLevelClient().bulk(bulkRequest);
-            List<D> successful = handleBulkResponse(bulkResponse, documents);
-
-            // notify the success listeners
-            onSuccess.ifPresent(listener -> listener.onSuccess(successful));
-            LOG.debug("Wrote document(s) to Elasticsearch; batchSize={}, success={}, failed={}, took={} ms",
-                    documents.size(), successful.size(), documents.size() - successful.size(), bulkResponse.getTookInMillis());
+            handleBulkResponse(bulkResponse, documents, results);
 
         } catch(IOException e) {
             // assume all documents have failed. notify the failure listeners
-            if(onFailure.isPresent()) {
-                for(Indexable indexable: documents) {
-                    D failed = indexable.document;
-                    onFailure.get().onFailure(failed, e, ExceptionUtils.getRootCauseMessage(e));
-                }
+            for(Indexable indexable: documents) {
+                D failed = indexable.document;
+                results.addFailure(failed, e, ExceptionUtils.getRootCauseMessage(e));
             }
             LOG.error("Failed to submit bulk request; all documents failed", e);
 
@@ -121,6 +100,10 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
             // flush all documents no matter which ones succeeded or failed
             documents.clear();
         }
+
+        LOG.debug("Wrote document(s) to Elasticsearch; batchSize={}, success={}, failed={}",
+                documents.size(), results.getSuccesses().size(), results.getFailures().size());
+        return results;
     }
 
     @Override
@@ -149,10 +132,10 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
      * Handles the {@link BulkResponse} received from Elasticsearch.
      * @param bulkResponse The response received from Elasticsearch.
      * @param documents The documents included in the bulk request.
+     * @param results The writer results.
      * @return The documents that were successfully written. Failed documents are excluded.
      */
-    private List<D> handleBulkResponse(BulkResponse bulkResponse, List<Indexable> documents) {
-        List<D> successful = new ArrayList<>();
+    private void handleBulkResponse(BulkResponse bulkResponse, List<Indexable> documents, BulkDocumentWriterResults<D> results) {
         if (bulkResponse.hasFailures()) {
 
             // interrogate the response to distinguish between those that succeeded and those that failed
@@ -164,30 +147,20 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
                     D failed = getDocument(response.getItemId());
                     Exception cause = response.getFailure().getCause();
                     String message = response.getFailureMessage();
-                    onFailure.ifPresent(listener -> listener.onFailure(failed, cause, message));
+                    results.addFailure(failed, cause, message);
 
                 } else {
                     // request succeeded
                     D success = getDocument(response.getItemId());
-                    successful.add(success);
+                    results.addSuccess(success);
                 }
             }
         } else {
             // all requests succeeded
             for(Indexable success: documents) {
-                successful.add(success.document);
+                results.addSuccess(success.document);
             }
         }
-
-        return successful;
-    }
-
-    private List<D> getDocuments() {
-        List<D> results = new ArrayList<>();
-        for(Indexable indexable: documents) {
-            results.add(indexable.document);
-        }
-        return results;
     }
 
     private D getDocument(int index) {
