@@ -90,7 +90,9 @@
         <span class="indentation" *ngIf="!!hasGroup(sensor)">
           ---
         </span>
-        {{ sensor.config.getName() }}
+        <span [title]="sensor.config.getName()">
+          {{ sensor.config.getName() }}
+        </span>
       </td>
       <td>{{ getParserType(sensor.config) }}</td>
       <td

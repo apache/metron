@@ -34,6 +34,10 @@ table tr td, table tr th {
 
 .parent:not(.active) {
   background: #272727;
+
+  &:hover {
+    background: #1E434F;
+  }
 }
 
 .cell-name {
@@ -85,6 +89,12 @@ table tr td, table tr th {
       line-height: 34px;
       vertical-align: middle;
       padding: 0;
+
+      &.cell-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
       &.drag-handle {
         padding: 0 0 0 8px;
