@@ -103,11 +103,11 @@ export class SensorParserConfigService {
     return observable;
   }
 
-  syncConfigs(configs: ParserMetaInfoModel[]): any {
+  syncConfigs(configs: ParserMetaInfoModel[]): Observable<{}> {
     return this.sync(configs, this.saveConfig, this.deleteConfig);
   }
 
-  syncGroups(groups: ParserMetaInfoModel[]) {
+  syncGroups(groups: ParserMetaInfoModel[]): Observable<{}> {
     return this.sync(groups, this.saveGroup, this.deleteGroup);
   }
 
@@ -125,6 +125,9 @@ export class SensorParserConfigService {
         }
       }),
       catchError(HttpUtil.handleError),
+      reduce((acc, value) => {
+        return acc.concat(value);
+      }, [])
     )
   }
 

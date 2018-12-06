@@ -417,7 +417,7 @@ describe('SensorParserConfigService', () => {
       markElementOnIndexAs(testData, [0, 2], DirtyFlags.CHANGED);
 
       sensorParserConfigService.syncConfigs(testData)
-        .subscribe((syncResults) => {
+        .subscribe((syncResults: any[]) => {
           expect(syncResults.length === 2);
         });
 
@@ -461,5 +461,40 @@ describe('SensorParserConfigService', () => {
         const request = mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup02');
         request.flush('Invalid request parameters', { status: 404, statusText: 'Bad Request' });
     });
+
+    it('syncConfigs() should complete even if no changed item passed', () => {
+      const testData = getTestConfigs();
+
+      sensorParserConfigService.syncConfigs(testData)
+        .subscribe(
+          (value) => {
+            // we expect sync to return an empty array of result if no changed item
+            expect(value).toEqual([]);
+          },
+          noop,
+          () => {
+            // complete has to be called
+            expect(true).toBeTruthy();
+          }
+        );
+    });
+
+    it('syncGroups() should complete even if no changed item passed', () => {
+      const testData = getTestGroups();
+
+      sensorParserConfigService.syncGroups(testData)
+        .subscribe(
+          (value) => {
+            // we expect sync to return an empty array of result if no changed item
+            expect(value).toEqual([]);
+          },
+          noop,
+          () => {
+            // complete has to be called
+            expect(true).toBeTruthy();
+          }
+        );
+    });
+
   })
 });
