@@ -74,8 +74,12 @@ table tr td, table tr th {
   }
 
   & thead {
-    & th:nth-child(1) {
+    & .head-cell-drag-handle {
       width: 40px;
+    }
+
+    & .head-cell-name {
+      width: 250px;
     }
   }
 
