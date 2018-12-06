@@ -322,7 +322,7 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
       if(cause.wasEvicted()) {
         // add the profile to the expired cache
         expiredCache.put(key, value);
-        LOG.info("Profile expired from active cache due to inactivity; profile={}, entity={}, cause={}",
+        LOG.debug("Profile expired from active cache due to inactivity; profile={}, entity={}, cause={}",
                 value.getDefinition().getProfile(), value.getEntity(), cause);
 
       } else {
