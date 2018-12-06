@@ -101,7 +101,7 @@ public class StellarShellTest {
   }
 
   @Test
-  public void testBacklashInStrings() throws Exception {
+  public void testBackslashInStrings() throws Exception {
     stellarShell.execute(createOp("SPLIT('foo\\\\bar', '\\\\')"));
     assertEquals("[foo, bar]", stdout());
   }
