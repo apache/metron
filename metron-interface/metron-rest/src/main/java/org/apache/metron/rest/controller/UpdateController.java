@@ -24,7 +24,6 @@ import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.UpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,17 +54,6 @@ public class UpdateController {
     } catch (OriginalNotFoundException e) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-  }
-
-  @ApiOperation(value = "Replace a document with a full replacement")
-  @ApiResponse(message = "Returns the complete replaced document.", code = 200)
-  @RequestMapping(value = "/replace", method = RequestMethod.POST)
-  ResponseEntity<Document> replace(
-          final @ApiParam(name = "request", value = "Replacement request", required = true)
-                @RequestBody
-          ReplaceRequest request
-  ) throws RestException {
-    return new ResponseEntity<>(service.replace(request), HttpStatus.OK);
   }
 
   @ApiOperation(value = "Add a comment to an alert")

@@ -17,11 +17,12 @@
  */
 package org.apache.metron.indexing.dao.update;
 
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.indexing.dao.RetrieveLatestDao;
 
 public interface UpdateDao {
 
@@ -90,22 +91,5 @@ public interface UpdateDao {
         request.getGuid(),
         request.getSensorType(),
         timestamp.orElse(System.currentTimeMillis()));
-  }
-
-  /**
-   * Replace a document in an index.
-   * @param request The replacement request.
-   * @param timestamp The timestamp (optional) of the update.  If not specified, then current time will be used.
-   * @return The replaced document.
-   * @throws IOException If an error occurs during replacement.
-   */
-  default Document replace(ReplaceRequest request, Optional<Long> timestamp)
-      throws IOException {
-    Document d = new Document(request.getReplacement(),
-        request.getGuid(),
-        request.getSensorType(),
-        timestamp.orElse(System.currentTimeMillis())
-    );
-    return update(d, Optional.ofNullable(request.getIndex()));
   }
 }
