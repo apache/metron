@@ -21,4 +21,6 @@ export interface ParserModel {
   setName(value: string)
 
   getName(): string
+
+  getDescription(): string
 }

@@ -168,7 +168,7 @@ describe('sensors: group configs reducer', () => {
     const previousState: fromReducers.GroupState = {
       items: [{ config: new ParserGroupModel({ name: 'Existing group' }) }]
     };
-    const action = new fromActionts.CreateGroup('New group');
+    const action = new fromActionts.CreateGroup({name: 'New group', description: 'New description'});
     const newState = fromReducers.groupConfigsReducer(previousState, action);
 
     expect(newState.items.length).toBe(previousState.items.length + 1);
@@ -176,6 +176,20 @@ describe('sensors: group configs reducer', () => {
     expect(newState.items[1].config.getName()).toBe('New group');
     expect(newState.items[1].isGroup).toBe(true);
     expect(newState.items[1].isPhantom).toBe(true);
+  });
+
+  it('should edit an existing group description on UpdateGroupDescription', () => {
+    const previousState: fromReducers.GroupState = {
+      items: [{ config: new ParserGroupModel({ name: 'Existing group', description: 'Existing description' }) }]
+    };
+    const newConfig = {name: 'Existing group', description: 'New description'};
+    const action = new fromActionts.UpdateGroupDescription(newConfig);
+    const newState = fromReducers.groupConfigsReducer(previousState, action);
+
+    expect(newState.items.length).toBe(previousState.items.length);
+    expect(newState.items[0].config.getName()).toBe(newConfig.name);
+    expect(newState.items[0].config.getDescription()).toBe(newConfig.description);
+    expect(newState.items[0].isDirty).toBe(true);
   });
 
   it('should mark groups as deleted on MarkAsDeleted', () => {
@@ -302,7 +316,7 @@ describe('sensors: layout reducer', () => {
 
   it('should append the group name to the order on CreateGroup', () => {
     const previousState = { order: [], dnd: {} };
-    const action = new fromActionts.CreateGroup('Group name');
+    const action = new fromActionts.CreateGroup({name: 'Group name', description: 'Group description'});
     const newState = fromReducers.layoutReducer(previousState, action);
 
     expect(newState.order[newState.order.length - 1]).toBe('Group name');

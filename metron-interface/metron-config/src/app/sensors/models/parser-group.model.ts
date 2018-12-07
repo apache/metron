@@ -30,11 +30,28 @@ export class ParserGroupModel implements ParserModel {
     this.description = rawJson['description'] || '';
   }
 
+  clone(rawJson) {
+    const clone = new ParserGroupModel(rawJson);
+
+    clone.name = this.name;
+    clone.description = this.description;
+
+    return clone;
+  }
+
   getName(): string {
     return this.name;
   }
 
   setName(value: string) {
     this.name = value;
+  }
+
+  getDescription(): string {
+    return this.description;
+  }
+
+  setDescription(value: string) {
+    this.description = value;
   }
 }

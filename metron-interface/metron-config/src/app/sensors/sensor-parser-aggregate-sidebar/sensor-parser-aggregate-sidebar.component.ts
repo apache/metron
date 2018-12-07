@@ -39,6 +39,11 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
   private targetGroup: string;
   groups: GroupState;
   name: string;
+  description: string;
+  groupDetails = {
+    name: '',
+    description: ''
+  };
 
   allowMerge = true;
 
@@ -56,13 +61,16 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
       this.dropTargetId = state.layout.dnd.dropTargetId;
       this.targetGroup = state.layout.dnd.targetGroup;
       this.groups = state.groups;
-    });
-    this.route.params.subscribe(params => {
-      if (params['id']) {
-        this.name = params['id'];
-      } else {
-        this.name = 'Aggregate: ' + [this.draggedId, this.dropTargetId].join(' + ') ;
-      }
+      this.route.params.pipe(take(1)).subscribe(params => {
+        if (params['id']) {
+          const existingGroup = this.groups.items.filter(g => g.config.getName() === params['id']);
+          this.name = existingGroup[0].config.getName();
+          this.description = existingGroup[0].config.getDescription();
+        } else {
+          this.name = 'Aggregate: ' + [this.draggedId, this.dropTargetId].join(' + ') ;
+          this.description = '';
+        }
+      })
     });
   }
 
@@ -71,9 +79,17 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
     this.router.navigateByUrl('/sensors');
   }
 
-  createNew(groupName: string) {
-
-    this.store.dispatch(new fromActions.CreateGroup(groupName));
+  createNew(groupName: string, groupDescription: string) {
+    this.groupDetails.name = groupName;
+    this.groupDetails.description = groupDescription;
+    const group = this.groups.items.filter(item => item.config.getName() === this.name);
+    if (group.length) {
+      this.store.dispatch(new fromActions.UpdateGroupDescription(this.groupDetails));
+      this.close();
+      return;
+    } else {
+      this.store.dispatch(new fromActions.CreateGroup(this.groupDetails));
+    }
 
     if (!this.targetGroup) {
       this.store.dispatch(new fromActions.AggregateParsers({

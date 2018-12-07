@@ -31,13 +31,17 @@
           <div class="form-field">
             <label>
               <span class="label-text">DESCRIPTION</span>
-              <input #descriptionInput type="text" class="form-control" />
+              <input #descriptionInput type="text" class="form-control" [value]="description"/>
             </label>
           </div>
         </div>
         <div>
-          <button (click)="createNew(groupNameInput.value, descriptionInput.value)" class="btn save-button">DONE</button>
-          <button (click)="close()" class="btn form-enable-disable-button">CANCEL</button>
+          <button (click)="createNew(groupNameInput.value, descriptionInput.value)"
+                  (keyup.enter)="createNew(groupNameInput.value, descriptionInput.value)"
+                  class="btn save-button">DONE</button>
+          <button (click)="close()"
+                  (keyup.enter)="close()"
+                  class="btn form-enable-disable-button">CANCEL</button>
         </div>
       </div>
       <div *ngIf="!showCreateForm()">

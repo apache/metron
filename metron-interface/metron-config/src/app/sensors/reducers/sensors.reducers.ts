@@ -181,7 +181,7 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
     case fromActions.SensorsActionTypes.CreateGroup: {
       const a = (action as fromActions.CreateGroup);
       const group = {
-        config: new ParserGroupModel({ name: a.payload }),
+        config: new ParserGroupModel({ name: a.payload.name, description: a.payload.description }),
         isGroup: true,
         isPhantom: true,
       };
@@ -191,6 +191,24 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
           ...state.items,
           group
         ]
+      }
+    }
+    case fromActions.SensorsActionTypes.UpdateGroupDescription: {
+      const a = (action as fromActions.UpdateGroupDescription);
+      return {
+        ...state,
+        items: state.items.map(item => {
+          if (a.payload.name === item.config.getName()) {
+            const config = (item.config as ParserGroupModel).clone(a.payload);
+            config.setDescription(a.payload.description);
+            return {
+              ...item,
+              config,
+              isDirty: true
+            }
+          }
+          return item;
+        })
       }
     }
     case fromActions.SensorsActionTypes.MarkAsDeleted: {
@@ -332,11 +350,12 @@ export function layoutReducer(state: LayoutState = initialLayoutState, action: A
 
     case fromActions.SensorsActionTypes.CreateGroup: {
       const a = (action as fromActions.CreateGroup);
+      let placeholder = state;
       return {
         ...state,
         order: [
           ...state.order,
-          a.payload
+          a.payload.name
         ]
       };
     }

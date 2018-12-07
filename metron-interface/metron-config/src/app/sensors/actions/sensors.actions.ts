@@ -47,6 +47,7 @@ export enum SensorsActionTypes {
   DisableSensor = '[Sensors] Disable sensor',
   DisableSensorSuccess = '[Sensors] Disable sensor success',
   DisableSensorFailure = '[Sensors] Disable sensor failure',
+  UpdateGroupDescription = '[Sensors] Update group description',
 }
 
 export class LoadStart implements Action {
@@ -83,7 +84,18 @@ export class AggregateParsers implements Action {
 
 export class CreateGroup implements Action {
   readonly type = SensorsActionTypes.CreateGroup;
-  constructor(readonly payload: string) {}
+  constructor(readonly payload: {
+    name: string,
+    description: string,
+  }) {}
+}
+
+export class UpdateGroupDescription implements Action {
+  readonly type = SensorsActionTypes.UpdateGroupDescription;
+  constructor(readonly payload: {
+    name: string,
+    description: string,
+  }) {}
 }
 
 export class AddToGroup implements Action {
