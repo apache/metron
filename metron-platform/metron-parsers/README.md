@@ -95,11 +95,22 @@ There are two general types types of parsers:
       groups, which would be extracted into fields. This list will be evaluated in order until a
       matching regular expression is found.
       
+      **messageHeaderRegex** is run on all the messages.
+      Yes, all the messages are expected to contain the fields which are being extracted using the **messageHeaderRegex**.
+      **messageHeaderRegex** is a sort of HCF (highest common factor) in all messages.
+      
       **recordTypeRegex** can be a more advanced regular expression containing named goups. For example
   
       "recordTypeRegex": "(&lt;process&gt;(<=\\s)\\b(kernel|syslog)\\b(?=\\[|:))"
       
       Here all the named goups (process in above example) will be extracted as fields.
+
+      Though having named group in recordType is completely optional, still one could want extract named groups in recordType for following reasons:
+
+      1. Since **recordType** regular expression is already getting matched and we are paying the price for a regular expression match already,
+      we can extract certain fields as a by product of this match.
+      2. Most likely the **recordType** field is common across all the messages. Hence having it extracted in the recordType (or messageHeaderRegex) would
+      reduce the overall complexity of regular expressions in the regex field.
       
       **regex** within a field could be a list of regular expressions also. In this case all regular expressions in the list will be attempted to match until a match is found. Once a full match is found remaining regular expressions are ignored.
   
@@ -107,6 +118,29 @@ There are two general types types of parsers:
           "regex":  [ "record type specific regular expression 1",
                       "record type specific regular expression 2"]
 
+      ```
+
+      **timesamp**
+
+      Since this parser is a general purpose parser, it will populate the timestamp field with current UTC timestamp. Actual timestamp value can be overridden later using stellar.
+      For example in case of syslog timestamps, one could use following stellar construct to override the timestamp value.
+      Let us say you parsed actual timestamp from the raw log:
+
+      <38>Jun 20 15:01:17 hostName sshd[11672]: Accepted publickey for prod from 55.55.55.55 port 66666 ssh2
+
+      syslogTimestamp="Jun 20 15:01:17"
+
+      Then something like below could be used to override the timestamp.
+
+      ```
+      "timestamp_str": "FORMAT('%s%s%s', YEAR(),' ',syslogTimestamp)",
+      "timestamp":"TO_EPOCH_TIMESTAMP(timestamp_str, 'yyyy MMM dd HH:mm:ss' )"
+      ```
+
+      OR, if you want to factor in the timezone
+
+      ```
+      "timestamp":"TO_EPOCH_TIMESTAMP(timestamp_str, timestamp_format, timezone_name )"
       ```
 
 ## Parser Error Routing

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -24,15 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -136,62 +128,65 @@ import java.util.regex.PatternSyntaxException;
 //@formatter:on
 public class RegularExpressionsParser extends BasicParser {
 
-  private static Logger LOG = LoggerFactory.getLogger(RegularExpressionsParser.class);
+    private static Logger LOG = LoggerFactory.getLogger(RegularExpressionsParser.class);
 
-  private static final Charset UTF_8 = Charset.forName("UTF-8");
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
 
-  private List<Map<String, Object>> fields;
-  private Map<String, Object> parserConfig;
-  private final Pattern namedGroupPattern = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>");
-  Pattern capitalLettersPattern = Pattern.compile("^.*[A-Z]+.*$");
-  private Pattern recordTypePattern;
-  private final Set<String> recordTypePatternNamedGroups = new HashSet<>();
-  private final Map<String, Map<Pattern, Set<String>>> recordTypePatternMap = new HashMap<>();
-  private final Map<Pattern, Set<String>> messageHeaderPatternsMap = new HashMap<>();
+    private List<Map<String, Object>> fields;
+    private Map<String, Object> parserConfig;
+    private final Pattern namedGroupPattern = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>");
+    Pattern capitalLettersPattern = Pattern.compile("^.*[A-Z]+.*$");
+    private Pattern recordTypePattern;
+    private final Set<String> recordTypePatternNamedGroups = new HashSet<>();
+    private final Map<String, Map<Pattern, Set<String>>> recordTypePatternMap = new HashMap<>();
+    private final Map<Pattern, Set<String>> messageHeaderPatternsMap = new HashMap<>();
 
-  /**
-   * Parses an unstructured text message into a json object based upon the regular expression
-   * configuration supplied.
-   *
-   * @param rawMessage incoming unstructured raw text.
-   * @return List of json parsed json objects. In this case list will have a single element only.
-   */
-  @Override
-  public List<JSONObject> parse(byte[] rawMessage) {
-    String originalMessage = null;
-    try {
-      originalMessage = new String(rawMessage, UTF_8).trim();
-      LOG.debug(" raw message. {}", originalMessage);
-      if (originalMessage.isEmpty()) {
-        LOG.warn("Message is empty.");
-        return Arrays.asList(new JSONObject());
-      }
-    } catch (Exception e) {
-      LOG.error("[Metron] Could not read raw message. {} " + originalMessage, e);
-      throw new RuntimeException(e.getMessage(), e);
+    /**
+     * Parses an unstructured text message into a json object based upon the regular expression
+     * configuration supplied.
+     *
+     * @param rawMessage incoming unstructured raw text.
+     * @return List of json parsed json objects. In this case list will have a single element only.
+     */
+    @Override
+    public List<JSONObject> parse(byte[] rawMessage) {
+        String originalMessage = null;
+        try {
+            originalMessage = new String(rawMessage, UTF_8).trim();
+            LOG.debug(" raw message. {}", originalMessage);
+            if (originalMessage.isEmpty()) {
+                LOG.warn("Message is empty.");
+                return Arrays.asList(new JSONObject());
+            }
+        } catch (Exception e) {
+            LOG.error("[Metron] Could not read raw message. {} " + originalMessage, e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        JSONObject parsedJson = new JSONObject();
+        if (messageHeaderPatternsMap.size() > 0) {
+            parsedJson.putAll(extractHeaderFields(originalMessage));
+        }
+        parsedJson.putAll(parse(originalMessage));
+        parsedJson.put(Constants.Fields.ORIGINAL.getName(), originalMessage);
+        /**
+         * Populate the output json with default timestamp.
+         */
+        parsedJson.put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
+        applyFieldTransformations(parsedJson);
+        return Arrays.asList(parsedJson);
     }
 
-    JSONObject parsedJson = new JSONObject();
-    if (messageHeaderPatternsMap.size() > 0) {
-      parsedJson.putAll(extractHeaderFields(originalMessage));
-    }
-    parsedJson.putAll(parse(originalMessage));
-    parsedJson.put(Constants.Fields.ORIGINAL.getName(), originalMessage);
-    applyFieldTransformations(parsedJson);
-    return Arrays.asList(parsedJson);
-  }
-
-  private void applyFieldTransformations(JSONObject parsedJson) {
-    if (getParserConfig()
-        .get(ParserConfigConstants.CONVERT_CAMELCASE_TO_UNDERSCORE.getName()) != null
-        && (Boolean) getParserConfig()
+    private void applyFieldTransformations(JSONObject parsedJson) {
+        if (getParserConfig().get(ParserConfigConstants.CONVERT_CAMELCASE_TO_UNDERSCORE.getName())
+            != null && (Boolean) getParserConfig()
             .get(ParserConfigConstants.CONVERT_CAMELCASE_TO_UNDERSCORE.getName())) {
-      convertCamelCaseToUnderScore(parsedJson);
+            convertCamelCaseToUnderScore(parsedJson);
+        }
+
     }
 
-  }
-
-  // @formatter:off
+    // @formatter:off
   /**
    * This method is called during the parser initialization. It parses the parser
    * configuration and configures the parser accordingly. It then initializes
@@ -204,231 +199,234 @@ public class RegularExpressionsParser extends BasicParser {
   // @formatter:on
   @Override
   public void configure(Map<String, Object> parserConfig) {
-    setParserConfig(parserConfig);
-    setFields(
-        (List<Map<String, Object>>) getParserConfig().get(ParserConfigConstants.FIELDS.getName()));
-    String recordTypeRegex =
-        (String) getParserConfig().get(ParserConfigConstants.RECORD_TYPE_REGEX.getName());
+      setParserConfig(parserConfig);
+      setFields((List<Map<String, Object>>) getParserConfig()
+          .get(ParserConfigConstants.FIELDS.getName()));
+      String recordTypeRegex =
+          (String) getParserConfig().get(ParserConfigConstants.RECORD_TYPE_REGEX.getName());
 
-    if (StringUtils.isBlank(recordTypeRegex)) {
-      LOG.error("Invalid config :recordTypeRegex is missing in parserConfig");
-      throw new IllegalStateException("Invalid config :recordTypeRegex is missing in parserConfig");
-    }
-
-    setRecordTypePattern(recordTypeRegex);
-    recordTypePatternNamedGroups.addAll(getNamedGroups(recordTypeRegex));
-    List<Map<String, Object>> fields =
-        (List<Map<String, Object>>) getParserConfig().get(ParserConfigConstants.FIELDS.getName());
-
-    try {
-      configureRecordTypePatterns(fields);
-    } catch (PatternSyntaxException e) {
-      LOG.error("Invalid config : {} ", e.getMessage());
-      throw new IllegalStateException("Invalid config : " + e.getMessage());
-    }
-    configureMessageHeaderPattern();
-
-    validateConfig();
-  }
-
-  private void configureMessageHeaderPattern() {
-    if (getParserConfig().get(ParserConfigConstants.MESSAGE_HEADER.getName()) != null) {
-      if (getParserConfig().get(ParserConfigConstants.MESSAGE_HEADER.getName()) instanceof List) {
-        List<String> messageHeaderPatternList =
-            (List<String>) getParserConfig().get(ParserConfigConstants.MESSAGE_HEADER.getName());
-        for (String messageHeaderPatternStr : messageHeaderPatternList) {
-          messageHeaderPatternsMap
-              .put(Pattern.compile(messageHeaderPatternStr), getNamedGroups(messageHeaderPatternStr));
-        }
-      } else if (getParserConfig()
-          .get(ParserConfigConstants.MESSAGE_HEADER.getName()) instanceof String) {
-        String messageHeaderPatternStr =
-            (String) getParserConfig().get(ParserConfigConstants.MESSAGE_HEADER.getName());
-        if (StringUtils.isNotBlank(messageHeaderPatternStr)) {
-          messageHeaderPatternsMap
-              .put(Pattern.compile(messageHeaderPatternStr), getNamedGroups(messageHeaderPatternStr));
-        }
+      if (StringUtils.isBlank(recordTypeRegex)) {
+          LOG.error("Invalid config :recordTypeRegex is missing in parserConfig");
+          throw new IllegalStateException(
+              "Invalid config :recordTypeRegex is missing in parserConfig");
       }
-    }
-  }
 
-  private void configureRecordTypePatterns(List<Map<String, Object>> fields) {
+      setRecordTypePattern(recordTypeRegex);
+      recordTypePatternNamedGroups.addAll(getNamedGroups(recordTypeRegex));
+      List<Map<String, Object>> fields =
+          (List<Map<String, Object>>) getParserConfig().get(ParserConfigConstants.FIELDS.getName());
 
-    for (Map<String, Object> field : fields) {
-      if (field.get(ParserConfigConstants.RECORD_TYPE.getName()) != null
-          && field.get(ParserConfigConstants.REGEX.getName()) != null) {
-        String recordType =
-            ((String) field.get(ParserConfigConstants.RECORD_TYPE.getName())).toLowerCase();
-        recordTypePatternMap.put(recordType, new LinkedHashMap<Pattern, Set<String>>());
-        if (field.get(ParserConfigConstants.REGEX.getName()) instanceof List) {
-          List<String> regexList = (List<String>) field.get(ParserConfigConstants.REGEX.getName());
-          regexList.forEach(s -> {
-            recordTypePatternMap.get(recordType).put(Pattern.compile(s), getNamedGroups(s));
-          });
-        } else if (field.get(ParserConfigConstants.REGEX.getName()) instanceof String) {
-          recordTypePatternMap.get(recordType).put(
-              Pattern.compile((String) field.get(ParserConfigConstants.REGEX.getName())),
-              getNamedGroups((String) field.get(ParserConfigConstants.REGEX.getName())));
-        }
+      try {
+          configureRecordTypePatterns(fields);
+          configureMessageHeaderPattern();
+      } catch (PatternSyntaxException e) {
+          LOG.error("Invalid config : {} ", e.getMessage());
+          throw new IllegalStateException("Invalid config : " + e.getMessage());
       }
-    }
+      
+      validateConfig();
   }
 
-  private void setRecordTypePattern(String recordTypeRegex) {
-    if (recordTypeRegex != null) {
-      recordTypePattern = Pattern.compile(recordTypeRegex);
-    }
-  }
-
-  private JSONObject parse(String originalMessage) {
-    JSONObject parsedJson = new JSONObject();
-    Optional<String> recordIdentifier = getField(recordTypePattern, originalMessage);
-    if (recordIdentifier.isPresent()) {
-      extractNamedGroups(parsedJson, recordIdentifier.get(), originalMessage);
-    }
-    /*
-     * Extract fields(named groups) from record type regular expression
-     */
-    Matcher matcher = recordTypePattern.matcher(originalMessage);
-    if (matcher.find()) {
-      for (String namedGroup : recordTypePatternNamedGroups) {
-        if (matcher.group(namedGroup) != null) {
-          parsedJson.put(namedGroup, matcher.group(namedGroup).trim());
-        }
-      }
-    }
-    return parsedJson;
-  }
-
-  private void extractNamedGroups(Map<String, Object> json, String recordType,
-      String originalMessage) {
-    Map<Pattern, Set<String>> patternMap = recordTypePatternMap.get(recordType.toLowerCase());
-    if (patternMap != null) {
-      for (Map.Entry<Pattern, Set<String>> entry : patternMap.entrySet()) {
-        Pattern pattern = entry.getKey();
-        Set<String> namedGroups = entry.getValue();
-        if (pattern != null && namedGroups != null && namedGroups.size() > 0) {
-          Matcher m = pattern.matcher(originalMessage);
-          if (m.matches()) {
-            LOG.debug("RecordType : {} Trying regex : {} for message : {} ", recordType,
-                pattern.toString(), originalMessage);
-            for (String namedGroup : namedGroups) {
-              if (m.group(namedGroup) != null) {
-                json.put(namedGroup, m.group(namedGroup).trim());
-              }
+    private void configureMessageHeaderPattern() {
+        if (getParserConfig().get(ParserConfigConstants.MESSAGE_HEADER.getName()) != null) {
+            if (getParserConfig()
+                .get(ParserConfigConstants.MESSAGE_HEADER.getName()) instanceof List) {
+                List<String> messageHeaderPatternList = (List<String>) getParserConfig()
+                    .get(ParserConfigConstants.MESSAGE_HEADER.getName());
+                for (String messageHeaderPatternStr : messageHeaderPatternList) {
+                    messageHeaderPatternsMap.put(Pattern.compile(messageHeaderPatternStr),
+                        getNamedGroups(messageHeaderPatternStr));
+                }
+            } else if (getParserConfig()
+                .get(ParserConfigConstants.MESSAGE_HEADER.getName()) instanceof String) {
+                String messageHeaderPatternStr =
+                    (String) getParserConfig().get(ParserConfigConstants.MESSAGE_HEADER.getName());
+                if (StringUtils.isNotBlank(messageHeaderPatternStr)) {
+                    messageHeaderPatternsMap.put(Pattern.compile(messageHeaderPatternStr),
+                        getNamedGroups(messageHeaderPatternStr));
+                }
             }
-            break;
-          }
         }
-      }
-    } else {
-      LOG.warn("No pattern found for record type : {}", recordType);
     }
-  }
 
-  public Optional<String> getField(Pattern pattern, String originalMessage) {
-    Matcher matcher = pattern.matcher(originalMessage);
-    while (matcher.find()) {
-      return Optional.of(matcher.group());
-    }
-    return Optional.empty();
-  }
+    private void configureRecordTypePatterns(List<Map<String, Object>> fields) {
 
-  private Set<String> getNamedGroups(String regex) {
-    Set<String> namedGroups = new TreeSet<>();
-    Matcher matcher = namedGroupPattern.matcher(regex);
-    while (matcher.find()) {
-      namedGroups.add(matcher.group(1));
-    }
-    return namedGroups;
-  }
-
-  private Map<String, Object> extractHeaderFields(String originalMessage) {
-    Map<String, Object> messageHeaderJson = new JSONObject();
-    for (Map.Entry<Pattern, Set<String>> syslogPatternEntry : messageHeaderPatternsMap.entrySet()) {
-      Matcher m = syslogPatternEntry.getKey().matcher(originalMessage);
-      if (m.find()) {
-        for (String namedGroup : syslogPatternEntry.getValue()) {
-          if (StringUtils.isNotBlank(m.group(namedGroup))) {
-            messageHeaderJson.put(namedGroup, m.group(namedGroup).trim());
-          }
+        for (Map<String, Object> field : fields) {
+            if (field.get(ParserConfigConstants.RECORD_TYPE.getName()) != null
+                && field.get(ParserConfigConstants.REGEX.getName()) != null) {
+                String recordType =
+                    ((String) field.get(ParserConfigConstants.RECORD_TYPE.getName())).toLowerCase();
+                recordTypePatternMap.put(recordType, new LinkedHashMap<>());
+                if (field.get(ParserConfigConstants.REGEX.getName()) instanceof List) {
+                    List<String> regexList =
+                        (List<String>) field.get(ParserConfigConstants.REGEX.getName());
+                    regexList.forEach(s -> {
+                        recordTypePatternMap.get(recordType)
+                            .put(Pattern.compile(s), getNamedGroups(s));
+                    });
+                } else if (field.get(ParserConfigConstants.REGEX.getName()) instanceof String) {
+                    recordTypePatternMap.get(recordType).put(
+                        Pattern.compile((String) field.get(ParserConfigConstants.REGEX.getName())),
+                        getNamedGroups((String) field.get(ParserConfigConstants.REGEX.getName())));
+                }
+            }
         }
-        break;
-      }
     }
-    return messageHeaderJson;
-  }
 
-  @Override
-  public void init() {
-    LOG.info("RegularExpressions parser initialised.");
-  }
-
-  public void validateConfig() {
-    if (getFields() == null) {
-      LOG.error("Invalid config :  fields is missing in parserConfig");
-      throw new IllegalStateException("Invalid config :fields is missing in parserConfig");
+    private void setRecordTypePattern(String recordTypeRegex) {
+        if (recordTypeRegex != null) {
+            recordTypePattern = Pattern.compile(recordTypeRegex);
+        }
     }
-  }
 
-  private void convertCamelCaseToUnderScore(Map<String, Object> json) {
-    Map<String, String> oldKeyNewKeyMap = new HashMap<>();
-    for (Map.Entry<String, Object> entry : json.entrySet()) {
-      if (capitalLettersPattern.matcher(entry.getKey()).matches()) {
-        oldKeyNewKeyMap
-            .put(entry.getKey(), CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, entry.getKey()));
-      }
+    private JSONObject parse(String originalMessage) {
+        JSONObject parsedJson = new JSONObject();
+        Optional<String> recordIdentifier = getField(recordTypePattern, originalMessage);
+        if (recordIdentifier.isPresent()) {
+            extractNamedGroups(parsedJson, recordIdentifier.get(), originalMessage);
+        }
+        /*
+         * Extract fields(named groups) from record type regular expression
+         */
+        Matcher matcher = recordTypePattern.matcher(originalMessage);
+        if (matcher.find()) {
+            for (String namedGroup : recordTypePatternNamedGroups) {
+                if (matcher.group(namedGroup) != null) {
+                    parsedJson.put(namedGroup, matcher.group(namedGroup).trim());
+                }
+            }
+        }
+        return parsedJson;
     }
-    oldKeyNewKeyMap.forEach((oldKey, newKey) -> json.put(newKey, json.remove(oldKey)));
-  }
 
-  public List<Map<String, Object>> getFields() {
-    return fields;
-  }
+    private void extractNamedGroups(Map<String, Object> json, String recordType,
+        String originalMessage) {
+        Map<Pattern, Set<String>> patternMap = recordTypePatternMap.get(recordType.toLowerCase());
+        if (patternMap != null) {
+            for (Map.Entry<Pattern, Set<String>> entry : patternMap.entrySet()) {
+                Pattern pattern = entry.getKey();
+                Set<String> namedGroups = entry.getValue();
+                if (pattern != null && namedGroups != null && namedGroups.size() > 0) {
+                    Matcher m = pattern.matcher(originalMessage);
+                    if (m.matches()) {
+                        LOG.debug("RecordType : {} Trying regex : {} for message : {} ", recordType,
+                            pattern.toString(), originalMessage);
+                        for (String namedGroup : namedGroups) {
+                            if (m.group(namedGroup) != null) {
+                                json.put(namedGroup, m.group(namedGroup).trim());
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        } else {
+            LOG.warn("No pattern found for record type : {}", recordType);
+        }
+    }
 
-  public void setFields(List<Map<String, Object>> fields) {
-    this.fields = fields;
-  }
+    public Optional<String> getField(Pattern pattern, String originalMessage) {
+        Matcher matcher = pattern.matcher(originalMessage);
+        while (matcher.find()) {
+            return Optional.of(matcher.group());
+        }
+        return Optional.empty();
+    }
 
-  public Map<String, Object> getParserConfig() {
-    return parserConfig;
-  }
+    private Set<String> getNamedGroups(String regex) {
+        Set<String> namedGroups = new TreeSet<>();
+        Matcher matcher = namedGroupPattern.matcher(regex);
+        while (matcher.find()) {
+            namedGroups.add(matcher.group(1));
+        }
+        return namedGroups;
+    }
 
-  public void setParserConfig(Map<String, Object> parserConfig) {
-    this.parserConfig = parserConfig;
-  }
+    private Map<String, Object> extractHeaderFields(String originalMessage) {
+        Map<String, Object> messageHeaderJson = new JSONObject();
+        for (Map.Entry<Pattern, Set<String>> syslogPatternEntry : messageHeaderPatternsMap
+            .entrySet()) {
+            Matcher m = syslogPatternEntry.getKey().matcher(originalMessage);
+            if (m.find()) {
+                for (String namedGroup : syslogPatternEntry.getValue()) {
+                    if (StringUtils.isNotBlank(m.group(namedGroup))) {
+                        messageHeaderJson.put(namedGroup, m.group(namedGroup).trim());
+                    }
+                }
+                break;
+            }
+        }
+        return messageHeaderJson;
+    }
 
-  enum ParserConfigConstants {
-    //@formatter:off
+    @Override
+    public void init() {
+        LOG.info("RegularExpressions parser initialised.");
+    }
+
+    public void validateConfig() {
+        if (getFields() == null) {
+            LOG.error("Invalid config :  fields is missing in parserConfig");
+            throw new IllegalStateException("Invalid config :fields is missing in parserConfig");
+        }
+    }
+
+    private void convertCamelCaseToUnderScore(Map<String, Object> json) {
+        Map<String, String> oldKeyNewKeyMap = new HashMap<>();
+        for (Map.Entry<String, Object> entry : json.entrySet()) {
+            if (capitalLettersPattern.matcher(entry.getKey()).matches()) {
+                oldKeyNewKeyMap.put(entry.getKey(),
+                    CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, entry.getKey()));
+            }
+        }
+        oldKeyNewKeyMap.forEach((oldKey, newKey) -> json.put(newKey, json.remove(oldKey)));
+    }
+
+    public List<Map<String, Object>> getFields() {
+        return fields;
+    }
+
+    public void setFields(List<Map<String, Object>> fields) {
+        this.fields = fields;
+    }
+
+    public Map<String, Object> getParserConfig() {
+        return parserConfig;
+    }
+
+    public void setParserConfig(Map<String, Object> parserConfig) {
+        this.parserConfig = parserConfig;
+    }
+
+    enum ParserConfigConstants {
+        //@formatter:off
     RECORD_TYPE("recordType"),
     RECORD_TYPE_REGEX("recordTypeRegex"),
     REGEX("regex"),
     FIELDS("fields"),
     MESSAGE_HEADER("messageHeaderRegex"),
-    ORIGINAL("original_string"),
-    TIMESTAMP("timestamp"),
     CONVERT_CAMELCASE_TO_UNDERSCORE("convertCamelCaseToUnderScore");
     //@formatter:on
     private final String name;
-    private static Map<String, ParserConfigConstants> nameToField;
+        private static Map<String, ParserConfigConstants> nameToField;
 
-    ParserConfigConstants(String name) {
-      this.name = name;
-    }
+        ParserConfigConstants(String name) {
+            this.name = name;
+        }
 
-    public String getName() {
-      return name;
-    }
+        public String getName() {
+            return name;
+        }
 
-    static {
-      nameToField = new HashMap<>();
-      for (ParserConfigConstants f : ParserConfigConstants.values()) {
-        nameToField.put(f.getName(), f);
-      }
-    }
+        static {
+            nameToField = new HashMap<>();
+            for (ParserConfigConstants f : ParserConfigConstants.values()) {
+                nameToField.put(f.getName(), f);
+            }
+        }
 
-    public static ParserConfigConstants fromString(String fieldName) {
-      return nameToField.get(fieldName);
+        public static ParserConfigConstants fromString(String fieldName) {
+            return nameToField.get(fieldName);
+        }
     }
-  }
 }
