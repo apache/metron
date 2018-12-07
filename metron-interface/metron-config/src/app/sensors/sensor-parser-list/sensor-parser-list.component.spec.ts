@@ -540,10 +540,10 @@ describe('Component: SensorParserList', () => {
     expect(component.isEnableable(sensor)).toBe(false);
 
     sensor.status.status = 'ACTIVE';
-    expect(component.isEnableable(sensor)).toBe(true);
+    expect(component.isEnableable(sensor)).toBe(false);
 
     sensor.status.status = 'INACTIVE';
-    expect(component.isEnableable(sensor)).toBe(false);
+    expect(component.isEnableable(sensor)).toBe(true);
   }));
 
   it('isDisableable() should return true only when a parser is INACTIVE', async(() => {
@@ -555,10 +555,10 @@ describe('Component: SensorParserList', () => {
     expect(component.isDisableable(sensor)).toBe(false);
 
     sensor.status.status = 'ACTIVE';
-    expect(component.isDisableable(sensor)).toBe(false);
+    expect(component.isDisableable(sensor)).toBe(true);
 
     sensor.status.status = 'INACTIVE';
-    expect(component.isDisableable(sensor)).toBe(true);
+    expect(component.isDisableable(sensor)).toBe(false);
   }));
 
   it('isDeletedOrPhantom() should return true if a parser is deleted or a phantom', async(() => {
@@ -601,17 +601,17 @@ describe('Component: SensorParserList', () => {
     expect(startButtons[3].properties.hidden).toBe(true);
     expect(startButtons[4].properties.hidden).toBe(true);
 
-    // ACTIVE status should show enable buttons
+    // ACTIVE status should hide enable buttons
     expect(enableButtons[0].properties.hidden).toBe(true);
-    expect(enableButtons[1].properties.hidden).toBe(true);
-    expect(enableButtons[2].properties.hidden).toBe(false);
+    expect(enableButtons[1].properties.hidden).toBe(false);
+    expect(enableButtons[2].properties.hidden).toBe(true);
     expect(enableButtons[3].properties.hidden).toBe(true);
     expect(enableButtons[4].properties.hidden).toBe(true);
 
-    // INACTIVE status should show disable buttons
+    // INACTIVE status should hide disable buttons
     expect(disableButtons[0].properties.hidden).toBe(true);
-    expect(disableButtons[1].properties.hidden).toBe(false);
-    expect(disableButtons[2].properties.hidden).toBe(true);
+    expect(disableButtons[1].properties.hidden).toBe(true);
+    expect(disableButtons[2].properties.hidden).toBe(false);
     expect(disableButtons[3].properties.hidden).toBe(true);
     expect(disableButtons[4].properties.hidden).toBe(true);
 

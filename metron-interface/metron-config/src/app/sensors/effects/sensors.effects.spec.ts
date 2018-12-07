@@ -172,7 +172,7 @@ describe('sensors control operation effects', () => {
     const action = new fromActions.StartSensor({ parser });
     const successAction = new fromActions.StartSensorSuccess({
       parser,
-      status: new TopologyResponse()
+      status: 'SUCCESS'
     });
     actions$ = hot('-a-', { a: action });
     const expected = cold('-b', { b: successAction });
@@ -190,7 +190,7 @@ describe('sensors control operation effects', () => {
     const status = new TopologyResponse('ERROR', error.message);
     const failureAction = new fromActions.StartSensorFailure({
       parser,
-      status
+      status: 'ERROR'
     });
     stormService.startParser = jasmine.createSpy().and.returnValue(of(error));
     actions$ = hot('-a--', { a: action });
@@ -207,7 +207,7 @@ describe('sensors control operation effects', () => {
     const status = new TopologyResponse('ERROR', 'some error from server');
     const failureAction = new fromActions.StartSensorFailure({
       parser,
-      status
+      status: 'ERROR'
     });
     stormService.startParser = jasmine.createSpy().and.returnValue(of(status));
     actions$ = hot('-a--', { a: action });
@@ -223,7 +223,7 @@ describe('sensors control operation effects', () => {
     const action = new fromActions.StopSensor({ parser });
     const successAction = new fromActions.StopSensorSuccess({
       parser,
-      status: new TopologyResponse()
+      status: 'SUCCESS'
     });
     actions$ = hot('-a-', { a: action });
     const expected = cold('-b', { b: successAction });
@@ -241,7 +241,7 @@ describe('sensors control operation effects', () => {
     const status = new TopologyResponse('ERROR', error.message);
     const failureAction = new fromActions.StopSensorFailure({
       parser,
-      status
+      status: 'ERROR'
     });
     stormService.stopParser = jasmine.createSpy().and.returnValue(of(error));
     actions$ = hot('-a--', { a: action });
@@ -258,7 +258,7 @@ describe('sensors control operation effects', () => {
     const status = new TopologyResponse('ERROR', 'some error from server');
     const failureAction = new fromActions.StopSensorFailure({
       parser,
-      status
+      status: 'ERROR'
     });
     stormService.stopParser = jasmine.createSpy().and.returnValue(of(status));
     actions$ = hot('-a--', { a: action });
@@ -274,7 +274,7 @@ describe('sensors control operation effects', () => {
     const action = new fromActions.EnableSensor({ parser });
     const successAction = new fromActions.EnableSensorSuccess({
       parser,
-      status: new TopologyResponse()
+      status: 'SUCCESS'
     });
     actions$ = hot('-a-', { a: action });
     const expected = cold('-b', { b: successAction });
@@ -292,7 +292,7 @@ describe('sensors control operation effects', () => {
     const status = new TopologyResponse('ERROR', error.message);
     const failureAction = new fromActions.EnableSensorFailure({
       parser,
-      status
+      status: 'ERROR'
     });
     stormService.activateParser = jasmine.createSpy().and.returnValue(of(error));
     actions$ = hot('-a--', { a: action });
@@ -309,7 +309,7 @@ describe('sensors control operation effects', () => {
     const status = new TopologyResponse('ERROR', 'some error from server');
     const failureAction = new fromActions.EnableSensorFailure({
       parser,
-      status
+      status: 'ERROR'
     });
     stormService.activateParser = jasmine.createSpy().and.returnValue(of(status));
     actions$ = hot('-a--', { a: action });
@@ -325,7 +325,7 @@ describe('sensors control operation effects', () => {
     const action = new fromActions.DisableSensor({ parser });
     const successAction = new fromActions.DisableSensorSuccess({
       parser,
-      status: new TopologyResponse()
+      status: 'SUCCESS'
     });
     actions$ = hot('-a-', { a: action });
     const expected = cold('-b', { b: successAction });
@@ -343,7 +343,7 @@ describe('sensors control operation effects', () => {
     const status = new TopologyResponse('ERROR', error.message);
     const failureAction = new fromActions.DisableSensorFailure({
       parser,
-      status
+      status: 'ERROR'
     });
     stormService.deactivateParser = jasmine.createSpy().and.returnValue(of(error));
     actions$ = hot('-a--', { a: action });
@@ -360,7 +360,7 @@ describe('sensors control operation effects', () => {
     const status = new TopologyResponse('ERROR', 'some error from server');
     const failureAction = new fromActions.DisableSensorFailure({
       parser,
-      status
+      status: 'ERROR'
     });
     stormService.deactivateParser = jasmine.createSpy().and.returnValue(of(status));
     actions$ = hot('-a--', { a: action });

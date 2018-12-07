@@ -190,13 +190,13 @@ export class SensorsEffects {
                 'Unable to ' + actionMessage + ' sensor ' + action.payload.parser.config.getName() + ': ' + result.message
               );
               return new FailureAction({
-                status: new TopologyResponse('ERROR', result.message),
+                status: 'ERROR',
                 parser: action.payload.parser,
               });
             }
             this.alertSvc.showSuccessMessage(statusString + ' sensor ' + action.payload.parser.config.getName());
             return new SuccessAction({
-              status: result,
+              status: 'SUCCESS',
               parser: action.payload.parser,
             });
           })

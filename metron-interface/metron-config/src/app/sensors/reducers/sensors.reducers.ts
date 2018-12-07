@@ -258,33 +258,11 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
 export function parserStatusReducer(state: StatusState = initialStatusState, action: Action): StatusState {
   switch (action.type) {
     case fromActions.SensorsActionTypes.LoadSuccess:
-    case fromActions.SensorsActionTypes.PollStatusSuccess:
+    case fromActions.SensorsActionTypes.PollStatusSuccess: {
       return {
         ...state,
         items: (action as fromActions.LoadSuccess).payload.statuses
       }
-
-    case fromActions.SensorsActionTypes.StartSensorSuccess:
-    case fromActions.SensorsActionTypes.StartSensorFailure:
-    case fromActions.SensorsActionTypes.StopSensorSuccess:
-    case fromActions.SensorsActionTypes.StopSensorFailure:
-    case fromActions.SensorsActionTypes.EnableSensorSuccess:
-    case fromActions.SensorsActionTypes.EnableSensorFailure:
-    case fromActions.SensorsActionTypes.DisableSensorSuccess:
-    case fromActions.SensorsActionTypes.DisableSensorFailure: {
-      const a = action as fromActions.SensorControlResponseAction;
-      return {
-        ...state,
-        items: state.items.map(item => {
-          if (item.name === a.payload.parser.config.getName()) {
-            return {
-              ...item,
-              status: a.payload.status.status,
-            };
-          }
-          return item;
-        })
-      };
     }
 
     default:
@@ -500,7 +478,7 @@ export const getMergedConfigs = createSelector(
       });
       return {
         ...item,
-        status: status ? status : new TopologyStatus(),
+        status: status ? new TopologyStatus(status) : new TopologyStatus(),
       };
     });
 
