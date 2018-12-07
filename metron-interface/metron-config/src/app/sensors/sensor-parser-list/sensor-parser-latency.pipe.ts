@@ -21,6 +21,8 @@ import { TopologyStatus } from '../../model/topology-status';
 @Pipe({ name: 'latency' })
 export class SensorParserLatencyPipe implements PipeTransform {
   transform(status: TopologyStatus): string {
-    return status && status.status === 'ACTIVE' ? (status.latency + 'ms') : '-';
+    return status && status.status === 'ACTIVE' && status.throughput != null
+      ? (status.latency + 'ms')
+      : '-';
   }
 }

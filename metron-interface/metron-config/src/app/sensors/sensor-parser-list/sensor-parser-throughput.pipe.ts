@@ -21,6 +21,8 @@ import { TopologyStatus } from '../../model/topology-status';
 @Pipe({ name: 'throughput' })
 export class SensorParserThroughputPipe implements PipeTransform {
   transform(status: TopologyStatus): string {
-    return status && status.status === 'ACTIVE' ? (Math.round(status.throughput * 100) / 100) + 'kb/s' : '-';
+    return status && status.status === 'ACTIVE' && status.throughput != null
+      ? (Math.round(status.throughput * 100) / 100) + 'kb/s'
+      : '-';
   }
 }
