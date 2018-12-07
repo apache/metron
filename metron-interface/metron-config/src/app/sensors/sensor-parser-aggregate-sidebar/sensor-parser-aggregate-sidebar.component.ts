@@ -37,13 +37,14 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
   private state$: Observable<fromReducers.SensorState>;
   private stateSub: Subscription;
   private targetGroup: string;
-  groups: GroupState;
-  name: string;
-  description: string;
-  groupDetails = {
+  private groupDetails = {
     name: '',
     description: ''
   };
+  groups: GroupState;
+  name: string;
+  description: string;
+  existingGroup = null;
 
   allowMerge = true;
 
@@ -63,9 +64,9 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
       this.groups = state.groups;
       this.route.params.pipe(take(1)).subscribe(params => {
         if (params['id']) {
-          const existingGroup = this.groups.items.filter(g => g.config.getName() === params['id']);
-          this.name = existingGroup[0].config.getName();
-          this.description = existingGroup[0].config.getDescription();
+          this.existingGroup = this.groups.items.filter(g => g.config.getName() === params['id']);
+          this.name = this.existingGroup[0].config.getName();
+          this.description = this.existingGroup[0].config.getDescription();
         } else {
           this.name = 'Aggregate: ' + [this.draggedId, this.dropTargetId].join(' + ') ;
           this.description = '';
