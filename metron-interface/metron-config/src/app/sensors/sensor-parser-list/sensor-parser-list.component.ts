@@ -26,6 +26,7 @@ import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { Store, select } from '@ngrx/store';
 import * as fromActions from '../actions';
 import * as fromReducers from '../reducers';
+import { MetronDialogBox } from '../../shared';
 
 @Component({
   selector: 'metron-config-sensor-parser-list',
@@ -54,7 +55,8 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   constructor(private stormService: StormService,
               private router: Router,
               private metronAlerts:  MetronAlerts,
-              private store: Store<fromReducers.State>) {
+              private store: Store<fromReducers.State>,
+              private metronDialogBox: MetronDialogBox) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/sensors') {
         this.onNavigationStart();
@@ -138,15 +140,23 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onDeleteSelectedItems() {
-    this.store.dispatch(new fromActions.MarkAsDeleted({
-      parserIds: [...this.selectedSensors]
-    }));
+    this.showConfirm('Are you sure you want to delete ' + this.selectedSensors.join(', ') + ' ?', (confirmed: boolean) => {
+      if (confirmed) {
+        this.store.dispatch(new fromActions.MarkAsDeleted({
+          parserIds: [...this.selectedSensors]
+        }));
+      }
+    });
   }
 
   onDeleteItem(item: ParserMetaInfoModel, e: Event) {
-    this.store.dispatch(new fromActions.MarkAsDeleted({
-      parserIds: [item.config.getName()]
-    }));
+    this.showConfirm('Are you sure you want to delete ' + item.config.getName() + ' ?', (confirmed: boolean) => {
+      if (confirmed) {
+        this.store.dispatch(new fromActions.MarkAsDeleted({
+          parserIds: [item.config.getName()]
+        }));
+      }
+    });
     e.stopPropagation();
   }
 
@@ -413,6 +423,10 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
   removeHighlighted() {
     this.highlightedElementId = null;
+  }
+
+  showConfirm(message: string, callback: Function) {
+    this.metronDialogBox.showConfirmationMessage(message).subscribe(callback);
   }
 
   ngOnDestroy() {
