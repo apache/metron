@@ -39,7 +39,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
   sensorsStatus: TopologyStatus[] = [];
   selectedSensor: ParserMetaInfoModel;
-  selectedSensors: ParserMetaInfoModel[] = [];
+  selectedSensors: string[] = [];
   enableAutoRefresh = true;
   isDirty$: Observable<boolean>;
   mergedConfigs$: Observable<ParserMetaInfoModel[]>;
@@ -102,13 +102,18 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
   onRowSelected(parserConfig: ParserMetaInfoModel, $event) {
     if ($event.target.checked) {
-      this.selectedSensors.push(parserConfig);
+      this.selectedSensors = [
+        ...this.selectedSensors,
+        parserConfig.config.getName()
+      ];
     } else {
-      this.selectedSensors.splice(this.selectedSensors.indexOf(parserConfig), 1);
+      this.selectedSensors = this.selectedSensors.filter((name) => {
+        return name !== parserConfig.config.getName();
+      });
     }
   }
 
-  onSelectDeselectAll(sensors, $event) {
+  onSelectDeselectAll(sensors: ParserMetaInfoModel[], $event) {
     let checkBoxes = this.table.nativeElement.querySelectorAll('tr td:last-child input[type="checkbox"]');
 
     for (let ele of checkBoxes) {
@@ -116,7 +121,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     }
 
     if ($event.target.checked) {
-      this.selectedSensors = sensors.slice();
+      this.selectedSensors = sensors.map(s => s.config.getName());
     } else {
       this.selectedSensors = [];
     }
@@ -134,7 +139,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
   onDeleteSelectedItems() {
     this.store.dispatch(new fromActions.MarkAsDeleted({
-      parserIds: this.selectedSensors.map(p => p.config.getName()),
+      parserIds: [...this.selectedSensors]
     }));
   }
 
@@ -146,7 +151,8 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onStopSensors() {
-    for (let sensor of this.selectedSensors) {
+    for (let name of this.selectedSensors) {
+      const sensor = this.sensors.find(s => s.config.getName() === name);
       if (sensor.status.status === 'ACTIVE' || sensor.status.status === 'INACTIVE') {
         this.onStopSensor(sensor, null);
       }
@@ -165,15 +171,15 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onStartSensors() {
-    for (let sensor of this.selectedSensors) {
-      if (sensor.status.status === 'KILLED') {
+    for (let name of this.selectedSensors) {
+      const sensor = this.sensors.find(s => s.config.getName() === name);
+      if (sensor.status.status === 'KILLED' || !sensor.status.status) {
         this.onStartSensor(sensor, null);
       }
     }
   }
 
   onStartSensor(sensor: ParserMetaInfoModel, event) {
-
     this.store.dispatch(new fromActions.StartSensor({
       parser: sensor,
     }));
@@ -184,7 +190,8 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onDisableSensors() {
-    for (let sensor of this.selectedSensors) {
+    for (let name of this.selectedSensors) {
+      const sensor = this.sensors.find(s => s.config.getName() === name);
       if (sensor.status.status === 'ACTIVE') {
         this.onDisableSensor(sensor, null);
       }
@@ -203,7 +210,8 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   onEnableSensors() {
-    for (let sensor of this.selectedSensors) {
+    for (let name of this.selectedSensors) {
+      const sensor = this.sensors.find(s => s.config.getName() === name);
       if (sensor.status.status === 'INACTIVE') {
         this.onEnableSensor(sensor, null);
       }
@@ -348,13 +356,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
   }
 
   isSelected(sensor: ParserMetaInfoModel) {
-    return this.selectedSensors.find(s => {
-      if (s.config.getName() === sensor.config.getName()) {
-        return true;
-      } else {
-        return false;
-      }
-    })
+    return this.selectedSensors.includes(sensor.config.getName());
   }
 
   hasGroup(sensor: ParserMetaInfoModel) {

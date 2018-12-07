@@ -355,7 +355,7 @@ describe('Component: SensorParserList', () => {
 
     component.onRowSelected(sensorParserConfigHistory, event);
 
-    expect(component.selectedSensors[0]).toEqual(sensorParserConfigHistory);
+    expect(component.selectedSensors[0]).toEqual(sensorParserConfigHistory.config.getName());
 
     event = { target: { checked: false } };
 
@@ -475,14 +475,24 @@ describe('Component: SensorParserList', () => {
       sensorParserConfig7.sensorTopic = 'test3';
       sensorParserConfigHistory7.status.status = 'INACTIVE';
 
-      component.selectedSensors = [
+      component.sensors = [
         sensorParserConfigHistory1,
         sensorParserConfigHistory2,
         sensorParserConfigHistory3,
         sensorParserConfigHistory4,
         sensorParserConfigHistory5,
         sensorParserConfigHistory6,
-        sensorParserConfigHistory7
+        sensorParserConfigHistory7,
+      ];
+
+      component.selectedSensors = [
+        sensorParserConfigHistory1.config.getName(),
+        sensorParserConfigHistory2.config.getName(),
+        sensorParserConfigHistory3.config.getName(),
+        sensorParserConfigHistory4.config.getName(),
+        sensorParserConfigHistory5.config.getName(),
+        sensorParserConfigHistory6.config.getName(),
+        sensorParserConfigHistory7.config.getName()
       ];
 
       component.onStartSensors();

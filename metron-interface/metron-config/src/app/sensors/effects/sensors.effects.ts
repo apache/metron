@@ -106,25 +106,25 @@ export class SensorsEffects {
   @Effect()
   startSensor$: Observable<Action> = this.actions$.pipe(
     ofType(fromActions.SensorsActionTypes.StartSensor),
-    switchMap(this.getControlSwitchMapHandlerFor('start'))
+    mergeMap(this.getControlMapHandlerFor('start'))
   )
 
   @Effect()
   stopSensor$: Observable<Action> = this.actions$.pipe(
     ofType(fromActions.SensorsActionTypes.StopSensor),
-    switchMap(this.getControlSwitchMapHandlerFor('stop'))
+    mergeMap(this.getControlMapHandlerFor('stop'))
   )
 
   @Effect()
   enableSensor$: Observable<Action> = this.actions$.pipe(
     ofType(fromActions.SensorsActionTypes.EnableSensor),
-    switchMap(this.getControlSwitchMapHandlerFor('enable'))
+    mergeMap(this.getControlMapHandlerFor('enable'))
   )
 
   @Effect()
   disableSensor$: Observable<Action> = this.actions$.pipe(
     ofType(fromActions.SensorsActionTypes.DisableSensor),
-    switchMap(this.getControlSwitchMapHandlerFor('disable'))
+    mergeMap(this.getControlMapHandlerFor('disable'))
   )
 
   constructor(
@@ -136,11 +136,11 @@ export class SensorsEffects {
   ) {}
 
   /**
-   * For each sensor control opearation the switchMap handler does almost the same with
+   * For each sensor control opearation the map (like switchMap or mergeMap) handler does almost the same with
    * a few differences. This helper method is for dealing with the differences and includes the
    * majority of the functionality (DRY).
    */
-  private getControlSwitchMapHandlerFor(type: 'start' | 'stop' | 'enable' | 'disable') {
+  private getControlMapHandlerFor(type: 'start' | 'stop' | 'enable' | 'disable') {
     let serviceMethod;
     let actionMessage;
     let statusString;
