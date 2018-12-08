@@ -112,14 +112,18 @@ public class VFSClassloaderUtil {
    * @throws FileSystemException
    */
   public static Optional<ClassLoader> configureClassloader(String paths) throws FileSystemException {
+    LOG.debug("Configuring class loader with paths = {}", paths);
     if(paths.trim().isEmpty()) {
+      LOG.debug("No paths provided. Not returning a ClassLoader.");
       return Optional.empty();
     }
     FileSystemManager vfs = generateVfs();
     FileObject[] objects = resolve(vfs, paths);
     if(objects == null || objects.length == 0) {
+      LOG.debug("No Classloader able to be resolved from provided paths. Not returning a ClassLoader.");
       return Optional.empty();
     }
+    LOG.debug("vfs = {}, objects = {}", vfs, objects);
     return Optional.of(new VFSClassLoader(objects, vfs, vfs.getClass().getClassLoader()));
   }
 
