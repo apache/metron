@@ -169,13 +169,6 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
     Assert.assertFalse("Result size should be 12 but was greater", results.hasNext());
   }
 
-  @Override
-  public void test() {
-    // The main test ensures a variety of things not implemented by HBase run alongside
-    // HBaseDao itself.
-    // Therefore, just don't do anything for this test.
-  }
-
   protected List<Document> buildAlerts(int count) throws IOException {
     List<Document> alerts = new ArrayList<>();
     for (int i = 0; i < count; ++i) {

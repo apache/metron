@@ -59,6 +59,8 @@ import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.apache.metron.integration.utils.TestUtils.assertEventually;
+
 public abstract class MetaAlertIntegrationTest {
 
   private static final String META_INDEX_FLAG = "%META_INDEX%";
@@ -144,7 +146,6 @@ public abstract class MetaAlertIntegrationTest {
    */
   @Multiline
   public static String statusPatchRequest;
-
 
   @Test
   public void shouldGetAllMetaAlertsForAlert() throws Exception {
@@ -734,6 +735,78 @@ public abstract class MetaAlertIntegrationTest {
         searchResponse.getResults().get(0).getSource().get(STATUS_FIELD));
   }
 
+  @Test
+  public void shouldSortMetaAlertsByAlertStatus() throws Exception {
+    final String guid = "meta_alert";
+    setupTypings();
+
+    // should be able to sort meta-alert search results by 'alert_status'
+    SortField sortField = new SortField();
+    sortField.setField("alert_status");
+    sortField.setSortOrder("asc");
+
+    // when no meta-alerts exist, it should work
+    Assert.assertEquals(0, searchForSortedMetaAlerts(sortField).getTotal());
+
+    // when meta-alert just created, it should work
+    createMetaAlert(guid);
+    Assert.assertEquals(1, searchForSortedMetaAlerts(sortField).getTotal());
+
+    // when meta-alert 'esclated', it should work
+    escalateMetaAlert(guid);
+    Assert.assertEquals(1, searchForSortedMetaAlerts(sortField).getTotal());
+  }
+
+  private Map<String, Object> createMetaAlert(String guid) throws Exception {
+    // create and index 2 normal alerts
+    List<Map<String, Object>> alerts = buildAlerts(2);
+    alerts.get(0).put(METAALERT_FIELD, Collections.singletonList(guid));
+    alerts.get(1).put(METAALERT_FIELD, Collections.singletonList(guid));
+    addRecords(alerts, getTestIndexFullName(), SENSOR_NAME);
+
+    // create and index a meta-alert
+    Map<String, Object> metaAlert = buildMetaAlert(guid, MetaAlertStatus.ACTIVE, Optional.of(alerts));
+    addRecords(Collections.singletonList(metaAlert), getMetaAlertIndex(), METAALERT_TYPE);
+
+    // ensure the test alerts were loaded
+    findCreatedDocs(Arrays.asList(
+            new GetRequest("message_0", SENSOR_NAME),
+            new GetRequest("message_1", SENSOR_NAME),
+            new GetRequest("meta_alert", METAALERT_TYPE)));
+    return metaAlert;
+  }
+
+  private void escalateMetaAlert(String guid) throws Exception {
+    // create the patch that 'escalates' the meta-alert
+    Map<String, Object> patch = new HashMap<>();
+    patch.put("op", "add");
+    patch.put("path", "/alert_status");
+    patch.put("value", "escalate");
+
+    // 'escalate' the meta-alert
+    PatchRequest patchRequest = new PatchRequest();
+    patchRequest.setGuid(guid);
+    patchRequest.setIndex(getMetaAlertIndex());
+    patchRequest.setSensorType(METAALERT_TYPE);
+    patchRequest.setPatch(Collections.singletonList(patch));
+    metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
+
+    // ensure the alert status was changed to 'escalate'
+    assertEventually(() -> {
+      Document updated = metaDao.getLatest(guid, METAALERT_TYPE);
+      Assert.assertEquals("escalate", updated.getDocument().get("alert_status"));
+    });
+  }
+
+  private SearchResponse searchForSortedMetaAlerts(SortField sortBy) throws InvalidSearchException {
+    SearchRequest searchRequest = new SearchRequest();
+    searchRequest.setFrom(0);
+    searchRequest.setSize(10);
+    searchRequest.setIndices(Arrays.asList(getTestIndexName(), METAALERT_TYPE));
+    searchRequest.setQuery("*:*");
+    searchRequest.setSort(Collections.singletonList(sortBy));
+    return metaDao.search(searchRequest);
+  }
 
   @Test
   public void shouldHidesAlertsOnGroup() throws Exception {
