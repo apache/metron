@@ -18,6 +18,8 @@
 package org.apache.metron.elasticsearch.dao;
 
 import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
+import org.apache.metron.elasticsearch.bulk.WriteFailure;
+import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -41,6 +43,8 @@ import java.util.stream.Collectors;
 
 import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
+import static java.lang.String.format;
+
 public class ElasticsearchUpdateDao implements UpdateDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -48,8 +52,6 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   private AccessConfig accessConfig;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
   private ElasticsearchBulkDocumentWriter<Document> documentWriter;
-  private int failures;
-  private Throwable lastException;
 
   public ElasticsearchUpdateDao(ElasticsearchClient client,
       AccessConfig accessConfig,
@@ -81,20 +83,22 @@ public class ElasticsearchUpdateDao implements UpdateDao {
       documentWriter.addDocument(document, indexName);
     }
 
-    // record failures so that a checked exception can be thrown later; cannot throw checked exception in listener
-    failures = 0;
-    lastException = null;
-    documentWriter.onFailure((document, cause, message) -> {
-      failures++;
-      lastException = cause;
-      LOG.error(message, cause);
-    });
-
     // write the documents. if any document fails, raise an exception.
-    documentWriter.write();
+    BulkDocumentWriterResults<Document> results = documentWriter.write();
+    int failures = results.getFailures().size();
     if(failures > 0) {
-      String msg = String.format("Failed to update all; %d of %d update(s) failed", failures, updates.entrySet().size());
-      throw new IOException(msg, lastException);
+      int successes = results.getSuccesses().size();
+      String msg = format("Failed to update all documents; %d successes, %d failures", successes, failures);
+      LOG.error(msg);
+
+      // log each individual failure
+      for(WriteFailure<Document> failure: results.getFailures()) {
+        LOG.error(failure.getMessage(), failure.getCause());
+      }
+
+      // raise an exception
+      Throwable cause = results.getFailures().get(0).getCause();
+      throw new IOException(msg, cause);
     }
 
     return updates;

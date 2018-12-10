@@ -18,6 +18,7 @@
 package org.apache.metron.elasticsearch.writer;
 
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
+import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
 import org.apache.metron.indexing.dao.update.Document;
 
 import java.util.ArrayList;
@@ -33,26 +34,18 @@ import java.util.Random;
  */
 public class BulkDocumentWriterStub<D extends Document> implements BulkDocumentWriter<D> {
 
-    private SuccessListener onSuccess;
-    private FailureListener onFailure;
     private float probabilityOfSuccess;
     private Exception exception;
     private List<D> documents;
 
+    /**
+     * @param probabilityOfSuccess The probability that a write will succeed.
+     *                             If 1.0, all writes succeed.  If 0.0, all writes fail.
+     */
     public BulkDocumentWriterStub(float probabilityOfSuccess) {
         this.probabilityOfSuccess = probabilityOfSuccess;
         this.exception = new IllegalStateException("Exception created by a stub for testing");
         this.documents = new ArrayList<>();
-    }
-
-    @Override
-    public void onSuccess(SuccessListener<D> onSuccess) {
-        this.onSuccess = onSuccess;
-    }
-
-    @Override
-    public void onFailure(FailureListener<D> onFailure) {
-        this.onFailure = onFailure;
     }
 
     @Override
@@ -61,22 +54,18 @@ public class BulkDocumentWriterStub<D extends Document> implements BulkDocumentW
     }
 
     @Override
-    public void write() {
+    public BulkDocumentWriterResults<D> write() {
+        BulkDocumentWriterResults<D> results = new BulkDocumentWriterResults<>();
         Random random = new Random();
-
-        List<Document> successes = new ArrayList<>();
         for(D document: documents) {
             boolean success = random.nextFloat() <= probabilityOfSuccess;
             if(success) {
-                successes.add(document);
+                results.addSuccess(document);
             } else {
-                // notify on failure
-                onFailure.onFailure(document, exception, "error");
+                results.addFailure(document, exception, "error message");
             }
         }
-
-        // notify on success
-        onSuccess.onSuccess(successes);
+        return results;
     }
 
     @Override

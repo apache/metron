@@ -18,7 +18,6 @@
 package org.apache.metron.elasticsearch.writer;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.field.FieldNameConverter;
@@ -27,9 +26,13 @@ import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
+import org.apache.metron.elasticsearch.bulk.WriteFailure;
+import org.apache.metron.elasticsearch.bulk.WriteSuccess;
+import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
@@ -43,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.metron.stellar.common.Constants.Fields.TIMESTAMP;
@@ -106,53 +108,53 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     }
 
     // create a document from each message
-    List<TupleBasedDocument> documents = new ArrayList<>();
     for(int i=0; i<tuples.size(); i++) {
       JSONObject message = messages.get(i);
       Tuple tuple = tuples.get(i);
-
-      // transform the message fields to the source fields of the indexed document
-      JSONObject source = new JSONObject();
-      for(Object k : message.keySet()){
-        copyField(k.toString(), message, source, fieldNameConverter);
-      }
-
-      // define the document id
-      String guid = String.class.cast(source.get(Constants.GUID));
-      if(guid == null) {
-        LOG.warn("Missing '{}' field; document ID will be auto-generated.", Constants.GUID);
-      }
-
-      // define the document timestamp
-      Long timestamp = null;
-      Object value = source.get(TIMESTAMP.getName());
-      if(value != null) {
-        timestamp = Long.parseLong(value.toString());
-      } else {
-        LOG.warn("Missing '{}' field; timestamp will be set to system time.", TIMESTAMP.getName());
-      }
-
-      TupleBasedDocument document = new TupleBasedDocument(source, guid, sensorType, timestamp, tuple);
+      TupleBasedDocument document = createDocument(message, tuple, sensorType, fieldNameConverter);
       documentWriter.addDocument(document, indexName);
     }
 
-    // add successful tuples to the response
-    BulkWriterResponse response = new BulkWriterResponse();
-    documentWriter.onSuccess(successes -> {
-      for(TupleBasedDocument doc: successes) {
-        response.addSuccess(doc.getTuple());
-      }
-    });
-
-    // add any failed tuples to the response
-    documentWriter.onFailure((document, cause, message) -> {
-      Tuple failedTuple = document.getTuple();
-      response.addError(cause, failedTuple);
-    });
-
     // write the documents
-    documentWriter.write();
+    BulkDocumentWriterResults<TupleBasedDocument> results = documentWriter.write();
+
+    // build the response
+    BulkWriterResponse response = new BulkWriterResponse();
+    for(WriteSuccess<TupleBasedDocument> success: results.getSuccesses()) {
+      response.addSuccess(success.getDocument().getTuple());
+    }
+    for(WriteFailure<TupleBasedDocument> failure: results.getFailures()) {
+      response.addError(failure.getCause(), failure.getDocument().getTuple());
+    }
     return response;
+  }
+
+  private TupleBasedDocument createDocument(JSONObject message,
+                                            Tuple tuple,
+                                            String sensorType,
+                                            FieldNameConverter fieldNameConverter) {
+    // transform the message fields to the source fields of the indexed document
+    JSONObject source = new JSONObject();
+    for(Object k : message.keySet()){
+      copyField(k.toString(), message, source, fieldNameConverter);
+    }
+
+    // define the document id
+    String guid = ConversionUtils.convert(source.get(Constants.GUID), String.class);
+    if(guid == null) {
+      LOG.warn("Missing '{}' field; document ID will be auto-generated.", Constants.GUID);
+    }
+
+    // define the document timestamp
+    Long timestamp = null;
+    Object value = source.get(TIMESTAMP.getName());
+    if(value != null) {
+      timestamp = Long.parseLong(value.toString());
+    } else {
+      LOG.warn("Missing '{}' field; timestamp will be set to system time.", TIMESTAMP.getName());
+    }
+
+    return new TupleBasedDocument(source, guid, sensorType, timestamp, tuple);
   }
 
   @Override

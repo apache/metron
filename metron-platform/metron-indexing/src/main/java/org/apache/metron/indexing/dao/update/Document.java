@@ -18,8 +18,6 @@
 
 package org.apache.metron.indexing.dao.update;
 
-import org.apache.metron.common.utils.JSONUtils;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +27,7 @@ import java.util.Optional;
 import static org.apache.metron.common.Constants.Fields.TIMESTAMP;
 import static org.apache.metron.common.Constants.GUID;
 import static org.apache.metron.common.Constants.SENSOR_TYPE;
+import org.apache.metron.common.utils.JSONUtils;
 
 public class Document {
 

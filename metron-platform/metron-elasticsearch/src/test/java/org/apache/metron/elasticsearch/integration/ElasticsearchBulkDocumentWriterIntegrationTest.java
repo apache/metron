@@ -27,6 +27,7 @@ import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.dao.ElasticsearchRetrieveLatestDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
+import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.client.Response;
 import org.hamcrest.CoreMatchers;
@@ -68,9 +69,13 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
 
     @BeforeClass
     public static void setupElasticsearch() throws Exception {
+        AccessConfig accessConfig = new AccessConfig();
+        accessConfig.setGlobalConfigSupplier(() -> globals());
+
         elasticsearch = new ElasticSearchComponent.Builder()
                 .withHttpPort(9211)
                 .withIndexDir(indexDir.getRoot())
+                .withAccessConfig(accessConfig)
                 .build();
         elasticsearch.start();
     }
@@ -87,9 +92,6 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
         client = ElasticsearchClientFactory.create(globals());
         retrieveDao = new ElasticsearchRetrieveLatestDao(client);
         writer = new ElasticsearchBulkDocumentWriter<>(client);
-        writer.onFailure((doc, cause, message) -> {
-            throw new RuntimeException(message, cause);
-        });
 
         // add bro template
         JSONObject broTemplate = JSONUtils.INSTANCE.load(new File(broTemplatePath), JSONObject.class);
@@ -125,6 +127,7 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
             assertEquals(toWrite.getGuid(), found.getGuid());
             assertEquals(toWrite.getSensorType(), found.getSensorType());
             assertEquals(toWrite.getDocument(), found.getDocument());
+            assertEquals(toWrite.getTimestamp(), found.getTimestamp());
 
             // expect the document ID to exist since it was just written to the index
             assertTrue(found.getDocumentID().isPresent());
@@ -132,9 +135,6 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
             // the document ID and GUID should not be the same, since the document ID was auto-generated
             assertNotEquals(found.getDocument(), found.getGuid());
         });
-
-        // expect the document ID to exist since it was just written to the index
-        assertTrue(toWrite.getDocumentID().isPresent());
     }
 
     @Test
@@ -166,7 +166,7 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
         }
     }
 
-    Map<String, Object> globals() {
+    private static Map<String, Object> globals() {
         Map<String, Object> globals = new HashMap<>();
         globals.put("es.clustername", "metron");
         globals.put("es.ip", "localhost");

@@ -35,8 +35,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -46,8 +45,6 @@ public class ElasticsearchBulkDocumentWriterTest {
     ElasticsearchBulkDocumentWriter<Document> writer;
     ElasticsearchClient client;
     RestHighLevelClient highLevelClient;
-    boolean onSuccessCalled;
-    boolean onFailureCalled;
 
     @Before
     public void setup() {
@@ -57,84 +54,46 @@ public class ElasticsearchBulkDocumentWriterTest {
         when(client.getHighLevelClient()).thenReturn(highLevelClient);
 
         writer = new ElasticsearchBulkDocumentWriter<>(client);
-        onFailureCalled = false;
-        onSuccessCalled = false;
     }
 
     @Test
-    public void testSuccessCallback() throws IOException {
+    public void testWriteSuccess() throws IOException {
         setupElasticsearchToSucceed();
 
-        // create a document to write
+        // write a document successfully
         Document doc = document(message());
         String index = "bro_index";
         writer.addDocument(doc, index);
 
-        // validate the "on success" callback
-        writer.onSuccess(successfulDocs -> {
-            assertEquals(1, successfulDocs.size());
-            assertEquals(doc, successfulDocs.get(0));
-            onSuccessCalled = true;
-        });
+        BulkDocumentWriterResults<Document> results = writer.write();
+        assertEquals(1, results.getSuccesses().size());
+        assertEquals(0, results.getFailures().size());
 
-        writer.write();
-        assertTrue(onSuccessCalled);
-        assertFalse(onFailureCalled);
+        WriteSuccess<Document> success = results.getSuccesses().get(0);
+        assertEquals(doc, success.getDocument());
     }
 
     @Test
-    public void testSuccessWithNoCallbacks() throws IOException {
-        setupElasticsearchToSucceed();
-
-        // create a document to write
-        Document doc = document(message());
-        String index = "bro_index";
-        writer.addDocument(doc, index);
-
-        // no callbacks defined
-        writer.write();
-        assertFalse(onSuccessCalled);
-        assertFalse(onFailureCalled);
-    }
-
-    @Test
-    public void testFailureCallback() throws IOException {
+    public void testWriteFailure() throws IOException {
         setupElasticsearchToFail();
 
-        // create a document to write
+        // the document will fail to write
         Document doc = document(message());
         String index = "bro_index";
         writer.addDocument(doc, index);
 
-        // validate the "on failure" callback
-        writer.onFailure((failedDoc, cause, msg) -> {
-            assertEquals(doc, failedDoc);
-            onFailureCalled = true;
-        });
+        BulkDocumentWriterResults<Document> results = writer.write();
+        assertEquals(0, results.getSuccesses().size());
+        assertEquals(1, results.getFailures().size());
 
-        // no callbacks defined
-        writer.write();
-        assertFalse(onSuccessCalled);
-        assertTrue(onFailureCalled);
+        WriteFailure<Document> failure = results.getFailures().get(0);
+        assertEquals(doc, failure.getDocument());
+        assertEquals("error message", failure.getMessage());
+        assertNotNull(failure.getCause());
     }
 
     @Test
-    public void testFailureWithNoCallbacks() throws IOException {
-        setupElasticsearchToFail();
-
-        // create a document to write
-        Document doc = document(message());
-        String index = "bro_index";
-        writer.addDocument(doc, index);
-
-        // no callbacks defined
-        writer.write();
-        assertFalse(onSuccessCalled);
-        assertFalse(onFailureCalled);
-    }
-
-    @Test
-    public void testFlushBatchOnSuccess() throws IOException {
+    public void testSizeWhenWriteSuccessful() throws IOException {
         setupElasticsearchToSucceed();
         assertEquals(0, writer.size());
 
@@ -153,7 +112,7 @@ public class ElasticsearchBulkDocumentWriterTest {
     }
 
     @Test
-    public void testFlushBatchOnFailure() throws IOException {
+    public void testSizeWhenWriteFails() throws IOException {
         setupElasticsearchToFail();
         assertEquals(0, writer.size());
 
@@ -187,6 +146,7 @@ public class ElasticsearchBulkDocumentWriterTest {
         when(itemResponse.isFailed()).thenReturn(isFailed);
         when(itemResponse.getItemId()).thenReturn(itemID);
         when(itemResponse.getFailure()).thenReturn(failure);
+        when(itemResponse.getFailureMessage()).thenReturn("error message");
         List<BulkItemResponse> itemsResponses = Collections.singletonList(itemResponse);
 
         // define the bulk response to indicate failure
