@@ -29,10 +29,10 @@
         <jackson.version>2.9.5</jackson.version>
     </properties>
     <scm>
-        <connection>scm:git:https://git-wip-us.apache.org/repos/asf/metron.git</connection>
-        <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/metron.git</developerConnection>
+        <connection>scm:git:https://gitbox.apache.org/repos/asf/metron.git</connection>
+        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/metron.git</developerConnection>
         <tag>HEAD</tag>
-        <url>https://git-wip-us.apache.org/repos/asf/metron</url>
+        <url>https://gitbox.apache.org/repos/asf/metron</url>
     </scm>
     <licenses>
         <license>
