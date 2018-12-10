@@ -70,7 +70,7 @@ public class ElasticsearchClient implements AutoCloseable{
    * client and exposes some additional sugar on top of the low level methods including marshaling/unmarshaling.
    * </p>
    * <p>
-   *   Note, as of 5.6.2 it does NOT support index or cluster management operations.
+   *   Note, as of 5.6 it does NOT support index or cluster management operations.
    *   https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_changing_the_application_8217_s_code.html
    *   <br>
    * &nbsp;&nbsp;&nbsp;&nbsp;<i>Does not provide indices or cluster management APIs. Management operations can be executed by external scripts or using the low-level client.</i>
