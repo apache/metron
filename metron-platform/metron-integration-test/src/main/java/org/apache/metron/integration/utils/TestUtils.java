@@ -38,12 +38,12 @@ public class TestUtils {
   public interface Assertion {
     void apply() throws Exception;
   }
+
   public static void assertEventually(Assertion assertion) throws Exception {
     assertEventually(assertion, MAX_ASSERT_WAIT_MS);
   }
-  private static void assertEventually(Assertion assertion
-                             , long msToWait
-                             ) throws Exception {
+
+  public static void assertEventually(Assertion assertion, long msToWait) throws Exception {
     long delta = msToWait/10;
     for(int i = 0;i < 10;++i) {
       try{

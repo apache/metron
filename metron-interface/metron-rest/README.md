@@ -373,7 +373,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/{name}`](#get-apiv1stormname)|
 | [ `GET /api/v1/storm/supervisors`](#get-apiv1stormsupervisors)|
 | [ `PATCH /api/v1/update/patch`](#patch-apiv1updatepatch)|
-| [ `PUT /api/v1/update/replace`](#put-apiv1updatereplace)|
 | [ `POST /api/v1/update/add/comment`](#put-apiv1updateaddcomment)|
 | [ `POST /api/v1/update/remove/comment`](#put-apiv1updateremovecomment)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
@@ -978,31 +977,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Nothing
     * 404 - Document not found
-
-### `PUT /api/v1/update/replace`
-  * Description: Replace a document
-  * Input:
-    * request - Replacement request
-      * guid - The Patch UUID
-      * sensorType - The sensor type
-      * replacement - A Map representing the replaced document
-    * Example replacing a `bro` message with guid of `000-000-0000` :
-        ```
-        {
-          "guid" : "000-000-0000",
-          "sensorType" : "bro",
-          "replacement" : {
-            "source:type": "bro",
-            "guid" : "bro_index_2017.01.01.01:1",
-            "ip_src_addr":"192.168.1.2",
-            "ip_src_port": 8009,
-            "timestamp":200,
-            "rejected":false
-          }
-        }
-        ```
-  * Returns:
-    * 200 - Current user
     
 ### `POST /api/v1/update/add/comment`
   * Description: Add a comment to an alert
