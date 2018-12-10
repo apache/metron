@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.ZOOKEEPER_CLIENT;
 
 /**
  * Contains utility functionality that is useful across all of the Stellar management functions.
@@ -81,12 +82,10 @@ public class Functions {
    * @return A Zookeeper client, if one exists.  Otherwise, an exception is thrown.
    */
   public static CuratorFramework getZookeeperClient(Context context) throws ParseException {
-    Optional<Object> clientOpt = context.getCapability(Context.Capabilities.ZOOKEEPER_CLIENT, true);
-    if(clientOpt.isPresent()) {
-      return (CuratorFramework) clientOpt.get();
-
-    } else {
-      throw new ParseException("Missing ZOOKEEPER_CLIENT; zookeeper connection required");
-    }
+    return context
+            .getCapability(ZOOKEEPER_CLIENT, false)
+            .filter(CuratorFramework.class::isInstance)
+            .map(CuratorFramework.class::cast)
+            .orElseThrow(() -> new ParseException("Missing ZOOKEEPER_CLIENT; zookeeper connection required"));
   }
 }
