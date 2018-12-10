@@ -35,8 +35,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-public class GeoEnrichmentLoaderTest {
-  private class MockGeoEnrichmentLoader extends GeoEnrichmentLoader {
+public class MaxmindDbEnrichmentLoaderTest {
+  private class MockMaxmindDbEnrichmentLoader extends MaxmindDbEnrichmentLoader {
     @Override
     protected void pushConfig(Path srcPath, Path dstPath, String configName, String zookeeper) {
     }
@@ -60,11 +60,11 @@ public class GeoEnrichmentLoaderTest {
     String[] argv = {"-g testGeoUrl", "-r /test/remoteDir", "-t /test/tmpDir", "-z test:2181"};
     String[] otherArgs = new GenericOptionsParser(argv).getRemainingArgs();
 
-    CommandLine cli = GeoEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
-    Assert.assertEquals("testGeoUrl", GeoEnrichmentLoader.GeoEnrichmentOptions.GEO_URL.get(cli).trim());
-    Assert.assertEquals("/test/remoteDir", GeoEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
-    Assert.assertEquals("/test/tmpDir", GeoEnrichmentLoader.GeoEnrichmentOptions.TMP_DIR.get(cli).trim());
-    Assert.assertEquals("test:2181", GeoEnrichmentLoader.GeoEnrichmentOptions.ZK_QUORUM.get(cli).trim());
+    CommandLine cli = MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
+    Assert.assertEquals("testGeoUrl", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.GEO_URL.get(cli).trim());
+    Assert.assertEquals("/test/remoteDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
+    Assert.assertEquals("/test/tmpDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.TMP_DIR.get(cli).trim());
+    Assert.assertEquals("test:2181", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.ZK_QUORUM.get(cli).trim());
   }
 
   @Test
@@ -72,24 +72,24 @@ public class GeoEnrichmentLoaderTest {
     String[] argv = {"--geo_url", "testGeoUrl", "--remote_dir", "/test/remoteDir", "--tmp_dir", "/test/tmpDir", "--zk_quorum", "test:2181"};
     String[] otherArgs = new GenericOptionsParser(argv).getRemainingArgs();
 
-    CommandLine cli = GeoEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
-    Assert.assertEquals("testGeoUrl", GeoEnrichmentLoader.GeoEnrichmentOptions.GEO_URL.get(cli).trim());
-    Assert.assertEquals("/test/remoteDir", GeoEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
-    Assert.assertEquals("/test/tmpDir", GeoEnrichmentLoader.GeoEnrichmentOptions.TMP_DIR.get(cli).trim());
-    Assert.assertEquals("test:2181", GeoEnrichmentLoader.GeoEnrichmentOptions.ZK_QUORUM.get(cli).trim());
+    CommandLine cli = MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
+    Assert.assertEquals("testGeoUrl", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.GEO_URL.get(cli).trim());
+    Assert.assertEquals("/test/remoteDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
+    Assert.assertEquals("/test/tmpDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.TMP_DIR.get(cli).trim());
+    Assert.assertEquals("test:2181", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.ZK_QUORUM.get(cli).trim());
   }
 
   @Test
   public void testLoadGeoIpDatabase() throws Exception {
-    File dbPlainTextFile = new File(remoteDir.getAbsolutePath() + "/GeoEnrichmentLoaderTest.mmdb");
+    File dbPlainTextFile = new File(remoteDir.getAbsolutePath() + "/MaxmindDbEnrichmentLoaderTest.mmdb");
     TestUtils.write(dbPlainTextFile, "hello world");
-    File dbFile = new File(remoteDir.getAbsolutePath() + "/GeoEnrichmentLoaderTest.mmdb.gz");
+    File dbFile = new File(remoteDir.getAbsolutePath() + "/MaxmindDbEnrichmentLoaderTest.mmdb.gz");
     CompressionStrategies.GZIP.compress(dbPlainTextFile, dbFile);
     String[] argv = {"--geo_url", "file://" + dbFile.getAbsolutePath(), "--remote_dir", remoteDir.getAbsolutePath(), "--tmp_dir", tmpDir.getAbsolutePath(), "--zk_quorum", "test:2181"};
     String[] otherArgs = new GenericOptionsParser(argv).getRemainingArgs();
-    CommandLine cli = GeoEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
+    CommandLine cli = MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
 
-    GeoEnrichmentLoader loader = new MockGeoEnrichmentLoader();
+    MaxmindDbEnrichmentLoader loader = new MockMaxmindDbEnrichmentLoader();
     loader.loadGeoLiteDatabase(cli);
     Configuration config = new Configuration();
     FileSystem fs = FileSystem.get(config);
@@ -101,14 +101,14 @@ public class GeoEnrichmentLoaderTest {
 
   @Test
   public void loader_throws_exception_on_bad_gzip_file() throws Exception {
-    File dbFile = new File(remoteDir.getAbsolutePath() + "/GeoEnrichmentLoaderTest.mmdb");
+    File dbFile = new File(remoteDir.getAbsolutePath() + "/MaxmindDbEnrichmentLoaderTest.mmdb");
     dbFile.createNewFile();
 
     String geoUrl = "file://" + dbFile.getAbsolutePath();
     int numRetries = 2;
     exception.expect(IllegalStateException.class);
     exception.expectMessage("Unable to download geo enrichment database.");
-    GeoEnrichmentLoader loader = new MockGeoEnrichmentLoader();
+    MaxmindDbEnrichmentLoader loader = new MockMaxmindDbEnrichmentLoader();
     loader.downloadGeoFile(geoUrl, tmpDir.getAbsolutePath(), numRetries);
   }
 

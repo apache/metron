@@ -39,4 +39,4 @@ export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export DM_JAR=${project.artifactId}-$METRON_VERSION.jar
 export HADOOP_OPTS="$HADOOP_OPTS $METRON_JVMFLAGS"
-hadoop jar $METRON_HOME/lib/$DM_JAR org.apache.metron.dataloads.nonbulk.geo.GeoEnrichmentLoader "$@"
+hadoop jar $METRON_HOME/lib/$DM_JAR org.apache.metron.dataloads.nonbulk.geo.MaxmindDbEnrichmentLoader "$@"

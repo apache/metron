@@ -364,7 +364,7 @@ The parameters for the utility are as follows:
 | Short Code | Long Code           | Is Required? | Description                                                                                      |
 |------------|---------------------|--------------|--------------------------------------------------------------------------------------------------|
 | -h         |                     | No           | Generate the help screen/set of options                                                          |
-| -g         | --geo_url           | No           | GeoIP URL - defaults to http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz |
+| -g         | --geo_url           | No           | GeoIP URL - defaults to http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz |
 | -r         | --remote_dir        | No           | HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/\<epoch millis\>/     |
 | -t         | --tmp_dir           | No           | Directory for landing the temporary GeoIP data - defaults to /tmp                                |
 | -z         | --zk_quorum         | Yes          | Zookeeper Quorum URL (zk1:port,zk2:port,...)                                                     |

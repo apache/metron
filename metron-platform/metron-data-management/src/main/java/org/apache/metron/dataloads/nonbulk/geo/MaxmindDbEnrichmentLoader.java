@@ -43,32 +43,32 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
 
-public class GeoEnrichmentLoader {
+public class MaxmindDbEnrichmentLoader {
 
   private static final String DEFAULT_RETRIES = "2";
-  private static final String GEO_CITY_URL_DEFAULT = "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz";
+  private static final String GEO_CITY_URL_DEFAULT = "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz";
   private static final String ASN_URL_DEFAULT = "http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz";
 
   private static abstract class OptionHandler implements Function<String, Option> {
   }
 
   public enum GeoEnrichmentOptions {
-    HELP("h", new GeoEnrichmentLoader.OptionHandler() {
+    HELP("h", new MaxmindDbEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
         return new Option(s, "help", false, "Generate Help screen");
       }
     }),
-    ASN_URL("a", new GeoEnrichmentLoader.OptionHandler() {
+    ASN_URL("a", new MaxmindDbEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
         Option o = new Option(s, "asn_url", true, "GeoIP URL - " + ASN_URL_DEFAULT);
-        o.setArgName("GEO_URL");
+        o.setArgName("ASN_URL");
         o.setRequired(false);
         return o;
       }
     }),
-    GEO_URL("g", new GeoEnrichmentLoader.OptionHandler() {
+    GEO_URL("g", new MaxmindDbEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
         Option o = new Option(s, "geo_url", true, "GeoIP URL - defaults to " + GEO_CITY_URL_DEFAULT);
@@ -77,7 +77,7 @@ public class GeoEnrichmentLoader {
         return o;
       }
     }),
-    REMOTE_GEO_DIR("r", new GeoEnrichmentLoader.OptionHandler() {
+    REMOTE_GEO_DIR("r", new MaxmindDbEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
         Option o = new Option(s, "remote_dir", true, "HDFS directory to land formatted GeoLite2 City file - defaults to /apps/metron/geo/<epoch millis>/");
@@ -86,7 +86,7 @@ public class GeoEnrichmentLoader {
         return o;
       }
     }),
-    REMOTE_ASN_DIR("ra", new GeoEnrichmentLoader.OptionHandler() {
+    REMOTE_ASN_DIR("ra", new MaxmindDbEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
         Option o = new Option(s, "remote_asn_dir", true, "HDFS directory to land formatted GeoLite2 ASN file - defaults to /apps/metron/asn/<epoch millis>/");
@@ -95,7 +95,7 @@ public class GeoEnrichmentLoader {
         return o;
       }
     }),
-    RETRIES("re", new GeoEnrichmentLoader.OptionHandler() {
+    RETRIES("re", new MaxmindDbEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
         Option o = new Option(s, "retries", true, "Number of GeoLite2 database download retries, after an initial failure.");
@@ -104,7 +104,7 @@ public class GeoEnrichmentLoader {
         return o;
       }
     }),
-    TMP_DIR("t", new GeoEnrichmentLoader.OptionHandler() {
+    TMP_DIR("t", new MaxmindDbEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
         Option o = new Option(s, "tmp_dir", true, "Directory for landing the temporary GeoLite2 data - defaults to /tmp");
@@ -113,7 +113,7 @@ public class GeoEnrichmentLoader {
         return o;
       }
     }),
-    ZK_QUORUM("z", new GeoEnrichmentLoader.OptionHandler() {
+    ZK_QUORUM("z", new MaxmindDbEnrichmentLoader.OptionHandler() {
       @Override
       public Option apply(@Nullable String s) {
         Option o = new Option(s, "zk_quorum", true, "Zookeeper Quorum URL (zk1:port,zk2:port,...)");
@@ -125,7 +125,7 @@ public class GeoEnrichmentLoader {
     Option option;
     String shortCode;
 
-    GeoEnrichmentOptions(String shortCode, GeoEnrichmentLoader.OptionHandler optionHandler) {
+    GeoEnrichmentOptions(String shortCode, MaxmindDbEnrichmentLoader.OptionHandler optionHandler) {
       this.shortCode = shortCode;
       this.option = optionHandler.apply(shortCode);
     }
@@ -146,7 +146,7 @@ public class GeoEnrichmentLoader {
       try {
         CommandLine cli = parser.parse(getOptions(), args);
 
-        if (GeoEnrichmentLoader.GeoEnrichmentOptions.HELP.has(cli)) {
+        if (MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.HELP.has(cli)) {
           printHelp();
           System.exit(0);
         }
@@ -162,12 +162,12 @@ public class GeoEnrichmentLoader {
 
     public static void printHelp() {
       HelpFormatter formatter = new HelpFormatter();
-      formatter.printHelp("GeoEnrichmentLoader", getOptions());
+      formatter.printHelp("MaxmindDbEnrichmentLoader", getOptions());
     }
 
     public static Options getOptions() {
       Options ret = new Options();
-      for (GeoEnrichmentLoader.GeoEnrichmentOptions o : GeoEnrichmentLoader.GeoEnrichmentOptions.values()) {
+      for (MaxmindDbEnrichmentLoader.GeoEnrichmentOptions o : MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.values()) {
         ret.addOption(o.option);
       }
       return ret;
@@ -210,7 +210,7 @@ public class GeoEnrichmentLoader {
     pushConfig(srcPath, dstPath, GeoLiteCityDatabase.GEO_HDFS_FILE, zookeeper);
 
     // Push the ASN file to HDFS and update Configs to ensure clients get new view
-    String hdfsAsnLoc = GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli, "/apps/metron/asn/" + millis);
+    String hdfsAsnLoc = GeoEnrichmentOptions.REMOTE_ASN_DIR.get(cli, "/apps/metron/asn/" + millis);
     System.out.println("Putting ASN file into HDFS at: " + hdfsAsnLoc);
 
     // Put ASN into HDFS
@@ -295,7 +295,7 @@ public class GeoEnrichmentLoader {
     String[] otherArgs = new GenericOptionsParser(argv).getRemainingArgs();
     CommandLine cli = GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
 
-    GeoEnrichmentLoader loader = new GeoEnrichmentLoader();
+    MaxmindDbEnrichmentLoader loader = new MaxmindDbEnrichmentLoader();
     loader.loadGeoLiteDatabase(cli);
   }
 }

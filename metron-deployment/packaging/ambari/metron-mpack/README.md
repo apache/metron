@@ -183,7 +183,7 @@ A custom action is available in Ambari to import Zeppelin dashboards. See the [m
 
 #### Offline Installation
 
-Retrieval of the GeoIP database is the only point during installation that reaches out to the internet. For an offline installation, the URL for the GeoIP database can be manually set to a local path on the file system such as  `file:///home/root/geoip/GeoLite2-City.mmdb.gz`.
+Retrieval of the GeoIP and ASN databases (both from MaxMind) is the only point during installation that reaches out to the internet. For an offline installation, the URL for the databases can be manually set to a local path on the file system such as  `file:///home/root/geoip/GeoLite2-City.tar.gz`.
 
 The RPMs DO NOT reach out to the internet (because there is currently no hosting for them).  They look on the local filesystem in `/localrepo`.
 
