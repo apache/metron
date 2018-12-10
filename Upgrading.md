@@ -19,7 +19,7 @@ limitations under the License.
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
 
-## 0.6.0 to 0.6.1
+## 0.6.0 to 0.7.0
 
 ### [METRON-1834: Migrate Elasticsearch from TransportClient to new Java REST API](https://issues.apache.org/jira/browse/METRON-1834)
 The Elasticsearch Java client has now been migrated from TransportClient to the new Java REST client. The motivation for this change
