@@ -56,10 +56,10 @@ To install the Stellar Interpreter in your Apache Zeppelin installation, follow 
 
 1. Use Zeppelin's installation utility to install the Stellar Interpreter.
 
-    If Zeppelin was already installed, make sure that it is stopped before running this command.  Update the version, '0.6.1' in the example below, to whatever is appropriate for your environment.
+    If Zeppelin was already installed, make sure that it is stopped before running this command.  Update the version, '0.7.0' in the example below, to whatever is appropriate for your environment.
 
     ```
-    bin/install-interpreter.sh --name stellar --artifact org.apache.metron:stellar-zeppelin:0.6.1
+    bin/install-interpreter.sh --name stellar --artifact org.apache.metron:stellar-zeppelin:0.7.0
     ```
 
 1. Start Zeppelin.  
@@ -106,7 +106,7 @@ Usage
     1. Go back to the Stellar interpreter configuration and add another dependency as follows.
 
         ```
-        org.apache.metron:metron-statistics:0.6.1
+        org.apache.metron:metron-statistics:0.7.0
         ```
 
     1. Go back to your notebook and run `%functions` again.  You will now see the additional functions defined within the `metron-statistics` project.
