@@ -1,5 +1,5 @@
 com.jakewharton.fliptables:fliptables:jar:1.0.2:compile,Apache v2,https://github.com/JakeWharton/flip-tables
-org.jboss.aesh:aesh:jar:0.66.8:compile,Apache v2,https://github.com/aeshell/aesh
+org.jboss.aesh:aesh:jar:0.66.19:compile,Apache v2,https://github.com/aeshell/aesh
 org.objenesis:objenesis:jar:1.2:compile,Apache v2,http://objenesis.org/
 org.objenesis:objenesis:jar:2.1:compile,Apache v2,http://objenesis.org/
 org.ow2.asm:asm:jar:4.1:compile,BSD,http://asm.ow2.org/
@@ -489,3 +489,4 @@ org.hibernate.validator:hibernate-validator:jar:6.0.9.Final:compile,ASLv2,https:
 com.github.palindromicity:simple-syslog-5424:jar:0.0.9:compile,ASLv2,https://github.com/palindromicity/simple-syslog-5424
 org.elasticsearch.client:elasticsearch-rest-high-level-client:jar:5.6.2:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
 org.elasticsearch.plugin:aggs-matrix-stats-client:jar:5.6.2:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.fusesource.jansi:jansi:jar:1.16:compile,ASLv2,https://github.com/fusesource/jansi/blob/master/license.txt

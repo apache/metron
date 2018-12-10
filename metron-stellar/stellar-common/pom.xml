@@ -146,7 +146,7 @@
         <dependency>
             <groupId>org.jboss.aesh</groupId>
             <artifactId>aesh</artifactId>
-            <version>0.66.8</version>
+            <version>${global_aesh_version}</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>

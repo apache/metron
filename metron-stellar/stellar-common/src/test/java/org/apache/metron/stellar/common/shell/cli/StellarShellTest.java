@@ -100,6 +100,12 @@ public class StellarShellTest {
     assertEquals("4", stdout());
   }
 
+  @Test
+  public void testBackslashInStrings() throws Exception {
+    stellarShell.execute(createOp("SPLIT('foo\\\\bar', '\\\\')"));
+    assertEquals("[foo, bar]", stdout());
+  }
+
   /**
    * Ensure that Stellar lists are displayed correctly in the REPL.
    */
