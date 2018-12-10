@@ -78,7 +78,7 @@ public interface UpdateDao {
   ) throws OriginalNotFoundException, IOException {
     String guid = request.getGuid();
     String sensorType = request.getSensorType();
-    Optional<String> documentID = Optional.empty();
+    String documentID = null;
     Long timestamp = optionalTimestamp.orElse(System.currentTimeMillis());
 
     Map<String, Object> originalSource = request.getSource();
@@ -87,7 +87,7 @@ public interface UpdateDao {
       Document toPatch = retrieveLatestDao.getLatest(guid, sensorType);
       if(toPatch != null && toPatch.getDocument() != null) {
         originalSource = toPatch.getDocument();
-        documentID = toPatch.getDocumentID();
+        documentID = toPatch.getDocumentID().orElse(null);
 
       } else {
         String error = format("Document does not exist, but is required; guid=%s, sensorType=%s", guid, sensorType);

@@ -35,17 +35,7 @@ public class Document {
   Map<String, Object> document;
   String guid;
   String sensorType;
-
-  /**
-   * A unique identifier that is used when persisting this document.
-   *
-   * <p>This value may be different than the Metron guid.
-   *
-   * <p>Only present when a document has been retrieved from a store
-   * that supports a document ID, like Elasticsearch.  This will not
-   * be present when retrieved from HBase.
-   */
-  Optional<String> documentID;
+  String documentID;
 
   public static Document fromJSON(Map<String, Object> json) {
     String guid = getGUID(json);
@@ -55,10 +45,10 @@ public class Document {
   }
 
   public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp) {
-    this(document, guid, sensorType, timestamp, Optional.empty());
+    this(document, guid, sensorType, timestamp, null);
   }
 
-  public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp, Optional<String> documentID) {
+  public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp, String documentID) {
     setDocument(document);
     setGuid(guid);
     setTimestamp(timestamp);
@@ -71,7 +61,7 @@ public class Document {
   }
 
   public Document(String document, String guid, String sensorType) throws IOException {
-    this( document, guid, sensorType, null);
+    this(document, guid, sensorType, null);
   }
 
   /**
@@ -79,8 +69,11 @@ public class Document {
    * @param other The document to be copied.
    */
   public Document(Document other) {
-    this(new HashMap<>(other.getDocument()), other.getGuid(), other.getSensorType(),
-        other.getTimestamp(), other.getDocumentID());
+    this(new HashMap<>(other.getDocument()),
+            other.getGuid(),
+            other.getSensorType(),
+            other.getTimestamp(),
+            other.getDocumentID().orElse(null));
   }
 
   private static Map<String, Object> convertDoc(String document) throws IOException {
@@ -119,16 +112,25 @@ public class Document {
     this.guid = guid;
   }
 
+  /**
+   * Returns the unique identifier that is used when persisting this document.
+   *
+   * <p>This value will be different than the Metron guid.
+   *
+   * <p>Only present when a document has been retrieved from a store
+   * that supports a document ID, like Elasticsearch.  This value will
+   * not be present when retrieved from HBase.
+   */
   public Optional<String> getDocumentID() {
-    return documentID;
+    return Optional.ofNullable(documentID);
   }
 
   public void setDocumentID(Optional<String> documentID) {
-    this.documentID = documentID;
+    this.documentID = documentID.orElse(null);
   }
 
   public void setDocumentID(String documentID) {
-    this.documentID = Optional.ofNullable(documentID);
+    this.documentID = documentID;
   }
 
   private static Optional<Long> getTimestamp(Map<String, Object> document) {
