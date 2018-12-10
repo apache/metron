@@ -21,9 +21,9 @@ limitations under the License.
 
 * [Introduction](#introduction)
 * [Properties](#properties)
-* [Upgrading from 2.3.3 to 5.6.2](#upgrading-from-2.3.3-to-562)
+* [Upgrading from 2.3.3 to 5.6.2](#upgrading-from-233-to-562)
 * [Type Mappings](#type-mappings)
-* [Using Metron with Elasticsearch 5.6.x](#using-metron-with-elasticsearch-56x)
+* [Using Metron with Elasticsearch 5.6](#using-metron-with-elasticsearch-56)
 * [Installing Elasticsearch Templates](#installing-elasticsearch-templates)
 
 ## Introduction
@@ -328,7 +328,7 @@ The following is a list of properties that need to be defined along with their t
 * alert_status - keyword
 * metron_alert - nested
 
-## Using Metron with Elasticsearch 5.6.x
+## Using Metron with Elasticsearch 5.6
 
 Although infrequent, sometimes an internal field is added in Metron and existing templates must be updated.  The following steps outlines how to do this, using `metron_alert` as an example.
 
