@@ -28,12 +28,12 @@ set -eo pipefail
 # if versioning of the submodule isn't x.y.z format, retrieval of the git tag must also be adjusted.
 METRON_REPO_NAME="metron"
 BRO_PLUGIN_REPO_NAME="metron-bro-plugin-kafka"
-METRON_UPSTREAM="https://git-wip-us.apache.org/repos/asf/${METRON_REPO_NAME}.git"
-BRO_PLUGIN_UPSTREAM="https://git-wip-us.apache.org/repos/asf/${BRO_PLUGIN_REPO_NAME}.git"
+METRON_UPSTREAM="https://gitbox.apache.org/repos/asf/${METRON_REPO_NAME}.git"
+BRO_PLUGIN_UPSTREAM="https://gitbox.apache.org/repos/asf/${BRO_PLUGIN_REPO_NAME}.git"
 
 DEV_REPO="https://dist.apache.org/repos/dist/dev/metron"
 RELEASE_REPO=" https://dist.apache.org/repos/dist/release/metron"
-PLUGIN_GIT_REPO="https://git-wip-us.apache.org/repos/asf/${BRO_PLUGIN_REPO_NAME}.git"
+PLUGIN_GIT_REPO="https://gitbox.apache.org/repos/asf/${BRO_PLUGIN_REPO_NAME}.git"
 
 RC_PREFIX=rc
 UPPER_RC_PREFIX="$(tr '[:lower:]' '[:upper:]' <<< ${RC_PREFIX})"

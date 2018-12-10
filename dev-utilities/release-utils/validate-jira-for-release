@@ -52,7 +52,7 @@ function help {
 
 # define default values
 END="HEAD"
-REPO="https://git-wip-us.apache.org/repos/asf/metron.git"
+REPO="https://gitbox.apache.org/repos/asf/metron.git"
 BRANCH="master"
 
 # print help, if the user just runs this without any args
@@ -98,7 +98,7 @@ for i in "$@"; do
     #
     # REPO: Define the Git repo to work from
     #
-    #  -r=https://git-wip-us.apache.org/repos/asf/metron.git
+    #  -r=https://gitbox.apache.org/repos/asf/metron.git
     #  --repo=<repo-url>
     #
     -r=*|--repo=*)
