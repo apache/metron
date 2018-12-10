@@ -193,7 +193,6 @@ public class ViewProfile implements StellarFunction {
   private HTableInterface getTable(Map<String, Object> global) {
     String tableName = PROFILER_HBASE_TABLE.get(global, String.class);
     TableProvider provider = getTableProvider(global);
-
     try {
       return provider.getTable(HBaseConfiguration.create(), tableName);
 
@@ -208,7 +207,6 @@ public class ViewProfile implements StellarFunction {
    */
   private TableProvider getTableProvider(Map<String, Object> global) {
     String clazzName = PROFILER_HBASE_TABLE_PROVIDER.get(global, String.class);
-
     TableProvider provider;
     try {
       @SuppressWarnings("unchecked")
