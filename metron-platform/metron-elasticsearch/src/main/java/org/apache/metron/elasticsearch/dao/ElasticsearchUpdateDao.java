@@ -40,6 +40,7 @@ import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
   private transient ElasticsearchClient client;
   private AccessConfig accessConfig;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
+  private WriteRequest.RefreshPolicy refreshPolicy;
 
   public ElasticsearchUpdateDao(ElasticsearchClient client,
       AccessConfig accessConfig,
@@ -58,6 +60,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     this.client = client;
     this.accessConfig = accessConfig;
     this.retrieveLatestDao = searchDao;
+    this.refreshPolicy = WriteRequest.RefreshPolicy.NONE;
   }
 
   @Override
@@ -89,6 +92,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
         .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
 
     BulkRequest bulkRequestBuilder = new BulkRequest();
+    bulkRequestBuilder.setRefreshPolicy(refreshPolicy);
 
     // Get the indices we'll actually be using for each Document.
     for (Map.Entry<Document, Optional<String>> updateEntry : updates.entrySet()) {
@@ -180,6 +184,11 @@ public class ElasticsearchUpdateDao implements UpdateDao {
     }
 
     return update(newVersion, Optional.empty());
+  }
+
+  public ElasticsearchUpdateDao withRefreshPolicy(WriteRequest.RefreshPolicy refreshPolicy) {
+    this.refreshPolicy = refreshPolicy;
+    return this;
   }
 
   protected String getIndexName(Document update, Optional<String> index, String indexPostFix) throws IOException {

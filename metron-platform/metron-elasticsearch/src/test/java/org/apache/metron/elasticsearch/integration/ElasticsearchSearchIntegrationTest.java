@@ -18,17 +18,6 @@
 package org.apache.metron.elasticsearch.integration;
 
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.nio.entity.NStringEntity;
@@ -48,23 +37,33 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.integration.InMemoryComponent;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static String indexDir = "target/elasticsearch_search";
   private static String dateFormat = "yyyy.MM.dd.HH";
   private static String broTemplatePath = "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/bro_index.template";
@@ -72,48 +71,51 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   protected static final String BRO_INDEX = "bro_index_2017.01.01.01";
   protected static final String SNORT_INDEX = "snort_index_2017.01.01.02";
   protected static Map<String, Object> globalConfig;
+  protected static AccessConfig accessConfig;
   protected static RestClient lowLevelClient;
   protected static RestHighLevelClient highLevelClient;
   protected static IndexDao dao;
 
   @BeforeClass
   public static void setup() throws Exception {
-    indexComponent = startIndex();
-    globalConfig = new HashMap<String, Object>() {{
+    globalConfig =  new HashMap<String, Object>() {{
       put("es.clustername", "metron");
       put("es.port", "9200");
       put("es.ip", "localhost");
       put("es.date.format", dateFormat);
     }};
-    ElasticsearchClient esClient = ElasticsearchClientFactory.create(globalConfig);
-    lowLevelClient = esClient.getLowLevelClient();
-    highLevelClient = esClient.getHighLevelClient();
-    dao = createDao(globalConfig);
-    // The data is all static for searches, so we can set it up beforehand, and it's faster
-    loadTestData();
-  }
 
-  protected static IndexDao createDao(Map<String, Object> globalConfig) {
-    AccessConfig accessConfig = new AccessConfig();
+    accessConfig = new AccessConfig();
     accessConfig.setMaxSearchResults(100);
     accessConfig.setMaxSearchGroups(100);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
 
-    IndexDao dao = new ElasticsearchDao();
+    indexComponent = startIndex();
+
+    ElasticsearchClient esClient = ElasticsearchClientFactory.create(globalConfig);
+    lowLevelClient = esClient.getLowLevelClient();
+    highLevelClient = esClient.getHighLevelClient();
+
+    dao = new ElasticsearchDao();
     dao.init(accessConfig);
-    return dao;
+
+    // The data is all static for searches, so we can set it up beforehand, and it's faster
+    loadTestData();
   }
 
   protected static InMemoryComponent startIndex() throws Exception {
     InMemoryComponent es = new ElasticSearchComponent.Builder()
             .withHttpPort(9211)
             .withIndexDir(new File(indexDir))
+            .withAccessConfig(accessConfig)
             .build();
     es.start();
     return es;
   }
 
-  protected static void loadTestData() throws ParseException, IOException {
+  protected static void loadTestData() throws Exception {
+    ElasticSearchComponent es = (ElasticSearchComponent) indexComponent;
+
     // add bro template
     JSONObject broTemplate = JSONUtils.INSTANCE.load(new File(broTemplatePath), JSONObject.class);
     addTestFieldMappings(broTemplate, "bro_doc");
@@ -121,6 +123,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     HttpEntity broEntity = new NStringEntity(broTemplateJson, ContentType.APPLICATION_JSON);
     Response response = lowLevelClient.performRequest("PUT", "/_template/bro_template", Collections.emptyMap(), broEntity);
     assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
+
     // add snort template
     JSONObject snortTemplate = JSONUtils.INSTANCE.load(new File(snortTemplatePath), JSONObject.class);
     addTestFieldMappings(snortTemplate, "snort_doc");
@@ -128,42 +131,28 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     HttpEntity snortEntity = new NStringEntity(snortTemplateJson, ContentType.APPLICATION_JSON);
     response = lowLevelClient.performRequest("PUT", "/_template/snort_template", Collections.emptyMap(), snortEntity);
     assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
+
     // create bro index
     response = lowLevelClient.performRequest("PUT", BRO_INDEX);
     assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
+
     // create snort index
     response = lowLevelClient.performRequest("PUT", SNORT_INDEX);
     assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
 
-    JSONArray broRecords = (JSONArray) new JSONParser().parse(broData);
-
-    BulkRequest bulkRequest = new BulkRequest();
-    for (Object o : broRecords) {
-      JSONObject json = (JSONObject) o;
-      IndexRequest indexRequest = new IndexRequest(BRO_INDEX, "bro_doc", (String) json.get("guid"));
-      indexRequest.source(json);
-      indexRequest.timestamp(json.get("timestamp").toString());
-      bulkRequest.add(indexRequest);
+    // write the test documents for Bro
+    List<String> broDocuments = new ArrayList<>();
+    for (Object broObject: (JSONArray) new JSONParser().parse(broData)) {
+      broDocuments.add(((JSONObject) broObject).toJSONString());
     }
-    bulkRequest.setRefreshPolicy(RefreshPolicy.WAIT_UNTIL);
-    BulkResponse bulkResponse = highLevelClient.bulk(bulkRequest);
-    assertFalse(bulkResponse.hasFailures());
-    assertThat(bulkResponse.status().getStatus(), equalTo(200));
+    es.add(BRO_INDEX, "bro", broDocuments);
 
-    JSONArray snortRecords = (JSONArray) new JSONParser().parse(snortData);
-
-    bulkRequest = new BulkRequest();
-    for (Object o : snortRecords) {
-      JSONObject json = (JSONObject) o;
-      IndexRequest indexRequest = new IndexRequest(SNORT_INDEX, "snort_doc", (String) json.get("guid"));
-      indexRequest.source(json);
-      indexRequest.timestamp(json.get("timestamp").toString());
-      bulkRequest.add(indexRequest);
+    // write the test documents for Snort
+    List<String> snortDocuments = new ArrayList<>();
+    for (Object snortObject: (JSONArray) new JSONParser().parse(snortData)) {
+      snortDocuments.add(((JSONObject) snortObject).toJSONString());
     }
-    bulkRequest.setRefreshPolicy(RefreshPolicy.WAIT_UNTIL);
-    bulkResponse = highLevelClient.bulk(bulkRequest);
-    assertFalse(bulkResponse.hasFailures());
-    assertThat(bulkResponse.status().getStatus(), equalTo(200));
+    es.add(SNORT_INDEX, "snort", snortDocuments);
   }
 
   /**
@@ -201,7 +190,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   public void returns_column_metadata_for_specified_indices() throws Exception {
     // getColumnMetadata with only bro
     {
-      Assert.assertEquals(262, dao.getColumnMetadata(Collections.singletonList("bro")).size());
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
       Assert.assertEquals(262, fieldTypes.size());
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("method"));
@@ -220,7 +208,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     }
     // getColumnMetadata with only snort
     {
-      Assert.assertEquals(32, dao.getColumnMetadata(Collections.singletonList("snort")).size());
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
       Assert.assertEquals(32, fieldTypes.size());
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("sig_generator"));
@@ -242,7 +229,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   @Override
   public void returns_column_data_for_multiple_indices() throws Exception {
-    Assert.assertEquals(277, dao.getColumnMetadata(Arrays.asList("bro", "snort")).size());
     Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
     Assert.assertEquals(277, fieldTypes.size());
 
