@@ -138,9 +138,7 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
         if (bulkResponse.hasFailures()) {
 
             // interrogate the response to distinguish between those that succeeded and those that failed
-            Iterator<BulkItemResponse> iterator = bulkResponse.iterator();
-            while(iterator.hasNext()) {
-                BulkItemResponse response = iterator.next();
+            for(BulkItemResponse response: bulkResponse) {
                 if(response.isFailed()) {
                     // request failed
                     D failed = getDocument(response.getItemId());
