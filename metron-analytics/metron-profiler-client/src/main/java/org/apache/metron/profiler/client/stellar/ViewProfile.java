@@ -75,9 +75,9 @@ import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 @Stellar(
         namespace="PROFILE",
         name="VIEW",
-        description="Retrieves a series of measurements from a stored profile. Provides a more verbose " +
-                    "view of each measurement than PROFILE_GET. Returns a map containing the profile name, " +
-                    "entity, period id, period start, period end for each profile measurement.",
+        description="Retrieves a series of measurements from a stored profile. Returns a map containing the profile " +
+                "name, entity, period id, period start, period end for each profile measurement. Provides a more " +
+                "verbose view of each measurement than PROFILE_GET. ",
         params={
                 "profile - The name of the profile.",
                 "entity - The name of the entity.",
