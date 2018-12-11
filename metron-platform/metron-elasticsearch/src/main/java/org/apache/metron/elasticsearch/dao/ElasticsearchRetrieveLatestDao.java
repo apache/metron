@@ -93,7 +93,8 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
       return Collections.emptyList();
     }
 
-    // should match any of the guids. the 'guid' field must be of type 'keyword' or the term query will not match
+    // should match any of the guids
+    // the 'guid' field must be of type 'keyword' or this term query will not match
     BoolQueryBuilder guidQuery = boolQuery().must(termsQuery(Constants.GUID, guids));
 
     // should match any of the sensor types
@@ -117,17 +118,12 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
     } catch(InvalidSearchException e) {
       throw new IOException(e);
     }
-    SearchRequest request = new SearchRequest();
-    SearchSourceBuilder builder = new SearchSourceBuilder();
-    builder.query(query);
-    builder.size(guids.size());
-    request.source(builder);
 
     // transform the search hits to results using the callback
     List<T> results = new ArrayList<>();
     for(SearchHit hit: response.getHits()) {
       Optional<T> result = callback.apply(hit);
-      result.ifPresent( r -> results.add(r));
+      result.ifPresent(r -> results.add(r));
     }
 
     return results;

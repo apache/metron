@@ -181,7 +181,6 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
     Document document = Document.fromJSON(result.getSource());
     document.setTimestamp(timestamp);
     document.setDocumentID(result.getId());
-
     return document;
   }
 

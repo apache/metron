@@ -168,7 +168,8 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request, Optional<Long> timestamp)
+  public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request,
+      Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
     return indexDao.patch(retrieveLatestDao, request, timestamp);
   }
