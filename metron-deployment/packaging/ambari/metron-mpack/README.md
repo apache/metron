@@ -133,10 +133,10 @@ java -cp $METRON_HOME/lib/metron-elasticsearch-0.4.2-uber.jar org.apache.metron.
   ~/dashboard-bulkload.json
 ```
 
-Locate the "create" command for setting the default index by searching for "5.6.13". Change "create" to "index" so that it modifies the existing value. It should look similar to line 1 below.
+Locate the "create" command for setting the default index by searching for "5.6.14". Change "create" to "index" so that it modifies the existing value. It should look similar to line 1 below.
 
 ```
-{ "index" : { "_id": "5.6.13", "_type": "config" } }
+{ "index" : { "_id": "5.6.14", "_type": "config" } }
 {"defaultIndex":"AV-S2e81hKs1cXXnFMqN"}
 ```
 

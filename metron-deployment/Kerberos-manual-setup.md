@@ -588,7 +588,7 @@ X-Pack
     $METRON_HOME/bin/start_elasticsearch_topology.sh
     ```
 
-1. Restart the metron-rest service, and make sure the elasticsearch-xpack-shaded-5.6.13.jar is in the METRON_REST_CLASSPATH when the metron-rest starts.
+1. Restart the metron-rest service, and make sure the elasticsearch-xpack-shaded-5.6.14.jar is in the METRON_REST_CLASSPATH when the metron-rest starts.
 
 Once you've performed these steps, you should be able to start seeing data in your ES indexes.
 

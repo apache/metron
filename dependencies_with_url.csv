@@ -434,16 +434,16 @@ io.netty:netty-resolver:jar:4.1.13.Final:compile,ASLv2,http://netty.io/
 io.netty:netty-transport:jar:4.1.13.Final:compile,ASLv2,http://netty.io/
 joda-time:joda-time:jar:2.9.5:compile,ASLv2,https://github.com/JodaOrg/joda-time
 net.sf.jopt-simple:jopt-simple:jar:5.0.2:compile,The MIT License,http://jopt-simple.sourceforge.net
-org.elasticsearch.client:elasticsearch-rest-client:jar:5.6.13:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
-org.elasticsearch.client:transport:jar:5.6.13:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
-org.elasticsearch:elasticsearch:jar:5.6.13:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch.client:elasticsearch-rest-client:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch.client:transport:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch:elasticsearch:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
 org.elasticsearch:jna:jar:4.4.0-1:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
-org.elasticsearch.plugin:lang-mustache-client:jar:5.6.13:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
-org.elasticsearch.plugin:parent-join-client:jar:5.6.13:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
-org.elasticsearch.plugin:percolator-client:jar:5.6.13:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
-org.elasticsearch.plugin:reindex-client:jar:5.6.13:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
-org.elasticsearch.plugin:transport-netty3-client:jar:5.6.13:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
-org.elasticsearch.plugin:transport-netty4-client:jar:5.6.13:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch.plugin:lang-mustache-client:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch.plugin:parent-join-client:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch.plugin:percolator-client:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch.plugin:reindex-client:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch.plugin:transport-netty3-client:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch.plugin:transport-netty4-client:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
 org.elasticsearch:securesm:jar:1.1:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
 org.hdrhistogram:HdrHistogram:jar:2.1.9:compile,BSD,https://github.com/HdrHistogram/HdrHistogram/blob/master/LICENSE.txt
 com.trendmicro:tlsh:jar:3.7.1:compile,ASLv2,https://github.com/trendmicro/tlsh
@@ -487,8 +487,8 @@ org.sonatype.sisu:sisu-inject-plexus:jar:2.2.2:compile
 com.zaxxer:HikariCP:jar:2.7.8:compile,ASLv2,https://github.com/brettwooldridge/HikariCP
 org.hibernate.validator:hibernate-validator:jar:6.0.9.Final:compile,ASLv2,https://github.com/hibernate/hibernate-validator
 com.github.palindromicity:simple-syslog-5424:jar:0.0.9:compile,ASLv2,https://github.com/palindromicity/simple-syslog-5424
-org.elasticsearch.client:elasticsearch-rest-high-level-client:jar:5.6.13:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
-org.elasticsearch.plugin:aggs-matrix-stats-client:jar:5.6.13:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch.client:elasticsearch-rest-high-level-client:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+org.elasticsearch.plugin:aggs-matrix-stats-client:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
 org.fusesource.jansi:jansi:jar:1.16:compile,ASLv2,https://github.com/fusesource/jansi/blob/master/license.txt
 com.vividsolutions:jts:jar:1.13:compile
 joda-time:joda-time:jar:2.10:compile

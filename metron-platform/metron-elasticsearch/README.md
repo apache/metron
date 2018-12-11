@@ -21,7 +21,7 @@ limitations under the License.
 
 * [Introduction](#introduction)
 * [Properties](#properties)
-* [Upgrading from 2.3.3 to 5.6.2](#upgrading-from-233-to-562)
+* [Upgrading from 2.3.3 to 5.6](#upgrading-from-233-to-56)
 * [Type Mappings](#type-mappings)
 * [Using Metron with Elasticsearch 5.6](#using-metron-with-elasticsearch-56)
 * [Installing Elasticsearch Templates](#installing-elasticsearch-templates)
@@ -102,9 +102,9 @@ __Notes:__
 * See [https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_common_configuration.html](https://www.elastic.co/guide/en/elasticsearch/client/java-rest/5.6/_common_configuration.html) for more specifics on the new client properties.
 * Other notes on JSSE - [https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html)
 
-## Upgrading from 2.3.3 to 5.6.2
+## Upgrading from 2.3.3 to 5.6
 
-Users should be prepared to re-index when migrating from Elasticsearch 2.3.3 to 5.6.2. There are a number of template changes, most notably around
+Users should be prepared to re-index when migrating from Elasticsearch 2.3.3 to 5.6. There are a number of template changes, most notably around
 string type handling, that may cause issues when upgrading.
 
 [https://www.elastic.co/guide/en/elasticsearch/reference/5.6/setup-upgrade.html](https://www.elastic.co/guide/en/elasticsearch/reference/5.6/setup-upgrade.html)
