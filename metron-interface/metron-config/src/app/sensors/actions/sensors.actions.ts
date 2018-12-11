@@ -18,10 +18,12 @@
 import { Action } from '@ngrx/store';
 import { TopologyStatus } from '../../model/topology-status';
 import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
+import { ParserConfigModel } from '../models/parser-config.model';
 
 export enum SensorsActionTypes {
   LoadStart = '[Sensors] Load sensors',
   LoadSuccess = '[Sensors] Load sensors success',
+  UpdateParserConfig = '[Sensors] update parser config',
   StartPolling = '[Sensors] Start polling topology statuses',
   PollStatusSuccess = '[Sensors] Poll topology statuses success',
   AggregateParsers = '[Sensors] Aggregate parser configs',
@@ -63,6 +65,11 @@ export interface LoadSuccesActionPayload {
 export class LoadSuccess implements Action {
   readonly type = SensorsActionTypes.LoadSuccess;
   constructor(readonly payload: LoadSuccesActionPayload) {}
+}
+
+export class UpdateParserConfig implements Action {
+  readonly type = SensorsActionTypes.UpdateParserConfig;
+  constructor(readonly payload: ParserConfigModel) {}
 }
 
 export class StartPolling implements Action {

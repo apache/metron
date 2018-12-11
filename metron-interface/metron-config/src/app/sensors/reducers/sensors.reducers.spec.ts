@@ -673,4 +673,19 @@ describe('sensors: selectors', () => {
       }
     })).toBe(true);
   });
+
+  it('should update the parser config in state', () => {
+    const previousState: fromReducers.ParserState = {
+      items: [
+        { config: new ParserConfigModel('bar', { sensorTopic: 'bar' }) },
+        { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) },
+      ]
+    };
+    const action = new fromActionts.UpdateParserConfig(
+      new ParserConfigModel('foo', { sensorTopic: 'foo updated' })
+    );
+    const newState = fromReducers.parserConfigsReducer(previousState, action);
+    const updated = newState.items.find(item => item.config.getName() === 'foo');
+    expect((updated.config as ParserConfigModel).sensorTopic).toBe('foo updated');
+  });
 });

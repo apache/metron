@@ -11,7 +11,7 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<metron-config-metron-modal>
+<metron-config-metron-modal *ngIf="sensorParserConfig">
     <metron-config-sensor-grok [hidden]="!showGrokValidator" [showGrok]="showGrokValidator"
                                [grokStatement]="grokStatement"
                                [(patternLabel)]="patternLabel"
@@ -44,7 +44,7 @@
             <div class="form-title">{{sensorName}} </div>
             <i class="fa fa-times float-right main close-button" aria-hidden="true" (click)="goBack()"></i>
 
-            <form role="form" [formGroup]="sensorConfigForm">
+            <form *ngIf="sensorConfigForm" role="form" [formGroup]="sensorConfigForm">
                 <div class="form-group">
                     <label attr.for="sensorName">NAME * </label>
                     <input type="text" class="form-control" name="sensorName" formControlName="sensorName"  [(ngModel)]="sensorName" (ngModelChange)="onSetSensorName()" [readonly]="editMode">

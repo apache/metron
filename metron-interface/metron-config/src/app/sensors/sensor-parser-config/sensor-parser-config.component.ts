@@ -36,6 +36,8 @@ import { SensorState } from '../reducers';
 import { Store, select } from '@ngrx/store';
 import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { filter } from 'rxjs/operators';
+import * as fromReducers from '../reducers';
+import * as fromActions from '../actions';
 
 export enum Pane {
   GROK,
@@ -116,24 +118,38 @@ export class SensorParserConfigComponent implements OnInit {
     private router: Router,
     private kafkaService: KafkaService,
     private hdfsService: HdfsService,
-    // private store: Store<SensorState>,
+    private store: Store<SensorState>,
   ) {}
+
+  ngOnInit() {
+    this.route.params.subscribe(params => {
+      const id = params['id'];
+      this.init(id);
+    });
+  }
 
   init(id: string): void {
     if (id !== 'new') {
       this.editMode = true;
       this.sensorName = id;
-      this.sensorParserConfigService
-        .getConfig(id)
-        .subscribe((parserConfig: {}) => {
-          this.sensorParserConfig = new ParserConfigModel(id, parserConfig);
+      this.store.pipe(select(fromReducers.getParserConfig(), { id }))
+        .subscribe((parserConfig: ParserMetaInfoModel) => {
+
+          if (!parserConfig) {
+            return;
+          }
+
+          this.sensorParserConfig = (parserConfig.config as ParserConfigModel).clone();
           this.sensorNameValid = true;
           this.getKafkaStatus();
+          this.createForms();
+          this.getAvailableParsers();
+
           if (Object.keys(this.sensorParserConfig.parserConfig).length > 0) {
             this.showAdvancedParserConfiguration = true;
           }
           if (this.isGrokParser(this.sensorParserConfig)) {
-            let path = this.sensorParserConfig.parserConfig['grokPath'];
+            let path = this.sensorParserConfig.parserConfig.grokPath;
             if (path) {
               this.hdfsService.read(path).subscribe(
                 contents => {
@@ -192,30 +208,10 @@ export class SensorParserConfigComponent implements OnInit {
       this.sensorParserConfigService.getAllConfig().subscribe((results: {}) => {
         this.currentSensors = Object.keys(results);
       });
+      this.createForms();
+      this.getAvailableParsers();
     }
   }
-
-  ngOnInit() {
-    this.route.params.subscribe(params => {
-      let id = params['id'];
-      this.init(id);
-    });
-    this.createForms();
-    this.getAvailableParsers();
-  }
-
-  // TODO impl
-  // private findById(store: Store<SensorState>, id: string) {
-  //   this.store.pipe(
-  //     select('sensors.parsers.items'),
-  //     filter((parserConfig: ParserMetaInfoModel) => {
-
-  //     }),
-  //   )
-  //     .subscribe((parsers: ParserMetaInfoModel[]) => {
-
-  //     });
-  // }
 
   createSensorConfigForm(): FormGroup {
     let group: any = {};
@@ -293,7 +289,7 @@ export class SensorParserConfigComponent implements OnInit {
   createForms() {
     this.sensorConfigForm = this.createSensorConfigForm();
     this.transformsValidationForm = this.createTransformsValidationForm();
-    if (Object.keys(this.sensorParserConfig.parserConfig).length > 0) {
+    if (Object.keys(this.sensorParserConfig && this.sensorParserConfig.parserConfig).length > 0) {
       this.showAdvancedParserConfiguration = true;
     }
   }
@@ -430,6 +426,9 @@ export class SensorParserConfigComponent implements OnInit {
     if (!this.indexingConfigurations.solr.index) {
       this.indexingConfigurations.solr.index = this.sensorName;
     }
+
+    this.store.dispatch(new fromActions.UpdateParserConfig(this.sensorParserConfig.clone()));
+
     this.sensorParserConfigService
       .saveConfig(this.sensorName, this.sensorParserConfig)
       .subscribe(
