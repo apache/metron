@@ -263,6 +263,7 @@ public class RestFunctions {
       }
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String, Object> getGlobalConfig(Context context) {
       Optional<Object> globalCapability = context.getCapability(GLOBAL_CONFIG, false);
       return globalCapability.map(o -> (Map<String, Object>) o).orElseGet(HashMap::new);
@@ -281,6 +282,7 @@ public class RestFunctions {
      * @return
      * @throws IOException
      */
+    @SuppressWarnings("unchecked")
     protected RestConfig getRestConfig(List<Object> args, Map<String, Object> globalConfig) {
       Map<String, Object> globalRestConfig = (Map<String, Object>) globalConfig.get(STELLAR_REST_SETTINGS);
       Map<String, Object> functionRestConfig = null;

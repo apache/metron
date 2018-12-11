@@ -43,11 +43,12 @@ public class DataStructureFunctions {
   public static class BloomAdd extends BaseStellarFunction {
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
       BloomFilter<Object> filter = (BloomFilter)args.get(0);
-      for(int i = 1;i < args.size();++i) {
+      for (int i = 1;i < args.size();++i) {
         Object arg = args.get(i);
-        if(arg != null) {
+        if (arg != null) {
           filter.add(args.get(i));
         }
       }
@@ -55,25 +56,26 @@ public class DataStructureFunctions {
     }
   }
 
-  @Stellar(name="EXISTS"
-          , namespace="BLOOM"
-          , description="If the bloom filter contains the value"
-          , params = { "bloom - The bloom filter"
-                     , "value - The value to check"
-                     }
-          , returns = "True if the filter might contain the value and false otherwise"
+  @Stellar(name = "EXISTS",
+            namespace = "BLOOM",
+            description = "If the bloom filter contains the value",
+            params = { "bloom - The bloom filter",
+                       "value - The value to check"
+                     },
+            returns = "True if the filter might contain the value and false otherwise"
           )
   public static class BloomExists extends BaseStellarFunction {
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
-      if(args.size() == 0) {
+      if (args.size() == 0) {
         return false;
       }
       BloomFilter<Object> filter = (BloomFilter)args.get(0);
-      if(args.size() > 1) {
+      if (args.size() > 1) {
         Object arg = args.get(1);
-        if(arg == null) {
+        if (arg == null) {
           return false;
         }
         return filter.mightContain(arg);
@@ -82,13 +84,13 @@ public class DataStructureFunctions {
     }
   }
 
-  @Stellar(name="INIT"
-         , namespace="BLOOM"
-          , description="Returns an empty bloom filter"
-          , params = { "expectedInsertions - The expected insertions"
-                     , "falsePositiveRate - The false positive rate you are willing to tolerate"
-                     }
-          , returns = "Bloom Filter"
+  @Stellar(name = "INIT",
+           namespace = "BLOOM",
+           description = "Returns an empty bloom filter",
+           params = { "expectedInsertions - The expected insertions",
+                      "falsePositiveRate - The false positive rate you are willing to tolerate"
+                     },
+           returns = "Bloom Filter"
           )
   public static class BloomInit extends BaseStellarFunction {
 
@@ -96,11 +98,11 @@ public class DataStructureFunctions {
     public Object apply(List<Object> args) {
       int expectedInsertions = 100000;
       float falsePositiveRate = 0.01f;
-      if(args.size() > 1) {
+      if (args.size() > 1) {
         expectedInsertions = ConversionUtils.convert(args.get(0), Integer.class);
       }
-      if(args.size() > 2) {
-        falsePositiveRate= ConversionUtils.convert(args.get(1), Float.class);
+      if (args.size() > 2) {
+        falsePositiveRate = ConversionUtils.convert(args.get(1), Float.class);
       }
       return new BloomFilter<>(SerDeUtils.SERIALIZER, expectedInsertions, falsePositiveRate);
     }
@@ -116,17 +118,17 @@ public class DataStructureFunctions {
   public static class BloomMerge extends BaseStellarFunction {
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
-      if(args.size() > 0) {
+      if (args.size() > 0) {
         Object firstArg = args.get(0);
-        if(firstArg instanceof List) {
+        if (firstArg instanceof List) {
           BloomFilter ret = null;
-          for(Object bf : (List)firstArg) {
-            if(bf instanceof BloomFilter) {
-              if(ret == null) {
+          for (Object bf : (List)firstArg) {
+            if (bf instanceof BloomFilter) {
+              if (ret == null) {
                 ret = (BloomFilter)bf;
-              }
-              else {
+              } else {
                 ret.merge((BloomFilter)bf);
               }
             }
@@ -177,53 +179,49 @@ public class DataStructureFunctions {
 
   public static class ListAdd extends BaseStellarFunction {
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> list) {
       if (list.size() == 0) {
         return null;
       }
       Object o = list.get(0);
-      if(list.size() == 1) {
+      if (list.size() == 1) {
         return o;
       }
-      if(o instanceof List) {
+      if (o instanceof List) {
         List l = (List)o;
         Object arg = list.get(1);
         l.add(arg);
         return l;
-      }
-      else {
+      } else {
         return o;
       }
     }
   }
 
-  @Stellar(name="LENGTH"
-          , description="Returns the length of a string or size of a collection. Returns 0 for empty or null Strings"
-          , params = { "input - Object of string or collection type (e.g. list)"}
-          , returns = "Integer"
+  @Stellar(name = "LENGTH",
+            description = "Returns the length of a string or size of a collection. Returns 0 for empty or null Strings",
+            params = { "input - Object of string or collection type (e.g. list)"},
+            returns = "Integer"
   )
   public static class Length extends BaseStellarFunction {
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> list) {
-      if(list.size() == 0) {
+      if (list.size() == 0) {
         return 0;
       }
       Object o = list.get(0);
-      if(o instanceof Collection) {
+      if (o instanceof Collection) {
         return ((Collection)o).size();
-      }
-      else if(o instanceof Map) {
+      } else if (o instanceof Map) {
         return ((Map)o).size();
-      }
-      else if(o instanceof String) {
+      } else if (o instanceof String) {
         String val = (String) list.get(0);
         return val == null || val.isEmpty() ? 0 : val.length();
-      }
-      else {
+      } else {
         return 0;
       }
     }
   }
-
-
 }
