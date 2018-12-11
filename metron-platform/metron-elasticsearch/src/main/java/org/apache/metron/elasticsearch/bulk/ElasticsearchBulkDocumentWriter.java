@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -89,7 +88,7 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
             handleBulkResponse(bulkResponse, documents, results);
 
         } catch(IOException e) {
-            // assume all documents have failed. notify the failure listeners
+            // assume all documents have failed
             for(Indexable indexable: documents) {
                 D failed = indexable.document;
                 results.addFailure(failed, e, ExceptionUtils.getRootCauseMessage(e));
@@ -120,7 +119,6 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
         if(document.getTimestamp() == null) {
             throw new IllegalArgumentException("Document must contain the timestamp");
         }
-
         return new IndexRequest()
                 .source(document.getDocument())
                 .type(document.getSensorType() + "_doc")
@@ -163,9 +161,7 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
         if (bulkResponse.hasFailures()) {
 
             // interrogate the response to distinguish between those that succeeded and those that failed
-            Iterator<BulkItemResponse> iterator = bulkResponse.iterator();
-            while(iterator.hasNext()) {
-                BulkItemResponse response = iterator.next();
+            for(BulkItemResponse response: bulkResponse) {
                 if(response.isFailed()) {
                     // request failed
                     D failed = getDocument(response.getItemId());

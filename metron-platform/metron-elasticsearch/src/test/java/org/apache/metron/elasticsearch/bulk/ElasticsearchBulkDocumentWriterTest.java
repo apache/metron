@@ -145,6 +145,7 @@ public class ElasticsearchBulkDocumentWriterTest {
         BulkItemResponse itemResponse = mock(BulkItemResponse.class);
         when(itemResponse.isFailed()).thenReturn(isFailed);
         when(itemResponse.getItemId()).thenReturn(itemID);
+
         when(itemResponse.getFailure()).thenReturn(failure);
         when(itemResponse.getFailureMessage()).thenReturn("error message");
         List<BulkItemResponse> itemsResponses = Collections.singletonList(itemResponse);

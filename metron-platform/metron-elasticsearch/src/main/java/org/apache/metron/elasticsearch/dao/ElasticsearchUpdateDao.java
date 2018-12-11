@@ -17,9 +17,9 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
+import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
 import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.WriteFailure;
-import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -41,9 +41,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
-
 import static java.lang.String.format;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 public class ElasticsearchUpdateDao implements UpdateDao {
 

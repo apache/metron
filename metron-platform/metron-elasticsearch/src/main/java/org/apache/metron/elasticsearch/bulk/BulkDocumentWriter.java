@@ -41,5 +41,5 @@ public interface BulkDocumentWriter<D extends Document> {
     /**
      * Write all documents in the batch.
      */
-    BulkDocumentWriterResults write();
+    BulkDocumentWriterResults<D> write();
 }
