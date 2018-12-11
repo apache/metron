@@ -28,20 +28,20 @@ import java.util.List;
  */
 public class BulkDocumentWriterResults<D extends Document> {
 
-  private List<WriteSuccess> successes;
-  private List<WriteFailure> failures;
+  private List<WriteSuccess<D>> successes;
+  private List<WriteFailure<D>> failures;
 
   public BulkDocumentWriterResults() {
     this.successes = new ArrayList<>();
     this.failures = new ArrayList<>();
   }
 
-  public void add(WriteSuccess success) {
+  public void add(WriteSuccess<D> success) {
     this.successes.add(success);
   }
 
   public void addSuccess(D success) {
-    add(new WriteSuccess(success));
+    add(new WriteSuccess<D>(success));
   }
 
   public void addSuccesses(List<D> successes) {
@@ -50,11 +50,11 @@ public class BulkDocumentWriterResults<D extends Document> {
     }
   }
 
-  public List<WriteSuccess> getSuccesses() {
+  public List<WriteSuccess<D>> getSuccesses() {
     return successes;
   }
 
-  public void add(WriteFailure failure) {
+  public void add(WriteFailure<D> failure) {
     this.failures.add(failure);
   }
 
@@ -62,7 +62,7 @@ public class BulkDocumentWriterResults<D extends Document> {
     add(new WriteFailure(document, cause, message));
   }
 
-  public List<WriteFailure> getFailures() {
+  public List<WriteFailure<D>> getFailures() {
     return failures;
   }
 }

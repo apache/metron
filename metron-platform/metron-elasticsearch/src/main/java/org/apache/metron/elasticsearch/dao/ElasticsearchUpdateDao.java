@@ -96,7 +96,7 @@ public class ElasticsearchUpdateDao implements UpdateDao {
         LOG.error(failure.getMessage(), failure.getCause());
       }
 
-      // raise an exception
+      // raise an exception using the first exception as the root cause, although there may be many
       Throwable cause = results.getFailures().get(0).getCause();
       throw new IOException(msg, cause);
     }
