@@ -89,7 +89,7 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
             handleBulkResponse(bulkResponse, documents, results);
 
         } catch(IOException e) {
-            // assume all documents have failed. notify the failure listeners
+            // assume all documents have failed
             for(Indexable indexable: documents) {
                 D failed = indexable.document;
                 results.addFailure(failed, e, ExceptionUtils.getRootCauseMessage(e));
