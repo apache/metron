@@ -29,6 +29,7 @@ import org.apache.metron.elasticsearch.dao.ElasticsearchRetrieveLatestDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Response;
 import org.hamcrest.CoreMatchers;
 import org.json.simple.JSONObject;
@@ -49,9 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -61,11 +60,11 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
 
     @ClassRule
     public static TemporaryFolder indexDir = new TemporaryFolder();
-    static String broTemplatePath = "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/bro_index.template";
-    static ElasticSearchComponent elasticsearch;
-    ElasticsearchClient client;
-    ElasticsearchBulkDocumentWriter<Document> writer;
-    ElasticsearchRetrieveLatestDao retrieveDao;
+    private static String broTemplatePath = "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/bro_index.template";
+    private static ElasticSearchComponent elasticsearch;
+    private ElasticsearchClient client;
+    private ElasticsearchBulkDocumentWriter<Document> writer;
+    private ElasticsearchRetrieveLatestDao retrieveDao;
 
     @BeforeClass
     public static void setupElasticsearch() throws Exception {
@@ -91,7 +90,8 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
     public void setup() throws Exception {
         client = ElasticsearchClientFactory.create(globals());
         retrieveDao = new ElasticsearchRetrieveLatestDao(client);
-        writer = new ElasticsearchBulkDocumentWriter<>(client);
+        writer = new ElasticsearchBulkDocumentWriter<>(client)
+                .withRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
 
         // add bro template
         JSONObject broTemplate = JSONUtils.INSTANCE.load(new File(broTemplatePath), JSONObject.class);
@@ -112,33 +112,6 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
 
     @Test
     public void testWrite() throws Exception {
-        // no document ID exists yet as it has not been written to an index
-        Document toWrite = Document.fromJSON(createMessage());
-        assertFalse(toWrite.getDocumentID().isPresent());
-
-        // write the document
-        writer.addDocument(toWrite, "bro_index");
-        writer.write();
-
-        // the document should exist and have a document ID
-        assertEventually(() -> {
-            Document found = retrieveDao.getLatest(toWrite.getGuid(), toWrite.getSensorType());
-            assertNotNull("No document found", found);
-            assertEquals(toWrite.getGuid(), found.getGuid());
-            assertEquals(toWrite.getSensorType(), found.getSensorType());
-            assertEquals(toWrite.getDocument(), found.getDocument());
-            assertEquals(toWrite.getTimestamp(), found.getTimestamp());
-
-            // expect the document ID to exist since it was just written to the index
-            assertTrue(found.getDocumentID().isPresent());
-
-            // the document ID and GUID should not be the same, since the document ID was auto-generated
-            assertNotEquals(found.getDocument(), found.getGuid());
-        });
-    }
-
-    @Test
-    public void testWriteAFew() throws Exception {
         // create some documents to write
         List<Document> documents = new ArrayList<>();
         for(int i=0; i<10; i++) {
@@ -152,17 +125,17 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
         }
         writer.write();
 
-        // ensure the documents were indexed
-        for(Document doc: documents) {
-            // the document should exist and have a document ID
-            assertEventually(() -> {
-                Document found = retrieveDao.getLatest(doc.getGuid(), doc.getSensorType());
-                assertNotNull("No document found", found);
-                assertEquals(doc.getGuid(), found.getGuid());
-                assertEquals(doc.getSensorType(), found.getSensorType());
-                assertEquals(doc.getDocument(), found.getDocument());
-                assertTrue(found.getDocumentID().isPresent());
-            });
+        // ensure the documents were written
+        for(Document expected: documents) {
+            Document actual = retrieveDao.getLatest(expected.getGuid(), expected.getSensorType());
+            assertNotNull("No document found", actual);
+            assertEquals(expected.getGuid(), actual.getGuid());
+            assertEquals(expected.getSensorType(), actual.getSensorType());
+            assertEquals(expected.getDocument(), actual.getDocument());
+            assertTrue(actual.getDocumentID().isPresent());
+
+            // the document ID and GUID should not be the same, since the document ID was auto-generated
+            assertNotEquals(actual.getDocument(), actual.getGuid());
         }
     }
 
