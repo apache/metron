@@ -145,7 +145,6 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
      * @param bulkResponse The response received from Elasticsearch.
      * @param documents The documents included in the bulk request.
      * @param results The writer results.
-     * @return The documents that were successfully written. Failed documents are excluded.
      */
     private void handleBulkResponse(BulkResponse bulkResponse, List<Indexable> documents, BulkDocumentWriterResults<D> results) {
         if (bulkResponse.hasFailures()) {
