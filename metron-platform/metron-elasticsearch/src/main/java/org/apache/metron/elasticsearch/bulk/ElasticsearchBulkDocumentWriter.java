@@ -119,35 +119,25 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
         if(document.getTimestamp() == null) {
             throw new IllegalArgumentException("Document must contain the timestamp");
         }
+
+        // if updating an existing document, the doc ID should be defined.
+        // if creating a new document, set the doc ID to null to allow Elasticsearch to generate one.
+        String docId = document.getDocumentID().orElse(null);
+        if(LOG.isDebugEnabled() && document.getDocumentID().isPresent()) {
+            LOG.debug("Updating existing document with known doc ID; docID={}, guid={}, sensorType={}",
+                    docId, document.getGuid(), document.getSensorType());
+        } else if(LOG.isDebugEnabled()) {
+            LOG.debug("Creating a new document, doc ID not yet known; guid={}, sensorType={}",
+                    document.getGuid(), document.getSensorType());
+        }
+
         return new IndexRequest()
                 .source(document.getDocument())
                 .type(document.getSensorType() + "_doc")
                 .index(index)
-                .id(documentID(document))
+                .id(docId)
                 .index(index)
                 .timestamp(document.getTimestamp().toString());
-    }
-
-    /**
-     * Returns the document ID that should be used to index
-     * the {@link Document} in Elasticsearch.
-     *
-     * @param document The document to index.
-     * @return The document ID.
-     */
-    private String documentID(D document) {
-        String documentID;
-        if(document.getDocumentID().isPresent()) {
-            documentID = document.getDocumentID().get();
-            LOG.debug("Updating an existing document with known doc ID; docID={}, guid={}, sensorType={}",
-                    documentID, document.getGuid(), document.getSensorType());
-
-        } else {
-            documentID = null;
-            LOG.debug("Creating document and allow Elasticsearch to auto-generate the doc ID; guid={}, sensorType={}",
-                    document.getGuid(), document.getSensorType());
-        }
-        return documentID;
     }
 
     /**
