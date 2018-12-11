@@ -89,7 +89,7 @@ In the following example, enter the appropriate information
       Checking out repo: dev
       Checking out repo:  https://dist.apache.org/repos/dist/release/metron
       Checking out repo: release
-      Checking out git repo: https://git-wip-us.apache.org/repos/asf/metron.git
+      Checking out git repo: https://gitbox.apache.org/repos/asf/metron.git
       Cloning into '/Users/justinleet/tmp/metron-0.6.1/metron'...
       remote: Counting objects: 46146, done.
       remote: Compressing objects: 100% (15568/15568), done.
