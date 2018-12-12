@@ -281,7 +281,7 @@ The format of a `fieldTransformation` is as follows:
 * `config` : A String to Object map of transformation specific configuration.
  
 The currently implemented fieldTransformations are:
-* `REMOVE` : This transformation removes the specified input fields.  If you want a conditional removal, you can pass a Metron Query Language statement to define the conditions under which you want to remove the fields. 
+* `REMOVE` : This transformation removes the specified input fields.  If you want a conditional removal, you can pass a Stellar statement to define the conditions under which you want to remove the fields. 
 
 Consider the following simple configuration which will remove `field1`
 unconditionally:
