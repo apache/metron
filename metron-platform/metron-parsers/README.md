@@ -384,7 +384,7 @@ following, dependent upon the value of the `pix_type` field:
 ...
   "fieldTransformations" : [
     {
-     "transformation" : "REGEX_ROUTING"
+     "transformation" : "REGEX_SELECT"
     ,"input" :  "pix_type"
     ,"output" :  "logical_source_type"
     ,"config" : {
