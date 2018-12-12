@@ -14,7 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-FROM docker.elastic.co/elasticsearch/elasticsearch:5.6.14
+FROM elasticsearch:2.3
 
 RUN /usr/share/elasticsearch/bin/plugin install mobz/elasticsearch-head
 
