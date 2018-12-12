@@ -138,8 +138,9 @@ public class RegularExpressionsParser extends BasicParser {
     Pattern capitalLettersPattern = Pattern.compile("^.*[A-Z]+.*$");
     private Pattern recordTypePattern;
     private final Set<String> recordTypePatternNamedGroups = new HashSet<>();
-    private final Map<String, Map<Pattern, Set<String>>> recordTypePatternMap = new HashMap<>();
-    private final Map<Pattern, Set<String>> messageHeaderPatternsMap = new HashMap<>();
+    private final Map<String, Map<Pattern, Set<String>>> recordTypePatternMap =
+        new LinkedHashMap<>();
+    private final Map<Pattern, Set<String>> messageHeaderPatternsMap = new LinkedHashMap<>();
 
     /**
      * Parses an unstructured text message into a json object based upon the regular expression
@@ -223,7 +224,7 @@ public class RegularExpressionsParser extends BasicParser {
           LOG.error("Invalid config : {} ", e.getMessage());
           throw new IllegalStateException("Invalid config : " + e.getMessage());
       }
-      
+
       validateConfig();
   }
 
