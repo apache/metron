@@ -57,19 +57,34 @@ public class MaxmindDbEnrichmentLoaderTest {
 
   @Test
   public void testCommandLineShortOpts() throws Exception {
-    String[] argv = {"-g testGeoUrl", "-r /test/remoteDir", "-t /test/tmpDir", "-z test:2181"};
+    String[] argv = {
+        "-g testGeoUrl",
+        "-a testAsnUrl",
+        "-r /test/remoteDirGeo",
+        "-ra", "/test/remoteDirAsn",
+        "-t /test/tmpDir",
+        "-z test:2181"
+    };
     String[] otherArgs = new GenericOptionsParser(argv).getRemainingArgs();
 
     CommandLine cli = MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
     Assert.assertEquals("testGeoUrl", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.GEO_URL.get(cli).trim());
-    Assert.assertEquals("/test/remoteDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
+    Assert.assertEquals("testAsnUrl", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.ASN_URL.get(cli).trim());
+    Assert.assertEquals("/test/remoteDirGeo", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
+    Assert.assertEquals("/test/remoteDirAsn", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.REMOTE_ASN_DIR.get(cli).trim());
     Assert.assertEquals("/test/tmpDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.TMP_DIR.get(cli).trim());
     Assert.assertEquals("test:2181", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.ZK_QUORUM.get(cli).trim());
   }
 
   @Test
   public void testCommandLineLongOpts() throws Exception {
-    String[] argv = {"--geo_url", "testGeoUrl", "--remote_dir", "/test/remoteDir", "--tmp_dir", "/test/tmpDir", "--zk_quorum", "test:2181"};
+    String[] argv = {
+        "--geo_url", "testGeoUrl",
+        "--remote_dir", "/test/remoteDir",
+        "-ra", "/test/remoteDir",
+        "--tmp_dir", "/test/tmpDir",
+        "--zk_quorum", "test:2181"
+    };
     String[] otherArgs = new GenericOptionsParser(argv).getRemainingArgs();
 
     CommandLine cli = MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
@@ -85,7 +100,13 @@ public class MaxmindDbEnrichmentLoaderTest {
     TestUtils.write(dbPlainTextFile, "hello world");
     File dbFile = new File(remoteDir.getAbsolutePath() + "/MaxmindDbEnrichmentLoaderTest.mmdb.gz");
     CompressionStrategies.GZIP.compress(dbPlainTextFile, dbFile);
-    String[] argv = {"--geo_url", "file://" + dbFile.getAbsolutePath(), "--remote_dir", remoteDir.getAbsolutePath(), "--tmp_dir", tmpDir.getAbsolutePath(), "--zk_quorum", "test:2181"};
+    String[] argv = {
+        "--geo_url", "file://" + dbFile.getAbsolutePath(),
+        "--remote_dir", remoteDir.getAbsolutePath(),
+        "--remote_asn_dir", remoteDir.getAbsolutePath(),
+        "--tmp_dir", tmpDir.getAbsolutePath(),
+        "--zk_quorum", "test:2181"
+    };
     String[] otherArgs = new GenericOptionsParser(argv).getRemainingArgs();
     CommandLine cli = MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
 
