@@ -61,7 +61,7 @@
             <span appAlertSeverity [severity]="getScore(alert.source)"> <a> {{ hasScore(alert.source) ? getScore(alert.source) : '-' }} </a> </span>
           </td>
           <td [attr.colspan]="alertsColumnsToDisplay.length - 1">
-            <a (click)="addFilter('guid', alert.id)" [attr.title]="alert.id" style="color:#689AA9"> {{ alert.source['name'] ? alert.source['name'] : alert.id | centerEllipses:20:cell }}</a>
+            <a (click)="addFilter('guid', alert.source['guid'])" [attr.title]="alert.source['guid']" style="color:#689AA9"> {{ alert.source['name'] ? alert.source['name'] : alert.source['guid'] | centerEllipses:20:cell }}</a>
               <span> ({{ alert.source.metron_alert.length }})</span>
           </td>
           <td>
