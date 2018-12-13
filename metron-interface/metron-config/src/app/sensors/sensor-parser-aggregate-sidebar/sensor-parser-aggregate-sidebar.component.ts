@@ -44,8 +44,8 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
   name: string;
   description: string;
   existingGroup = null;
-
   allowMerge = true;
+  groupNameInvalid = false;
 
   constructor(
     private router: Router,
@@ -79,6 +79,9 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
   }
 
   createNew(groupName: string, groupDescription: string) {
+    groupName = groupName.trim();
+    groupDescription = groupDescription.trim();
+
     this.groupDetails.name = groupName;
     this.groupDetails.description = groupDescription;
     const group = this.groups.items.filter(item => item.config.getName() === this.name);
@@ -140,6 +143,12 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
 
   showCreateForm(): boolean {
     return !this.targetGroup || this.forceCreate;
+  }
+
+  onNameChange(e) {
+    const value = e.target.value.trim();
+    const groupWithSameName = this.groups.items.find(group => group.config.getName() === value);
+    this.groupNameInvalid = !!(groupWithSameName);
   }
 
   ngOnDestroy() {

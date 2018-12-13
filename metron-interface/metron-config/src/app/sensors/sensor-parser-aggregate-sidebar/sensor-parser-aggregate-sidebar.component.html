@@ -25,7 +25,8 @@
           <div class="form-field">
             <label>
               <span class="label-text">NAME *</span>
-              <input #groupNameInput type="text" class="form-control" [value]="name" [readOnly]="existingGroup"/>
+              <input #groupNameInput type="text" class="form-control" [value]="name" [readOnly]="existingGroup" (keyup)="onNameChange($event)" />
+              <div *ngIf="groupNameInvalid"><label><span class="warning-text"> Group already exists </span></label></div>
             </label>
           </div>
           <div class="form-field">
@@ -38,7 +39,8 @@
         <div>
           <button (click)="createNew(groupNameInput.value, descriptionInput.value)"
                   (keyup.enter)="createNew(groupNameInput.value, descriptionInput.value)"
-                  class="btn save-button">DONE</button>
+                  class="btn save-button"
+                  [disabled]="groupNameInvalid">DONE</button>
           <button (click)="close()"
                   (keyup.enter)="close()"
                   class="btn form-enable-disable-button">CANCEL</button>
