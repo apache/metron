@@ -417,6 +417,7 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onSave() {
+
     if (!this.indexingConfigurations.hdfs.index) {
       this.indexingConfigurations.hdfs.index = this.sensorName;
     }
@@ -427,10 +428,15 @@ export class SensorParserConfigComponent implements OnInit {
       this.indexingConfigurations.solr.index = this.sensorName;
     }
 
-    this.store.dispatch(new fromActions.UpdateParserConfig(this.sensorParserConfig.clone()));
+    let sensorParserConfigToSave = this.sensorParserConfig.clone({ id: this.sensorName });
+    if (this.editMode) {
+      this.store.dispatch(new fromActions.UpdateParserConfig(sensorParserConfigToSave));
+    } else {
+      this.store.dispatch(new fromActions.AddParserConfig(sensorParserConfigToSave));
+    }
 
     this.sensorParserConfigService
-      .saveConfig(this.sensorName, this.sensorParserConfig)
+      .saveConfig(this.sensorName, sensorParserConfigToSave)
       .subscribe(
         sensorParserConfig => {
           if (this.isGrokParser(sensorParserConfig)) {

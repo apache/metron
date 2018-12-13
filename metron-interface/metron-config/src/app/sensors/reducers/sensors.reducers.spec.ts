@@ -688,4 +688,33 @@ describe('sensors: selectors', () => {
     const updated = newState.items.find(item => item.config.getName() === 'foo');
     expect((updated.config as ParserConfigModel).sensorTopic).toBe('foo updated');
   });
+
+  it('should add a new parser config', () => {
+    const previousState: fromReducers.ParserState = {
+      items: [
+        { config: new ParserConfigModel('bar', { sensorTopic: 'bar' }) },
+        { config: new ParserConfigModel('foo', { sensorTopic: 'foo' }) },
+      ]
+    };
+    const action = new fromActionts.AddParserConfig(
+      new ParserConfigModel('baz', { sensorTopic: 'baz new' })
+    );
+    const newState = fromReducers.parserConfigsReducer(previousState, action);
+    expect((newState.items[2].config as ParserConfigModel).id).toBe('baz');
+    expect((newState.items[2].config as ParserConfigModel).sensorTopic).toBe('baz new');
+  });
+
+  it('should add a new parser config in the order', () => {
+    const previousState: fromReducers.LayoutState = {
+      order: [
+        'bar', 'foo'
+      ],
+      dnd: {}
+    };
+    const action = new fromActionts.AddParserConfig(
+      new ParserConfigModel('baz', { sensorTopic: 'baz new' })
+    );
+    const newState = fromReducers.layoutReducer(previousState, action);
+    expect(newState.order[2]).toBe('baz');
+  });
 });

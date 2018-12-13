@@ -990,7 +990,7 @@ describe('Component: SensorParserConfig', () => {
       transformation: 'MTL',
       config: { url_host: 'TO_LOWER(URL_TO_HOST(url))' }
     });
-    let sensorParserConfigSave: ParserConfigModel = new ParserConfigModel('new');
+    let sensorParserConfigSave: ParserConfigModel = new ParserConfigModel('whatever');
     sensorParserConfigSave.sensorTopic = 'squid';
     sensorParserConfigSave.parserClassName =
       'org.apache.metron.parsers.GrokParser';
@@ -1004,6 +1004,7 @@ describe('Component: SensorParserConfig', () => {
     spyOn(metronAlerts, 'showErrorMessage');
 
     component.sensorParserConfig.sensorTopic = 'squid';
+    component.sensorName = 'whatever';
     component.sensorParserConfig.parserClassName =
       'org.apache.metron.parsers.GrokParser';
     component.sensorParserConfig.parserConfig['grokPath'] =

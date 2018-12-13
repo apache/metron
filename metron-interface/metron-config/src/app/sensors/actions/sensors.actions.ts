@@ -24,6 +24,7 @@ export enum SensorsActionTypes {
   LoadStart = '[Sensors] Load sensors',
   LoadSuccess = '[Sensors] Load sensors success',
   UpdateParserConfig = '[Sensors] update parser config',
+  AddParserConfig = '[Sensors] Add parser config',
   StartPolling = '[Sensors] Start polling topology statuses',
   PollStatusSuccess = '[Sensors] Poll topology statuses success',
   AggregateParsers = '[Sensors] Aggregate parser configs',
@@ -69,6 +70,11 @@ export class LoadSuccess implements Action {
 
 export class UpdateParserConfig implements Action {
   readonly type = SensorsActionTypes.UpdateParserConfig;
+  constructor(readonly payload: ParserConfigModel) {}
+}
+
+export class AddParserConfig implements Action {
+  readonly type = SensorsActionTypes.AddParserConfig;
   constructor(readonly payload: ParserConfigModel) {}
 }
 

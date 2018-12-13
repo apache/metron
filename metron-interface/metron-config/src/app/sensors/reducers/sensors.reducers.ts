@@ -91,6 +91,19 @@ export function parserConfigsReducer(state: ParserState = initialParserState, ac
       };
     }
 
+    case fromActions.SensorsActionTypes.AddParserConfig: {
+      const a = (action as fromActions.AddParserConfig);
+      return {
+        ...state,
+        items: [
+          ...state.items,
+          {
+            config: (a.payload as ParserConfigModel).clone(),
+          }
+        ]
+      };
+    }
+
     case fromActions.SensorsActionTypes.AggregateParsers:
     case fromActions.SensorsActionTypes.AddToGroup: {
       const a = (action as fromActions.AggregateParsers);
@@ -441,6 +454,17 @@ export function layoutReducer(state: LayoutState = initialLayoutState, action: A
       return {
         ...state,
         order
+      };
+    }
+
+    case fromActions.SensorsActionTypes.AddParserConfig: {
+      const a = (action as fromActions.AddParserConfig);
+      return {
+        ...state,
+        order: [
+          ...state.order,
+          a.payload.getName(),
+        ]
       };
     }
 
