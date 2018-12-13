@@ -17,33 +17,33 @@
  */
 package org.apache.metron.rest.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 
 import static org.apache.metron.rest.MetronRestConstants.LDAP_PROFILE;
+import static org.apache.metron.rest.MetronRestConstants.LDAP_PROVIDER_PASSWORD_SPRING_PROPERTY;
+import static org.apache.metron.rest.MetronRestConstants.LDAP_PROVIDER_URL_SPRING_PROPERTY;
+import static org.apache.metron.rest.MetronRestConstants.LDAP_PROVIDER_USERDN_SPRING_PROPERTY;
 
 @Configuration
 @Profile(LDAP_PROFILE)
 public class LdapConfig {
 
-  @Value("${ldap.provider.url}")
-  private String providerUrl;
-  @Value("${ldap.provider.userdn}")
-  private String providerUserDn;
-  @Value("${ldap.provider.password}")
-  private String providerPassword;
+  @Autowired
+  private Environment environment;
 
   @Bean
   public LdapTemplate ldapTemplate() {
     LdapContextSource contextSource = new LdapContextSource();
 
-    contextSource.setUrl(providerUrl);
-    contextSource.setUserDn(providerUserDn);
-    contextSource.setPassword(providerPassword);
+    contextSource.setUrl(environment.getProperty(LDAP_PROVIDER_URL_SPRING_PROPERTY));
+    contextSource.setUserDn(environment.getProperty(LDAP_PROVIDER_USERDN_SPRING_PROPERTY));
+    contextSource.setPassword(environment.getProperty(LDAP_PROVIDER_PASSWORD_SPRING_PROPERTY));
     contextSource.afterPropertiesSet();
 
     return new LdapTemplate(contextSource);

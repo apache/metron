@@ -17,16 +17,18 @@
  */
 package org.apache.metron.rest.config;
 
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.SignedJWT;
+import com.sun.org.apache.xml.internal.security.algorithms.SignatureAlgorithm;
+import org.apache.metron.rest.security.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.support.LdapNameBuilder;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -44,22 +46,18 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.PublicKey;
+import java.security.MessageDigest;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_PREFIX;
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
 /**
@@ -81,7 +79,7 @@ public class KnoxSSOAuthenticationFilter implements Filter {
                                      Path knoxKeyFile,
                                      String knoxKeyString,
                                      String knoxCookie,
-                                     LdapTemplate ldapTemplate) throws IOException, CertificateException {
+                                     LdapTemplate ldapTemplate) {
     this.userSearchBase = userSearchBase;
     this.knoxKeyFile = knoxKeyFile;
     this.knoxKeyString = knoxKeyString;
@@ -93,7 +91,7 @@ public class KnoxSSOAuthenticationFilter implements Filter {
   }
 
   @Override
-  public void init(FilterConfig filterConfig) throws ServletException {
+  public void init(FilterConfig filterConfig) {
   }
 
   @Override
@@ -103,9 +101,9 @@ public class KnoxSSOAuthenticationFilter implements Filter {
   /**
    * Extracts the Knox token from the configured cookie.  If basic authentication headers are present, SSO authentication
    * is skipped.
-   * @param request
-   * @param response
-   * @param chain
+   * @param request ServletRequest
+   * @param response ServletResponse
+   * @param chain FilterChain
    * @throws IOException
    * @throws ServletException
    */
@@ -141,7 +139,7 @@ public class KnoxSSOAuthenticationFilter implements Filter {
    * @param jwtToken Knox token
    * @param userName User name associated with the token
    * @return Whether a token is valid or not
-   * @throws ParseException
+   * @throws ParseException JWT Token could not be parsed.
    */
   protected boolean isValid(SignedJWT jwtToken, String userName) throws ParseException {
     // Verify the user name is present
@@ -175,14 +173,14 @@ public class KnoxSSOAuthenticationFilter implements Filter {
    * public key. Override this method in subclasses in order to customize the
    * signature verification behavior.
    *
-   * @param jwtToken
-   *            the token that contains the signature to be validated
+   * @param jwtToken The token that contains the signature to be validated.
    * @return valid true if signature verifies successfully; false otherwise
    */
   protected boolean validateSignature(SignedJWT jwtToken) {
     // Verify the token signature algorithm was as expected
     String receivedSigAlg = jwtToken.getHeader().getAlgorithm().getName();
-    if (!receivedSigAlg.equals("RS256")) {
+
+    if (!receivedSigAlg.equals(JWSAlgorithm.RS256.getName())) {
       return false;
     }
 
@@ -192,7 +190,7 @@ public class KnoxSSOAuthenticationFilter implements Filter {
       if (jwtToken.getSignature() != null) {
         LOG.debug("SSO token signature is not null");
         try {
-          JWSVerifier verifier = new RSASSAVerifier(parseRSAPublicKey(getKnoxKey()));
+          JWSVerifier verifier = new RSASSAVerifier(SecurityUtils.parseRSAPublicKey(getKnoxKey()));
           if (jwtToken.verify(verifier)) {
             LOG.debug("SSO token has been successfully verified");
             return true;
@@ -211,10 +209,7 @@ public class KnoxSSOAuthenticationFilter implements Filter {
    * Encapsulate the acquisition of the JWT token from HTTP cookies within the
    * request.
    *
-   * Taken from
-   *
-   * @param req
-   *            servlet request to get the JWT token from
+   * @param req ServletRequest to get the JWT token from
    * @return serialized JWT token
    */
   protected String getJWTFromCookie(HttpServletRequest req) {
@@ -242,53 +237,25 @@ public class KnoxSSOAuthenticationFilter implements Filter {
   /**
    * A public Knox key can either be passed in directly or read from a file.
    * @return Public Knox key
-   * @throws IOException
+   * @throws IOException There was a problem reading the Knox key file.
    */
   private String getKnoxKey() throws IOException {
     String knoxKey;
     if ((this.knoxKeyString == null || this.knoxKeyString.isEmpty()) && this.knoxKeyFile != null) {
       List<String> keyLines = Files.readAllLines(knoxKeyFile, StandardCharsets.UTF_8);
-      if (keyLines != null) {
-        knoxKey = String.join("", keyLines);
-      } else {
-        knoxKey = "";
-      }
+      knoxKey = String.join("", keyLines);
     } else {
       knoxKey = this.knoxKeyString;
     }
     return knoxKey;
   }
 
-  public static RSAPublicKey parseRSAPublicKey(String pem)
-          throws CertificateException, UnsupportedEncodingException {
-    String PEM_HEADER = "-----BEGIN CERTIFICATE-----\n";
-    String PEM_FOOTER = "\n-----END CERTIFICATE-----";
-    String fullPem = (pem.startsWith(PEM_HEADER) && pem.endsWith(PEM_FOOTER)) ? pem : PEM_HEADER + pem + PEM_FOOTER;
-    PublicKey key = null;
-    try {
-      CertificateFactory fact = CertificateFactory.getInstance("X.509");
-      ByteArrayInputStream is = new ByteArrayInputStream(fullPem.getBytes("UTF8"));
-      X509Certificate cer = (X509Certificate) fact.generateCertificate(is);
-      key = cer.getPublicKey();
-    } catch (CertificateException ce) {
-      String message = null;
-      if (pem.startsWith(PEM_HEADER)) {
-        message = "CertificateException - be sure not to include PEM header "
-                + "and footer in the PEM configuration element.";
-      } else {
-        message = "CertificateException - PEM may be corrupt";
-      }
-      throw new CertificateException(message, ce);
-    }
-    return (RSAPublicKey) key;
-  }
-
   /**
    * Builds the Spring Authentication object using the supplied user name and groups looked up from LDAP.  Groups are currently
    * mapped directly to Spring roles by converting to upper case and prepending the name with "ROLE_".
-   * @param userName
-   * @param httpRequest
-   * @return
+   * @param userName The username to build the Authentication object with.
+   * @param httpRequest HttpServletRequest
+   * @return Authentication object for the given user.
    */
   private Authentication getAuthentication(String userName, HttpServletRequest httpRequest) {
     String ldapName = LdapNameBuilder.newInstance().add(userSearchBase).add("uid", userName).build().toString();
@@ -300,14 +267,14 @@ public class KnoxSSOAuthenticationFilter implements Filter {
             .and("member")
             .is(ldapName), (AttributesMapper<String>) attrs -> (String) attrs.get("cn").get())
             .stream()
-            .map(group -> String.format("ROLE_%s", group.toUpperCase()))
+            .map(group -> String.format("%s%s", SECURITY_ROLE_PREFIX, group.toUpperCase()))
             .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
 
     final UserDetails principal = new User(userName, "", grantedAuths);
-    final Authentication authentication = new UsernamePasswordAuthenticationToken(
+    final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
             principal, "", grantedAuths);
     WebAuthenticationDetails webDetails = new WebAuthenticationDetails(httpRequest);
-    ((AbstractAuthenticationToken) authentication).setDetails(webDetails);
+    authentication.setDetails(webDetails);
     return authentication;
   }
 
