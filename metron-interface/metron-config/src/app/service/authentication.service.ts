@@ -27,7 +27,7 @@ export class AuthenticationService {
   private static USER_NOT_VERIFIED = 'USER-NOT-VERIFIED';
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
   loginUrl: string = this.config.apiEndpoint + '/user';
-  logoutUrl = '/logout';
+  logoutUrl = this.config.apiEndpoint + '/logout';
   onLoginEvent: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(
