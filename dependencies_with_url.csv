@@ -489,3 +489,5 @@ org.hibernate.validator:hibernate-validator:jar:6.0.9.Final:compile,ASLv2,https:
 com.github.palindromicity:simple-syslog-5424:jar:0.0.9:compile,ASLv2,https://github.com/palindromicity/simple-syslog-5424
 org.elasticsearch.client:elasticsearch-rest-high-level-client:jar:5.6.2:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
 org.elasticsearch.plugin:aggs-matrix-stats-client:jar:5.6.2:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
+com.github.stephenc.jcip:jcip-annotations:jar:1.0-1:compile,ASLv2,http://stephenc.github.io/jcip-annotations/
+com.nimbusds:nimbus-jose-jwt:jar:4.41.2:compile,ASLv2,https://bitbucket.org/connect2id/nimbus-jose-jwt/wiki/Home

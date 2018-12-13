@@ -17,8 +17,8 @@
  */
 package org.apache.metron.rest.config;
 
+import org.apache.metron.rest.MetronRestConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -40,9 +40,6 @@ import static org.apache.metron.rest.MetronRestConstants.KNOX_PROFILE;
 @EnableSwagger2
 public class SwaggerConfig {
 
-  @Value("${knox.root}")
-  private String knoxRoot;
-
   @Autowired
   private Environment environment;
 
@@ -54,6 +51,7 @@ public class SwaggerConfig {
     List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
     Docket docket = new Docket(DocumentationType.SWAGGER_2);
     if (activeProfiles.contains(KNOX_PROFILE)) {
+      String knoxRoot = environment.getProperty(MetronRestConstants.KNOX_ROOT_SPRING_PROPERTY, String.class, "");
       docket = docket.pathProvider(new RelativePathProvider (servletContext) {
         @Override
         protected String applicationPath() {
