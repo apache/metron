@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -120,10 +119,23 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
         if(document.getTimestamp() == null) {
             throw new IllegalArgumentException("Document must contain the timestamp");
         }
+
+        // if updating an existing document, the doc ID should be defined.
+        // if creating a new document, set the doc ID to null to allow Elasticsearch to generate one.
+        String docId = document.getDocumentID().orElse(null);
+        if(LOG.isDebugEnabled() && document.getDocumentID().isPresent()) {
+            LOG.debug("Updating existing document with known doc ID; docID={}, guid={}, sensorType={}",
+                    docId, document.getGuid(), document.getSensorType());
+        } else if(LOG.isDebugEnabled()) {
+            LOG.debug("Creating a new document, doc ID not yet known; guid={}, sensorType={}",
+                    document.getGuid(), document.getSensorType());
+        }
+
         return new IndexRequest()
                 .source(document.getDocument())
                 .type(document.getSensorType() + "_doc")
-                .id(document.getGuid())
+                .index(index)
+                .id(docId)
                 .index(index)
                 .timestamp(document.getTimestamp().toString());
     }
@@ -149,6 +161,7 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
                 } else {
                     // request succeeded
                     D success = getDocument(response.getItemId());
+                    success.setDocumentID(response.getResponse().getId());
                     results.addSuccess(success);
                 }
             }
