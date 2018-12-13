@@ -37,23 +37,29 @@ import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 
 /**
  * Parser for well structured RFC 5424 messages.
  */
 public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Serializable {
+  private Optional<Consumer<JSONObject>> messageProcessorOptional = Optional.empty();
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private transient SyslogParser syslogParser;
 
 
   protected void setSyslogParser(SyslogParser syslogParser) {
     this.syslogParser = syslogParser;
+  }
+
+  protected void setMessageProcessor(Consumer<JSONObject> function) {
+    this.messageProcessorOptional = Optional.of(function);
   }
 
   protected abstract SyslogParser buildSyslogParser( Map<String,Object> config);
@@ -90,7 +96,7 @@ public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Ser
       }
 
       String originalString = new String(rawMessage);
-      List<JSONObject> returnList = new ArrayList<>();
+      final List<JSONObject> returnList = new ArrayList<>();
       Map<Object,Throwable> errorMap = new HashMap<>();
       try (Reader reader = new BufferedReader(new StringReader(originalString))) {
         syslogParser.parseLines(reader, (m) -> {
@@ -99,6 +105,7 @@ public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Ser
           // we wil just copy over the timestamp from the syslog
           jsonObject.put("original_string", originalString);
           setTimestamp(jsonObject);
+          messageProcessorOptional.ifPresent((c) -> c.accept(jsonObject));
           returnList.add(jsonObject);
         },errorMap::put);
 
