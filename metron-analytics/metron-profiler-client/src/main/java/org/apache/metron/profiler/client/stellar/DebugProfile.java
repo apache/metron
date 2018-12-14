@@ -77,7 +77,8 @@ import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
         name="DEBUG",
         description="Retrieves a series of measurements from a stored profile. Returns a map containing the profile " +
                 "name, entity, period id, period start, period end for each profile measurement. Provides a more " +
-                "verbose view of each measurement than PROFILE_GET that is useful for debugging. ",
+                "verbose view of each measurement than PROFILE_GET that is useful for debugging.  " +
+                "See also PROFILE_GET, PROFILE_FIXED, PROFILE_WINDOW. ",
         params={
                 "profile - The name of the profile.",
                 "entity - The name of the entity.",
