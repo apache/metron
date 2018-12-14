@@ -49,18 +49,18 @@ import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PRO
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
-import static org.apache.metron.profiler.client.stellar.ViewProfile.ENTITY_KEY;
-import static org.apache.metron.profiler.client.stellar.ViewProfile.GROUPS_KEY;
-import static org.apache.metron.profiler.client.stellar.ViewProfile.PERIOD_END_KEY;
-import static org.apache.metron.profiler.client.stellar.ViewProfile.PERIOD_KEY;
-import static org.apache.metron.profiler.client.stellar.ViewProfile.PERIOD_START_KEY;
-import static org.apache.metron.profiler.client.stellar.ViewProfile.PROFILE_KEY;
-import static org.apache.metron.profiler.client.stellar.ViewProfile.VALUE_KEY;
+import static org.apache.metron.profiler.client.stellar.DebugProfile.ENTITY_KEY;
+import static org.apache.metron.profiler.client.stellar.DebugProfile.GROUPS_KEY;
+import static org.apache.metron.profiler.client.stellar.DebugProfile.PERIOD_END_KEY;
+import static org.apache.metron.profiler.client.stellar.DebugProfile.PERIOD_KEY;
+import static org.apache.metron.profiler.client.stellar.DebugProfile.PERIOD_START_KEY;
+import static org.apache.metron.profiler.client.stellar.DebugProfile.PROFILE_KEY;
+import static org.apache.metron.profiler.client.stellar.DebugProfile.VALUE_KEY;
 
 /**
- * Tests the ViewProfile class.
+ * Tests the DebugProfile class.
  */
-public class ViewProfileTest {
+public class DebugProfileTest {
   private static final long periodDuration = 15;
   private static final TimeUnit periodUnits = TimeUnit.MINUTES;
   private static final int saltDivisor = 1000;
@@ -100,7 +100,7 @@ public class ViewProfileTest {
     // create the stellar execution environment
     executor = new DefaultStellarStatefulExecutor(
             new SimpleFunctionResolver()
-                    .withClass(ViewProfile.class)
+                    .withClass(DebugProfile.class)
                     .withClass(FixedLookback.class),
             new Context.Builder()
                     .with(Context.Capabilities.GLOBAL_CONFIG, () -> globals)
@@ -125,7 +125,7 @@ public class ViewProfileTest {
 
     // expect to see all values over the past 4 hours
     List<Map<String, Object>> results;
-    results = run("PROFILE_VIEW('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))", List.class);
+    results = run("PROFILE_DEBUG('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))", List.class);
     Assert.assertEquals(count, results.size());
     for(Map<String, Object> actual: results) {
       Assert.assertEquals("profile1", actual.get(PROFILE_KEY));
@@ -159,7 +159,7 @@ public class ViewProfileTest {
 
     // expect to see all values over the past 4 hours for the group
     List<Map<String, Object>> results;
-    results = run("PROFILE_VIEW('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), groups)", List.class);
+    results = run("PROFILE_DEBUG('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), groups)", List.class);
     Assert.assertEquals(count, results.size());
     for(Map<String, Object> actual: results) {
       Assert.assertEquals("profile1", actual.get(PROFILE_KEY));
@@ -188,7 +188,7 @@ public class ViewProfileTest {
 
     // expect to get NO measurements over the past 4 seconds
     List<Map<String, Object>> result;
-    result = run("PROFILE_VIEW('profile1', 'entity1', PROFILE_FIXED(4, 'SECONDS'))", List.class);
+    result = run("PROFILE_DEBUG('profile1', 'entity1', PROFILE_FIXED(4, 'SECONDS'))", List.class);
     Assert.assertEquals(0, result.size());
   }
 
@@ -199,7 +199,7 @@ public class ViewProfileTest {
     globals.put("profiler.default.value", defaultVal);
 
     // no profiles exist
-    String expr = "PROFILE_VIEW('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))";
+    String expr = "PROFILE_DEBUG('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))";
     List<Map<String, Object>> results = run(expr, List.class);
 
     // expect to get the default value instead of no results

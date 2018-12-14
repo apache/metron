@@ -248,7 +248,7 @@ Where:
 | [ `OBJECT_GET`](#object_get)                                                                       |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
-| [ `PROFILE_VIEW`](#profile_view)                                                                     |
+| [ `PROFILE_DEBUG`](#profile_debug)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
 | [ `PROFILE_WINDOW`](#profile_window)                                                               |
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
@@ -872,7 +872,7 @@ Where:
     * config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter of the same name. Default is the empty Map, meaning no overrides.
   * Returns: The selected profile measurements.
 
-### `PROFILE_VIEW`
+### `PROFILE_DEBUG`
   * Description: Retrieves a series of measurements from a stored profile. Returns a map containing the profile name, entity, period id, period start, period end for each profile measurement. Provides a more verbose view of each measurement than PROFILE_GET.
   * Input:
     * profile - The name of the profile.
