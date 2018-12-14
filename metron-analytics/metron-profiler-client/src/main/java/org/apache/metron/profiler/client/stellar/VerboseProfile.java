@@ -59,26 +59,25 @@ import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 /**
  * A Stellar function that can retrieve profile measurements.
  *
- *  PROFILE_DEBUG
+ *  PROFILE_VERBOSE
  *
  * Differs from PROFILE_GET by returning a map containing the profile name, entity, period id, period start,
  * period end for each profile measurement.
  *
  * Retrieve all values for 'entity1' from 'profile1' over the past 4 hours.
  *
- *   <code>PROFILE_DEBUG('profile1', 'entity1', PROFILE_WINDOW(4, "HOURS")</code>
+ *   <code>PROFILE_VERBOSE('profile1', 'entity1', PROFILE_WINDOW(4, "HOURS")</code>
  *
  * Retrieve all values for 'entity1' from 'profile1' that occurred on 'weekdays' over the past month.
  *
- *   <code>PROFILE_DEBUG('profile1', 'entity1', PROFILE_WINDOW(1, "MONTH"), ['weekdays'])</code>
+ *   <code>PROFILE_VERBOSE('profile1', 'entity1', PROFILE_WINDOW(1, "MONTH"), ['weekdays'])</code>
  */
 @Stellar(
         namespace="PROFILE",
-        name="DEBUG",
+        name="VERBOSE",
         description="Retrieves a series of measurements from a stored profile. Returns a map containing the profile " +
                 "name, entity, period id, period start, period end for each profile measurement. Provides a more " +
-                "verbose view of each measurement than PROFILE_GET that is useful for debugging.  " +
-                "See also PROFILE_GET, PROFILE_FIXED, PROFILE_WINDOW. ",
+                "verbose view of each measurement than PROFILE_GET. See also PROFILE_GET, PROFILE_FIXED, PROFILE_WINDOW.",
         params={
                 "profile - The name of the profile.",
                 "entity - The name of the entity.",
@@ -88,7 +87,7 @@ import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
         },
         returns="A map for each profile measurement containing the profile name, entity, period, and value."
 )
-public class DebugProfile implements StellarFunction {
+public class VerboseProfile implements StellarFunction {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   protected static String PROFILE_KEY = "profile";
