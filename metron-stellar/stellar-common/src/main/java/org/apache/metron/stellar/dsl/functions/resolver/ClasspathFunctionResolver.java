@@ -18,6 +18,11 @@
 
 package org.apache.metron.stellar.dsl.functions.resolver;
 
+import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -33,15 +38,8 @@ import org.apache.metron.stellar.common.utils.VFSClassloaderUtil;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
-
-import org.atteo.classindex.ClassFilter;
 import org.atteo.classindex.ClassIndex;
 import org.reflections.util.FilterBuilder;
-
-import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
 
 /**
  * Performs function resolution for Stellar by searching the classpath.
@@ -239,17 +237,23 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
   public Set<Class<? extends StellarFunction>> resolvables() {
 
     ClassLoader[] cls = null;
-    if(this.classLoaders.size() == 0) {
+    if (this.classLoaders.size() == 0) {
       LOG.warn("Using System classloader");
-      cls = new ClassLoader[] { getClass().getClassLoader() };
-    }
-    else {
-      cls = new ClassLoader[this.classLoaders.size()];
+      cls = new ClassLoader[]{getClass().getClassLoader()};
+    } else {
+      List<ClassLoader> classLoaderList = new ArrayList<>();
       for (int i = 0; i < this.classLoaders.size(); ++i) {
         ClassLoader cl = this.classLoaders.get(i);
-        LOG.debug("Using classloader: "+ cl.getClass().getCanonicalName());
-        cls[i] = cl;
+        if (null != cl) {
+          LOG.debug("Using classloader: {}", cl.getClass().getCanonicalName());
+          classLoaderList.add(cl);
+        } else {
+          LOG.error(
+              "This should not happen, so report a bug if you see this error - Classloader {} of {} was null. Classloader list is: {}",
+              i, this.classLoaders.size(), this.classLoaders);
+        }
       }
+      cls = classLoaderList.toArray(new ClassLoader[classLoaderList.size()]);
     }
 
     FilterBuilder filterBuilder = new FilterBuilder();

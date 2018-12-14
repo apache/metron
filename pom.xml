@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.metron</groupId>
     <artifactId>Metron</artifactId>
-    <version>0.6.1</version>
+    <version>0.7.0</version>
     <packaging>pom</packaging>
     <name>Metron</name>
     <description>Metron Top Level Project</description>
@@ -71,22 +71,6 @@
             </snapshots>
         </repository>
     </repositories>
-    <pluginRepositories>
-      <pluginRepository>
-            <id>apache.snapshots</id>
-            <name>Apache Development Snapshot Repository</name>
-            <url>https://repository.apache.org/content/repositories/snapshots/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <updatePolicy>always</updatePolicy>
-                <enabled>true</enabled>
-                <checksumPolicy>warn</checksumPolicy>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
     <properties>
         <twitter>@ApacheMetron</twitter>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -140,6 +124,7 @@
         <global_simple_syslog_version>0.0.9</global_simple_syslog_version>
         <global_spark_version>2.3.1</global_spark_version>
         <global_httpclient_version>4.3.2</global_httpclient_version>
+        <global_aesh_version>0.66.19</global_aesh_version>
     </properties>
 
     <profiles>
@@ -310,7 +295,7 @@
             <plugin>
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>
-                <version>0.13-SNAPSHOT</version>
+                <version>0.13</version>
                 <executions>
                     <execution>
                         <phase>verify</phase>

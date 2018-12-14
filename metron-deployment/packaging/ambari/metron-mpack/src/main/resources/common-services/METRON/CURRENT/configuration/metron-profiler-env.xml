@@ -165,7 +165,7 @@
     <name>profiler_topology_max_spout_pending</name>
     <description>Profiler Topology Spout Max Pending Tuples</description>
     <display-name>Spout Max Pending Tuples</display-name>
-    <value>300</value>
+    <value/>
     <value-attributes>
         <empty-value-valid>true</empty-value-valid>
     </value-attributes>

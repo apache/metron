@@ -15,10 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.elasticsearch.bulk;
 
-export class ReplaceRequest {
-  replacement: {[key: string]: any};
-  guid: string;
-  sensorType: string;
-  index: string;
+import org.apache.metron.indexing.dao.update.Document;
+
+/**
+ * Writes documents to an index in bulk.
+ *
+ * @param <D> The type of document to write.
+ */
+public interface BulkDocumentWriter<D extends Document> {
+
+    /**
+     * Add a document to the batch.
+     * @param document The document to write.
+     * @param index The name of the index to write to.
+     */
+    void addDocument(D document, String index);
+
+    /**
+     * @return The number of documents waiting to be written.
+     */
+    int size();
+
+    /**
+     * Write all documents in the batch.
+     */
+    BulkDocumentWriterResults<D> write();
 }
