@@ -412,7 +412,7 @@ And we ran our bro parser topology with the following options. We did not need t
 though you could certainly do so if necessary. Notice that we only needed 1 worker.
 
 ```
-/usr/metron/0.7.0/bin/start_parser_topology.sh \
+$METRON_HOME/bin/start_parser_topology.sh \
     -e ~metron/.storm/storm-bro.config \
     -esc ~/.storm/spout-bro.config \
     -k $BROKERLIST \

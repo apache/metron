@@ -27,12 +27,12 @@ There are two general types types of parsers:
 * A parser written in Java which conforms to the `MessageParser` interface.  This kind of parser is optimized for speed and performance and is built for use with higher velocity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  
 * A general purpose parser.  This type of parser is primarily designed for lower-velocity topologies or for quickly standing up a parser for a new telemetry before a permanent Java parser can be written for it.  As of the time of this writing, we have:
   * Grok parser: `org.apache.metron.parsers.GrokParser` with possible `parserConfig` entries of 
-    * `grokPath` : The path in HDFS (or in the Jar) to the grok statement
+    * `grokPath` : The path in HDFS (or in the Jar) to the grok statement. By default attempts to load from HDFS, then falls back to the classpath, and finally throws an exception if unable to load a pattern.
     * `patternLabel` : The pattern label to use from the grok statement
     * `multiLine` : The raw data passed in should be handled as a long with multiple lines, with each line to be parsed separately. This setting's valid values are 'true' or 'false'.  The default if unset is 'false'. When set the parser will handle multiple lines with successfully processed lines emitted normally, and lines with errors sent to the error topic.
-    * `timestampField` : The field to use for timestamp
+    * `timestampField` : The field to use for timestamp. If your data does not have a field exactly named "timestamp" this field is required, otherwise the record will not pass validation. If the timestampField is included in the list of timeFields, it will first be parsed using the provided dateFormat.
     * `timeFields` : A list of fields to be treated as time
-    * `dateFormat` : The date format to use to parse the time fields
+    * `dateFormat` : The date format to use to parse the time fields. Default is "yyyy-MM-dd HH:mm:ss.S z".
     * `timezone` : The timezone to use. `UTC` is default.
     * The Grok parser supports either 1 line to parse per incoming message, or incoming messages with multiple log lines, and will produce a json message per line
   * CSV Parser: `org.apache.metron.parsers.csv.CSVParser` with possible `parserConfig` entries of

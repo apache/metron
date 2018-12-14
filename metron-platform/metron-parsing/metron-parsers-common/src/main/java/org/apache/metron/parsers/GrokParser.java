@@ -20,19 +20,6 @@ package org.apache.metron.parsers;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import oi.thekraken.grok.api.Grok;
-import oi.thekraken.grok.api.Match;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.metron.common.Constants;
-import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.metron.parsers.interfaces.MessageParserResult;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,6 +37,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
+import oi.thekraken.grok.api.Grok;
+import oi.thekraken.grok.api.Match;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.metron.common.Constants;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class GrokParser implements MessageParser<JSONObject>, Serializable {
@@ -96,9 +95,11 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   public InputStream openInputStream(String streamName) throws IOException {
     FileSystem fs = FileSystem.get(new Configuration());
     Path path = new Path(streamName);
-    if(fs.exists(path)) {
+    if (fs.exists(path)) {
+      LOG.info("Loading {} from HDFS.", streamName);
       return fs.open(path);
     } else {
+      LOG.info("File not found in HDFS, attempting to load {} from classpath using classloader for {}.", streamName, getClass());
       return getClass().getResourceAsStream(streamName);
     }
   }
@@ -108,7 +109,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     grok = new Grok();
     try {
       InputStream commonInputStream = openInputStream(patternsCommonDir);
-      LOG.debug("Grok parser loading common patterns from: {}", patternsCommonDir);
+      LOG.info("Grok parser loading common patterns from: {}", patternsCommonDir);
 
       if (commonInputStream == null) {
         throw new RuntimeException(
@@ -116,7 +117,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       }
 
       grok.addPatternFromReader(new InputStreamReader(commonInputStream));
-      LOG.debug("Loading parser-specific patterns from: {}", grokPath);
+      LOG.info("Loading parser-specific patterns from: {}", grokPath);
 
       InputStream patterInputStream = openInputStream(grokPath);
       if (patterInputStream == null) {
@@ -125,14 +126,14 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       }
       grok.addPatternFromReader(new InputStreamReader(patterInputStream));
 
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Grok parser set the following grok expression: {}", grok.getNamedRegexCollectionById(patternLabel));
+      if (LOG.isInfoEnabled()) {
+        LOG.info("Grok parser set the following grok expression: {}", grok.getNamedRegexCollectionById(patternLabel));
       }
 
       String grokPattern = "%{" + patternLabel + "}";
 
       grok.compile(grokPattern);
-      LOG.debug("Compiled grok pattern {}", grokPattern);
+      LOG.info("Compiled grok pattern {}", grokPattern);
 
     } catch (Throwable e) {
       LOG.error(e.getMessage(), e);
