@@ -67,7 +67,7 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
         this.name = this.existingGroup[0].config.getName();
         this.description = this.existingGroup[0].config.getDescription();
       } else {
-        this.name = 'Aggregate: ' + [this.draggedId, this.dropTargetId].join(' + ') ;
+        this.name = 'Aggregate-' + [this.draggedId, this.dropTargetId].join('-') ;
         this.description = '';
       }
     });
