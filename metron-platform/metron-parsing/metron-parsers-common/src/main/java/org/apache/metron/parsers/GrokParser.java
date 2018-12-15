@@ -126,9 +126,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       }
       grok.addPatternFromReader(new InputStreamReader(patterInputStream));
 
-      if (LOG.isInfoEnabled()) {
-        LOG.info("Grok parser set the following grok expression: {}", grok.getNamedRegexCollectionById(patternLabel));
-      }
+      LOG.info("Grok parser set the following grok expression for '{}': {}", patternLabel, grok.getPatterns().get(patternLabel));
 
       String grokPattern = "%{" + patternLabel + "}";
 
