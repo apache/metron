@@ -22,7 +22,6 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.SignedJWT;
-import com.sun.org.apache.xml.internal.security.algorithms.SignatureAlgorithm;
 import org.apache.metron.rest.security.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +49,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -117,7 +114,7 @@ public class KnoxSSOAuthenticationFilter implements Filter {
     if (authHeader == null || !authHeader.startsWith("Basic")) {
       String serializedJWT = getJWTFromCookie(httpRequest);
       if (serializedJWT != null) {
-        SignedJWT jwtToken = null;
+        SignedJWT jwtToken;
         try {
           jwtToken = SignedJWT.parse(serializedJWT);
           String userName = jwtToken.getJWTClaimsSet().getSubject();
@@ -239,7 +236,7 @@ public class KnoxSSOAuthenticationFilter implements Filter {
    * @return Public Knox key
    * @throws IOException There was a problem reading the Knox key file.
    */
-  private String getKnoxKey() throws IOException {
+  protected String getKnoxKey() throws IOException {
     String knoxKey;
     if ((this.knoxKeyString == null || this.knoxKeyString.isEmpty()) && this.knoxKeyFile != null) {
       List<String> keyLines = Files.readAllLines(knoxKeyFile, StandardCharsets.UTF_8);
@@ -257,7 +254,7 @@ public class KnoxSSOAuthenticationFilter implements Filter {
    * @param httpRequest HttpServletRequest
    * @return Authentication object for the given user.
    */
-  private Authentication getAuthentication(String userName, HttpServletRequest httpRequest) {
+  protected Authentication getAuthentication(String userName, HttpServletRequest httpRequest) {
     String ldapName = LdapNameBuilder.newInstance().add(userSearchBase).add("uid", userName).build().toString();
 
     // Search ldap for a user's groups and convert to a Spring role
