@@ -26,7 +26,6 @@ import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -108,6 +107,12 @@ public class StellarParserRunner {
 
     public StellarParserRunner withParserConfiguration(Map<String, Object> config) {
         parserConfigurations = create(new JSONObject(config).toJSONString().getBytes());
+        return this;
+    }
+
+    public StellarParserRunner withParserConfiguration(String sensorType, SensorParserConfig config) {
+        parserConfigurations = new ParserConfigurations();
+        parserConfigurations.updateSensorParserConfig(sensorType, config);
         return this;
     }
 

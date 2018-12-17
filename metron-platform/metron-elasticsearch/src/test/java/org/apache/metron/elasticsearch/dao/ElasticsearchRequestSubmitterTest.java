@@ -27,6 +27,7 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.Index;
 import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.SearchShardTarget;
 import org.junit.Test;
 
@@ -55,15 +56,19 @@ public class ElasticsearchRequestSubmitterTest {
 
   @Test
   public void searchShouldSucceedWhenOK() throws InvalidSearchException, IOException {
-
     // mocks
     SearchResponse response = mock(SearchResponse.class);
     SearchRequest request = new SearchRequest();
+
+    // response will indicate 1 search hit
+    SearchHits hits = mock(SearchHits.class);
+    when(hits.getTotalHits()).thenReturn(1L);
 
     // response will have status of OK and no failed shards
     when(response.status()).thenReturn(RestStatus.OK);
     when(response.getFailedShards()).thenReturn(0);
     when(response.getTotalShards()).thenReturn(2);
+    when(response.getHits()).thenReturn(hits);
 
     // search should succeed
     ElasticsearchRequestSubmitter submitter = setup(response);
@@ -99,9 +104,14 @@ public class ElasticsearchRequestSubmitterTest {
     // response will have status of OK
     when(response.status()).thenReturn(RestStatus.OK);
 
+    // response will indicate 1 search hit
+    SearchHits hits = mock(SearchHits.class);
+    when(hits.getTotalHits()).thenReturn(1L);
+
     // the response will report shard failures
     when(response.getFailedShards()).thenReturn(1);
     when(response.getTotalShards()).thenReturn(2);
+    when(response.getHits()).thenReturn(hits);
 
     // the response will return the failures
     ShardSearchFailure[] failures = { fail };

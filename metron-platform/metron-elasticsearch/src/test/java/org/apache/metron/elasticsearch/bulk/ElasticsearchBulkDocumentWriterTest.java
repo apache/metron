@@ -20,6 +20,7 @@ package org.apache.metron.elasticsearch.bulk;
 import org.apache.metron.common.Constants;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.indexing.dao.update.Document;
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -130,15 +131,21 @@ public class ElasticsearchBulkDocumentWriterTest {
     }
 
     private void setupElasticsearchToFail() throws IOException {
+        final String errorMessage = "error message";
+        final Exception cause = new Exception("test exception");
+        final boolean isFailed = true;
+        final int itemID = 0;
+
         // define the item failure
         BulkItemResponse.Failure failure = mock(BulkItemResponse.Failure.class);
-        when(failure.getCause()).thenReturn(new Exception("test exception"));
-        when(failure.getMessage()).thenReturn("error message");
+        when(failure.getCause()).thenReturn(cause);
+        when(failure.getMessage()).thenReturn(errorMessage);
 
         // define the item level response
         BulkItemResponse itemResponse = mock(BulkItemResponse.class);
-        when(itemResponse.isFailed()).thenReturn(true);
-        when(itemResponse.getItemId()).thenReturn(0);
+        when(itemResponse.isFailed()).thenReturn(isFailed);
+        when(itemResponse.getItemId()).thenReturn(itemID);
+
         when(itemResponse.getFailure()).thenReturn(failure);
         when(itemResponse.getFailureMessage()).thenReturn("error message");
         List<BulkItemResponse> itemsResponses = Collections.singletonList(itemResponse);
@@ -146,16 +153,32 @@ public class ElasticsearchBulkDocumentWriterTest {
         // define the bulk response to indicate failure
         BulkResponse response = mock(BulkResponse.class);
         when(response.iterator()).thenReturn(itemsResponses.iterator());
-        when(response.hasFailures()).thenReturn(true);
+        when(response.hasFailures()).thenReturn(isFailed);
 
         // have the client return the mock response
         when(highLevelClient.bulk(any(BulkRequest.class))).thenReturn(response);
     }
 
     private void setupElasticsearchToSucceed() throws IOException {
+        final String documentId = UUID.randomUUID().toString();
+        final boolean isFailed = false;
+        final int itemID = 0;
+
+        // the write response will contain what is used as the document ID
+        DocWriteResponse writeResponse = mock(DocWriteResponse.class);
+        when(writeResponse.getId()).thenReturn(documentId);
+
+        // define the item level response
+        BulkItemResponse itemResponse = mock(BulkItemResponse.class);
+        when(itemResponse.isFailed()).thenReturn(isFailed);
+        when(itemResponse.getItemId()).thenReturn(itemID);
+        when(itemResponse.getResponse()).thenReturn(writeResponse);
+        List<BulkItemResponse> itemsResponses = Collections.singletonList(itemResponse);
+
         // define the bulk response to indicate success
         BulkResponse response = mock(BulkResponse.class);
-        when(response.hasFailures()).thenReturn(false);
+        when(response.iterator()).thenReturn(itemsResponses.iterator());
+        when(response.hasFailures()).thenReturn(isFailed);
 
         // have the client return the mock response
         when(highLevelClient.bulk(any(BulkRequest.class))).thenReturn(response);
