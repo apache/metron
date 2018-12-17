@@ -22,6 +22,8 @@ import { HttpClient } from '@angular/common/http';
 @Injectable()
 export class AppConfigService {
 
+  private static appConfigStatic;
+
   private appConfig;
 
   constructor(private http: HttpClient) { }
@@ -32,10 +34,19 @@ export class AppConfigService {
             .toPromise()
             .then(data => {
               this.appConfig = data;
+              AppConfigService.appConfigStatic = data;
             });
   }
 
   getApiRoot() {
     return this.appConfig['apiRoot'];
+  }
+
+  getLoginPath() {
+    return this.appConfig['loginPath'];
+  }
+
+  static getAppConfigStatic() {
+    return AppConfigService.appConfigStatic;
   }
 }
