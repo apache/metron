@@ -23,6 +23,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -128,7 +129,8 @@ import java.util.regex.PatternSyntaxException;
 //@formatter:on
 public class RegularExpressionsParser extends BasicParser {
 
-    private static Logger LOG = LoggerFactory.getLogger(RegularExpressionsParser.class);
+    protected static final Logger LOG =
+        LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
 
