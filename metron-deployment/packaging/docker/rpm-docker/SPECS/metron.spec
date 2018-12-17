@@ -425,6 +425,7 @@ This package installs the Metron Rest %{metron_home}
 %dir %{metron_home}/lib
 %{metron_home}/config/rest_application.yml
 %{metron_home}/config/knox/conf/topologies/metron.xml
+%{metron_home}/config/knox/conf/topologies/metronsso.xml
 %{metron_home}/config/knox/data/services/alerts/rewrite.xml
 %{metron_home}/config/knox/data/services/alerts/service.xml
 %{metron_home}/config/knox/data/services/rest/rewrite.xml

@@ -28,3 +28,4 @@ mkdir -p $KNOX_METRON_ALERTS_DIR
 cp $METRON_HOME/config/knox/data/services/rest/* $KNOX_METRON_REST_DIR
 cp $METRON_HOME/config/knox/data/services/alerts/* $KNOX_METRON_ALERTS_DIR
 cp $METRON_HOME/config/knox/conf/topologies/metron.xml $KNOX_HOME/conf/topologies
+cp $METRON_HOME/config/knox/conf/topologies/metronsso.xml $KNOX_HOME/conf/topologies

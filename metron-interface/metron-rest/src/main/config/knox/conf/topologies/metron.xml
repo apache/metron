@@ -15,33 +15,13 @@
 
   <gateway>
     <provider>
-        <role>authentication</role>
-        <name>ShiroProvider</name>
-        <enabled>true</enabled>
-        <param>
-            <name>sessionTimeout</name>
-            <value>30</value>
-        </param>
-        <param>
-            <name>main.ldapRealm</name>
-            <value>org.apache.hadoop.gateway.shirorealm.KnoxLdapRealm</value>
-        </param>
-        <param>
-            <name>main.ldapRealm.userDnTemplate</name>
-            <value>uid={0},ou=people,dc=hadoop,dc=apache,dc=org</value>
-        </param>
-        <param>
-            <name>main.ldapRealm.contextFactory.url</name>
-            <value>ldap://localhost:33389</value>
-        </param>
-        <param>
-            <name>main.ldapRealm.contextFactory.authenticationMechanism</name>
-            <value>simple</value>
-        </param>
-        <param>
-            <name>urls./**</name>
-            <value>authcBasic</value>
-        </param>
+      <role>federation</role>
+      <name>SSOCookieProvider</name>
+      <enabled>true</enabled>
+      <param>
+        <name>sso.authentication.provider.url</name>
+        <value>https://node1:8443/gateway/metronsso/api/v1/websso</value>
+      </param>
     </provider>
 
     <provider>
