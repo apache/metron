@@ -46,12 +46,13 @@ public class ParserFunctions {
   @Stellar(
           namespace = "PARSER",
           name = "INIT",
-          description = "Initialize a parser to parse messages.",
+          description = "Initialize a parser to parse the raw telemetry produced by a sensor.",
           params = {
                   "sensorType - The type of sensor to parse.",
-                  "config - The parser configuration."
+                  "config - [Optional] The parser configuration. If not provided, the configuration will be " +
+                          "retrieved from Zookeeper."
           },
-          returns = "A parser that can be used to parse messages."
+          returns = "A parser that can be used to parse sensor telemetry with `PARSER_PARSE`."
   )
   public static class InitializeFunction implements StellarFunction {
 
@@ -121,12 +122,13 @@ public class ParserFunctions {
   @Stellar(
           namespace = "PARSER",
           name = "PARSE",
-          description = "Parse a message.",
+          description = "Parses the raw telemetry produced by a sensor.",
           params = {
                   "parser - The parser created with PARSER_INIT.",
-                  "input - A message or list of messages to parse."
+                  "input - A telemetry message or list of telemetry messages to parse."
           },
-          returns = "A list of messages that result from parsing the input."
+          returns = "A list of messages that result from parsing the input telemetry. If the input cannot be " +
+                  "parsed, a message encapsulating the error is returned as part of that list."
   )
   public static class ParseFunction implements StellarFunction {
 
