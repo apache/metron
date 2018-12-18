@@ -73,57 +73,57 @@ The functions are split roughly into a few sections:
 
 ### File Functions
 
-**Local Files**
-#### `LOCAL_LS`
+#### Local Files
+##### `LOCAL_LS`
   * Description: Lists the contents of a directory.
   * Input:
     * path - The path of the file
   * Returns: The contents of the directory in tabular form sorted by last modification date.
-#### `LOCAL_RM`
+##### `LOCAL_RM`
   * Description: Removes the path
   * Input:
     * path - The path of the file or directory.
     * recursive - Recursively remove or not (optional and defaulted to false)
   * Returns: boolean - true if successful, false otherwise
-#### `LOCAL_READ`
+##### `LOCAL_READ`
   * Description: Retrieves the contents as a string of a file.
   * Input:
     * path - The path of the file
   * Returns: The contents of the file and null otherwise.
-#### `LOCAL_READ_LINES`
+##### `LOCAL_READ_LINES`
   * Description: Retrieves the contents of a file as a list of strings.
   * Input:
     * path - The path of the file
   * Returns: A list of lines
-#### `LOCAL_WRITE`
+##### `LOCAL_WRITE`
   * Description: Writes the contents of a string to a local file
   * Input:
     * content - The content to write out
     * path - The path of the file
   * Returns: true if the file was written and false otherwise.
-**HDFS Files**
-#### `HDFS_LS`
+#### HDFS Files
+##### `HDFS_LS`
   * Description: Lists the contents of a directory in HDFS.
   * Input:
     * path - The path of the file
   * Returns: The contents of the directory in tabular form sorted by last modification date.
-#### `HDFS_RM`
+##### `HDFS_RM`
   * Description: Removes the path in HDFS.
   * Input:
     * path - The path of the file or directory.
     * recursive - Recursively remove or not (optional and defaulted to false)
   * Returns: boolean - true if successful, false otherwise
-#### `HDFS_READ`
+##### `HDFS_READ`
   * Description: Retrieves the contents as a string of a file in HDFS.
   * Input:
     * path - The path of the file
   * Returns: The contents of the file and null otherwise.
-#### `HDFS_READ_LINES`
+##### `HDFS_READ_LINES`
   * Description: Retrieves the contents of a HDFS file as a list of strings.
   * Input:
     * path - The path of the file
   * Returns: A list of lines
-#### `HDFS_WRITE`
+##### `HDFS_WRITE`
   * Description: Writes the contents of a string to a HDFS file
   * Input:
     * content - The content to write out
