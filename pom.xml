@@ -97,7 +97,7 @@
         <global_hadoop_version>${base_hadoop_version}</global_hadoop_version>
         <global_hbase_version>${base_hbase_version}</global_hbase_version>
         <global_flume_version>${base_flume_version}</global_flume_version>
-        <global_elasticsearch_version>5.6.2</global_elasticsearch_version>
+        <global_elasticsearch_version>5.6.14</global_elasticsearch_version>
         <global_json_simple_version>1.1.1</global_json_simple_version>
         <global_metrics_version>3.0.2</global_metrics_version>
         <global_junit_version>4.12</global_junit_version>
