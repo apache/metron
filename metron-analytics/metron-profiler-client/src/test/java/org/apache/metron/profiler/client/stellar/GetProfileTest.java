@@ -22,33 +22,36 @@ package org.apache.metron.profiler.client.stellar;
 
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.profiler.client.ProfileWriter;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.apache.metron.stellar.dsl.functions.resolver.SingletonFunctionResolver;
 import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.metron.profiler.client.stellar.FixedLookback;
-import org.apache.metron.profiler.client.stellar.GetProfile;
+import org.apache.metron.profiler.client.ProfileWriter;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
+import org.apache.metron.stellar.dsl.functions.resolver.SingletonFunctionResolver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collections;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.*;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
 
 /**
  * Tests the GetProfile class.
@@ -89,9 +92,10 @@ public class GetProfileTest {
     final HTableInterface table = MockHBaseTableProvider.addToCache(tableName, columnFamily);
 
     // used to write values to be read during testing
+    long periodDurationMillis = TimeUnit.MINUTES.toMillis(15);
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
     ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
-    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table);
+    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table, periodDurationMillis);
 
     // global properties
     Map<String, Object> global = new HashMap<String, Object>() {{
@@ -176,7 +180,6 @@ public class GetProfileTest {
             .withProfileName("profile1")
             .withEntity("entity1")
             .withPeriod(startTime, periodDuration, periodUnits);
-
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // execute - read the profile values - no groups
@@ -186,6 +189,7 @@ public class GetProfileTest {
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
+    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -224,6 +228,7 @@ public class GetProfileTest {
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
+    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -262,6 +267,7 @@ public class GetProfileTest {
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
+    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -389,6 +395,7 @@ public class GetProfileTest {
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
+    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -446,5 +453,4 @@ public class GetProfileTest {
     // validate - expect to fail to read any values
     Assert.assertEquals(0, result.size());
   }
-
 }
