@@ -45,7 +45,6 @@ project.
     * [Manage Stellar Field Transformations](#manage-stellar-field-transformations)
     * [Manage Stellar Enrichments](#manage-stellar-enrichments)
     * [Manage Threat Triage Rules](#manage-threat-triage-rules)
-    * [Simulate Threat Triage Rules](#simulate-threat-triage-rules)
 
 ## Functions
 
@@ -60,13 +59,13 @@ The functions are split roughly into a few sections:
 
 ### Grok Functions
 
-* `GROK_EVAL`
+#### `GROK_EVAL`
   * Description: Evaluate a grok expression for a statement.
   * Input:
     * grokExpression - The grok expression to evaluate
     * data - Either a data message or a list of data messages to evaluate using the grokExpression
   * Returns: The Map associated with the grok expression being evaluated on the list of messages.
-* `GROK_PREDICT`
+#### `GROK_PREDICT`
   * Description: Discover a grok statement for an input doc
   * Input:
     * data - The data to discover a grok expression from
@@ -74,73 +73,73 @@ The functions are split roughly into a few sections:
 
 ### File Functions
 
-* Local Files
-  * `LOCAL_LS`
-    * Description: Lists the contents of a directory.
-    * Input:
-      * path - The path of the file
-    * Returns: The contents of the directory in tabular form sorted by last modification date.
-  * `LOCAL_RM`
-    * Description: Removes the path
-    * Input:
-      * path - The path of the file or directory.
-      * recursive - Recursively remove or not (optional and defaulted to false)
-    * Returns: boolean - true if successful, false otherwise
-  * `LOCAL_READ`
-    * Description: Retrieves the contents as a string of a file.
-    * Input:
-      * path - The path of the file
-    * Returns: The contents of the file and null otherwise.
-  * `LOCAL_READ_LINES`
-    * Description: Retrieves the contents of a file as a list of strings.
-    * Input:
-      * path - The path of the file
-    * Returns: A list of lines
-  * `LOCAL_WRITE`
-    * Description: Writes the contents of a string to a local file
-    * Input:
-      * content - The content to write out
-      * path - The path of the file
-    * Returns: true if the file was written and false otherwise.
-* HDFS Files
-  * `HDFS_LS`
-    * Description: Lists the contents of a directory in HDFS.
-    * Input:
-      * path - The path of the file
-    * Returns: The contents of the directory in tabular form sorted by last modification date.
-  * `HDFS_RM`
-    * Description: Removes the path in HDFS.
-    * Input:
-      * path - The path of the file or directory.
-      * recursive - Recursively remove or not (optional and defaulted to false)
-    * Returns: boolean - true if successful, false otherwise
-  * `HDFS_READ`
-    * Description: Retrieves the contents as a string of a file in HDFS.
-    * Input:
-      * path - The path of the file
-    * Returns: The contents of the file and null otherwise.
-  * `HDFS_READ_LINES`
-    * Description: Retrieves the contents of a HDFS file as a list of strings.
-    * Input:
-      * path - The path of the file
-    * Returns: A list of lines
-  * `HDFS_WRITE`
-    * Description: Writes the contents of a string to a HDFS file
-    * Input:
-      * content - The content to write out
-      * path - The path of the file
-    * Returns: true if the file was written and false otherwise.
+#### Local Files
+##### `LOCAL_LS`
+  * Description: Lists the contents of a directory.
+  * Input:
+    * path - The path of the file
+  * Returns: The contents of the directory in tabular form sorted by last modification date.
+##### `LOCAL_RM`
+  * Description: Removes the path
+  * Input:
+    * path - The path of the file or directory.
+    * recursive - Recursively remove or not (optional and defaulted to false)
+  * Returns: boolean - true if successful, false otherwise
+##### `LOCAL_READ`
+  * Description: Retrieves the contents as a string of a file.
+  * Input:
+    * path - The path of the file
+  * Returns: The contents of the file and null otherwise.
+##### `LOCAL_READ_LINES`
+  * Description: Retrieves the contents of a file as a list of strings.
+  * Input:
+    * path - The path of the file
+  * Returns: A list of lines
+##### `LOCAL_WRITE`
+  * Description: Writes the contents of a string to a local file
+  * Input:
+    * content - The content to write out
+    * path - The path of the file
+  * Returns: true if the file was written and false otherwise.
+#### HDFS Files
+##### `HDFS_LS`
+  * Description: Lists the contents of a directory in HDFS.
+  * Input:
+    * path - The path of the file
+  * Returns: The contents of the directory in tabular form sorted by last modification date.
+##### `HDFS_RM`
+  * Description: Removes the path in HDFS.
+  * Input:
+    * path - The path of the file or directory.
+    * recursive - Recursively remove or not (optional and defaulted to false)
+  * Returns: boolean - true if successful, false otherwise
+##### `HDFS_READ`
+  * Description: Retrieves the contents as a string of a file in HDFS.
+  * Input:
+    * path - The path of the file
+  * Returns: The contents of the file and null otherwise.
+##### `HDFS_READ_LINES`
+  * Description: Retrieves the contents of a HDFS file as a list of strings.
+  * Input:
+    * path - The path of the file
+  * Returns: A list of lines
+##### `HDFS_WRITE`
+  * Description: Writes the contents of a string to a HDFS file
+  * Input:
+    * content - The content to write out
+    * path - The path of the file
+  * Returns: true if the file was written and false otherwise.
 
 ### Configuration Functions
 
-* `CONFIG_GET`
+#### `CONFIG_GET`
   * Description: Retrieve a Metron configuration from zookeeper.
   * Input:
     * type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER
     * sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)
     * emptyIfNotPresent - If true, then return an empty, minimally viable config
   * Returns: The String representation of the config in zookeeper
-* `CONFIG_PUT`
+#### `CONFIG_PUT`
   * Description: Updates a Metron config to Zookeeper.
   * Input:
     * type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER
@@ -296,7 +295,7 @@ The functions are split roughly into a few sections:
     * stellarTransforms - A Map associating fields to stellar expressions
   * Returns: The String representation of the config in zookeeper
 
-#### `PARSER-STELLAR_TRANSFORM_PRINT`
+#### `PARSER_STELLAR_TRANSFORM_PRINT`
   * Description: Retrieve stellar field transformations.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
@@ -311,7 +310,7 @@ The functions are split roughly into a few sections:
 
 ### Indexing Functions
 
-* `INDEXING_SET_BATCH`
+#### `INDEXING_SET_BATCH`
   * Description: Set batch size and timeout
   * Input:
     * sensorConfig - Sensor config to add transformation to.
@@ -319,14 +318,14 @@ The functions are split roughly into a few sections:
     * size - batch size (integer), defaults to 1, meaning batching disabled
     * timeout - (optional) batch timeout in seconds (integer), defaults to 0, meaning system default
   * Returns: The String representation of the config in zookeeper
-* `INDEXING_SET_ENABLED`
+#### `INDEXING_SET_ENABLED`
   * Description: Enable or disable an indexing writer for a sensor.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * writer - The writer to update (e.g. elasticsearch, solr or hdfs)
     * enabled? - boolean indicating whether the writer is enabled.  If omitted, then it will set enabled.
   * Returns: The String representation of the config in zookeeper
-* `INDEXING_SET_INDEX`
+#### `INDEXING_SET_INDEX`
   * Description: Set the index for the sensor
   * Input:
     * sensorConfig - Sensor config to add transformation to.
@@ -336,7 +335,7 @@ The functions are split roughly into a few sections:
 
 ### Enrichment Functions
 
-* `ENRICHMENT_STELLAR_TRANSFORM_ADD`
+#### `ENRICHMENT_STELLAR_TRANSFORM_ADD`
   * Description: Add stellar field transformation.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
@@ -344,13 +343,13 @@ The functions are split roughly into a few sections:
     * stellarTransforms - A Map associating fields to stellar expressions
     * group - Group to add to (optional)
   * Returns: The String representation of the config in zookeeper
-* `ENRICHMENT_STELLAR_TRANSFORM_PRINT`
+#### `ENRICHMENT_STELLAR_TRANSFORM_PRINT`
   * Description: Retrieve stellar enrichment transformations.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * type - ENRICHMENT or THREAT_INTEL
   * Returns: The String representation of the transformations
-* `ENRICHMENT_STELLAR_TRANSFORM_REMOVE`
+#### `ENRICHMENT_STELLAR_TRANSFORM_REMOVE`
   * Description: Remove one or more stellar field transformations.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
@@ -361,41 +360,41 @@ The functions are split roughly into a few sections:
 
 ### Threat Triage Functions
 
-* `THREAT_TRIAGE_INIT`
+#### `THREAT_TRIAGE_INIT`
   * Description: Create a threat triage engine.
   * Input:
   	* config - the threat triage configuration (optional)
   * Returns: A threat triage engine.
-* `THREAT_TRIAGE_CONFIG`
+#### `THREAT_TRIAGE_CONFIG`
   * Description: Export the configuration used by a threat triage engine.
   * Input:
   	* engine - threat triage engine returned by THREAT_TRIAGE_INIT.
   * Returns: The configuration used by the threat triage engine.  
-* `THREAT_TRIAGE_SCORE`
+#### `THREAT_TRIAGE_SCORE`
   * Description: Scores a message using a set of triage rules.
   * Inputs:
   	* message - a string containing the message to score.
   	* engine - threat triage engine returned by THREAT_TRIAGE_INIT.
   * Returns: A threat triage engine.  
-* `THREAT_TRIAGE_ADD`
+#### `THREAT_TRIAGE_ADD`
   * Description: Add a threat triage rule.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * stellarTransforms - A Map associating stellar rules to scores
     * triageRules - Map (or list of Maps) representing a triage rule.  It must contain 'rule' and 'score' keys, the stellar expression for the rule and triage score respectively.  It may contain 'name' and 'comment', the name of the rule and comment associated with the rule respectively."
   * Returns: The String representation of the threat triage rules
-* `THREAT_TRIAGE_REMOVE`
+#### `THREAT_TRIAGE_REMOVE`
   * Description: Remove stellar threat triage rule(s).
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * rules - A list of stellar rules or rule names to remove
   * Returns: The String representation of the enrichment config
-* `THREAT_TRIAGE_PRINT`
+#### `THREAT_TRIAGE_PRINT`
   * Description: Retrieve stellar enrichment transformations.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
   * Returns: The String representation of the threat triage rules
-* `THREAT_TRIAGE_SET_AGGREGATOR`
+#### `THREAT_TRIAGE_SET_AGGREGATOR`
   * Description: Set the threat triage aggregator.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
@@ -403,7 +402,7 @@ The functions are split roughly into a few sections:
     * aggregatorConfig - Optional config for aggregator
   * Returns: The String representation of the enrichment config
 
-#### Example
+##### Example
 
 1. Create a threat triage engine.
 
