@@ -73,7 +73,7 @@ The functions are split roughly into a few sections:
 
 ### File Functions
 
-*Local Files*
+**Local Files**
 #### `LOCAL_LS`
   * Description: Lists the contents of a directory.
   * Input:
@@ -101,7 +101,7 @@ The functions are split roughly into a few sections:
     * content - The content to write out
     * path - The path of the file
   * Returns: true if the file was written and false otherwise.
-*HDFS Files*
+**HDFS Files**
 #### `HDFS_LS`
   * Description: Lists the contents of a directory in HDFS.
   * Input:
@@ -295,7 +295,7 @@ The functions are split roughly into a few sections:
     * stellarTransforms - A Map associating fields to stellar expressions
   * Returns: The String representation of the config in zookeeper
 
-#### `PARSER-STELLAR_TRANSFORM_PRINT`
+#### `PARSER_STELLAR_TRANSFORM_PRINT`
   * Description: Retrieve stellar field transformations.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
