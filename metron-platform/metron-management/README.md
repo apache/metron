@@ -215,7 +215,7 @@ The functions are split roughly into a few sections:
     * Input:
       * parser - The parser created with PARSER_INIT.
       * input - A telemetry message or list of messages to parse.
-    * Returns: A list of messages that resulted from parsing the input telemetry. If the input cannot be parsed, a message encapsulating the error is returned as part of that list.
+    * Returns: A list of messages that result from parsing the input telemetry. If the input cannot be parsed, a message encapsulating the error is returned as part of that list.
 
 ##### Example
 
