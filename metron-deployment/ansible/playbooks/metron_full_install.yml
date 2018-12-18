@@ -15,9 +15,9 @@
 #  limitations under the License.
 #
 ---
-#- import_playbook: metron_build.yml
-#  tags:
-#    - build
+- import_playbook: metron_build.yml
+  tags:
+    - build
 
 - import_playbook: solr_install.yml
   tags:
