@@ -48,4 +48,9 @@
     <url>http://localhost:4201</url>
   </service>
 
+  <service>
+    <role>METRON-MANAGEMENT</role>
+    <url>http://localhost:4200</url>
+  </service>
+
 </topology>

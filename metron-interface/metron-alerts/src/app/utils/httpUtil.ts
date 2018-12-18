@@ -38,10 +38,7 @@ export class HttpUtil {
     // We'd also dig deeper into the error to get a better message
     let restError: RestError;
     if (res.status === 401) {
-      let loginPath = AppConfigService.getAppConfigStatic()['loginPath'];
-      if (location.pathname != loginPath) {
-        location.href = loginPath;
-      }
+      HttpUtil.navigateToLogin();
     } else if (res.status !== 404) {
       restError = res;
     } else {
@@ -53,8 +50,6 @@ export class HttpUtil {
 
   public static navigateToLogin() {
     let loginPath = AppConfigService.getAppConfigStatic()['loginPath'];
-    if (location.pathname != loginPath) {
-      location.href = loginPath;
-    }
+    location.href = loginPath;
   }
 }

@@ -44,6 +44,7 @@ import {
 import { HdfsService } from '../../service/hdfs.service';
 import { GrokValidationService } from '../../service/grok-validation.service';
 import { RiskLevelRule } from '../../model/risk-level-rule';
+import {AppConfigService} from "../../service/app-config.service";
 
 class MockRouter {
   navigateByUrl(url: string) {}
@@ -63,13 +64,6 @@ class MockActivatedRoute {
 }
 
 class MockAuthenticationService extends AuthenticationService {
-  constructor(
-    private http2: HttpClient,
-    private router2: Router,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, router2, config2);
-  }
 
   public getCurrentUser(options): Observable<{}> {
     let response: { body: 'user' };
@@ -82,13 +76,6 @@ class MockAuthenticationService extends AuthenticationService {
 
 class MockSensorParserConfigHistoryService extends SensorParserConfigHistoryService {
   private sensorParserConfigHistory: SensorParserConfigHistory;
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setForTest(sensorParserConfigHistory: SensorParserConfigHistory) {
     this.sensorParserConfigHistory = sensorParserConfigHistory;
@@ -103,23 +90,10 @@ class MockSensorParserConfigHistoryService extends SensorParserConfigHistoryServ
 }
 
 class MockSensorParserConfigService extends SensorParserConfigService {
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 }
 
 class MockStormService extends StormService {
   private topologyStatus: TopologyStatus;
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setForTest(topologyStatus: TopologyStatus) {
     this.topologyStatus = topologyStatus;
@@ -134,12 +108,6 @@ class MockStormService extends StormService {
 }
 
 class MockGrokValidationService extends GrokValidationService {
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public list(): Observable<string[]> {
     return Observable.create(observer => {
@@ -160,13 +128,6 @@ class MockGrokValidationService extends GrokValidationService {
 
 class MockKafkaService extends KafkaService {
   private kafkaTopic: KafkaTopic;
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setForTest(kafkaTopic: KafkaTopic) {
     this.kafkaTopic = kafkaTopic;
@@ -190,13 +151,6 @@ class MockKafkaService extends KafkaService {
 class MockHdfsService extends HdfsService {
   private fileList: string[];
   private contents: string;
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setContents(contents: string) {
     this.contents = contents;
@@ -259,6 +213,17 @@ class MockSensorEnrichmentConfigService {
   }
 }
 
+class FakeAppConfigService extends AppConfigService {
+
+  getApiRoot() {
+    return '/api/v1'
+  }
+
+  getLoginPath() {
+    return '/login'
+  }
+}
+
 describe('Component: SensorParserConfigReadonly', () => {
   let component: SensorParserConfigReadonlyComponent;
   let fixture: ComponentFixture<SensorParserConfigReadonlyComponent>;
@@ -297,7 +262,7 @@ describe('Component: SensorParserConfigReadonly', () => {
         { provide: HdfsService, useClass: MockHdfsService },
         { provide: GrokValidationService, useClass: MockGrokValidationService },
         { provide: Router, useClass: MockRouter },
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
+        { provide: AppConfigService, useValue: FakeAppConfigService },
         MetronAlerts
       ]
     });

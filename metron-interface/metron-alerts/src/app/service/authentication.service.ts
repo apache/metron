@@ -73,7 +73,7 @@ export class AuthenticationService {
   public logout(): void {
     this.http.post(this.logoutUrl, {}).subscribe(response => {
         this.clearAuthentication();
-              HttpUtil.navigateToLogin();
+        HttpUtil.navigateToLogin();
       },
       error => {
         console.log('Logout failed:', error);
@@ -83,9 +83,7 @@ export class AuthenticationService {
 
   public checkAuthentication() {
     if (!this.isAuthenticated()) {
-      if (location.pathname != this.appConfigService.getLoginPath()) {
-        location.href = this.appConfigService.getLoginPath();
-      }
+      HttpUtil.navigateToLogin();
     }
   }
 

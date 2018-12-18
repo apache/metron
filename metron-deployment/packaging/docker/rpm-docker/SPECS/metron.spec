@@ -428,6 +428,8 @@ This package installs the Metron Rest %{metron_home}
 %{metron_home}/config/knox/conf/topologies/metronsso.xml
 %{metron_home}/config/knox/data/services/alerts/rewrite.xml
 %{metron_home}/config/knox/data/services/alerts/service.xml
+%{metron_home}/config/knox/data/services/management/rewrite.xml
+%{metron_home}/config/knox/data/services/management/service.xml
 %{metron_home}/config/knox/data/services/rest/rewrite.xml
 %{metron_home}/config/knox/data/services/rest/service.xml
 %{metron_home}/bin/metron-rest.sh
@@ -484,6 +486,7 @@ This package installs the Metron Management UI %{metron_home}
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/LICENSE.txt
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/*.ttf
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/images/*
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/app-config.json
 %attr(0644,root,root) %{metron_home}/web/management-ui/license/*
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

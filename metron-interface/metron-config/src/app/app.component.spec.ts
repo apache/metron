@@ -25,16 +25,20 @@ import { AppModule } from './app.module';
 import { APP_CONFIG, METRON_REST_CONFIG } from './app.config';
 import { IAppConfig } from './app.config.interface';
 import { HttpResponse, HttpClient } from '@angular/common/http';
+import {AppConfigService} from "./service/app-config.service";
+
+class FakeAppConfigService extends AppConfigService {
+
+  getApiRoot() {
+    return '/api/v1'
+  }
+
+  getLoginPath() {
+    return '/login'
+  }
+}
 
 class MockAuthenticationService extends AuthenticationService {
-  constructor(
-    private http2: HttpClient,
-    private router2: Router,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, router2, config2);
-    this.onLoginEvent.next(false);
-  }
 
   public checkAuthentication() {}
 
@@ -61,7 +65,7 @@ describe('App: Static', () => {
       providers: [
         { provide: AuthenticationService, useClass: MockAuthenticationService },
         { provide: Router, useClass: MockRouter },
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useValue: FakeAppConfigService }
       ]
     });
     fixture = TestBed.createComponent(AppComponent);

@@ -1,0 +1,4 @@
+{
+  "apiRoot": "/api/v1",
+  "loginPath": "/login"
+}

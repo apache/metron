@@ -19,6 +19,7 @@ import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { throwError, Observable } from 'rxjs';
 
 import { RestError } from '../model/rest-error';
+import {AppConfigService} from "../service/app-config.service";
 
 export class HttpUtil {
   public static extractString(res: HttpResponse<any>): string {
@@ -36,7 +37,7 @@ export class HttpUtil {
     // We'd also dig deeper into the error to get a better message
     let restError: RestError;
     if (res.status === 401) {
-      window.location.assign('/login?sessionExpired=true');
+      HttpUtil.navigateToLogin();
     } else if (res.status !== 404) {
       restError = res;
     } else {
@@ -44,5 +45,10 @@ export class HttpUtil {
       restError.status = 404;
     }
     return throwError(restError);
+  }
+
+  public static navigateToLogin() {
+    let loginPath = AppConfigService.getAppConfigStatic()['loginPath'];
+    location.href = loginPath;
   }
 }

@@ -47,7 +47,7 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   private onChangeCallback;
 
   constructor() {
-    ace.config.set('basePath', '/assets/ace');
+    ace.config.set('basePath', 'assets/ace');
   }
 
   ngAfterViewInit() {

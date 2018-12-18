@@ -15,26 +15,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Injectable } from '@angular/core';
-import {
-  CanActivate,
-  Router,
-  ActivatedRouteSnapshot,
-  RouterStateSnapshot
-} from '@angular/router';
-import { AuthenticationService } from '../service/authentication.service';
+import { HttpClient } from '@angular/common/http';
 
-// This guard will ensure that logout is called even if you call /login manually
 @Injectable()
-export class LoginGuard implements CanActivate {
+export class AppConfigService {
 
-  constructor(private authService: AuthenticationService, private router: Router) {}
+  private static appConfigStatic;
 
-  canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+  private appConfig;
 
-    this.authService.clearAuthentication();
+  constructor(private http: HttpClient) { }
 
-    return true;
+  loadAppConfig() {
+    return this.http.get('assets/app-config.json')
+            // APP_INITIALIZER only supports promises
+            .toPromise()
+            .then(data => {
+              this.appConfig = data;
+              AppConfigService.appConfigStatic = data;
+            });
+  }
 
+  getApiRoot() {
+    return this.appConfig['apiRoot'];
+  }
+
+  getLoginPath() {
+    return this.appConfig['loginPath'];
+  }
+
+  static getAppConfigStatic() {
+    return AppConfigService.appConfigStatic;
   }
 }

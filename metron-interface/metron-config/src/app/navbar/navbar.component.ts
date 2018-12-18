@@ -18,6 +18,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AuthenticationService } from '../service/authentication.service';
 import { Subscription } from 'rxjs';
+import {HttpHeaders} from "@angular/common/http";
 
 @Component({
   selector: 'metron-config-navbar',
@@ -32,7 +33,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.authService = this.authenticationService
-      .getCurrentUser({ responseType: 'text' })
+      .getCurrentUser({ headers: new HttpHeaders({'Accept': 'text/plain'}), responseType: 'text'})
       .subscribe(r => {
         this.currentUser = r;
       });

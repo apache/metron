@@ -25,6 +25,7 @@ import {
 import { Observable } from 'rxjs';
 import { AuthenticationService } from '../service/authentication.service';
 import {AppConfigService} from "../service/app-config.service";
+import {HttpUtil} from "../utils/httpUtil";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -41,9 +42,7 @@ export class AuthGuard implements CanActivate {
           } else {
             observer.next(false);
             observer.complete();
-            if (location.pathname != this.appConfigService.getLoginPath()) {
-              location.href = this.appConfigService.getLoginPath();
-            }
+            HttpUtil.navigateToLogin();
           }
         });
       });
