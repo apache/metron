@@ -25,7 +25,7 @@ have been added:
 * Stellar enrichments in the Enrichment topology
 * Stellar threat triage rules
 
-Additionally, some shell functions have been added to 
+Additionally, some shell functions have been added to
 * provide the ability to refer to the Stellar expression used to create a variable
 * print structured data in a way that is easier to view (i.e. tabular)
 
@@ -150,24 +150,164 @@ The functions are split roughly into a few sections:
 
 ### Parser Functions
 
-* `PARSER_STELLAR_TRANSFORM_ADD`
+#### `PARSER_CONFIG`
+  * Description: Returns the configuration of the parser.
+  * Input:
+    * parser - The parser created with PARSER_INIT.
+  * Returns: The parser configuration.
+
+##### Example
+
+  1. Initialize the parser. The parser configuration for the sensor 'bro' will be loaded automatically from Zookeeper.
+      ```
+      [Stellar]>>> parser := PARSER_INIT("bro")
+      Parser{0 successful, 0 error(s)}
+      ```
+
+  1. Review the parser configuration for the 'bro' sensor.
+      ```
+      [Stellar]>>> PARSER_CONFIG(parser)
+      {
+           "parserClassName":"org.apache.metron.parsers.bro.BasicBroParser",
+           "filterClassName":"org.apache.metron.parsers.filters.StellarFilter",
+           "sensorTopic":"bro"
+      }
+      ```
+
+#### `PARSER_INIT`
+    * Initialize a parser to parse the raw telemetry produced by a sensor.
+    * Input:
+      * sensorType - The type of sensor to parse.
+      * config - [Optional] The parser configuration. If not provided, the configuration will be retrieved from Zookeeper.
+    * Returns: A parser that can be used to parse sensor telemetry with `PARSER_PARSE`.
+
+##### Example
+
+  1. Initialize a parser.  The parser configuration for the sensor 'bro' will be loaded automatically from Zookeeper.
+      ```
+      [Stellar]>>> parser := PARSER_INIT("bro")
+      Parser{0 successful, 0 error(s)}
+      ```
+
+  1. The parser will track the number of successes and failures and echo that information.
+      ```
+      [Stellar]>>> parser
+      Parser{0 successful, 0 error(s)}
+      ```
+
+  1. Alternatively, explicitly define the parser configuration.  This can be useful when creating a new parser or testing changes to an existing parser.
+      ```
+      [Stellar]>>> config := SHELL_EDIT()
+      {
+           "parserClassName":"org.apache.metron.parsers.bro.BasicBroParser",
+           "filterClassName":"org.apache.metron.parsers.filters.StellarFilter",
+           "sensorTopic":"bro"
+      }
+      ```
+
+  1. Initialize the parser with the parser configuration.
+      ```
+      [Stellar]>>> parser := PARSER_INIT("bro", config)
+      Parser{0 successful, 0 error(s)}
+      ```
+
+#### `PARSER_PARSE`
+    * Parses the raw telemetry produced by a sensor.
+    * Input:
+      * parser - The parser created with PARSER_INIT.
+      * input - A telemetry message or list of messages to parse.
+    * Returns: A list of messages that resulted from parsing the input telemetry. If the input cannot be parsed, a message encapsulating the error is returned as part of that list.
+
+##### Example
+
+  1. Initialize the parser. The parser configuration for the sensor 'bro' will be loaded automatically from Zookeeper.
+      ```
+      [Stellar]>>> parser := PARSER_INIT("bro")
+      Parser{0 successful, 0 error(s)}
+      ```
+
+  1. Grab the raw telemetry from the 'bro' input topic. You could also mock-up a string that you would like to parse using `SHELL_EDIT`.
+      ```
+      [Stellar]>>> to_parse := KAFKA_GET('bro')
+      [{"http": {"ts":1542313125.807068,"uid":"CUrRne3iLIxXavQtci","id.orig_h"...
+      ```
+
+  1. Parse the telemetry.
+      ```
+      [Stellar]>>> msgs := PARSER_PARSE(parser, to_parse)
+      [{"bro_timestamp":"1542313125.807068","method":"GET","ip_dst_port":8080,...
+      ```
+
+  1. The parser will tally the success.
+      ```
+      [Stellar]>>> parser
+      Parser{1 successful, 0 error(s)}
+      ```
+
+  1. Review the successfully parsed message.
+      ```
+      [Stellar]>>> LENGTH(msgs)
+      1
+      ```
+      ```
+      [Stellar]>>> msg := GET(msgs, 0)
+
+      [Stellar]>>> MAP_GET("guid", msg)
+      7f2e0c77-c58c-488e-b1ad-fbec10fb8182
+      ```
+      ```
+      [Stellar]>>> MAP_GET("timestamp", msg)
+      1542313125807
+      ```
+      ```
+      [Stellar]>>> MAP_GET("source.type", msg)
+      bro
+      ```
+
+  1. Attempt to parse invalid input.  This will return the error message that is pushed onto the error topic.  The error message contains all of the details indicating why parsing failed.
+      ```
+      [Stellar]>>> errors := PARSER_PARSE(parser, "{invalid>")
+      ```
+
+  1. Review the details of the error.
+      ```
+      [Stellar]>>> error := GET(errors, 0)
+      ```
+      ```
+      [Stellar]>>> MAP_GET("raw_message", error)
+      {invalid>
+      ```
+      ```
+      [Stellar]>>> MAP_GET("message", error)
+      Unable to parse Message: {invalid>
+      ```
+      ```
+      [Stellar]>>> MAP_GET("stack", error)
+      java.lang.IllegalStateException: Unable to parse Message: {invalid>
+        at org.apache.metron.parsers.bro.BasicBroParser.parse(BasicBroParser.java:145)
+        ...
+      ```
+
+
+#### `PARSER_STELLAR_TRANSFORM_ADD`
   * Description: Add stellar field transformation.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * stellarTransforms - A Map associating fields to stellar expressions
   * Returns: The String representation of the config in zookeeper
-* `PARSER-STELLAR_TRANSFORM_PRINT`
+
+#### `PARSER-STELLAR_TRANSFORM_PRINT`
   * Description: Retrieve stellar field transformations.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
   * Returns: The String representation of the transformations
-* `PARSER_STELLAR_TRANSFORM_REMOVE`
+
+#### `PARSER_STELLAR_TRANSFORM_REMOVE`
   * Description: Remove stellar field transformation.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * stellarTransforms - A list of stellar transforms to remove
   * Returns: The String representation of the config in zookeeper
-
 
 ### Indexing Functions
 
@@ -263,6 +403,105 @@ The functions are split roughly into a few sections:
     * aggregatorConfig - Optional config for aggregator
   * Returns: The String representation of the enrichment config
 
+#### Example
+
+1. Create a threat triage engine.
+
+    ```
+    [Stellar]>>> t := THREAT_TRIAGE_INIT()
+    [Stellar]>>> t
+    ThreatTriage{0 rule(s)}
+    ```
+
+1. Add a few triage rules.
+
+    ```
+    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule1", "rule":"value>10", "score":10})
+    ```
+    ```
+    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule2", "rule":"value>20", "score":20})
+    ```
+    ```
+    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule3", "rule":"value>30", "score":30})
+    ```
+
+1. Review the rules that you have created.
+    ```
+    [Stellar]>>> THREAT_TRIAGE_PRINT(t)
+    ╔═══════╤═════════╤═════════════╤═══════╤════════╗
+    ║ Name  │ Comment │ Triage Rule │ Score │ Reason ║
+    ╠═══════╪═════════╪═════════════╪═══════╪════════╣
+    ║ rule1 │         │ value>10    │ 10    │        ║
+    ╟───────┼─────────┼─────────────┼───────┼────────╢
+    ║ rule2 │         │ value>20    │ 20    │        ║
+    ╟───────┼─────────┼─────────────┼───────┼────────╢
+    ║ rule3 │         │ value>30    │ 30    │        ║
+    ╚═══════╧═════════╧═════════════╧═══════╧════════╝
+    ```
+
+1. Create a few test messages to simulate your telemetry.
+    ```
+    [Stellar]>>> msg1 := "{ \"value\":22 }"
+    [Stellar]>>> msg1
+    { "value":22 }
+    ```
+    ```
+    [Stellar]>>> msg2 := "{ \"value\":44 }"
+    [Stellar]>>> msg2
+    { "value":44 }
+    ```
+
+1. Score a message based on the rules that have been defined.  The result allows you to see the total score, the aggregator, along with details about each rule that fired.
+
+    ```
+    [Stellar]>>> THREAT_TRIAGE_SCORE( msg1, t)
+    {score=20.0, aggregator=MAX, rules=[{score=10.0, name=rule1, rule=value>10}, {score=20.0, name=rule2, rule=value>20}]}
+    ```
+    ```
+    [Stellar]>>> THREAT_TRIAGE_SCORE( msg2, t)
+    {score=30.0, aggregator=MAX, rules=[{score=10.0, name=rule1, rule=value>10}, {score=20.0, name=rule2, rule=value>20}, {score=30.0, name=rule3, rule=value>30}]}
+    ```
+
+1. From here you can iterate on your rule set until it does exactly what you need it to do.  Once you have a working rule set, extract the configuration and push it into your live, Metron cluster.
+
+    ```
+    [Stellar]>>> conf := THREAT_TRIAGE_CONFIG( t)
+    [Stellar]>>> conf
+    {
+      "enrichment" : {
+        "fieldMap" : { },
+        "fieldToTypeMap" : { },
+        "config" : { }
+      },
+      "threatIntel" : {
+        "fieldMap" : { },
+        "fieldToTypeMap" : { },
+        "config" : { },
+        "triageConfig" : {
+          "riskLevelRules" : [ {
+            "name" : "rule1",
+            "rule" : "value>10",
+            "score" : 10.0
+          }, {
+            "name" : "rule2",
+            "rule" : "value>20",
+            "score" : 20.0
+          }, {
+            "name" : "rule3",
+            "rule" : "value>30",
+            "score" : 30.0
+          }],
+          "aggregator" : "MAX",
+          "aggregationConfig" : { }
+        }
+      },
+      "configuration" : { }
+    }
+    ```
+    ```
+    [Stellar]>>> CONFIG_PUT("ENRICHMENT", conf, "bro")
+    ```
+
 ## Deployment Instructions
 * Clusters installed via Ambari Management Pack (default)
     * Automatically deployed
@@ -280,7 +519,7 @@ with helpful comments to illustrate some common operations.
 Stellar, Go!
 Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
 [Stellar]>>> # We are going to debug a squid grok statement with a bug in it
-[Stellar]>>> squid_grok_orig := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} 
+[Stellar]>>> squid_grok_orig := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url}
  - %{WORD:UNWANTED}/%{IP:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}'
 [Stellar]>>> # We have gone ot a couple of domains in squid:
 [Stellar]>>> #   1475022887.362    256 127.0.0.1 TCP_MISS/301 803 GET http://www.youtube.com/ - DIRECT/216.58.216.238 text/html
@@ -289,7 +528,7 @@ Please note that functions are loading lazily in the background and will be unav
 [Stellar]>>> # Note that flimflammadeupdomain.com and www.google.com did not resolve to IPs
 [Stellar]>>> # We can load up these messages from disk into a list of messages
 [Stellar]>>> messages := LOCAL_READ_LINES( '/var/log/squid/access.log')
-27687 [Thread-1] INFO  o.r.Reflections - Reflections took 26542 ms to scan 22 urls, producing 17906 keys and 121560 values 
+27687 [Thread-1] INFO  o.r.Reflections - Reflections took 26542 ms to scan 22 urls, producing 17906 keys and 121560 values
 27837 [Thread-1] INFO  o.a.m.c.d.FunctionResolverSingleton - Found 97 Stellar Functions...
 Functions loaded, you may refer to functions now...
 [Stellar]>>> # and evaluate the messages against our grok statement
@@ -306,7 +545,7 @@ Functions loaded, you may refer to functions now...
 
 [Stellar]>>> # Uh oh, looks like the messages without destination IPs do not parse
 [Stellar]>>> # We can start peeling off groups from the end of the message until things parse
-[Stellar]>>> squid_grok := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{ 
+[Stellar]>>> squid_grok := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{
 WORD:UNWANTED}/%{IP:ip_dst_addr}'
 [Stellar]>>> GROK_EVAL(squid_grok, messages)
 ╔══════════╤═════════╤═════════╤═════════╤════════════════╤═════════════╤═════════╤════════════════╤═════════════════════════╗
@@ -320,7 +559,7 @@ WORD:UNWANTED}/%{IP:ip_dst_addr}'
 ╚══════════╧═════════╧═════════╧═════════╧════════════════╧═════════════╧═════════╧════════════════╧═════════════════════════╝
 
 [Stellar]>>> # Still looks like it is having issues...
-[Stellar]>>> squid_grok := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{ 
+[Stellar]>>> squid_grok := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{
 WORD:UNWANTED}/%{IP:ip_dst_addr}'
 [Stellar]>>> GROK_EVAL(squid_grok, messages)
 ╔══════════╤═════════╤═════════╤═════════╤════════════════╤═════════════╤═════════╤════════════════╤═════════════════════════╗
@@ -334,7 +573,7 @@ WORD:UNWANTED}/%{IP:ip_dst_addr}'
 ╚══════════╧═════════╧═════════╧═════════╧════════════════╧═════════════╧═════════╧════════════════╧═════════════════════════╝
 
 [Stellar]>>> # Still looks wrong.  Hmm, I bet it is due to that dst_addr not being there; we can make it optional
-[Stellar]>>> squid_grok := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{ 
+[Stellar]>>> squid_grok := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{
 WORD:UNWANTED}/(%{IP:ip_dst_addr})?'
 [Stellar]>>> GROK_EVAL(squid_grok, messages)
 ╔══════════╤═══════╤══════╤═════════╤════════════════╤═════════════╤════════╤════════════════╤══════════════════════════╗
@@ -348,8 +587,8 @@ WORD:UNWANTED}/(%{IP:ip_dst_addr})?'
 ╚══════════╧═══════╧══════╧═════════╧════════════════╧═════════════╧════════╧════════════════╧══════════════════════════╝
 
 [Stellar]>>> # Ahh, that is much better.
-[Stellar]>>> 
-[Stellar]>>> 
+[Stellar]>>>
+[Stellar]>>>
 ```
 
 ### Manage Stellar Field Transformations
@@ -362,7 +601,7 @@ Please note that functions are loading lazily in the background and will be unav
 {es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
 [Stellar]>>> # First we get the squid parser config from zookeeper
 [Stellar]>>> squid_parser_config := CONFIG_GET('PARSER', 'squid')
-29089 [Thread-1] INFO  o.r.Reflections - Reflections took 26765 ms to scan 22 urls, producing 17898 keys and 121518 values 
+29089 [Thread-1] INFO  o.r.Reflections - Reflections took 26765 ms to scan 22 urls, producing 17898 keys and 121518 values
 29177 [Thread-1] INFO  o.a.m.c.d.FunctionResolverSingleton - Found 83 Stellar Functions...
 Functions loaded, you may refer to functions now...
 [Stellar]>>> # See what kind of transformations it already has
@@ -400,7 +639,7 @@ Functions loaded, you may refer to functions now...
 [Stellar]>>> # Add another transformation in there
 [Stellar]>>> domain_without_subdomains := 'cnn.com'
 [Stellar]>>> upper_domain := TO_UPPER(domain_without_subdomains)
-[Stellar]>>> # Now we can look at our variables and see what expressions created them 
+[Stellar]>>> # Now we can look at our variables and see what expressions created them
 [Stellar]>>> # NOTE: the 40 is the max char for a word
 [Stellar]>>> SHELL_LIST_VARS( 40 )
 ╔═══════════════════════════╤═══════════════════════════════════════════╤═════════════════════════════════════╗
@@ -549,7 +788,7 @@ Please note that functions are loading lazily in the background and will be unav
 [Stellar]>>> # If it is not there, which it is not by default, a suitable default
 [Stellar]>>> # config will be specified.
 [Stellar]>>> squid_enrichment_config := CONFIG_GET('ENRICHMENT', 'squid')
-26307 [Thread-1] INFO  o.r.Reflections - Reflections took 24845 ms to scan 22 urls, producing 17898 keys and 121520 values 
+26307 [Thread-1] INFO  o.r.Reflections - Reflections took 24845 ms to scan 22 urls, producing 17898 keys and 121520 values
 26389 [Thread-1] INFO  o.a.m.c.d.FunctionResolverSingleton - Found 84 Stellar Functions...
 Functions loaded, you may refer to functions now...
 [Stellar]>>> # Just to make sure it looks right, we can view the JSON
@@ -730,7 +969,7 @@ Arguments:
 
 Returns: The String representation of the config in zookeeper        
 [Stellar]>>> squid_enrichment_config_new := ENRICHMENT_STELLAR_TRANSFORM_REMOVE( squid_enrichment_config_new, 'ENRICHMENT', [ 'is_local' ] )
-[Stellar]>>> # Make sure that it is really gone 
+[Stellar]>>> # Make sure that it is really gone
 [Stellar]>>> ENRICHMENT_STELLAR_TRANSFORM_PRINT(squid_enrichment_config_new, 'ENRICHMENT')
 ╔═══════╤═══════╤════════════════╗
 ║ Group │ Field │ Transformation ║
@@ -769,7 +1008,7 @@ Returns: The String representation of the config in zookeeper
   },
   "configuration" : { }
 }
-[Stellar]>>> 
+[Stellar]>>>
 ```
 
 ### Manage Threat Triage Rules
@@ -783,7 +1022,7 @@ Please note that functions are loading lazily in the background and will be unav
 [Stellar]>>> # If it is not there, which it is not by default, a suitable default
 [Stellar]>>> # config will be specified.
 [Stellar]>>> squid_enrichment_config := CONFIG_GET('ENRICHMENT', 'squid')
-26751 [Thread-1] INFO  o.r.Reflections - Reflections took 24407 ms to scan 22 urls, producing 17898 keys and 121520 values 
+26751 [Thread-1] INFO  o.r.Reflections - Reflections took 24407 ms to scan 22 urls, producing 17898 keys and 121520 values
 26828 [Thread-1] INFO  o.a.m.c.d.FunctionResolverSingleton - Found 84 Stellar Functions...
 Functions loaded, you may refer to functions now...
 [Stellar]>>> # We should not have any threat triage rules
@@ -795,7 +1034,7 @@ Functions loaded, you may refer to functions now...
 ╚═════════════════════╝
 
 [Stellar]>>> # I have followed the blog post at https://cwiki.apache.org/confluence/display/METRON/2016/04/28/Metron+Tutorial+-+Fundamentals+Part+2%3A+Creating+a+New+Enrichment
-[Stellar]>>> # and have some enrichment reference data loaded into hbase, 
+[Stellar]>>> # and have some enrichment reference data loaded into hbase,
 [Stellar]>>> # so we should be able to retrieve that as an enrichment using the ENRICHMENT_GET
 [Stellar]>>> # function to call out to hbase from stellar
 [Stellar]>>> ?ENRICHMENT_GET
@@ -931,7 +1170,7 @@ Aggregation: MAX
   "configuration" : { }
 }
 [Stellar]>>> # Now that we have admired it, we can remove the rules
-[Stellar]>>> squid_enrichment_config_new := THREAT_TRIAGE_REMOVE( squid_enrichment_config_new, [ SHELL_GET_EXPRESSION('non_us') , SHELL_GET_EXPRESSION('is_local') , SHELL_GET_EXPRES 
+[Stellar]>>> squid_enrichment_config_new := THREAT_TRIAGE_REMOVE( squid_enrichment_config_new, [ SHELL_GET_EXPRESSION('non_us') , SHELL_GET_EXPRESSION('is_local') , SHELL_GET_EXPRES
 SION('is_both') ] )
 [Stellar]>>> THREAT_TRIAGE_PRINT(squid_enrichment_config_new)
 ╔══════╤═════════╤═════════════╤═══════╗
@@ -974,104 +1213,5 @@ SION('is_both') ] )
   },
   "configuration" : { }
 }
-[Stellar]>>> 
+[Stellar]>>>
 ```
-
-### Simulate Threat Triage Rules
-
-1. Create a threat triage engine.
-
-    ```
-    [Stellar]>>> t := THREAT_TRIAGE_INIT()
-    [Stellar]>>> t
-    ThreatTriage{0 rule(s)}
-    ```
-    
-1. Add a few triage rules.
-
-    ```
-    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule1", "rule":"value>10", "score":10})
-    ```
-    ```
-    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule2", "rule":"value>20", "score":20})
-    ```
-    ```
-    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule3", "rule":"value>30", "score":30})
-    ```
-
-1. Review the rules that you have created.
-    ```
-    [Stellar]>>> THREAT_TRIAGE_PRINT(t)
-    ╔═══════╤═════════╤═════════════╤═══════╤════════╗
-    ║ Name  │ Comment │ Triage Rule │ Score │ Reason ║
-    ╠═══════╪═════════╪═════════════╪═══════╪════════╣
-    ║ rule1 │         │ value>10    │ 10    │        ║
-    ╟───────┼─────────┼─────────────┼───────┼────────╢
-    ║ rule2 │         │ value>20    │ 20    │        ║
-    ╟───────┼─────────┼─────────────┼───────┼────────╢
-    ║ rule3 │         │ value>30    │ 30    │        ║
-    ╚═══════╧═════════╧═════════════╧═══════╧════════╝
-    ```
-
-1. Create a few test messages to simulate your telemetry.
-    ```
-    [Stellar]>>> msg1 := "{ \"value\":22 }"
-    [Stellar]>>> msg1
-    { "value":22 }
-    ```
-    ```
-    [Stellar]>>> msg2 := "{ \"value\":44 }"
-    [Stellar]>>> msg2
-    { "value":44 }
-    ```
-
-1. Score a message based on the rules that have been defined.  The result allows you to see the total score, the aggregator, along with details about each rule that fired.
-
-    ```
-    [Stellar]>>> THREAT_TRIAGE_SCORE( msg1, t)
-    {score=20.0, aggregator=MAX, rules=[{score=10.0, name=rule1, rule=value>10}, {score=20.0, name=rule2, rule=value>20}]}
-    ```
-    ```
-    [Stellar]>>> THREAT_TRIAGE_SCORE( msg2, t)
-    {score=30.0, aggregator=MAX, rules=[{score=10.0, name=rule1, rule=value>10}, {score=20.0, name=rule2, rule=value>20}, {score=30.0, name=rule3, rule=value>30}]}
-    ```
-
-1. From here you can iterate on your rule set until it does exactly what you need it to do.  Once you have a working rule set, extract the configuration and push it into your live, Metron cluster.
-
-    ```
-    [Stellar]>>> conf := THREAT_TRIAGE_CONFIG( t)
-    [Stellar]>>> conf
-    {
-      "enrichment" : {
-        "fieldMap" : { },
-        "fieldToTypeMap" : { },
-        "config" : { }
-      },
-      "threatIntel" : {
-        "fieldMap" : { },
-        "fieldToTypeMap" : { },
-        "config" : { },
-        "triageConfig" : {
-          "riskLevelRules" : [ {
-            "name" : "rule1",
-            "rule" : "value>10",
-            "score" : 10.0
-          }, {
-            "name" : "rule2",
-            "rule" : "value>20",
-            "score" : 20.0
-          }, {
-            "name" : "rule3",
-            "rule" : "value>30",
-            "score" : 30.0
-          }],
-          "aggregator" : "MAX",
-          "aggregationConfig" : { }
-        }
-      },
-      "configuration" : { }
-    }
-    ```
-    ```
-    [Stellar]>>> CONFIG_PUT("ENRICHMENT", conf, "bro")
-    ```
