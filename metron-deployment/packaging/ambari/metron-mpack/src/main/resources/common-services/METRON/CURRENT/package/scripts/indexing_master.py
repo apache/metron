@@ -138,6 +138,30 @@ class Indexing(Script):
     def restart(self, env):
         from params import params
         env.set_params(params)
+        commands = IndexingCommands(params)
+        if params.ra_indexing_writer == 'Solr':
+            # Install Solr schemas
+            try:
+                if not commands.is_solr_schema_installed():
+                    commands.solr_schema_install(env)
+                    commands.set_solr_schema_installed()
+
+            except Exception as e:
+                msg = "WARNING: Solr schemas could not be installed.  " \
+                      "Is Solr running?  Will reattempt install on next start.  error={0}"
+                Logger.warning(msg.format(e))
+        else:
+            # Install elasticsearch templates
+            try:
+                if not commands.is_elasticsearch_template_installed():
+                    self.elasticsearch_template_install(env)
+                    commands.set_elasticsearch_template_installed()
+
+            except Exception as e:
+                msg = "WARNING: Elasticsearch index templates could not be installed.  " \
+                      "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
+                Logger.warning(msg.format(e))
+
 
         self.configure(env)
         commands = IndexingCommands(params)
