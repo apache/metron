@@ -191,7 +191,7 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   protected Optional<String> getIndexName(String guid, String sensorType) throws IOException {
-    return updateDao.getIndexName(guid, sensorType);
+    return updateDao.findIndexNameByGUID(guid, sensorType);
   }
 
   protected SearchResponse search(SearchRequest request, QueryBuilder queryBuilder)

@@ -45,7 +45,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
   sourceType: 'source:type';
 
   private defaultColumnMetadata = [
-    new ColumnMetadata('id', 'string'),
+    new ColumnMetadata('guid', 'string'),
     new ColumnMetadata('timestamp', 'date'),
     new ColumnMetadata('source:type', 'string'),
     new ColumnMetadata('ip_src_addr', 'ip'),

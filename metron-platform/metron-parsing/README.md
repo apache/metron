@@ -52,6 +52,96 @@ There are two general types types of parsers:
        This is using the default value for `wrapEntityName` if that property is not set.
     * `wrapEntityName` : Sets the name to use when wrapping JSON using `wrapInEntityArray`.  The `jsonpQuery` should reference this name.
     * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.  
+  * Regular Expressions Parser
+      * `recordTypeRegex` : A regular expression to uniquely identify a record type.
+      * `messageHeaderRegex` : A regular expression used to extract fields from a message part which is common across all the messages.
+      * `convertCamelCaseToUnderScore` : If this property is set to true, this parser will automatically convert all the camel case property names to underscore seperated. 
+          For example, following convertions will automatically happen:
+
+          ```
+          ipSrcAddr -> ip_src_addr
+          ipDstAddr -> ip_dst_addr
+          ipSrcPort -> ip_src_port
+          ```
+          Note this property may be necessary, because java does not support underscores in the named group names. So in case your property naming conventions requires underscores in property names, use this property.
+          
+      * `fields` : A json list of maps contaning a record type to regular expression mapping.
+      
+      A complete configuration example would look like:
+      
+      ```json
+      "convertCamelCaseToUnderScore": true, 
+      "recordTypeRegex": "kernel|syslog",
+      "messageHeaderRegex": "(<syslogPriority>(<=^&lt;)\\d{1,4}(?=>)).*?(<timestamp>(<=>)[A-Za-z] {3}\\s{1,2}\\d{1,2}\\s\\d{1,2}:\\d{1,2}:\\d{1,2}(?=\\s)).*?(<syslogHost>(<=\\s).*?(?=\\s))",
+      "fields": [
+        {
+          "recordType": "kernel",
+          "regex": ".*(<eventInfo>(<=\\]|\\w\\:).*?(?=$))"
+        },
+        {
+          "recordType": "syslog",
+          "regex": ".*(<processid>(<=PID\\s=\\s).*?(?=\\sLine)).*(<filePath>(<=64\\s)\/([A-Za-z0-9_-]+\/)+(?=\\w))        (<fileName>.*?(?=\")).*(<eventInfo>(<=\").*?(?=$))"
+        }
+      ]
+      ```
+      **Note**: messageHeaderRegex and regex (withing fields) could be specified as lists also e.g.
+      ```json
+          "messageHeaderRegex": [
+          "regular expression 1",
+          "regular expression 2"
+          ]
+      ```
+      Where **regular expression 1** are valid regular expressions and may have named
+      groups, which would be extracted into fields. This list will be evaluated in order until a
+      matching regular expression is found.
+      
+      **messageHeaderRegex** is run on all the messages.
+      Yes, all the messages are expected to contain the fields which are being extracted using the **messageHeaderRegex**.
+      **messageHeaderRegex** is a sort of HCF (highest common factor) in all messages.
+      
+      **recordTypeRegex** can be a more advanced regular expression containing named goups. For example
+  
+      "recordTypeRegex": "(&lt;process&gt;(<=\\s)\\b(kernel|syslog)\\b(?=\\[|:))"
+      
+      Here all the named goups (process in above example) will be extracted as fields.
+
+      Though having named group in recordType is completely optional, still one could want extract named groups in recordType for following reasons:
+
+      1. Since **recordType** regular expression is already getting matched and we are paying the price for a regular expression match already,
+      we can extract certain fields as a by product of this match.
+      2. Most likely the **recordType** field is common across all the messages. Hence having it extracted in the recordType (or messageHeaderRegex) would
+      reduce the overall complexity of regular expressions in the regex field.
+      
+      **regex** within a field could be a list of regular expressions also. In this case all regular expressions in the list will be attempted to match until a match is found. Once a full match is found remaining regular expressions are ignored.
+  
+      ```json
+          "regex":  [ "record type specific regular expression 1",
+                      "record type specific regular expression 2"]
+
+      ```
+
+      **timesamp**
+
+      Since this parser is a general purpose parser, it will populate the timestamp field with current UTC timestamp. Actual timestamp value can be overridden later using stellar.
+      For example in case of syslog timestamps, one could use following stellar construct to override the timestamp value.
+      Let us say you parsed actual timestamp from the raw log:
+
+      <38>Jun 20 15:01:17 hostName sshd[11672]: Accepted publickey for prod from 55.55.55.55 port 66666 ssh2
+
+      syslogTimestamp="Jun 20 15:01:17"
+
+      Then something like below could be used to override the timestamp.
+
+      ```
+      "timestamp_str": "FORMAT('%s%s%s', YEAR(),' ',syslogTimestamp)",
+      "timestamp":"TO_EPOCH_TIMESTAMP(timestamp_str, 'yyyy MMM dd HH:mm:ss' )"
+      ```
+
+      OR, if you want to factor in the timezone
+
+      ```
+      "timestamp":"TO_EPOCH_TIMESTAMP(timestamp_str, timestamp_format, timezone_name )"
+      ```
 
 ## Parser Error Routing
 
