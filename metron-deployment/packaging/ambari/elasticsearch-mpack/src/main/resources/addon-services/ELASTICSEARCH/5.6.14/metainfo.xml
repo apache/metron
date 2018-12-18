@@ -22,8 +22,8 @@
     <services>
         <service>
             <name>ELASTICSEARCH</name>
-            <version>5.6.2</version>
-            <extends>common-services/ELASTICSEARCH/5.6.2</extends>
+            <version>5.6.14</version>
+            <extends>common-services/ELASTICSEARCH/5.6.14</extends>
         </service>
     </services>
 </metainfo>
