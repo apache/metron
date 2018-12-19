@@ -36,8 +36,9 @@ fi
 # treat unset vars as an error; METRON_HOME
 set -u
 
+export METRON_PARSERS_PLATFORM="${METRON_PARSERS_PLATFORM:-storm}"
 export HBASE_CONFIGS=$(hbase classpath)
-export STELLAR_LIB=$(find $METRON_HOME/lib/ -name metron-parsers*.jar)
+export STELLAR_LIB=$(find $METRON_HOME/lib/ -name metron-parsers-${METRON_PARSERS_PLATFORM}*.jar)
 export MANAGEMENT_LIB=$(find $METRON_HOME/lib/ -name metron-management*.jar)
 export PROFILER_LIB=$(find $METRON_HOME/lib/ -name metron-profiler-repl*.jar)
 java $METRON_JVMFLAGS -cp "${CONTRIB:-$METRON_HOME/contrib/*}:$STELLAR_LIB:$MANAGEMENT_LIB:$PROFILER_LIB:$HBASE_CONFIGS" org.apache.metron.stellar.common.shell.cli.StellarShell "$@"

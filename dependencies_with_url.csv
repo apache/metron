@@ -54,6 +54,7 @@ junit:junit:jar:4.12:compile,Eclipse Public License 1.0,http://junit.org
 junit:junit:jar:4.4:compile,Common Public License Version 1.0,http://junit.org
 net.razorvine:pyrolite:jar:4.13:compile,MIT,https://github.com/irmen/Pyrolite
 net.sf.jopt-simple:jopt-simple:jar:3.2:compile,The MIT License,http://jopt-simple.sourceforge.net
+net.sf.jopt-simple:jopt-simple:jar:4.6:compile,The MIT License,http://jopt-simple.sourceforge.net
 net.sf.jopt-simple:jopt-simple:jar:4.9:compile,The MIT License,http://jopt-simple.sourceforge.net
 net.sf.saxon:Saxon-HE:jar:9.5.1-5:compile,Mozilla Public License Version 2.0,http://www.saxonica.com/
 org.abego.treelayout:org.abego.treelayout.core:jar:1.0.1:compile,BSD 3-Clause "New" or "Revised" License (BSD-3-Clause),http://code.google.com/p/treelayout/
@@ -181,6 +182,7 @@ com.fasterxml.jackson.module:jackson-module-jaxb-annotations:jar:2.9.5:compile,A
 com.fasterxml.woodstox:woodstox-core:jar:5.0.3:compile,ASLv2,https://github.com/FasterXML/woodstox
 com.fasterxml:classmate:jar:1.3.1:compile,ASLv2,http://github.com/cowtowncoder/java-classmate
 com.fasterxml:classmate:jar:1.3.4:compile,ASLv2,http://github.com/cowtowncoder/java-classmate
+com.google.code.gson:gson:jar:2.2.2:compile,The Apache Software License, Version 2.0,http://code.google.com/p/google-gson/
 com.google.code.gson:gson:jar:2.2.4:compile,The Apache Software License, Version 2.0,http://code.google.com/p/google-gson/
 com.google.code.gson:gson:jar:2.7:compile,The Apache Software License, Version 2.0,http://code.google.com/p/google-gson/
 com.google.guava:guava:jar:11.0.2:compile,ASLv2,

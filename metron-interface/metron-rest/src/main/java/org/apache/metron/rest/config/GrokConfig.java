@@ -30,7 +30,8 @@ public class GrokConfig {
     @Bean
     public Grok commonGrok() throws GrokException {
         Grok grok = new Grok();
-        grok.addPatternFromReader(new InputStreamReader(getClass().getResourceAsStream("/patterns/common")));
+        grok.addPatternFromReader(new InputStreamReader(getClass().getResourceAsStream(
+            "/patterns/common")));
         return grok;
     }
 }
