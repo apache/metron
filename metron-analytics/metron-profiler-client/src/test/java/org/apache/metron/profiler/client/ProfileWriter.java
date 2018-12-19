@@ -50,11 +50,11 @@ public class ProfileWriter {
   private HBaseClient hbaseClient;
   private HBaseProfilerClient client;
 
-  public ProfileWriter(RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder, HTableInterface table) {
+  public ProfileWriter(RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder, HTableInterface table, long periodDurationMillis) {
     this.rowKeyBuilder = rowKeyBuilder;
     this.columnBuilder = columnBuilder;
     this.hbaseClient = new HBaseClient((c, t) -> table, table.getConfiguration(), table.getName().getNameAsString());
-    this.client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
+    this.client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, periodDurationMillis);
   }
 
   /**
@@ -68,21 +68,22 @@ public class ProfileWriter {
   public void write(ProfileMeasurement prototype, int count, List<Object> group, Function<Object, Object> valueGenerator) {
 
     ProfileMeasurement m = prototype;
+    ProfilePeriod period = m.getPeriod();
     for(int i=0; i<count; i++) {
-
       // generate the next value that should be written
       Object nextValue = valueGenerator.apply(m.getProfileValue());
 
-      // create a measurement for the next profile period to be written
-      ProfilePeriod next = m.getPeriod().next();
+      // write the measurement
       m = new ProfileMeasurement()
               .withProfileName(prototype.getProfileName())
               .withEntity(prototype.getEntity())
-              .withPeriod(next.getStartTimeMillis(), prototype.getPeriod().getDurationMillis(), TimeUnit.MILLISECONDS)
+              .withPeriod(period)
               .withGroups(group)
               .withProfileValue(nextValue);
-
       write(m);
+
+      // advance to the next period
+      period = m.getPeriod().next();
     }
   }
 
@@ -111,13 +112,14 @@ public class ProfileWriter {
     HTableProvider provider = new HTableProvider();
     HTableInterface table = provider.getTable(config, "profiler");
 
+    long periodDurationMillis = TimeUnit.MINUTES.toMillis(15);
     long when = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(2);
     ProfileMeasurement measure = new ProfileMeasurement()
             .withProfileName("profile1")
             .withEntity("192.168.66.121")
-            .withPeriod(when, 15, TimeUnit.MINUTES);
+            .withPeriod(when, periodDurationMillis, TimeUnit.MILLISECONDS);
 
-    ProfileWriter writer = new ProfileWriter(rowKeyBuilder, columnBuilder, table);
+    ProfileWriter writer = new ProfileWriter(rowKeyBuilder, columnBuilder, table, periodDurationMillis);
     writer.write(measure, 2 * 24 * 4, Collections.emptyList(), val -> new Random().nextInt(10));
   }
 }

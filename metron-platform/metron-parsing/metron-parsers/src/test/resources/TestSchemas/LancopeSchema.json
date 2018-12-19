@@ -1,0 +1,28 @@
+{
+	"title": "Lancope Schema",
+	"type": "object",
+	"properties": {
+		"ip_src_addr": {
+			"type": "string"
+		},
+		"ip_dst_addr": {
+			"type": "string"
+		},
+		"original_string": {
+			"type": "string"
+		},
+		"@version": {
+			"type": "string"
+		},
+		"timestamp": {
+			"type": "integer"
+		},
+		"type": {
+			"type": "string"
+		},
+		"host": {
+			"type": "string"
+		}
+	},
+	"required": ["ip_src_addr", "ip_dst_addr", "original_string","@version", "timestamp", "type","host"]
+}
