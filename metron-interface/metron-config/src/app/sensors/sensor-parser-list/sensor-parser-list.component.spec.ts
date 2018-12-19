@@ -140,7 +140,7 @@ class MockMetronDialogBox {
   }
 }
 
-class FakeAppConfigService extends AppConfigService {
+class MockAppConfigService extends AppConfigService {
 
   getApiRoot() {
     return '/api/v1'
@@ -181,7 +181,7 @@ describe('Component: SensorParserList', () => {
         },
         { provide: Router, useClass: MockRouter },
         { provide: MetronDialogBox, useClass: MockMetronDialogBox },
-        { provide: AppConfigService, useValue: FakeAppConfigService },
+        { provide: AppConfigService, useClass: MockAppConfigService },
         MetronAlerts
       ]
     });

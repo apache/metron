@@ -23,6 +23,18 @@ import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
+import {AppConfigService} from "./app-config.service";
+
+class MockAppConfigService extends AppConfigService {
+
+  getApiRoot() {
+    return '/api/v1'
+  }
+
+  getLoginPath() {
+    return '/login'
+  }
+}
 
 describe('GrokValidationService', () => {
   let grokValidationService: GrokValidationService;
@@ -33,7 +45,7 @@ describe('GrokValidationService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         GrokValidationService,
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     grokValidationService = TestBed.get(GrokValidationService);

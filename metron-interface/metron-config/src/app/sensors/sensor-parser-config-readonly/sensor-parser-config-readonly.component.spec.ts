@@ -213,7 +213,7 @@ class MockSensorEnrichmentConfigService {
   }
 }
 
-class FakeAppConfigService extends AppConfigService {
+class MockAppConfigService extends AppConfigService {
 
   getApiRoot() {
     return '/api/v1'
@@ -262,7 +262,7 @@ describe('Component: SensorParserConfigReadonly', () => {
         { provide: HdfsService, useClass: MockHdfsService },
         { provide: GrokValidationService, useClass: MockGrokValidationService },
         { provide: Router, useClass: MockRouter },
-        { provide: AppConfigService, useValue: FakeAppConfigService },
+        { provide: AppConfigService, useClass: MockAppConfigService },
         MetronAlerts
       ]
     });

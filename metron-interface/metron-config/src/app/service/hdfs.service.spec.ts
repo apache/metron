@@ -23,6 +23,18 @@ import {
   HttpTestingController,
   HttpClientTestingModule
 } from '@angular/common/http/testing';
+import {AppConfigService} from "./app-config.service";
+
+class MockAppConfigService extends AppConfigService {
+
+  getApiRoot() {
+    return '/api/v1'
+  }
+
+  getLoginPath() {
+    return '/login'
+  }
+}
 
 describe('HdfsService', () => {
   let hdfsService: HdfsService;
@@ -33,7 +45,7 @@ describe('HdfsService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         HdfsService,
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     hdfsService = TestBed.get(HdfsService);
