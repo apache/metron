@@ -30,8 +30,8 @@ There are two general types types of parsers:
     * `grokPath` : The path in HDFS (or in the Jar) to the grok statement. By default attempts to load from HDFS, then falls back to the classpath, and finally throws an exception if unable to load a pattern.
     * `patternLabel` : The pattern label to use from the grok statement
     * `multiLine` : The raw data passed in should be handled as a long with multiple lines, with each line to be parsed separately. This setting's valid values are 'true' or 'false'.  The default if unset is 'false'. When set the parser will handle multiple lines with successfully processed lines emitted normally, and lines with errors sent to the error topic.
-    * `timestampField` : The field to use for timestamp. If your data does not have a field exactly named "timestamp" this field is required, otherwise the record will not pass validation. If the timestampField is included in the list of timeFields, it will first be parsed using the provided dateFormat.
-    * `timeFields` : A list of fields to be treated as time
+    * `timestampField` : The field to use for timestamp. If your data does not have a field exactly named "timestamp" this field is required, otherwise the record will not pass validation. If the timestampField is also included in the list of timeFields, it will first be parsed using the provided dateFormat.
+    * `timeFields` : A list of fields to be treated as time.
     * `dateFormat` : The date format to use to parse the time fields. Default is "yyyy-MM-dd HH:mm:ss.S z".
     * `timezone` : The timezone to use. `UTC` is default.
     * The Grok parser supports either 1 line to parse per incoming message, or incoming messages with multiple log lines, and will produce a json message per line
@@ -152,10 +152,13 @@ messages or marking messages as invalid.
 
 There are two reasons a message will be marked as invalid:
 * Fail [global validation](../../metron-common#validation-framework)
-* Fail the parser's validate function (generally that means to not have a `timestamp` field or a `original_string` field.
+* Fail the parser's validate function. Generally that means to not have a `timestamp` field or an `original_string` field.
 
-Those messages which are marked as invalid are sent to the error queue
-with an indication that they are invalid in the error message.
+Those messages which are marked as invalid are sent to the error queue with an indication that they
+are invalid in the error message.  The messages will contain "error_type":"parser_invalid". Note,
+you will not see additional exceptions in the logs for this type of failure, rather the error messages
+are written directly to the configured error topic. See [Topology Errors](../../metron-common#topology-errors)
+for more.
 
 ### Parser Errors
 

@@ -18,6 +18,7 @@ limitations under the License.
 # Contents
 
 * [Stellar Language](#stellar-language)
+* [High Level Architecture](#high-level-architecture)
 * [Global Configuration](#global-configuration)
 * [Validation Framework](#validation-framework)
 * [Management Utility](#management-utility)
@@ -108,6 +109,17 @@ but a convenient index is provided here:
 If a field is managed via ambari, you should change the field via
 ambari.  Otherwise, upon service restarts, you may find your update
 overwritten.
+
+# High Level Architecture
+
+As already pointed out in the main project README, Apache Metron is a [Kappa architecture](../../#navigating-the-architecture) primarily backed by Storm and Kafka. We additionally leverage:
+* Zookeeper for dynamic configuration updates to running Storm topologies. This enables us to push updates to our Storm topologies without restarting them.
+* HBase primarily for enrichments. But we also use it to store user state for our UI's.
+* HDFS for long term storage. Our parsed and enriched messages land here, along with any reported exceptions or errors encountered along the way.
+* Solr and Elasticsearch (plus Kibana) for real-time access. We provide out of the box compatibility with both Solr and Elasticsearch, and custom dashboards for data exploration in Kibana.
+* Zeppelin for providing dashboards to do custom analytics.
+
+Getting data "into" Metron is accomplished by setting up a Kafka topic
 
 # Validation Framework
 
@@ -336,7 +348,8 @@ Errors generated in Metron topologies are transformed into JSON format and follo
   "error_hash": "f7baf053f2d3c801a01d196f40f3468e87eea81788b2567423030100865c5061",
   "error_type": "parser_error",
   "message": "Unable to parse Message: {\"http\": {\"ts\":1488809627.000000.31915,\"uid\":\"C9JpSd2vFAWo3mXKz1\", ...",
-  "timestamp": 1488809630698
+  "timestamp": 1488809630698,
+  "guid": "bf9fb8d1-2507-4a41-a5b2-42f75f6ddc63"
 }
 ```
 
