@@ -38,7 +38,8 @@ METRON_PID_FILE="${METRON_PID_FILE:-/var/run/metron/metron-rest.pid}"
 
 PARSER_CONTRIB=${PARSER_CONTRIB:-$METRON_HOME/parser_contrib}
 INDEXING_CONTRIB=${INDEXING_CONTRIB:-$METRON_HOME/indexing_contrib}
-PARSER_LIB=$(find $METRON_HOME/lib/ -name metron-parsers*.jar)
+METRON_PARSERS_PLATFORM="${METRON_PARSERS_PLATFORM:-storm}"
+PARSER_LIB=$(find $METRON_HOME/lib/ -name metron-parsing-${METRON_PARSERS_PLATFORM}*.jar)
 
 echo "METRON_VERSION=${METRON_VERSION}"
 echo "METRON_HOME=${METRON_HOME}"

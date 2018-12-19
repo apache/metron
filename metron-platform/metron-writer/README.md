@@ -29,7 +29,7 @@ the topic for the message.
 The configuration for this writer is held in the individual Sensor
 Configurations:
 * [Enrichment](../metron-enrichment/README.md#sensor-enrichment-configuration) under the `config` element
-* [Parsers](../metron-parsers/README.md#parser-configuration) in the `parserConfig` element
+* [Parsers](../metron-parsers-common/README.md#parser-configuration) in the `parserConfig` element
 * Profiler - Unsupported currently
 
 In each of these, the kafka writer can be configured via a map which has
