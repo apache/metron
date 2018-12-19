@@ -416,6 +416,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>metron-security-env</config-type>
+          </configuration-dependencies>
         </component>
 
       </components>
