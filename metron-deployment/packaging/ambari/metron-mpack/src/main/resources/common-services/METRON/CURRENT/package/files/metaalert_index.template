@@ -29,6 +29,9 @@
         "score": {
           "type": "keyword"
         },
+        "alert_status": {
+          "type": "keyword"
+        },
         "status": {
           "type": "keyword"
         },

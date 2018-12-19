@@ -105,8 +105,7 @@ public class DefaultMessageDistributorTest {
             periodDurationMillis,
             profileTimeToLiveMillis,
             maxNumberOfRoutes,
-            Ticker.systemTicker(),
-            Optional.of(MoreExecutors.sameThreadExecutor()));
+            Ticker.systemTicker());
   }
 
   /**
@@ -199,8 +198,7 @@ public class DefaultMessageDistributorTest {
             periodDurationMillis,
             profileTimeToLiveMillis,
             maxNumberOfRoutes,
-            ticker,
-            Optional.of(MoreExecutors.sameThreadExecutor()));
+            ticker);
 
     // distribute one message
     distributor.distribute(route, context);
@@ -230,8 +228,7 @@ public class DefaultMessageDistributorTest {
             periodDurationMillis,
             profileTimeToLiveMillis,
             maxNumberOfRoutes,
-            ticker,
-            Optional.of(MoreExecutors.sameThreadExecutor()));
+            ticker);
 
     // distribute one message
     distributor.distribute(route, context);
@@ -262,8 +259,7 @@ public class DefaultMessageDistributorTest {
             periodDurationMillis,
             profileTimeToLiveMillis,
             maxNumberOfRoutes,
-            ticker,
-            Optional.of(MoreExecutors.sameThreadExecutor()));
+            ticker);
 
     // distribute one message
     distributor.distribute(route, context);

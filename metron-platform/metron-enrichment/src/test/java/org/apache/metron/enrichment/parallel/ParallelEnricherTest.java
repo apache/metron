@@ -65,6 +65,47 @@ public class ParallelEnricherTest {
   private static Context stellarContext;
   private static AtomicInteger numAccesses = new AtomicInteger(0);
   private static Map<String, EnrichmentAdapter<CacheKey>> enrichmentsByType;
+  // Declaring explicit class bc getClass().getSimpleName() returns "" for anon classes
+  public static class DummyEnrichmentAdapter implements EnrichmentAdapter<CacheKey> {
+    @Override
+    public void logAccess(CacheKey value) {
+
+    }
+
+    @Override
+    public JSONObject enrich(CacheKey value) {
+      return null;
+    }
+
+    @Override
+    public boolean initializeAdapter(Map<String, Object> config) {
+      return false;
+    }
+
+    @Override
+    public void updateAdapter(Map<String, Object> config) {
+
+    }
+
+    @Override
+    public void cleanup() {
+
+    }
+
+    @Override
+    public String getOutputPrefix(CacheKey value) {
+      return null;
+    }
+  }
+
+  // Declaring explicit class bc getClass().getSimpleName() returns "" for anon classes
+  public static class AccessLoggingStellarAdapter extends StellarAdapter {
+    @Override
+    public void logAccess(CacheKey value) {
+      numAccesses.incrementAndGet();
+    }
+  }
+
   @BeforeClass
   public static void setup() {
     ConcurrencyContext infrastructure = new ConcurrencyContext();
@@ -72,44 +113,9 @@ public class ParallelEnricherTest {
     stellarContext = new Context.Builder()
                          .build();
     StellarFunctions.initialize(stellarContext);
-    StellarAdapter adapter = new StellarAdapter(){
-      @Override
-      public void logAccess(CacheKey value) {
-        numAccesses.incrementAndGet();
-      }
-    }.ofType("ENRICHMENT");
+    StellarAdapter adapter = new AccessLoggingStellarAdapter().ofType("ENRICHMENT");
     adapter.initializeAdapter(new HashMap<>());
-    EnrichmentAdapter<CacheKey> dummy = new EnrichmentAdapter<CacheKey>() {
-      @Override
-      public void logAccess(CacheKey value) {
-
-      }
-
-      @Override
-      public JSONObject enrich(CacheKey value) {
-        return null;
-      }
-
-      @Override
-      public boolean initializeAdapter(Map<String, Object> config) {
-        return false;
-      }
-
-      @Override
-      public void updateAdapter(Map<String, Object> config) {
-
-      }
-
-      @Override
-      public void cleanup() {
-
-      }
-
-      @Override
-      public String getOutputPrefix(CacheKey value) {
-        return null;
-      }
-    };
+    EnrichmentAdapter<CacheKey> dummy = new DummyEnrichmentAdapter();
 
     enrichmentsByType = ImmutableMap.of("stellar", adapter, "dummy", dummy);
     enricher = new ParallelEnricher(enrichmentsByType, infrastructure, false);
@@ -139,13 +145,19 @@ public class ParallelEnricherTest {
     }};
     ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
     JSONObject ret = result.getResult();
-    Assert.assertEquals("Got the wrong result count: " + ret, 8, ret.size());
+    Assert.assertEquals("Got the wrong result count: " + ret, 11, ret.size());
     Assert.assertEquals(1, ret.get("map.blah"));
     Assert.assertEquals("test", ret.get("source.type"));
     Assert.assertEquals(1, ret.get("one"));
     Assert.assertEquals(2, ret.get("foo"));
     Assert.assertEquals("TEST", ret.get("ALL_CAPS"));
     Assert.assertEquals(0, result.getEnrichmentErrors().size());
+    Assert.assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.begin.ts"));
+    Assert.assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.end.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.begin.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.end.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.begin.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.end.ts"));
   }
 /**
    * {
@@ -170,7 +182,13 @@ public class ParallelEnricherTest {
     }};
     ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
     JSONObject ret = result.getResult();
-    Assert.assertEquals("Got the wrong result count: " + ret, 4, ret.size());
+    Assert.assertEquals("Got the wrong result count: " + ret, 7, ret.size());
+    Assert.assertTrue(result.getResult().containsKey("adapter.dummyenrichmentadapter.begin.ts"));
+    Assert.assertTrue(result.getResult().containsKey("adapter.dummyenrichmentadapter.end.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.begin.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.end.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.begin.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.end.ts"));
   }
 
   /**
@@ -208,13 +226,19 @@ public class ParallelEnricherTest {
     }};
     ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
     JSONObject ret = result.getResult();
-    Assert.assertEquals(ret + " is not what I expected", 8, ret.size());
+    Assert.assertEquals(ret + " is not what I expected", 11, ret.size());
     Assert.assertEquals(1, ret.get("map.blah"));
     Assert.assertEquals("test", ret.get("source.type"));
     Assert.assertEquals(1, ret.get("one"));
     Assert.assertEquals(2, ret.get("foo"));
     Assert.assertEquals("TEST", ret.get("ALL_CAPS"));
     Assert.assertEquals(1, result.getEnrichmentErrors().size());
+    Assert.assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.begin.ts"));
+    Assert.assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.end.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.begin.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.end.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.begin.ts"));
+    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.end.ts"));
   }
 
   /**

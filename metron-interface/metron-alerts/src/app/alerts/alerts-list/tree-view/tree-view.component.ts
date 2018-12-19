@@ -323,7 +323,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   sortTreeSubGroup($event, treeGroup: TreeGroupData) {
-    let sortBy = $event.sortBy === 'id' ? 'guid' : $event.sortBy;
+    let sortBy = $event.sortBy === 'id' ? '_uid' : $event.sortBy;
     let sortOrder = $event.sortOrder === Sort.ASC ? 'asc' : 'desc';
     let sortField = new SortField(sortBy, sortOrder);
 

@@ -29,7 +29,8 @@ fi
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export CLASSNAME="org.apache.metron.common.cli.ConfigurationManager"
-export JAR=metron-parsers-$METRON_VERSION-uber.jar
+export JAR=metron-parsers-common-$METRON_VERSION-uber.jar
+# TODO export the Storm jar?
 export HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
 
 CP=$METRON_HOME/lib/$JAR:${HBASE_HOME}/lib/hbase-server.jar:`${HBASE_HOME}/bin/hbase classpath`

@@ -54,7 +54,7 @@ In the following example, I enter the pull request number when prompted.   Using
     remote: Total 37861 (delta 27), reused 47 (delta 4), pack-reused 37757
     Receiving objects: 100% (37861/37861), 58.18 MiB | 4.38 MiB/s, done.
     Resolving deltas: 100% (14439/14439), done.
-    From https://git-wip-us.apache.org/repos/asf/metron
+    From https://gitbox.apache.org/repos/asf/metron.git
      * branch              master     -> FETCH_HEAD
      * [new branch]        master     -> upstream/master
     Already on 'master'

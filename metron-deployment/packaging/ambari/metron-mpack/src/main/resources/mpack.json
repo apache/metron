@@ -1,7 +1,7 @@
 {
   "type": "full-release",
   "name": "metron-ambari.mpack",
-  "version": "0.6.1.0",
+  "version": "0.7.0.0",
   "description": "Ambari Management Pack for Apache Metron",
   "prerequisites": {
     "min-ambari-version": "2.4.0.0",
@@ -25,7 +25,7 @@
       "service_versions_map": [
         {
           "service_name" : "KIBANA",
-          "service_version" : "5.6.2",
+          "service_version" : "5.6.14",
           "applicable_stacks" : [
             {
               "stack_name" : "HDP",
@@ -48,7 +48,7 @@
         },
         {
           "service_name" : "ELASTICSEARCH",
-          "service_version" : "5.6.2",
+          "service_version" : "5.6.14",
           "applicable_stacks" : [
             {
               "stack_name" : "HDP",

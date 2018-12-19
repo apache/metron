@@ -17,6 +17,6 @@
   <input type="text" class="form-control" [(ngModel)]="value">
   <div class="input-group-btn-vertical">
     <button class="btn btn-default" type="button" (click)="value=value+1" [disabled]="value >= max"><i class="fa fa-caret-up"></i></button>
-    <button class="btn btn-default" type="button" (click)="value=value-1" [disabled]="value <= min"><i class="fa fa-caret-down"></i></button>
+    <button class="btn btn-default ml-1" type="button" (click)="value=value-1" [disabled]="value <= min"><i class="fa fa-caret-down"></i></button>
   </div>
 </div>

@@ -21,11 +21,11 @@
 package org.apache.metron.profiler;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.CacheWriter;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
 import com.github.benmanes.caffeine.cache.Ticker;
-import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.stellar.dsl.Context;
@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -105,7 +104,7 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
           long periodDurationMillis,
           long profileTimeToLiveMillis,
           long maxNumberOfRoutes) {
-    this(periodDurationMillis, profileTimeToLiveMillis, maxNumberOfRoutes, Ticker.systemTicker(), Optional.empty());
+    this(periodDurationMillis, profileTimeToLiveMillis, maxNumberOfRoutes, Ticker.systemTicker());
   }
 
   /**
@@ -116,14 +115,12 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
    * @param maxNumberOfRoutes The max number of unique routes to maintain.  After this is exceeded, lesser
    *                          used routes will be evicted from the internal cache.
    * @param ticker The ticker used to drive time for the caches.  Only needs set for testing.
-   * @param cacheMaintenanceExecutor The executor responsible for running cache maintenance tasks. Only needed for testing.
    */
   public DefaultMessageDistributor(
           long periodDurationMillis,
           long profileTimeToLiveMillis,
           long maxNumberOfRoutes,
-          Ticker ticker,
-          Optional<Executor> cacheMaintenanceExecutor) {
+          Ticker ticker) {
 
     if(profileTimeToLiveMillis < periodDurationMillis) {
       throw new IllegalStateException(format(
@@ -138,11 +135,8 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
             .newBuilder()
             .maximumSize(maxNumberOfRoutes)
             .expireAfterAccess(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
-            .removalListener(new ActiveCacheRemovalListener())
-            .ticker(ticker);
-    if (cacheMaintenanceExecutor.isPresent()) {
-      activeCacheBuilder.executor(cacheMaintenanceExecutor.get());
-    }
+            .ticker(ticker)
+            .writer(new ActiveCacheWriter());
     if (LOG.isDebugEnabled()) {
       activeCacheBuilder.recordStats();
     }
@@ -153,11 +147,8 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
             .newBuilder()
             .maximumSize(maxNumberOfRoutes)
             .expireAfterWrite(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
-            .removalListener(new ExpiredCacheRemovalListener())
-            .ticker(ticker);
-    if (cacheMaintenanceExecutor.isPresent()) {
-      expiredCacheBuilder.executor(cacheMaintenanceExecutor.get());
-    }
+            .ticker(ticker)
+            .writer(new ExpiredCacheWriter());
     if (LOG.isDebugEnabled()) {
       expiredCacheBuilder.recordStats();
     }
@@ -238,10 +229,12 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
    */
   private void cacheMaintenance() {
     activeCache.cleanUp();
+    LOG.debug("Active cache maintenance triggered: cacheStats={}, size={}",
+            activeCache.stats().toString(), activeCache.estimatedSize());
+
     expiredCache.cleanUp();
-    LOG.debug("Cache maintenance triggered: activeCacheStats={}, expiredCacheStats={}",
-            activeCache.stats().toString(),
-            expiredCache.stats().toString());
+    LOG.debug("Expired cache maintenance triggered: cacheStats={}, size={}",
+            expiredCache.stats().toString(), expiredCache.estimatedSize());
   }
 
   /**
@@ -315,41 +308,51 @@ public class DefaultMessageDistributor implements MessageDistributor, Serializab
   }
 
   /**
-   * A listener that is notified when profiles expire from the active cache.
+   * Notified synchronously when the active cache is modified.
    */
-  private class ActiveCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder>, Serializable {
+  private class ActiveCacheWriter implements CacheWriter<Integer, ProfileBuilder>, Serializable {
 
     @Override
-    public void onRemoval(@Nullable Integer key, @Nullable ProfileBuilder expired, @Nonnull RemovalCause cause) {
-      LOG.warn("Profile expired from active cache; profile={}, entity={}",
-              expired.getDefinition().getProfile(),
-              expired.getEntity());
+    public void write(@Nonnull Integer key, @Nonnull ProfileBuilder value) {
+      // do nothing
+    }
 
-      // add the profile to the expired cache
-      expiredCache.put(key, expired);
+    @Override
+    public void delete(@Nonnull Integer key, @Nullable ProfileBuilder value, @Nonnull RemovalCause cause) {
+      if(cause.wasEvicted()) {
+        // add the profile to the expired cache
+        expiredCache.put(key, value);
+        LOG.debug("Profile expired from active cache due to inactivity; profile={}, entity={}, cause={}",
+                value.getDefinition().getProfile(), value.getEntity(), cause);
+
+      } else {
+        LOG.error("Profile removed from cache unexpectedly. File a bug report; profile={}, entity={}, cause={}",
+                value.getDefinition().getProfile(), value.getEntity(), cause);
+      }
     }
   }
 
   /**
-   * A listener that is notified when profiles expire from the active cache.
+   * Notified synchronously when the expired cache is modified.
    */
-  private class ExpiredCacheRemovalListener implements RemovalListener<Integer, ProfileBuilder>, Serializable {
+  private class ExpiredCacheWriter implements CacheWriter<Integer, ProfileBuilder>, Serializable {
 
     @Override
-    public void onRemoval(@Nullable Integer key, @Nullable ProfileBuilder expired, @Nonnull RemovalCause cause) {
+    public void write(@Nonnull Integer key, @Nonnull ProfileBuilder value) {
+      // nothing to do
+    }
+
+    @Override
+    public void delete(@Nonnull Integer key, @Nullable ProfileBuilder value, @Nonnull RemovalCause cause) {
       if(cause.wasEvicted()) {
         // the expired profile was NOT flushed in time
         LOG.warn("Expired profile NOT flushed before removal, some state lost; profile={}, entity={}, cause={}",
-                expired.getDefinition().getProfile(),
-                expired.getEntity(),
-                cause);
+                value.getDefinition().getProfile(), value.getEntity(), cause);
 
       } else {
         // the expired profile was flushed successfully
         LOG.debug("Expired profile successfully flushed; profile={}, entity={}, cause={}",
-                expired.getDefinition().getProfile(),
-                expired.getEntity(),
-                cause);
+                value.getDefinition().getProfile(), value.getEntity(), cause);
       }
     }
   }

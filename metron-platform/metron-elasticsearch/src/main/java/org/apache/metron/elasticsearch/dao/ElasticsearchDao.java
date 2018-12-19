@@ -17,11 +17,6 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -38,10 +33,16 @@ import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class ElasticsearchDao implements IndexDao {
 
@@ -63,8 +64,9 @@ public class ElasticsearchDao implements IndexDao {
   private ElasticsearchRequestSubmitter requestSubmitter;
 
   private AccessConfig accessConfig;
+  private WriteRequest.RefreshPolicy refreshPolicy;
 
-  protected ElasticsearchDao(ElasticsearchClient client,
+  public ElasticsearchDao(ElasticsearchClient client,
       AccessConfig config,
       ElasticsearchSearchDao searchDao,
       ElasticsearchUpdateDao updateDao,
@@ -83,6 +85,7 @@ public class ElasticsearchDao implements IndexDao {
 
   public ElasticsearchDao() {
     //uninitialized.
+    refreshPolicy = WriteRequest.RefreshPolicy.NONE;
   }
 
   public AccessConfig getAccessConfig() {
@@ -100,10 +103,10 @@ public class ElasticsearchDao implements IndexDao {
       this.accessConfig = config;
       this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client);
       this.requestSubmitter = new ElasticsearchRequestSubmitter(this.client);
-      this.searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao,
-          requestSubmitter);
+      this.searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao, requestSubmitter);
       this.retrieveLatestDao = new ElasticsearchRetrieveLatestDao(client);
-      this.updateDao = new ElasticsearchUpdateDao(client, accessConfig, retrieveLatestDao);
+      this.updateDao = new ElasticsearchUpdateDao(client, accessConfig, retrieveLatestDao)
+              .withRefreshPolicy(refreshPolicy);
     }
 
     if (columnMetadataDao == null) {
@@ -153,11 +156,6 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException {
-    return updateDao.replace(request, timestamp);
-  }
-
-  @Override
   public Document addCommentToAlert(CommentAddRemoveRequest request) throws IOException {
     return updateDao.addCommentToAlert(request);
   }
@@ -187,8 +185,13 @@ public class ElasticsearchDao implements IndexDao {
     return this.updateDao.removeCommentFromAlert(request, latest);
   }
 
+  public ElasticsearchDao withRefreshPolicy(WriteRequest.RefreshPolicy refreshPolicy) {
+    this.refreshPolicy = refreshPolicy;
+    return this;
+  }
+
   protected Optional<String> getIndexName(String guid, String sensorType) throws IOException {
-    return updateDao.getIndexName(guid, sensorType);
+    return updateDao.findIndexNameByGUID(guid, sensorType);
   }
 
   protected SearchResponse search(SearchRequest request, QueryBuilder queryBuilder)

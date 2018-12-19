@@ -16,7 +16,7 @@
   <div class="metron-slider-pane-edit fill load-left-to-right dialog2x">
 
   <div class="form-title">Schema</div>
-  <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancel()"></i>
+  <i class="fa fa-times float-right close-button" aria-hidden="true" (click)="onCancel()"></i>
 
 
   <form role="form" class="fieldschema-form">
@@ -25,7 +25,7 @@
       <br><br>
 
       <div class="metron-bg-inverse">
-        <div class="p-2">
+        <div class="p-4">
 
           <div class="row placeholder" *ngIf="fieldSchemaRows.length===0 || (parserResult === {})">
             A data sample is need to view/configure the complete schema.
@@ -36,16 +36,16 @@
             <div class="col-md-9 title text-grey"> Changes </div>
           </div>
 
-          <div *ngFor="let fieldSchemaRow of fieldSchemaRows" class="row pb-1 mx-0">
+          <div *ngFor="let fieldSchemaRow of fieldSchemaRows" class="row pb-3 mx-0">
               <!-- Readonly Field Schema Row -->
               <div class="field-schema-row" *ngIf="!fieldSchemaRow.showConfig" [class.field-suppressed]="fieldSchemaRow.isRemoved">
                 <div class="col-md-3 field-schema-cell-title"> {{ fieldSchemaRow.outputFieldName }} </div>
                 <div class="col-md-7 field-schema-cell-value" [innerHtml]="getChanges(fieldSchemaRow)"> </div>
                 <div class="col-md-2 field-schema-cell icon-blue" style="font-size: 16px">
-                  <i *ngIf="!fieldSchemaRow.isParserGenerated" class="fa fa-trash pull-right" aria-hidden="true" (click)="onDelete(fieldSchemaRow)"></i>
-                  <i class="fa fa-pencil pull-right" aria-hidden="true" (click)="fieldSchemaRow.showConfig=true"></i>
-                  <i *ngIf="!fieldSchemaRow.isRemoved" class="fa fa-ban pull-right" aria-hidden="true" (click)="onRemove(fieldSchemaRow)"></i>
-                  <i *ngIf="fieldSchemaRow.isRemoved" class="fa fa-check-circle-o pull-right" style="color:lightgreen" aria-hidden="true" (click)="onEnable(fieldSchemaRow)"></i>
+                  <i *ngIf="!fieldSchemaRow.isParserGenerated" class="fa fa-trash float-right ml-1" aria-hidden="true" (click)="onDelete(fieldSchemaRow)"></i>
+                  <i class="fa fa-pencil float-right ml-1" aria-hidden="true" (click)="fieldSchemaRow.showConfig=true"></i>
+                  <i *ngIf="!fieldSchemaRow.isRemoved" class="fa fa-ban float-right ml-1" aria-hidden="true" (click)="onRemove(fieldSchemaRow)"></i>
+                  <i *ngIf="fieldSchemaRow.isRemoved" class="fa fa-check-circle-o float-right ml-1" style="color:lightgreen" aria-hidden="true" (click)="onEnable(fieldSchemaRow)"></i>
 
                 </div>
               </div>
@@ -54,15 +54,15 @@
               <div class="config container" *ngIf="fieldSchemaRow.showConfig">
 
                 <!--Title-->
-                <div class="row py-1">
+                <div class="row py-3">
                   <div class="col-md-10 enrichments-edit-title"> {{ fieldSchemaRow.outputFieldName }} </div>
                   <div class="col-md-2  enrichment-cell">
-                    <i class="fa fa-times-circle pull-right small-close-button" aria-hidden="true" (click)="onCancelChange(fieldSchemaRow)"></i>
+                    <i class="fa fa-times-circle float-right small-close-button" aria-hidden="true" (click)="onCancelChange(fieldSchemaRow)"></i>
                   </div>
                 </div>
 
                 <!--Input Field Name-->
-                <div class="form-group  px-1 col-md-10" *ngIf="fieldSchemaRow.isNew">
+                <div class="form-group  px-3 col-md-10" *ngIf="fieldSchemaRow.isNew">
                   <label>INPUT FIELD</label>
                   <select [(ngModel)]="fieldSchemaRow.inputFieldName" [ngModelOptions]="{standalone: true}" (ngModelChange)="fieldSchemaRow.outputFieldName=fieldSchemaRow.inputFieldName+'_copy'">
                     <option [disabled] [selected]>  </option>
@@ -71,39 +71,39 @@
                 </div>
 
                 <!-- Output Field Name-->
-                <div class="form-group  px-1 col-md-10" *ngIf="fieldSchemaRow.isNew  || !fieldSchemaRow.isParserGenerated">
+                <div class="form-group  px-3 col-md-10" *ngIf="fieldSchemaRow.isNew  || !fieldSchemaRow.isParserGenerated">
                   <label>NAME</label>
                   <input type="text" class="form-control" [name]="fieldSchemaRow.outputFieldName" [(ngModel)]="fieldSchemaRow.outputFieldName" [ngModelOptions]="{standalone: true}">
                 </div>
 
                 <!-- Transforms -->
-                <div class="form-group  px-1 col-md-12">
+                <div class="form-group  px-3 col-md-12">
                   <label>TRANSFORMATIONS</label>
                   <metron-config-multiple-input [type]="'select'" [availableItems]="transformOptions" [(configuredItems)]="fieldSchemaRow.transformConfigured" (onConfigChange)="onTransformsChange(fieldSchemaRow)"> </metron-config-multiple-input>
                   <div class="edit-pane-readonly rounded col-md-10"> {{ fieldSchemaRow.preview }} </div>
                 </div>
 
                 <!-- Enrichmnets -->
-                <div class="form-group  px-1 col-md-12">
+                <div class="form-group  px-3 col-md-12">
                   <label>ENRICHMENTS</label>
                   <metron-config-multiple-input [availableItems]="enrichmentOptions" [(configuredItems)]="fieldSchemaRow.enrichmentConfigured" [allowDuplicates]="false"> </metron-config-multiple-input>
                 </div>
 
                 <!-- Threat Intel -->
-                <div class="form-group  px-1 col-md-12">
+                <div class="form-group  px-3 col-md-12">
                   <label>THREAT INTEL </label>
                   <metron-config-multiple-input [availableItems]="threatIntelOptions" [(configuredItems)]="fieldSchemaRow.threatIntelConfigured" [allowDuplicates]="false"> </metron-config-multiple-input>
                 </div>
 
-                <div class="form-group  p-1 col-md-12">
-                  <button type="submit" class="btn form-enable-disable-button pull-left" (click)="onSaveChange(fieldSchemaRow)">SAVE</button>
+                <div class="form-group  p-3 col-md-12">
+                  <button type="submit" class="btn form-enable-disable-button float-left" (click)="onSaveChange(fieldSchemaRow)">SAVE</button>
                 </div>
 
               </div>
           </div>
 
           <div class="row mx-0 add-button" *ngIf="fieldSchemaRows.length > 0">
-            <button type="submit" class="btn form-enable-disable-button" (click)="addNewRule()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+            <button type="submit" class="btn form-enable-disable-button d-flex justify-content-center" (click)="addNewRule()"><i class="fa fa-plus" aria-hidden="true"></i></button>
           </div>
 
         </div>

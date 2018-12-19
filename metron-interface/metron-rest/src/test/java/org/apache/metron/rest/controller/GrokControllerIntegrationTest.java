@@ -131,7 +131,7 @@ public class GrokControllerIntegrationTest {
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$").isNotEmpty());
 
-        String statement = FileUtils.readFileToString(new File("../../metron-platform/metron-parsers/src/main/resources/patterns/squid"));
+        String statement = FileUtils.readFileToString(new File("../../metron-platform/metron-parsing/metron-parsers/src/main/resources/patterns/squid"));
         this.mockMvc.perform(get(grokUrl + "/get/statement?path=/patterns/squid").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")))
