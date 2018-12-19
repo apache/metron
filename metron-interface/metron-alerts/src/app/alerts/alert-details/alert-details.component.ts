@@ -255,9 +255,9 @@ export class AlertDetailsComponent implements OnInit {
         let deletedCommentWrapper = this.alertCommentsWrapper.splice(index, 1)[0];
         let commentRequest = new CommentAddRemoveRequest();
         commentRequest.guid = this.alertSource.guid;
-        commentRequest.comment = this.alertCommentsWrapper[index].alertComment.comment;
-        commentRequest.username = this.alertCommentsWrapper[index].alertComment.username;
-        commentRequest.timestamp = this.alertCommentsWrapper[index].alertComment.timestamp;
+        commentRequest.comment = deletedCommentWrapper.alertComment.comment;
+        commentRequest.username = deletedCommentWrapper.alertComment.username;
+        commentRequest.timestamp = deletedCommentWrapper.alertComment.timestamp;
         commentRequest.sensorType = this.alertSourceType;
         this.updateService.removeComment(commentRequest).subscribe(
             () => {
