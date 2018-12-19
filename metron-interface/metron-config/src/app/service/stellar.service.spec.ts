@@ -25,6 +25,18 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 import { StellarFunctionDescription } from '../model/stellar-function-description';
+import {AppConfigService} from "./app-config.service";
+
+class MockAppConfigService extends AppConfigService {
+
+  getApiRoot() {
+    return '/api/v1'
+  }
+
+  getLoginPath() {
+    return '/login'
+  }
+}
 
 describe('StellarService', () => {
   let mockBackend: HttpTestingController;
@@ -35,7 +47,7 @@ describe('StellarService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         StellarService,
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     mockBackend = TestBed.get(HttpTestingController);

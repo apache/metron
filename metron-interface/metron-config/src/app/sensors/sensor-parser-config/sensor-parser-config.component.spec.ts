@@ -438,7 +438,7 @@ export class MockSensorEnrichmentConfigService {
   }
 }
 
-class FakeAppConfigService extends AppConfigService {
+class MockAppConfigService extends AppConfigService {
 
   getApiRoot() {
     return '/api/v1'
@@ -549,7 +549,7 @@ describe('Component: SensorParserConfig', () => {
           provide: SensorEnrichmentConfigService,
           useClass: MockSensorEnrichmentConfigService
         },
-        { provide: AppConfigService, useValue: FakeAppConfigService }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     fixture = TestBed.createComponent(SensorParserConfigComponent);

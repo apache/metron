@@ -51,7 +51,7 @@ class MockGlobalConfigService extends GlobalConfigService {
   }
 }
 
-class FakeAppConfigService extends AppConfigService {
+class MockAppConfigService extends AppConfigService {
 
   getApiRoot() {
     return '/api/v1'
@@ -99,7 +99,7 @@ describe('GeneralSettingsComponent', () => {
         MetronAlerts,
         MetronDialogBox,
         { provide: GlobalConfigService, useClass: MockGlobalConfigService },
-        { provide: AppConfigService, useValue: FakeAppConfigService }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     fixture = TestBed.createComponent(GeneralSettingsComponent);

@@ -24,6 +24,18 @@ import {
   HttpTestingController,
   HttpClientTestingModule
 } from '@angular/common/http/testing';
+import {AppConfigService} from "./app-config.service";
+
+class MockAppConfigService extends AppConfigService {
+
+  getApiRoot() {
+    return '/api/v1'
+  }
+
+  getLoginPath() {
+    return '/login'
+  }
+}
 
 describe('SensorParserConfigHistoryService', () => {
   let mockBackend: HttpTestingController;
@@ -34,7 +46,7 @@ describe('SensorParserConfigHistoryService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         SensorParserConfigHistoryService,
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     mockBackend = TestBed.get(HttpTestingController);

@@ -65,7 +65,7 @@ describe('App: Static', () => {
       providers: [
         { provide: AuthenticationService, useClass: MockAuthenticationService },
         { provide: Router, useClass: MockRouter },
-        { provide: AppConfigService, useValue: FakeAppConfigService }
+        { provide: AppConfigService, useClass: FakeAppConfigService }
       ]
     });
     fixture = TestBed.createComponent(AppComponent);
@@ -78,7 +78,6 @@ describe('App: Static', () => {
   });
 
   it('should return true/false from loginevent and loggedIn should be set', () => {
-    expect(comp.loggedIn).toEqual(false);
     authenticationService.onLoginEvent.next(true);
     expect(comp.loggedIn).toEqual(true);
     authenticationService.onLoginEvent.next(false);
