@@ -19,7 +19,9 @@
 
 package org.apache.metron.management;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
@@ -31,7 +33,9 @@ import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readSensorParserConfigFromZookeeper;
 import static org.apache.metron.management.Functions.getArg;
+import static org.apache.metron.management.Functions.getZookeeperClient;
 import static org.apache.metron.management.Functions.hasArg;
 
 /**
@@ -42,32 +46,40 @@ public class ParserFunctions {
   @Stellar(
           namespace = "PARSER",
           name = "INIT",
-          description = "Initialize a parser to parse messages.",
+          description = "Initialize a parser to parse the raw telemetry produced by a sensor.",
           params = {
                   "sensorType - The type of sensor to parse.",
-                  "config - The parser configuration."
+                  "config - [Optional] The parser configuration. If not provided, the configuration will be " +
+                          "retrieved from Zookeeper."
           },
-          returns = "A parser that can be used to parse messages."
+          returns = "A parser that can be used to parse sensor telemetry with `PARSER_PARSE`."
   )
-  public static class InitializeFunction extends BaseStellarFunction {
+  public static class InitializeFunction implements StellarFunction {
 
     @Override
-    public Object apply(List<Object> args) throws ParseException {
-
+    public Object apply(List<Object> args, Context context) throws ParseException {
       String sensorType = getArg("sensorType", 0, String.class, args);
       StellarParserRunner parser = new StellarParserRunner(sensorType);
 
       // handle the parser configuration argument
       String configArgName = "config";
-      if(hasArg(configArgName, 1, String.class, args)) {
+      if(args.size() == 1) {
+        // no config passed by user, attempt to retrieve from zookeeper
+        SensorParserConfig config = readFromZookeeper(context, sensorType);
+        parser.withParserConfiguration(sensorType, config);
+
+      } else if(hasArg(configArgName, 1, String.class, args)) {
         // parser config passed in as a string
         String arg = getArg(configArgName, 1, String.class, args);
         parser.withParserConfiguration(arg);
 
-      } else {
-        // parser configuration passed in as a map
+      } else if(hasArg(configArgName, 1, Map.class, args)){
+        // parser config passed in as a map
         Map<String, Object> arg = getArg(configArgName, 1, Map.class, args);
         parser.withParserConfiguration(arg);
+
+      } else {
+        throw new ParseException(format("unexpected '%s' argument; expected string or map", configArgName));
       }
 
       // handle the 'globals' argument which is optional
@@ -78,17 +90,45 @@ public class ParserFunctions {
 
       return parser;
     }
+
+    private SensorParserConfig readFromZookeeper(Context context, String sensorType) throws ParseException {
+      SensorParserConfig config;
+      try {
+        CuratorFramework zkClient = getZookeeperClient(context);
+        config = readSensorParserConfigFromZookeeper(sensorType, zkClient);
+
+      } catch(Exception e) {
+        throw new ParseException(ExceptionUtils.getRootCauseMessage(e), e);
+      }
+
+      if(config == null) {
+        throw new ParseException("Unable to read configuration from Zookeeper; sensorType = " + sensorType);
+      }
+
+      return config;
+    }
+
+    @Override
+    public void initialize(Context context) {
+      // nothing to do
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return true;
+    }
   }
 
   @Stellar(
           namespace = "PARSER",
           name = "PARSE",
-          description = "Parse a message.",
+          description = "Parses the raw telemetry produced by a sensor.",
           params = {
                   "parser - The parser created with PARSER_INIT.",
-                  "input - A message or list of messages to parse."
+                  "input - A telemetry message or list of telemetry messages to parse."
           },
-          returns = "A list of messages that result from parsing the input."
+          returns = "A list of messages that result from parsing the input telemetry. If the input cannot be " +
+                  "parsed, a message encapsulating the error is returned as part of that list."
   )
   public static class ParseFunction implements StellarFunction {
 

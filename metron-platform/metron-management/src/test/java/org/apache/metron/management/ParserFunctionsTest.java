@@ -20,15 +20,19 @@
 package org.apache.metron.management;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
+import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,6 +54,8 @@ import static org.apache.metron.common.Constants.Fields.DST_ADDR;
 import static org.apache.metron.common.Constants.Fields.DST_PORT;
 import static org.apache.metron.common.Constants.Fields.SRC_ADDR;
 import static org.apache.metron.common.Constants.Fields.SRC_PORT;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests the {@link ParserFunctions} class.
@@ -215,6 +221,93 @@ public class ParserFunctionsTest {
     String config = execute("PARSER_CONFIG(parser)", String.class);
     Assert.assertNotNull(config);
     Assert.assertNotNull(SensorParserConfig.fromBytes(config.getBytes()));
+  }
+
+  @Test
+  public void testInitFromString() throws Exception {
+    set("configAsString", broParserConfig);
+    StellarParserRunner runner = execute("PARSER_INIT('bro', configAsString)", StellarParserRunner.class);
+
+    Assert.assertNotNull(runner);
+    SensorParserConfig actual = runner.getParserConfigurations().getSensorParserConfig("bro");
+    SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes());
+    Assert.assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testInitFromMap() throws Exception {
+    Map<String, Object> configAsMap = (JSONObject) new JSONParser().parse(broParserConfig);
+    set("configAsMap", configAsMap);
+    StellarParserRunner runner = execute("PARSER_INIT('bro', configAsMap)", StellarParserRunner.class);
+
+    Assert.assertNotNull(runner);
+    SensorParserConfig actual = runner.getParserConfigurations().getSensorParserConfig("bro");
+    SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes());
+    Assert.assertEquals(expected, actual);
+  }
+
+  @Test(expected = ParseException.class)
+  public void testInitFromInvalidValue() throws Exception {
+    execute("PARSER_INIT('bro', 22)", StellarParserRunner.class);
+    Assert.fail("expected exception");
+  }
+
+  @Test
+  public void testInitFromZookeeper() throws Exception {
+    byte[] configAsBytes = broParserConfig.getBytes();
+    CuratorFramework zkClient = zkClientForPath("/metron/topology/parsers/bro", configAsBytes);
+    context.addCapability(Context.Capabilities.ZOOKEEPER_CLIENT, () -> zkClient);
+
+    StellarParserRunner runner = execute("PARSER_INIT('bro')", StellarParserRunner.class);
+
+    Assert.assertNotNull(runner);
+    SensorParserConfig actual = runner.getParserConfigurations().getSensorParserConfig("bro");
+    SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes());
+    Assert.assertEquals(expected, actual);
+  }
+
+  @Test(expected = ParseException.class)
+  public void testInitMissingFromZookeeper() throws Exception {
+    // there is no config for 'bro' in zookeeper
+    CuratorFramework zkClient = zkClientMissingPath("/metron/topology/parsers/bro");
+    context.addCapability(Context.Capabilities.ZOOKEEPER_CLIENT, () -> zkClient);
+
+    execute("PARSER_INIT('bro')", StellarParserRunner.class);
+    Assert.fail("expected exception");
+  }
+
+  /**
+   * Create a mock Zookeeper client that returns a value for a given path.
+   *
+   * @param path The path within Zookeeper that will be requested.
+   * @param value The value to return when the path is requested.
+   * @return The mock Zookeeper client.
+   */
+  private CuratorFramework zkClientForPath(String path, byte[] value) throws Exception {
+    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
+    when(getDataBuilder.forPath(path)).thenReturn(value);
+
+    CuratorFramework zkClient = mock(CuratorFramework.class);
+    when(zkClient.getData()).thenReturn(getDataBuilder);
+
+    return zkClient;
+  }
+
+  /**
+   * Create a mock Zookeeper client that will indicate the given path does not exist.
+   *
+   * @param path The path that will 'not exist'.
+   * @return The mock Zookeeper client.
+   */
+  private CuratorFramework zkClientMissingPath(String path) throws Exception {
+
+    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
+    when(getDataBuilder.forPath(path)).thenThrow(new KeeperException.NoNodeException(path));
+
+    CuratorFramework zkClient = mock(CuratorFramework.class);
+    when(zkClient.getData()).thenReturn(getDataBuilder);
+
+    return zkClient;
   }
 
   private boolean isError(JSONObject message) {

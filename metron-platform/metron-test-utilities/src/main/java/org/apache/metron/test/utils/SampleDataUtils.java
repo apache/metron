@@ -25,8 +25,8 @@ import java.io.FileNotFoundException;
 
 public class SampleDataUtils {
 
-  public static String getSampleDataPath(String sensorType, TestDataType testDataType) throws FileNotFoundException {
-    File sensorSampleDataPath = new File(TestConstants.SAMPLE_DATA_PATH, sensorType);
+  public static String getSampleDataPath(String pathPrefix, String sensorType, TestDataType testDataType) throws FileNotFoundException {
+    File sensorSampleDataPath = new File(pathPrefix + "/" + TestConstants.SAMPLE_DATA_PATH, sensorType);
     if (sensorSampleDataPath.exists() && sensorSampleDataPath.isDirectory()) {
       File sampleDataPath = new File(sensorSampleDataPath, testDataType.getDirectoryName());
       if (sampleDataPath.exists() && sampleDataPath.isDirectory()) {
@@ -37,5 +37,9 @@ public class SampleDataUtils {
       }
     }
     throw new FileNotFoundException("Could not find data in " + TestConstants.SAMPLE_DATA_PATH + sensorType + "/" + testDataType.getDirectoryName());
+  }
+
+  public static String getSampleDataPath(String sensorType, TestDataType testDataType) throws FileNotFoundException {
+    return getSampleDataPath("", sensorType, testDataType);
   }
 }
