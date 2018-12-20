@@ -108,7 +108,7 @@ class Indexing(Script):
                 msg = "WARNING: Solr schemas could not be installed.  " \
                       "Is Solr running?  Will reattempt install on next start.  error={0}"
                 Logger.warning(msg.format(e))
-        else:
+        elif params.ra_indexing_writer == 'Elasticsearch':
             # Install elasticsearch templates
             try:
                 if not commands.is_elasticsearch_template_installed():
@@ -119,6 +119,10 @@ class Indexing(Script):
                 msg = "WARNING: Elasticsearch index templates could not be installed.  " \
                       "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
                 Logger.warning(msg.format(e))
+        else :
+            msg = "WARNING:  index schemas/templates could not be installed.  " \
+                  "Is Indexing server configured properly ?  Will reattempt install on next start.  index server configured={0}"
+            Logger.warning(msg.format(params.ra_indexing_writer))
 
         commands.start_indexing_topology(env)
 
