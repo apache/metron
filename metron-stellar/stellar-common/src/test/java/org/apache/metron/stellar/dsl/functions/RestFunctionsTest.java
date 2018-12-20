@@ -122,6 +122,7 @@ public class RestFunctionsTest {
    * The REST_GET function should perform a get request and parse the results.
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void restGetShouldSucceed() throws Exception {
     Map<String, Object> actual = (Map<String, Object>) run(String.format("REST_GET('%s')", getUri), context);
 
@@ -133,6 +134,7 @@ public class RestFunctionsTest {
    * The REST_GET function should perform a get request using a proxy and parse the results.
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void restGetShouldSucceedWithProxy() {
     mockServerClient.when(
             request()
@@ -494,6 +496,7 @@ public class RestFunctionsTest {
    * The REST_GET function should timeout and return null.
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void restGetShouldTimeout() {
     String uri = String.format("http://localhost:%d/get", mockServerRule.getPort());
 
@@ -528,6 +531,7 @@ public class RestFunctionsTest {
    * The REST_GET function should honor the function supplied timeout setting.
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void restGetShouldTimeoutWithSuppliedTimeout() {
     String expression = String.format("REST_GET('%s', %s)", getUri, timeoutConfig);
     Map<String, Object> actual = (Map<String, Object>) run(expression, context);

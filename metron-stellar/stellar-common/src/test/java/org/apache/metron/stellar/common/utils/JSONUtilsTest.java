@@ -58,6 +58,7 @@ public class JSONUtilsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void loads_file_with_map_class() throws Exception {
     Map<String, Object> expected = new HashMap<String, Object>() {{
       put("a", "hello");

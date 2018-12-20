@@ -22,8 +22,10 @@ import com.google.common.collect.Iterables;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Stellar;
+
 import java.util.List;
 import java.util.function.BiFunction;
+
 import static org.apache.metron.stellar.common.utils.ConversionUtils.convert;
 
 
@@ -43,12 +45,13 @@ public class OrdinalFunctions {
   public static class Max extends BaseStellarFunction {
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
       if (args.size() < 1 || args.get(0) == null) {
         throw new IllegalStateException("MAX function requires at least one argument");
       }
       Object firstArg = args.get(0);
-      if(firstArg instanceof Ordinal) {
+      if (firstArg instanceof Ordinal) {
         Ordinal stats = convert(firstArg, Ordinal.class);
         return stats.getMax();
       } else if (firstArg instanceof Iterable) {
@@ -62,27 +65,33 @@ public class OrdinalFunctions {
   }
 
   /**
-   * Stellar Function: MIN
+   * Stellar Function: MIN.
+   *
    * <p>
    * Return the minimum value of a list of input values in a Stellar list
+   * </p>
    */
-  @Stellar(name = "MIN"
-          , description = "Returns the minimum value of a list of input values"
-          , params = {"stats - The Stellar statistics object"
-          ,"list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface)" +
-          " Multi type numeric comparisons are supported: MIN([10,15L,15.3]) would return 10, but MIN(['23',25]) will fail and return null as strings and numbers can't be compared."}
-          , returns = "The minimum value in the list or from stats, or null if the list is empty or the input values were not comparable.")
+  @Stellar(name = "MIN",
+          description = "Returns the minimum value of a list of input values",
+          params = {"stats - The Stellar statistics object",
+                  "list - List of arguments. The list may only contain objects that are mutually comparable "
+                  + "/ ordinal (implement java.lang.Comparable interface)"
+                  + " Multi type numeric comparisons are supported: MIN([10,15L,15.3]) would return 10,"
+                  + "but MIN(['23',25]) will fail and return null as strings and numbers can't be compared."},
+          returns = "The minimum value in the list or from stats, or null if the list is empty or the input values"
+                  + " were not comparable.")
   public static class Min extends BaseStellarFunction {
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
       if (args.size() < 1 || args.get(0) == null) {
         throw new IllegalStateException("MIN function requires at least one argument");
       }
       Object firstArg = args.get(0);
-      if(firstArg instanceof Ordinal) {
+      if (firstArg instanceof Ordinal) {
         Ordinal stats = convert(firstArg, Ordinal.class);
         return stats.getMin();
-      } else if (firstArg instanceof Iterable){
+      } else if (firstArg instanceof Iterable) {
         Iterable<Comparable> list = (Iterable<Comparable>) args.get(0);
         return orderList(list, (ret, val) -> ret.compareTo(val) > 0, "MIN");
       } else {
