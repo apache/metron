@@ -48,10 +48,10 @@ public class RiskLevelRule {
   String rule;
 
   /**
-   * A numeric value that represents the score that is applied to the alert. This
-   * field is required.
+   * A Stellar expression that when evaluated results in a numeric score. The expression
+   * can refer to fields within the message undergoing triage.
    */
-  Number score;
+  String score;
 
   /**
    * Allows a rule author to provide contextual information when a rule is applied
@@ -86,12 +86,24 @@ public class RiskLevelRule {
     this.rule = rule;
   }
 
-  public Number getScore() {
+  public String getScore() {
     return score;
   }
 
-  public void setScore(Number score) {
-    this.score = score;
+  public void setScore(Object score) {
+    if(score instanceof Number) {
+      // a numeric value was provided
+      score = Number.class.cast(score).toString();
+
+    } else if (score instanceof String) {
+      // a stellar expression was provided
+      score = String.class.cast(score);
+
+    } else {
+      throw new IllegalArgumentException(String.format("Expected 'score' to be number or string, but got '%s'", score));
+    }
+
+    this.score = score.toString();
   }
 
   public String getReason() {

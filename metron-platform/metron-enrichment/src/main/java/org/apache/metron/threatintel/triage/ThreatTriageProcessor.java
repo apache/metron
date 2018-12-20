@@ -35,9 +35,9 @@ import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Applies the threat triage rules to an alert and produces a threat score that is
@@ -72,30 +72,36 @@ public class ThreatTriageProcessor implements Function<Map, ThreatScore> {
     this.context = context;
   }
 
+  /**
+   * @param message The message being triaged.
+   */
   @Nullable
   @Override
-  public ThreatScore apply(@Nullable Map input) {
+  public ThreatScore apply(@Nullable Map message) {
 
     ThreatScore threatScore = new ThreatScore();
     StellarPredicateProcessor predicateProcessor = new StellarPredicateProcessor();
     StellarProcessor processor = new StellarProcessor();
-    VariableResolver resolver = new MapVariableResolver(input, sensorConfig.getConfiguration(), threatIntelConfig.getConfig());
+    VariableResolver variableResolver = new MapVariableResolver(message, sensorConfig.getConfiguration(), threatIntelConfig.getConfig());
 
     // attempt to apply each rule to the threat
     for(RiskLevelRule rule : threatTriageConfig.getRiskLevelRules()) {
-      if(predicateProcessor.parse(rule.getRule(), resolver, functionResolver, context)) {
+      if(predicateProcessor.parse(rule.getRule(), variableResolver, functionResolver, context)) {
 
         // add the rule's score to the overall threat score
-        String reason = execute(rule.getReason(), processor, resolver, String.class);
-        RuleScore score = new RuleScore(rule, reason);
-        threatScore.addRuleScore(score);
+        String reason = execute(rule.getReason(), processor, variableResolver, String.class);
+        Double score = execute(rule.getScore(), processor, variableResolver, Double.class);
+        threatScore.addRuleScore(new RuleScore(rule, reason, score));
       }
     }
 
     // calculate the aggregate threat score
+    List<Number> ruleScores = new ArrayList<>();
+    for(RuleScore ruleScore: threatScore.getRuleScores()) {
+      ruleScores.add(ruleScore.getScore());
+    }
     Aggregators aggregators = threatTriageConfig.getAggregator();
-    List<Number> allScores = threatScore.getRuleScores().stream().map(score -> score.getRule().getScore()).collect(Collectors.toList());
-    Double aggregateScore = aggregators.aggregate(allScores, threatTriageConfig.getAggregationConfig());
+    Double aggregateScore = aggregators.aggregate(ruleScores, threatTriageConfig.getAggregationConfig());
     threatScore.setScore(aggregateScore);
 
     return threatScore;

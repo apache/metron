@@ -260,8 +260,7 @@ public class ThreatTriageFunctions {
       String[][] data = new String[triageRules.size()][5];
       int i = 0;
       for(RiskLevelRule rule : triageRules) {
-        double d = rule.getScore().doubleValue();
-        String score = d == (long)d ? String.format("%d", (long)d) : String.format("%s", d);
+        String score = rule.getScore();
         String name = Optional.ofNullable(rule.getName()).orElse("");
         String comment = Optional.ofNullable(rule.getComment()).orElse("");
         String reason = Optional.ofNullable(rule.getReason()).orElse("");

@@ -129,7 +129,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals(10.0, rule.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("10.0", rule.getScore());
   }
 
   @Test
@@ -159,19 +159,19 @@ public class ThreatTriageFunctionsTest {
 
     newConfig = (String) run(
             "THREAT_TRIAGE_ADD(config, { 'rule' : SHELL_GET_EXPRESSION('greater'), 'score' : 20 } )"
-            , toMap("config",newConfig
+            , toMap("config", newConfig
             )
     );
 
     List<RiskLevelRule> triageRules = getTriageRules(newConfig);
     Assert.assertEquals(2, triageRules.size());
     RiskLevelRule less = triageRules.get(0);
-    Assert.assertEquals(variables.get("less").getExpression().get(), less.getRule() );
-    Assert.assertEquals(10.0, less.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals(variables.get("less").getExpression().get(), less.getRule());
+    Assert.assertEquals("10.0", less.getScore());
 
     RiskLevelRule greater = triageRules.get(1);
-    Assert.assertEquals(variables.get("greater").getExpression().get(), greater.getRule() );
-    Assert.assertEquals(20.0, greater.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals(variables.get("greater").getExpression().get(), greater.getRule());
+    Assert.assertEquals("20.0", greater.getScore());
   }
 
   @Test(expected=ParseException.class)
@@ -202,7 +202,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals(10.0, rule.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("10.0", rule.getScore());
   }
 
   @Test
@@ -258,7 +258,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals(10.0, rule.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("10.0", rule.getScore());
   }
 
   @Test
@@ -283,7 +283,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals(10.0, rule.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("10.0", rule.getScore());
   }
 
   @Test
@@ -322,20 +322,20 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(2, triageRules.size());
     RiskLevelRule less = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), less.getRule() );
-    Assert.assertEquals(10.0, less.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("10.0", less.getScore());
 
     RiskLevelRule greater = triageRules.get(1);
     Assert.assertEquals(variables.get("greater").getExpression().get(), greater.getRule() );
-    Assert.assertEquals(20.0, greater.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("20.0", greater.getScore());
   }
 
   /**
 ╔══════╤═════════╤═════════════╤═══════╤════════╗
 ║ Name │ Comment │ Triage Rule │ Score │ Reason ║
 ╠══════╪═════════╪═════════════╪═══════╪════════╣
-║      │         │ 1 < 2       │ 10    │ 2 + 2  ║
+║      │         │ 1 < 2       │ 10.0  │ 2 + 2  ║
 ╟──────┼─────────┼─────────────┼───────┼────────╢
-║      │         │ 1 > 2       │ 20    │        ║
+║      │         │ 1 > 2       │ 20.0  │        ║
 ╚══════╧═════════╧═════════════╧═══════╧════════╝
 Aggregation: MAX*/
   @Multiline
