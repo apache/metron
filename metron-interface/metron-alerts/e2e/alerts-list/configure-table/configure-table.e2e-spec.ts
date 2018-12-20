@@ -24,7 +24,7 @@ import {loadTestData, deleteTestData} from '../../utils/e2e_util';
 describe('Test spec for table column configuration', function() {
   let page: MetronAlertsPage;
   let loginPage: LoginPage;
-  let colNamesColumnConfig = [ 'score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
+  let colNamesColumnConfig = [ 'score', 'guid', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
     'ip_dst_addr', 'host', 'alert_status' ];
 
   beforeAll(async function() : Promise<any> {
@@ -45,17 +45,18 @@ describe('Test spec for table column configuration', function() {
   });
 
   it('should select columns from table configuration', async function() : Promise<any> {
-    let newColNamesColumnConfig = [ 'score', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
-      'ip_dst_addr', 'host', 'alert_status', 'guid' ];
-
     await page.clearLocalStorage();
     await page.navigateTo();
+    await page.clickConfigureTable();
+    expect(await page.getSelectedColumnNames()).toEqualBcoz(colNamesColumnConfig, 'for default selected column names');
 
-    await  page.clickConfigureTable();
-    expect(await  page.getSelectedColumnNames()).toEqualBcoz(colNamesColumnConfig, 'for default selected column names');
-    await page.toggleSelectCol('id');
+    // remove the 'guid' column and add the 'id' column
     await page.toggleSelectCol('guid');
-    expect(await page.getSelectedColumnNames()).toEqualBcoz(newColNamesColumnConfig, 'for guid added to selected column names');
+    await page.toggleSelectCol('id');
+
+    let expectedColumns = [ 'score', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
+      'ip_dst_addr', 'host', 'alert_status', 'id' ];
+    expect(await page.getSelectedColumnNames()).toEqualBcoz(expectedColumns, 'expect "id" field added and "guid" field removed from visible columns');
     await page.saveConfigureColumns();
   });
 

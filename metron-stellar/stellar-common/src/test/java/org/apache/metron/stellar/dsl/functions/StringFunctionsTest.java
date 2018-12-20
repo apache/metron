@@ -70,6 +70,7 @@ public class StringFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testLeftRightFills() throws Exception {
     final Map<String, Object> variableMap = new HashMap<String, Object>() {{
       put("foo", null);
@@ -225,6 +226,7 @@ public class StringFunctionsTest {
    * @throws Exception
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void testChomp() throws Exception {
     Assert.assertEquals("abc",  run("CHOMP('abc')", new HashedMap()));
     Assert.assertEquals("abc",  run("CHOMP(msg)", ImmutableMap.of("msg", "abc\r\n")));
@@ -268,6 +270,7 @@ public class StringFunctionsTest {
    * @throws Exception
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void testChop() throws Exception {
     Assert.assertEquals("ab",   run("CHOP('abc')", new HashedMap()));
     Assert.assertEquals(null,   run("CHOP(null)", new HashedMap()));
@@ -310,6 +313,7 @@ public class StringFunctionsTest {
    * PREPEND_IF_MISSING StringFunction
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void testPrependIfMissing() throws Exception {
     Assert.assertEquals("xyzabc",     run("PREPEND_IF_MISSING('abc', 'xyz')", new HashedMap()));
     Assert.assertEquals("xyzXYZabc",  run("PREPEND_IF_MISSING('XYZabc', 'xyz', 'mno')", new HashedMap()));
@@ -363,6 +367,7 @@ public class StringFunctionsTest {
    * APPEND_IF_MISSING StringFunction
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void testAppendIfMissing() throws Exception {
     Assert.assertEquals("apachemetron",   run("APPEND_IF_MISSING('apache', 'metron')", new HashedMap()));
     Assert.assertEquals("abcXYZxyz",      run("APPEND_IF_MISSING('abcXYZ', 'xyz', 'mno')", new HashedMap()));
@@ -450,6 +455,7 @@ public class StringFunctionsTest {
    * COUNT_MATCHES StringFunction
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void testCountMatches() throws Exception {
     Assert.assertEquals(0, (int) run("COUNT_MATCHES(null, '*')", new HashedMap()));
     Assert.assertEquals(2, (int) run("COUNT_MATCHES('apachemetron', 'e')", new HashedMap()));
@@ -536,6 +542,7 @@ public class StringFunctionsTest {
   private String string5;
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testToJsonObject() throws Exception {
     //JSON Object
     Object ret1 = run("TO_JSON_OBJECT(msg)", ImmutableMap.of("msg", string1));
@@ -674,6 +681,7 @@ public class StringFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testToJsonList() throws Exception {
     //Simple Arrays
     Object ret3 = run("TO_JSON_LIST(msg)", ImmutableMap.of("msg", string3));

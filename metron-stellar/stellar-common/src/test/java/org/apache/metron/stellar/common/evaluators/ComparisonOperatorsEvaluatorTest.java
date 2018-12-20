@@ -46,6 +46,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void nonSupportedOperatorThrowsExceptionNonNumbericComparable() throws Exception {
     Token<String> left = mock(Token.class);
     when(left.getValue()).thenReturn("b");
@@ -62,6 +63,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void nonSupportedOperatorThrowsExceptionNumbericComparison() throws Exception {
     Token<Long> left = mock(Token.class);
     when(left.getValue()).thenReturn(1L);
@@ -78,6 +80,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void leftIsNullThenThrowException() throws Exception {
     Token<Long> left = mock(Token.class);
     Token<Long> right = mock(Token.class);
@@ -90,6 +93,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void rightIsNullThenReturnFalse() throws Exception {
     Token<Long> left = mock(Token.class);
     when(left.getValue()).thenReturn(1L);
@@ -102,6 +106,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void rightAndLeftIsNullThenReturnFalse() throws Exception {
     Token<Long> left = mock(Token.class);
     Token<Long> right = mock(Token.class);
@@ -113,6 +118,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void throwParseExceptionWhenTryingToCompareNonComparable() throws Exception {
     exception.expect(ParseException.class);
     exception.expectMessage("Unsupported operations. The following expression is invalid: ");
@@ -130,6 +136,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void makeSureAllOperatorsProperlyWorkForLongs() throws Exception {
     Token<Long> left = mock(Token.class);
     when(left.getValue()).thenReturn(0L);
@@ -160,6 +167,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void makeSureAllOperatorsProperlyWorkForDoubles() throws Exception {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(0D);
@@ -190,6 +198,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void makeSureAllOperatorsProperlyWorkForFloats() throws Exception {
     Token<Float> left = mock(Token.class);
     when(left.getValue()).thenReturn(0F);
@@ -220,6 +229,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void makeSureAllOperatorsProperlyWorkForInts() throws Exception {
     Token<Integer> left = mock(Token.class);
     when(left.getValue()).thenReturn(0);
@@ -250,6 +260,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void makeSureAllOperatorsWorkForMixedTypesDoublesLong() throws Exception {
     Token<Long> left = mock(Token.class);
     when(left.getValue()).thenReturn(1L);
@@ -280,6 +291,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void makeSureAllOperatorsWorkForMixedTypesDoublesFloat() throws Exception {
     final double leftValue = 1.0000001D;
     final float rightValue = 1.0000001F;
@@ -313,6 +325,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void makeSureAllOperatorsWorkForMixedTypesFloatIntegers() throws Exception {
     final int leftValue = 1;
     final float rightValue = 1.0000001F;
@@ -346,6 +359,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void makeSureAllOperatorsWorkForMixedTypesFloatIntegers2() throws Exception {
     final int leftValue = 1;
     final float rightValue = 1.00000001F;
@@ -379,6 +393,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void makeSureAllOperatorsWorkForMixedTypesLongIntegers() throws Exception {
     final int leftValue = 1;
     final long rightValue = 3L;
@@ -412,6 +427,7 @@ public class ComparisonOperatorsEvaluatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void makeSureAllOperatorsWorkForNonIntegerComparableTypes() throws Exception {
     final String leftValue = "a";
     final String rightValue = "b";

@@ -324,7 +324,7 @@ public class ThreatTriageFunctions {
           // create the rule
           RiskLevelRule ruleToAdd = new RiskLevelRule();
           ruleToAdd.setRule((String) newRule.get(RULE_EXPR_KEY));
-          ruleToAdd.setScore(ConversionUtils.convert(newRule.get(RULE_SCORE_KEY), Double.class));
+          ruleToAdd.setScore(newRule.get(RULE_SCORE_KEY));
 
           // add optional rule fields
           if (newRule.containsKey(RULE_NAME_KEY)) {

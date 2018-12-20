@@ -27,7 +27,7 @@ ADD ./enrichment /enrichment
 ADD ./indexing /indexing
 ADD ./elasticsearch /elasticsearch
 RUN mkdir -p $METRON_HOME
-RUN tar -xzf /parser/metron-parsers-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
+RUN tar -xzf /parser/metron-parsing-storm-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
 
 RUN tar -xzf /enrichment/metron-enrichment-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
 RUN sed -i -e "s/kafka.zk=.*:/kafka.zk=kafkazk:/g" /usr/metron/$METRON_VERSION/config/enrichment.properties

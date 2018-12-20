@@ -29,7 +29,8 @@ mkdir -p $METRON_DOCKER_ROOT/storm/elasticsearch/
 echo Installing HBase dependencies
 cp $METRON_PLATFORM_ROOT/metron-data-management/target/metron-data-management-$METRON_VERSION-archive.tar.gz $METRON_DOCKER_ROOT/hbase/data-management
 echo Installing Storm dependencies
-cp $METRON_PLATFORM_ROOT/metron-parsers/target/metron-parsers-$METRON_VERSION-archive.tar.gz $METRON_DOCKER_ROOT/storm/parser/
+cp $METRON_PLATFORM_ROOT/metron-parsers/metron-parsers-common/target/metron-parsers-common-$METRON_VERSION-archive.tar.gz $METRON_DOCKER_ROOT/storm/parser/
+cp $METRON_PLATFORM_ROOT/metron-parsers/metron-parsing-storm/target/metron-parsing-storm-$METRON_VERSION-archive.tar.gz $METRON_DOCKER_ROOT/storm/parser/
 cp $METRON_PLATFORM_ROOT/metron-enrichment/target/metron-enrichment-$METRON_VERSION-archive.tar.gz $METRON_DOCKER_ROOT/storm/enrichment/
 cp $METRON_PLATFORM_ROOT/metron-indexing/target/metron-indexing-$METRON_VERSION-archive.tar.gz $METRON_DOCKER_ROOT/storm/indexing/
 echo Installing Elasticsearch dependencies

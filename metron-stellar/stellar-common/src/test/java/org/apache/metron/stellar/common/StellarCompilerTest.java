@@ -70,6 +70,7 @@ public class StellarCompilerTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void exitIntLiteralShouldProperlyParseStringsAsIntegers() throws Exception {
     StellarParser.IntLiteralContext ctx = mock(StellarParser.IntLiteralContext.class);
     Token result = mock(Token.class);
@@ -87,6 +88,7 @@ public class StellarCompilerTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void exitDoubleLiteralShouldProperlyParseStringsAsDoubles() throws Exception {
     StellarParser.DoubleLiteralContext ctx = mock(StellarParser.DoubleLiteralContext.class);
     Token result = mock(Token.class);
@@ -106,6 +108,7 @@ public class StellarCompilerTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void exitFloatLiteralShouldProperlyParseStringsAsFloats() throws Exception {
     StellarParser.FloatLiteralContext ctx = mock(StellarParser.FloatLiteralContext.class);
     when(ctx.getText()).thenReturn("1000f");
@@ -125,6 +128,7 @@ public class StellarCompilerTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void exitLongLiteralShouldProperlyParseStringsAsLongs() throws Exception {
     StellarParser.LongLiteralContext ctx = mock(StellarParser.LongLiteralContext.class);
     when(ctx.getText()).thenReturn("1000l");
@@ -144,6 +148,7 @@ public class StellarCompilerTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void properlyCompareTwoNumbers() throws Exception {
     StellarParser.ComparisonExpressionWithOperatorContext ctx = mock(StellarParser.ComparisonExpressionWithOperatorContext.class);
     StellarParser.ComparisonOpContext mockOp = mock(StellarParser.ComparisonOpContext.class);

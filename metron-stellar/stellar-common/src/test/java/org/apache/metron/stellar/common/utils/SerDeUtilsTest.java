@@ -122,6 +122,7 @@ public class SerDeUtilsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testBloomFilter() {
     final BloomFilter<Object> expected = new BloomFilter<>(new BloomFilter.DefaultSerializer<>(), 10000, 0.01);
     expected.add("foo");
