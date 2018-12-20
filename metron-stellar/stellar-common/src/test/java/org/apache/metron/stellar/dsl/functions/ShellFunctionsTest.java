@@ -135,6 +135,7 @@ public class ShellFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testVars2Map() {
     Object out = run("SHELL_VARS2MAP('var1', 'var2')", new HashMap<>(), context);
     Assert.assertTrue(out instanceof Map);
@@ -145,6 +146,7 @@ public class ShellFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testVars2MapEmpty() {
     Object out = run("SHELL_VARS2MAP()", new HashMap<>(), context);
     Map<String, String> mapOut = (Map<String, String>)out;

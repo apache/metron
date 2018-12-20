@@ -27,6 +27,7 @@ import org.apache.metron.stellar.common.utils.SerDeUtils;
 import org.apache.metron.stellar.common.utils.hashing.EnumConfigurable;
 import org.apache.metron.stellar.common.utils.hashing.Hasher;
 
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
@@ -69,64 +70,54 @@ public class TLSHHasher implements Hasher {
   public Object getHash(Object o) throws EncoderException, NoSuchAlgorithmException {
     TLSH tlsh = TLSHCache.INSTANCE.get().getTLSH(bucketOption, checksumOption);
     byte[] data = null;
-    if(o instanceof String) {
-      data = ((String)o).getBytes();
-    }
-    else if(o instanceof byte[]) {
+    if (o instanceof String) {
+      data = ((String)o).getBytes(StandardCharsets.UTF_8);
+    } else if (o instanceof byte[]) {
       data = (byte[])o;
-    }
-    else {
+    } else {
       data = SerDeUtils.toBytes(o);
     }
     try {
       String hash = tlsh.apply(data, force);
-      if(hashes != null && hashes.size() > 0) {
+      if (hashes != null && hashes.size() > 0) {
         Map<String, Object> ret = new HashMap<>();
         ret.put(TLSH_KEY, hash);
         ret.putAll(bin(hash));
         return ret;
-      }
-      else {
+      } else {
         return hash;
       }
-    }
-    catch(IllegalStateException ise) {
-      return null;
-    } catch (DecoderException e) {
+    } catch (Exception e) {
       return null;
     }
   }
 
   public Map<String, String> bin(String hash) throws DecoderException {
     Random r = new Random(0);
-    byte[] h = Hex.decodeHex(hash.substring(2*checksumOption.getChecksumLength()).toCharArray());
+    byte[] h = Hex.decodeHex(hash.substring(2 * checksumOption.getChecksumLength()).toCharArray());
     BitSet vector = BitSet.valueOf(h);
     int n = vector.length();
     Map<String, String> ret = new HashMap<>();
     boolean singleHash = hashes.size() == 1;
-    for(int numHashes : hashes) {
+    for (int numHashes : hashes) {
       BitSet projection = new BitSet();
       for (int i = 0; i < numHashes; ++i) {
         int index = r.nextInt(n);
         projection.set(i, vector.get(index));
       }
       String outputHash = numHashes + Hex.encodeHexString(projection.toByteArray());
-      if(singleHash) {
+      if (singleHash) {
         ret.put(TLSH_BIN_KEY, outputHash);
-      }
-      else {
+      } else {
         ret.put(TLSH_BIN_KEY + "_" + numHashes, outputHash);
       }
     }
     return ret;
   }
 
-
-
-
   @Override
   public void configure(Optional<Map<String, Object>> config) {
-    if(config.isPresent() && !config.get().isEmpty()) {
+    if (config.isPresent() && !config.get().isEmpty()) {
       bucketOption = Config.BUCKET_SIZE.get(config.get()
               , o -> {
                 Integer bucketSize = ConversionUtils.convert(o, Integer.class);

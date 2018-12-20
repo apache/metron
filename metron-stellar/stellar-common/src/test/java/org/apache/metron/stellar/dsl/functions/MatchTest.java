@@ -325,6 +325,7 @@ public class MatchTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testIfThenElseAction() {
     Assert.assertEquals(2,run("match{ foo == true => IF bar THEN 1 ELSE 2, default => 0}", new HashMap(){{
       put("foo",true);
