@@ -960,6 +960,10 @@
           "subsection-name": "subsection-security-knox"
         },
         {
+          "config": "metron-security-env/metron.knox.sso.token.ttl",
+          "subsection-name": "subsection-security-knox"
+        },
+        {
           "config": "metron-pcap-env/pcap_topology_workers",
           "subsection-name": "subsection-pcap"
         },
@@ -1724,6 +1728,12 @@
         "config": "metron-security-env/metron.knox.sso.pubkey",
         "widget": {
           "type": "text-area"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.knox.sso.token.ttl",
+        "widget": {
+          "type": "text-field"
         }
       },
       {

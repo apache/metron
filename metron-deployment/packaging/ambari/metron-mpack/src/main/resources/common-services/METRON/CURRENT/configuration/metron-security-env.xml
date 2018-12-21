@@ -215,5 +215,15 @@
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
   </property>
+  <property>
+    <name>metron.knox.sso.token.ttl</name>
+    <display-name>Knox SSO Token Time to live</display-name>
+    <value>300000</value>
+    <description>Controls the time to live for Knox SSO tokens in Metron.  Units are in milliseconds.</description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
 
 </configuration>

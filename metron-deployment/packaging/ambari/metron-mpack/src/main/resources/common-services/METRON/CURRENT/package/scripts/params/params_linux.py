@@ -452,6 +452,7 @@ metron_alerts_ui_login_path = '/login'
 metron_management_ui_login_path = '/login'
 metron_knox_enabled = config['configurations']['metron-security-env']['metron.knox.enabled']
 metron_knox_sso_pubkey = config['configurations']['metron-security-env']['metron.knox.sso.pubkey']
+metron_knox_sso_token_ttl = config['configurations']['metron-security-env']['metron.knox.sso.token.ttl']
 if metron_knox_enabled:
     metron_rest_path = metron_knox_root_path + '/metron-rest' + metron_rest_path
     metron_alerts_ui_login_path = metron_knox_root_path + '/metron-alerts/'
