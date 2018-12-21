@@ -23,23 +23,12 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 import { AuthenticationService } from './authentication.service';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 import {AppConfigService} from "./app-config.service";
-import {HttpUtil} from "../util/httpUtil";
+import {MockAppConfigService} from './mock.app-config.service';
+import {HttpUtil} from '../util/httpUtil';
 
 class MockRouter {
   navigateByUrl(url: string) {}
-}
-
-class MockAppConfigService extends AppConfigService {
-
-  getApiRoot() {
-    return '/api/v1'
-  }
-
-  getLoginPath() {
-    return '/login'
-  }
 }
 
 describe('AuthenticationService', () => {

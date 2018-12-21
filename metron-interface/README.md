@@ -64,6 +64,8 @@ The UIs make REST requests this way with Knox enabled since they no longer depen
 REST still requires authentication so a filter is provided that can validate a Knox token using token properties and a Knox public key.  The REST application also supports Basic authentication.  Since both Knox and the REST application should use
 the same authentication mechanism, LDAP authentication is required for the REST application.
 
+Roles are mapped directly to LDAP groups when Knox is enabled for REST.  LDAP group names are converted to upper case and prepended with "ROLE_".  For example, if a user's groups in LDAP were "user" and "admin", the corresponding roles in REST with Knox enabled would be "ROLE_USER" and "ROLE_ADMIN".
+
 ### Knox Request/Response Flow
 
 The following diagram illustrates the flow of data for the various types of requests when Knox is enabled:

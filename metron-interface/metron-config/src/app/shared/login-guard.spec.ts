@@ -20,7 +20,8 @@ import {AuthenticationService} from '../service/authentication.service';
 import {Router} from '@angular/router';
 import {LoginGuard} from './login-guard';
 import {HttpClientTestingModule} from "@angular/common/http/testing";
-import {AppConfigService} from "../service/app-config.service";
+import {AppConfigService} from '../service/app-config.service';
+import {MockAppConfigService} from '../service/mock.app-config.service';
 
 class MockAuthenticationService extends AuthenticationService {
   public logout(): void {}
@@ -28,17 +29,6 @@ class MockAuthenticationService extends AuthenticationService {
 
 class MockRouter {
   navigateByUrl(): any {}
-}
-
-class MockAppConfigService extends AppConfigService {
-
-  getApiRoot() {
-    return '/api/v1'
-  }
-
-  getLoginPath() {
-    return '/login'
-  }
 }
 
 describe('LoginGuard', () => {
