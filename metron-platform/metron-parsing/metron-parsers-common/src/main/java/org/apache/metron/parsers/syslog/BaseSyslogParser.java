@@ -22,8 +22,10 @@ import com.github.palindromicity.syslog.SyslogParser;
 import com.github.palindromicity.syslog.dsl.SyslogFieldKeys;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.parsers.DefaultMessageParserResult;
+import org.apache.metron.parsers.ParseException;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
+import org.apache.metron.parsers.utils.SyslogUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,14 +36,16 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.lang.invoke.MethodHandles;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 
@@ -49,9 +53,12 @@ import java.util.function.Consumer;
  * Parser for well structured RFC 5424 messages.
  */
 public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Serializable {
-  private Optional<Consumer<JSONObject>> messageProcessorOptional = Optional.empty();
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  private Optional<Consumer<JSONObject>> messageProcessorOptional = Optional.empty();
   private transient SyslogParser syslogParser;
+
+  protected Clock deviceClock;
 
 
   protected void setSyslogParser(SyslogParser syslogParser) {
@@ -65,8 +72,16 @@ public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Ser
   protected abstract SyslogParser buildSyslogParser( Map<String,Object> config);
 
   @Override
-  public void configure(Map<String, Object> config) {
-    syslogParser = buildSyslogParser(config);
+  public void configure(Map<String, Object> parserConfig) {
+    // we'll pull out the clock stuff ourselves
+    String timeZone = (String) parserConfig.get("deviceTimeZone");
+    if (timeZone != null)
+      deviceClock = Clock.system(ZoneId.of(timeZone));
+    else {
+      deviceClock = Clock.systemUTC();
+      LOG.warn("[Metron] No device time zone provided; defaulting to UTC");
+    }
+    syslogParser = buildSyslogParser(parserConfig);
   }
 
   @Override
@@ -74,11 +89,10 @@ public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Ser
 
   @Override
   public boolean validate(JSONObject message) {
-    JSONObject value = message;
-    if (!(value.containsKey("original_string"))) {
+    if (!(message.containsKey("original_string"))) {
       LOG.trace("[Metron] Message does not have original_string: {}", message);
       return false;
-    } else if (!(value.containsKey("timestamp"))) {
+    } else if (!(message.containsKey("timestamp"))) {
       LOG.trace("[Metron] Message does not have timestamp: {}", message);
       return false;
     } else {
@@ -104,7 +118,12 @@ public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Ser
           // be sure to put in the original string, and the timestamp.
           // we wil just copy over the timestamp from the syslog
           jsonObject.put("original_string", originalString);
-          setTimestamp(jsonObject);
+          try {
+            setTimestamp(jsonObject);
+          } catch (ParseException pe) {
+            errorMap.put(originalString,pe);
+            return;
+          }
           messageProcessorOptional.ifPresent((c) -> c.accept(jsonObject));
           returnList.add(jsonObject);
         },errorMap::put);
@@ -119,12 +138,15 @@ public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Ser
   }
 
   @SuppressWarnings("unchecked")
-  private void setTimestamp(JSONObject message) {
+  private void setTimestamp(JSONObject message) throws ParseException {
     String timeStampString = (String) message.get(SyslogFieldKeys.HEADER_TIMESTAMP.getField());
     if (!StringUtils.isBlank(timeStampString) && !timeStampString.equals("-")) {
-      message.put("timestamp", timeStampString);
+      message.put("timestamp", SyslogUtils.parseTimestampToEpochMillis(timeStampString, deviceClock));
     } else {
-      message.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+      message.put(
+          "timestamp",
+          LocalDateTime.now()
+              .toEpochSecond(ZoneOffset.UTC));
     }
   }
 }
