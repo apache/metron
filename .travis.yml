@@ -22,6 +22,7 @@ addons:
 env:
   - SCRIPT="mvn surefire:test@unit-tests -T 2C"
   - SCRIPT="mvn surefire:test@integration-tests"
+  - SCRIPT="mvn clean site --projects site-book"
   - SCRIPT="mvn test --projects metron-interface/metron-config,metron-interface/metron-alerts"
   - SCRIPT="./dev-utilities/build-utils/verify_licenses.sh"
 

@@ -144,6 +144,7 @@ public class RestConfig extends HashMap<String, Object> {
     return (Integer) get(SOCKET_TIMEOUT);
   }
 
+  @SuppressWarnings("unchecked")
   public List<Integer> getResponseCodesAllowed() {
     return (List<Integer>) get(RESPONSE_CODES_ALLOWED);
   }
