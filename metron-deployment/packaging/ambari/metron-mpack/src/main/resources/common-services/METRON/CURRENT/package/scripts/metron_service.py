@@ -607,6 +607,12 @@ def is_metron_knox_installed(params):
     return os.path.isfile(params.metron_knox_installed_flag_file)
 
 def set_metron_knox_installed(params):
+    Directory(params.metron_zookeeper_config_path,
+              mode=0755,
+              owner=params.metron_user,
+              group=params.metron_group,
+              create_parents=True
+              )
     set_configured(params.metron_user, params.metron_knox_installed_flag_file, "Setting Metron Knox installed to true")
 
 def metron_knox_topology_setup(params):
