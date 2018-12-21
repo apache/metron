@@ -30,6 +30,7 @@ import org.apache.zookeeper.KeeperException;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,7 +63,7 @@ public class ConfigurationsUtils {
   }
 
   public static void writeGlobalConfigToZookeeper(byte[] globalConfig, CuratorFramework client) throws Exception {
-    GLOBAL.deserialize(new String(globalConfig));
+    GLOBAL.deserialize(new String(globalConfig, StandardCharsets.UTF_8));
     writeToZookeeper(GLOBAL.getZookeeperRoot(), globalConfig, client);
   }
 
@@ -100,53 +101,17 @@ public class ConfigurationsUtils {
     return new byte[]{};
   }
 
-/*  public static void uploadConfigsToZookeeper(String globalConfigPath,
-                                              String parsersConfigPath,
-                                              String enrichmentsConfigPath,
-                                              String indexingConfigPath,
-                                              String profilerConfigPath,
-                                              String zookeeperUrl) throws Exception {
-    try(CuratorFramework client = getClient(zookeeperUrl)) {
-      client.start();
-      uploadConfigsToZookeeper(globalConfigPath, parsersConfigPath, enrichmentsConfigPath, indexingConfigPath, profilerConfigPath, client);
-    }
-  }
-
-  public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client) throws Exception {
-    uploadConfigsToZookeeper(rootFilePath, rootFilePath, rootFilePath, rootFilePath, rootFilePath, client);
-  }
-
-  public static void uploadConfigsToZookeeper(String globalConfigPath,
-                                              String parsersConfigPath,
-                                              String enrichmentsConfigPath,
-                                              String indexingConfigPath,
-                                              String profilerConfigPath,
-                                              CuratorFramework client) throws Exception {
-
-    // global
-    if (globalConfigPath != null) {
-      final byte[] globalConfig = readGlobalConfigFromFile(globalConfigPath);
-      if (globalConfig.length > 0) {
-        setupStellarStatically(client, Optional.of(new String(globalConfig)));
-        ConfigurationsUtils.writeGlobalConfigToZookeeper(readGlobalConfigFromFile(globalConfigPath), client);
-      }
-    }
-  }
-  */
-
   public static void setupStellarStatically(CuratorFramework client) throws Exception {
     byte[] ret = null;
     try {
       ret = readGlobalConfigBytesFromZookeeper(client);
-    }
-    catch(KeeperException.NoNodeException nne) {
+    } catch (KeeperException.NoNodeException nne) {
       //can't find the node
     }
-    if(ret == null || ret.length == 0) {
+    if (ret == null || ret.length == 0) {
       setupStellarStatically(client, Optional.empty());
-    }
-    else {
-      setupStellarStatically(client, Optional.of(new String(ret)));
+    } else {
+      setupStellarStatically(client, Optional.of(new String(ret, StandardCharsets.UTF_8)));
     }
   }
 
@@ -177,7 +142,7 @@ public class ConfigurationsUtils {
     return globalConfig;
   }
 
-  public interface ConfigurationVisitor{
+  public interface ConfigurationVisitor {
     void visit(ConfigurationType configurationType, String name, String data);
   }
 
@@ -194,7 +159,7 @@ public class ConfigurationsUtils {
 
       if (configType.equals(GLOBAL)) {
         byte[] globalConfigData = client.getData().forPath(configType.getZookeeperRoot());
-        callback.visit(configType, "global", new String(globalConfigData));
+        callback.visit(configType, "global", new String(globalConfigData, StandardCharsets.UTF_8));
       }
     }
   }

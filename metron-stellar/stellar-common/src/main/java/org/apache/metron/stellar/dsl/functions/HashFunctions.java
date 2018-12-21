@@ -75,6 +75,7 @@ public class HashFunctions {
   public static class Hash extends BaseStellarFunction {
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(final List<Object> args) {
       if (args == null || args.size() < 2) {
         throw new IllegalArgumentException("Invalid number of arguments: " + (args == null ? 0 : args.size()));
@@ -87,9 +88,9 @@ public class HashFunctions {
       }
 
       Map<String, Object> config = null;
-      if(args.size() > 2) {
+      if (args.size() > 2) {
         Object configObj = args.get(2);
-        if(configObj instanceof Map && configObj != null) {
+        if (configObj instanceof Map && configObj != null) {
           config = (Map<String, Object>)configObj;
         }
       }

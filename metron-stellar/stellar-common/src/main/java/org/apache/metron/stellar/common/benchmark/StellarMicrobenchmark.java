@@ -20,11 +20,15 @@ package org.apache.metron.stellar.common.benchmark;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
+
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -229,22 +233,22 @@ public class StellarMicrobenchmark {
                                              );
     List<String> lines = Files.readLines(expressionsFile, Charset.defaultCharset());
     Map<String, Object> variables = new HashMap<>();
-    if(variablesFile.isPresent()) {
+    if (variablesFile.isPresent()) {
       variables = JSONUtils.INSTANCE.load(new FileInputStream(variablesFile.get()), JSONUtils.MAP_SUPPLIER);
     }
     int numTimes = DEFAULT_NUM_TIMES;
-    if(BenchmarkOptions.NUM_TIMES.has(cli)) {
+    if (BenchmarkOptions.NUM_TIMES.has(cli)) {
       numTimes = Integer.parseInt(BenchmarkOptions.NUM_TIMES.get(cli));
     }
     int warmup = DEFAULT_WARMUP;
-    if(BenchmarkOptions.WARMUP.has(cli)) {
+    if (BenchmarkOptions.WARMUP.has(cli)) {
       warmup = Integer.parseInt(BenchmarkOptions.WARMUP.get(cli));
     }
     Double[] percentiles = DEFAULT_PERCENTILES;
-    if(BenchmarkOptions.PERCENTILES.has(cli)) {
+    if (BenchmarkOptions.PERCENTILES.has(cli)) {
       List<Double> percentileList = new ArrayList<>();
-      for(String token : Splitter.on(",").split(BenchmarkOptions.PERCENTILES.get(cli))) {
-        if(token.trim().isEmpty()) {
+      for (String token : Splitter.on(",").split(BenchmarkOptions.PERCENTILES.get(cli))) {
+        if (token.trim().isEmpty()) {
           continue;
         }
         Double d = Double.parseDouble(token.trim());
@@ -252,12 +256,12 @@ public class StellarMicrobenchmark {
       }
       percentiles = (Double[])percentileList.toArray();
     }
-    PrintWriter out = new PrintWriter(System.out);
-    if(output.isPresent()) {
-      out = new PrintWriter(output.get());
+    PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8)));
+    if (output.isPresent()) {
+      out = new PrintWriter(output.get(), StandardCharsets.UTF_8.name());
     }
-    for(String statement : lines) {
-      if(statement.trim().startsWith("#") || statement.trim().isEmpty()) {
+    for (String statement : lines) {
+      if (statement.trim().startsWith("#") || statement.trim().isEmpty()) {
         continue;
       }
       Microbenchmark.StellarStatement s = new Microbenchmark.StellarStatement();
@@ -269,7 +273,7 @@ public class StellarMicrobenchmark {
       out.println("Expression: " + statement);
       out.println(Microbenchmark.describe(stats, percentiles));
     }
-    if(argv.length > 2) {
+    if (argv.length > 2) {
       out.close();
     }
   }
