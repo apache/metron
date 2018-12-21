@@ -35,10 +35,9 @@ import { Sort } from '../../util/enums';
 import 'jquery';
 import { SensorParserConfigHistoryService } from '../../service/sensor-parser-config-history.service';
 import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../../app.config';
 import { StormService } from '../../service/storm.service';
-import { IAppConfig } from '../../app.config.interface';
-import {AppConfigService} from "../../service/app-config.service";
+import {AppConfigService} from '../../service/app-config.service';
+import {MockAppConfigService} from '../../service/mock.app-config.service';
 
 class MockAuthenticationService extends AuthenticationService {
   public checkAuthentication() {}
@@ -137,17 +136,6 @@ class MockMetronDialogBox {
       observer.next(true);
       observer.complete();
     });
-  }
-}
-
-class MockAppConfigService extends AppConfigService {
-
-  getApiRoot() {
-    return '/api/v1'
-  }
-
-  getLoginPath() {
-    return '/login'
   }
 }
 

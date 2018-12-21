@@ -39,15 +39,14 @@ import { FieldTransformer } from '../../model/field-transformer';
 import { SensorParserConfigModule } from './sensor-parser-config.module';
 import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
 import { SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../../app.config';
-import { IAppConfig } from '../../app.config.interface';
 import { SensorIndexingConfigService } from '../../service/sensor-indexing-config.service';
 import { IndexingConfigurations } from '../../model/sensor-indexing-config';
 import { of } from 'rxjs';
 import { HdfsService } from '../../service/hdfs.service';
 import { RestError } from '../../model/rest-error';
 import { RiskLevelRule } from '../../model/risk-level-rule';
-import {AppConfigService} from "../../service/app-config.service";
+import {AppConfigService} from '../../service/app-config.service';
+import {MockAppConfigService} from '../../service/mock.app-config.service';
 
 class MockRouter {
   navigateByUrl(url: string) {}
@@ -435,17 +434,6 @@ export class MockSensorEnrichmentConfigService {
 
   public getPostedSensorEnrichmentConfig() {
     return this.postedSensorEnrichmentConfig;
-  }
-}
-
-class MockAppConfigService extends AppConfigService {
-
-  getApiRoot() {
-    return '/api/v1'
-  }
-
-  getLoginPath() {
-    return '/login'
   }
 }
 

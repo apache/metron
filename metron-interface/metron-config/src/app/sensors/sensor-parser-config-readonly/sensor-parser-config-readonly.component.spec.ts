@@ -33,8 +33,6 @@ import { StormService } from '../../service/storm.service';
 import { MetronAlerts } from '../../shared/metron-alerts';
 import { FieldTransformer } from '../../model/field-transformer';
 import { SensorParserConfigReadonlyModule } from './sensor-parser-config-readonly.module';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../../app.config';
-import { IAppConfig } from '../../app.config.interface';
 import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
 import {
   SensorEnrichmentConfig,
@@ -44,7 +42,8 @@ import {
 import { HdfsService } from '../../service/hdfs.service';
 import { GrokValidationService } from '../../service/grok-validation.service';
 import { RiskLevelRule } from '../../model/risk-level-rule';
-import {AppConfigService} from "../../service/app-config.service";
+import {AppConfigService} from '../../service/app-config.service';
+import {MockAppConfigService} from '../../service/mock.app-config.service';
 
 class MockRouter {
   navigateByUrl(url: string) {}
@@ -210,17 +209,6 @@ class MockSensorEnrichmentConfigService {
       observer.next(['geo', 'host', 'whois']);
       observer.complete();
     });
-  }
-}
-
-class MockAppConfigService extends AppConfigService {
-
-  getApiRoot() {
-    return '/api/v1'
-  }
-
-  getLoginPath() {
-    return '/login'
   }
 }
 

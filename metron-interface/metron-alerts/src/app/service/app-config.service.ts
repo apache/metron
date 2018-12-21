@@ -24,8 +24,6 @@ export class AppConfigService {
 
   private static appConfigStatic;
 
-  private appConfig;
-
   constructor(private http: HttpClient) { }
 
   loadAppConfig() {
@@ -33,17 +31,16 @@ export class AppConfigService {
             // APP_INITIALIZER only supports promises
             .toPromise()
             .then(data => {
-              this.appConfig = data;
               AppConfigService.appConfigStatic = data;
             });
   }
 
   getApiRoot() {
-    return this.appConfig['apiRoot'];
+    return AppConfigService.appConfigStatic['apiRoot'];
   }
 
   getLoginPath() {
-    return this.appConfig['loginPath'];
+    return AppConfigService.appConfigStatic['loginPath'];
   }
 
   static getAppConfigStatic() {

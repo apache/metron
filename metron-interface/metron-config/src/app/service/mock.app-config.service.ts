@@ -15,35 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {AppConfigService} from "./app-config.service";
 
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-
-@Injectable()
-export class AppConfigService {
-
-  private static appConfigStatic;
-
-  constructor(private http: HttpClient) { }
-
-  loadAppConfig() {
-    return this.http.get('assets/app-config.json')
-            // APP_INITIALIZER only supports promises
-            .toPromise()
-            .then(data => {
-              AppConfigService.appConfigStatic = data;
-            });
-  }
+export class MockAppConfigService extends AppConfigService {
 
   getApiRoot() {
-    return AppConfigService.appConfigStatic['apiRoot'];
-  };
-
-  getLoginPath() {
-    return AppConfigService.appConfigStatic['loginPath'];
+    return '/api/v1'
   }
 
-  static getAppConfigStatic() {
-    return AppConfigService.appConfigStatic;
+  getLoginPath() {
+    return '/login'
   }
 }

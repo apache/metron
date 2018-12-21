@@ -20,7 +20,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {AppConfigService} from './app-config.service';
-import {HttpUtil} from "../util/httpUtil";
+import {HttpUtil} from '../util/httpUtil';
 
 @Injectable()
 export class AuthenticationService {

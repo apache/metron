@@ -24,9 +24,8 @@ import { MetronDialogBox } from '../shared/metron-dialog-box';
 import { GlobalConfigService } from '../service/global-config.service';
 import { GeneralSettingsModule } from './general-settings.module';
 import { Observable, throwError } from 'rxjs';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
-import { IAppConfig } from '../app.config.interface';
-import {AppConfigService} from "../service/app-config.service";
+import {AppConfigService} from '../service/app-config.service';
+import {MockAppConfigService} from '../service/mock.app-config.service';
 
 class MockGlobalConfigService extends GlobalConfigService {
   _config: any = {};
@@ -48,17 +47,6 @@ class MockGlobalConfigService extends GlobalConfigService {
       observer.next(this._config);
       observer.complete();
     });
-  }
-}
-
-class MockAppConfigService extends AppConfigService {
-
-  getApiRoot() {
-    return '/api/v1'
-  }
-
-  getLoginPath() {
-    return '/login'
   }
 }
 

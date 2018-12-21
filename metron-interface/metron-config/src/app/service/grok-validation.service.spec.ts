@@ -18,23 +18,12 @@
 import { async, inject, TestBed } from '@angular/core/testing';
 import { GrokValidationService } from './grok-validation.service';
 import { GrokValidation } from '../model/grok-validation';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
-import {AppConfigService} from "./app-config.service";
-
-class MockAppConfigService extends AppConfigService {
-
-  getApiRoot() {
-    return '/api/v1'
-  }
-
-  getLoginPath() {
-    return '/login'
-  }
-}
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('GrokValidationService', () => {
   let grokValidationService: GrokValidationService;
