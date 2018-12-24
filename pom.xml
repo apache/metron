@@ -121,7 +121,7 @@
         <global_reflections_version>0.9.10</global_reflections_version>
         <global_checkstyle_version>8.0</global_checkstyle_version>
         <global_log4j_core_version>2.1</global_log4j_core_version>
-        <global_simple_syslog_version>0.0.9</global_simple_syslog_version>
+        <global_simple_syslog_version>0.0.1</global_simple_syslog_version>
         <global_spark_version>2.3.1</global_spark_version>
         <global_httpclient_version>4.3.2</global_httpclient_version>
         <global_aesh_version>0.66.19</global_aesh_version>
