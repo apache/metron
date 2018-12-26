@@ -182,6 +182,7 @@ This package installs the Metron Bundled Parser files
 %{metron_home}/config/zookeeper/parsers/bro.json
 %{metron_home}/config/zookeeper/parsers/snort.json
 %{metron_home}/config/zookeeper/parsers/squid.json
+%{metron_home}/config/zookeeper/parsers/syslog3164.json
 %{metron_home}/config/zookeeper/parsers/syslog5424.json
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
@@ -633,6 +634,8 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Wed Dec 26 2018 Apache Metron <dev@metron.apache.org> - 0.7.1
+- Update metron SPEC file to include syslog 3164 parser
 * Thu Nov 15 2018 Apache Metron <dev@metron.apache.org> - 0.7.0
 - Split metron-parsers into metron-parsing and submodules
 * Wed Oct 31 2018 Apache Metron <dev@metron.apache.org> - 0.7.0
