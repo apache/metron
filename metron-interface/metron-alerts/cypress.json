@@ -3,5 +3,7 @@
   "viewportHeight": 850,
   "video": false,
   "supportFile": false,
-  "pluginsFile": false
+  "pluginsFile": false,
+  "requestTimeout": 300000,
+  "responseTimeout": 300000
 }
