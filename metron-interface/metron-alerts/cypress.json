@@ -4,6 +4,5 @@
   "video": false,
   "supportFile": false,
   "pluginsFile": false,
-  "requestTimeout": 300000,
-  "responseTimeout": 300000
+  "baseUrl": "http://localhost:4200"
 }

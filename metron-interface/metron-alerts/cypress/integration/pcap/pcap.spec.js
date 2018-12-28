@@ -26,7 +26,7 @@ context('PCAP Tab', () => {
       response: 'user'
     });
 
-    cy.route('GET', 'global/config', 'fixture:config.json');
+    cy.route('GET', '/api/v1/global/config', 'fixture:config.json');
     cy.route('POST', 'search', 'fixture:search.json');
 
     cy.route({
@@ -35,7 +35,7 @@ context('PCAP Tab', () => {
       response: []
     }).as('runningJobs');
 
-    cy.visit('http://localhost:4200/login');
+    cy.visit('login');
     cy.get('[name="user"]').type('user');
     cy.get('[name="password"]').type('password');
     cy.contains('LOG IN').click();
