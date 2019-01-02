@@ -220,6 +220,7 @@ public class HashFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void tlsh_multiBin() throws Exception {
     final Map<String, Object> variables = new HashMap<>();
 
@@ -266,6 +267,7 @@ public class HashFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void tlsh_similarity() throws Exception {
     for(Map.Entry<String, String> kv : ImmutableMap.of("been", "ben", "document", "dokumant", "code", "cad").entrySet()) {
       Map<String, Object> variables = ImmutableMap.of("toHash", TLSH_DATA, "toHashSimilar", TLSH_DATA.replace(kv.getKey(), kv.getValue()));

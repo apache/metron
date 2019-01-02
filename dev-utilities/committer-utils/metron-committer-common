@@ -239,7 +239,7 @@ function setup_code {
 #
 function get_contributor_info {
     # use github api to retrieve the contributor's login
-    USER=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | grep login | head -1 | awk -F":" '{print $2}' | sed 's/[^a-zA-Z.@_-]//g'`
+    USER=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | grep login | head -1 | awk -F":" '{print $2}' | sed 's/[^a-zA-Z0-9.@_-]//g'`
     read -p "  github contributor's username [$USER]: " INPUT
     [ -n "$INPUT" ] && USER=${INPUT}
 

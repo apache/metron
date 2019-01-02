@@ -1,0 +1,21 @@
+{
+	"title": "Pcap Schema",
+	"type": "object",
+	"properties": {
+		"ip_src_addr": {
+			"type": "string"
+		},
+		"ip_dst_addr": {
+			"type": "string"
+		},
+		"ip_src_port": {
+			"type": "string"
+		},
+		"ip_dst_port": {
+			"type": "string"
+		},
+		"protocol": {
+			"type": "string"
+		}
+	}
+}

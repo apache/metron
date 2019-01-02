@@ -132,7 +132,8 @@ public class SerDeUtils {
     }
 
     @Override
-    public ObjectInstantiator newInstantiatorOf (final Class type) {
+    @SuppressWarnings("unchecked")
+    public ObjectInstantiator newInstantiatorOf(final Class type) {
       if (!Util.isAndroid) {
         // Use ReflectASM if the class is not a non-static member class.
         Class enclosingType = type.getEnclosingClass();

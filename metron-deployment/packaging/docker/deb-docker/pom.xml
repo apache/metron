@@ -108,7 +108,19 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-parsers/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-parsing/metron-parsers-common/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-parsing/metron-parsers/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-parsing/metron-parsing-storm/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

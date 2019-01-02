@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>metron-parsing</artifactId>
+  <packaging>pom</packaging>
+  <name>metron-parsing</name>
+  <parent>
+    <artifactId>metron-platform</artifactId>
+    <groupId>org.apache.metron</groupId>
+    <version>0.7.1</version>
+  </parent>
+  <description>Metron parsers and platform support</description>
+  <url>https://metron.apache.org/</url>
+  <scm>
+    <connection>scm:git:https://gitbox.apache.org/repos/asf/metron.git</connection>
+    <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/metron.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://gitbox.apache.org/repos/asf/metron.git</url>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <modules>
+    <module>metron-parsers</module>
+    <module>metron-parsers-common</module>
+    <module>metron-parsing-storm</module>
+  </modules>
+</project>

@@ -65,7 +65,7 @@ one consumer in a given consumer group were able to read from that partition.
 If you are using stellar field transformations in your sensors, by default, stellar expressions
 are not cached.  Sensors that use stellar field transformations by see a performance
 boost by turning on caching via setting the `cacheConfig`
-[property](metron-parsers#parser_configuration).
+[property](metron-parsers-common#parser_configuration).
 This is beneficial if your transformations:
 
 * Are complex (e.g. `ENRICHMENT_GET` calls or other high latency calls)
@@ -170,7 +170,7 @@ using a Storm Flux file, a configuration properties file, and Ambari. Here is a 
 
 This is a mapping of the various performance tuning properties for parsers and how they are materialized.
 
-See more detail on starting parsers [here](https://github.com/apache/metron/blob/master/metron-platform/metron-parsers/README.md#starting-the-parser-topology)
+See more detail on starting parsers [here](https://github.com/apache/metron/blob/master/metron-platform/metron-parsing/metron-parsers-common/README.md#starting-the-parser-topology)
 
 | Category                    | Management UI Property Name                | JSON Config File Property Name     | CLI Option                                                                                     | Storm Property Name             |  Notes                                                                        |
 |-----------------------------|--------------------------------------------|------------------------------------|------------------------------------------------------------------------------------------------|---------------------------------|-------------------------------------------------------------------------------|
@@ -427,7 +427,7 @@ though you could certainly do so if necessary. Notice that we only needed 1 work
     -z $ZOOKEEPER \
 ```
 
-From the usage docs, here are the options we've used. The full reference can be found [here](../metron-platform/metron-parsers/README.md#Starting_the_Parser_Topology).
+From the usage docs, here are the options we've used. The full reference can be found [here](../metron-platform/metron-parsing/metron-parsers-common/README.md#Starting_the_Parser_Topology).
 
 ```
 usage: start_parser_topology.sh
