@@ -22,6 +22,8 @@ import {
   HttpTestingController,
   HttpClientTestingModule
 } from '@angular/common/http/testing';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('GlobalConfigService', () => {
   let mockBackend: HttpTestingController;
@@ -32,7 +34,7 @@ describe('GlobalConfigService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         GlobalConfigService,
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     mockBackend = TestBed.get(HttpTestingController);

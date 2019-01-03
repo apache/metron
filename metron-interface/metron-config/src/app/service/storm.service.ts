@@ -20,18 +20,17 @@ import { HttpClient } from '@angular/common/http';
 import { HttpUtil } from '../util/httpUtil';
 import { TopologyStatus } from '../model/topology-status';
 import { TopologyResponse } from '../model/topology-response';
-import { APP_CONFIG } from '../app.config';
-import { IAppConfig } from '../app.config.interface';
 import { Observable, interval } from 'rxjs';
 import { map, catchError, switchMap, onErrorResumeNext } from 'rxjs/operators';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class StormService {
-  url = this.config.apiEndpoint + '/storm';
+  url = this.appConfigService.getApiRoot() + '/storm';
 
   constructor(
     private http: HttpClient,
-    @Inject(APP_CONFIG) private config: IAppConfig
+    private appConfigService: AppConfigService
   ) {}
 
   public pollGetAll(): Observable<TopologyStatus[]> {

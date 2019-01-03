@@ -495,3 +495,6 @@ org.fusesource.jansi:jansi:jar:1.16:compile,ASLv2,https://github.com/fusesource/
 com.vividsolutions:jts:jar:1.13:compile
 joda-time:joda-time:jar:2.10:compile
 org.elasticsearch:securesm:jar:1.2:compile
+com.github.stephenc.jcip:jcip-annotations:jar:1.0-1:compile,ASLv2,http://stephenc.github.io/jcip-annotations/
+com.nimbusds:nimbus-jose-jwt:jar:4.41.2:compile,ASLv2,https://bitbucket.org/connect2id/nimbus-jose-jwt/wiki/Home
+
