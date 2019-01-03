@@ -121,7 +121,6 @@
     <display-name>User password attribute</display-name>
     <description>LDAP attribute for the user password</description>
     <value-attributes>
-      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
