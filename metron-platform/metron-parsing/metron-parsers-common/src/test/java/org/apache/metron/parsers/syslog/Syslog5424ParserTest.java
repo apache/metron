@@ -25,12 +25,17 @@ import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+
+import static org.junit.Assert.assertTrue;
 
 public class Syslog5424ParserTest {
   private static final String SYSLOG_LINE_ALL = "<14>1 2014-06-20T09:14:07+00:00 loggregator"
@@ -65,6 +70,40 @@ public class Syslog5424ParserTest {
   private static final String expectedEventSource2 = "Other Application";
   private static final String expectedEventID1 = "1011";
   private static final String expectedEventID2 = "2022";
+
+
+  @Test
+  public void testConfigureDefault() {
+    Map<String, Object> parserConfig = new HashMap<>();
+    Syslog5424Parser testParser = new Syslog5424Parser();
+    testParser.configure(parserConfig);
+    testParser.init();
+    assertTrue(testParser.deviceClock.getZone().equals(ZoneOffset.UTC));
+  }
+
+  @Test
+  public void testConfigureTimeZoneOffset() {
+    Map<String, Object> parserConfig = new HashMap<>();
+    parserConfig.put("deviceTimeZone", "UTC-05:00");
+    Syslog5424Parser testParser = new Syslog5424Parser();
+    testParser.configure(parserConfig);
+    testParser.init();
+    ZonedDateTime deviceTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(1475323200), testParser.deviceClock.getZone());
+    ZonedDateTime referenceTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(1475323200), ZoneOffset.ofHours(-5));
+    assertTrue(deviceTime.isEqual(referenceTime));
+  }
+
+  @Test
+  public void testConfigureTimeZoneText() {
+    Map<String, Object> parserConfig = new HashMap<>();
+    parserConfig.put("deviceTimeZone", "America/New_York");
+    Syslog5424Parser testParser = new Syslog5424Parser();
+    testParser.configure(parserConfig);
+    testParser.init();
+    ZonedDateTime deviceTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(1475323200), testParser.deviceClock.getZone());
+    ZonedDateTime referenceTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(1475323200), ZoneOffset.ofHours(-5));
+    assertTrue(deviceTime.isEqual(referenceTime));
+  }
 
   @Test
   public void testHappyPath() {
@@ -151,13 +190,13 @@ public class Syslog5424ParserTest {
   public void testMissingTimestamp() {
     Syslog5424Parser parser = new Syslog5424Parser();
     Map<String, Object> config = new HashMap<>();
+    String timeStampString = null;
     config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.DASH.name());
     parser.configure(config);
     Optional<MessageParserResult<JSONObject>> output  = parser.parseOptionalResult(SYSLOG_LINE_MISSING_DATE.getBytes());
     Assert.assertNotNull(output);
     Assert.assertTrue(output.isPresent());
-    String timeStampString = output.get().getMessages().get(0).get("timestamp").toString();
-    DateTimeFormatter.ISO_DATE_TIME.parse(timeStampString);
+    Assert.assertNotNull(output.get().getMessages().get(0).get("timestamp").toString());
     config.clear();
     config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.NULL.name());
     parser.configure(config);
@@ -165,8 +204,7 @@ public class Syslog5424ParserTest {
     Assert.assertNotNull(output);
     Assert.assertTrue(output.isPresent());
     timeStampString = output.get().getMessages().get(0).get("timestamp").toString();
-    DateTimeFormatter.ISO_DATE_TIME.parse(timeStampString);
-
+    Assert.assertNotNull(timeStampString);
     config.clear();
     config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.OMIT.name());
     parser.configure(config);
@@ -174,8 +212,5 @@ public class Syslog5424ParserTest {
     output = parser.parseOptionalResult(SYSLOG_LINE_MISSING_DATE.getBytes());
     Assert.assertNotNull(output);
     Assert.assertTrue(output.isPresent());
-
-    timeStampString = output.get().getMessages().get(0).get("timestamp").toString();
-    DateTimeFormatter.ISO_DATE_TIME.parse(timeStampString);
   }
 }

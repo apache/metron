@@ -64,11 +64,6 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.github.palindromicity</groupId>
-      <artifactId>simple-syslog-5424</artifactId>
-      <version>${global_simple_syslog_version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-parsers-common</artifactId>
       <version>${project.parent.version}</version>

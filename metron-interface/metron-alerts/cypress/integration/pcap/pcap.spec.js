@@ -31,7 +31,7 @@ context('PCAP Tab', () => {
         response: []
     });
 
-    cy.route('GET', 'config', 'fixture:config.json');
+    cy.route('GET', '/api/v1/global/config', 'fixture:config.json');
     cy.route('POST', 'search', 'fixture:search.json');
 
     cy.route({
@@ -39,15 +39,14 @@ context('PCAP Tab', () => {
       url: '/api/v1/pcap?state=*',
       response: []
     }).as('runningJobs');
-    
-    cy.visit('http://localhost:4200/login');
+
+    cy.visit('login');
     cy.get('[name="user"]').type('user');
     cy.get('[name="password"]').type('password');
     cy.contains('LOG IN').click();
   });
 
   afterEach(() => {
-    cy.get('.logout-link').click();
   });
 
   it('checking running jobs on navigating to PCAP tab', () => {
@@ -67,7 +66,7 @@ context('PCAP Tab', () => {
     cy.get('[data-qe-id="protocol"]').type('24');
     cy.get('[data-qe-id="include-reverse"]').check();
     cy.get('[data-qe-id="packet-filter"]').type('filter');
-    
+
     cy.get('[data-qe-id="submit-button"]').click();
 
     cy.wait('@postingPcapJob').then((xhr) => {
@@ -87,7 +86,7 @@ context('PCAP Tab', () => {
 
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
-    
+
     cy.wait('@jobStatusCheck').its('url').should('include', '/api/v1/pcap/job_1537878471649_0001');
   });
 
@@ -97,7 +96,7 @@ context('PCAP Tab', () => {
 
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
-    
+
     cy.wait('@jobStatusCheck');
 
     cy.contains('75%').should('be.visible');
@@ -110,7 +109,7 @@ context('PCAP Tab', () => {
 
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
-    
+
     cy.wait('@statusCheck');
 
     cy.wait('@gettingPdml').its('url').should('include', '/api/v1/pcap/job_1537878471649_0001/pdml?page=1');
@@ -124,7 +123,7 @@ context('PCAP Tab', () => {
 
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
-    
+
     cy.wait('@statusCheck');
 
     cy.wait('@gettingPdml');
@@ -140,7 +139,7 @@ context('PCAP Tab', () => {
 
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
-    
+
     cy.wait('@statusCheck');
     cy.wait('@gettingPdml');
 
@@ -148,7 +147,7 @@ context('PCAP Tab', () => {
     cy.contains('General information').should('not.be.visible');
 
     cy.get(':nth-child(3) > .timestamp').click();
-    
+
     cy.contains('General information').should('be.visible');
     cy.get('[data-qe-id="proto"]').should('have.length', 6);
   });
@@ -160,12 +159,12 @@ context('PCAP Tab', () => {
 
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
-    
+
     cy.wait('@statusCheck');
     cy.wait('@gettingPdml');
 
     cy.contains('Page 1 of 2').should('be.visible');
-    
+
     cy.get('.fa-chevron-right').click();
 
     cy.wait('@gettingPdml').its('url').should('include', '?page=2');
@@ -179,7 +178,7 @@ context('PCAP Tab', () => {
 
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
-    
+
     cy.wait('@statusCheck');
     cy.wait('@gettingPdml');
 
@@ -199,7 +198,7 @@ context('PCAP Tab', () => {
 
     cy.contains('PCAP').click();
     cy.get('[data-qe-id="submit-button"]').click();
-    
+
     cy.wait('@jobStatusCheck');
 
     cy.get('[data-qe-id="pcap-cancel-query-button"]').click();
@@ -215,7 +214,7 @@ context('PCAP Tab', () => {
     cy.get('[data-qe-id="ip-dst-addr"]').type('ccc.ddd.222.000');
     cy.get('[data-qe-id="ip-src-port"]').type('99999');
     cy.get('[data-qe-id="ip-dst-port"]').type('aaaa');
-    
+
     cy.get('.pcap-search-validation-errors').should('be.visible');
     cy.get('.pcap-search-validation-errors li').should('have.length', 4);
   });
@@ -226,7 +225,7 @@ context('PCAP Tab', () => {
     cy.get('[data-qe-id="end-time"]').click();
     cy.get('.pika-select-year').select('2015');
     cy.get('[data-day="11"] > .pika-button').click();
-    
+
     cy.get('.pcap-search-validation-errors').should('be.visible');
     cy.get('.pcap-search-validation-errors li').should('have.length', 1);
   });
