@@ -18,65 +18,81 @@
 
 package org.apache.metron.parsers.syslog;
 
-import com.github.palindromicity.syslog.AllowableDeviations;
-import com.github.palindromicity.syslog.NilPolicy;
 import com.github.palindromicity.syslog.SyslogParser;
-import com.github.palindromicity.syslog.SyslogParserBuilder;
 import com.github.palindromicity.syslog.dsl.SyslogFieldKeys;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.parsers.DefaultMessageParserResult;
+import org.apache.metron.parsers.ParseException;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
+import org.apache.metron.parsers.utils.SyslogUtils;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.lang.invoke.MethodHandles;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.parsers.DefaultMessageParserResult;
-import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.metron.parsers.interfaces.MessageParserResult;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.function.Consumer;
 
 
 /**
  * Parser for well structured RFC 5424 messages.
  */
-public class Syslog5424Parser implements MessageParser<JSONObject>, Serializable {
+public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Serializable {
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String NIL_POLICY_CONFIG = "nilPolicy";
+
+  private Optional<Consumer<JSONObject>> messageProcessorOptional = Optional.empty();
   private transient SyslogParser syslogParser;
 
+  protected Clock deviceClock;
+
+
+  protected void setSyslogParser(SyslogParser syslogParser) {
+    this.syslogParser = syslogParser;
+  }
+
+  protected void setMessageProcessor(Consumer<JSONObject> function) {
+    this.messageProcessorOptional = Optional.of(function);
+  }
+
+  protected abstract SyslogParser buildSyslogParser( Map<String,Object> config);
+
   @Override
-  public void configure(Map<String, Object> config) {
-    // Default to OMIT policy for nil fields
-    // this means they will not be in the returned field set
-    String nilPolicyStr = (String) config.getOrDefault(NIL_POLICY_CONFIG, NilPolicy.OMIT.name());
-    NilPolicy nilPolicy = NilPolicy.valueOf(nilPolicyStr);
-    syslogParser = new SyslogParserBuilder()
-            .withNilPolicy(nilPolicy)
-            .withDeviations(EnumSet.of(AllowableDeviations.PRIORITY,AllowableDeviations.VERSION))
-            .build();
+  public void configure(Map<String, Object> parserConfig) {
+    // we'll pull out the clock stuff ourselves
+    String timeZone = (String) parserConfig.get("deviceTimeZone");
+    if (timeZone != null)
+      deviceClock = Clock.system(ZoneId.of(timeZone));
+    else {
+      deviceClock = Clock.systemUTC();
+      LOG.warn("[Metron] No device time zone provided; defaulting to UTC");
+    }
+    syslogParser = buildSyslogParser(parserConfig);
   }
 
   @Override
-  public void init() {
-  }
+  public void init(){}
 
   @Override
   public boolean validate(JSONObject message) {
-    JSONObject value = message;
-    if (!(value.containsKey("original_string"))) {
+    if (!(message.containsKey("original_string"))) {
       LOG.trace("[Metron] Message does not have original_string: {}", message);
       return false;
-    } else if (!(value.containsKey("timestamp"))) {
+    } else if (!(message.containsKey("timestamp"))) {
       LOG.trace("[Metron] Message does not have timestamp: {}", message);
       return false;
     } else {
@@ -94,7 +110,7 @@ public class Syslog5424Parser implements MessageParser<JSONObject>, Serializable
       }
 
       String originalString = new String(rawMessage);
-      List<JSONObject> returnList = new ArrayList<>();
+      final List<JSONObject> returnList = new ArrayList<>();
       Map<Object,Throwable> errorMap = new HashMap<>();
       try (Reader reader = new BufferedReader(new StringReader(originalString))) {
         syslogParser.parseLines(reader, (m) -> {
@@ -102,7 +118,13 @@ public class Syslog5424Parser implements MessageParser<JSONObject>, Serializable
           // be sure to put in the original string, and the timestamp.
           // we wil just copy over the timestamp from the syslog
           jsonObject.put("original_string", originalString);
-          setTimestamp(jsonObject);
+          try {
+            setTimestamp(jsonObject);
+          } catch (ParseException pe) {
+            errorMap.put(originalString,pe);
+            return;
+          }
+          messageProcessorOptional.ifPresent((c) -> c.accept(jsonObject));
           returnList.add(jsonObject);
         },errorMap::put);
 
@@ -116,12 +138,15 @@ public class Syslog5424Parser implements MessageParser<JSONObject>, Serializable
   }
 
   @SuppressWarnings("unchecked")
-  private void setTimestamp(JSONObject message) {
+  private void setTimestamp(JSONObject message) throws ParseException {
     String timeStampString = (String) message.get(SyslogFieldKeys.HEADER_TIMESTAMP.getField());
     if (!StringUtils.isBlank(timeStampString) && !timeStampString.equals("-")) {
-      message.put("timestamp", timeStampString);
+      message.put("timestamp", SyslogUtils.parseTimestampToEpochMillis(timeStampString, deviceClock));
     } else {
-      message.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+      message.put(
+          "timestamp",
+          LocalDateTime.now()
+              .toEpochSecond(ZoneOffset.UTC));
     }
   }
 }

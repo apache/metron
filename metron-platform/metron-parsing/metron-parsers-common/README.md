@@ -23,5 +23,6 @@ The included parsers are
 * Grok Parser
 * JSONMapParser
 * CSVParser
+* Syslog 3164 and 5424 parsers
 
 More details on these parsers and the overall architecture can be found in the metron-parsing [README](..#README.md) 

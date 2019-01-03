@@ -217,6 +217,11 @@
             <artifactId>json-path</artifactId>
             <version>2.3.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.palindromicity</groupId>
+            <artifactId>simple-syslog</artifactId>
+            <version>${global_simple_syslog_version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
