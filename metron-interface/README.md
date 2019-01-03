@@ -73,3 +73,81 @@ The following diagram illustrates the flow of data for the various types of requ
 ![Knox Flow Diagram](knox_flow_diagram.png)
 
 Note how the flow diagrams for Static asset requests and Rest requests (through Knox) are identical.
+
+## Enabling Knox for Metron
+
+Follow the instructions in the next 3 sections to enable Knox for Metron.  The new Knox urls will be similar to (substitute the Knox host/port in your environment for `node1:8443`):
+
+- Metron Alerts UI - https://node1:8443/gateway/metron/metron-alerts/
+- Metron Management UI - https://node1:8443/gateway/metron/metron-management/sensors
+- Metron REST - https://node1:8443/gateway/metron/metron-rest/swagger-ui.html
+
+
+
+### Install Metron Clients
+
+The Metron Client component in Ambari is responsible for installing the service definition and topology files in the appropriate Knox directories.  These files are installed whenever the Metron Client component(s) are installed, started or restarted AND the `Knox Enabled` Metron Ambari property
+is set to true (under the `Security` tab in the Metron Config section).  Ambari calls the script at `$METRON_HOME/bin/install_metron_knox.sh` which installs the following files:
+
+- `$KNOX_HOME/conf/topologies/metron.xml`
+- `$KNOX_HOME/conf/topologies/metronsso.xml`
+- `$KNOX_HOME/data/services/metron-alerts/$METRON_VERSION/rewrite.xml`
+- `$KNOX_HOME/data/services/metron-alerts/$METRON_VERSION/service.xml`
+- `$KNOX_HOME/data/services/metron-management/$METRON_VERSION/rewrite.xml`
+- `$KNOX_HOME/data/services/metron-management/$METRON_VERSION/service.xml`
+- `$KNOX_HOME/data/services/metron-rest/$METRON_VERSION/rewrite.xml`
+- `$KNOX_HOME/data/services/metron-rest/$METRON_VERSION/service.xml`
+
+A Metron Client should be installed anywhere a Knox Gateway is installed.  It is not strictly required but Metron will not be available through any Knox Gateways that do not have these files installed.
+  
+### Enable Knox for Metron in Ambari
+
+After Metron Client components have been installed on the appropriate hosts, there are a couple settings that need to be changed in the Ambari "Security" tab.  
+First the Knox SSO public key needs to be read from Knox.  Run the following command on a Knox Gateway to get the key:
+```
+openssl s_client -connect node1:8443 < /dev/null | openssl x509 | grep -v 'CERTIFICATE' | paste -sd "" -
+```
+The `Knox SSO Public Key` Ambari property should be set to the output of that command.  In the same section, set the `Knox Enabled` setting to "ON".  
+
+After these changes have been made, the following Metron components must be restarted:
+
+- Metron Client
+- Metron Alerts UI
+- Metron Management UI
+- Metron REST
+
+Any change to the settings described in this section will cause Ambari to suggest restarting these services.  Either restart them manually or follow the prompt in Ambari.
+
+Note:  Knox can only be enabled for Metron when Metron authentication is set to `LDAP` (the `LDAP Enabled` setting in Ambari).  
+If `LDAP` is not enabled an error will be thrown when any of the previous components are restarted. 
+
+### Update Quicklinks (Optional)
+
+Currently there is no way to dynamicly change the quick links in Ambari to the new Knox urls so it must be done manually.  Locate this file on the Ambari server host:
+```
+/var/lib/ambari-server/resources/mpacks/metron-ambari.mpack-$METRON_MPACK_VERSION/common-services/METRON/$METRON_VERSION/quicklinks/quicklinks.json
+```
+Quicklinks for each component are defined as an array of json objects under the `/configuration/links/` attribute.
+
+Locate the json object for the component you want to update.  Change the `url` attribute to match the new Knox url.  For example, to update the Metron REST quick link, locate the json object with the `label` property set to `Swagger UI`.  Change the `url` property from
+`%@://%@:%@/swagger-ui.html` to `https://<knox gateway host>:<knox gateway port>/gateway/metron/metron-rest/swagger-ui.html`.
+
+The json object should look like this in full dev:
+```
+{
+    "name": "metron_rest_ui",
+    "label": "Swagger UI",
+    "requires_user_name": "false",
+    "component_name": "METRON_REST",
+    "url":"https://node1:8443/gateway/metron/metron-rest/swagger-ui.html",
+    "port":{
+      "http_property": "metron_rest_port",
+      "http_default_port": "8082",
+      "https_property": "metron_rest_port",
+      "https_default_port": "8082",
+      "regex": "^(\\d+)$",
+      "site": "metron-rest-env"
+    }
+}
+```
+Repeat for the Alerts UI and Management UI.  Any update to this file requires an Ambari server restart.

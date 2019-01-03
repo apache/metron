@@ -51,23 +51,24 @@ metron_user = status_params.metron_user
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
 metron_pid_dir = config['configurations']['metron-env']['metron_pid_dir']
-
+metron_rest_host = status_params.metron_rest_host
 metron_rest_port = status_params.metron_rest_port
 metron_management_ui_host = status_params.metron_management_ui_host
 metron_management_ui_port = status_params.metron_management_ui_port
+metron_management_ui_path = metron_home + '/web/management-ui/'
 metron_alerts_ui_host = status_params.metron_alerts_ui_host
 metron_alerts_ui_port = status_params.metron_alerts_ui_port
+metron_alerts_ui_path = metron_home + '/web/alerts-ui/'
 metron_jvm_flags = config['configurations']['metron-rest-env']['metron_jvm_flags']
 
 # Construct the profiles as a temp variable first. Only the first time it's set will carry through
-metron_spring_profiles_temp = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
-if config['configurations']['metron-security-env']['metron.ldap.enabled']:
-    if metron_spring_profiles_temp:
-        metron_spring_profiles_active = metron_spring_profiles_temp + ',ldap'
+metron_spring_profiles_active = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
+metron_ldap_enabled = config['configurations']['metron-security-env']['metron.ldap.enabled']
+if metron_ldap_enabled:
+    if not len(metron_spring_profiles_active) == 0:
+        metron_spring_profiles_active += ',ldap'
     else:
         metron_spring_profiles_active = 'ldap'
-else:
-    metron_spring_profiles_active = metron_spring_profiles_temp
 
 metron_jdbc_driver = config['configurations']['metron-rest-env']['metron_jdbc_driver']
 metron_jdbc_url = config['configurations']['metron-rest-env']['metron_jdbc_url']
@@ -100,6 +101,7 @@ rest_kafka_configured_flag_file = status_params.rest_kafka_configured_flag_file
 rest_kafka_acl_configured_flag_file = status_params.rest_kafka_acl_configured_flag_file
 rest_hbase_configured_flag_file = status_params.rest_hbase_configured_flag_file
 rest_hbase_acl_configured_flag_file = status_params.rest_hbase_acl_configured_flag_file
+metron_knox_installed_flag_file = status_params.metron_knox_installed_flag_file
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
 # Elasticsearch hosts and port management
@@ -291,9 +293,6 @@ metron_ldap_group_role = config['configurations']['metron-security-env']['metron
 metron_ldap_ssl_truststore = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore']
 metron_ldap_ssl_truststore_password = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore.password']
 
-# Management UI
-metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
-
 # REST
 metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']
 metron_rest_pid = 'metron-rest.pid'
@@ -443,3 +442,31 @@ kafka_spout_parallelism = config['configurations']['metron-pcap-env']['kafka_spo
 # MapReduce
 metron_user_hdfs_dir = '/user/' + metron_user
 metron_user_hdfs_dir_configured_flag_file = status_params.metron_user_hdfs_dir_configured_flag_file
+
+# Knox
+knox_user = config['configurations']['knox-env']['knox_user']
+knox_group = config['configurations']['knox-env']['knox_group']
+metron_knox_root_path = '/gateway/metron'
+metron_rest_path = '/api/v1'
+metron_alerts_ui_login_path = '/login'
+metron_management_ui_login_path = '/login'
+metron_knox_enabled = config['configurations']['metron-security-env']['metron.knox.enabled']
+metron_knox_sso_pubkey = config['configurations']['metron-security-env']['metron.knox.sso.pubkey']
+metron_knox_sso_token_ttl = config['configurations']['metron-security-env']['metron.knox.sso.token.ttl']
+if metron_knox_enabled:
+    metron_rest_path = metron_knox_root_path + '/metron-rest' + metron_rest_path
+    metron_alerts_ui_login_path = metron_knox_root_path + '/metron-alerts/'
+    metron_management_ui_login_path = metron_knox_root_path + '/metron-management/sensors'
+    if not len(metron_spring_options) == 0:
+        metron_spring_options += ' '
+    metron_spring_options += '--knox.root=' + metron_knox_root_path + '/metron-rest'
+    metron_spring_options += ' --knox.sso.pubkey=' + metron_knox_sso_pubkey
+    if not len(metron_spring_profiles_active) == 0:
+        metron_spring_profiles_active += ','
+    metron_spring_profiles_active += 'knox'
+
+knox_home = os.path.join(stack_root, "current", "knox-server")
+knox_hosts = default("/clusterHostInfo/knox_gateway_hosts", [])
+knox_host = ''
+if not len(knox_hosts) == 0:
+    knox_host = knox_hosts[0]
