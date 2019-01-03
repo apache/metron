@@ -60,15 +60,15 @@ var restUrl = 'http://' + uiConfig.rest.host + ':' + uiConfig.rest.port;
 app.use('/api/v1', proxy(restUrl));
 app.use('/logout', proxy(restUrl));
 
-app.use(favicon(path.join(__dirname, '../alerts-ui/favicon.ico')));
+app.use(favicon(path.join(__dirname, '../' + uiConfig.dirPath + '/favicon.ico')));
 
-app.use(serveStatic(path.join(__dirname, '../alerts-ui'), {
+app.use(serveStatic(path.join(__dirname, '../' + uiConfig.dirPath), {
   maxAge: '1d',
   setHeaders: setCustomCacheControl
 }));
 
 app.get('*', function(req, res){
-  res.sendFile(path.join(__dirname, '../alerts-ui/index.html'));
+  res.sendFile(path.join(__dirname, '../' + uiConfig.dirPath + '/index.html'));
 });
 
 app.listen(uiConfig.port, function(){
