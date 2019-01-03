@@ -44,6 +44,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
           "squid",
           "websphere",
           "yaf",
+          "syslog3164",
           "syslog5424"
           );
 
