@@ -26,9 +26,9 @@ context('PCAP Tab', () => {
       response: 'user'
     });
     cy.route({
-      method: 'POST',
-      url: 'logout',
-      response: []
+        method: 'POST',
+        url: '/api/v1/logout',
+        response: []
     });
 
     cy.route('GET', '/api/v1/global/config', 'fixture:config.json');

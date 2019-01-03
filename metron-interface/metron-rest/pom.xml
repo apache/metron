@@ -39,6 +39,7 @@
         <spring.version>5.0.5.RELEASE</spring.version>
         <eclipse.link.version>2.6.4</eclipse.link.version>
         <jsonpath.version>2.4.0</jsonpath.version>
+        <jwt.version>4.41.2</jwt.version>
     </properties>
     <dependencies>
       <dependency>
@@ -457,6 +458,11 @@
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${jwt.version}</version>
         </dependency>
     </dependencies>
 

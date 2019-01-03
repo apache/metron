@@ -18,28 +18,28 @@
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
-import { IAppConfig } from '../app.config.interface';
-import { APP_CONFIG } from '../app.config';
+import {BehaviorSubject, Subject} from 'rxjs';
+import {AppConfigService} from './app-config.service';
+import {HttpUtil} from '../util/httpUtil';
 
 @Injectable()
 export class AuthenticationService {
   private static USER_NOT_VERIFIED = 'USER-NOT-VERIFIED';
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
-  loginUrl: string = this.config.apiEndpoint + '/user';
-  logoutUrl = '/logout';
+  loginUrl: string = this.appConfigService.getApiRoot() + '/user';
+  logoutUrl = this.appConfigService.getApiRoot() + '/logout';
   onLoginEvent: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(
     private http: HttpClient,
     private router: Router,
-    @Inject(APP_CONFIG) private config: IAppConfig
+    private appConfigService: AppConfigService
   ) {
     this.init();
   }
 
   public init() {
-    this.getCurrentUser({ responseType: 'text' }).subscribe(
+    this.getCurrentUser({ headers: new HttpHeaders({'Accept': 'text/plain'}), responseType: 'text'}).subscribe(
       response => {
         this.currentUser = response.toString();
         if (this.currentUser) {
@@ -55,7 +55,7 @@ export class AuthenticationService {
   public login(username: string, password: string, onError): void {
     let credentials = btoa(username + ':' + password);
     this.getCurrentUser({
-      headers: new HttpHeaders({ Authorization: `Basic ${credentials}` }),
+      headers: new HttpHeaders({ Authorization: `Basic ${credentials}` , 'Accept': 'text/plain'}),
       responseType: 'text'
     }).subscribe(
       response => {
@@ -72,19 +72,19 @@ export class AuthenticationService {
   public logout(): void {
     this.http.post(this.logoutUrl, {}).subscribe(
       response => {
-        this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
-        this.onLoginEvent.next(false);
-        this.router.navigateByUrl('/login');
+        this.clearAuthentication();
+        HttpUtil.navigateToLogin();
       },
       error => {
         console.log(error);
+        HttpUtil.navigateToLogin();
       }
     );
   }
 
   public checkAuthentication() {
     if (!this.isAuthenticated()) {
-      this.router.navigateByUrl('/login');
+      HttpUtil.navigateToLogin();
     }
   }
 
@@ -101,5 +101,10 @@ export class AuthenticationService {
       this.currentUser !== AuthenticationService.USER_NOT_VERIFIED &&
       this.currentUser != null
     );
+  }
+
+  public clearAuthentication(): void {
+    this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
+    this.onLoginEvent.next(false);
   }
 }

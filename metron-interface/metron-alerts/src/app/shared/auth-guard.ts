@@ -24,11 +24,13 @@ import {
 } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthenticationService } from '../service/authentication.service';
+import {AppConfigService} from "../service/app-config.service";
+import {HttpUtil} from "../utils/httpUtil";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
 
-  constructor(private authService: AuthenticationService, private router: Router) {}
+  constructor(private authService: AuthenticationService, private router: Router, private appConfigService: AppConfigService) {}
 
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     if (!this.authService.isAuthenticationChecked()) {
@@ -40,7 +42,7 @@ export class AuthGuard implements CanActivate {
           } else {
             observer.next(false);
             observer.complete();
-            this.router.navigateByUrl('/login');
+            HttpUtil.navigateToLogin();
           }
         });
       });

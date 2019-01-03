@@ -24,6 +24,7 @@ import {
 } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthenticationService } from '../service/authentication.service';
+import {HttpUtil} from "../util/httpUtil";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -40,7 +41,7 @@ export class AuthGuard implements CanActivate {
           } else {
             observer.next(false);
             observer.complete();
-            this.router.navigateByUrl('/login');
+            HttpUtil.navigateToLogin();
           }
         });
       });
