@@ -18,17 +18,27 @@
 #
 METRON_VERSION=${project.version}
 METRON_HOME=${METRON_HOME:-/usr/metron/${METRON_VERSION}}
+KNOX_USER=${KNOX_USER:-knox}
+KNOX_GROUP=${KNOX_GROUP:-knox}
 KNOX_HOME=${KNOX_HOME:-/usr/hdp/current/knox-server}
-KNOX_METRON_REST_DIR=$KNOX_HOME/data/services/metron-rest/$METRON_VERSION
-KNOX_METRON_ALERTS_DIR=$KNOX_HOME/data/services/metron-alerts/$METRON_VERSION
-KNOX_METRON_MANAGEMENT_DIR=$KNOX_HOME/data/services/metron-management/$METRON_VERSION
+KNOX_METRON_REST_DIR=$KNOX_HOME/data/services/metron-rest
+KNOX_METRON_ALERTS_DIR=$KNOX_HOME/data/services/metron-alerts
+KNOX_METRON_MANAGEMENT_DIR=$KNOX_HOME/data/services/metron-management
 
-mkdir -p $KNOX_METRON_REST_DIR
-mkdir -p $KNOX_METRON_ALERTS_DIR
-mkdir -p $KNOX_METRON_MANAGEMENT_DIR
+if [ -d "$KNOX_HOME" ]
+then
+    mkdir -p $KNOX_METRON_REST_DIR/$METRON_VERSION
+    mkdir -p $KNOX_METRON_ALERTS_DIR/$METRON_VERSION
+    mkdir -p $KNOX_METRON_MANAGEMENT_DIR/$METRON_VERSION
 
-cp $METRON_HOME/config/knox/data/services/rest/* $KNOX_METRON_REST_DIR
-cp $METRON_HOME/config/knox/data/services/alerts/* $KNOX_METRON_ALERTS_DIR
-cp $METRON_HOME/config/knox/data/services/management/* $KNOX_METRON_MANAGEMENT_DIR
-cp $METRON_HOME/config/knox/conf/topologies/metron.xml $KNOX_HOME/conf/topologies
-cp $METRON_HOME/config/knox/conf/topologies/metronsso.xml $KNOX_HOME/conf/topologies
+    cp $METRON_HOME/config/knox/data/services/rest/* $KNOX_METRON_REST_DIR/$METRON_VERSION
+    cp $METRON_HOME/config/knox/data/services/alerts/* $KNOX_METRON_ALERTS_DIR/$METRON_VERSION
+    cp $METRON_HOME/config/knox/data/services/management/* $KNOX_METRON_MANAGEMENT_DIR/$METRON_VERSION
+    cp $METRON_HOME/config/knox/conf/topologies/metron.xml $KNOX_HOME/conf/topologies
+
+    sudo chown -R $KNOX_USER:$KNOX_GROUP $KNOX_METRON_REST_DIR
+    sudo chown -R $KNOX_USER:$KNOX_GROUP $KNOX_METRON_ALERTS_DIR
+    sudo chown -R $KNOX_USER:$KNOX_GROUP $KNOX_METRON_MANAGEMENT_DIR
+else
+    echo "$KNOX_HOME does not exist. Skipping Metron Knox installation."
+fi

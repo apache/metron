@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+	Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<topology>
+  <gateway>
+    <provider>
+      <role>webappsec</role>
+      <name>WebAppSec</name>
+      <enabled>true</enabled>
+      <param><name>xframe.options.enabled</name><value>true</value></param>
+    </provider>
+
+    <provider>
+      <role>authentication</role>
+      <name>ShiroProvider</name>
+      <enabled>true</enabled>
+      <param>
+        <name>sessionTimeout</name>
+        <value>30</value>
+      </param>
+      <param>
+        <name>redirectToUrl</name>
+        <value>/gateway/metronsso/knoxauth/login.html</value>
+      </param>
+      <param>
+        <name>restrictedCookies</name>
+        <value>rememberme,WWW-Authenticate</value>
+      </param>
+      <param>
+        <name>main.ldapRealm</name>
+        <value>org.apache.hadoop.gateway.shirorealm.KnoxLdapRealm</value>
+      </param>
+      <param>
+        <name>main.ldapContextFactory</name>
+        <value>org.apache.hadoop.gateway.shirorealm.KnoxLdapContextFactory</value>
+      </param>
+      <param>
+        <name>main.ldapRealm.contextFactory</name>
+        <value>$ldapContextFactory</value>
+      </param>
+      <param>
+        <name>main.ldapRealm.userDnTemplate</name>
+        <value>{{metron_ldap_user_pattern}}</value>
+      </param>
+      <param>
+        <name>main.ldapRealm.contextFactory.url</name>
+        <value>{{metron_ldap_url}}</value>
+      </param>
+      <param>
+        <name>main.ldapRealm.authenticationCachingEnabled</name>
+        <value>false</value>
+      </param>
+      <param>
+        <name>main.ldapRealm.contextFactory.authenticationMechanism</name>
+        <value>simple</value>
+      </param>
+      <param>
+        <name>urls./**</name>
+        <value>authcBasic</value>
+      </param>
+    </provider>
+
+    <provider>
+      <role>identity-assertion</role>
+      <name>Default</name>
+      <enabled>true</enabled>
+    </provider>
+  </gateway>
+
+  <application>
+    <name>knoxauth</name>
+  </application>
+
+  <service>
+    <role>KNOXSSO</role>
+    <param>
+      <name>knoxsso.cookie.secure.only</name>
+      <value>false</value>
+    </param>
+    <param>
+      <name>knoxsso.token.ttl</name>
+      <value>{{metron_knox_sso_token_ttl}}</value>
+    </param>
+    <param>
+      <name>knoxsso.redirect.whitelist.regex</name>
+      <value>^https?:\/\/(localhost|127\.0\.0\.1|0:0:0:0:0:0:0:1|::1|{{metron_rest_host}}|{{metron_management_ui_host}}|{{metron_alerts_ui_host}}):[0-9].*$</value>
+    </param>
+  </service>
+
+</topology>
