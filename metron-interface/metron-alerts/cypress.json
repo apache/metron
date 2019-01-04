@@ -3,5 +3,6 @@
   "viewportHeight": 850,
   "video": false,
   "supportFile": false,
-  "pluginsFile": false
+  "pluginsFile": false,
+  "baseUrl": "http://localhost:4200"
 }

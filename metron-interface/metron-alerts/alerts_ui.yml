@@ -19,3 +19,5 @@ port: 4201
 rest:
   host: localhost
   port: 8080
+
+dirPath: alerts-ui

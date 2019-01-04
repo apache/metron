@@ -289,8 +289,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   processEscalate() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(() => {
+      const alerts = [...this.selectedAlerts];
       this.updateSelectedAlertStatus('ESCALATE');
+      this.alertsService.escalate(alerts).subscribe();
     });
   }
 

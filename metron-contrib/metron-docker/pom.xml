@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-contrib</artifactId>
-        <version>0.6.1</version>
+        <version>0.7.0</version>
     </parent>
     <description>Metron Docker</description>
     <url>https://metron.apache.org/</url>
@@ -63,7 +63,7 @@
                             <outputDirectory>${project.basedir}/compose/kafkazk/packages</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-parsers/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-parsing/metron-parsers-common/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -81,7 +81,7 @@
                             <outputDirectory>${project.basedir}/compose/kafkazk/packages</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-enrichment/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-parsing/metron-enrichment/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -153,7 +153,7 @@
                             <outputDirectory>${project.basedir}/compose/storm/parser</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-parsers/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-parsing/metron-parsers-common/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

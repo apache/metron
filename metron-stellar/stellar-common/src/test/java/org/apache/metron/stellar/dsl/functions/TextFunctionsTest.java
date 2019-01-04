@@ -38,6 +38,7 @@ public class TextFunctionsTest {
   }};
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testGetAvailableLanguageTags() {
     Object ret = run("FUZZY_LANGS()", new HashMap<>());
     Assert.assertNotNull(ret);

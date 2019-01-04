@@ -26,6 +26,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -243,7 +245,7 @@ public class ShellFunctions {
         outFile = File.createTempFile("stellar_shell", "out");
         if (args.size() > 0) {
           String arg = (String) args.get(0);
-          try (PrintWriter pw = new PrintWriter(outFile)) {
+          try (PrintWriter pw = new PrintWriter(outFile,StandardCharsets.UTF_8.name())) {
             IOUtils.write(arg, pw);
           }
         }
@@ -264,9 +266,8 @@ public class ShellFunctions {
           Process p = processBuilder.start();
           // wait for termination.
           p.waitFor();
-          try (BufferedReader br = new BufferedReader(new FileReader(outFile))) {
-            String ret = IOUtils.toString(br).trim();
-            return ret;
+          try (BufferedReader br = Files.newBufferedReader(outFile.toPath(), StandardCharsets.UTF_8)) {
+            return IOUtils.toString(br).trim();
           }
         } catch (Exception e) {
           String message = "Unable to read output: " + e.getMessage();

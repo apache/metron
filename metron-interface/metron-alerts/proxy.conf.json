@@ -2,9 +2,5 @@
   "/api/v1": {
     "target": "http://node1:8082",
     "secure": false
-  },
-  "/logout": {
-    "target": "http://node1:8082",
-    "secure": false
   }
 }

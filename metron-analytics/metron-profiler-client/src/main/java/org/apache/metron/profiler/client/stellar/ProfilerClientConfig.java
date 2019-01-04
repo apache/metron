@@ -62,6 +62,7 @@ public enum ProfilerClientConfig {
    * The default value to be returned if a profile is not written for a given period for a profile and entity.
    */
   PROFILER_DEFAULT_VALUE("profiler.default.value", null, Object.class);
+
   String key;
   Object defaultValue;
   Class<?> valueType;

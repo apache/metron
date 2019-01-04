@@ -152,15 +152,16 @@ public class DateFunctions {
     }
   }
 
-  @Stellar( name="DATE_FORMAT",
+  @Stellar(name = "DATE_FORMAT",
           description = "Takes an epoch timestamp and converts it to a date format.",
-          params = {"format - DateTime format as a String."
-                  , "timestampField - Optional epoch time in Long format.  Defaults to now."
-                  , "timezone - Optional timezone in String format."},
-          returns="Formatted date."
+          params = {"format - DateTime format as a String.",
+                    "timestampField - Optional epoch time in Long format.  Defaults to now.",
+                    "timezone - Optional timezone in String format."},
+          returns = "Formatted date."
   )
   public static class DateFormat extends BaseStellarFunction {
 
+    @Override
     public Object apply(List<Object> objects) {
       int size = objects.size();
       Optional<Object> formatObj = Optional.ofNullable(objects.get(0));

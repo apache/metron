@@ -34,6 +34,7 @@ import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 public class FunctionalFunctionsTest {
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testZipLongest_boundary() {
     for (String expr : ImmutableList.of( "ZIP_LONGEST()"
             , "ZIP_LONGEST( null, null )"
@@ -49,6 +50,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testZip_longest() {
     Map<String, Object> variables = ImmutableMap.of(
             "list1" , ImmutableList.of(1, 2, 3)
@@ -107,6 +109,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testZip_boundary() {
     for (String expr : ImmutableList.of( "ZIP()"
             , "ZIP( null, null )"
@@ -122,6 +125,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testZip() {
     Map<String, Object> variables = ImmutableMap.of(
             "list1" , ImmutableList.of(1, 2, 3)
@@ -172,6 +176,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testRecursive() {
     for (String expr : ImmutableList.of( "MAP(list, inner_list -> REDUCE(inner_list, (x, y) -> x + y, 0) )"
                                        , "MAP(list, (inner_list) -> REDUCE(inner_list, (x, y) -> x + y, 0) )"
@@ -188,6 +193,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testMap_null() {
     for (String expr : ImmutableList.of( "MAP([ 1, 2, null], x -> if x == null then 0 else 2*x )"
                                        , "MAP([ 1, 2, null], x -> x == null ? 0 : 2*x )"
@@ -212,6 +218,7 @@ public class FunctionalFunctionsTest {
 
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testMap() {
     for (String expr : ImmutableList.of( "MAP([ 'foo', 'bar'], (x) -> TO_UPPER(x) )"
                                        , "MAP([ foo, 'bar'], (x) -> TO_UPPER(x) )"
@@ -233,6 +240,7 @@ public class FunctionalFunctionsTest {
 
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testMap_conditional() {
     for (String expr : ImmutableList.of("MAP([ 'foo', 'bar'], (item) -> item == 'foo' )"
                                        ,"MAP([ foo, bar], (item) -> item == 'foo' )"
@@ -251,6 +259,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testFilter() {
     for (String expr : ImmutableList.of("FILTER([ 'foo', 'bar'], (item) -> item == 'foo' )"
                                        ,"FILTER([ 'foo', bar], (item) -> item == 'foo' )"
@@ -271,6 +280,7 @@ public class FunctionalFunctionsTest {
 
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testFilter_shortcircuit() {
     for (String expr : ImmutableList.of("FILTER([ 'foo'], item -> item == 'foo' or THROW('exception') )"
                                        ,"FILTER([ 'foo'], (item) -> item == 'foo' or THROW('exception') )"
@@ -286,6 +296,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testFilter_null() {
     for (String expr : ImmutableList.of("FILTER([ 'foo', null], item -> item == null )"
                                        ,"FILTER([ 'foo', baz], (item) -> item == null )"
@@ -306,6 +317,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testFilter_notnull() {
     for (String expr : ImmutableList.of("FILTER([ 'foo', null], item -> item != null )"
                                        ,"FILTER([ 'foo', baz], (item) -> item != null )"
@@ -327,6 +339,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testFilter_none() {
     for (String expr : ImmutableList.of( "FILTER([ foo, bar], () -> false  )"
                                        , "FILTER([ 'foo', 'bar'], (item)-> false )"
@@ -345,6 +358,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testFilter_all() {
     for (String expr : ImmutableList.of("FILTER([ 'foo', 'bar'], (item) -> true )"
                                        ,"FILTER([ 'foo', bar], (item) -> true )"
@@ -397,6 +411,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testReduce_on_various_list_sizes() {
     {
       String expr = "REDUCE([ 1, 2, 3, 4 ], (x, y) -> x + y , 0 )";
@@ -422,6 +437,7 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testReduce_NonNumeric() {
     for (String expr : ImmutableList.of("REDUCE([ 'foo', 'bar', 'grok'], (x, y) -> LIST_ADD(x, y), [] )"
                                        )

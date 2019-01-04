@@ -17,22 +17,64 @@
  */
 package org.apache.metron.rest.config;
 
+import org.apache.metron.rest.MetronRestConstants;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.paths.RelativePathProvider;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import javax.servlet.ServletContext;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.apache.metron.rest.MetronRestConstants.KNOX_PROFILE;
 
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
+
+  @Autowired
+  private Environment environment;
+
+  @Autowired
+  ServletContext servletContext;
+
   @Bean
   public Docket api() {
-    return new Docket(DocumentationType.SWAGGER_2)
-            .select()
+    List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
+    Docket docket = new Docket(DocumentationType.SWAGGER_2);
+    if (activeProfiles.contains(KNOX_PROFILE)) {
+      String knoxRoot = environment.getProperty(MetronRestConstants.KNOX_ROOT_SPRING_PROPERTY, String.class, "");
+      docket = docket.pathProvider(new RelativePathProvider (servletContext) {
+        @Override
+        protected String applicationPath() {
+          return knoxRoot;
+        }
+
+        @Override
+        protected String getDocumentationPath() {
+          return knoxRoot;
+        }
+
+        @Override
+        public String getApplicationBasePath() {
+          return knoxRoot;
+        }
+
+        @Override
+        public String getOperationPath(String operationPath) {
+          return knoxRoot + super.getOperationPath(operationPath);
+        }
+      });
+    }
+    return docket.select()
             .apis(RequestHandlerSelectors.withClassAnnotation(RestController.class))
             .paths(PathSelectors.any())
             .build();

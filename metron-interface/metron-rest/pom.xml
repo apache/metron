@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-interface</artifactId>
-        <version>0.6.1</version>
+        <version>0.7.0</version>
     </parent>
     <artifactId>metron-rest</artifactId>
     <url>https://metron.apache.org/</url>
@@ -39,6 +39,7 @@
         <spring.version>5.0.5.RELEASE</spring.version>
         <eclipse.link.version>2.6.4</eclipse.link.version>
         <jsonpath.version>2.4.0</jsonpath.version>
+        <jwt.version>4.41.2</jwt.version>
     </properties>
     <dependencies>
       <dependency>
@@ -237,7 +238,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-parsers</artifactId>
+            <artifactId>metron-parsers-common</artifactId>
             <version>${project.parent.version}</version>
             <scope>provided</scope>
             <exclusions>
@@ -267,6 +268,38 @@
                 </exclusion>
             </exclusions>
         </dependency>
+      <dependency>
+        <groupId>org.apache.metron</groupId>
+        <artifactId>metron-parsers</artifactId>
+        <version>${project.parent.version}</version>
+        <scope>provided</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-profiler-client</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-statistics</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-writer</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
@@ -425,6 +458,11 @@
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${jwt.version}</version>
         </dependency>
     </dependencies>
 

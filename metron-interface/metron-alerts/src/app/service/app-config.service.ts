@@ -22,7 +22,7 @@ import { HttpClient } from '@angular/common/http';
 @Injectable()
 export class AppConfigService {
 
-  private appConfig;
+  private static appConfigStatic;
 
   constructor(private http: HttpClient) { }
 
@@ -31,11 +31,19 @@ export class AppConfigService {
             // APP_INITIALIZER only supports promises
             .toPromise()
             .then(data => {
-              this.appConfig = data;
+              AppConfigService.appConfigStatic = data;
             });
   }
 
   getApiRoot() {
-    return this.appConfig['apiRoot'];
+    return AppConfigService.appConfigStatic['apiRoot'];
+  }
+
+  getLoginPath() {
+    return AppConfigService.appConfigStatic['loginPath'];
+  }
+
+  static getAppConfigStatic() {
+    return AppConfigService.appConfigStatic;
   }
 }

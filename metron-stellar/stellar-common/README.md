@@ -248,6 +248,7 @@ Where:
 | [ `OBJECT_GET`](#object_get)                                                                       |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
+| [ `PROFILE_VERBOSE`](#profile_verbose)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
 | [ `PROFILE_WINDOW`](#profile_window)                                                               |
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
@@ -873,9 +874,18 @@ Where:
   * Input:
     * profile - The name of the profile.
     * entity - The name of the entity.
-    * periods - The list of profile periods to grab.  These are ProfilePeriod objects.
+    * periods - The list of profile periods to fetch. Use PROFILE_WINDOW or PROFILE_FIXED.
     * groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of groupBy values used to filter the profile. Default is the empty list, meaning groupBy was not used when creating the profile.
     * config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter of the same name. Default is the empty Map, meaning no overrides.
+  * Returns: The selected profile measurements.
+
+### `PROFILE_VERBOSE`
+  * Description: Retrieves a series of measurements from a stored profile. Returns a map containing the profile name, entity, period id, period start, period end for each profile measurement. Provides a more verbose view of each measurement than PROFILE_GET.
+  * Input:
+    * profile - The name of the profile.
+    * entity - The name of the entity.
+    * periods - The list of profile periods to fetch. Use PROFILE_WINDOW or PROFILE_FIXED.
+    * groups - Optional - The groups to retrieve. Must correspond to the 'groupBy' used during profile creation. Defaults to an empty list, meaning no groups.
   * Returns: The selected profile measurements.
 
 ### `PROFILE_FIXED`
@@ -1507,7 +1517,7 @@ operating system.
 
 
 ```bash
-metron-stellar/stellar-common/target/stellar-common-0.6.1-stand-alone.tar.gz
+metron-stellar/stellar-common/target/stellar-common-0.7.0-stand-alone.tar.gz
 ```
 
 When unpacked, the following structure will be created:
@@ -1517,7 +1527,7 @@ When unpacked, the following structure will be created:
 ├── bin
 │   └── stellar
 └── lib
-    └── stellar-common-0.6.1-uber.jar
+    └── stellar-common-0.7.0-uber.jar
 ```
 
 To run the Stellar Shell run the following from the directory you unpacked to:

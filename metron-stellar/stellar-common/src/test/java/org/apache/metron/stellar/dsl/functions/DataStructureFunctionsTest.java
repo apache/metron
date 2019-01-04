@@ -66,6 +66,7 @@ public class DataStructureFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void listAdd_number() {
     for(String expr : ImmutableList.of("LIST_ADD(my_list, 1)"
                                       ,"LIST_ADD([], 1)"
@@ -82,6 +83,7 @@ public class DataStructureFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void listAdd_mixed() {
     for(String expr : ImmutableList.of("LIST_ADD(my_list, 1)"
                                       ,"LIST_ADD(['foo'], 1)"
@@ -101,6 +103,7 @@ public class DataStructureFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void listAdd_number_nonempty() {
     for(String expr : ImmutableList.of("LIST_ADD(my_list, 2)"
                                       ,"LIST_ADD([1], 2)"

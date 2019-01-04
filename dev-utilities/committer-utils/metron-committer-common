@@ -21,9 +21,9 @@
 #
 
 # the upstream apache git repo for apache metron
-METRON_UPSTREAM="https://git-wip-us.apache.org/repos/asf/metron.git"
+METRON_UPSTREAM="https://gitbox.apache.org/repos/asf/metron.git"
 # the upstream apache git repo for apache metron bro plugin kafka
-BRO_PLUGIN_UPSTREAM="https://git-wip-us.apache.org/repos/asf/metron-bro-plugin-kafka.git"
+BRO_PLUGIN_UPSTREAM="https://gitbox.apache.org/repos/asf/metron-bro-plugin-kafka.git"
 # the common configuration file with the committer info
 CONFIG_FILE=~/.metron-prepare-commit
 
@@ -239,7 +239,7 @@ function setup_code {
 #
 function get_contributor_info {
     # use github api to retrieve the contributor's login
-    USER=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | grep login | head -1 | awk -F":" '{print $2}' | sed 's/[^a-zA-Z.@_-]//g'`
+    USER=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | grep login | head -1 | awk -F":" '{print $2}' | sed 's/[^a-zA-Z0-9.@_-]//g'`
     read -p "  github contributor's username [$USER]: " INPUT
     [ -n "$INPUT" ] && USER=${INPUT}
 

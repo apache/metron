@@ -139,6 +139,7 @@ public class StringFunctions {
           )
   public static class JoinFunction extends BaseStellarFunction {
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
       List<Object> arg1 = (List<Object>) args.get(0);
       String delim = (String) args.get(1);
@@ -153,10 +154,11 @@ public class StringFunctions {
           )
   public static class SplitFunction extends BaseStellarFunction {
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
       List ret = new ArrayList();
       Object o1 = args.get(0);
-      if(o1 != null) {
+      if (o1 != null) {
         String arg1 = o1.toString();
         String delim = (String) args.get(1);
         Iterables.addAll(ret, Splitter.on(delim).split(arg1));
@@ -165,43 +167,46 @@ public class StringFunctions {
     }
   }
 
-  @Stellar(name="GET_LAST"
-          , description="Returns the last element of the list"
-          , params = { "input - List"}
-          , returns = "Last element of the list"
+  @Stellar(name = "GET_LAST",
+            description = "Returns the last element of the list",
+            params = { "input - List"},
+            returns = "Last element of the list"
           )
   public static class GetLast extends BaseStellarFunction {
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
       List<Object> arg1 = (List<Object>) args.get(0);
       return Iterables.getLast(arg1, null);
     }
   }
 
-  @Stellar(name="GET_FIRST"
-          , description="Returns the first element of the list"
-          , params = { "input - List"}
-          , returns = "First element of the list"
+  @Stellar(name = "GET_FIRST",
+            description = "Returns the first element of the list",
+            params = { "input - List"},
+            returns = "First element of the list"
           )
   public static class GetFirst extends BaseStellarFunction {
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
       List<Object> arg1 = (List<Object>) args.get(0);
       return Iterables.getFirst(arg1, null);
     }
   }
 
-  @Stellar(name="GET"
-          , description="Returns the i'th element of the list "
-          , params = { "input - List", "i - The index (0-based)"}
-          , returns = "First element of the list"
+  @Stellar(name = "GET",
+            description = "Returns the i'th element of the list ",
+            params = { "input - List", "i - The index (0-based)"},
+            returns = "First element of the list"
           )
   public static class Get extends BaseStellarFunction {
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
       List<Object> arg1 = (List<Object>) args.get(0);
       int offset = (Integer) args.get(1);
-      if(offset < arg1.size()) {
+      if (offset < arg1.size()) {
         return Iterables.get(arg1, offset);
       }
       return null;

@@ -63,6 +63,7 @@ public class MapFunctions {
           )
   public static class MapGet extends BaseStellarFunction {
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> objects) {
       Object keyObj = objects.get(0);
       Object mapObj = objects.get(1);
