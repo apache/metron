@@ -62,6 +62,7 @@ public class AsnEnrichmentFunctions {
         // If no fields are provided, return everything
         String ip = (String) args.get(0);
         if (ip == null || ip.trim().isEmpty()) {
+          LOG.debug("No IP provided, returning null");
           return null;
         }
 
@@ -76,7 +77,6 @@ public class AsnEnrichmentFunctions {
 
         // If only one field is requested, just return it directly
         if (fields.size() == 1 && result.isPresent()) {
-          // TODO need this?
           if (!result.get().containsKey(fields.get(0))) {
             return null;
           }

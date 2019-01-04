@@ -16,150 +16,118 @@ package org.apache.metron.enrichment.adapters.maxmind;/*
  * limitations under the License.
  */
 
-import com.maxmind.db.CHMCache;
 import com.maxmind.geoip2.DatabaseReader;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.validator.routines.InetAddressValidator;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public interface GeoLiteDatabase {
+public interface MaxMindDatabase {
   Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  InetAddressValidator ipvalidator = new InetAddressValidator();
   String EXTENSION_MMDB = ".mmdb";
   String EXTENSION_TAR_GZ = ".tar.gz";
   String EXTENSION_MMDB_GZ = ".mmdb.gz";
 
+  /**
+   * Retrieves the configuration key that holds the HDFS database file location
+   * @return The configuration key
+   */
   String getHdfsFileConfig();
+
+  /**
+   * Retrieves the default HDFS database file location
+   * @return The HDFS database file location
+   */
   String getHdfsFileDefault();
+
+  /**
+   * Locks any underlying resources to ensure they are smoothly updated without disruption.
+   * Any callers implementing an update() function should lock during the update to ensure uninterrupted querying.
+   */
   void lockIfNecessary();
+
+  /**
+   * Unlocks any underlying resources to ensure the lock is released after an update.
+   * Any callers implementing an update() function should ensure they've unlocked post update.
+   */
   void unlockIfNecessary();
+
+  /**
+   * Gets the appropriate database reader for the underlying database that's been loaded
+   * @return The DatabaseReader for the MaxMind database.
+   */
   DatabaseReader getReader();
   void setReader(DatabaseReader reader);
 
   /**
    * Updates the database file, if the configuration points to a new file.
+   * Implementations may need to be synchronized to avoid issues querying during updates.
    *
-   * @param globalConfig
+   * @param globalConfig The global configuration that will be used to determine if an update is necessary.
    */
   void updateIfNecessary(Map<String, Object> globalConfig);
 
-//  void update(String hdfsFile);
-
+  /**
+   * Update the database being queried to one backed by the provided HDFS file.
+   * Access to the database should be guarded by read locks to avoid disruption while updates are occurring.
+   * @param hdfsFile The HDFS file path to be used for new queries.
+   */
   default void update(String hdfsFile) {
     // If nothing is set (or it's been unset, use the defaults)
     if (hdfsFile == null || hdfsFile.isEmpty()) {
-      LOG.debug("[Metron] Using default for {}: {}", getHdfsFileConfig(), getHdfsFileDefault());
+      LOG.debug("Using default for {}: {}", getHdfsFileConfig(), getHdfsFileDefault());
       hdfsFile = getHdfsFileDefault();
     }
 
-    FileSystem fs = getFileSystem();
+    FileSystem fs = MaxMindDbUtilities.getFileSystem();
 
-    if (hdfsFile.endsWith(GeoLiteDatabase.EXTENSION_MMDB)) {
+    if (hdfsFile.endsWith(MaxMindDatabase.EXTENSION_MMDB)) {
       lockIfNecessary();
       try (BufferedInputStream is = new BufferedInputStream(fs.open(new Path(hdfsFile)))) {
-        setReader(readNewDatabase(getReader(), hdfsFile, is));
+        setReader(MaxMindDbUtilities.readNewDatabase(getReader(), hdfsFile, is));
       } catch (IOException e) {
-        handleDatabaseIOException(hdfsFile, e);
+        MaxMindDbUtilities.handleDatabaseIOException(hdfsFile, e);
       } finally {
         unlockIfNecessary();
       }
-    } else if (hdfsFile.endsWith(GeoLiteDatabase.EXTENSION_MMDB_GZ)) {
+    } else if (hdfsFile.endsWith(MaxMindDatabase.EXTENSION_MMDB_GZ)) {
       lockIfNecessary();
       try (GZIPInputStream is = new GZIPInputStream(fs.open(new Path(hdfsFile)))) {
-        setReader(readNewDatabase(getReader(), hdfsFile, is));
+        setReader(MaxMindDbUtilities.readNewDatabase(getReader(), hdfsFile, is));
       } catch (IOException e) {
-        handleDatabaseIOException(hdfsFile, e);
+        MaxMindDbUtilities.handleDatabaseIOException(hdfsFile, e);
       } finally {
         unlockIfNecessary();
       }
-    } else if (hdfsFile.endsWith(GeoLiteDatabase.EXTENSION_TAR_GZ)) {
+    } else if (hdfsFile.endsWith(MaxMindDatabase.EXTENSION_TAR_GZ)) {
       lockIfNecessary();
       try (TarArchiveInputStream is = new TarArchiveInputStream(
           new GZIPInputStream(fs.open(new Path(hdfsFile))))) {
         // Need to find the mmdb entry.
         TarArchiveEntry entry = is.getNextTarEntry();
         while (entry != null) {
-          if (entry.isFile() && entry.getName().endsWith(GeoLiteDatabase.EXTENSION_MMDB)) {
+          if (entry.isFile() && entry.getName().endsWith(MaxMindDatabase.EXTENSION_MMDB)) {
             try(InputStream mmdb = new BufferedInputStream(is))
             { // Read directly from tarInput
-              setReader(readNewDatabase(getReader(), hdfsFile, mmdb));
+              setReader(MaxMindDbUtilities.readNewDatabase(getReader(), hdfsFile, mmdb));
               break; // Don't care about the other entries, leave immediately
             }
           }
           entry = is.getNextTarEntry();
         }
       } catch (IOException e) {
-        handleDatabaseIOException(hdfsFile, e);
+        MaxMindDbUtilities.handleDatabaseIOException(hdfsFile, e);
       } finally {
         unlockIfNecessary();
       }
     }
-  }
-
-  default void handleDatabaseIOException(String hdfsFile, IOException e) {
-    LOG.error("[Metron] Unable to open new database file {}", hdfsFile, e);
-    throw new IllegalStateException("[Metron] Unable to update MaxMind database");
-  }
-
-  default DatabaseReader readNewDatabase(DatabaseReader reader, String hdfsFile, InputStream is) throws IOException {
-    LOG.info("[Metron] Update to GeoIP data started with {}", hdfsFile);
-    // InputStream based DatabaseReaders are always in memory.
-    DatabaseReader newReader = new DatabaseReader.Builder(is).withCache(new CHMCache()).build();
-    // If we've never set a reader, don't close the old one
-    if (reader != null) {
-      reader.close();
-    }
-    LOG.info("[Metron] Finished update to GeoIP data started with {}", hdfsFile);
-    return newReader;
-  }
-
-  default FileSystem getFileSystem() {
-    FileSystem fs;
-    try {
-      fs = FileSystem.get(new Configuration());
-    } catch (IOException e) {
-      LOG.error("[Metron] Unable to retrieve get HDFS FileSystem");
-      throw new IllegalStateException("[Metron] Unable to get HDFS FileSystem");
-    }
-    return fs;
-  }
-
-  default String convertNullToEmptyString(Object raw) {
-    return raw == null ? "" : String.valueOf(raw);
-  }
-
-  default boolean invalidIp(String ip) {
-    LOG.trace("[Metron] Called validateIp({})", ip);
-    InetAddress addr;
-    try {
-      addr = InetAddress.getByName(ip);
-    } catch (UnknownHostException e) {
-      LOG.warn("[Metron] No result found for IP {}", ip, e);
-      return true;
-    }
-    if (isIneligibleAddress(ip, addr)) {
-      LOG.debug("[Metron] IP ineligible for lookup {}", ip);
-      return true;
-    }
-    return false;
-  }
-
-  default boolean isIneligibleAddress(String ipStr, InetAddress addr) {
-    return addr.isAnyLocalAddress() || addr.isLoopbackAddress()
-        || addr.isSiteLocalAddress() || addr.isMulticastAddress()
-        || !ipvalidator.isValidInet4Address(ipStr);
   }
 }

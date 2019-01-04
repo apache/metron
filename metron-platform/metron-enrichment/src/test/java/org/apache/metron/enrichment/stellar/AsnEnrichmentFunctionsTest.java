@@ -20,12 +20,14 @@ package org.apache.metron.enrichment.stellar;
 
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.metron.enrichment.adapters.maxmind.asn.AsnDatabase;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
@@ -73,6 +75,35 @@ public class AsnEnrichmentFunctionsTest {
   }
 
   @Test
+  public void testMissingDb() {
+    context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG,
+        () -> ImmutableMap.of(AsnDatabase.ASN_HDFS_FILE, "./fakefile.mmdb")
+    ).build();
+    String stellar = "ASN_GET()";
+    try {
+      run(stellar, ImmutableMap.of());
+    } catch (Exception expected) {
+      Assert.assertTrue(expected.getMessage().contains("File fakefile.mmdb does not exist"));
+    }
+  }
+
+  @Test
+  public void testMissingDbDuringUpdate() {
+    String stellar = "ASN_GET()";
+    Object result = run(stellar, ImmutableMap.of());
+    Assert.assertNull("Null IP should return null", result);
+    try {
+      AsnDatabase.INSTANCE.updateIfNecessary(
+          Collections.singletonMap(AsnDatabase.ASN_HDFS_FILE, "./fakefile.mmdb"));
+    } catch (IllegalStateException e) {
+      // ignore it, the file doesn't exist
+    }
+    // Should still continue to query the old database, instead of dying.
+    result = run(stellar, ImmutableMap.of());
+    Assert.assertNull("Null IP should return null", result);
+  }
+
+  @Test
   public void testGetNull() {
     String stellar = "ASN_GET()";
     Object result = run(stellar, ImmutableMap.of());
@@ -94,28 +125,28 @@ public class AsnEnrichmentFunctionsTest {
   }
 
   @Test
-  public void testGetRemote() {
+  public void testGetRemote() throws Exception {
     String stellar = "ASN_GET('8.8.4.0')";
     Object result = run(stellar, ImmutableMap.of());
     Assert.assertEquals("Remote IP should return result based on DB", expectedMessage, result);
   }
 
   @Test
-  public void testGetRemoteSingleField() {
+  public void testGetRemoteSingleField() throws Exception {
     String stellar = "ASN_GET('8.8.4.0', ['autonomous_system_organization'])";
     Object result = run(stellar, ImmutableMap.of());
     Assert.assertEquals("Remote IP should return country result based on DB", "Google LLC", result);
   }
 
   @Test
-  public void testGetRemoteSingleFieldInteger() {
+  public void testGetRemoteSingleFieldInteger() throws Exception {
     String stellar = "ASN_GET('8.8.4.0', ['autonomous_system_number'])";
     Object result = run(stellar, ImmutableMap.of());
     Assert.assertEquals("Remote IP should return country result based on DB", 15169, result);
   }
 
   @Test
-  public void testGetRemoteMultipleFields() {
+  public void testGetRemoteMultipleFields() throws Exception {
     String stellar = "ASN_GET('8.8.4.0', ['autonomous_system_organization', 'autonomous_system_number'])";
     Object result = run(stellar, ImmutableMap.of());
     Assert.assertEquals("Remote IP should return country result based on DB", expectedSubsetMessage,
@@ -123,7 +154,7 @@ public class AsnEnrichmentFunctionsTest {
   }
 
   @Test(expected = org.apache.metron.stellar.dsl.ParseException.class)
-  public void testGetTooManyParams() {
+  public void testGetTooManyParams() throws Exception {
     String stellar = "ASN_GET('8.8.4.0', ['autonomous_system_organization', 'autonomous_system_number', 'network'], 'garbage')";
     run(stellar, ImmutableMap.of());
   }

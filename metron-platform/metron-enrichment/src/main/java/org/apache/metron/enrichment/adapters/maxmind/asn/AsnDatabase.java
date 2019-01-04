@@ -30,11 +30,15 @@ import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-import org.apache.metron.enrichment.adapters.maxmind.GeoLiteDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.MaxMindDbUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public enum AsnDatabase implements GeoLiteDatabase {
+/**
+ * Manages querying and updating of an Autonymous System Number (ASN) database provided by MaxMind.
+ */
+public enum AsnDatabase implements MaxMindDatabase {
   INSTANCE;
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -110,7 +114,7 @@ public enum AsnDatabase implements GeoLiteDatabase {
 
   public synchronized void updateIfNecessary(Map<String, Object> globalConfig) {
     // Reload database if necessary (file changes on HDFS)
-    LOG.trace("[Metron] Determining if AsnDatabase update required");
+    LOG.trace("Determining if AsnDatabase update required");
     String hdfsFile = ASN_HDFS_FILE_DEFAULT;
     if (globalConfig != null) {
       hdfsFile = (String) globalConfig.getOrDefault(ASN_HDFS_FILE, ASN_HDFS_FILE_DEFAULT);
@@ -122,14 +126,17 @@ public enum AsnDatabase implements GeoLiteDatabase {
       hdfsLoc = hdfsFile;
       update(hdfsFile);
     } else {
-      LOG.trace("[Metron] Update to AsnDatabase unnecessary");
+      LOG.trace("Update to AsnDatabase unnecessary");
     }
   }
 
-  // Optional.empty means that we don't have any ASN information in database.
-  // Optional exists, but empty means local IP (valid, but no info will be in the DB)
+  /**
+   * Retrieves the result fields based on the incoming IP address
+   * @param ip The IP to lookup in the database
+   * @return Optional.empty() if the IP address is local or not in the database.
+   */
   public Optional<Map<String, Object>> get(String ip) {
-    if (invalidIp(ip)) {
+    if (MaxMindDbUtilities.invalidIp(ip)) {
       return Optional.empty();
     }
 
@@ -140,14 +147,15 @@ public enum AsnDatabase implements GeoLiteDatabase {
       HashMap<String, Object> asnInfo = new HashMap<>();
       AsnProps.ASN.set(asnInfo, asnResponse.getAutonomousSystemNumber());
       AsnProps.ASO
-          .set(asnInfo, convertNullToEmptyString(asnResponse.getAutonomousSystemOrganization()));
-      AsnProps.NETWORK.set(asnInfo, convertNullToEmptyString(asnResponse.getIpAddress()));
+          .set(asnInfo, MaxMindDbUtilities.convertNullToEmptyString(asnResponse.getAutonomousSystemOrganization()));
+      AsnProps.NETWORK
+          .set(asnInfo, MaxMindDbUtilities.convertNullToEmptyString(asnResponse.getIpAddress()));
 
       return Optional.of(asnInfo);
     } catch (UnknownHostException | AddressNotFoundException e) {
-      LOG.debug("[Metron] No result found for IP {}", ip);
+      LOG.debug("No result found for IP {}", ip);
     } catch (GeoIp2Exception | IOException e) {
-      LOG.warn("[Metron] GeoLite2 DB encountered an error", e);
+      LOG.warn("GeoLite2 ASN DB encountered an error", e);
     } finally {
       readLock.unlock();
     }

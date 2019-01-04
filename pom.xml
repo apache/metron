@@ -242,7 +242,7 @@
                     <compilerId>javac-with-errorprone</compilerId>
                     <forceJavacCompilerUse>true</forceJavacCompilerUse>
                     <source>${global_java_version}</source>
-                    <!--<compilerArgument>-Xlint:unchecked</compilerArgument>-->
+                    <compilerArgument>-Xlint:unchecked</compilerArgument>
                     <target>${global_java_version}</target>
                     <showWarnings>true</showWarnings>
                 </configuration>

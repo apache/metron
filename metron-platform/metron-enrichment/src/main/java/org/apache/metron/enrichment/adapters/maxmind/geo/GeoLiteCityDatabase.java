@@ -36,11 +36,15 @@ import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-import org.apache.metron.enrichment.adapters.maxmind.GeoLiteDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.MaxMindDbUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public enum GeoLiteCityDatabase implements GeoLiteDatabase {
+/**
+ * Manages querying and updating of an GeoLite2 City database provided by MaxMind.
+ */
+public enum GeoLiteCityDatabase implements MaxMindDatabase {
   INSTANCE;
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -121,7 +125,7 @@ public enum GeoLiteCityDatabase implements GeoLiteDatabase {
 
   public synchronized void updateIfNecessary(Map<String, Object> globalConfig) {
     // Reload database if necessary (file changes on HDFS)
-    LOG.trace("[Metron] Determining if GeoIpDatabase update required");
+    LOG.trace("Determining if GeoIpDatabase update required");
     String hdfsFile = GEO_HDFS_FILE_DEFAULT;
     if (globalConfig != null) {
       hdfsFile = (String) globalConfig.getOrDefault(GEO_HDFS_FILE, GEO_HDFS_FILE_DEFAULT);
@@ -133,14 +137,17 @@ public enum GeoLiteCityDatabase implements GeoLiteDatabase {
       hdfsLoc = hdfsFile;
       update(hdfsFile);
     } else {
-      LOG.trace("[Metron] Update to GeoIpDatabase unnecessary");
+      LOG.trace("Update to GeoIpDatabase unnecessary");
     }
   }
 
-  // Optional.empty means that we don't have any geo location in database.
-  // Optional exists, but empty means local IP (valid, but no info will be in the DB)
+  /**
+   * Retrieves the result fields based on the incoming IP address
+   * @param ip The IP to lookup in the database
+   * @return Optional.empty() if the IP address is local or not in the database.
+   */
   public Optional<Map<String, String>> get(String ip) {
-    if (invalidIp(ip)) {
+    if (MaxMindDbUtilities.invalidIp(ip)) {
       return Optional.empty();
     }
 
@@ -155,18 +162,18 @@ public enum GeoLiteCityDatabase implements GeoLiteDatabase {
       Postal postal = cityResponse.getPostal();
       Location location = cityResponse.getLocation();
 
-      GeoProps.LOC_ID.set(geoInfo, convertNullToEmptyString(city.getGeoNameId()));
-      GeoProps.COUNTRY.set(geoInfo, convertNullToEmptyString(country.getIsoCode()));
-      GeoProps.CITY.set(geoInfo, convertNullToEmptyString(city.getName()));
-      GeoProps.POSTAL_CODE.set(geoInfo, convertNullToEmptyString(postal.getCode()));
-      GeoProps.DMA_CODE.set(geoInfo, convertNullToEmptyString(location.getMetroCode()));
+      GeoProps.LOC_ID.set(geoInfo, MaxMindDbUtilities.convertNullToEmptyString(city.getGeoNameId()));
+      GeoProps.COUNTRY.set(geoInfo, MaxMindDbUtilities.convertNullToEmptyString(country.getIsoCode()));
+      GeoProps.CITY.set(geoInfo, MaxMindDbUtilities.convertNullToEmptyString(city.getName()));
+      GeoProps.POSTAL_CODE.set(geoInfo, MaxMindDbUtilities.convertNullToEmptyString(postal.getCode()));
+      GeoProps.DMA_CODE.set(geoInfo, MaxMindDbUtilities.convertNullToEmptyString(location.getMetroCode()));
 
       Double latitudeRaw = location.getLatitude();
-      String latitude = convertNullToEmptyString(latitudeRaw);
+      String latitude = MaxMindDbUtilities.convertNullToEmptyString(latitudeRaw);
       GeoProps.LATITUDE.set(geoInfo, latitude);
 
       Double longitudeRaw = location.getLongitude();
-      String longitude = convertNullToEmptyString(longitudeRaw);
+      String longitude = MaxMindDbUtilities.convertNullToEmptyString(longitudeRaw);
       GeoProps.LONGITUDE.set(geoInfo, longitude);
 
       if (latitudeRaw == null || longitudeRaw == null) {
@@ -177,9 +184,9 @@ public enum GeoLiteCityDatabase implements GeoLiteDatabase {
 
       return Optional.of(geoInfo);
     } catch (UnknownHostException | AddressNotFoundException e) {
-      LOG.debug("[Metron] No result found for IP {}", ip);
+      LOG.debug("No result found for IP {}", ip);
     } catch (GeoIp2Exception | IOException e) {
-      LOG.warn("[Metron] GeoLite2 DB encountered an error", e);
+      LOG.warn("GeoLite2 City DB encountered an error", e);
     } finally {
       readLock.unlock();
     }
