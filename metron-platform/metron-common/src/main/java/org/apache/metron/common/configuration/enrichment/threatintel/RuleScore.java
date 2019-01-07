@@ -17,6 +17,8 @@
  */
 package org.apache.metron.common.configuration.enrichment.threatintel;
 
+import java.util.Objects;
+
 /**
  * This class represents the score resulting from applying a RiskLevelRule
  * to a message.
@@ -44,12 +46,19 @@ public class RuleScore {
   private String reason;
 
   /**
+   * The numeric score which is the result of executing the {@link RiskLevelRule} score Stellar expression.
+   */
+  private Number score;
+
+  /**
    * @param rule The threat triage rule that when applied resulted in this score.
    * @param reason The result of executing the rule's 'reason' expression.  Provides context to why a rule was applied.
+   * @param score The result of executing the rule's 'score' expression.
    */
-  public RuleScore(RiskLevelRule rule, String reason) {
+  public RuleScore(RiskLevelRule rule, String reason, Number score) {
     this.rule = rule;
     this.reason = reason;
+    this.score = score;
   }
 
   public String getReason() {
@@ -60,22 +69,27 @@ public class RuleScore {
     return rule;
   }
 
+  public Number getScore() {
+    return score;
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    RuleScore that = (RuleScore) o;
-
-    if (rule != null ? !rule.equals(that.rule) : that.rule != null) return false;
-    return reason != null ? reason.equals(that.reason) : that.reason == null;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof RuleScore)) {
+      return false;
+    }
+    RuleScore ruleScore = (RuleScore) o;
+    return Objects.equals(rule, ruleScore.rule) &&
+            Objects.equals(reason, ruleScore.reason) &&
+            Objects.equals(score, ruleScore.score);
   }
 
   @Override
   public int hashCode() {
-    int result = rule != null ? rule.hashCode() : 0;
-    result = 31 * result + (reason != null ? reason.hashCode() : 0);
-    return result;
+    return Objects.hash(rule, reason, score);
   }
 
   @Override
@@ -83,6 +97,7 @@ public class RuleScore {
     return "RuleScore{" +
             "rule=" + rule +
             ", reason='" + reason + '\'' +
+            ", score=" + score +
             '}';
   }
 }

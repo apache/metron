@@ -129,7 +129,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals(10.0, rule.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("10", rule.getScoreExpression());
   }
 
   @Test
@@ -159,19 +159,19 @@ public class ThreatTriageFunctionsTest {
 
     newConfig = (String) run(
             "THREAT_TRIAGE_ADD(config, { 'rule' : SHELL_GET_EXPRESSION('greater'), 'score' : 20 } )"
-            , toMap("config",newConfig
+            , toMap("config", newConfig
             )
     );
 
     List<RiskLevelRule> triageRules = getTriageRules(newConfig);
     Assert.assertEquals(2, triageRules.size());
     RiskLevelRule less = triageRules.get(0);
-    Assert.assertEquals(variables.get("less").getExpression().get(), less.getRule() );
-    Assert.assertEquals(10.0, less.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals(variables.get("less").getExpression().get(), less.getRule());
+    Assert.assertEquals("10", less.getScoreExpression());
 
     RiskLevelRule greater = triageRules.get(1);
-    Assert.assertEquals(variables.get("greater").getExpression().get(), greater.getRule() );
-    Assert.assertEquals(20.0, greater.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals(variables.get("greater").getExpression().get(), greater.getRule());
+    Assert.assertEquals("20", greater.getScoreExpression());
   }
 
   @Test(expected=ParseException.class)
@@ -202,7 +202,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals(10.0, rule.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("10", rule.getScoreExpression());
   }
 
   @Test
@@ -258,7 +258,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals(10.0, rule.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("10", rule.getScoreExpression());
   }
 
   @Test
@@ -283,7 +283,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals(10.0, rule.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("10", rule.getScoreExpression());
   }
 
   @Test
@@ -322,11 +322,11 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(2, triageRules.size());
     RiskLevelRule less = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), less.getRule() );
-    Assert.assertEquals(10.0, less.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("10", less.getScoreExpression());
 
     RiskLevelRule greater = triageRules.get(1);
     Assert.assertEquals(variables.get("greater").getExpression().get(), greater.getRule() );
-    Assert.assertEquals(20.0, greater.getScore().doubleValue(), 1e-6 );
+    Assert.assertEquals("20", greater.getScoreExpression());
   }
 
   /**
@@ -506,6 +506,39 @@ Aggregation: MAX*/
     Object totalScore = score.get(ThreatTriageFunctions.SCORE_KEY);
     Assert.assertTrue(totalScore instanceof Double);
     Assert.assertEquals(10.0, (Double) totalScore, 0.001);
+
+    // validate the aggregator
+    Assert.assertEquals("MAX", score.get(ThreatTriageFunctions.AGG_KEY));
+  }
+
+  @Test
+  public void testTriageWithScoreExpression() {
+
+    // add a triage rule that uses an expression for the score
+    String confWithRule = (String) run("THREAT_TRIAGE_ADD(conf, [{ 'rule': 'value > 0', 'score' : 'value * 10' }])",
+            toMap("conf", configStr));
+
+    // initialize the engine
+    Object engine = run("THREAT_TRIAGE_INIT(confWithRule)",
+            toMap("confWithRule", confWithRule));
+
+    Map<String, Object> vars = new HashMap<>();
+    vars.put("engine", engine);
+    vars.put("msg", message);
+
+    // score the message
+    Object result = run("THREAT_TRIAGE_SCORE(msg, engine)", vars);
+    Assert.assertNotNull(result);
+    Assert.assertTrue(result instanceof Map);
+
+    // validate the rules that were scored
+    Map<String, Object> score = (Map) result;
+    Assert.assertEquals(1, ((List) score.get(ThreatTriageFunctions.RULES_KEY)).size());
+
+    // validate the total score
+    Object totalScore = score.get(ThreatTriageFunctions.SCORE_KEY);
+    Assert.assertTrue(totalScore instanceof Double);
+    Assert.assertEquals(220.0, (Double) totalScore, 0.001);
 
     // validate the aggregator
     Assert.assertEquals("MAX", score.get(ThreatTriageFunctions.AGG_KEY));
