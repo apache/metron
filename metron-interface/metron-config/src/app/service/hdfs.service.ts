@@ -20,16 +20,15 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { HttpUtil } from '../util/httpUtil';
-import { IAppConfig } from '../app.config.interface';
-import { APP_CONFIG } from '../app.config';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class HdfsService {
-  url = this.config.apiEndpoint + '/hdfs';
+  url = this.appConfigService.getApiRoot() + '/hdfs';
 
   constructor(
     private http: HttpClient,
-    @Inject(APP_CONFIG) private config: IAppConfig
+    private appConfigService: AppConfigService
   ) {}
 
   public list(path: string): Observable<string[]> {

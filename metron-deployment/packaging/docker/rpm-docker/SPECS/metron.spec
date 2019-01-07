@@ -157,6 +157,8 @@ This package installs the Metron Parser Common files
 %{metron_home}/config/zookeeper/parsers/jsonMap.json
 %{metron_home}/config/zookeeper/parsers/jsonMapQuery.json
 %{metron_home}/config/zookeeper/parsers/jsonMapWrappedQuery.json
+%{metron_home}/config/zookeeper/parsers/syslog3164.json
+%{metron_home}/config/zookeeper/parsers/syslog5424.json
 %{metron_home}/patterns/common
 %attr(0644,root,root) %{metron_home}/lib/metron-parsers-common-%{full_version}-uber.jar
 
@@ -182,7 +184,6 @@ This package installs the Metron Bundled Parser files
 %{metron_home}/config/zookeeper/parsers/bro.json
 %{metron_home}/config/zookeeper/parsers/snort.json
 %{metron_home}/config/zookeeper/parsers/squid.json
-%{metron_home}/config/zookeeper/parsers/syslog5424.json
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
 %{metron_home}/config/zookeeper/parsers/asa.json
@@ -466,8 +467,17 @@ This package installs the Metron Rest %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/config/rest_application.yml
+%{metron_home}/config/knox/conf/topologies/metron.xml
+%{metron_home}/config/knox/conf/topologies/metronsso.xml
+%{metron_home}/config/knox/data/services/alerts/rewrite.xml
+%{metron_home}/config/knox/data/services/alerts/service.xml
+%{metron_home}/config/knox/data/services/management/rewrite.xml
+%{metron_home}/config/knox/data/services/management/service.xml
+%{metron_home}/config/knox/data/services/rest/rewrite.xml
+%{metron_home}/config/knox/data/services/rest/service.xml
 %{metron_home}/bin/metron-rest.sh
 %{metron_home}/bin/pcap_to_pdml.sh
+%{metron_home}/bin/install_metron_knox.sh
 %attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -519,6 +529,7 @@ This package installs the Metron Management UI %{metron_home}
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/LICENSE.txt
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/*.ttf
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/images/*
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/app-config.json
 %attr(0644,root,root) %{metron_home}/web/management-ui/license/*
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -633,6 +644,10 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Thu Dec 27 2018 Apache Metron <dev@metron.apache.og> - 0.7.1
+- Updat metron SPEC to move syslog configurations to right place
+* Wed Dec 26 2018 Apache Metron <dev@metron.apache.org> - 0.7.1
+- Update metron SPEC file to include syslog 3164 parser
 * Thu Nov 15 2018 Apache Metron <dev@metron.apache.org> - 0.7.0
 - Split metron-parsers into metron-parsing and submodules
 * Wed Oct 31 2018 Apache Metron <dev@metron.apache.org> - 0.7.0

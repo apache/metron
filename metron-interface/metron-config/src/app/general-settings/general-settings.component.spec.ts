@@ -24,19 +24,12 @@ import { MetronDialogBox } from '../shared/metron-dialog-box';
 import { GlobalConfigService } from '../service/global-config.service';
 import { GeneralSettingsModule } from './general-settings.module';
 import { Observable, throwError } from 'rxjs';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
-import { IAppConfig } from '../app.config.interface';
+import {AppConfigService} from '../service/app-config.service';
+import {MockAppConfigService} from '../service/mock.app-config.service';
 
 class MockGlobalConfigService extends GlobalConfigService {
   _config: any = {};
   _postSuccess = true;
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public post(globalConfig: {}): Observable<{}> {
     if (this._postSuccess) {
@@ -94,7 +87,7 @@ describe('GeneralSettingsComponent', () => {
         MetronAlerts,
         MetronDialogBox,
         { provide: GlobalConfigService, useClass: MockGlobalConfigService },
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     fixture = TestBed.createComponent(GeneralSettingsComponent);

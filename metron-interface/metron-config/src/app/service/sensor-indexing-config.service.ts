@@ -22,16 +22,15 @@ import { map, catchError } from 'rxjs/operators';
 
 import { IndexingConfigurations } from '../model/sensor-indexing-config';
 import { HttpUtil } from '../util/httpUtil';
-import { IAppConfig } from '../app.config.interface';
-import { APP_CONFIG } from '../app.config';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class SensorIndexingConfigService {
-  url = this.config.apiEndpoint + '/sensor/indexing/config';
+  url = this.appConfigService.getApiRoot() + '/sensor/indexing/config';
 
   constructor(
     private http: HttpClient,
-    @Inject(APP_CONFIG) private config: IAppConfig
+    private appConfigService: AppConfigService
   ) {}
 
   public post(

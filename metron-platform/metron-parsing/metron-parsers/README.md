@@ -29,7 +29,6 @@ The included parsers are:
 * PaloAlto
 * Snort
 * Sourcefire
-* Syslog
 * Websphere
 
 The basic parsers and their details can be found at [README](../metron-parsers-common#README.md).

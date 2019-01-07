@@ -21,17 +21,16 @@ import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { KafkaTopic } from '../model/kafka-topic';
 import { HttpUtil } from '../util/httpUtil';
-import { IAppConfig } from '../app.config.interface';
-import { APP_CONFIG } from '../app.config';
 import { RestError } from '../model/rest-error';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class KafkaService {
-  url = this.config.apiEndpoint + '/kafka/topic';
+  url = this.appConfigService.getApiRoot() + '/kafka/topic';
 
   constructor(
     private http: HttpClient,
-    @Inject(APP_CONFIG) private config: IAppConfig
+    private appConfigService: AppConfigService
   ) {}
 
   public post(kafkaTopic: KafkaTopic): Observable<KafkaTopic> {

@@ -426,7 +426,7 @@
             "display-name": "Security",
             "layout": {
               "tab-columns": "2",
-              "tab-rows": "1",
+              "tab-rows": "2",
               "sections": [
                 {
                   "name": "section-security-ldap",
@@ -440,6 +440,25 @@
                     {
                       "name": "subsection-security-ldap",
                       "display-name": "LDAP",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-security-knox",
+                  "row-index": "1",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-security-knox",
+                      "display-name": "KNOX",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
@@ -931,6 +950,18 @@
         {
           "config": "metron-security-env/metron.ldap.ssl.truststore.password",
           "subsection-name": "subsection-security-ldap"
+        },
+        {
+          "config": "metron-security-env/metron.knox.enabled",
+          "subsection-name": "subsection-security-knox"
+        },
+        {
+          "config": "metron-security-env/metron.knox.sso.pubkey",
+          "subsection-name": "subsection-security-knox"
+        },
+        {
+          "config": "metron-security-env/metron.knox.sso.token.ttl",
+          "subsection-name": "subsection-security-knox"
         },
         {
           "config": "metron-pcap-env/pcap_topology_workers",
@@ -1683,6 +1714,24 @@
       },
       {
         "config": "metron-security-env/metron.ldap.group.roleattribute",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.knox.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.knox.sso.pubkey",
+        "widget": {
+          "type": "text-area"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.knox.sso.token.ttl",
         "widget": {
           "type": "text-field"
         }

@@ -39,14 +39,14 @@ import { FieldTransformer } from '../../model/field-transformer';
 import { SensorParserConfigModule } from './sensor-parser-config.module';
 import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
 import { SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../../app.config';
-import { IAppConfig } from '../../app.config.interface';
 import { SensorIndexingConfigService } from '../../service/sensor-indexing-config.service';
 import { IndexingConfigurations } from '../../model/sensor-indexing-config';
 import { of } from 'rxjs';
 import { HdfsService } from '../../service/hdfs.service';
 import { RestError } from '../../model/rest-error';
 import { RiskLevelRule } from '../../model/risk-level-rule';
+import {AppConfigService} from '../../service/app-config.service';
+import {MockAppConfigService} from '../../service/mock.app-config.service';
 
 class MockRouter {
   navigateByUrl(url: string) {}
@@ -71,13 +71,6 @@ class MockSensorParserConfigService extends SensorParserConfigService {
   private parsedMessage: any;
   private postedSensorParserConfig: SensorParserConfig;
   private throwError: boolean;
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public post(
     name: string,
@@ -157,13 +150,6 @@ class MockSensorIndexingConfigService extends SensorIndexingConfigService {
   private sensorIndexingConfig: IndexingConfigurations;
   private throwError: boolean;
 
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
-
   public post(
     name: string,
     sensorIndexingConfig: IndexingConfigurations
@@ -213,13 +199,6 @@ class MockKafkaService extends KafkaService {
   private kafkaTopic: KafkaTopic;
   private kafkaTopicForPost: KafkaTopic;
   private sampleData = { key1: 'value1', key2: 'value2' };
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setKafkaTopic(name: string, kafkaTopic: KafkaTopic) {
     this.name = name;
@@ -274,13 +253,6 @@ class MockGrokValidationService extends GrokValidationService {
   private path: string;
   private contents: string;
 
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
-
   public setContents(path: string, contents: string) {
     this.path = path;
     this.contents = contents;
@@ -320,13 +292,6 @@ class MockHdfsService extends HdfsService {
   private path: string;
   private contents: string;
   private postedContents: string;
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setFileList(path: string, fileList: string[]) {
     this.path = path;
@@ -388,13 +353,6 @@ class MockHdfsService extends HdfsService {
 }
 
 class MockAuthenticationService extends AuthenticationService {
-  constructor(
-    private http2: HttpClient,
-    private router2: Router,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, router2, config2);
-  }
 
   public getCurrentUser(options: {}): Observable<HttpResponse<{}>> {
     let responseOptions: {} = { body: 'user' };
@@ -406,13 +364,6 @@ class MockAuthenticationService extends AuthenticationService {
 class MockTransformationValidationService extends StellarService {
   private transformationValidationResult: any;
   private transformationValidationForValidate: SensorParserContext;
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setTransformationValidationResultForTest(
     transformationValidationResult: any
@@ -586,7 +537,7 @@ describe('Component: SensorParserConfig', () => {
           provide: SensorEnrichmentConfigService,
           useClass: MockSensorEnrichmentConfigService
         },
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     fixture = TestBed.createComponent(SensorParserConfigComponent);
