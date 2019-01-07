@@ -69,7 +69,7 @@ public class ThreatTriageConfigTest {
     assertEquals("Rule Comment", rule.getComment());
     assertEquals("ip_src_addr == '10.0.2.3'", rule.getRule());
     assertEquals("'Rule Reason'", rule.getReason());
-    assertEquals("10", rule.getScore());
+    assertEquals("10", rule.getScoreExpression());
   }
 
   /**
@@ -110,6 +110,6 @@ public class ThreatTriageConfigTest {
     assertEquals("Rule Comment", rule.getComment());
     assertEquals("'Rule Reason'", rule.getReason());
     assertEquals("ip_src_addr == '10.0.2.3'", rule.getRule());
-    assertEquals("10 + 10", rule.getScore());
+    assertEquals("10 + 10", rule.getScoreExpression());
   }
 }

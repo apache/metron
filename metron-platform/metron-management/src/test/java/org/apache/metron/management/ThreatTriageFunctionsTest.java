@@ -129,7 +129,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals("10", rule.getScore());
+    Assert.assertEquals("10", rule.getScoreExpression());
   }
 
   @Test
@@ -167,11 +167,11 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(2, triageRules.size());
     RiskLevelRule less = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), less.getRule());
-    Assert.assertEquals("10", less.getScore());
+    Assert.assertEquals("10", less.getScoreExpression());
 
     RiskLevelRule greater = triageRules.get(1);
     Assert.assertEquals(variables.get("greater").getExpression().get(), greater.getRule());
-    Assert.assertEquals("20", greater.getScore());
+    Assert.assertEquals("20", greater.getScoreExpression());
   }
 
   @Test(expected=ParseException.class)
@@ -202,7 +202,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals("10", rule.getScore());
+    Assert.assertEquals("10", rule.getScoreExpression());
   }
 
   @Test
@@ -258,7 +258,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals("10", rule.getScore());
+    Assert.assertEquals("10", rule.getScoreExpression());
   }
 
   @Test
@@ -283,7 +283,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(1, triageRules.size());
     RiskLevelRule rule = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), rule.getRule() );
-    Assert.assertEquals("10", rule.getScore());
+    Assert.assertEquals("10", rule.getScoreExpression());
   }
 
   @Test
@@ -322,11 +322,11 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(2, triageRules.size());
     RiskLevelRule less = triageRules.get(0);
     Assert.assertEquals(variables.get("less").getExpression().get(), less.getRule() );
-    Assert.assertEquals("10", less.getScore());
+    Assert.assertEquals("10", less.getScoreExpression());
 
     RiskLevelRule greater = triageRules.get(1);
     Assert.assertEquals(variables.get("greater").getExpression().get(), greater.getRule() );
-    Assert.assertEquals("20", greater.getScore());
+    Assert.assertEquals("20", greater.getScoreExpression());
   }
 
   /**

@@ -17,6 +17,10 @@
  */
 package org.apache.metron.common.configuration.enrichment.threatintel;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Objects;
+
 /**
  * This class represents a rule that is used to triage threats.
  *
@@ -34,24 +38,24 @@ public class RiskLevelRule {
   /**
    * The name of the rule. This field is optional.
    */
-  String name;
+  private String name;
 
   /**
    * A description of the rule. This field is optional.
    */
-  String comment;
+  private String comment;
 
   /**
    * A predicate, in the form of a Stellar expression, that determines whether
    * the rule is applied to an alert or not.  This field is required.
    */
-  String rule;
+  private String rule;
 
   /**
    * A Stellar expression that when evaluated results in a numeric score. The expression
    * can refer to fields within the message undergoing triage.
    */
-  String score;
+  private String scoreExpression;
 
   /**
    * Allows a rule author to provide contextual information when a rule is applied
@@ -60,7 +64,7 @@ public class RiskLevelRule {
    * This is expected to be a valid Stellar expression and can refer to any of the
    * fields within the message itself.
    */
-  String reason;
+  private String reason;
 
   public String getName() {
     return name;
@@ -86,24 +90,26 @@ public class RiskLevelRule {
     this.rule = rule;
   }
 
-  public String getScore() {
-    return score;
+  @JsonProperty("score")
+  public String getScoreExpression() {
+    return scoreExpression;
   }
 
-  public void setScore(Object score) {
-    if(score instanceof Number) {
+  @JsonProperty("score")
+  public void setScoreExpression(Object scoreExpression) {
+    if(scoreExpression instanceof Number) {
       // a numeric value was provided
-      score = Number.class.cast(score).toString();
+      scoreExpression = Number.class.cast(scoreExpression).toString();
 
-    } else if (score instanceof String) {
+    } else if (scoreExpression instanceof String) {
       // a stellar expression was provided
-      score = String.class.cast(score);
+      scoreExpression = String.class.cast(scoreExpression);
 
     } else {
-      throw new IllegalArgumentException(String.format("Expected 'score' to be number or string, but got '%s'", score));
+      throw new IllegalArgumentException(String.format("Expected 'score' to be number or string, but got '%s'", scoreExpression));
     }
 
-    this.score = score.toString();
+    this.scoreExpression = scoreExpression.toString();
   }
 
   public String getReason() {
@@ -117,25 +123,18 @@ public class RiskLevelRule {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
+    if (!(o instanceof RiskLevelRule)) return false;
     RiskLevelRule that = (RiskLevelRule) o;
-
-    if (name != null ? !name.equals(that.name) : that.name != null) return false;
-    if (comment != null ? !comment.equals(that.comment) : that.comment != null) return false;
-    if (rule != null ? !rule.equals(that.rule) : that.rule != null) return false;
-    if (score != null ? !score.equals(that.score) : that.score != null) return false;
-    return reason != null ? reason.equals(that.reason) : that.reason == null;
+    return Objects.equals(name, that.name) &&
+            Objects.equals(comment, that.comment) &&
+            Objects.equals(rule, that.rule) &&
+            Objects.equals(scoreExpression, that.scoreExpression) &&
+            Objects.equals(reason, that.reason);
   }
 
   @Override
   public int hashCode() {
-    int result = name != null ? name.hashCode() : 0;
-    result = 31 * result + (comment != null ? comment.hashCode() : 0);
-    result = 31 * result + (rule != null ? rule.hashCode() : 0);
-    result = 31 * result + (score != null ? score.hashCode() : 0);
-    result = 31 * result + (reason != null ? reason.hashCode() : 0);
-    return result;
+    return Objects.hash(name, comment, rule, scoreExpression, reason);
   }
 
   @Override
@@ -144,7 +143,7 @@ public class RiskLevelRule {
             "name='" + name + '\'' +
             ", comment='" + comment + '\'' +
             ", rule='" + rule + '\'' +
-            ", score=" + score +
+            ", scoreExpression='" + scoreExpression + '\'' +
             ", reason='" + reason + '\'' +
             '}';
   }

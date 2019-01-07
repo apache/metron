@@ -28,7 +28,6 @@ import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntel
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.profiler.client.stellar.Util;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -167,8 +166,8 @@ public class ThreatTriageFunctions {
         if(ruleScore.getRule().getRule() != null) {
           map.put(RULE_EXPR_KEY, ruleScore.getRule().getRule());
         }
-        if(ruleScore.getRule().getScore() != null) {
-          map.put(RULE_SCORE_KEY, ruleScore.getRule().getScore());
+        if(ruleScore.getRule().getScoreExpression() != null) {
+          map.put(RULE_SCORE_KEY, ruleScore.getRule().getScoreExpression());
         }
         if(ruleScore.getReason() != null) {
           map.put(RULE_REASON_KEY, ruleScore.getReason());
@@ -260,7 +259,7 @@ public class ThreatTriageFunctions {
       String[][] data = new String[triageRules.size()][5];
       int i = 0;
       for(RiskLevelRule rule : triageRules) {
-        String score = rule.getScore();
+        String score = rule.getScoreExpression();
         String name = Optional.ofNullable(rule.getName()).orElse("");
         String comment = Optional.ofNullable(rule.getComment()).orElse("");
         String reason = Optional.ofNullable(rule.getReason()).orElse("");
@@ -324,7 +323,7 @@ public class ThreatTriageFunctions {
           // create the rule
           RiskLevelRule ruleToAdd = new RiskLevelRule();
           ruleToAdd.setRule((String) newRule.get(RULE_EXPR_KEY));
-          ruleToAdd.setScore(newRule.get(RULE_SCORE_KEY));
+          ruleToAdd.setScoreExpression(newRule.get(RULE_SCORE_KEY));
 
           // add optional rule fields
           if (newRule.containsKey(RULE_NAME_KEY)) {

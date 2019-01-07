@@ -90,7 +90,7 @@ public class ThreatTriageProcessor implements Function<Map, ThreatScore> {
 
         // add the rule's score to the overall threat score
         String reason = execute(rule.getReason(), processor, variableResolver, String.class);
-        Double score = execute(rule.getScore(), processor, variableResolver, Double.class);
+        Double score = execute(rule.getScoreExpression(), processor, variableResolver, Double.class);
         threatScore.addRuleScore(new RuleScore(rule, reason, score));
       }
     }
