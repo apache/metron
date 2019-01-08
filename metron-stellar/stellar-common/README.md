@@ -1510,7 +1510,7 @@ operating system.
 
 
 ```bash
-metron-stellar/stellar-common/target/stellar-common-0.7.0-stand-alone.tar.gz
+metron-stellar/stellar-common/target/stellar-common-0.7.1-stand-alone.tar.gz
 ```
 
 When unpacked, the following structure will be created:
@@ -1520,7 +1520,7 @@ When unpacked, the following structure will be created:
 ├── bin
 │   └── stellar
 └── lib
-    └── stellar-common-0.7.0-uber.jar
+    └── stellar-common-0.7.1-uber.jar
 ```
 
 To run the Stellar Shell run the following from the directory you unpacked to:
