@@ -144,7 +144,7 @@ public enum GeoLiteCityDatabase implements MaxMindDatabase {
   /**
    * Retrieves the result fields based on the incoming IP address
    * @param ip The IP to lookup in the database
-   * @return Optional.empty() if the IP address is local or not in the database.
+   * @return Optional.empty() if the IP address is invalid or not in the database.
    */
   public Optional<Map<String, String>> get(String ip) {
     if (MaxMindDbUtilities.invalidIp(ip)) {
