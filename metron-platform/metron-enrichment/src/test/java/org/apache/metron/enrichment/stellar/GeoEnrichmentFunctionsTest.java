@@ -127,8 +127,22 @@ public class GeoEnrichmentFunctionsTest {
   }
 
   @Test
-  public void testGetNull() {
+  public void testGetEmpty() {
     String stellar = "GEO_GET()";
+    Object result = run(stellar, ImmutableMap.of());
+    Assert.assertNull("Empty IP should return null", result);
+  }
+
+  @Test
+  public void testGetNull() {
+    String stellar = "GEO_GET(null)";
+    Object result = run(stellar, ImmutableMap.of());
+    Assert.assertNull("Null IP should return null", result);
+  }
+
+  @Test(expected = org.apache.metron.stellar.dsl.ParseException.class)
+  public void testGetUndefined() {
+    String stellar = "GEO_GET(undefined)";
     Object result = run(stellar, ImmutableMap.of());
     Assert.assertNull("Null IP should return null", result);
   }

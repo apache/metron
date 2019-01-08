@@ -104,10 +104,23 @@ public class AsnEnrichmentFunctionsTest {
   }
 
   @Test
-  public void testGetNull() {
+  public void testGetEmpty() {
     String stellar = "ASN_GET()";
     Object result = run(stellar, ImmutableMap.of());
+    Assert.assertNull("Empty IP should return null", result);
+  }
+
+  @Test
+  public void testGetNull() {
+    String stellar = "ASN_GET(null)";
+    Object result = run(stellar, ImmutableMap.of());
     Assert.assertNull("Null IP should return null", result);
+  }
+
+  @Test(expected = org.apache.metron.stellar.dsl.ParseException.class)
+  public void testGetUndefined() {
+    String stellar = "ASN_GET(undefined)";
+    run(stellar, ImmutableMap.of());
   }
 
   @Test
