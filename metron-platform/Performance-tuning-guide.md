@@ -412,7 +412,7 @@ And we ran our bro parser topology with the following options. We did not need t
 though you could certainly do so if necessary. Notice that we only needed 1 worker.
 
 ```
-/usr/metron/0.7.0/bin/start_parser_topology.sh \
+/usr/metron/0.7.1/bin/start_parser_topology.sh \
     -e ~metron/.storm/storm-bro.config \
     -esc ~/.storm/spout-bro.config \
     -k $BROKERLIST \
@@ -598,7 +598,7 @@ export KAFKA_HOME=$HDP_HOME/kafka-broker
 export STORM_UI=http://node1:8744
 export ELASTIC=http://node1:9200
 export ZOOKEEPER=node1:2181
-export METRON_VERSION=0.7.0
+export METRON_VERSION=0.7.1
 export METRON_HOME=/usr/metron/${METRON_VERSION}
 ```
 
