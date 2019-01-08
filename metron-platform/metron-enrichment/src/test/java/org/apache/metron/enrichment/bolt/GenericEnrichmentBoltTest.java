@@ -165,7 +165,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
 
     HashMap<String, Object> globalConfig = new HashMap<>();
     String baseDir = UnitTestHelper.findDir("GeoLite");
-    File geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+    File geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");
     globalConfig.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
     genericEnrichmentBolt.getConfigurations().updateGlobalConfig(globalConfig);
 

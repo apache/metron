@@ -120,7 +120,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   @BeforeClass
   public static void setupOnce() throws ParseException {
     String baseDir = UnitTestHelper.findDir("GeoLite");
-    geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+    geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");
     asnHdfsFile = new File(new File(baseDir), "GeoLite2-ASN.tar.gz");
   }
 

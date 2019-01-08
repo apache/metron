@@ -80,7 +80,7 @@ public class GeoEnrichmentFunctionsTest {
     expectedSubsetMessage = (JSONObject) jsonParser.parse(expectedSubsetString);
 
     String baseDir = UnitTestHelper.findDir("GeoLite");
-    geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+    geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");
   }
 
   @Before

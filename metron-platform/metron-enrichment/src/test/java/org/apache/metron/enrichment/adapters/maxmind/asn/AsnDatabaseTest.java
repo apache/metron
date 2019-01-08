@@ -17,14 +17,20 @@
  */
 package org.apache.metron.enrichment.adapters.maxmind.asn;
 
+import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_MMDB_GZ;
+import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_TAR_GZ;
+
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.io.FileUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -38,6 +44,9 @@ public class AsnDatabaseTest {
   private static File asnHdfsFile;
   private static File asnHdfsFile_update;
   private static final String IP_ADDR = "8.8.4.0";
+  private static final String GEO_ASN = "GeoLite2-ASN";
+  private static final String GEO_ASN_FILE_NAME = GEO_ASN + EXTENSION_TAR_GZ;
+  private static final String GEO_ASN_COPY_FILE_NAME = GEO_ASN + "-2" + EXTENSION_TAR_GZ;
 
   private static JSONObject expectedAsnMessage = new JSONObject();
 
@@ -46,15 +55,21 @@ public class AsnDatabaseTest {
 
   @BeforeClass
   @SuppressWarnings("unchecked")
-  public static void setupOnce() {
+  public static void setupOnce() throws IOException {
     // Construct this explicitly here, otherwise it'll be a Long instead of Integer.
     expectedAsnMessage.put("autonomous_system_organization", "Google LLC");
     expectedAsnMessage.put("autonomous_system_number", 15169);
     expectedAsnMessage.put("network", "8.8.4.0");
 
     String baseDir = UnitTestHelper.findDir("GeoLite");
-    asnHdfsFile = new File(new File(baseDir), "GeoLite2-ASN.tar.gz");
-    asnHdfsFile_update = new File(new File(baseDir), "GeoLite2-ASN-2.tar.gz");
+    asnHdfsFile = new File(new File(baseDir), GEO_ASN_FILE_NAME);
+    asnHdfsFile_update = new File(new File(baseDir), GEO_ASN_COPY_FILE_NAME);
+    FileUtils.copyFile(asnHdfsFile, asnHdfsFile_update);
+  }
+
+  @AfterClass
+  public static void tearDown() {
+    FileUtils.deleteQuietly(asnHdfsFile_update);
   }
 
   @Before

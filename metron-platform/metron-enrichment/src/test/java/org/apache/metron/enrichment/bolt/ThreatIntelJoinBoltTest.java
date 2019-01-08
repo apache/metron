@@ -178,7 +178,7 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
     threatIntelJoinBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, enrichmentConfig);
     HashMap<String, Object> globalConfig = new HashMap<>();
     String baseDir = UnitTestHelper.findDir("GeoLite");
-    File geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+    File geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");
     globalConfig.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
     File asnHdfsFile = new File(new File(baseDir), "GeoLite2-ASN.tar.gz");
     globalConfig.put(AsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());

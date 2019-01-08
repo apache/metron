@@ -60,7 +60,7 @@ public class GeoAdapterTest {
     expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
 
     String baseDir = UnitTestHelper.findDir("GeoLite");
-    geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+    geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");
 
     geo = new GeoAdapter();
     geo.initializeAdapter(ImmutableMap.of(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath()));

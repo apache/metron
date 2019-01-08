@@ -17,11 +17,16 @@
  */
 package org.apache.metron.enrichment.adapters.maxmind.geo;
 
+import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_MMDB_GZ;
+import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_TAR_GZ;
+
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.metron.enrichment.adapters.maxmind.MaxMindDbUtilities;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
@@ -36,12 +41,16 @@ import java.util.HashMap;
 import java.util.Optional;
 
 public class GeoLiteCityDatabaseTest {
+
   private static Context context;
   private static File geoHdfsFile;
   private static File geoHdfsFileTarGz;
   private static File geoHdfsFile_update;
   private static final String IP_WITH_DMA = "81.2.69.192";
   private static final String IP_NO_DMA = "216.160.83.56";
+  private static final String GEO_CITY = "GeoLite2-City";
+  private static final String GEO_CITY_FILE_NAME = GEO_CITY + EXTENSION_MMDB_GZ;
+  private static final String GEO_CITY_COPY_FILE_NAME = GEO_CITY + "-2" + EXTENSION_MMDB_GZ;
 
   /**
    * {
@@ -105,12 +114,18 @@ public class GeoLiteCityDatabaseTest {
     expectedMessageTarGz = (JSONObject) jsonParser.parse(expectedMessageStringTarGz);
 
     String baseDir = UnitTestHelper.findDir("GeoLite");
-    geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
-    geoHdfsFile_update = new File(new File(baseDir), "GeoIP2-City-Test-2.mmdb.gz");
-    geoHdfsFileTarGz = new File(new File(baseDir), "GeoLite2-City.tar.gz");
+    geoHdfsFile = new File(new File(baseDir), GEO_CITY_FILE_NAME);
+    geoHdfsFile_update = new File(new File(baseDir), GEO_CITY_COPY_FILE_NAME);
+    FileUtils.copyFile(geoHdfsFile, geoHdfsFile_update);
+    geoHdfsFileTarGz = new File(new File(baseDir), GEO_CITY + EXTENSION_TAR_GZ);
 
     Configuration config = new Configuration();
     fs = FileSystem.get(config);
+  }
+
+  @AfterClass
+  public static void tearDown() {
+    FileUtils.deleteQuietly(geoHdfsFile_update);
   }
 
   @Before
