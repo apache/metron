@@ -104,7 +104,7 @@ class EnrichmentCommands:
                                    )
 
         Logger.info("Creating and loading Maxmind databases")
-        command_template = """{0}/bin/geo_enrichment_load.sh \
+        command_template = """{0}/bin/maxmind_enrichment_load.sh \
                                 -g {1} \
                                 -a {2} \
                                 -r {3} \

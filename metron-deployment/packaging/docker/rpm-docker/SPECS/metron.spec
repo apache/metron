@@ -271,7 +271,7 @@ This package installs the Metron Parser files
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/bin/Whois_CSV_to_JSON.py
-%{metron_home}/bin/geo_enrichment_load.sh
+%{metron_home}/bin/maxmind_enrichment_load.sh
 %{metron_home}/bin/flatfile_loader.sh
 %{metron_home}/bin/flatfile_summarizer.sh
 %{metron_home}/bin/prune_elasticsearch_indices.sh

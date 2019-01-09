@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Manages querying and updating of an Autonymous System Number (ASN) database provided by MaxMind.
+ * Manages querying and updating of an Autonomous System Number (ASN) database provided by MaxMind.
  */
 public enum AsnDatabase implements MaxMindDatabase {
   INSTANCE;

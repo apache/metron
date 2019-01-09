@@ -36,6 +36,8 @@ import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase;
 import org.apache.metron.enrichment.adapters.maxmind.MaxMindDbUtilities;
 import org.slf4j.Logger;
@@ -49,7 +51,8 @@ public enum GeoLiteCityDatabase implements MaxMindDatabase {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String GEO_HDFS_FILE = "geo.hdfs.file";
-  public static final String GEO_HDFS_FILE_DEFAULT = "/apps/metron/geo/default/GeoLite2-City.mmdb.gz";
+  public static final String GEO_HDFS_FILE_DEFAULT = "/apps/metron/geo/default/GeoLite2-City.tar.gz";
+  public static final String GEO_HDFS_FILE_DEFAULT_FALLBACK = "/apps/metron/geo/default/GeoLite2-City.mmdb.gz";
 
   private static ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
   private static final Lock readLock = lock.readLock();
@@ -129,6 +132,7 @@ public enum GeoLiteCityDatabase implements MaxMindDatabase {
     String hdfsFile = GEO_HDFS_FILE_DEFAULT;
     if (globalConfig != null) {
       hdfsFile = (String) globalConfig.getOrDefault(GEO_HDFS_FILE, GEO_HDFS_FILE_DEFAULT);
+      hdfsFile = finalizeHdfsDirWithFallback(globalConfig, hdfsFile);
     }
 
     // Always update if we don't have a DatabaseReader
@@ -137,8 +141,32 @@ public enum GeoLiteCityDatabase implements MaxMindDatabase {
       hdfsLoc = hdfsFile;
       update(hdfsFile);
     } else {
-      LOG.trace("Update to GeoIpDatabase unnecessary");
+      LOG.trace("Update to GeoLiteCity2Database unnecessary");
     }
+  }
+
+  protected String finalizeHdfsDirWithFallback(Map<String, Object> globalConfig, String hdfsFile) {
+    // GeoLite2 City has the case where our new default isn't the old, but we want to fallback if needed.
+    // Only consider fallback if the user hasn't specified a location via config.
+    if (!globalConfig.containsKey(GEO_HDFS_FILE)) {
+      FileSystem fs = MaxMindDbUtilities.getFileSystem();
+      try {
+        // Want to fallback under two conditions here
+        // 1. The default file doesn't exist. If it wasn't in the global config, it has to be the default.
+        // 2. The fallback exists.
+        // Otherwise, we'll leave it as the base default (which will cause issues later, but ensures logging encourages use of new database).
+        if (hdfsPathsExist(fs, hdfsFile)) {
+            hdfsFile = GEO_HDFS_FILE_DEFAULT_FALLBACK;
+        }
+      } catch (IOException e) {
+        LOG.warn("Issue validating database HDFS fallback locations", e);
+      }
+    }
+    return hdfsFile;
+  }
+
+  protected boolean hdfsPathsExist(FileSystem fs, String hdfsFile) throws IOException {
+    return !fs.exists(new Path(hdfsFile)) && fs.exists(new Path(GEO_HDFS_FILE_DEFAULT_FALLBACK));
   }
 
   /**

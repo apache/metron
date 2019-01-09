@@ -223,4 +223,8 @@ public class GeoLiteCityDatabaseTest {
 
     Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
   }
+
+  @Test
+  public void testFallbackUnnecessary() {
+  }
 }
