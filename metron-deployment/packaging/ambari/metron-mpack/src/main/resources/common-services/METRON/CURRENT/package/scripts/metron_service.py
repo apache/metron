@@ -600,8 +600,8 @@ def install_metron_knox(params):
             unset KNOX_GROUP; \
             unset KNOX_HOME;"""
         cmd = template.format(params.knox_home, params.knox_user, params.knox_group, params.metron_home)
-
         Execute(cmd)
+        set_metron_knox_installed(params)
 
 def is_metron_knox_installed(params):
     return os.path.isfile(params.metron_knox_installed_flag_file)

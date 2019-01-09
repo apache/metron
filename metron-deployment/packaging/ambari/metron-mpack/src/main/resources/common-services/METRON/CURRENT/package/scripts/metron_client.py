@@ -32,6 +32,7 @@ class MetronClient(Script):
     def install(self, env):
         from params import params
         env.set_params(params)
+        self.install_packages(env)
         self.configure(env)
 
     def configure(self, env):
@@ -45,7 +46,6 @@ class MetronClient(Script):
         if params.metron_knox_enabled:
             if not is_metron_knox_installed(params):
                 install_metron_knox(params)
-                set_metron_knox_installed(params)
             metron_knox_topology_setup(params)
 
     def start(self, env, upgrade_type=None):
