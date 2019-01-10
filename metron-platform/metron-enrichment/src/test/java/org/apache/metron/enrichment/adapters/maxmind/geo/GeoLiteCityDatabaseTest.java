@@ -21,24 +21,28 @@ import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTE
 import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_TAR_GZ;
 
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.metron.enrichment.adapters.maxmind.MaxMindDbUtilities;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Optional;
 
 public class GeoLiteCityDatabaseTest {
 
@@ -226,5 +230,34 @@ public class GeoLiteCityDatabaseTest {
 
   @Test
   public void testFallbackUnnecessary() {
+    String fakeFile = "fakefile.geolitecitydbtest";
+    Map<String, Object> globalConfig = Collections.singletonMap(GeoLiteCityDatabase.GEO_HDFS_FILE, fakeFile);
+    Assert.assertEquals(
+        GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(globalConfig, fakeFile, ""),
+        fakeFile);
+  }
+
+  @Test
+  public void testFallbackUnncessaryAlreadyDefault() {
+    String defaultFile = GeoLiteCityDatabase.GEO_HDFS_FILE_DEFAULT;
+    Map<String, Object> globalConfig = Collections.singletonMap(GeoLiteCityDatabase.GEO_HDFS_FILE, defaultFile);
+    Assert.assertEquals(
+        GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(globalConfig, defaultFile, ""),
+        defaultFile);
+  }
+
+  @Test
+  public void testFallbackToDefault() {
+    String defaultFile = GeoLiteCityDatabase.GEO_HDFS_FILE_DEFAULT;
+    Assert.assertEquals(GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(Collections.emptyMap(), defaultFile, ""), defaultFile);
+  }
+
+  @Test
+  public void testFallbackToOldDefault() throws IOException {
+    String fakeFile = "fakefile.geolitecitydbtest";
+    File file = File.createTempFile( this.getClass().getSimpleName(), "testfile");
+    file.deleteOnExit();
+    String fileName = file.getAbsolutePath();
+    Assert.assertEquals(GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(Collections.emptyMap(), fakeFile, fileName), fileName);
   }
 }
