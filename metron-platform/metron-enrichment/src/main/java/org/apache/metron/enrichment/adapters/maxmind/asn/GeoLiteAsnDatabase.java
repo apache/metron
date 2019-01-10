@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Manages querying and updating of an Autonomous System Number (ASN) database provided by MaxMind.
  */
-public enum AsnDatabase implements MaxMindDatabase {
+public enum GeoLiteAsnDatabase implements MaxMindDatabase {
   INSTANCE;
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -109,12 +109,12 @@ public enum AsnDatabase implements MaxMindDatabase {
 
   @Override
   public void setReader(DatabaseReader reader) {
-    AsnDatabase.reader = reader;
+    GeoLiteAsnDatabase.reader = reader;
   }
 
   public synchronized void updateIfNecessary(Map<String, Object> globalConfig) {
     // Reload database if necessary (file changes on HDFS)
-    LOG.trace("Determining if AsnDatabase update required");
+    LOG.trace("Determining if GeoLiteAsnDatabase update required");
     String hdfsFile = ASN_HDFS_FILE_DEFAULT;
     if (globalConfig != null) {
       hdfsFile = (String) globalConfig.getOrDefault(ASN_HDFS_FILE, ASN_HDFS_FILE_DEFAULT);
@@ -126,7 +126,7 @@ public enum AsnDatabase implements MaxMindDatabase {
       hdfsLoc = hdfsFile;
       update(hdfsFile);
     } else {
-      LOG.trace("Update to AsnDatabase unnecessary");
+      LOG.trace("Update to GeoLiteAsnDatabase unnecessary");
     }
   }
 

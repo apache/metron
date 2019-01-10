@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.enrichment.adapters.maxmind.asn.AsnDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.asn.GeoLiteAsnDatabase;
 import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
@@ -192,7 +192,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_TABLE, trackerHBaseTableName);
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_CF, cf);
       config.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
-      config.put(AsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());
+      config.put(GeoLiteAsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());
       globalConfigStr = JSONUtils.INSTANCE.toJSON(config, true);
     }
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()

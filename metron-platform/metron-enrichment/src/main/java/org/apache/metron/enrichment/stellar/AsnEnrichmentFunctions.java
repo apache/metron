@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.metron.enrichment.adapters.maxmind.asn.AsnDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.asn.GeoLiteAsnDatabase;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -66,14 +66,14 @@ public class AsnEnrichmentFunctions {
           return null;
         }
 
-        Optional<Map<String, Object>> result = AsnDatabase.INSTANCE.get(ip);
+        Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(ip);
         return result.orElse(Collections.EMPTY_MAP);
       } else if (args.size() == 2 && args.get(1) instanceof List) {
         // If fields are provided, return just those fields.
         String ip = (String) args.get(0);
         @SuppressWarnings("unchecked")
         List<String> fields = (List) args.get(1);
-        Optional<Map<String, Object>> result = AsnDatabase.INSTANCE.get(ip);
+        Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(ip);
 
         // If only one field is requested, just return it directly
         if (fields.size() == 1 && result.isPresent()) {
@@ -99,8 +99,8 @@ public class AsnEnrichmentFunctions {
     public void initialize(Context context) {
       LOG.info("Initializing AsnEnrichmentFunctions");
       Map<String, Object> config = getConfig(context);
-      String hdfsDir = (String) config.get(AsnDatabase.ASN_HDFS_FILE);
-      AsnDatabase.INSTANCE.update(hdfsDir);
+      String hdfsDir = (String) config.get(GeoLiteAsnDatabase.ASN_HDFS_FILE);
+      GeoLiteAsnDatabase.INSTANCE.update(hdfsDir);
       initialized = true;
     }
 

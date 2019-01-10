@@ -30,7 +30,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.utils.CompressionStrategies;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.enrichment.adapters.maxmind.asn.AsnDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.asn.GeoLiteAsnDatabase;
 import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 
 import javax.annotation.Nullable;
@@ -217,7 +217,7 @@ public class MaxmindDbEnrichmentLoader {
     srcPath = new Path(localAsnFile.getAbsolutePath());
     dstPath = new Path(hdfsAsnLoc);
     putDbFile(srcPath, dstPath);
-    pushConfig(srcPath, dstPath, AsnDatabase.ASN_HDFS_FILE, zookeeper);
+    pushConfig(srcPath, dstPath, GeoLiteAsnDatabase.ASN_HDFS_FILE, zookeeper);
 
     System.out.println("GeoLite2 file placement complete");
     System.out.println("Successfully created and updated new GeoLite information");

@@ -25,7 +25,7 @@ import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.utils.MessageUtils;
-import org.apache.metron.enrichment.adapters.maxmind.asn.AsnDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.asn.GeoLiteAsnDatabase;
 import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 import org.apache.metron.enrichment.utils.ThreatIntelUtils;
 import org.apache.metron.stellar.dsl.Context;
@@ -76,7 +76,8 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     super.prepare(map, topologyContext);
     GeoLiteCityDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(
         GeoLiteCityDatabase.GEO_HDFS_FILE));
-    AsnDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(AsnDatabase.ASN_HDFS_FILE));
+    GeoLiteAsnDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(
+        GeoLiteAsnDatabase.ASN_HDFS_FILE));
     initializeStellar();
   }
 

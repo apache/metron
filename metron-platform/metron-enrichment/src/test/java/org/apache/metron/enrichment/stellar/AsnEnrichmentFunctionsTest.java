@@ -23,11 +23,10 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.metron.enrichment.adapters.maxmind.asn.AsnDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.asn.GeoLiteAsnDatabase;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
-import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
@@ -62,7 +61,7 @@ public class AsnEnrichmentFunctionsTest {
   @Before
   public void setup() throws Exception {
     context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG,
-        () -> ImmutableMap.of(AsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath())
+        () -> ImmutableMap.of(GeoLiteAsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath())
     ).build();
   }
 
@@ -77,7 +76,7 @@ public class AsnEnrichmentFunctionsTest {
   @Test
   public void testMissingDb() {
     context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG,
-        () -> ImmutableMap.of(AsnDatabase.ASN_HDFS_FILE, "./fakefile.mmdb")
+        () -> ImmutableMap.of(GeoLiteAsnDatabase.ASN_HDFS_FILE, "./fakefile.mmdb")
     ).build();
     String stellar = "ASN_GET()";
     try {
@@ -93,8 +92,8 @@ public class AsnEnrichmentFunctionsTest {
     Object result = run(stellar, ImmutableMap.of());
     Assert.assertNull("Null IP should return null", result);
     try {
-      AsnDatabase.INSTANCE.updateIfNecessary(
-          Collections.singletonMap(AsnDatabase.ASN_HDFS_FILE, "./fakefile.mmdb"));
+      GeoLiteAsnDatabase.INSTANCE.updateIfNecessary(
+          Collections.singletonMap(GeoLiteAsnDatabase.ASN_HDFS_FILE, "./fakefile.mmdb"));
     } catch (IllegalStateException e) {
       // ignore it, the file doesn't exist
     }

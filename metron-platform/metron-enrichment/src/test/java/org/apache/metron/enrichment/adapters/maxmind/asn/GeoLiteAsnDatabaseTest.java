@@ -17,7 +17,6 @@
  */
 package org.apache.metron.enrichment.adapters.maxmind.asn;
 
-import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_MMDB_GZ;
 import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_TAR_GZ;
 
 import com.google.common.collect.ImmutableMap;
@@ -38,7 +37,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-public class AsnDatabaseTest {
+public class GeoLiteAsnDatabaseTest {
 
   private static Context context;
   private static File asnHdfsFile;
@@ -76,42 +75,42 @@ public class AsnDatabaseTest {
   public void setup() throws Exception {
     testFolder.create();
     context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG,
-        () -> ImmutableMap.of(AsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath())
+        () -> ImmutableMap.of(GeoLiteAsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath())
     ).build();
   }
 
   @Test
   public void testGetLocal() {
-    AsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
+    GeoLiteAsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
 
-    Optional<Map<String, Object>> result = AsnDatabase.INSTANCE.get("192.168.0.1");
+    Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get("192.168.0.1");
     Assert.assertFalse("Local address result should be empty", result.isPresent());
   }
 
   @Test
   public void testExternalAddressNotFound() {
-    AsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
+    GeoLiteAsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
 
     // the range 203.0.113.0/24 is assigned as "TEST-NET-3" and should never be locatable
-    Optional<Map<String, Object>> result = AsnDatabase.INSTANCE.get("203.0.113.1");
+    Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get("203.0.113.1");
     Assert.assertFalse("External address not found", result.isPresent());
   }
 
   @Test
   public void testGetRemote() {
-    AsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
+    GeoLiteAsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
 
-    Optional<Map<String, Object>> result = AsnDatabase.INSTANCE.get(IP_ADDR);
+    Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
     Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
         result.get());
   }
 
   @Test
   public void testMultipleUpdates() {
-    AsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
-    AsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
+    GeoLiteAsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
+    GeoLiteAsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
 
-    Optional<Map<String, Object>> result = AsnDatabase.INSTANCE.get(IP_ADDR);
+    Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
     Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
         result.get());
   }
@@ -119,10 +118,10 @@ public class AsnDatabaseTest {
   @Test
   public void testUpdateIfNecessary() {
     HashMap<String, Object> globalConfig = new HashMap<>();
-    globalConfig.put(AsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());
-    AsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
+    globalConfig.put(GeoLiteAsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());
+    GeoLiteAsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
 
-    Optional<Map<String, Object>> result = AsnDatabase.INSTANCE.get(IP_ADDR);
+    Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
     Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
         result.get());
   }
@@ -130,11 +129,11 @@ public class AsnDatabaseTest {
   @Test
   public void testMultipleUpdateIfNecessary() {
     HashMap<String, Object> globalConfig = new HashMap<>();
-    globalConfig.put(AsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());
-    AsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
-    AsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
+    globalConfig.put(GeoLiteAsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());
+    GeoLiteAsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
+    GeoLiteAsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
 
-    Optional<Map<String, Object>> result = AsnDatabase.INSTANCE.get(IP_ADDR);
+    Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
     Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
         result.get());
   }
@@ -142,15 +141,15 @@ public class AsnDatabaseTest {
   @Test
   public void testDifferingUpdateIfNecessary() {
     HashMap<String, Object> globalConfig = new HashMap<>();
-    globalConfig.put(AsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());
-    AsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
-    Optional<Map<String, Object>> result = AsnDatabase.INSTANCE.get(IP_ADDR);
+    globalConfig.put(GeoLiteAsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());
+    GeoLiteAsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
+    Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
     Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
         result.get());
 
-    globalConfig.put(AsnDatabase.ASN_HDFS_FILE, asnHdfsFile_update.getAbsolutePath());
-    AsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
-    result = AsnDatabase.INSTANCE.get(IP_ADDR);
+    globalConfig.put(GeoLiteAsnDatabase.ASN_HDFS_FILE, asnHdfsFile_update.getAbsolutePath());
+    GeoLiteAsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
+    result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
 
     Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
         result.get());
