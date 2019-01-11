@@ -249,7 +249,7 @@ public class GeoLiteCityDatabaseTest {
   @Test
   public void testFallbackToDefault() {
     String defaultFile = GeoLiteCityDatabase.GEO_HDFS_FILE_DEFAULT;
-    Assert.assertEquals(GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(Collections.emptyMap(), defaultFile, ""), defaultFile);
+    Assert.assertEquals(GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(Collections.emptyMap(), defaultFile, "fallback"), defaultFile);
   }
 
   @Test
