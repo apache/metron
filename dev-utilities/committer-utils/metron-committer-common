@@ -192,7 +192,7 @@ function setup_code {
         # clone the repository and fetch updates
         mkdir -p ${WORK}
         git clone ${ORIGIN} ${WORK}
-        cd ${WORK} &> /dev/null || echo "failed to change directory to ${WORK}" && exit 1
+        cd ${WORK} &> /dev/null || { echo "failed to change directory to ${WORK}" ; exit 1 ;}
 
         # setup the git user and email for your apache account
         git config user.name "$APACHE_NAME"
@@ -229,7 +229,7 @@ function setup_code {
 
     PR_BRANCH_REF="pull/$PR/head:pr-$PR"
     PR_BRANCH="pr-$PR"
-    cd ${WORK} &> /dev/null || echo "failed to change directory to ${WORK}" && exit 1
+    cd ${WORK} &> /dev/null || { echo "failed to change directory to ${WORK}" ; exit 1 ;}
     git fetch ${GITHUB_REMOTE} ${PR_BRANCH_REF}
     echo ""
 }
@@ -362,7 +362,7 @@ function clean_metron_src {
         exit ${rc}
     fi
 
-    cd metron-deployment &> /dev/null || echo "failed to change directory to metron-deployment" && exit 1
+    cd metron-deployment &> /dev/null || { echo "failed to change directory to metron-deployment" ; exit 1 ;}
 
     mvn -q clean -Pbuild-rpms
 
@@ -371,7 +371,7 @@ function clean_metron_src {
         exit ${rc}
     fi
 
-    cd .. &> /dev/null || echo "failed to change directory to metron source root" && exit 1
+    cd .. &> /dev/null || { echo "failed to change directory to metron source root" ; exit 1 ;}
 }
 
 #
@@ -424,7 +424,7 @@ function run_mvn_ui_tests {
 # runs the mvn rpm build
 #
 function run_mvn_build_rpms {
-    cd metron-deployment &> /dev/null || echo "failed to change directory to metron-deployment" && exit 1
+    cd metron-deployment &> /dev/null || { echo "failed to change directory to metron-deployment" ; exit 1 ; }
 
     mvn -q package -Pbuild-rpms
 
