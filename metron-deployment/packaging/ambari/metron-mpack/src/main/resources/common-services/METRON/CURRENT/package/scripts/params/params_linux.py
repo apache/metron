@@ -47,6 +47,7 @@ metron_home = status_params.metron_home
 parsers = status_params.parsers
 parser_error_topic = config['configurations']['metron-parsers-env']['parser_error_topic']
 geoip_hdfs_dir = "/apps/metron/geo/default/"
+asn_hdfs_dir = "/apps/metron/asn/default/"
 metron_user = status_params.metron_user
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
@@ -89,7 +90,7 @@ enrichment_kafka_configured_flag_file = status_params.enrichment_kafka_configure
 enrichment_kafka_acl_configured_flag_file = status_params.enrichment_kafka_acl_configured_flag_file
 enrichment_hbase_configured_flag_file = status_params.enrichment_hbase_configured_flag_file
 enrichment_hbase_acl_configured_flag_file = status_params.enrichment_hbase_acl_configured_flag_file
-enrichment_geo_configured_flag_file = status_params.enrichment_geo_configured_flag_file
+enrichment_maxmind_configured_flag_file = status_params.enrichment_maxmind_configured_flag_file
 indexing_configured_flag_file = status_params.indexing_configured_flag_file
 indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_file
 indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_flag_file
@@ -307,6 +308,7 @@ threat_triage_score_field = config['configurations']['metron-rest-env']['threat_
 # Enrichment
 metron_enrichment_topology = status_params.metron_enrichment_topology
 geoip_url = config['configurations']['metron-enrichment-env']['geoip_url']
+asn_url = config['configurations']['metron-enrichment-env']['asn_url']
 enrichment_host_known_hosts = config['configurations']['metron-enrichment-env']['enrichment_host_known_hosts']
 
 # Enrichment - Kafka

@@ -45,7 +45,7 @@ enrichment_kafka_configured_flag_file = metron_zookeeper_config_path + '/../metr
 enrichment_kafka_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_kafka_acl_configured'
 enrichment_hbase_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_hbase_configured'
 enrichment_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_hbase_acl_configured'
-enrichment_geo_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_geo_configured'
+enrichment_maxmind_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_maxmind_configured'
 
 enrichment_hbase_table = config['configurations']['metron-enrichment-env']['enrichment_hbase_table']
 enrichment_hbase_cf = config['configurations']['metron-enrichment-env']['enrichment_hbase_cf']

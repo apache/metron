@@ -28,8 +28,8 @@ com.jayway.jsonpath:json-path:jar:2.3.0:compile,Apache v2,https://github.com/jso
 com.jayway.jsonpath:json-path:jar:2.4.0:compile,Apache v2,https://github.com/json-path/JsonPath
 net.minidev:accessors-smart:jar:1.2:compile,Apache v2,https://github.com/netplex/json-smart-v2
 net.minidev:json-smart:jar:2.3:compile,Apache v2,https://github.com/netplex/json-smart-v2
-com.maxmind.db:maxmind-db:jar:1.2.1:compile,CC-BY-SA 3.0,https://github.com/maxmind/MaxMind-DB
-com.maxmind.geoip2:geoip2:jar:2.8.0:compile,Apache v2,https://github.com/maxmind/GeoIP2-java
+com.maxmind.db:maxmind-db:jar:1.2.2:compile,CC-BY-SA 3.0,https://github.com/maxmind/MaxMind-DB
+com.maxmind.geoip2:geoip2:jar:2.12.0:compile,Apache v2,https://github.com/maxmind/GeoIP2-java
 com.sun.xml.bind:jaxb-impl:jar:2.2.3-1:compile,CDDL,http://jaxb.java.net/
 com.sun.xml.bind:jaxb-impl:jar:2.2.5-2:compile,CDDL,http://jaxb.java.net/
 com.twitter:jsr166e:jar:1.1.0:compile,CC0 1.0 Universal,http://github.com/twitter/jsr166e

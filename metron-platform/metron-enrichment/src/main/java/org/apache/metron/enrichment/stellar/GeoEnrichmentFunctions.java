@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -62,27 +62,23 @@ public class GeoEnrichmentFunctions {
           return null;
         }
 
-        Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(ip);
-        if(result.isPresent()) {
-          return result.get();
-        } else {
-          return Collections.EMPTY_MAP;
-        }
+        Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get(ip);
+        return result.orElse(Collections.emptyMap());
       } else if (args.size() == 2 && args.get(1) instanceof List) {
         // If fields are provided, return just those fields.
         String ip = (String) args.get(0);
         @SuppressWarnings("unchecked")
         List<String> fields = (List) args.get(1);
-        Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(ip);
+        Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get(ip);
 
         // If only one field is requested, just return it directly
         if(fields.size() == 1 && result.isPresent()) {
           return result.get().get(fields.get(0));
         } else if (result.isPresent()) {
           // If multiple fields are requested, return all of them
-          HashMap<String, String> filteredInfo = new HashMap<>();
+          Map<String, String> filteredInfo = new HashMap<>();
           for(String field : fields) {
-            HashMap<String, String> geoInfo = result.get();
+            Map<String, String> geoInfo = result.get();
             filteredInfo.put(field, geoInfo.get(field));
           }
           return filteredInfo;
@@ -96,8 +92,8 @@ public class GeoEnrichmentFunctions {
     public void initialize(Context context) {
         LOG.info("Initializing GeoEnrichmentFunctions");
         Map<String, Object> config = getConfig(context);
-        String hdfsDir = (String) config.get(GeoLiteDatabase.GEO_HDFS_FILE);
-        GeoLiteDatabase.INSTANCE.update(hdfsDir);
+        String hdfsDir = (String) config.get(GeoLiteCityDatabase.GEO_HDFS_FILE);
+        GeoLiteCityDatabase.INSTANCE.update(hdfsDir);
         initialized = true;
     }
 

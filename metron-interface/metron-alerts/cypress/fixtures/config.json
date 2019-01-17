@@ -19,5 +19,5 @@
   "enrichment.writer.batchTimeout":"0",
   "profiler.writer.batchSize":"15",
   "profiler.writer.batchTimeout":"0",
-  "geo.hdfs.file":"/apps/metron/geo/default/GeoLite2-City.mmdb.gz"
+  "geo.hdfs.file":"/apps/metron/geo/default/GeoLite2-City.tar.gz"
 }
