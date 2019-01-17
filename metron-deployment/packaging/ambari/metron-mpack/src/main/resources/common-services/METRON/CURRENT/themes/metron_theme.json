@@ -536,6 +536,10 @@
           "subsection-name": "subsection-enrichment-adapters"
         },
         {
+          "config": "metron-enrichment-env/asn_url",
+          "subsection-name": "subsection-enrichment-adapters"
+        },
+        {
           "config": "metron-enrichment-env/enrichment_host_known_hosts",
           "subsection-name": "subsection-enrichment-adapters"
         },
@@ -1082,6 +1086,12 @@
       },
       {
         "config": "metron-enrichment-env/geoip_url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/asn_url",
         "widget": {
           "type": "text-field"
         }
