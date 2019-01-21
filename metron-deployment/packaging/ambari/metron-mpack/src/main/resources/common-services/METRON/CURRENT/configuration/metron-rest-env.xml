@@ -47,18 +47,27 @@
         <value></value>
         <description>Class name of the JDBC Driver used by Metron</description>
         <display-name>Metron JDBC Driver</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
     <property>
         <name>metron_jdbc_url</name>
         <value></value>
         <description>JDBC Connection URL used by Metron</description>
         <display-name>Metron JDBC URL</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
     <property>
         <name>metron_jdbc_username</name>
         <value></value>
         <description>Metron JDBC Username</description>
         <display-name>Metron JDBC username</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
     <property>
         <name>metron_jdbc_password</name>
@@ -70,6 +79,7 @@
             <type>password</type>
             <overridable>false</overridable>
             <hidden>METRON_CLIENT</hidden>
+            <empty-value-valid>true</empty-value-valid>
         </value-attributes>
         <on-ambari-upgrade add="true"/>
     </property>
@@ -78,6 +88,9 @@
         <value></value>
         <description>Database platform used by Metron.  One of: hsqldb, h2, oracle, mysql, postgresql</description>
         <display-name>Metron JDBC platform</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
     <property>
         <name>metron_jdbc_client_path</name>
