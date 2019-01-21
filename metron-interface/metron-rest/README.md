@@ -66,10 +66,6 @@ No optional parameter has a default.
 
 | Environment Variable                  | Description
 | ------------------------------------- | -----------
-| METRON_JDBC_DRIVER                    | JDBC driver class
-| METRON_JDBC_URL                       | JDBC url
-| METRON_JDBC_USERNAME                  | JDBC username
-| METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle
 | ZOOKEEPER                             | Zookeeper quorum (ex. node1:2181,node2:2181)
 | BROKERLIST                            | Kafka Broker list (ex. node1:6667,node2:6667)
 | HDFS_URL                              | HDFS url or `fs.defaultFS` Hadoop setting (ex. hdfs://node1:8020)
@@ -88,6 +84,10 @@ No optional parameter has a default.
 ### Optional - Blank Defaults
 | Environment Variable                  | Description                                                       | Required
 | ------------------------------------- | ----------------------------------------------------------------- | --------
+| METRON_JDBC_DRIVER                    | JDBC driver class                                                 | Optional
+| METRON_JDBC_URL                       | JDBC url                                                          | Optional
+| METRON_JDBC_USERNAME                  | JDBC username                                                     | Optional
+| METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle)                | Optional
 | METRON_JVMFLAGS                       | JVM flags added to the start command                              | Optional
 | METRON_SPRING_PROFILES_ACTIVE         | Active Spring profiles (see [below](#spring-profiles))            | Optional
 | METRON_SPRING_OPTIONS                 | Additional Spring input parameters                                | Optional
