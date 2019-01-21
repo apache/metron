@@ -172,10 +172,9 @@ The application will be available at http://host:4201 assuming the port is set t
 
 ## Cypress Tests
 
-Cypress is a test framework allows developers and test engineers to create E2E or Integration tests and run them inside the browser.
-Cypress differes from other tools by using no selenium webdriver to controll the browser.
+Cypress is a test framework that allows developers and test engineers to create E2E or Integration tests and run them inside the browser. It differs from other testing tools by choosing to not use selenium webdriver to control the browser.
 
-Cypress is added to our project as a developer dependency. This means it's installs when you run
+Cypress is added to our project as a developer dependency. This means it's installed when you run:
 ```
 npm ci
 ```
@@ -184,7 +183,7 @@ or
 npm install
 ```
 
-Currently both Protractor and Cypress tests are available, so the previous section of this text is stil relevant. However, in the near future we're planning to migrate fully to Cypress.
+Currently both Protractor and Cypress tests are available, so the previous section of this text is still relevant. However, in the near future we're planning to migrate fully to Cypress.
 You can find the public discussion about this in the following link: [Discussion thread](https://lists.apache.org/thread.html/b6a0272c7809c05e8b7aff20171720e8ec76f8a0e9481169c37a4a4a@%3Cdev.metron.apache.org%3E)
 
 
