@@ -175,18 +175,7 @@ The application will be available at http://host:4201 assuming the port is set t
 Cypress is a test framework allows developers and test engineers to create E2E or Integration tests and run them inside the browser.
 Cypress differes from other tools by using no selenium webdriver to controll the browser.
 
-
-!!!!!!! mocking and integration?
-
-
-Currently both Protractor and Cypress tests are available so the previous section of this text is stil relevant. However in the near future we're planning to migrate fully to Cypress.
-You can find the public discussion about this in the following link: [Discussion thread](https://lists.apache.org/thread.html/b6a0272c7809c05e8b7aff20171720e8ec76f8a0e9481169c37a4a4a@%3Cdev.metron.apache.org%3E)
-
-
-
-
-
-Cypress is added to our project as a developer dependency. This means is not going to be part of the production build but it automatically installs if you run
+Cypress is added to our project as a developer dependency. This means it's installs when you run
 ```
 npm ci
 ```
@@ -194,6 +183,10 @@ or
 ```
 npm install
 ```
+
+Currently both Protractor and Cypress tests are available, so the previous section of this text is stil relevant. However, in the near future we're planning to migrate fully to Cypress.
+You can find the public discussion about this in the following link: [Discussion thread](https://lists.apache.org/thread.html/b6a0272c7809c05e8b7aff20171720e8ec76f8a0e9481169c37a4a4a@%3Cdev.metron.apache.org%3E)
+
 
 ### Steps to run
 
@@ -203,4 +196,7 @@ npm run cypress:ci
 ```
 The same command runs on Travis CI as part of our build process.
 
-### How to debug
+### Learn more
+
+If you like to learn more about Cypress based tests please visit [Cypress.io](http://cypress.io).
+More on debugging: (Link)(https://docs.cypress.io/guides/guides/debugging.html#Using-debugger)
