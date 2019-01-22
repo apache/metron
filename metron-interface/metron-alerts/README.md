@@ -19,6 +19,7 @@ limitations under the License.
 - [Prerequisites](#prerequisites)
 - [Development Setup](#development-setup)
 - [E2E Tests](#e2e-tests)
+- [Cypress Tests](#cypress-tests)
 - [Mpack Integration](#mpack-integration)
 - [Installing on an existing Cluster](#installing-on-an-existing-cluster)
 
