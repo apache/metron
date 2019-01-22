@@ -195,7 +195,17 @@ npm run cypress:ci
 ```
 The same command runs on Travis CI as part of our build process.
 
+If you like to get some additional information or like to run test suits one by one you could start the test server manually
+```
+ng build --prod && npm run start:ci
+```
+and then you can reach cypress dashboard locally with the following command
+```
+npm run cypress:open
+```
+From the dashboard, you'll be able to run tests separately and reach additional information about the test runs.
+
 ### Learn more
 
 If you like to learn more about Cypress based tests please visit [Cypress.io](http://cypress.io).
-More on debugging: (Link)(https://docs.cypress.io/guides/guides/debugging.html#Using-debugger)
+You can find more information about debuggin in this [section of the official documentation](https://docs.cypress.io/guides/guides/debugging.html#Using-debugger).
