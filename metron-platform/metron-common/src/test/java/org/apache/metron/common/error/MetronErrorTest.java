@@ -18,6 +18,7 @@
 package org.apache.metron.common.error;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Sets;
@@ -25,6 +26,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.json.simple.JSONObject;
@@ -117,5 +121,48 @@ public class MetronErrorTest {
     JSONObject errorJSON = error.getJSONObject();
     assertEquals(Sets.newHashSet("field1", "field2"), Sets.newHashSet(((String) errorJSON.get(Constants.ErrorFields.ERROR_FIELDS.getName())).split(",")));
     assertEquals("04a2629c39e098c3944be85f35c75876598f2b44b8e5e3f52c59fa1ac182817c", errorJSON.get(Constants.ErrorFields.ERROR_HASH.getName()));
+  }
+
+  @Test
+  public void shouldIncludeMessageMetadata() {
+    // the metadata that should be included in the error message
+    Map<String, Object> metadata = new HashMap<>();
+    metadata.put("metron.metadata.topic", "bro");
+    metadata.put("metron.metadata.partition", 0);
+    metadata.put("metron.metadata.offset", 123);
+
+    JSONObject message = new JSONObject();
+    message.put("field1", "value1");
+    message.put("field2", "value2");
+
+    MetronError error = new MetronError()
+            .addRawMessage(message)
+            .withMetadata(metadata);
+
+    // expect the metadata to be flattened and folded into the error message
+    JSONObject errorMessage = error.getJSONObject();
+    assertEquals("bro", errorMessage.get("metron.metadata.topic"));
+    assertEquals(0, errorMessage.get("metron.metadata.partition"));
+    assertEquals(123, errorMessage.get("metron.metadata.offset"));
+  }
+
+  @Test
+  public void shouldNotIncludeEmptyMetadata() {
+    // there is no metadata
+    Map<String, Object> metadata = new HashMap<>();
+
+    JSONObject message = new JSONObject();
+    message.put("field1", "value1");
+    message.put("field2", "value2");
+
+    MetronError error = new MetronError()
+            .addRawMessage(message)
+            .withMetadata(metadata);
+
+    // expect the metadata to be flattened and folded into the error message
+    JSONObject errorMessage = error.getJSONObject();
+    assertFalse(errorMessage.containsKey("metron.metadata.topic"));
+    assertFalse(errorMessage.containsKey("metron.metadata.partition"));
+    assertFalse(errorMessage.containsKey("metron.metadata.offset"));
   }
 }

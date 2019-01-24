@@ -162,6 +162,7 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
                 .withErrorType(Constants.ErrorType.PARSER_ERROR)
                 .withThrowable(throwable)
                 .withSensorType(Collections.singleton(sensorType))
+                .withMetadata(rawMessage.getMetadata())
                 .addRawMessage(rawMessage.getMessage())));
 
         // If exceptions are thrown by the MessageParser, wrap them with MetronErrors and add them to the list of errors
@@ -169,6 +170,7 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
                 .withErrorType(Constants.ErrorType.PARSER_ERROR)
                 .withThrowable(entry.getValue())
                 .withSensorType(Collections.singleton(sensorType))
+                .withMetadata(rawMessage.getMetadata())
                 .addRawMessage(entry.getKey())).collect(Collectors.toList()));
       }
     } else {
@@ -264,6 +266,7 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
         MetronError error = new MetronError()
                 .withErrorType(Constants.ErrorType.PARSER_INVALID)
                 .withSensorType(Collections.singleton(sensorType))
+                .withMetadata(rawMessage.getMetadata())
                 .addRawMessage(message);
         Set<String> errorFields = failedValidators == null ? null : failedValidators.stream()
                 .flatMap(fieldValidator -> fieldValidator.getInput().stream())

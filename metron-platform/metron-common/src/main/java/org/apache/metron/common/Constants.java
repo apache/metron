@@ -93,6 +93,7 @@ public class Constants {
     ,RAW_MESSAGE_BYTES("raw_message_bytes")
     ,ERROR_FIELDS("error_fields")
     ,ERROR_HASH("error_hash")
+    ,METADATA("metadata")
     ;
 
     private String name;
