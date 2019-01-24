@@ -190,17 +190,17 @@ You can find the public discussion about this in the following link: [Discussion
 
 ### Steps to run
 
-The easiest way to run Cypress locally is the following command:
+The easiest way to run Cypress locally is with the following command:
 ```
 npm run cypress:ci
 ```
 The same command runs on Travis CI as part of our build process.
 
-If you like to get some additional information or like to run test suits one by one you could start the test server manually
+If you would like to get some additional information or run test suites one by one you could start the test server manually
 ```
 ng build --prod && npm run start:ci
 ```
-and then you can reach cypress dashboard locally with the following command
+and then you can reach the Cypress Dashboard locally with the following command
 ```
 npm run cypress:open
 ```
