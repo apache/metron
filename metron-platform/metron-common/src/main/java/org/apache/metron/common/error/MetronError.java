@@ -105,13 +105,8 @@ public class MetronError {
     JSONObject errorMessage = new JSONObject();
     errorMessage.put(Constants.GUID, UUID.randomUUID().toString());
     errorMessage.put(Constants.SENSOR_TYPE, Constants.ERROR_TYPE);
-    if (sensorTypes.size() == 1) {
-      errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), sensorTypes.iterator().next());
-    } else {
-      errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), new JSONArray().addAll(sensorTypes));
-    }
     errorMessage.put(ErrorFields.ERROR_TYPE.getName(), errorType.getType());
-
+    addFailedSensorType(errorMessage);
     addMessageString(errorMessage);
 		addStacktrace(errorMessage);
     addTimestamp(errorMessage);
@@ -121,6 +116,14 @@ public class MetronError {
     addMetadata(errorMessage);
 
     return errorMessage;
+  }
+
+  private void addFailedSensorType(JSONObject errorMessage) {
+    if (sensorTypes.size() == 1) {
+      errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), sensorTypes.iterator().next());
+    } else {
+      errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), new JSONArray().addAll(sensorTypes));
+    }
   }
 
   @SuppressWarnings({"unchecked"})
