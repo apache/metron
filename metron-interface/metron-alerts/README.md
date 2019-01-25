@@ -198,7 +198,7 @@ The same command runs on Travis CI as part of our build process.
 
 If you would like to get some additional information or run test suites one by one you could start the test server manually
 ```
-ng build --prod && npm run start:ci
+npm run build && npm run start:ci
 ```
 and then you can reach the Cypress Dashboard locally with the following command
 ```
