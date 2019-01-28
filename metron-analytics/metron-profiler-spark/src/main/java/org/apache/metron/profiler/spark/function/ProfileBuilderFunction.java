@@ -45,6 +45,8 @@ import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATI
 
 import static java.lang.String.format;
 
+import static org.apache.metron.profiler.spark.function.GroupByPeriodFunction.*;
+
 /**
  * The function responsible for building profiles in Spark.
  */
@@ -100,12 +102,14 @@ public class ProfileBuilderFunction implements MapGroupsFunction<String, Message
               m.getProfileName(), m.getEntity(), m.getPeriod().getPeriod(), m.getProfileValue());
 
     } else if(measurements.size() == 0) {
-      String msg = format("No profile measurement can be calculated. Review the profile for bugs. group=%s", group);
+      String msg = format("No profile measurement can be calculated. Review the profile for bugs. profile=%s, entity=%s, period=%s",
+              profileFromKey(group), entityFromKey(group), periodFromKey(group));
       LOG.error(msg);
       throw new IllegalStateException(msg);
 
     } else {
-      String msg = format("Expected 1 profile measurement, but got %d. group=%s", measurements.size(), group);
+      String msg = format("Expected 1 profile measurement, but got %d. profile=%s, entity=%s, period=%s",
+              measurements.size(), profileFromKey(group), entityFromKey(group), periodFromKey(group));
       LOG.error(msg);
       throw new IllegalStateException(msg);
     }
