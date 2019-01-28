@@ -39,13 +39,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static java.lang.String.format;
 import static java.util.Comparator.comparing;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATION;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATION_UNITS;
-
-import static java.lang.String.format;
-
-import static org.apache.metron.profiler.spark.function.GroupByPeriodFunction.*;
+import static org.apache.metron.profiler.spark.function.GroupByPeriodFunction.entityFromKey;
+import static org.apache.metron.profiler.spark.function.GroupByPeriodFunction.periodFromKey;
+import static org.apache.metron.profiler.spark.function.GroupByPeriodFunction.profileFromKey;
 
 /**
  * The function responsible for building profiles in Spark.
