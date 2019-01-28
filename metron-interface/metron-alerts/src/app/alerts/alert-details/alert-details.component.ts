@@ -42,7 +42,7 @@ export enum Tabs {
   DETAILS, COMMENTS
 }
 
-class AlertCommentWrapper {
+export class AlertCommentWrapper {
   alertComment: AlertComment;
   displayTime: string;
 
