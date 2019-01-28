@@ -43,6 +43,8 @@ import static java.util.Comparator.comparing;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATION;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATION_UNITS;
 
+import static java.lang.String.format;
+
 /**
  * The function responsible for building profiles in Spark.
  */
@@ -70,7 +72,7 @@ public class ProfileBuilderFunction implements MapGroupsFunction<String, Message
    * @return
    */
   @Override
-  public ProfileMeasurementAdapter call(String group, Iterator<MessageRoute> iterator) throws Exception {
+  public ProfileMeasurementAdapter call(String group, Iterator<MessageRoute> iterator) {
     // create the distributor; some settings are unnecessary because it is cleaned-up immediately after processing the batch
     int maxRoutes = Integer.MAX_VALUE;
     long profileTTLMillis = Long.MAX_VALUE;
@@ -89,15 +91,26 @@ public class ProfileBuilderFunction implements MapGroupsFunction<String, Message
     }
 
     // flush the profile
+    ProfileMeasurementAdapter result;
     List<ProfileMeasurement> measurements = distributor.flush();
-    if(measurements.size() > 1) {
-      throw new IllegalStateException("No more than 1 profile measurement is expected");
+    if(measurements.size() == 1) {
+      ProfileMeasurement m = measurements.get(0);
+      result = new ProfileMeasurementAdapter(m);
+      LOG.debug("Profile measurement created; profile={}, entity={}, period={}, value={}",
+              m.getProfileName(), m.getEntity(), m.getPeriod().getPeriod(), m.getProfileValue());
+
+    } else if(measurements.size() == 0) {
+      String msg = format("No profile measurement can be calculated. Review the profile for bugs. group=%s", group);
+      LOG.error(msg);
+      throw new IllegalStateException(msg);
+
+    } else {
+      String msg = format("Expected 1 profile measurement, but got %d. group=%s", measurements.size(), group);
+      LOG.error(msg);
+      throw new IllegalStateException(msg);
     }
 
-    ProfileMeasurement m = measurements.get(0);
-    LOG.debug("Profile measurement created; profile={}, entity={}, period={}, value={}",
-            m.getProfileName(), m.getEntity(), m.getPeriod().getPeriod(), m.getProfileValue());
-    return new ProfileMeasurementAdapter(m);
+    return result;
   }
 
   private static <T> Stream<T> toStream(Iterator<T> iterator) {
