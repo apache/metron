@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
@@ -126,8 +127,10 @@ public class BulkWriterComponent<MESSAGE_T> {
               .withThrowable(e)
               .addRawMessage(messageGetStrategy.get(t));
       collector.emit(Constants.ERROR_STREAM, new Values(error.getJSONObject()));
-      collector.ack(t);
     });
+    if (handleCommit) {
+      commit(tuples);
+    }
     // there is only one error to report for all of the failed tuples
     collector.reportError(e);
 
@@ -260,7 +263,7 @@ public class BulkWriterComponent<MESSAGE_T> {
     }
   }
 
-  private void flush( String sensorType
+  protected void flush( String sensorType
                     , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
                     , WriterConfiguration configurations
 		                , MessageGetStrategy messageGetStrategy
@@ -282,6 +285,15 @@ public class BulkWriterComponent<MESSAGE_T> {
       } else if (response.hasErrors()) {
         throw new IllegalStateException("Unhandled bulk errors in response: " + response.getErrors());
       }
+
+      // Make sure all tuples are acked by acking any tuples not returned in the BulkWriterResponse
+      if (handleCommit) {
+        Set<Tuple> tuplesToAck = new HashSet<>(tupleList);
+        tuplesToAck.removeAll(response.getSuccesses());
+        response.getErrors().values().forEach(tuplesToAck::removeAll);
+        commit(tuplesToAck);
+      }
+
     } catch (Throwable e) {
       if(handleError) {
         error(sensorType, e, tupleList, messageGetStrategy);

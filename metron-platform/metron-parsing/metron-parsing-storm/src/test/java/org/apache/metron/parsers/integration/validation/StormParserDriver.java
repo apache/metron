@@ -25,14 +25,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -41,7 +47,7 @@ import org.slf4j.LoggerFactory;
 public class StormParserDriver extends ParserDriver {
   private static final Logger LOG = LoggerFactory.getLogger(StormParserDriver.class);
 
-  public static class CollectingWriter implements MessageWriter<JSONObject> {
+  public static class CollectingWriter implements BulkMessageWriter<JSONObject> {
 
     List<byte[]> output;
     public CollectingWriter(List<byte[]> output) {
@@ -49,13 +55,16 @@ public class StormParserDriver extends ParserDriver {
     }
 
     @Override
-    public void init() {
+    public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration config) throws Exception {
 
     }
 
     @Override
-    public void write(String sensorType, WriterConfiguration configurations, Tuple tuple, JSONObject message) throws Exception {
-      output.add(message.toJSONString().getBytes());
+    public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
+      messages.forEach(message -> output.add(message.toJSONString().getBytes()));
+      BulkWriterResponse bulkWriterResponse = new BulkWriterResponse();
+      bulkWriterResponse.addAllSuccesses(tuples);
+      return bulkWriterResponse;
     }
 
     @Override
@@ -83,6 +92,7 @@ public class StormParserDriver extends ParserDriver {
 
     @Override
     public ParserConfigurations getConfigurations() {
+      config.getSensorParserConfig(sensorType).getParserConfig().put(IndexingConfigurations.BATCH_SIZE_CONF, 1);
       return config;
     }
 
