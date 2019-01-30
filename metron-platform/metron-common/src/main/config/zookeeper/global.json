@@ -6,6 +6,5 @@
   "update.hbase.table": "metron_update",
   "update.hbase.cf": "t",
   "es.client.settings": {
-    "client.transport.ping_timeout": "500s"
   }
 }

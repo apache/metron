@@ -17,7 +17,7 @@
 # limitations under the License.
 # 
 
-METRON_VERSION=0.6.1
+METRON_VERSION=0.7.1
 METRON_HOME=${METRON_HOME:-"/usr/metron/$METRON_VERSION"}
 DATE_FORMAT=${DATE_FORMAT:-"yyyyMMdd"}
 USER=$(whoami)

@@ -15,39 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {Router} from '@angular/router';
 import {VerticalNavbarComponent} from './verticalnavbar.component';
 
 class MockRouter {
-  url: string = '';
+  url = '';
 }
 
 describe('VerticalNavbarComponent', () => {
-
-  beforeEach(async(() => {
+  let router: Router;
+  let verticalNavbarComponent: VerticalNavbarComponent;
+  beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         VerticalNavbarComponent,
         {provide: Router, useClass: MockRouter}
       ]
-    }).compileComponents();
+    });
+    verticalNavbarComponent = TestBed.get(VerticalNavbarComponent);
+  });
 
-  }));
-
-  it('can instantiate VerticalNavbarComponent',
-    inject([VerticalNavbarComponent], (verticalNavbarComponent: VerticalNavbarComponent) => {
+  it('can instantiate VerticalNavbarComponent', () => {
       expect(verticalNavbarComponent instanceof VerticalNavbarComponent).toBe(true);
-  }));
-
-  it('check isActive for a URL VerticalNavbarComponent',
-    inject([VerticalNavbarComponent, Router], (component: VerticalNavbarComponent, router: Router) => {
-
-      router.url = '/abc';
-      expect(component.isActive(['/def'])).toEqual(false);
-      expect(component.isActive(['/abc'])).toEqual(true);
-      expect(component.isActive(['/def', '/abc'])).toEqual(true);
-
-  }));
+  });
 
 });

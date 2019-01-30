@@ -15,14 +15,14 @@
   -->
 <div >
   <div class="container-fluid details-pane-padding">
-    <div class="row mb-1 mx-0">
+    <div class="row mb-3 mx-0">
       <div class="metron-title"> General Settings </div>
     </div>
 
     <div class="row mx-0">
-      <form>
+      <form class="flex-fill">
         <div class="col-md-4 pl-0">
-          <div class="section px-1 py-1">
+          <div class="section px-3 py-3">
             <label class="h6"> <strong> Elasticsearch </strong> </label>
             <div class="form-group">
               <label>INDEX DATE FORMAT</label>
@@ -31,7 +31,7 @@
 
           </div>
 
-          <div class="section px-1 py-1 mt-1">
+          <div class="section px-3 py-3 mt-3">
             <label class="h6"> <strong> Validation </strong> </label>
 
             <div class="form-group">
@@ -48,9 +48,9 @@
   </div>
 
   <div class="container-fluid metron-button-bar-settings details-pane-padding" >
-    <div class="row px-1 py-1">
+    <div class="row px-3 py-3">
       <button type="submit" class="btn btn-primary" (click)="onSave()">SAVE</button>
-      <button class="btn form-enable-disable-button" (click)="onCancel()">CANCEL</button>
+      <button class="btn form-enable-disable-button ml-1" (click)="onCancel()">CANCEL</button>
     </div>
   </div>
 

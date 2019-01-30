@@ -15,96 +15,83 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
-import '../rxjs-operators';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
-import {HdfsService} from './hdfs.service';
+
+import { TestBed } from '@angular/core/testing';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
+import { HdfsService } from './hdfs.service';
+import {
+  HttpTestingController,
+  HttpClientTestingModule
+} from '@angular/common/http/testing';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('HdfsService', () => {
+  let hdfsService: HdfsService;
+  let mockBackend: HttpTestingController;
 
-  beforeEach(async(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpModule],
+      imports: [HttpClientTestingModule],
       providers: [
         HdfsService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
-    })
-      .compileComponents();
-  }));
-
-  it('can instantiate service when inject service',
-    inject([HdfsService], (service: HdfsService) => {
-      expect(service instanceof HdfsService).toBe(true);
-    }));
-
-  it('can instantiate service with "new"', inject([Http, APP_CONFIG], (http: Http, config: IAppConfig) => {
-    expect(http).not.toBeNull('http should be provided');
-    let service = new HdfsService(http, config);
-    expect(service instanceof HdfsService).toBe(true, 'new service should be ok');
-  }));
-
-
-  it('can provide the mockBackend as XHRBackend',
-    inject([XHRBackend], (backend: MockBackend) => {
-      expect(backend).not.toBeNull('backend should be provided');
-    }));
-
-  describe('when service functions', () => {
-    let hdfsService: HdfsService;
-    let mockBackend: MockBackend;
-    let fileList = ['file1', 'file2'];
-    let contents = 'file contents';
-    let listResponse: Response;
-    let readResponse: Response;
-    let postResponse: Response;
-    let deleteResponse: Response;
-
-    beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
-      mockBackend = be;
-      hdfsService = new HdfsService(http, config);
-      listResponse = new Response(new ResponseOptions({status: 200, body: fileList}));
-      readResponse = new Response(new ResponseOptions({status: 200, body: contents}));
-      postResponse = new Response(new ResponseOptions({status: 200}));
-      deleteResponse = new Response(new ResponseOptions({status: 200}));
-    }));
-
-    it('list', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(listResponse));
-      hdfsService.list('/path').subscribe(
-        result => {
-          expect(result).toEqual(fileList);
-        }, error => console.log(error));
-    })));
-
-    it('read', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(readResponse));
-      hdfsService.read('/path').subscribe(
-        result => {
-          expect(result).toEqual(contents);
-        }, error => console.log(error));
-    })));
-
-    it('post', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(postResponse));
-      hdfsService.post('/path', contents).subscribe(
-          result => {
-            expect(result.status).toEqual(200);
-          }, error => console.log(error));
-    })));
-
-    it('deleteFile', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(deleteResponse));
-      hdfsService.deleteFile('/path').subscribe(
-          result => {
-            expect(result.status).toEqual(200);
-          }, error => console.log(error));
-    })));
+    });
+    hdfsService = TestBed.get(HdfsService);
+    mockBackend = TestBed.get(HttpTestingController);
   });
 
+  describe('when service functions', () => {
+    let fileList = ['file1', 'file2'];
+    let contents = 'file contents';
 
+    it('list', () => {
+        hdfsService.list('/path').subscribe(
+          result => {
+            expect(result).toEqual(fileList);
+          },
+          error => console.log(error)
+        );
+        const req = mockBackend.expectOne('/api/v1/hdfs/list?path=/path');
+        expect(req.request.method).toBe('GET');
+        req.flush(fileList);
+      });
+
+    it('read', () => {
+        hdfsService.read('/path').subscribe(
+          result => {
+            expect(result).toEqual(contents);
+          },
+          error => console.log(error)
+        );
+        const req = mockBackend.expectOne('/api/v1/hdfs?path=/path');
+        expect(req.request.method).toBe('GET');
+        req.flush(contents);
+      });
+
+    it('post', () => {
+        hdfsService.post('/path', contents).subscribe(
+          result => {
+            expect(result.status).toEqual(200);
+          },
+          error => console.log(error)
+        );
+        const req = mockBackend.expectOne('/api/v1/hdfs?path=/path');
+        expect(req.request.method).toBe('POST');
+        req.flush({ status: 200 });
+      });
+
+    it('deleteFile', () => {
+        hdfsService.deleteFile('/path').subscribe(
+          result => {
+            expect(result.status).toEqual(200);
+          },
+          error => console.log(error)
+        );
+        const req = mockBackend.expectOne('/api/v1/hdfs?path=/path');
+        expect(req.request.method).toBe('DELETE');
+        req.flush({ status: 200 });
+      });
+  });
 });

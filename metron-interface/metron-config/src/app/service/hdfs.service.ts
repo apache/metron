@@ -15,49 +15,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions, Response, URLSearchParams} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
-import {HttpUtil} from '../util/httpUtil';
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { HttpUtil } from '../util/httpUtil';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class HdfsService {
-  url = this.config.apiEndpoint + '/hdfs';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  url = this.appConfigService.getApiRoot() + '/hdfs';
 
-  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
-  }
+  constructor(
+    private http: HttpClient,
+    private appConfigService: AppConfigService
+  ) {}
 
   public list(path: string): Observable<string[]> {
-    let params: URLSearchParams = new URLSearchParams();
-    params.set('path', path);
-    return this.http.get(this.url + '/list', new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    const options: HttpParams = new HttpParams().set('path', path);
+    return this.http.get(this.url + '/list', { params: options }).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
-  public read(path: string): Observable<string> {
-    let params: URLSearchParams = new URLSearchParams();
-    params.set('path', path);
-    return this.http.get(this.url , new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
-      .map(HttpUtil.extractString)
-      .catch(HttpUtil.handleError);
+  public read(path: string): Observable<Object> {
+    const options: HttpParams = new HttpParams().set('path', path);
+    return this.http.get(this.url, { params: options }).pipe(
+      map(HttpUtil.extractString),
+      catchError(HttpUtil.handleError)
+    );
   }
 
-  public post(path: string, contents: string): Observable<Response> {
-    let params: URLSearchParams = new URLSearchParams();
-    params.set('path', path);
-    return this.http.post(this.url, contents, new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
-        .catch(HttpUtil.handleError);
+  public post(path: string, contents: string): any {
+    const options: HttpParams = new HttpParams().set('path', path);
+    return this.http
+      .post(this.url, contents, { params: options })
+      .pipe(catchError(HttpUtil.handleError));
   }
 
-  public deleteFile(path: string): Observable<Response> {
-    let params: URLSearchParams = new URLSearchParams();
-    params.set('path', path);
-    return this.http.delete(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
-        .catch(HttpUtil.handleError);
+  public deleteFile(path: string): any {
+    const options: HttpParams = new HttpParams().set('path', path);
+    return this.http
+      .delete(this.url, { params: options })
+      .pipe(catchError(HttpUtil.handleError));
   }
-
 }

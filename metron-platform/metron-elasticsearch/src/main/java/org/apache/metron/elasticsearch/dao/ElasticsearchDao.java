@@ -17,12 +17,8 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
@@ -37,17 +33,22 @@ import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class ElasticsearchDao implements IndexDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private transient TransportClient client;
+  private transient ElasticsearchClient client;
   private ElasticsearchSearchDao searchDao;
   private ElasticsearchUpdateDao updateDao;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
@@ -63,8 +64,9 @@ public class ElasticsearchDao implements IndexDao {
   private ElasticsearchRequestSubmitter requestSubmitter;
 
   private AccessConfig accessConfig;
+  private WriteRequest.RefreshPolicy refreshPolicy;
 
-  protected ElasticsearchDao(TransportClient client,
+  public ElasticsearchDao(ElasticsearchClient client,
       AccessConfig config,
       ElasticsearchSearchDao searchDao,
       ElasticsearchUpdateDao updateDao,
@@ -83,6 +85,7 @@ public class ElasticsearchDao implements IndexDao {
 
   public ElasticsearchDao() {
     //uninitialized.
+    refreshPolicy = WriteRequest.RefreshPolicy.NONE;
   }
 
   public AccessConfig getAccessConfig() {
@@ -96,15 +99,14 @@ public class ElasticsearchDao implements IndexDao {
   @Override
   public synchronized void init(AccessConfig config) {
     if (this.client == null) {
-      this.client = ElasticsearchUtils
-          .getClient(config.getGlobalConfigSupplier().get());
+      this.client = ElasticsearchClientFactory.create(config.getGlobalConfigSupplier().get());
       this.accessConfig = config;
-      this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client.admin());
+      this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client);
       this.requestSubmitter = new ElasticsearchRequestSubmitter(this.client);
-      this.searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao,
-          requestSubmitter);
+      this.searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao, requestSubmitter);
       this.retrieveLatestDao = new ElasticsearchRetrieveLatestDao(client);
-      this.updateDao = new ElasticsearchUpdateDao(client, accessConfig, retrieveLatestDao);
+      this.updateDao = new ElasticsearchUpdateDao(client, accessConfig, retrieveLatestDao)
+              .withRefreshPolicy(refreshPolicy);
     }
 
     if (columnMetadataDao == null) {
@@ -127,13 +129,13 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public Document getLatest(final String guid, final String sensorType) {
+  public Document getLatest(final String guid, final String sensorType) throws IOException {
     return retrieveLatestDao.getLatest(guid, sensorType);
   }
 
   @Override
   public Iterable<Document> getAllLatest(
-      final List<GetRequest> getRequests) {
+      final List<GetRequest> getRequests) throws IOException {
     return retrieveLatestDao.getAllLatest(getRequests);
   }
 
@@ -151,11 +153,6 @@ public class ElasticsearchDao implements IndexDao {
   public Document patch(RetrieveLatestDao retrieveLatestDao, PatchRequest request, Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
     return updateDao.patch(retrieveLatestDao, request, timestamp);
-  }
-
-  @Override
-  public Document replace(ReplaceRequest request, Optional<Long> timestamp) throws IOException {
-    return updateDao.replace(request, timestamp);
   }
 
   @Override
@@ -188,8 +185,13 @@ public class ElasticsearchDao implements IndexDao {
     return this.updateDao.removeCommentFromAlert(request, latest);
   }
 
-  protected Optional<String> getIndexName(String guid, String sensorType) {
-    return updateDao.getIndexName(guid, sensorType);
+  public ElasticsearchDao withRefreshPolicy(WriteRequest.RefreshPolicy refreshPolicy) {
+    this.refreshPolicy = refreshPolicy;
+    return this;
+  }
+
+  protected Optional<String> getIndexName(String guid, String sensorType) throws IOException {
+    return updateDao.findIndexNameByGUID(guid, sensorType);
   }
 
   protected SearchResponse search(SearchRequest request, QueryBuilder queryBuilder)
@@ -202,7 +204,7 @@ public class ElasticsearchDao implements IndexDao {
     return searchDao.group(groupRequest, queryBuilder);
   }
 
-  public TransportClient getClient() {
+  public ElasticsearchClient getClient() {
     return this.client;
   }
 }

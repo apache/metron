@@ -16,22 +16,20 @@
  * limitations under the License.
  */
 import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions, Response, ResponseOptions} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Response, ResponseOptions } from '@angular/http';
+import {Observable} from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import {HttpUtil} from '../util/httpUtil';
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class GlobalConfigService {
-  url = this.config.apiEndpoint + '/global/config';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  url = this.appConfigService.getApiRoot() + '/global/config';
 
-  private globalConfig = {
+  private globalConfig = {};
 
-  };
-
-  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
+  constructor(private http: HttpClient, private appConfigService: AppConfigService) {
     this.globalConfig['solr.collection'] = 'metron';
     this.globalConfig['storm.indexingWorkers'] = 1;
     this.globalConfig['storm.indexingExecutors'] = 2;
@@ -51,15 +49,15 @@ export class GlobalConfigService {
   }
 
   public post(globalConfig: {}): Observable<{}> {
-    return this.http.post(this.url, globalConfig, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.post(this.url, globalConfig).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError));
   }
 
   public get(): Observable<{}> {
-    return this.http.get(this.url , new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(this.url).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError));
   }
 
   public delete(): Observable<Response> {

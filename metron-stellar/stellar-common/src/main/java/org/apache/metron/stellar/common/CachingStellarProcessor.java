@@ -134,6 +134,7 @@ public class CachingStellarProcessor extends StellarProcessor {
    * @return The value of the evaluated Stellar expression, {@code expression}.
    */
   @Override
+  @SuppressWarnings("unchecked")
   public Object parse(
       String expression,
       VariableResolver variableResolver,

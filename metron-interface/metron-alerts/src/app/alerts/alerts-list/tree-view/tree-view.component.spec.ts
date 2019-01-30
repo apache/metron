@@ -32,6 +32,14 @@ import { UpdateService } from '../../../service/update.service';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { MetaAlertService } from '../../../service/meta-alert.service';
 import { DialogService } from 'app/service/dialog.service';
+import { AppConfigService } from '../../../service/app-config.service';
+
+class FakeAppConfigService {
+
+  getApiRoot() {
+    return '/api/v1'
+  }
+}
 
 describe('TreeViewComponent', () => {
   let component: TreeViewComponent;
@@ -45,7 +53,8 @@ describe('TreeViewComponent', () => {
         UpdateService,
         GlobalConfigService,
         MetaAlertService,
-        DialogService
+        DialogService,
+        { provide: AppConfigService, useClass: FakeAppConfigService }
       ],
       declarations: [
         MetronTableDirective,

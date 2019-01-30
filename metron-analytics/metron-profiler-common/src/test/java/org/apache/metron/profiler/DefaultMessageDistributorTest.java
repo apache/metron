@@ -20,7 +20,8 @@
 
 package org.apache.metron.profiler;
 
-import com.google.common.base.Ticker;
+import com.github.benmanes.caffeine.cache.Ticker;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
@@ -32,6 +33,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.HOURS;
@@ -102,7 +104,8 @@ public class DefaultMessageDistributorTest {
     distributor = new DefaultMessageDistributor(
             periodDurationMillis,
             profileTimeToLiveMillis,
-            maxNumberOfRoutes);
+            maxNumberOfRoutes,
+            Ticker.systemTicker());
   }
 
   /**
@@ -190,7 +193,7 @@ public class DefaultMessageDistributorTest {
     // setup
     ProfileConfig definition = createDefinition(profileOne);
     String entity = (String) messageOne.get("ip_src_addr");
-    MessageRoute route = new MessageRoute(definition, entity, messageOne, System.currentTimeMillis());
+    MessageRoute route = new MessageRoute(definition, entity, messageOne, ticker.read());
     distributor = new DefaultMessageDistributor(
             periodDurationMillis,
             profileTimeToLiveMillis,
@@ -220,7 +223,7 @@ public class DefaultMessageDistributorTest {
     // setup
     ProfileConfig definition = createDefinition(profileOne);
     String entity = (String) messageOne.get("ip_src_addr");
-    MessageRoute route = new MessageRoute(definition, entity, messageOne, System.currentTimeMillis());
+    MessageRoute route = new MessageRoute(definition, entity, messageOne, ticker.read());
     distributor = new DefaultMessageDistributor(
             periodDurationMillis,
             profileTimeToLiveMillis,
@@ -251,7 +254,7 @@ public class DefaultMessageDistributorTest {
     // setup
     ProfileConfig definition = createDefinition(profileOne);
     String entity = (String) messageOne.get("ip_src_addr");
-    MessageRoute route = new MessageRoute(definition, entity, messageOne, System.currentTimeMillis());
+    MessageRoute route = new MessageRoute(definition, entity, messageOne, ticker.read());
     distributor = new DefaultMessageDistributor(
             periodDurationMillis,
             profileTimeToLiveMillis,
@@ -278,7 +281,7 @@ public class DefaultMessageDistributorTest {
    * An implementation of Ticker that can be used to drive time
    * when testing the Guava caches.
    */
-  private class FixedTicker extends Ticker {
+  private class FixedTicker implements Ticker {
 
     /**
      * The time that will be reported.
@@ -298,7 +301,7 @@ public class DefaultMessageDistributorTest {
       this.timestampNanos += units.toNanos(time);
       return this;
     }
-
+    
     @Override
     public long read() {
       return this.timestampNanos;

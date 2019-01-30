@@ -156,10 +156,11 @@ public class ConcatMap implements Map<String, Object>, Serializable, KryoSeriali
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Set<String> keySet() {
     Set<String> ret = null;
-    for(Map m : variableMappings) {
-      if(ret == null) {
+    for (Map m : variableMappings) {
+      if (ret == null) {
         ret = m.keySet();
       }
       else {
@@ -174,9 +175,10 @@ public class ConcatMap implements Map<String, Object>, Serializable, KryoSeriali
    * @return
    */
   @Override
+  @SuppressWarnings("unchecked")
   public Collection<Object> values() {
     Collection<Object> ret = new ArrayList<>(size());
-    for(Map m : variableMappings) {
+    for (Map m : variableMappings) {
       ret.addAll(m.values());
     }
     return ret;
@@ -188,13 +190,13 @@ public class ConcatMap implements Map<String, Object>, Serializable, KryoSeriali
    * @return
    */
   @Override
+  @SuppressWarnings("unchecked")
   public Set<Entry<String, Object>> entrySet() {
     Set<Entry<String, Object>> ret = null;
-    for(Map m : variableMappings) {
-      if(ret == null) {
+    for (Map m : variableMappings) {
+      if (ret == null) {
         ret = m.entrySet();
-      }
-      else {
+      } else {
         ret = Sets.union(ret, m.entrySet());
       }
     }
@@ -202,6 +204,7 @@ public class ConcatMap implements Map<String, Object>, Serializable, KryoSeriali
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public String toString() {
     Iterable<Iterable<Map.Entry<Object, Object>>> transformed =
             Iterables.transform(variableMappings, x -> x.entrySet());

@@ -15,130 +15,172 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {SensorEnrichmentConfigService} from './sensor-enrichment-config.service';
-import {SensorEnrichmentConfig, EnrichmentConfig} from '../model/sensor-enrichment-config';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
-import '../rxjs-operators';
-import {METRON_REST_CONFIG, APP_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
+import { TestBed } from '@angular/core/testing';
+import { SensorEnrichmentConfigService } from './sensor-enrichment-config.service';
+import {
+  SensorEnrichmentConfig,
+  EnrichmentConfig
+} from '../model/sensor-enrichment-config';
+import { HttpResponse } from '@angular/common/http';
+import { METRON_REST_CONFIG, APP_CONFIG } from '../app.config';
+import {
+  HttpClientTestingModule,
+  HttpTestingController
+} from '@angular/common/http/testing';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('SensorEnrichmentConfigService', () => {
+  let mockBackend: HttpTestingController;
+  let sensorEnrichmentConfigService: SensorEnrichmentConfigService;
 
-  beforeEach(async(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpModule],
+      imports: [HttpClientTestingModule],
       providers: [
         SensorEnrichmentConfigService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
-    })
-        .compileComponents();
-  }));
+    });
+    mockBackend = TestBed.get(HttpTestingController);
+    sensorEnrichmentConfigService = TestBed.get(SensorEnrichmentConfigService);
+  });
 
-  it('can instantiate service when inject service',
-      inject([SensorEnrichmentConfigService], (service: SensorEnrichmentConfigService) => {
-        expect(service instanceof SensorEnrichmentConfigService).toBe(true);
-      }));
-
-  it('can instantiate service with "new"', inject([Http, APP_CONFIG], (http: Http, config: IAppConfig) => {
-    expect(http).not.toBeNull('http should be provided');
-    let service = new SensorEnrichmentConfigService(http, config);
-    expect(service instanceof SensorEnrichmentConfigService).toBe(true, 'new service should be ok');
-  }));
-
-
-  it('can provide the mockBackend as XHRBackend',
-      inject([XHRBackend], (backend: MockBackend) => {
-        expect(backend).not.toBeNull('backend should be provided');
-      }));
+  afterEach(() => {
+    mockBackend.verify();
+  });
 
   describe('when service functions', () => {
-    let sensorEnrichmentConfigService: SensorEnrichmentConfigService;
-    let mockBackend: MockBackend;
     let sensorEnrichmentConfig1 = new SensorEnrichmentConfig();
     let enrichmentConfig1 = new EnrichmentConfig();
-    enrichmentConfig1.fieldMap = {'geo': ['ip_dst_addr'], 'host': ['ip_dst_addr']};
+    enrichmentConfig1.fieldMap = {
+      geo: ['ip_dst_addr'],
+      host: ['ip_dst_addr']
+    };
     sensorEnrichmentConfig1.enrichment.fieldMap = enrichmentConfig1;
     let sensorEnrichmentConfig2 = new SensorEnrichmentConfig();
     let enrichmentConfig2 = new EnrichmentConfig();
-    enrichmentConfig1.fieldMap = {'whois': ['ip_dst_addr'], 'host': ['ip_src_addr']};
+    enrichmentConfig1.fieldMap = {
+      whois: ['ip_dst_addr'],
+      host: ['ip_src_addr']
+    };
     sensorEnrichmentConfig2.enrichment = enrichmentConfig2;
     let availableEnrichments: string[] = ['geo', 'host', 'whois'];
-    let availableThreatTriageAggregators: string[] = ['MAX', 'MIN', 'SUM', 'MEAN', 'POSITIVE_MEAN'];
-    let sensorEnrichmentConfigResponse: Response;
-    let sensorEnrichmentConfigsResponse: Response;
-    let availableEnrichmentsResponse: Response;
-    let availableThreatTriageAggregatorsResponse: Response;
-    let deleteResponse: Response;
+    let availableThreatTriageAggregators: string[] = [
+      'MAX',
+      'MIN',
+      'SUM',
+      'MEAN',
+      'POSITIVE_MEAN'
+    ];
+    let sensorEnrichmentConfigResponse: HttpResponse<{}>;
+    let sensorEnrichmentConfigsResponse: HttpResponse<{}>;
+    let availableEnrichmentsResponse: HttpResponse<{}>;
+    let availableThreatTriageAggregatorsResponse: HttpResponse<{}>;
+    let deleteResponse: HttpResponse<{}>;
 
-    beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
-      mockBackend = be;
-      sensorEnrichmentConfigService = new SensorEnrichmentConfigService(http, config);
-      sensorEnrichmentConfigResponse = new Response(new ResponseOptions({status: 200, body: sensorEnrichmentConfig1}));
-      sensorEnrichmentConfigsResponse = new Response(new ResponseOptions({status: 200, body: [sensorEnrichmentConfig1,
-        sensorEnrichmentConfig2]}));
-      availableEnrichmentsResponse = new Response(new ResponseOptions({status: 200, body: availableEnrichments}));
-      availableThreatTriageAggregatorsResponse = new Response(new ResponseOptions({status: 200, body: availableThreatTriageAggregators}));
-      deleteResponse = new Response(new ResponseOptions({status: 200}));
-    }));
+    beforeEach(() => {
+      sensorEnrichmentConfigResponse = new HttpResponse({
+        status: 200,
+        body: sensorEnrichmentConfig1
+      });
+      sensorEnrichmentConfigsResponse = new HttpResponse({
+        status: 200,
+        body: [sensorEnrichmentConfig1, sensorEnrichmentConfig2]
+      });
+      availableEnrichmentsResponse = new HttpResponse({
+        status: 200,
+        body: availableEnrichments
+      });
+      availableThreatTriageAggregatorsResponse = new HttpResponse({
+        status: 200,
+        body: availableThreatTriageAggregators
+      });
+      deleteResponse = new HttpResponse({ status: 200 });
+    });
 
-    it('post', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorEnrichmentConfigResponse));
-
-      sensorEnrichmentConfigService.post('bro', sensorEnrichmentConfig1).subscribe(
+    it('post', () => {
+      sensorEnrichmentConfigService
+        .post('bro', sensorEnrichmentConfig1)
+        .subscribe(
           result => {
             expect(result).toEqual(sensorEnrichmentConfig1);
-          }, error => console.log(error));
-    })));
+          },
+          error => console.log(error)
+        );
+      const req = mockBackend.expectOne('/api/v1/sensor/enrichment/config/bro');
+      expect(req.request.method).toBe('POST');
+      req.flush(sensorEnrichmentConfig1);
+    });
 
-    it('get', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorEnrichmentConfigResponse));
-
+    it('get', () => {
       sensorEnrichmentConfigService.get('bro').subscribe(
-          result => {
-            expect(result).toEqual(sensorEnrichmentConfig1);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(sensorEnrichmentConfig1);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/sensor/enrichment/config/bro');
+      expect(req.request.method).toBe('GET');
+      req.flush(sensorEnrichmentConfig1);
+    });
 
-    it('getAll', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorEnrichmentConfigsResponse));
-
+    it('getAll', () => {
       sensorEnrichmentConfigService.getAll().subscribe(
-          results => {
-            expect(results).toEqual([sensorEnrichmentConfig1, sensorEnrichmentConfig2]);
-          }, error => console.log(error));
-    })));
+        results => {
+          expect(results).toEqual([
+            sensorEnrichmentConfig1,
+            sensorEnrichmentConfig2
+          ]);
+        },
+        error => console.log(error)
+      );
 
-    it('getAvailableEnrichments', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(availableEnrichmentsResponse));
+      const req = mockBackend.expectOne('/api/v1/sensor/enrichment/config');
+      expect(req.request.method).toBe('GET');
+      req.flush([sensorEnrichmentConfig1, sensorEnrichmentConfig2]);
+    });
 
+    it('getAvailableEnrichments', () => {
       sensorEnrichmentConfigService.getAvailableEnrichments().subscribe(
-          results => {
-            expect(results).toEqual(availableEnrichments);
-          }, error => console.log(error));
-    })));
+        results => {
+          expect(results).toEqual(availableEnrichments);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne(
+        '/api/v1/sensor/enrichment/config/list/available/enrichments'
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(availableEnrichments);
+    });
 
-    it('getAvailableThreatTriageAggregators', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(availableThreatTriageAggregatorsResponse));
-
-      sensorEnrichmentConfigService.getAvailableThreatTriageAggregators().subscribe(
+    it('getAvailableThreatTriageAggregators', () => {
+      sensorEnrichmentConfigService
+        .getAvailableThreatTriageAggregators()
+        .subscribe(
           results => {
             expect(results).toEqual(availableThreatTriageAggregators);
-          }, error => console.log(error));
-    })));
+          },
+          error => console.log(error)
+        );
+      const req = mockBackend.expectOne(
+        '/api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators'
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(availableThreatTriageAggregators);
+    });
 
-    it('deleteSensorEnrichments', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(deleteResponse));
+    it('deleteSensorEnrichments', () => {
+      sensorEnrichmentConfigService
+        .deleteSensorEnrichments('bro')
+        .subscribe(result => {
+          expect(result.status).toEqual(200);
+        });
 
-      sensorEnrichmentConfigService.deleteSensorEnrichments('bro').subscribe(result => {
-        expect(result.status).toEqual(200);
-      });
-    })));
+      const req = mockBackend.expectOne('/api/v1/sensor/enrichment/config/bro');
+      expect(req.request.method).toBe('DELETE');
+      req.flush(deleteResponse);
+    });
   });
-
 });
-
-

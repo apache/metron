@@ -20,11 +20,14 @@ import {EventEmitter}     from '@angular/core';
 import {AuthGuard} from './auth-guard';
 import {AuthenticationService} from '../service/authentication.service';
 import {Router} from '@angular/router';
+import {HttpUtil} from "../util/httpUtil";
+import {HttpClientTestingModule} from "@angular/common/http/testing";
+import {AppConfigService} from '../service/app-config.service';
+import {MockAppConfigService} from '../service/mock.app-config.service';
 
-class MockAuthenticationService {
+class MockAuthenticationService extends AuthenticationService{
   _isAuthenticationChecked: boolean;
   _isAuthenticated: boolean;
-  onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   public isAuthenticationChecked(): boolean {
     return this._isAuthenticationChecked;
@@ -43,10 +46,12 @@ describe('AuthGuard', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
       providers: [
         AuthGuard,
         {provide: AuthenticationService, useClass: MockAuthenticationService},
-        {provide: Router, useClass: MockRouter}
+        {provide: Router, useClass: MockRouter},
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     })
       .compileComponents();
@@ -74,19 +79,18 @@ describe('AuthGuard', () => {
                                                         authenticationService: MockAuthenticationService,
                                                         router: MockRouter) => {
       authenticationService._isAuthenticationChecked = false;
+      authenticationService.onLoginEvent.next(true);
       authGuard.canActivate(null, null).subscribe(isUserValid => {
         expect(isUserValid).toBe(true);
       });
-      authenticationService.onLoginEvent.emit(true);
 
-
-      spyOn(router, 'navigateByUrl');
+      spyOn(HttpUtil, 'navigateToLogin');
       authenticationService._isAuthenticationChecked = false;
+      authenticationService.onLoginEvent.next(false);
       authGuard.canActivate(null, null).subscribe(isUserValid => {
         expect(isUserValid).toBe(false);
       });
-      authenticationService.onLoginEvent.emit(false);
-      expect(router.navigateByUrl).toHaveBeenCalledWith('/login');
+      expect(HttpUtil.navigateToLogin).toHaveBeenCalledWith();
 
     }));
 });

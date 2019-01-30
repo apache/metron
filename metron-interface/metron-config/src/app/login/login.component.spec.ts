@@ -15,23 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {AuthenticationService} from '../service/authentication.service';
-import {LoginComponent} from './login.component';
-import {Observable}     from 'rxjs/Observable';
-import {ActivatedRoute, Params} from '@angular/router';
-import {LoginModule} from './login.module';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { AuthenticationService } from '../service/authentication.service';
+import { LoginComponent } from './login.component';
+import { Observable } from 'rxjs';
+import { ActivatedRoute, Params } from '@angular/router';
+import { LoginModule } from './login.module';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 
 class MockAuthenticationService {
-
   public login(username: string, password: string, onError): void {
     if (username === 'success') {
-      onError({status: 200});
+      onError({ status: 200 });
     }
 
     if (username === 'failure') {
-      onError({status: 401});
+      onError({ status: 401 });
     }
   }
 }
@@ -43,14 +42,13 @@ class MockActivatedRoute {
 
   setSessionExpired() {
     this.queryParams = Observable.create(observer => {
-      observer.next({'sessionExpired': 'true'});
+      observer.next({ sessionExpired: 'true' });
       observer.complete();
     });
   }
 }
 
 describe('LoginComponent', () => {
-
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
   let activatedRoute: MockActivatedRoute;
@@ -59,17 +57,14 @@ describe('LoginComponent', () => {
     TestBed.configureTestingModule({
       imports: [LoginModule],
       providers: [
-        {provide: ActivatedRoute, useClass: MockActivatedRoute},
-        {provide: AuthenticationService, useClass: MockAuthenticationService},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: ActivatedRoute, useClass: MockActivatedRoute },
+        { provide: AuthenticationService, useClass: MockAuthenticationService },
+        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
       ]
-    }).compileComponents()
-    .then(() => {
-      fixture = TestBed.createComponent(LoginComponent);
-      component = fixture.componentInstance;
-      activatedRoute = fixture.debugElement.injector.get(ActivatedRoute);
     });
-
+    fixture = TestBed.createComponent(LoginComponent);
+    component = fixture.componentInstance;
+    activatedRoute = TestBed.get(ActivatedRoute);
   }));
 
   it('should create an instance', async(() => {
@@ -86,14 +81,13 @@ describe('LoginComponent', () => {
     component.password = 'failure';
     component.login();
     expect(component.loginFailure).toEqual('Login failed for failure');
-
   }));
 
   it('can handle sessionExpired', async(() => {
     activatedRoute.setSessionExpired();
-    let sessionExpiredComponent = TestBed.createComponent(LoginComponent).componentInstance;
+    let sessionExpiredComponent = TestBed.createComponent(LoginComponent)
+      .componentInstance;
 
     expect(sessionExpiredComponent.loginFailure).toEqual('Session has expired');
   }));
-
 });

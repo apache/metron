@@ -13,17 +13,15 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<nav class="metron-nav navbar navbar-dark">
-  <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#exCollapsingNavbar">
-    &#9776;
-  </button>
-  <div class="collapse navbar-toggleable-xs pull-left" id="exCollapsingNavbar">
+<nav class="metron-nav navbar navbar-dark justify-content-between">
+
+  <div class="navbar-toggleable-xs" id="exCollapsingNavbar">
     <a class="navbar-brand" href="#"><img src="assets/images/logo.png" alt="Logo" width=110></a>
   </div>
 
-  <div class="form-inline pull-right">
+  <div class="form-inline">
     <i class="fa fa-user " style="padding-left: 11px" aria-hidden="true"></i>
-    <div *ngIf="authenticationService.currentUser != null" class="fa logout">Logged in as {{authenticationService.currentUser}} - <span class="logout-link" (click)="authenticationService.logout()">Logout</span></div>
+    <div *ngIf="currentUser != null" class="fa logout">Logged in as {{currentUser}} - <span class="logout-link" (click)="logout()">Logout</span></div>
   </div>
 
 </nav>

@@ -15,85 +15,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
-import '../rxjs-operators';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
-import {GlobalConfigService} from './global-config.service';
+import { TestBed } from '@angular/core/testing';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
+import { GlobalConfigService } from './global-config.service';
+import {
+  HttpTestingController,
+  HttpClientTestingModule
+} from '@angular/common/http/testing';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('GlobalConfigService', () => {
+  let mockBackend: HttpTestingController;
+  let globalConfigService: GlobalConfigService;
 
-  beforeEach(async(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpModule],
+      imports: [HttpClientTestingModule],
       providers: [
         GlobalConfigService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
-    })
-      .compileComponents();
-  }));
+    });
+    mockBackend = TestBed.get(HttpTestingController);
+    globalConfigService = TestBed.get(GlobalConfigService);
+  });
 
-  it('can instantiate service when inject service',
-    inject([GlobalConfigService], (service: GlobalConfigService) => {
-      expect(service instanceof GlobalConfigService).toBe(true);
-    }));
-
-  it('can instantiate service with "new"', inject([Http, APP_CONFIG], (http: Http, config: IAppConfig) => {
-    expect(http).not.toBeNull('http should be provided');
-    let service = new GlobalConfigService(http, config);
-    expect(service instanceof GlobalConfigService).toBe(true, 'new service should be ok');
-  }));
-
-
-  it('can provide the mockBackend as XHRBackend',
-    inject([XHRBackend], (backend: MockBackend) => {
-      expect(backend).not.toBeNull('backend should be provided');
-    }));
+  afterEach(() => {
+    mockBackend.verify();
+  });
 
   describe('when service functions', () => {
-    let globalConfigService: GlobalConfigService;
-    let mockBackend: MockBackend;
-    let globalConfig = {'field': 'value'};
-    let globalConfigResponse: Response;
-    let deleteResponse: Response;
+    let globalConfig = { field: 'value' };
 
-    beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
-      mockBackend = be;
-      globalConfigService = new GlobalConfigService(http, config);
-      globalConfigResponse = new Response(new ResponseOptions({status: 200, body: globalConfig}));
-    }));
-
-    it('post', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(globalConfigResponse));
-
+    it('post', () => {
       globalConfigService.post(globalConfig).subscribe(
-      result => {
-        expect(result).toEqual(globalConfig);
-      }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(globalConfig);
+        },
+        error => console.log(error)
+      );
 
-    it('get', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(globalConfigResponse));
+      const req = mockBackend.expectOne('/api/v1/global/config');
+      expect(req.request.method).toBe('POST');
+      req.flush(globalConfig);
+    });
 
+    it('get', () => {
       globalConfigService.get().subscribe(
         result => {
           expect(result).toEqual(globalConfig);
-        }, error => console.log(error));
-    })));
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/global/config');
+      expect(req.request.method).toBe('GET');
+      req.flush(globalConfig);
+    });
 
-    it('deleteSensorParserConfigs', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(deleteResponse));
-
+    it('deleteSensorParserConfigs', () => {
       globalConfigService.delete().subscribe(result => {
         expect(result.status).toEqual(200);
       });
-    })));
+    });
   });
-
 });
-
-

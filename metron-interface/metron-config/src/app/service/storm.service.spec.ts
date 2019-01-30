@@ -15,50 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {TopologyStatus} from '../model/topology-status';
-import {TopologyResponse} from '../model/topology-response';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
-import '../rxjs-operators';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
-import {StormService} from './storm.service';
+import { TestBed } from '@angular/core/testing';
+import { TopologyStatus } from '../model/topology-status';
+import { TopologyResponse } from '../model/topology-response';
+import { StormService } from './storm.service';
+import {
+  HttpTestingController,
+  HttpClientTestingModule
+} from '@angular/common/http/testing';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('StormService', () => {
+  let mockBackend: HttpTestingController;
+  let stormService: StormService;
 
-  beforeEach(async(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpModule],
+      imports: [HttpClientTestingModule],
       providers: [
         StormService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
-    })
-        .compileComponents();
-  }));
-
-  it('can instantiate service when inject service',
-      inject([StormService], (service: StormService) => {
-        expect(service instanceof StormService).toBe(true);
-      }));
-
-  it('can instantiate service with "new"', inject([Http, APP_CONFIG], (http: Http, config: IAppConfig) => {
-    expect(http).not.toBeNull('http should be provided');
-    let service = new StormService(http, config);
-    expect(service instanceof StormService).toBe(true, 'new service should be ok');
-  }));
-
-
-  it('can provide the mockBackend as XHRBackend',
-      inject([XHRBackend], (backend: MockBackend) => {
-        expect(backend).not.toBeNull('backend should be provided');
-      }));
+    });
+    mockBackend = TestBed.get(HttpTestingController);
+    stormService = TestBed.get(StormService);
+  });
 
   describe('when service functions', () => {
-    let stormService: StormService;
-    let mockBackend: MockBackend;
     let allStatuses: TopologyStatus[] = [];
     let broStatus = new TopologyStatus();
     broStatus.name = 'bro';
@@ -75,178 +59,213 @@ describe('StormService', () => {
     indexingStatus.id = 'indexingid';
     indexingStatus.status = 'ACTIVE';
     allStatuses.push(indexingStatus);
-    let startMessage: TopologyResponse = {status: 'success', message: 'STARTED'};
-    let stopMessage: TopologyResponse = {status: 'success', message: 'STOPPED'};
-    let activateMessage: TopologyResponse = {status: 'success', message: 'ACTIVE'};
-    let deactivateMessage: TopologyResponse = {status: 'success', message: 'INACTIVE'};
-    let allStatusesResponse: Response;
-    let enrichmentStatusResponse: Response;
-    let indexingStatusResponse: Response;
-    let broStatusResponse: Response;
-    let startResponse: Response;
-    let stopResponse: Response;
-    let activateResponse: Response;
-    let deactivateResponse: Response;
+    let startMessage: TopologyResponse = {
+      status: 'success',
+      message: 'STARTED'
+    };
+    let stopMessage: TopologyResponse = {
+      status: 'success',
+      message: 'STOPPED'
+    };
+    let activateMessage: TopologyResponse = {
+      status: 'success',
+      message: 'ACTIVE'
+    };
+    let deactivateMessage: TopologyResponse = {
+      status: 'success',
+      message: 'INACTIVE'
+    };
 
-    beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
-      mockBackend = be;
-      stormService = new StormService(http, config);
-      allStatusesResponse = new Response(new ResponseOptions({status: 200, body: allStatuses}));
-      enrichmentStatusResponse = new Response(new ResponseOptions({status: 200, body: enrichmentStatus}));
-      indexingStatusResponse = new Response(new ResponseOptions({status: 200, body: indexingStatus}));
-      broStatusResponse = new Response(new ResponseOptions({status: 200, body: broStatus}));
-      startResponse = new Response(new ResponseOptions({status: 200, body: startMessage}));
-      stopResponse = new Response(new ResponseOptions({status: 200, body: stopMessage}));
-      activateResponse = new Response(new ResponseOptions({status: 200, body: activateMessage}));
-      deactivateResponse = new Response(new ResponseOptions({status: 200, body: deactivateMessage}));
-    }));
-
-    it('getAll', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(allStatusesResponse));
-
+    it('getAll', () => {
       stormService.getAll().subscribe(
-          result => {
-            expect(result).toEqual(allStatuses);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(allStatuses);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm');
+      expect(req.request.method).toBe('GET');
+      req.flush(allStatuses);
+    });
 
-    it('getEnrichmentStatus', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(enrichmentStatusResponse));
-
+    it('getEnrichmentStatus', () => {
       stormService.getEnrichmentStatus().subscribe(
-          result => {
-            expect(result).toEqual(enrichmentStatus);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(enrichmentStatus);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/enrichment');
+      expect(req.request.method).toBe('GET');
+      req.flush(enrichmentStatus);
+    });
 
-    it('activateEnrichment', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(activateResponse));
-
+    it('activateEnrichment', () => {
       stormService.activateEnrichment().subscribe(
-          result => {
-            expect(result).toEqual(activateMessage);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(activateMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/enrichment/activate');
+      expect(req.request.method).toBe('GET');
+      req.flush(activateMessage);
+    });
 
-    it('deactivateEnrichment', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(deactivateResponse));
-
+    it('deactivateEnrichment', () => {
       stormService.deactivateEnrichment().subscribe(
-          result => {
-            expect(result).toEqual(deactivateMessage);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(deactivateMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/enrichment/deactivate');
+      expect(req.request.method).toBe('GET');
+      req.flush(deactivateMessage);
+    });
 
-    it('startEnrichment', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(startResponse));
-
+    it('startEnrichment', () => {
       stormService.startEnrichment().subscribe(
-          result => {
-            expect(result).toEqual(startMessage);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(startMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/enrichment/start');
+      expect(req.request.method).toBe('GET');
+      req.flush(startMessage);
+    });
 
-    it('stopEnrichment', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(stopResponse));
-
+    it('stopEnrichment', () => {
       stormService.stopEnrichment().subscribe(
-          result => {
-            expect(result).toEqual(stopMessage);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(stopMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/enrichment/stop');
+      expect(req.request.method).toBe('GET');
+      req.flush(stopMessage);
+    });
 
-    it('getIndexingStatus', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(indexingStatusResponse));
-
+    it('getIndexingStatus', () => {
       stormService.getIndexingStatus().subscribe(
-          result => {
-            expect(result).toEqual(indexingStatus);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(indexingStatus);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/indexing');
+      expect(req.request.method).toBe('GET');
+      req.flush(indexingStatus);
+    });
 
-    it('activateIndexing', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(activateResponse));
-
+    it('activateIndexing', () => {
       stormService.activateIndexing().subscribe(
-          result => {
-            expect(result).toEqual(activateMessage);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(activateMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/indexing/activate');
+      expect(req.request.method).toBe('GET');
+      req.flush(activateMessage);
+    });
 
-    it('deactivateIndexing', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(deactivateResponse));
-
+    it('deactivateIndexing', () => {
       stormService.deactivateIndexing().subscribe(
-          result => {
-            expect(result).toEqual(deactivateMessage);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(deactivateMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/indexing/deactivate');
+      expect(req.request.method).toBe('GET');
+      req.flush(deactivateMessage);
+    });
 
-    it('startIndexing', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(startResponse));
-
+    it('startIndexing', () => {
       stormService.startIndexing().subscribe(
-          result => {
-            expect(result).toEqual(startMessage);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(startMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/indexing/start');
+      expect(req.request.method).toBe('GET');
+      req.flush(startMessage);
+    });
 
-    it('stopIndexing', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(stopResponse));
-
+    it('stopIndexing', () => {
       stormService.stopIndexing().subscribe(
-          result => {
-            expect(result).toEqual(stopMessage);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(stopMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/indexing/stop');
+      expect(req.request.method).toBe('GET');
+      req.flush(stopMessage);
+    });
 
-    it('getStatus', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(broStatusResponse));
-
+    it('getStatus', () => {
       stormService.getStatus('bro').subscribe(
-          result => {
-            expect(result).toEqual(broStatus);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(broStatus);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/bro');
+      expect(req.request.method).toBe('GET');
+      req.flush(broStatus);
+    });
 
-    it('activateParser', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(activateResponse));
-
+    it('activateParser', () => {
       stormService.activateParser('bro').subscribe(
-          result => {
-            expect(result).toEqual(activateMessage);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(activateMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/parser/activate/bro');
+      expect(req.request.method).toBe('GET');
+      req.flush(activateMessage);
+    });
 
-    it('deactivateParser', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(deactivateResponse));
-
+    it('deactivateParser', () => {
       stormService.deactivateParser('bro').subscribe(
-          result => {
-            expect(result).toEqual(deactivateMessage);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(deactivateMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/parser/deactivate/bro');
+      expect(req.request.method).toBe('GET');
+      req.flush(deactivateMessage);
+    });
 
-    it('startParser', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(startResponse));
-
+    it('startParser', () => {
       stormService.startParser('bro').subscribe(
-          result => {
-            expect(result).toEqual(startMessage);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(startMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/parser/start/bro');
+      expect(req.request.method).toBe('GET');
+      req.flush(startMessage);
+    });
 
-    it('stopParser', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(stopResponse));
-
+    it('stopParser', () => {
       stormService.stopParser('bro').subscribe(
-          result => {
-            expect(result).toEqual(stopMessage);
-          }, error => console.log(error));
-    })));
-
-
-
+        result => {
+          expect(result).toEqual(stopMessage);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/storm/parser/stop/bro');
+      expect(req.request.method).toBe('GET');
+      req.flush(stopMessage);
+    });
   });
-
 });

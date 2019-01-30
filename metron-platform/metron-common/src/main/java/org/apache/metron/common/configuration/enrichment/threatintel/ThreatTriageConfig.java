@@ -47,7 +47,7 @@ public class ThreatTriageConfig {
     StellarProcessor processor = new StellarProcessor();
 
     for(RiskLevelRule rule : riskLevelRules) {
-      if(rule.getRule() == null || rule.getScore() == null) {
+      if(rule.getRule() == null || rule.getScoreExpression() == null) {
         throw new IllegalStateException("Risk level rules must contain both a rule and a score.");
       }
       if(ruleIndex.contains(rule.getRule())) {

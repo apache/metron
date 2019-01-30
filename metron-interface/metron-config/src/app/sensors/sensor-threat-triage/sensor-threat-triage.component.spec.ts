@@ -15,16 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {SimpleChange, SimpleChanges} from '@angular/core';
-import {Http} from '@angular/http';
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
-import {SensorThreatTriageComponent, SortOrderOption, ThreatTriageFilter} from './sensor-threat-triage.component';
-import {SensorEnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
-import {RiskLevelRule} from '../../model/risk-level-rule';
-import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
-import {Observable} from 'rxjs/Observable';
-import '../../rxjs-operators';
-import {SensorThreatTriageModule} from './sensor-threat-triage.module';
+import { SimpleChange, SimpleChanges } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { async, TestBed, ComponentFixture } from '@angular/core/testing';
+import {
+  SensorThreatTriageComponent,
+  SortOrderOption,
+  ThreatTriageFilter
+} from './sensor-threat-triage.component';
+import {
+  SensorEnrichmentConfig,
+  ThreatIntelConfig
+} from '../../model/sensor-enrichment-config';
+import { RiskLevelRule } from '../../model/risk-level-rule';
+import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
+import { Observable } from 'rxjs';
+import { SensorThreatTriageModule } from './sensor-threat-triage.module';
 
 class MockSensorEnrichmentConfigService {
   public getAvailableThreatTriageAggregators(): Observable<string[]> {
@@ -36,7 +42,6 @@ class MockSensorEnrichmentConfigService {
 }
 
 describe('Component: SensorThreatTriageComponent', () => {
-
   let component: SensorThreatTriageComponent;
   let fixture: ComponentFixture<SensorThreatTriageComponent>;
   let sensorEnrichmentConfigService: SensorEnrichmentConfigService;
@@ -45,15 +50,21 @@ describe('Component: SensorThreatTriageComponent', () => {
     TestBed.configureTestingModule({
       imports: [SensorThreatTriageModule],
       providers: [
-        {provide: Http},
-        {provide: SensorEnrichmentConfigService, useClass: MockSensorEnrichmentConfigService},
+        { provide: HttpClient },
+        {
+          provide: SensorEnrichmentConfigService,
+          useClass: MockSensorEnrichmentConfigService
+        }
       ]
-    }).compileComponents()
-        .then(() => {
-          fixture = TestBed.createComponent(SensorThreatTriageComponent);
-          component = fixture.componentInstance;
-          sensorEnrichmentConfigService = fixture.debugElement.injector.get(SensorEnrichmentConfigService);
-        });
+    })
+      .compileComponents()
+      .then(() => {
+        fixture = TestBed.createComponent(SensorThreatTriageComponent);
+        component = fixture.componentInstance;
+        sensorEnrichmentConfigService = fixture.debugElement.injector.get(
+          SensorEnrichmentConfigService
+        );
+      });
   }));
 
   it('should create an instance', () => {
@@ -63,12 +74,14 @@ describe('Component: SensorThreatTriageComponent', () => {
 
   it('should create an instance', async(() => {
     spyOn(component, 'init');
-    let changes: SimpleChanges = {'showThreatTriage': new SimpleChange(false, true)};
+    let changes: SimpleChanges = {
+      showThreatTriage: new SimpleChange(false, true, true)
+    };
 
     component.ngOnChanges(changes);
     expect(component.init).toHaveBeenCalled();
 
-    changes = {'showStellar': new SimpleChange(true, false)};
+    changes = { showStellar: new SimpleChange(true, false, false) };
     component.ngOnChanges(changes);
     expect(component.init['calls'].count()).toEqual(1);
 
@@ -89,22 +102,25 @@ describe('Component: SensorThreatTriageComponent', () => {
 
   it('should get color', async(() => {
     let sensorEnrichmentConfig = new SensorEnrichmentConfig();
-    sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), {
-      'triageConfig': {
-        'riskLevelRules': {
-          'ruleA': 15,
-          'ruleB': 95,
-          'ruleC': 50
-        },
-        'aggregator': 'MAX',
-        'aggregationConfig': {}
+    sensorEnrichmentConfig.threatIntel = Object.assign(
+      new ThreatIntelConfig(),
+      {
+        triageConfig: {
+          riskLevelRules: {
+            ruleA: 15,
+            ruleB: 95,
+            ruleC: 50
+          },
+          aggregator: 'MAX',
+          aggregationConfig: {}
+        }
       }
-    });
+    );
     component.sensorEnrichmentConfig = sensorEnrichmentConfig;
 
-    let ruleA = {name: 'ruleA', rule: 'rule A', score: 15, comment: ''};
-    let ruleB = {name: 'ruleB', rule: 'rule B', score: 95, comment: ''};
-    let ruleC = {name: 'ruleC', rule: 'rule C', score: 50, comment: ''};
+    let ruleA = { name: 'ruleA', rule: 'rule A', score: 15, comment: '' };
+    let ruleB = { name: 'ruleB', rule: 'rule B', score: 95, comment: '' };
+    let ruleC = { name: 'ruleC', rule: 'rule C', score: 50, comment: '' };
 
     expect(component.getRuleColor(ruleA)).toEqual('khaki');
     expect(component.getRuleColor(ruleB)).toEqual('red');
@@ -114,26 +130,30 @@ describe('Component: SensorThreatTriageComponent', () => {
   }));
 
   it('should edit rules', async(() => {
-    let ruleA = {name: 'ruleA', rule: 'rule A', score: 15, comment: ''};
-    let ruleB = {name: 'ruleB', rule: 'rule B', score: 95, comment: ''};
-    let ruleC = {name: 'ruleC', rule: 'rule C', score: 50, comment: ''};
-    let ruleD = {name: 'ruleD', rule: 'rule D', score: 85, comment: ''};
-    let ruleE = {name: 'ruleE', rule: 'rule E', score: 5, comment: ''};
-    let ruleF = {name: 'ruleF', rule: 'rule F', score: 21, comment: ''};
-    let ruleG = {name: 'ruleG', rule: 'rule G', score: 100, comment: ''};
+    let ruleA = { name: 'ruleA', rule: 'rule A', score: 15, comment: '' };
+    let ruleB = { name: 'ruleB', rule: 'rule B', score: 95, comment: '' };
+    let ruleC = { name: 'ruleC', rule: 'rule C', score: 50, comment: '' };
+    let ruleD = { name: 'ruleD', rule: 'rule D', score: 85, comment: '' };
+    let ruleE = { name: 'ruleE', rule: 'rule E', score: 5, comment: '' };
+    let ruleF = { name: 'ruleF', rule: 'rule F', score: 21, comment: '' };
+    let ruleG = { name: 'ruleG', rule: 'rule G', score: 100, comment: '' };
 
     let sensorEnrichmentConfig = new SensorEnrichmentConfig();
-    sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), {
-      'triageConfig': {
-        'riskLevelRules': [ruleA, ruleB, ruleC, ruleD, ruleE],
-        'aggregator': 'MAX',
-        'aggregationConfig': {}
+    sensorEnrichmentConfig.threatIntel = Object.assign(
+      new ThreatIntelConfig(),
+      {
+        triageConfig: {
+          riskLevelRules: [ruleA, ruleB, ruleC, ruleD, ruleE],
+          aggregator: 'MAX',
+          aggregationConfig: {}
+        }
       }
-    });
+    );
     component.sensorEnrichmentConfig = sensorEnrichmentConfig;
 
-
-    let changes: SimpleChanges = {'showThreatTriage': new SimpleChange(false, true)};
+    let changes: SimpleChanges = {
+      showThreatTriage: new SimpleChange(false, true, true)
+    };
     component.ngOnChanges(changes);
 
     // sorted by score high to low
@@ -170,7 +190,14 @@ describe('Component: SensorThreatTriageComponent', () => {
     component.currentRiskLevelRule = ruleF;
     expect(component.showTextEditor).toEqual(true);
     component.onSubmitTextEditor(ruleF);
-    expect(component.visibleRules).toEqual([ruleE, ruleA, ruleF, ruleC, ruleD, ruleB]);
+    expect(component.visibleRules).toEqual([
+      ruleE,
+      ruleA,
+      ruleF,
+      ruleC,
+      ruleD,
+      ruleB
+    ]);
     expect(component.lowAlerts).toEqual(2);
     expect(component.mediumAlerts).toEqual(2);
     expect(component.highAlerts).toEqual(2);
@@ -206,6 +233,4 @@ describe('Component: SensorThreatTriageComponent', () => {
 
     fixture.destroy();
   }));
-
-
 });

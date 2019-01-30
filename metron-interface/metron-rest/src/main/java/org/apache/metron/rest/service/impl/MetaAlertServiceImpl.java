@@ -59,7 +59,7 @@ public class MetaAlertServiceImpl implements MetaAlertService {
   public SearchResponse getAllMetaAlertsForAlert(String guid) throws RestException {
     try {
       return dao.getAllMetaAlertsForAlert(guid);
-    } catch (InvalidSearchException ise) {
+    } catch (IOException|InvalidSearchException ise) {
       throw new RestException(ise.getMessage(), ise);
     }
   }

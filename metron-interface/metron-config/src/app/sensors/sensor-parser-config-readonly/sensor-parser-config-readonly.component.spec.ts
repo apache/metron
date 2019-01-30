@@ -15,37 +15,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {Observable}     from 'rxjs/Observable';
-import {Router, ActivatedRoute, Params} from '@angular/router';
-import {Inject} from '@angular/core';
-import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
-import {RequestOptions, Response, ResponseOptions, Http} from '@angular/http';
-import {SensorParserConfigReadonlyComponent} from './sensor-parser-config-readonly.component';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {KafkaService} from '../../service/kafka.service';
-import {TopologyStatus} from '../../model/topology-status';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {KafkaTopic} from '../../model/kafka-topic';
-import {AuthenticationService} from '../../service/authentication.service';
-import {SensorParserConfigHistoryService} from '../../service/sensor-parser-config-history.service';
-import {StormService} from '../../service/storm.service';
-import {MetronAlerts} from '../../shared/metron-alerts';
-import {FieldTransformer} from '../../model/field-transformer';
-import {SensorParserConfigReadonlyModule} from './sensor-parser-config-readonly.module';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
-import {IAppConfig} from '../../app.config.interface';
-import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
-import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
-import {HdfsService} from '../../service/hdfs.service';
-import {GrokValidationService} from '../../service/grok-validation.service';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { Observable } from 'rxjs';
+import { Router, ActivatedRoute, Params } from '@angular/router';
+import { Inject } from '@angular/core';
+import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
+import { HttpClient } from '@angular/common/http';
+import { SensorParserConfigReadonlyComponent } from './sensor-parser-config-readonly.component';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { KafkaService } from '../../service/kafka.service';
+import { TopologyStatus } from '../../model/topology-status';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { KafkaTopic } from '../../model/kafka-topic';
+import { AuthenticationService } from '../../service/authentication.service';
+import { SensorParserConfigHistoryService } from '../../service/sensor-parser-config-history.service';
+import { StormService } from '../../service/storm.service';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { FieldTransformer } from '../../model/field-transformer';
+import { SensorParserConfigReadonlyModule } from './sensor-parser-config-readonly.module';
+import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
+import {
+  SensorEnrichmentConfig,
+  EnrichmentConfig,
+  ThreatIntelConfig
+} from '../../model/sensor-enrichment-config';
+import { HdfsService } from '../../service/hdfs.service';
+import { GrokValidationService } from '../../service/grok-validation.service';
+import { RiskLevelRule } from '../../model/risk-level-rule';
+import {AppConfigService} from '../../service/app-config.service';
+import {MockAppConfigService} from '../../service/mock.app-config.service';
 
 class MockRouter {
-
-  navigateByUrl(url: string) {
-
-  }
-
+  navigateByUrl(url: string) {}
 }
 
 class MockActivatedRoute {
@@ -55,7 +56,7 @@ class MockActivatedRoute {
   setNameForTest(name: string) {
     this.name = name;
     this.params = Observable.create(observer => {
-      observer.next({id: this.name});
+      observer.next({ id: this.name });
       observer.complete();
     });
   }
@@ -63,28 +64,17 @@ class MockActivatedRoute {
 
 class MockAuthenticationService extends AuthenticationService {
 
-  constructor(private http2: Http, private router2: Router, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, router2, config2);
-  }
-
-  public getCurrentUser(options: RequestOptions): Observable<Response> {
-    let responseOptions: ResponseOptions = new ResponseOptions();
-    responseOptions.body = 'user';
-    let response: Response = new Response(responseOptions);
+  public getCurrentUser(options): Observable<{}> {
+    let response: { body: 'user' };
     return Observable.create(observer => {
       observer.next(response);
       observer.complete();
     });
-  };
+  }
 }
 
 class MockSensorParserConfigHistoryService extends SensorParserConfigHistoryService {
-
   private sensorParserConfigHistory: SensorParserConfigHistory;
-
-  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, config2);
-  }
 
   public setForTest(sensorParserConfigHistory: SensorParserConfigHistory) {
     this.sensorParserConfigHistory = sensorParserConfigHistory;
@@ -99,19 +89,10 @@ class MockSensorParserConfigHistoryService extends SensorParserConfigHistoryServ
 }
 
 class MockSensorParserConfigService extends SensorParserConfigService {
-
-  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, config2);
-  }
-
 }
 
 class MockStormService extends StormService {
   private topologyStatus: TopologyStatus;
-
-  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, config2);
-  }
 
   public setForTest(topologyStatus: TopologyStatus) {
     this.topologyStatus = topologyStatus;
@@ -127,19 +108,17 @@ class MockStormService extends StormService {
 
 class MockGrokValidationService extends GrokValidationService {
 
-  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, config2);
-  }
-
   public list(): Observable<string[]> {
     return Observable.create(observer => {
       observer.next({
-        'BASE10NUM': '(?<![0-9.+-])(?>[+-]?(?:(?:[0-9]+(?:\\.[0-9]+)?)|(?:\\.[0-9]+)))',
-        'BASE16FLOAT': '\\b(?<![0-9A-Fa-f.])(?:[+-]?(?:0x)?(?:(?:[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]*)?)|(?:\\.[0-9A-Fa-f]+)))\\b',
-        'BASE16NUM': '(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))',
-        'CISCOMAC': '(?:(?:[A-Fa-f0-9]{4}\\.){2}[A-Fa-f0-9]{4})',
-        'COMMONMAC': '(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})',
-        'DATA': '.*?'
+        BASE10NUM:
+          '(?<![0-9.+-])(?>[+-]?(?:(?:[0-9]+(?:\\.[0-9]+)?)|(?:\\.[0-9]+)))',
+        BASE16FLOAT:
+          '\\b(?<![0-9A-Fa-f.])(?:[+-]?(?:0x)?(?:(?:[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]*)?)|(?:\\.[0-9A-Fa-f]+)))\\b',
+        BASE16NUM: '(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))',
+        CISCOMAC: '(?:(?:[A-Fa-f0-9]{4}\\.){2}[A-Fa-f0-9]{4})',
+        COMMONMAC: '(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})',
+        DATA: '.*?'
       });
       observer.complete();
     });
@@ -147,12 +126,7 @@ class MockGrokValidationService extends GrokValidationService {
 }
 
 class MockKafkaService extends KafkaService {
-
   private kafkaTopic: KafkaTopic;
-
-  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, config2);
-  }
 
   public setForTest(kafkaTopic: KafkaTopic) {
     this.kafkaTopic = kafkaTopic;
@@ -167,7 +141,7 @@ class MockKafkaService extends KafkaService {
 
   public sample(name: string): Observable<string> {
     return Observable.create(observer => {
-      observer.next(JSON.stringify({'data': 'data1', 'data2': 'data3'}));
+      observer.next(JSON.stringify({ data: 'data1', data2: 'data3' }));
       observer.complete();
     });
   }
@@ -176,10 +150,6 @@ class MockKafkaService extends KafkaService {
 class MockHdfsService extends HdfsService {
   private fileList: string[];
   private contents: string;
-
-  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, config2);
-  }
 
   public setContents(contents: string) {
     this.contents = contents;
@@ -205,14 +175,14 @@ class MockHdfsService extends HdfsService {
     });
   }
 
-  public post(path: string, contents: string): Observable<Response> {
+  public post(path: string, contents: string): Observable<{}> {
     return Observable.create(observer => {
       observer.next({});
       observer.complete();
     });
   }
 
-  public deleteFile(path: string): Observable<Response> {
+  public deleteFile(path: string): Observable<{}> {
     return Observable.create(observer => {
       observer.next({});
       observer.complete();
@@ -235,7 +205,7 @@ class MockSensorEnrichmentConfigService {
   }
 
   public getAvailable(): Observable<string[]> {
-    return Observable.create((observer) => {
+    return Observable.create(observer => {
       observer.next(['geo', 'host', 'whois']);
       observer.complete();
     });
@@ -243,7 +213,6 @@ class MockSensorEnrichmentConfigService {
 }
 
 describe('Component: SensorParserConfigReadonly', () => {
-
   let component: SensorParserConfigReadonlyComponent;
   let fixture: ComponentFixture<SensorParserConfigReadonlyComponent>;
   let sensorParserConfigHistoryService: MockSensorParserConfigHistoryService;
@@ -259,41 +228,46 @@ describe('Component: SensorParserConfigReadonly', () => {
   let activatedRoute: MockActivatedRoute;
 
   beforeEach(async(() => {
-
     TestBed.configureTestingModule({
       imports: [SensorParserConfigReadonlyModule],
       providers: [
-        {provide: Http},
-        {provide: ActivatedRoute, useClass: MockActivatedRoute},
-        {provide: AuthenticationService, useClass: MockAuthenticationService},
-        {provide: SensorEnrichmentConfigService, useClass: MockSensorEnrichmentConfigService},
-        {provide: SensorParserConfigHistoryService, useClass: MockSensorParserConfigHistoryService},
-        {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
-        {provide: StormService, useClass: MockStormService},
-        {provide: KafkaService, useClass: MockKafkaService},
-        {provide: HdfsService, useClass: MockHdfsService},
-        {provide: GrokValidationService, useClass: MockGrokValidationService},
-        {provide: Router, useClass: MockRouter},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG},
+        { provide: HttpClient },
+        { provide: ActivatedRoute, useClass: MockActivatedRoute },
+        {
+          provide: SensorEnrichmentConfigService,
+          useClass: MockSensorEnrichmentConfigService
+        },
+        {
+          provide: SensorParserConfigHistoryService,
+          useClass: MockSensorParserConfigHistoryService
+        },
+        {
+          provide: SensorParserConfigService,
+          useClass: MockSensorParserConfigService
+        },
+        { provide: StormService, useClass: MockStormService },
+        { provide: KafkaService, useClass: MockKafkaService },
+        { provide: HdfsService, useClass: MockHdfsService },
+        { provide: GrokValidationService, useClass: MockGrokValidationService },
+        { provide: Router, useClass: MockRouter },
+        { provide: AppConfigService, useClass: MockAppConfigService },
         MetronAlerts
       ]
-    }).compileComponents()
-      .then(() => {
-        fixture = TestBed.createComponent(SensorParserConfigReadonlyComponent);
-        component = fixture.componentInstance;
-        activatedRoute = fixture.debugElement.injector.get(ActivatedRoute);
-        hdfsService = fixture.debugElement.injector.get(HdfsService);
-        authenticationService = fixture.debugElement.injector.get(AuthenticationService);
-        sensorParserConfigHistoryService = fixture.debugElement.injector.get(SensorParserConfigHistoryService);
-        sensorEnrichmentConfigService = fixture.debugElement.injector.get(SensorEnrichmentConfigService);
-        sensorParserConfigService = fixture.debugElement.injector.get(SensorParserConfigService);
-        stormService = fixture.debugElement.injector.get(StormService);
-        kafkaService = fixture.debugElement.injector.get(KafkaService);
-        grokValidationService = fixture.debugElement.injector.get(GrokValidationService);
-        router = fixture.debugElement.injector.get(Router);
-        alerts = fixture.debugElement.injector.get(MetronAlerts);
-      });
-
+    });
+    fixture = TestBed.createComponent(SensorParserConfigReadonlyComponent);
+    component = fixture.componentInstance;
+    activatedRoute = TestBed.get(ActivatedRoute);
+    hdfsService = TestBed.get(HdfsService);
+    sensorParserConfigHistoryService = TestBed.get(
+      SensorParserConfigHistoryService
+    );
+    sensorEnrichmentConfigService = TestBed.get(SensorEnrichmentConfigService);
+    sensorParserConfigService = TestBed.get(SensorParserConfigService);
+    stormService = TestBed.get(StormService);
+    kafkaService = TestBed.get(KafkaService);
+    grokValidationService = TestBed.get(GrokValidationService);
+    router = TestBed.get(Router);
+    alerts = TestBed.get(MetronAlerts);
   }));
 
   it('should create an instance', async(() => {
@@ -313,7 +287,9 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     sensorParserConfig.sensorTopic = 'bro';
     sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
-    sensorParserConfig.parserConfig = {grokPattern: 'SQUID_DELIMITED squid grok statement'};
+    sensorParserConfig.parserConfig = {
+      grokPattern: 'SQUID_DELIMITED squid grok statement'
+    };
     sensorParserInfo.config = sensorParserConfig;
 
     kafkaTopic.name = 'bro';
@@ -325,22 +301,30 @@ describe('Component: SensorParserConfigReadonly', () => {
     topologyStatus.throughput = 15.2;
 
     let broEnrichment = {
-      'fieldMap': {
-        'geo': ['ip_dst_addr'],
-        'host': ['ip_dst_addr'],
-        'whois': [],
-        'stellar': {'config': {'group1': {}}}
+      fieldMap: {
+        geo: ['ip_dst_addr'],
+        host: ['ip_dst_addr'],
+        whois: [],
+        stellar: { config: { group1: {} } }
       },
-      'fieldToTypeMap': {}, 'config': {}
+      fieldToTypeMap: {},
+      config: {}
     };
-    let broThreatIntel = {'threatIntel': {
-      'fieldMap': { 'hbaseThreatIntel': ['ip_dst_addr'] },
-      'fieldToTypeMap': { 'ip_dst_addr': ['malicious_ip'] }
-    }
+    let broThreatIntel = {
+      threatIntel: {
+        fieldMap: { hbaseThreatIntel: ['ip_dst_addr'] },
+        fieldToTypeMap: { ip_dst_addr: ['malicious_ip'] }
+      }
     };
     let broEnrichments = new SensorEnrichmentConfig();
-    broEnrichments.enrichment = Object.assign(new EnrichmentConfig(),  broEnrichment);
-    broEnrichments.threatIntel = Object.assign(new ThreatIntelConfig(), broThreatIntel);
+    broEnrichments.enrichment = Object.assign(
+      new EnrichmentConfig(),
+      broEnrichment
+    );
+    broEnrichments.threatIntel = Object.assign(
+      new ThreatIntelConfig(),
+      broThreatIntel
+    );
 
     sensorEnrichmentConfigService.setForTest(broEnrichments);
     sensorParserConfigHistoryService.setForTest(sensorParserInfo);
@@ -351,7 +335,9 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     component.ngOnInit();
     expect(component.startStopInProgress).toEqual(false);
-    expect(component.sensorParserConfigHistory).toEqual(Object.assign(new SensorParserConfigHistory(), sensorParserInfo));
+    expect(component.sensorParserConfigHistory).toEqual(
+      Object.assign(new SensorParserConfigHistory(), sensorParserInfo)
+    );
     expect(component.kafkaTopic).toEqual(kafkaTopic);
     expect(component.sensorEnrichmentConfig).toEqual(broEnrichments);
   }));
@@ -410,11 +396,14 @@ describe('Component: SensorParserConfigReadonly', () => {
     let fieldTransformer1 = new FieldTransformer();
     let fieldTransformer2 = new FieldTransformer();
 
-    fieldTransformer1.config = {'a': 'abc', 'x': 'xyz'};
+    fieldTransformer1.config = { a: 'abc', x: 'xyz' };
     fieldTransformer1.output = ['a', 'b', 'c'];
-    fieldTransformer2.config = {'x': 'klm', 'b': 'def'};
+    fieldTransformer2.config = { x: 'klm', b: 'def' };
     fieldTransformer2.output = ['a', 'b', 'c'];
-    sensorParserConfig.fieldTransformations = [fieldTransformer1, fieldTransformer2];
+    sensorParserConfig.fieldTransformations = [
+      fieldTransformer1,
+      fieldTransformer2
+    ];
     sensorParserInfo.config = sensorParserConfig;
 
     component.setTransformsConfigKeys();
@@ -431,7 +420,11 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     expect(component.transformsConfigKeys.length).toEqual(3);
     expect(component.transformsConfigKeys).toEqual(['a', 'b', 'x']);
-    expect(component.transformsConfigMap).toEqual({'a': ['abc'], 'b': ['def'], 'x': ['xyz', 'klm']});
+    expect(component.transformsConfigMap).toEqual({
+      a: ['abc'],
+      b: ['def'],
+      x: ['xyz', 'klm']
+    });
     expect(transformsOutput).toEqual('a, b, c');
   }));
 
@@ -449,48 +442,70 @@ describe('Component: SensorParserConfigReadonly', () => {
     component.selectedSensorName = 'abc';
 
     component.onEditSensor();
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/sensors(dialog:sensors-config/abc)');
+    expect(router.navigateByUrl).toHaveBeenCalledWith(
+      '/sensors(dialog:sensors-config/abc)'
+    );
   }));
 
   it('should set sensorEnrichmentConfig and aggregationConfigKeys to be initialised', async(() => {
     let threatIntel = {
-      'fieldMap': {
-        'hbaseThreatIntel': [ 'ip_dst_addr', 'ip_src_addr', 'action']
+      fieldMap: {
+        hbaseThreatIntel: ['ip_dst_addr', 'ip_src_addr', 'action']
       },
-      'fieldToTypeMap': {
-        'ip_dst_addr': [ 'malicious_ip'], 'ip_src_addr': [ 'malicious_ip'], 'action': [ 'malicious_ip']
+      fieldToTypeMap: {
+        ip_dst_addr: ['malicious_ip'],
+        ip_src_addr: ['malicious_ip'],
+        action: ['malicious_ip']
       },
-      'config': {},
-      'triageConfig': {
-        'riskLevelRules': [
+      config: {},
+      triageConfig: {
+        riskLevelRules: [
           {
-            'rule': 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')',
-            'score': 3
+            rule: "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')",
+            score: 3,
+            name: 'test1',
+            comment: 'This is a comment'
           },
           {
-            'rule': 'user.type in [ \'admin\', \'power\' ] and asset.type == \'web\'',
-            'score': 3
-          },
+            rule: "user.type in [ 'admin', 'power' ] and asset.type == 'web'",
+            score: 3,
+            name: 'test2',
+            comment: 'This is another comment'
+          }
         ],
-        'aggregator': 'MAX',
-        'aggregationConfig': {}
+        aggregator: 'MAX',
+        aggregationConfig: {}
       }
     };
-    let expected = [{'rule': 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')', 'score': 3},
-      {'rule': 'user.type in [ \'admin\', \'power\' ] and asset.type == \'web\'', 'score': 3}];
+    let expected: RiskLevelRule[] = [
+      {
+        rule: "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')",
+        score: 3,
+        name: 'test1',
+        comment: 'This is a comment'
+      },
+      {
+        rule: "user.type in [ 'admin', 'power' ] and asset.type == 'web'",
+        score: 3,
+        name: 'test2',
+        comment: 'This is another comment'
+      }
+    ];
 
     let sensorEnrichmentConfig = new SensorEnrichmentConfig();
-    sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), threatIntel);
+    sensorEnrichmentConfig.threatIntel = Object.assign(
+      new ThreatIntelConfig(),
+      threatIntel
+    );
     sensorEnrichmentConfigService.setForTest(sensorEnrichmentConfig);
 
     component.getEnrichmentData();
-
 
     expect(component.sensorEnrichmentConfig).toEqual(sensorEnrichmentConfig);
     expect(component.rules).toEqual(expected);
   }));
 
-  let setDataForSensorOperation = function () {
+  let setDataForSensorOperation = function() {
     let sensorParserInfo = new SensorParserConfigHistory();
     let sensorParserConfig = new SensorParserConfig();
     let kafkaTopic = new KafkaTopic();
@@ -498,7 +513,9 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     sensorParserConfig.sensorTopic = 'bro';
     sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
-    sensorParserConfig.parserConfig = {grokPattern: 'SQUID_DELIMITED squid grok statement'};
+    sensorParserConfig.parserConfig = {
+      grokPattern: 'SQUID_DELIMITED squid grok statement'
+    };
     sensorParserInfo.config = sensorParserConfig;
 
     kafkaTopic.name = 'bro';
@@ -510,22 +527,30 @@ describe('Component: SensorParserConfigReadonly', () => {
     topologyStatus.throughput = 15.2;
 
     let broEnrichment = {
-      'fieldMap': {
-        'geo': ['ip_dst_addr'],
-        'host': ['ip_dst_addr'],
-        'whois': [],
-        'stellar': {'config': {'group1': {}}}
+      fieldMap: {
+        geo: ['ip_dst_addr'],
+        host: ['ip_dst_addr'],
+        whois: [],
+        stellar: { config: { group1: {} } }
       },
-      'fieldToTypeMap': {}, 'config': {}
+      fieldToTypeMap: {},
+      config: {}
     };
-    let broThreatIntel = {'threatIntel': {
-      'fieldMap': { 'hbaseThreatIntel': ['ip_dst_addr'] },
-      'fieldToTypeMap': { 'ip_dst_addr': ['malicious_ip'] }
-    }
+    let broThreatIntel = {
+      threatIntel: {
+        fieldMap: { hbaseThreatIntel: ['ip_dst_addr'] },
+        fieldToTypeMap: { ip_dst_addr: ['malicious_ip'] }
+      }
     };
     let broEnrichments = new SensorEnrichmentConfig();
-    broEnrichments.enrichment = Object.assign(new EnrichmentConfig(),  broEnrichment);
-    broEnrichments.threatIntel = Object.assign(new ThreatIntelConfig(), broThreatIntel);
+    broEnrichments.enrichment = Object.assign(
+      new EnrichmentConfig(),
+      broEnrichment
+    );
+    broEnrichments.threatIntel = Object.assign(
+      new ThreatIntelConfig(),
+      broThreatIntel
+    );
 
     kafkaService.setForTest(kafkaTopic);
     stormService.setForTest(topologyStatus);
@@ -534,10 +559,12 @@ describe('Component: SensorParserConfigReadonly', () => {
   };
 
   it('onStartSensor should  start sensor', async(() => {
-    spyOn(stormService, 'startParser').and.returnValue(Observable.create(observer => {
-      observer.next({});
-      observer.complete();
-    }));
+    spyOn(stormService, 'startParser').and.returnValue(
+      Observable.create(observer => {
+        observer.next({});
+        observer.complete();
+      })
+    );
 
     alerts.showSuccessMessage = jasmine.createSpy('showSuccessMessage');
     setDataForSensorOperation();
@@ -547,14 +574,18 @@ describe('Component: SensorParserConfigReadonly', () => {
     component.onStartSensor();
 
     expect(stormService.startParser).toHaveBeenCalledWith('abc');
-    expect(alerts.showSuccessMessage).toHaveBeenCalledWith('Started sensor abc');
+    expect(alerts.showSuccessMessage).toHaveBeenCalledWith(
+      'Started sensor abc'
+    );
   }));
 
   it('onStopSensor should stop the sensor', async(() => {
-    spyOn(stormService, 'stopParser').and.returnValue(Observable.create(observer => {
-      observer.next({});
-      observer.complete();
-    }));
+    spyOn(stormService, 'stopParser').and.returnValue(
+      Observable.create(observer => {
+        observer.next({});
+        observer.complete();
+      })
+    );
 
     alerts.showSuccessMessage = jasmine.createSpy('showSuccessMessage');
     setDataForSensorOperation();
@@ -564,14 +595,18 @@ describe('Component: SensorParserConfigReadonly', () => {
     component.onStopSensor();
 
     expect(stormService.stopParser).toHaveBeenCalledWith('abc');
-    expect(alerts.showSuccessMessage).toHaveBeenCalledWith('Stopped sensor abc');
+    expect(alerts.showSuccessMessage).toHaveBeenCalledWith(
+      'Stopped sensor abc'
+    );
   }));
 
   it('onEnableSensor should enable sensor', async(() => {
-    spyOn(stormService, 'activateParser').and.returnValue(Observable.create(observer => {
-      observer.next({});
-      observer.complete();
-    }));
+    spyOn(stormService, 'activateParser').and.returnValue(
+      Observable.create(observer => {
+        observer.next({});
+        observer.complete();
+      })
+    );
 
     alerts.showSuccessMessage = jasmine.createSpy('showSuccessMessage');
     setDataForSensorOperation();
@@ -581,14 +616,18 @@ describe('Component: SensorParserConfigReadonly', () => {
     component.onEnableSensor();
 
     expect(stormService.activateParser).toHaveBeenCalledWith('abc');
-    expect(alerts.showSuccessMessage).toHaveBeenCalledWith('Enabled sensor abc');
+    expect(alerts.showSuccessMessage).toHaveBeenCalledWith(
+      'Enabled sensor abc'
+    );
   }));
 
   it('onDisableSensor should disable the sensor', async(() => {
-    spyOn(stormService, 'deactivateParser').and.returnValue(Observable.create(observer => {
-      observer.next({});
-      observer.complete();
-    }));
+    spyOn(stormService, 'deactivateParser').and.returnValue(
+      Observable.create(observer => {
+        observer.next({});
+        observer.complete();
+      })
+    );
 
     alerts.showSuccessMessage = jasmine.createSpy('showSuccessMessage');
     setDataForSensorOperation();
@@ -598,14 +637,21 @@ describe('Component: SensorParserConfigReadonly', () => {
     component.onDisableSensor();
 
     expect(stormService.deactivateParser).toHaveBeenCalledWith('abc');
-    expect(alerts.showSuccessMessage).toHaveBeenCalledWith('Disabled sensor abc');
+    expect(alerts.showSuccessMessage).toHaveBeenCalledWith(
+      'Disabled sensor abc'
+    );
   }));
 
   it('onDeleteSensor should delete the sensor', async(() => {
-    spyOn(sensorParserConfigService, 'deleteSensorParserConfig').and.returnValue(Observable.create(observer => {
-      observer.next({});
-      observer.complete();
-    }));
+    spyOn(
+      sensorParserConfigService,
+      'deleteSensorParserConfig'
+    ).and.returnValue(
+      Observable.create(observer => {
+        observer.next({});
+        observer.complete();
+      })
+    );
 
     alerts.showSuccessMessage = jasmine.createSpy('showSuccessMessage');
     router.navigateByUrl = jasmine.createSpy('navigateByUrl');
@@ -615,8 +661,12 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     component.onDeleteSensor();
 
-    expect(sensorParserConfigService.deleteSensorParserConfig).toHaveBeenCalledWith('abc');
-    expect(alerts.showSuccessMessage).toHaveBeenCalledWith('Deleted sensor abc');
+    expect(
+      sensorParserConfigService.deleteSensorParserConfig
+    ).toHaveBeenCalledWith('abc');
+    expect(alerts.showSuccessMessage).toHaveBeenCalledWith(
+      'Deleted sensor abc'
+    );
     expect(router.navigateByUrl).toHaveBeenCalledWith('/sensors');
   }));
 
@@ -705,5 +755,4 @@ describe('Component: SensorParserConfigReadonly', () => {
     component.topologyStatus.status = 'KILLED';
     expect(component.isDisableHidden()).toEqual(true);
   }));
-
 });

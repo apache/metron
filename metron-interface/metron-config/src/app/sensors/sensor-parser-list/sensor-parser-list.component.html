@@ -21,7 +21,7 @@
         <div class="metron-title"> {{componentName}} ({{count}}) </div>
       </div>
       <div class="col-lg-2">
-        <div class="dropdown pull-right">
+        <div class="dropdown float-right">
           <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             ACTIONS
           </button>
@@ -37,7 +37,7 @@
     </div>
   </div>
 
-  <table class="table card-deck" metron-config-table #table (onSort)="onSort($event)">
+  <table class="table config-table" metron-config-table #table (onSort)="onSort($event)">
     <thead>
     <tr>
       <th> <metron-config-sorter [sortBy]="'sensorName'"> Name </metron-config-sorter> </th>

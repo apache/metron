@@ -25,6 +25,7 @@ public class MetronRestConstants {
   public static final String TEST_PROFILE = "test";
   public static final String LDAP_PROFILE = "ldap";
   public static final String DOCKER_PROFILE = "docker";
+  public static final String KNOX_PROFILE = "knox";
   public static final String CSRF_ENABLE_PROFILE = "csrf-enable";
 
   public static final String GROK_TEMP_PATH_SPRING_PROPERTY = "grok.path.temp";
@@ -71,6 +72,7 @@ public class MetronRestConstants {
   public static final String META_DAO_IMPL = "meta.dao.impl";
   public static final String META_DAO_SORT = "meta.dao.sort";
 
+  public static final String SECURITY_ROLE_PREFIX = "ROLE_";
   public static final String SECURITY_ROLE_USER = "USER";
   public static final String SECURITY_ROLE_ADMIN = "ADMIN";
 
@@ -87,4 +89,10 @@ public class MetronRestConstants {
   public static final String PCAP_PDML_SCRIPT_PATH_SPRING_PROPERTY = "pcap.pdml.script.path";
   public static final String PCAP_YARN_QUEUE_SPRING_PROPERTY = "pcap.yarn.queue";
   public static final String PCAP_FINALIZER_THREADPOOL_SIZE_SPRING_PROPERTY = "pcap.finalizer.threadpool.size";
+
+  public static final String LDAP_PROVIDER_URL_SPRING_PROPERTY = "ldap.provider.url";
+  public static final String LDAP_PROVIDER_USERDN_SPRING_PROPERTY = "ldap.provider.userdn";
+  public static final String LDAP_PROVIDER_PASSWORD_SPRING_PROPERTY = "ldap.provider.password";
+
+  public static final String KNOX_ROOT_SPRING_PROPERTY = "knox.root";
 }

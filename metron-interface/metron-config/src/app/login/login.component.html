@@ -20,9 +20,9 @@
     <input class="form-control" name="user" [(ngModel)]="user" required autofocus>
     <label class="label"> PASSWORD </label>
     <input type="password" name="password" class="form-control" [(ngModel)]="password" required>
-    <div class="my-1" style="color:#a94442">
+    <div class="my-3" style="color:#a94442">
       {{loginFailure}}
-      <button class="btn btn-primary pull-right" type="submit" (click)="login()">LOG IN</button>
+      <button class="btn btn-primary float-right" type="submit" (click)="login()">LOG IN</button>
     </div>
   </form>
 </div>

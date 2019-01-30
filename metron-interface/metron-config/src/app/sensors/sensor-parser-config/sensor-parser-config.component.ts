@@ -15,30 +15,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {FormGroup, Validators, FormControl} from '@angular/forms';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {Router, ActivatedRoute} from '@angular/router';
-import {MetronAlerts} from '../../shared/metron-alerts';
-import {SensorParserContext} from '../../model/sensor-parser-context';
-import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
-import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
-import {SensorFieldSchemaComponent} from '../sensor-field-schema/sensor-field-schema.component';
-import {SensorRawJsonComponent} from '../sensor-raw-json/sensor-raw-json.component';
-import {KafkaService} from '../../service/kafka.service';
-import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.service';
-import {IndexingConfigurations} from '../../model/sensor-indexing-config';
-import {RestError} from '../../model/rest-error';
-import {HdfsService} from '../../service/hdfs.service';
-import {GrokValidationService} from '../../service/grok-validation.service';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { Router, ActivatedRoute } from '@angular/router';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { SensorParserContext } from '../../model/sensor-parser-context';
+import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
+import { SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
+import { SensorFieldSchemaComponent } from '../sensor-field-schema/sensor-field-schema.component';
+import { SensorRawJsonComponent } from '../sensor-raw-json/sensor-raw-json.component';
+import { KafkaService } from '../../service/kafka.service';
+import { SensorIndexingConfigService } from '../../service/sensor-indexing-config.service';
+import { IndexingConfigurations } from '../../model/sensor-indexing-config';
+import { RestError } from '../../model/rest-error';
+import { HdfsService } from '../../service/hdfs.service';
+import { GrokValidationService } from '../../service/grok-validation.service';
 
 export enum Pane {
-  GROK, RAWJSON, FIELDSCHEMA, THREATTRIAGE, STORMSETTINGS
+  GROK,
+  RAWJSON,
+  FIELDSCHEMA,
+  THREATTRIAGE,
+  STORMSETTINGS
 }
 
 export enum KafkaStatus {
-  NO_TOPIC, NOT_EMITTING, EMITTING
+  NO_TOPIC,
+  NOT_EMITTING,
+  EMITTING
 }
 
 @Component({
@@ -46,9 +52,7 @@ export enum KafkaStatus {
   templateUrl: 'sensor-parser-config.component.html',
   styleUrls: ['sensor-parser-config.component.scss']
 })
-
 export class SensorParserConfigComponent implements OnInit {
-
   sensorConfigForm: FormGroup;
   transformsValidationForm: FormGroup;
 
@@ -73,7 +77,7 @@ export class SensorParserConfigComponent implements OnInit {
   grokStatementValid = false;
   availableParsers = {};
   availableParserNames = [];
-  grokStatement = '';
+  grokStatement = {};
   patternLabel = '';
   currentSensors = [];
 
@@ -81,7 +85,10 @@ export class SensorParserConfigComponent implements OnInit {
 
   topicExists: boolean = false;
 
-  transformsValidationResult: {map: any, keys: string[]} = {map: {}, keys: []};
+  transformsValidationResult: { map: any; keys: string[] } = {
+    map: {},
+    keys: []
+  };
   transformsValidation: SensorParserContext = new SensorParserContext();
 
   pane = Pane;
@@ -90,65 +97,94 @@ export class SensorParserConfigComponent implements OnInit {
   kafkaStatus = KafkaStatus;
   currentKafkaStatus = null;
 
-  @ViewChild(SensorFieldSchemaComponent) sensorFieldSchema: SensorFieldSchemaComponent;
-  @ViewChild(SensorRawJsonComponent) sensorRawJson: SensorRawJsonComponent;
+  @ViewChild(SensorFieldSchemaComponent)
+  sensorFieldSchema: SensorFieldSchemaComponent;
+  @ViewChild(SensorRawJsonComponent)
+  sensorRawJson: SensorRawJsonComponent;
 
-  constructor(private sensorParserConfigService: SensorParserConfigService, private metronAlerts: MetronAlerts,
-              private sensorEnrichmentConfigService: SensorEnrichmentConfigService, private route: ActivatedRoute,
-              private sensorIndexingConfigService: SensorIndexingConfigService, private grokValidationService: GrokValidationService,
-              private router: Router, private kafkaService: KafkaService, private hdfsService: HdfsService) {
+  constructor(
+    private sensorParserConfigService: SensorParserConfigService,
+    private metronAlerts: MetronAlerts,
+    private sensorEnrichmentConfigService: SensorEnrichmentConfigService,
+    private route: ActivatedRoute,
+    private sensorIndexingConfigService: SensorIndexingConfigService,
+    private grokValidationService: GrokValidationService,
+    private router: Router,
+    private kafkaService: KafkaService,
+    private hdfsService: HdfsService
+  ) {
     this.sensorParserConfig.parserConfig = {};
   }
-
 
   init(id: string): void {
     if (id !== 'new') {
       this.editMode = true;
       this.sensorName = id;
-      this.sensorParserConfigService.get(id).subscribe((results: SensorParserConfig) => {
-        this.sensorParserConfig = results;
-        this.sensorNameValid = true;
-        this.getKafkaStatus();
-        if (Object.keys(this.sensorParserConfig.parserConfig).length > 0) {
-          this.showAdvancedParserConfiguration = true;
-        }
-        if (this.isGrokParser(this.sensorParserConfig)) {
-          let path = this.sensorParserConfig.parserConfig['grokPath'];
-          if (path) {
-            this.hdfsService.read(path).subscribe(contents => {
-              this.grokStatement = contents;
-            }, (hdfsError: RestError) => {
-              this.grokValidationService.getStatement(path).subscribe(contents => {
-                this.grokStatement = contents;
-              }, (grokError: RestError) => {
-                this.metronAlerts.showErrorMessage('Could not find grok statement in HDFS or classpath at ' + path);
-              });
-            });
+      this.sensorParserConfigService
+        .get(id)
+        .subscribe((results: SensorParserConfig) => {
+          this.sensorParserConfig = results;
+          this.sensorNameValid = true;
+          this.getKafkaStatus();
+          if (Object.keys(this.sensorParserConfig.parserConfig).length > 0) {
+            this.showAdvancedParserConfiguration = true;
           }
-          let patternLabel = this.sensorParserConfig.parserConfig['patternLabel'];
-          if (patternLabel) {
-            this.patternLabel = patternLabel;
+          if (this.isGrokParser(this.sensorParserConfig)) {
+            let path = this.sensorParserConfig.parserConfig['grokPath'];
+            if (path) {
+              this.hdfsService.read(path).subscribe(
+                contents => {
+                  this.grokStatement = contents;
+                },
+                (hdfsError: RestError) => {
+                  this.grokValidationService.getStatement(path).subscribe(
+                    contents => {
+                      this.grokStatement = contents;
+                    },
+                    (grokError: RestError) => {
+                      this.metronAlerts.showErrorMessage(
+                        'Could not find grok statement in HDFS or classpath at ' +
+                          path
+                      );
+                    }
+                  );
+                }
+              );
+            }
+            let patternLabel = this.sensorParserConfig.parserConfig[
+              'patternLabel'
+            ];
+            if (patternLabel) {
+              this.patternLabel = patternLabel;
+            }
           }
-      }});
+        });
 
-      this.sensorEnrichmentConfigService.get(id).subscribe((result: SensorEnrichmentConfig) => {
-        this.sensorEnrichmentConfig = result;
-      }, (error: RestError) => {
-        if (error.responseCode !== 404) {
-          this.metronAlerts.showErrorMessage(error.message);
+      this.sensorEnrichmentConfigService.get(id).subscribe(
+        (result: SensorEnrichmentConfig) => {
+          this.sensorEnrichmentConfig = result;
+        },
+        (error: RestError) => {
+          if (error.status !== 404) {
+            this.metronAlerts.showErrorMessage(error.message);
+          }
         }
-      });
+      );
 
-      this.sensorIndexingConfigService.get(id).subscribe((result: IndexingConfigurations) => {
-            this.indexingConfigurations = result;
-      }, (error: RestError) => {
-        if (error.responseCode !== 404) {
-          this.metronAlerts.showErrorMessage(error.message);
+      this.sensorIndexingConfigService.get(id).subscribe(
+        (result: IndexingConfigurations) => {
+          this.indexingConfigurations = result;
+        },
+        (error: RestError) => {
+          if (error.status !== 404) {
+            this.metronAlerts.showErrorMessage(error.message);
+          }
         }
-      });
+      );
     } else {
       this.sensorParserConfig = new SensorParserConfig();
-      this.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+      this.sensorParserConfig.parserClassName =
+        'org.apache.metron.parsers.GrokParser';
       this.sensorParserConfigService.getAll().subscribe((results: {}) => {
         this.currentSensors = Object.keys(results);
       });
@@ -168,21 +204,56 @@ export class SensorParserConfigComponent implements OnInit {
     let group: any = {};
 
     group['sensorName'] = new FormControl(this.sensorName, Validators.required);
-    group['sensorTopic'] = new FormControl(this.sensorParserConfig.sensorTopic, Validators.required);
-    group['parserClassName'] = new FormControl(this.sensorParserConfig.parserClassName, Validators.required);
+    group['sensorTopic'] = new FormControl(
+      this.sensorParserConfig.sensorTopic,
+      Validators.required
+    );
+    group['parserClassName'] = new FormControl(
+      this.sensorParserConfig.parserClassName,
+      Validators.required
+    );
     group['grokStatement'] = new FormControl(this.grokStatement);
-    group['transforms'] = new FormControl(this.sensorParserConfig['transforms']);
+    group['transforms'] = new FormControl(
+      this.sensorParserConfig['transforms']
+    );
     group['stellar'] = new FormControl(this.sensorParserConfig);
     group['threatTriage'] = new FormControl(this.sensorEnrichmentConfig);
-    group['hdfsIndex'] = new FormControl(this.indexingConfigurations.hdfs.index, Validators.required);
-    group['hdfsBatchSize'] = new FormControl(this.indexingConfigurations.hdfs.batchSize, Validators.required);
-    group['hdfsEnabled'] = new FormControl(this.indexingConfigurations.hdfs.enabled, Validators.required);
-    group['elasticsearchIndex'] = new FormControl(this.indexingConfigurations.elasticsearch.index, Validators.required);
-    group['elasticsearchBatchSize'] = new FormControl(this.indexingConfigurations.elasticsearch.batchSize, Validators.required);
-    group['elasticsearchEnabled'] = new FormControl(this.indexingConfigurations.elasticsearch.enabled, Validators.required);
-    group['solrIndex'] = new FormControl(this.indexingConfigurations.solr.index, Validators.required);
-    group['solrBatchSize'] = new FormControl(this.indexingConfigurations.solr.batchSize, Validators.required);
-    group['solrEnabled'] = new FormControl(this.indexingConfigurations.solr.enabled, Validators.required);
+    group['hdfsIndex'] = new FormControl(
+      this.indexingConfigurations.hdfs.index,
+      Validators.required
+    );
+    group['hdfsBatchSize'] = new FormControl(
+      this.indexingConfigurations.hdfs.batchSize,
+      Validators.required
+    );
+    group['hdfsEnabled'] = new FormControl(
+      this.indexingConfigurations.hdfs.enabled,
+      Validators.required
+    );
+    group['elasticsearchIndex'] = new FormControl(
+      this.indexingConfigurations.elasticsearch.index,
+      Validators.required
+    );
+    group['elasticsearchBatchSize'] = new FormControl(
+      this.indexingConfigurations.elasticsearch.batchSize,
+      Validators.required
+    );
+    group['elasticsearchEnabled'] = new FormControl(
+      this.indexingConfigurations.elasticsearch.enabled,
+      Validators.required
+    );
+    group['solrIndex'] = new FormControl(
+      this.indexingConfigurations.solr.index,
+      Validators.required
+    );
+    group['solrBatchSize'] = new FormControl(
+      this.indexingConfigurations.solr.batchSize,
+      Validators.required
+    );
+    group['solrEnabled'] = new FormControl(
+      this.indexingConfigurations.solr.enabled,
+      Validators.required
+    );
 
     return new FormGroup(group);
   }
@@ -190,8 +261,14 @@ export class SensorParserConfigComponent implements OnInit {
   createTransformsValidationForm(): FormGroup {
     let group: any = {};
 
-    group['sampleData'] = new FormControl(this.transformsValidation.sampleData, Validators.required);
-    group['sensorParserConfig'] = new FormControl(this.transformsValidation.sensorParserConfig, Validators.required);
+    group['sampleData'] = new FormControl(
+      this.transformsValidation.sampleData,
+      Validators.required
+    );
+    group['sensorParserConfig'] = new FormControl(
+      this.transformsValidation.sensorParserConfig,
+      Validators.required
+    );
 
     return new FormGroup(group);
   }
@@ -205,12 +282,12 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   getAvailableParsers() {
-    this.sensorParserConfigService.getAvailableParsers().subscribe(
-      availableParsers => {
+    this.sensorParserConfigService
+      .getAvailableParsers()
+      .subscribe(availableParsers => {
         this.availableParsers = availableParsers;
         this.availableParserNames = Object.keys(availableParsers);
-      }
-    );
+      });
   }
 
   getMessagePrefix(): string {
@@ -219,14 +296,17 @@ export class SensorParserConfigComponent implements OnInit {
 
   onSetSensorName(): void {
     this.sensorNameUnique = this.currentSensors.indexOf(this.sensorName) === -1;
-    this.sensorNameValid = this.sensorName !== undefined &&
-        this.sensorName.length > 0 && this.sensorNameUnique;
+    this.sensorNameValid =
+      this.sensorName !== undefined &&
+      this.sensorName.length > 0 &&
+      this.sensorNameUnique;
     this.isConfigValid();
   }
 
   onSetKafkaTopic(): void {
-    this.kafkaTopicValid = this.sensorParserConfig.sensorTopic !== undefined &&
-        /[a-zA-Z0-9._-]+$/.test(this.sensorParserConfig.sensorTopic);
+    this.kafkaTopicValid =
+      this.sensorParserConfig.sensorTopic !== undefined &&
+      /[a-zA-Z0-9._-]+$/.test(this.sensorParserConfig.sensorTopic);
     if (this.kafkaTopicValid) {
       this.getKafkaStatus();
     }
@@ -234,8 +314,9 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onParserTypeChange(): void {
-    this.parserClassValid = this.sensorParserConfig.parserClassName !== undefined &&
-        this.sensorParserConfig.parserClassName.length > 0;
+    this.parserClassValid =
+      this.sensorParserConfig.parserClassName !== undefined &&
+      this.sensorParserConfig.parserClassName.length > 0;
     if (this.parserClassValid) {
       if (this.isGrokParser(this.sensorParserConfig)) {
       } else {
@@ -246,34 +327,48 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onGrokStatementChange(): void {
-    this.grokStatementValid = this.grokStatement !== undefined &&
-        this.grokStatement.length > 0;
+    this.grokStatementValid =
+      this.grokStatement !== undefined &&
+      Object.keys(this.grokStatement).length > 0;
     this.isConfigValid();
   }
 
   isConfigValid() {
     let isGrokParser = this.isGrokParser(this.sensorParserConfig);
-    this.configValid = this.sensorNameValid && this.kafkaTopicValid && this.parserClassValid && (!isGrokParser || this.grokStatementValid);
+    this.configValid =
+      this.sensorNameValid &&
+      this.kafkaTopicValid &&
+      this.parserClassValid &&
+      (!isGrokParser || this.grokStatementValid);
   }
 
   getKafkaStatus() {
-    if (!this.sensorParserConfig.sensorTopic || this.sensorParserConfig.sensorTopic.length === 0) {
+    if (
+      !this.sensorParserConfig.sensorTopic ||
+      this.sensorParserConfig.sensorTopic.length === 0
+    ) {
       this.currentKafkaStatus = null;
       return;
     }
 
-    this.kafkaService.get(this.sensorParserConfig.sensorTopic).subscribe(kafkaTopic => {
-      this.kafkaService.sample(this.sensorParserConfig.sensorTopic).subscribe((sampleData: string) => {
-        this.currentKafkaStatus = (sampleData && sampleData.length > 0) ? KafkaStatus.EMITTING : KafkaStatus.NOT_EMITTING;
+    this.kafkaService.get(this.sensorParserConfig.sensorTopic).subscribe(
+      kafkaTopic => {
+        this.kafkaService.sample(this.sensorParserConfig.sensorTopic).subscribe(
+          (sampleData: string) => {
+            this.currentKafkaStatus =
+              sampleData && sampleData.length > 0
+                ? KafkaStatus.EMITTING
+                : KafkaStatus.NOT_EMITTING;
+          },
+          error => {
+            this.currentKafkaStatus = KafkaStatus.NOT_EMITTING;
+          }
+        );
       },
       error => {
-        this.currentKafkaStatus = KafkaStatus.NOT_EMITTING;
-      });
-    },
-    error => {
-      this.currentKafkaStatus = KafkaStatus.NO_TOPIC;
-    });
-
+        this.currentKafkaStatus = KafkaStatus.NO_TOPIC;
+      }
+    );
   }
 
   getTransforms(): string {
@@ -298,7 +393,8 @@ export class SensorParserConfigComponent implements OnInit {
     this.grokStatement = grokStatement;
     let grokPath = this.sensorParserConfig.parserConfig['grokPath'];
     if (!grokPath || grokPath.indexOf('/patterns') === 0) {
-      this.sensorParserConfig.parserConfig['grokPath'] = '/apps/metron/patterns/' + this.sensorName;
+      this.sensorParserConfig.parserConfig['grokPath'] =
+        '/apps/metron/patterns/' + this.sensorName;
     }
   }
 
@@ -317,42 +413,76 @@ export class SensorParserConfigComponent implements OnInit {
     if (!this.indexingConfigurations.solr.index) {
       this.indexingConfigurations.solr.index = this.sensorName;
     }
-    this.sensorParserConfigService.post(this.sensorName, this.sensorParserConfig).subscribe(
-      sensorParserConfig => {
-        if (this.isGrokParser(sensorParserConfig)) {
-            this.hdfsService.post(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
-                response => {}, (error: RestError) => this.metronAlerts.showErrorMessage(error.message));
+    this.sensorParserConfigService
+      .post(this.sensorName, this.sensorParserConfig)
+      .subscribe(
+        sensorParserConfig => {
+          if (this.isGrokParser(sensorParserConfig)) {
+            this.hdfsService
+              .post(
+                this.sensorParserConfig.parserConfig['grokPath'],
+                this.grokStatement.toString()
+              )
+              .subscribe(
+                response => {},
+                (error: RestError) =>
+                  this.metronAlerts.showErrorMessage(error.message)
+              );
+          }
+          this.sensorEnrichmentConfigService
+            .post(this.sensorName, this.sensorEnrichmentConfig)
+            .subscribe(
+              (sensorEnrichmentConfig: SensorEnrichmentConfig) => {},
+              (error: RestError) => {
+                let msg =
+                  ' Sensor parser config but unable to save enrichment configuration: ';
+                this.metronAlerts.showErrorMessage(
+                  this.getMessagePrefix() + msg + error.message
+                );
+              }
+            );
+          this.sensorIndexingConfigService
+            .post(this.sensorName, this.indexingConfigurations)
+            .subscribe(
+              (indexingConfigurations: IndexingConfigurations) => {},
+              (error: RestError) => {
+                let msg =
+                  ' Sensor parser config but unable to save indexing configuration: ';
+                this.metronAlerts.showErrorMessage(
+                  this.getMessagePrefix() + msg + error.message
+                );
+              }
+            );
+          this.metronAlerts.showSuccessMessage(
+            this.getMessagePrefix() + ' Sensor ' + this.sensorName
+          );
+          this.sensorParserConfigService.dataChangedSource.next([
+            this.sensorName
+          ]);
+          this.goBack();
+        },
+        (error: RestError) => {
+          this.metronAlerts.showErrorMessage(
+            'Unable to save sensor config: ' + error.message
+          );
         }
-        this.sensorEnrichmentConfigService.post(this.sensorName, this.sensorEnrichmentConfig).subscribe(
-            (sensorEnrichmentConfig: SensorEnrichmentConfig) => {
-        }, (error: RestError) => {
-              let msg = ' Sensor parser config but unable to save enrichment configuration: ';
-              this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
-        });
-        this.sensorIndexingConfigService.post(this.sensorName, this.indexingConfigurations).subscribe(
-            (indexingConfigurations: IndexingConfigurations) => {
-        }, (error: RestError) => {
-              let msg = ' Sensor parser config but unable to save indexing configuration: ';
-              this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
-        });
-        this.metronAlerts.showSuccessMessage(this.getMessagePrefix() + ' Sensor ' + this.sensorName);
-        this.sensorParserConfigService.dataChangedSource.next([this.sensorName]);
-        this.goBack();
-      }, (error: RestError) => {
-        this.metronAlerts.showErrorMessage('Unable to save sensor config: ' + error.message);
-      });
+      );
   }
 
   isGrokParser(sensorParserConfig: SensorParserConfig): boolean {
     if (sensorParserConfig && sensorParserConfig.parserClassName) {
-      return sensorParserConfig.parserClassName === 'org.apache.metron.parsers.GrokParser';
+      return (
+        sensorParserConfig.parserClassName ===
+        'org.apache.metron.parsers.GrokParser'
+      );
     }
     return false;
   }
 
   getTransformationCount(): number {
-    let stellarTransformations = this.sensorParserConfig.fieldTransformations.filter(fieldTransformer =>
-      fieldTransformer.transformation === 'STELLAR');
+    let stellarTransformations = this.sensorParserConfig.fieldTransformations.filter(
+      fieldTransformer => fieldTransformer.transformation === 'STELLAR'
+    );
     if (stellarTransformations.length > 0 && stellarTransformations[0].config) {
       return Object.keys(stellarTransformations[0].config).length;
     } else {
@@ -365,14 +495,22 @@ export class SensorParserConfigComponent implements OnInit {
     if (this.sensorEnrichmentConfig.enrichment.fieldMap) {
       for (let enrichment in this.sensorEnrichmentConfig.enrichment.fieldMap) {
         if (enrichment !== 'hbaseEnrichment' && enrichment !== 'stellar') {
-          count += this.sensorEnrichmentConfig.enrichment.fieldMap[enrichment].length;
+          count += this.sensorEnrichmentConfig.enrichment.fieldMap[enrichment]
+            .length;
         }
       }
     }
     if (this.sensorEnrichmentConfig.enrichment.fieldToTypeMap) {
-      for (let fieldName in this.sensorEnrichmentConfig.enrichment.fieldToTypeMap) {
-        if (this.sensorEnrichmentConfig.enrichment.fieldToTypeMap.hasOwnProperty(fieldName)) {
-          count += this.sensorEnrichmentConfig.enrichment.fieldToTypeMap[fieldName].length;
+      for (let fieldName in this.sensorEnrichmentConfig.enrichment
+        .fieldToTypeMap) {
+        if (
+          this.sensorEnrichmentConfig.enrichment.fieldToTypeMap.hasOwnProperty(
+            fieldName
+          )
+        ) {
+          count += this.sensorEnrichmentConfig.enrichment.fieldToTypeMap[
+            fieldName
+          ].length;
         }
       }
     }
@@ -382,9 +520,16 @@ export class SensorParserConfigComponent implements OnInit {
   getThreatIntelCount(): number {
     let count = 0;
     if (this.sensorEnrichmentConfig.threatIntel.fieldToTypeMap) {
-      for (let fieldName in this.sensorEnrichmentConfig.threatIntel.fieldToTypeMap) {
-        if (this.sensorEnrichmentConfig.threatIntel.fieldToTypeMap.hasOwnProperty(fieldName)) {
-          count += this.sensorEnrichmentConfig.threatIntel.fieldToTypeMap[fieldName].length;
+      for (let fieldName in this.sensorEnrichmentConfig.threatIntel
+        .fieldToTypeMap) {
+        if (
+          this.sensorEnrichmentConfig.threatIntel.fieldToTypeMap.hasOwnProperty(
+            fieldName
+          )
+        ) {
+          count += this.sensorEnrichmentConfig.threatIntel.fieldToTypeMap[
+            fieldName
+          ].length;
         }
       }
     }
@@ -394,7 +539,9 @@ export class SensorParserConfigComponent implements OnInit {
   getRuleCount(): number {
     let count = 0;
     if (this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules) {
-      count = Object.keys(this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules).length;
+      count = Object.keys(
+        this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules
+      ).length;
     }
     return count;
   }
@@ -415,19 +562,18 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   setPaneVisibility(pane: Pane, visibilty: boolean) {
-    this.showGrokValidator = (pane === Pane.GROK) ? visibilty : false;
-    this.showFieldSchema = (pane === Pane.FIELDSCHEMA) ? visibilty : false;
-    this.showRawJson = (pane ===  Pane.RAWJSON) ? visibilty : false;
-    this.showThreatTriage = (pane ===  Pane.THREATTRIAGE) ? visibilty : false;
-    this.showStormSettings = (pane === Pane.STORMSETTINGS) ? visibilty : false;
+    this.showGrokValidator = pane === Pane.GROK ? visibilty : false;
+    this.showFieldSchema = pane === Pane.FIELDSCHEMA ? visibilty : false;
+    this.showRawJson = pane === Pane.RAWJSON ? visibilty : false;
+    this.showThreatTriage = pane === Pane.THREATTRIAGE ? visibilty : false;
+    this.showStormSettings = pane === Pane.STORMSETTINGS ? visibilty : false;
   }
 
   onRawJsonChanged(): void {
     this.sensorFieldSchema.createFieldSchemaRows();
   }
 
-  onStormSettingsChanged(): void {
-  }
+  onStormSettingsChanged(): void {}
 
   onAdvancedConfigFormClose(): void {
     this.showAdvancedParserConfiguration = false;

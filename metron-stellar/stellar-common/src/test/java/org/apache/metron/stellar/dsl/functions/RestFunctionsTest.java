@@ -23,10 +23,9 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -66,7 +65,10 @@ import static org.apache.metron.stellar.dsl.functions.RestConfig.STELLAR_REST_SE
 import static org.apache.metron.stellar.dsl.functions.RestConfig.TIMEOUT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -120,6 +122,7 @@ public class RestFunctionsTest {
    * The REST_GET function should perform a get request and parse the results.
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void restGetShouldSucceed() throws Exception {
     Map<String, Object> actual = (Map<String, Object>) run(String.format("REST_GET('%s')", getUri), context);
 
@@ -131,6 +134,7 @@ public class RestFunctionsTest {
    * The REST_GET function should perform a get request using a proxy and parse the results.
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void restGetShouldSucceedWithProxy() {
     mockServerClient.when(
             request()
@@ -492,6 +496,7 @@ public class RestFunctionsTest {
    * The REST_GET function should timeout and return null.
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void restGetShouldTimeout() {
     String uri = String.format("http://localhost:%d/get", mockServerRule.getPort());
 
@@ -526,6 +531,7 @@ public class RestFunctionsTest {
    * The REST_GET function should honor the function supplied timeout setting.
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void restGetShouldTimeoutWithSuppliedTimeout() {
     String expression = String.format("REST_GET('%s', %s)", getUri, timeoutConfig);
     Map<String, Object> actual = (Map<String, Object>) run(expression, context);
@@ -552,15 +558,10 @@ public class RestFunctionsTest {
    */
   @Test
   public void restGetShouldHandleIOException() throws IllegalArgumentException, IOException {
-    Map<String, Object> globalConfig = new HashMap<String, Object>() {{
-      put(STELLAR_REST_SETTINGS, new HashMap<String, Object>() {{
-        put(SOCKET_TIMEOUT, 1);
-      }});
-    }};
+    RestFunctions.RestGet restGet = spy(RestFunctions.RestGet.class);
+    doThrow(new IOException("io exception")).when(restGet).doGet(any(RestConfig.class), any(HttpGet.class), any(HttpClientContext.class));
 
-    context.addCapability(Context.Capabilities.GLOBAL_CONFIG, () -> globalConfig);
-
-    Object result = run(String.format("REST_GET('%s')", getUri), context);
+    Object result = restGet.apply(Collections.singletonList(getUri), context);
     Assert.assertNull(result);
   }
 

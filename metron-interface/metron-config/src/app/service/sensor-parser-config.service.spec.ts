@@ -15,135 +15,119 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {SensorParserConfigService} from './sensor-parser-config.service';
-import {SensorParserConfig} from '../model/sensor-parser-config';
-import {ParseMessageRequest} from '../model/parse-message-request';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
-import '../rxjs-operators';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
+import { TestBed } from '@angular/core/testing';
+import { SensorParserConfigService } from './sensor-parser-config.service';
+import { SensorParserConfig } from '../model/sensor-parser-config';
+import { ParseMessageRequest } from '../model/parse-message-request';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
+import {
+  HttpClientTestingModule,
+  HttpTestingController
+} from '@angular/common/http/testing';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('SensorParserConfigService', () => {
+  let mockBackend: HttpTestingController;
+  let sensorParserConfigService: SensorParserConfigService;
 
-  beforeEach(async(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpModule],
+      imports: [HttpClientTestingModule],
       providers: [
         SensorParserConfigService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
-    })
-      .compileComponents();
-  }));
-
-  it('can instantiate service when inject service',
-    inject([SensorParserConfigService], (service: SensorParserConfigService) => {
-      expect(service instanceof SensorParserConfigService).toBe(true);
-    }));
-
-  it('can instantiate service with "new"', inject([Http, APP_CONFIG], (http: Http, config: IAppConfig) => {
-    expect(http).not.toBeNull('http should be provided');
-    let service = new SensorParserConfigService(http, config);
-    expect(service instanceof SensorParserConfigService).toBe(true, 'new service should be ok');
-  }));
-
-
-  it('can provide the mockBackend as XHRBackend',
-    inject([XHRBackend], (backend: MockBackend) => {
-      expect(backend).not.toBeNull('backend should be provided');
-    }));
-
-  describe('when service functions', () => {
-    let sensorParserConfigService: SensorParserConfigService;
-    let mockBackend: MockBackend;
-    let sensorParserConfig = new SensorParserConfig();
-    sensorParserConfig.sensorTopic = 'bro';
-    sensorParserConfig.parserClassName = 'parserClass';
-    sensorParserConfig.parserConfig = {field: 'value'};
-    let availableParsers = [{ 'Grok': 'org.apache.metron.parsers.GrokParser'}];
-    let parseMessageRequest = new ParseMessageRequest();
-    parseMessageRequest.sensorParserConfig = new SensorParserConfig();
-    parseMessageRequest.sensorParserConfig.sensorTopic = 'bro';
-    parseMessageRequest.sampleData = 'sampleData';
-    let parsedMessage = { 'field': 'value'};
-    let sensorParserConfig1 = new SensorParserConfig();
-    sensorParserConfig1.sensorTopic = 'bro1';
-    let sensorParserConfig2 = new SensorParserConfig();
-    sensorParserConfig2.sensorTopic = 'bro2';
-    let deleteResult = {success: ['bro1', 'bro2']};
-    let sensorParserConfigResponse: Response;
-    let sensorParserConfigsResponse: Response;
-    let availableParserResponse: Response;
-    let parseMessageResponse: Response;
-    let deleteResponse: Response;
-
-    beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
-      mockBackend = be;
-      sensorParserConfigService = new SensorParserConfigService(http, config);
-      sensorParserConfigResponse = new Response(new ResponseOptions({status: 200, body: sensorParserConfig}));
-      sensorParserConfigsResponse = new Response(new ResponseOptions({status: 200, body: [sensorParserConfig]}));
-      availableParserResponse = new Response(new ResponseOptions({status: 200, body: availableParsers}));
-      parseMessageResponse = new Response(new ResponseOptions({status: 200, body: parsedMessage}));
-      deleteResponse = new Response(new ResponseOptions({status: 200, body: deleteResult}));
-    }));
-
-    it('post', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorParserConfigResponse));
-
-      sensorParserConfigService.post('bro', sensorParserConfig).subscribe(
-      result => {
-        expect(result).toEqual(sensorParserConfig);
-      }, error => console.log(error));
-    })));
-
-    it('get', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorParserConfigResponse));
-
-      sensorParserConfigService.get('bro').subscribe(
-        result => {
-          expect(result).toEqual(sensorParserConfig);
-        }, error => console.log(error));
-    })));
-
-    it('getAll', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorParserConfigsResponse));
-
-      sensorParserConfigService.getAll().subscribe(
-        results => {
-          expect(results).toEqual([sensorParserConfig]);
-        }, error => console.log(error));
-    })));
-
-    it('getAvailableParsers', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(availableParserResponse));
-
-      sensorParserConfigService.getAvailableParsers().subscribe(
-        results => {
-          expect(results).toEqual(availableParsers);
-        }, error => console.log(error));
-    })));
-
-    it('parseMessage', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(parseMessageResponse));
-
-      sensorParserConfigService.parseMessage(parseMessageRequest).subscribe(
-        results => {
-          expect(results).toEqual(parsedMessage);
-        }, error => console.log(error));
-    })));
-
-    it('deleteSensorParserConfigs', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(deleteResponse));
-
-      sensorParserConfigService.deleteSensorParserConfigs(['bro1', 'bro2']).subscribe(result => {
-        expect(result.success.length).toEqual(2);
-      });
-    })));
+    });
+    mockBackend = TestBed.get(HttpTestingController);
+    sensorParserConfigService = TestBed.get(SensorParserConfigService);
   });
 
+  afterEach(() => {
+    mockBackend.verify();
+  });
+
+  let sensorParserConfig = new SensorParserConfig();
+  sensorParserConfig.sensorTopic = 'bro';
+  sensorParserConfig.parserClassName = 'parserClass';
+  sensorParserConfig.parserConfig = { field: 'value' };
+  let availableParsers = [{ Grok: 'org.apache.metron.parsers.GrokParser' }];
+  let parseMessageRequest = new ParseMessageRequest();
+  parseMessageRequest.sensorParserConfig = new SensorParserConfig();
+  parseMessageRequest.sensorParserConfig.sensorTopic = 'bro';
+  parseMessageRequest.sampleData = 'sampleData';
+  let parsedMessage = { field: 'value' };
+  let sensorParserConfig1 = new SensorParserConfig();
+  sensorParserConfig1.sensorTopic = 'bro1';
+  let sensorParserConfig2 = new SensorParserConfig();
+  sensorParserConfig2.sensorTopic = 'bro2';
+
+  it('post', () => {
+    sensorParserConfigService
+      .post('bro', sensorParserConfig)
+      .subscribe(result => {
+        expect(result).toEqual(sensorParserConfig);
+      });
+
+    const req = mockBackend.expectOne('/api/v1/sensor/parser/config/bro');
+    expect(req.request.method).toBe('POST');
+    req.flush(sensorParserConfig);
+  });
+
+  it('get', () => {
+    sensorParserConfigService.get('bro').subscribe(result => {
+      expect(result).toEqual(sensorParserConfig);
+    });
+    const req = mockBackend.expectOne('/api/v1/sensor/parser/config/bro');
+    expect(req.request.method).toBe('GET');
+    req.flush(sensorParserConfig);
+  });
+
+  it('getAll', () => {
+    sensorParserConfigService.getAll().subscribe(results => {
+      expect(results).toEqual([sensorParserConfig]);
+    });
+    const req = mockBackend.expectOne('/api/v1/sensor/parser/config');
+    expect(req.request.method).toBe('GET');
+    req.flush([sensorParserConfig]);
+  });
+
+  it('getAvailableParsers', () => {
+    sensorParserConfigService.getAvailableParsers().subscribe(results => {
+      expect(results).toEqual(availableParsers);
+    });
+    const req = mockBackend.expectOne(
+      '/api/v1/sensor/parser/config/list/available'
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush(availableParsers);
+  });
+
+  it('parseMessage', () => {
+    sensorParserConfigService
+      .parseMessage(parseMessageRequest)
+      .subscribe(results => {
+        expect(results).toEqual(parsedMessage);
+      });
+    const req = mockBackend.expectOne(
+      '/api/v1/sensor/parser/config/parseMessage'
+    );
+    expect(req.request.method).toBe('POST');
+    req.flush(parsedMessage);
+  });
+
+  it('deleteSensorParserConfigs', () => {
+    let req = [];
+    sensorParserConfigService
+      .deleteSensorParserConfigs(['bro1', 'bro2'])
+      .subscribe(result => {
+        expect(result.success.length).toEqual(2);
+      });
+    req[0] = mockBackend.expectOne('/api/v1/sensor/parser/config/bro1');
+    req[1] = mockBackend.expectOne('/api/v1/sensor/parser/config/bro2');
+    req.map(r => {
+      expect(r.request.method).toBe('DELETE');
+      r.flush(parsedMessage);
+    });
+  });
 });
-
-

@@ -29,7 +29,4 @@ export class VerticalNavbarComponent {
 
   constructor(private router: Router) {}
 
-  isActive(validRoutes: string[]) {
-    return validRoutes.indexOf(this.router.url) !== -1;
-  }
 }

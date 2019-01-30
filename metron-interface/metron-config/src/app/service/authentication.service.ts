@@ -15,70 +15,80 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, EventEmitter, Inject}     from '@angular/core';
-import {Http, Headers, RequestOptions, Response} from '@angular/http';
-import {Router} from '@angular/router';
-import {Observable}     from 'rxjs/Observable';
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Router } from '@angular/router';
+import {BehaviorSubject, Subject} from 'rxjs';
+import {AppConfigService} from './app-config.service';
+import {HttpUtil} from '../util/httpUtil';
 
 @Injectable()
 export class AuthenticationService {
-
-  private static USER_NOT_VERIFIED: string = 'USER-NOT-VERIFIED';
+  private static USER_NOT_VERIFIED = 'USER-NOT-VERIFIED';
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
-  loginUrl: string = this.config.apiEndpoint + '/user';
-  logoutUrl: string = '/logout';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
-  onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
+  loginUrl: string = this.appConfigService.getApiRoot() + '/user';
+  logoutUrl = this.appConfigService.getApiRoot() + '/logout';
+  onLoginEvent: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-  constructor(private http: Http, private router: Router, @Inject(APP_CONFIG) private config: IAppConfig) {
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private appConfigService: AppConfigService
+  ) {
     this.init();
   }
 
   public init() {
-      this.getCurrentUser(new RequestOptions({headers: new Headers(this.defaultHeaders)})).subscribe((response: Response) => {
-        this.currentUser = response.text();
+    this.getCurrentUser({ headers: new HttpHeaders({'Accept': 'text/plain'}), responseType: 'text'}).subscribe(
+      response => {
+        this.currentUser = response.toString();
         if (this.currentUser) {
-          this.onLoginEvent.emit(true);
+          this.onLoginEvent.next(true);
         }
-      }, error => {
-        this.onLoginEvent.emit(false);
-      });
+      },
+      error => {
+        this.onLoginEvent.next(false);
+      }
+    );
   }
 
   public login(username: string, password: string, onError): void {
-    let loginHeaders: Headers = new Headers(this.defaultHeaders);
-    loginHeaders.append('authorization', 'Basic ' + btoa(username + ':' + password));
-    let loginOptions: RequestOptions = new RequestOptions({headers: loginHeaders});
-    this.getCurrentUser(loginOptions).subscribe((response: Response) => {
-        this.currentUser = response.text();
+    let credentials = btoa(username + ':' + password);
+    this.getCurrentUser({
+      headers: new HttpHeaders({ Authorization: `Basic ${credentials}` , 'Accept': 'text/plain'}),
+      responseType: 'text'
+    }).subscribe(
+      response => {
+        this.currentUser = response.toString();
         this.router.navigateByUrl('/sensors');
-        this.onLoginEvent.emit(true);
+        this.onLoginEvent.next(true);
       },
       error => {
         onError(error);
-      });
+      }
+    );
   }
 
   public logout(): void {
-    this.http.post(this.logoutUrl, {}, new RequestOptions({headers: new Headers(this.defaultHeaders)})).subscribe(response => {
-        this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
-        this.onLoginEvent.emit(false);
-        this.router.navigateByUrl('/login');
+    this.http.post(this.logoutUrl, {}).subscribe(
+      response => {
+        this.clearAuthentication();
+        HttpUtil.navigateToLogin();
       },
       error => {
         console.log(error);
-      });
+        HttpUtil.navigateToLogin();
+      }
+    );
   }
 
   public checkAuthentication() {
     if (!this.isAuthenticated()) {
-      this.router.navigateByUrl('/login');
+      HttpUtil.navigateToLogin();
     }
   }
 
-  public getCurrentUser(options: RequestOptions): Observable<Response> {
+  public getCurrentUser(options?: {}) {
     return this.http.get(this.loginUrl, options);
   }
 
@@ -87,6 +97,14 @@ export class AuthenticationService {
   }
 
   public isAuthenticated(): boolean {
-    return this.currentUser !== AuthenticationService.USER_NOT_VERIFIED && this.currentUser != null;
+    return (
+      this.currentUser !== AuthenticationService.USER_NOT_VERIFIED &&
+      this.currentUser != null
+    );
+  }
+
+  public clearAuthentication(): void {
+    this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
+    this.onLoginEvent.next(false);
   }
 }

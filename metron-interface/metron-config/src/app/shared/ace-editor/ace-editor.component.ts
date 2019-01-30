@@ -15,10 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/// <reference path="../../../../node_modules/@types/ace/index.d.ts" />
 import { Component, AfterViewInit, ViewChild, ElementRef, forwardRef, Input} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import Editor = AceAjax.Editor;
 import {AutocompleteOption} from '../../model/autocomplete-option';
 
 declare var ace: any;
@@ -38,9 +37,9 @@ declare var ace: any;
 export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
 
   inputJson: any = '';
-  aceConfigEditor: Editor;
-  @Input() type: string = 'JSON';
-  @Input() placeHolder: string = 'Enter text here';
+  aceConfigEditor: AceAjax.Editor;
+  @Input() type = 'JSON';
+  @Input() placeHolder = 'Enter text here';
   @Input() options: AutocompleteOption[] = [];
   @ViewChild('aceEditor') aceEditorEle: ElementRef;
 
@@ -48,7 +47,7 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   private onChangeCallback;
 
   constructor() {
-    ace.config.set('basePath', '/assets/ace');
+    ace.config.set('basePath', 'assets/ace');
   }
 
   ngAfterViewInit() {

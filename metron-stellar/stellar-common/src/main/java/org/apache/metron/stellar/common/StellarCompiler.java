@@ -156,20 +156,21 @@ public class StellarCompiler extends StellarBaseListener {
     public Object apply(ExpressionState state) {
       Deque<Token<?>> instanceDeque = new ArrayDeque<>();
       {
-        boolean skipElse = false;
+        int skipElseCount = 0;
         boolean skipMatchClauses = false;
         Token<?> token = null;
         for (Iterator<Token<?>> it = getTokenDeque().descendingIterator(); it.hasNext(); ) {
           token = it.next();
           //if we've skipped an else previously, then we need to skip the deferred tokens associated with the else.
-          if (skipElse && token.getUnderlyingType() == ElseExpr.class) {
+          if (skipElseCount > 0 && token.getUnderlyingType() == ElseExpr.class) {
             while (it.hasNext()) {
               token = it.next();
               if (token.getUnderlyingType() == EndConditional.class) {
                 break;
               }
             }
-            skipElse = false;
+            // We've completed a single else.
+            skipElseCount--;
           }
           if (skipMatchClauses && (token.getUnderlyingType() == MatchClauseEnd.class
               || token.getUnderlyingType() == MatchClauseCheckExpr.class)) {
@@ -219,14 +220,22 @@ public class StellarCompiler extends StellarBaseListener {
               //short circuit the if/then/else
               instanceDeque.pop();
               if((Boolean)curr.getValue()) {
-                //choose then
-                skipElse = true;
+                //choose then.  Need to make sure we're keeping track of nesting.
+                skipElseCount++;
               } else {
                 //choose else
+                // Need to count in case we see another if-else, to avoid breaking on wrong else.
+                int innerIfCount = 0;
                 while (it.hasNext()) {
                   Token<?> t = it.next();
-                  if (t.getUnderlyingType() == ElseExpr.class) {
-                    break;
+                  if (t.getUnderlyingType() == IfExpr.class) {
+                    innerIfCount++;
+                  } else if (t.getUnderlyingType() == ElseExpr.class) {
+                    if (innerIfCount == 0) {
+                      break;
+                    } else {
+                      innerIfCount--;
+                    }
                   }
                 }
               }
@@ -437,12 +446,13 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public void exitNotFunc(StellarParser.NotFuncContext ctx) {
     final FrameContext.Context context = getArgContext();
-    expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
-    Token<Boolean> arg = (Token<Boolean>) popDeque(tokenDeque);
-    Boolean v = Optional.ofNullable(ConversionUtils.convert(arg.getValue(), Boolean.class)).orElse(false);
-    tokenDeque.push(new Token<>(!v, Boolean.class, context));
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+      Token<Boolean> arg = (Token<Boolean>) popDeque(tokenDeque);
+      Boolean v = Optional.ofNullable(ConversionUtils.convert(arg.getValue(), Boolean.class)).orElse(false);
+      tokenDeque.push(new Token<>(!v, Boolean.class, context));
     }, DeferredFunction.class, context));
   }
 
@@ -591,10 +601,11 @@ public class StellarCompiler extends StellarBaseListener {
     expression.tokenDeque.push(LAMBDA_VARIABLES);
   }
 
+  @SuppressWarnings("ReferenceEquality")
   private void exitLambdaVariables() {
     Token<?> t = expression.tokenDeque.pop();
     LinkedList<String> variables = new LinkedList<>();
-    for(; !expression.tokenDeque.isEmpty() && t != LAMBDA_VARIABLES; t = expression.tokenDeque.pop()) {
+    for (; !expression.tokenDeque.isEmpty() && t != LAMBDA_VARIABLES; t = expression.tokenDeque.pop()) {
       variables.addFirst(t.getValue().toString());
     }
     expression.tokenDeque.push(new Token<>(variables, List.class, getArgContext()));
@@ -604,6 +615,7 @@ public class StellarCompiler extends StellarBaseListener {
     expression.tokenDeque.push(EXPRESSION_REFERENCE);
   }
 
+  @SuppressWarnings({"unchecked","ReferenceEquality"})
   private void exitLambda(boolean hasArgs) {
     final FrameContext.Context context = getArgContext();
     Token<?> t = expression.tokenDeque.pop();
@@ -611,11 +623,11 @@ public class StellarCompiler extends StellarBaseListener {
     for(; !expression.tokenDeque.isEmpty() && t != EXPRESSION_REFERENCE; t = expression.tokenDeque.pop()) {
       instanceDeque.addLast(t);
     }
-    final List<String> variables = hasArgs? (List<String>) instanceDeque.removeLast().getValue() :new ArrayList<>();
-    expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
+    final List<String> variables = hasArgs ? (List<String>) instanceDeque.removeLast().getValue() :new ArrayList<>();
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
       LambdaExpression expr = new LambdaExpression(variables, instanceDeque, state);
       tokenDeque.push(new Token<>(expr, Object.class, context));
-    }, DeferredFunction.class, context) );
+    }, DeferredFunction.class, context));
   }
 
   @Override

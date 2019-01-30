@@ -130,7 +130,7 @@ export class SensorGrokComponent implements OnInit, OnChanges {
     this.hideGrok.emit();
   }
 
-  private getAvailablePatternLabels() {
+  getAvailablePatternLabels() {
     this.availablePatternLabels = [];
     let statements = this.newGrokStatement.split('\n');
     for (let statement of statements) {

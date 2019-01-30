@@ -15,47 +15,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions, Response} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
-import {HttpUtil} from '../util/httpUtil';
-import {IAppConfig} from '../app.config.interface';
-import {SensorParserConfigHistory} from '../model/sensor-parser-config-history';
-import {APP_CONFIG} from '../app.config';
-import {SensorParserConfig} from '../model/sensor-parser-config';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { HttpUtil } from '../util/httpUtil';
+import { SensorParserConfigHistory } from '../model/sensor-parser-config-history';
+import { SensorParserConfig } from '../model/sensor-parser-config';
+import { RestError } from '../model/rest-error';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class SensorParserConfigHistoryService {
-  url =  this.config.apiEndpoint + '/sensor/parser/config';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  url = this.appConfigService.getApiRoot() + '/sensor/parser/config';
 
-  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
+  constructor(
+    private http: HttpClient,
+    private appConfigService: AppConfigService
+  ) {}
 
-  }
-
-  public get(name: string): Observable<SensorParserConfigHistory> {
-    return this.http.get(this.url + '/' + name, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map((response: Response) => {
+  public get(name: string): Observable<RestError | SensorParserConfigHistory> {
+    return this.http.get(this.url + '/' + name).pipe(
+      map((response: SensorParserConfig) => {
         let sensorParserConfigHistory = new SensorParserConfigHistory();
-        sensorParserConfigHistory.config = response.json();
+        sensorParserConfigHistory.config = response;
         return sensorParserConfigHistory;
-      })
-      .catch(HttpUtil.handleError);
+      }),
+      catchError(HttpUtil.handleError)
+    );
   }
 
-  public getAll(): Observable<SensorParserConfigHistory[]> {
-    return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map((response: Response) => {
+  public getAll(): Observable<SensorParserConfigHistory[] | RestError> {
+    return this.http.get(this.url).pipe(
+      map((response: SensorParserConfig[]) => {
         let sensorParserConfigHistoryArray = [];
-        let sensorParserConfigs: SensorParserConfig[] = response.json();
+        let sensorParserConfigs: SensorParserConfig[] = response;
         for (let sensorParserConfig of sensorParserConfigs) {
           let sensorParserConfigHistory = new SensorParserConfigHistory();
           sensorParserConfigHistory.config = sensorParserConfig;
           sensorParserConfigHistoryArray.push(sensorParserConfigHistory);
         }
         return sensorParserConfigHistoryArray;
-      })
-      .catch(HttpUtil.handleError);
+      }),
+      catchError(HttpUtil.handleError)
+    );
   }
-
 }

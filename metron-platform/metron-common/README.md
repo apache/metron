@@ -85,6 +85,7 @@ but a convenient index is provided here:
 | [`es.ip`](../metron-elasticsearch#esip)                                                                             | Indexing      | String     | `es_hosts`                 |
 | [`es.port`](../metron-elasticsearch#esport)                                                                         | Indexing      | String     | `es_port`                  |
 | [`es.date.format`](../metron-elasticsearch#esdateformat)                                                            | Indexing      | String     | `es_date_format`           |
+| [`es.client.settings`](../metron-elasticsearch#esclientsettings)                                                    | Indexing      | Object     | N/A                        |
 | [`fieldValidations`](#validation-framework)                                                                         | Parsing       | Object     | N/A                        |
 | [`parser.error.topic`](../metron-parsers#parsererrortopic)                                                          | Parsing       | String     | N/A                        |
 | [`stellar.function.paths`](../../metron-stellar/stellar-common#stellarfunctionpaths)                                | Stellar       | CSV String | N/A                        |

@@ -15,104 +15,101 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
-import '../rxjs-operators';
-import {METRON_REST_CONFIG, APP_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
-import {SensorIndexingConfigService} from './sensor-indexing-config.service';
-import {IndexingConfigurations} from '../model/sensor-indexing-config';
+import { TestBed } from '@angular/core/testing';
+import { HttpResponse } from '@angular/common/http';
+import { SensorIndexingConfigService } from './sensor-indexing-config.service';
+import { IndexingConfigurations } from '../model/sensor-indexing-config';
+import {
+  HttpClientTestingModule,
+  HttpTestingController
+} from '@angular/common/http/testing';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('SensorIndexingConfigService', () => {
+  let mockBackend: HttpTestingController;
+  let sensorIndexingConfigService: SensorIndexingConfigService;
 
-  beforeEach(async(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpModule],
+      imports: [HttpClientTestingModule],
       providers: [
         SensorIndexingConfigService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
-    })
-        .compileComponents();
-  }));
+    });
+    mockBackend = TestBed.get(HttpTestingController);
+    sensorIndexingConfigService = TestBed.get(SensorIndexingConfigService);
+  });
 
-  it('can instantiate service when inject service',
-      inject([SensorIndexingConfigService], (service: SensorIndexingConfigService) => {
-        expect(service instanceof SensorIndexingConfigService).toBe(true);
-      }));
-
-  it('can instantiate service with "new"', inject([Http, APP_CONFIG], (http: Http, config: IAppConfig) => {
-    expect(http).not.toBeNull('http should be provided');
-    let service = new SensorIndexingConfigService(http, config);
-    expect(service instanceof SensorIndexingConfigService).toBe(true, 'new service should be ok');
-  }));
-
-
-  it('can provide the mockBackend as XHRBackend',
-      inject([XHRBackend], (backend: MockBackend) => {
-        expect(backend).not.toBeNull('backend should be provided');
-      }));
+  afterEach(() => {
+    mockBackend.verify();
+  });
 
   describe('when service functions', () => {
-    let sensorIndexingConfigService: SensorIndexingConfigService;
-    let mockBackend: MockBackend;
     let sensorIndexingConfig1 = new IndexingConfigurations();
     sensorIndexingConfig1.hdfs.index = 'squid';
     sensorIndexingConfig1.hdfs.batchSize = 1;
     let sensorIndexingConfig2 = new IndexingConfigurations();
     sensorIndexingConfig2.hdfs.index = 'yaf';
     sensorIndexingConfig2.hdfs.batchSize = 2;
-    let sensorIndexingConfigResponse: Response;
-    let sensorIndexingConfigsResponse: Response;
-    let deleteResponse: Response;
+    let deleteResponse: HttpResponse<{}>;
 
-    beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
-      mockBackend = be;
-      sensorIndexingConfigService = new SensorIndexingConfigService(http, config);
-      sensorIndexingConfigResponse = new Response(new ResponseOptions({status: 200, body: sensorIndexingConfig1}));
-      sensorIndexingConfigsResponse = new Response(new ResponseOptions({status: 200, body: [sensorIndexingConfig1,
-        sensorIndexingConfig2]}));
-      deleteResponse = new Response(new ResponseOptions({status: 200}));
-    }));
+    beforeEach(() => {
+      deleteResponse = new HttpResponse({ status: 200 });
+    });
 
-    it('post', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorIndexingConfigResponse));
-
-      sensorIndexingConfigService.post('squid', sensorIndexingConfig1).subscribe(
+    it('post', () => {
+      sensorIndexingConfigService
+        .post('squid', sensorIndexingConfig1)
+        .subscribe(
           result => {
             expect(result).toEqual(sensorIndexingConfig1);
-          }, error => console.log(error));
-    })));
+          },
+          error => console.log(error)
+        );
+      const req = mockBackend.expectOne('/api/v1/sensor/indexing/config/squid');
+      expect(req.request.method).toBe('POST');
+      req.flush(sensorIndexingConfig1);
+    });
 
-    it('get', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorIndexingConfigResponse));
-
+    it('get', () => {
       sensorIndexingConfigService.get('squid').subscribe(
-          result => {
-            expect(result).toEqual(sensorIndexingConfig1);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(sensorIndexingConfig1);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/sensor/indexing/config/squid');
+      expect(req.request.method).toBe('GET');
+      req.flush(sensorIndexingConfig1);
+    });
 
-    it('getAll', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorIndexingConfigsResponse));
-
+    it('getAll', () => {
       sensorIndexingConfigService.getAll().subscribe(
-          results => {
-            expect(results).toEqual([sensorIndexingConfig1, sensorIndexingConfig2]);
-          }, error => console.log(error));
-    })));
+        results => {
+          expect(results).toEqual([
+            sensorIndexingConfig1,
+            sensorIndexingConfig2
+          ]);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/sensor/indexing/config');
+      expect(req.request.method).toBe('GET');
+      req.flush([sensorIndexingConfig1, sensorIndexingConfig2]);
+    });
 
-    it('deleteSensorEnrichments', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(deleteResponse));
-
-      sensorIndexingConfigService.deleteSensorIndexingConfig('squid').subscribe(result => {
-        expect(result.status).toEqual(200);
-      });
-    })));
+    it('deleteSensorEnrichments', () => {
+      sensorIndexingConfigService.deleteSensorIndexingConfig('squid').subscribe(
+        result => {
+          expect(result.status).toEqual(200);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/sensor/indexing/config/squid');
+      expect(req.request.method).toBe('DELETE');
+      req.flush(deleteResponse);
+    });
   });
-
 });
-
-

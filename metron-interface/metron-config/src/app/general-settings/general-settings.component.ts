@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import {GlobalConfigService} from '../service/global-config.service';
-import {MetronAlerts} from '../shared/metron-alerts';
-import {MetronDialogBox} from '../shared/metron-dialog-box';
+import { GlobalConfigService } from '../service/global-config.service';
+import { MetronAlerts } from '../shared/metron-alerts';
+import { MetronDialogBox } from '../shared/metron-dialog-box';
 
 @Component({
   selector: 'metron-config-general-settings',
@@ -26,15 +26,17 @@ import {MetronDialogBox} from '../shared/metron-dialog-box';
   styleUrls: ['./general-settings.component.scss']
 })
 export class GeneralSettingsComponent implements OnInit {
-
   globalConfig: {} = {
     'es.date.format': '-'
   };
 
-  private fieldValidations: string;
+  fieldValidations: string;
 
-  constructor(private globalConfigService: GlobalConfigService, private metronAlerts: MetronAlerts,
-              private metronDialog: MetronDialogBox) {}
+  constructor(
+    private globalConfigService: GlobalConfigService,
+    private metronAlerts: MetronAlerts,
+    private metronDialog: MetronDialogBox
+  ) {}
 
   ngOnInit() {
     this.globalConfigService.get().subscribe((config: {}) => {
@@ -43,7 +45,11 @@ export class GeneralSettingsComponent implements OnInit {
         this.globalConfig['es.date.format'] = '-';
       }
       if (this.globalConfig['fieldValidations']) {
-        this.fieldValidations = JSON.stringify(this.globalConfig['fieldValidations'], null, '\t');
+        this.fieldValidations = JSON.stringify(
+          this.globalConfig['fieldValidations'],
+          null,
+          '\t'
+        );
       }
     });
   }
@@ -52,21 +58,27 @@ export class GeneralSettingsComponent implements OnInit {
     if (this.fieldValidations && this.fieldValidations.length > 0) {
       this.globalConfig['fieldValidations'] = JSON.parse(this.fieldValidations);
     }
-    this.globalConfigService.post(this.globalConfig).subscribe(() => {
+    this.globalConfigService.post(this.globalConfig).subscribe(
+      () => {
         this.metronAlerts.showSuccessMessage('Saved Global Settings');
       },
       error => {
-        this.metronAlerts.showErrorMessage('Unable to save Global Settings: ' + error);
-      });
+        this.metronAlerts.showErrorMessage(
+          'Unable to save Global Settings: ' + error
+        );
+      }
+    );
   }
 
   onCancel() {
-    let confirmationMsg = 'Cancelling will revert all the changes made to the form. Do you wish to continue ?';
-    this.metronDialog.showConfirmationMessage(confirmationMsg).subscribe((result: boolean) => {
-      if (result) {
-        this.ngOnInit();
-      }
-    });
+    let confirmationMsg =
+      'Cancelling will revert all the changes made to the form. Do you wish to continue ?';
+    this.metronDialog
+      .showConfirmationMessage(confirmationMsg)
+      .subscribe((result: boolean) => {
+        if (result) {
+          this.ngOnInit();
+        }
+      });
   }
-
 }

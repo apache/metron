@@ -22,26 +22,29 @@ import {Router} from '@angular/router';
 import { ReplaySubject } from 'rxjs';
 import { GlobalConfigService } from './global-config.service';
 import { DataSource } from './data-source';
+import { AppConfigService } from './app-config.service';
+import {HttpUtil} from "../utils/httpUtil";
 
 @Injectable()
 export class AuthenticationService {
 
   private static USER_NOT_VERIFIED = 'USER-NOT-VERIFIED';
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
-  loginUrl = '/api/v1/user';
-  logoutUrl = '/logout';
+  userUrl = this.appConfigService.getApiRoot() + '/user';
+  logoutUrl = this.appConfigService.getApiRoot() + '/logout';
   onLoginEvent: ReplaySubject<boolean> = new ReplaySubject<boolean>();
   $onLoginEvent = this.onLoginEvent.asObservable();
 
   constructor(private http: HttpClient,
               private router: Router,
               private globalConfigService: GlobalConfigService,
-              private dataSource: DataSource) {
+              private dataSource: DataSource,
+              private appConfigService: AppConfigService) {
     this.init();
   }
 
   public init() {
-      this.getCurrentUser({responseType: 'text'}).subscribe((response) => {
+      this.getCurrentUser({ headers: new HttpHeaders({'Accept': 'text/plain'}), responseType: 'text'}).subscribe((response) => {
         this.currentUser = response.toString();
         if (this.currentUser) {
           this.onLoginEvent.next(true);
@@ -54,7 +57,7 @@ export class AuthenticationService {
 
   public login(username: string, password: string, onError): void {
     let credentials = btoa(username + ':' + password);
-    this.getCurrentUser({ headers: new HttpHeaders({'Authorization': `Basic ${credentials}`}), responseType: 'text' })
+    this.getCurrentUser({ headers: new HttpHeaders({'Authorization': `Basic ${credentials}`, 'Accept': 'text/plain'}), responseType: 'text' })
         .subscribe((response) => {
           this.currentUser = response.toString();
           this.router.navigateByUrl('/alerts-list');
@@ -69,24 +72,23 @@ export class AuthenticationService {
 
   public logout(): void {
     this.http.post(this.logoutUrl, {}).subscribe(response => {
-        this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
-        this.onLoginEvent.next(false);
-        this.router.navigateByUrl('/login');
+        this.clearAuthentication();
+        HttpUtil.navigateToLogin();
       },
       error => {
         console.log('Logout failed:', error);
-        this.router.navigateByUrl('/login');
+        HttpUtil.navigateToLogin();
       });
   }
 
   public checkAuthentication() {
     if (!this.isAuthenticated()) {
-      this.router.navigateByUrl('/login');
+      HttpUtil.navigateToLogin();
     }
   }
 
   public getCurrentUser(options?: {}) {
-    return this.http.get(this.loginUrl, options);
+    return this.http.get(this.userUrl, options);
   }
 
   public getCurrentUserName(): string {
@@ -99,5 +101,10 @@ export class AuthenticationService {
 
   public isAuthenticated(): boolean {
     return this.currentUser !== AuthenticationService.USER_NOT_VERIFIED && this.currentUser != null;
+  }
+
+  public clearAuthentication(): void {
+    this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
+    this.onLoginEvent.next(false);
   }
 }

@@ -44,11 +44,13 @@ import org.apache.metron.indexing.dao.metaalert.lucene.AbstractLuceneMetaAlertUp
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.InnerHitBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.SearchHit;
 
 public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao {
 
@@ -148,8 +150,11 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
       try {
         // We need to update an alert itself.  Only that portion of the update can be delegated.
         // We still need to get meta alerts potentially associated with it and update.
-        Collection<Document> metaAlerts = getMetaAlertsForAlert(update.getGuid()).getResults().stream()
-                .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(), MetaAlertConstants.METAALERT_TYPE, update.getTimestamp()))
+        SearchResponse response = getMetaAlertsForAlert(update.getGuid());
+        Collection<Document> metaAlerts = response
+                .getResults()
+                .stream()
+                .map(result -> toDocument(result, update.getTimestamp()))
                 .collect(Collectors.toList());
         // Each meta alert needs to be updated with the new alert
         for (Document metaAlert : metaAlerts) {
@@ -170,6 +175,13 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
 
       return update;
     }
+  }
+
+  private Document toDocument(SearchResult result, Long timestamp) {
+    Document document = Document.fromJSON(result.getSource());
+    document.setTimestamp(timestamp);
+    document.setDocumentID(result.getId());
+    return document;
   }
 
   @Override
@@ -199,7 +211,7 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
    * @param alertGuid The GUID of the child alert
    * @return The Elasticsearch response containing the meta alerts
    */
-  protected SearchResponse getMetaAlertsForAlert(String alertGuid) {
+  protected SearchResponse getMetaAlertsForAlert(String alertGuid) throws IOException {
     QueryBuilder qb = boolQuery()
         .must(
             nestedQuery(
@@ -212,7 +224,7 @@ public class ElasticsearchMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpda
         )
         .must(termQuery(MetaAlertConstants.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
     return ElasticsearchUtils
-        .queryAllResults(elasticsearchDao.getClient(), qb, getConfig().getMetaAlertIndex(),
+        .queryAllResults(elasticsearchDao.getClient().getHighLevelClient(), qb, getConfig().getMetaAlertIndex(),
             pageSize);
   }
 

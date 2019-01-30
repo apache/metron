@@ -15,25 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Inject} from '@angular/core';
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
-import {Http} from '@angular/http';
-import {GeneralSettingsComponent} from './general-settings.component';
-import {MetronAlerts} from '../shared/metron-alerts';
-import {MetronDialogBox} from '../shared/metron-dialog-box';
-import {GlobalConfigService} from '../service/global-config.service';
-import {GeneralSettingsModule} from './general-settings.module';
-import {Observable} from 'rxjs/Observable';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
+import { Inject } from '@angular/core';
+import { async, TestBed, ComponentFixture } from '@angular/core/testing';
+import { HttpClient } from '@angular/common/http';
+import { GeneralSettingsComponent } from './general-settings.component';
+import { MetronAlerts } from '../shared/metron-alerts';
+import { MetronDialogBox } from '../shared/metron-dialog-box';
+import { GlobalConfigService } from '../service/global-config.service';
+import { GeneralSettingsModule } from './general-settings.module';
+import { Observable, throwError } from 'rxjs';
+import {AppConfigService} from '../service/app-config.service';
+import {MockAppConfigService} from '../service/mock.app-config.service';
 
 class MockGlobalConfigService extends GlobalConfigService {
   _config: any = {};
-  _postSuccess: boolean = true;
-
-  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
-    super(http2, config2);
-  }
+  _postSuccess = true;
 
   public post(globalConfig: {}): Observable<{}> {
     if (this._postSuccess) {
@@ -43,7 +39,7 @@ class MockGlobalConfigService extends GlobalConfigService {
       });
     }
 
-    return Observable.throw('Error');
+    return throwError('Error');
   }
 
   public get(): Observable<{}> {
@@ -55,7 +51,6 @@ class MockGlobalConfigService extends GlobalConfigService {
 }
 
 describe('GeneralSettingsComponent', () => {
-
   let metronAlerts: MetronAlerts;
   let metronDialogBox: MetronDialogBox;
   let component: GeneralSettingsComponent;
@@ -68,39 +63,38 @@ describe('GeneralSettingsComponent', () => {
     'hdfs.boltBatchSize': 5000,
     'hdfs.boltFieldDelimiter': '|',
     'hdfs.boltFileRotationSize': 5,
-    'hdfs.boltCompressionCodecClass': 'org.apache.hadoop.io.compress.SnappyCodec',
+    'hdfs.boltCompressionCodecClass':
+      'org.apache.hadoop.io.compress.SnappyCodec',
     'hdfs.indexOutput': '/tmp/metron/enriched',
     'kafkaWriter.topic': 'outputTopic',
-    'kafkaWriter.keySerializer': 'org.apache.kafka.common.serialization.StringSerializer',
-    'kafkaWriter.valueSerializer': 'org.apache.kafka.common.serialization.StringSerializer',
+    'kafkaWriter.keySerializer':
+      'org.apache.kafka.common.serialization.StringSerializer',
+    'kafkaWriter.valueSerializer':
+      'org.apache.kafka.common.serialization.StringSerializer',
     'kafkaWriter.requestRequiredAcks': 1,
     'solrWriter.indexName': 'alfaalfa',
     'solrWriter.shards': 1,
     'solrWriter.replicationFactor': 1,
     'solrWriter.batchSize': 50,
-    'fieldValidations': {'field': 'validation'}
+    fieldValidations: { field: 'validation' }
   };
 
   beforeEach(async(() => {
-
     TestBed.configureTestingModule({
       imports: [GeneralSettingsModule],
       providers: [
-        {provide: Http},
+        { provide: HttpClient },
         MetronAlerts,
         MetronDialogBox,
-        {provide: GlobalConfigService, useClass: MockGlobalConfigService},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: GlobalConfigService, useClass: MockGlobalConfigService },
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
-    }).compileComponents()
-      .then(() => {
-        fixture = TestBed.createComponent(GeneralSettingsComponent);
-        component = fixture.componentInstance;
-        globalConfigService = fixture.debugElement.injector.get(GlobalConfigService);
-        metronAlerts = fixture.debugElement.injector.get(MetronAlerts);
-        metronDialogBox = fixture.debugElement.injector.get(MetronDialogBox);
-      });
-
+    });
+    fixture = TestBed.createComponent(GeneralSettingsComponent);
+    component = fixture.componentInstance;
+    globalConfigService = TestBed.get(GlobalConfigService);
+    metronAlerts = TestBed.get(MetronAlerts);
+    metronDialogBox = TestBed.get(MetronDialogBox);
   }));
 
   it('can instantiate GeneralSettingsComponent', async(() => {
@@ -111,7 +105,7 @@ describe('GeneralSettingsComponent', () => {
     globalConfigService._config = config;
     component.ngOnInit();
 
-    expect(component.globalConfig).toEqual(globalConfigService._config);
+    expect(component.globalConfig).toEqual(config);
   }));
 
   it('should save global config', async(() => {
@@ -122,18 +116,22 @@ describe('GeneralSettingsComponent', () => {
     spyOn(metronAlerts, 'showErrorMessage');
 
     component.onSave();
-    expect(metronAlerts.showSuccessMessage).toHaveBeenCalledWith('Saved Global Settings');
+    expect(metronAlerts.showSuccessMessage).toHaveBeenCalledWith(
+      'Saved Global Settings'
+    );
 
     globalConfigService._postSuccess = false;
 
     component.onSave();
-    expect(metronAlerts.showErrorMessage).toHaveBeenCalledWith('Unable to save Global Settings: Error');
-
+    expect(metronAlerts.showErrorMessage).toHaveBeenCalledWith(
+      'Unable to save Global Settings: Error'
+    );
   }));
 
   it('should handle onCancel', async(() => {
     let dialogReturnTrue = true;
-    let confirmationMsg = 'Cancelling will revert all the changes made to the form. Do you wish to continue ?';
+    let confirmationMsg =
+      'Cancelling will revert all the changes made to the form. Do you wish to continue ?';
 
     spyOn(component, 'ngOnInit');
     spyOn(metronDialogBox, 'showConfirmationMessage').and.callFake(function() {
@@ -148,14 +146,14 @@ describe('GeneralSettingsComponent', () => {
     expect(component.ngOnInit).toHaveBeenCalled();
     expect(component.ngOnInit['calls'].count()).toEqual(1);
     expect(metronDialogBox.showConfirmationMessage['calls'].count()).toEqual(1);
-    expect(metronDialogBox.showConfirmationMessage).toHaveBeenCalledWith(confirmationMsg);
+    expect(metronDialogBox.showConfirmationMessage).toHaveBeenCalledWith(
+      confirmationMsg
+    );
 
     dialogReturnTrue = false;
     component.onCancel();
 
     expect(metronDialogBox.showConfirmationMessage['calls'].count()).toEqual(2);
     expect(component.ngOnInit['calls'].count()).toEqual(1);
-
   }));
-
 });

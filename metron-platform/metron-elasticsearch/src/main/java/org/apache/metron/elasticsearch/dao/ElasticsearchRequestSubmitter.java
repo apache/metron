@@ -20,13 +20,12 @@ package org.apache.metron.elasticsearch.dao;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.ShardSearchFailure;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.rest.RestStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +42,9 @@ public class ElasticsearchRequestSubmitter {
   /**
    * The Elasticsearch client.
    */
-  private TransportClient client;
+  private ElasticsearchClient client;
 
-  public ElasticsearchRequestSubmitter(TransportClient client) {
+  public ElasticsearchRequestSubmitter(ElasticsearchClient client) {
     this.client = client;
   }
 
@@ -60,12 +59,11 @@ public class ElasticsearchRequestSubmitter {
     // submit the search request
     org.elasticsearch.action.search.SearchResponse esResponse;
     try {
-      esResponse = client
-              .search(request)
-              .actionGet();
-      LOG.debug("Got Elasticsearch response; response={}", esResponse.toString());
+      esResponse = client.getHighLevelClient().search(request);
+      LOG.debug("Got Elasticsearch response with {} hit(s); response={}",
+              esResponse.getHits().getTotalHits(), esResponse.toString());
 
-    } catch (SearchPhaseExecutionException e) {
+    } catch (Exception e) {
       String msg = String.format(
               "Failed to execute search; error='%s', search='%s'",
               ExceptionUtils.getRootCauseMessage(e),

@@ -15,11 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
-import {NavbarComponent} from './navbar.component';
-import {AuthenticationService} from '../service/authentication.service';
+import { async, TestBed, ComponentFixture } from '@angular/core/testing';
+import { NavbarComponent } from './navbar.component';
+import { AuthenticationService } from '../service/authentication.service';
+import { of } from 'rxjs';
 
 class MockAuthenticationService {
+  getCurrentUser() {
+    return of('user');
+  }
 }
 
 describe('NavbarComponent', () => {
@@ -28,21 +32,18 @@ describe('NavbarComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ NavbarComponent],
+      declarations: [NavbarComponent],
       providers: [
         NavbarComponent,
-        {provide: AuthenticationService, useClass: MockAuthenticationService}
+        { provide: AuthenticationService, useClass: MockAuthenticationService }
       ]
     });
-
     fixture = TestBed.createComponent(NavbarComponent);
     navbarComponent = fixture.componentInstance;
-
   }));
 
   it('can instantiate SampleDataComponent', async(() => {
     expect(navbarComponent instanceof NavbarComponent).toBe(true);
-    fixture.destroy();
+    fixture.detectChanges();
   }));
-
 });

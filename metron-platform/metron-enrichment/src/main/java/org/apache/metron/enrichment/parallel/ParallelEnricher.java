@@ -157,6 +157,7 @@ public class ParallelEnricher {
         throw new IllegalStateException("Unable to find an adapter for " + task.getKey()
                 + ", possible adapters are: " + Joiner.on(",").join(enrichmentsByType.keySet()));
       }
+      message.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".begin.ts", "" + System.currentTimeMillis());
       for(JSONObject m : task.getValue()) {
         /* now for each unit of work (each of these only has one element in them)
          * the key is the field name and the value is value associated with that field.
@@ -171,6 +172,7 @@ public class ParallelEnricher {
           String field = (String) o;
           Object value = m.get(o);
           if(value == null) {
+            message.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".end.ts", "" + System.currentTimeMillis());
             continue;
           }
           CacheKey cacheKey = new CacheKey(field, value, config);
@@ -182,7 +184,10 @@ public class ParallelEnricher {
                 ret = new JSONObject();
               }
               //each enrichment has their own unique prefix to use to adjust the keys for the enriched fields.
-              return EnrichmentUtils.adjustKeys(new JSONObject(), ret, cacheKey.getField(), prefix);
+              JSONObject adjustedKeys = EnrichmentUtils
+                  .adjustKeys(new JSONObject(), ret, cacheKey.getField(), prefix);
+              adjustedKeys.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".end.ts", "" + System.currentTimeMillis());
+              return adjustedKeys;
             } catch (Throwable e) {
               JSONObject errorMessage = new JSONObject();
               errorMessage.putAll(m);
@@ -197,11 +202,12 @@ public class ParallelEnricher {
       }
     }
     if(taskList.isEmpty()) {
+      message.put(getClass().getSimpleName().toLowerCase() + ".enrich.end.ts", "" + System.currentTimeMillis());
       return new EnrichmentResult(message, errors);
     }
 
     EnrichmentResult ret = new EnrichmentResult(all(taskList, message, (left, right) -> join(left, right)).get(), errors);
-    message.put(getClass().getSimpleName().toLowerCase() + ".enrich.end.ts", "" + System.currentTimeMillis());
+    ret.getResult().put(getClass().getSimpleName().toLowerCase() + ".enrich.end.ts", "" + System.currentTimeMillis());
     if(perfLog != null) {
       String key = message.get(Constants.GUID) + "";
       perfLog.log("enrich", "key={}, elapsed time to enrich", key);

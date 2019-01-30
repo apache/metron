@@ -15,17 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
-import {KafkaService} from '../../service/kafka.service';
-import {Observable} from  'rxjs/Observable';
-import {SampleDataComponent} from './sample-data.component';
-import {SharedModule} from '../shared.module';
-import '../../rxjs-operators';
+import { async, TestBed, ComponentFixture } from '@angular/core/testing';
+import { KafkaService } from '../../service/kafka.service';
+import { Observable, throwError } from 'rxjs';
+import { SampleDataComponent } from './sample-data.component';
+import { SharedModule } from '../shared.module';
 
 class MockKafkaService {
   _sample: string[];
-  _sampleCounter: number = 0;
-
+  _sampleCounter = 0;
 
   public setSample(sampleMessages: string[]): void {
     this._sample = sampleMessages;
@@ -33,7 +31,6 @@ class MockKafkaService {
   }
 
   public sample(name: string): Observable<string> {
-
     if (this._sampleCounter < this._sample.length) {
       return Observable.create(observer => {
         observer.next(this._sample[this._sampleCounter++]);
@@ -41,7 +38,7 @@ class MockKafkaService {
       });
     }
 
-    return Observable.throw('Error');
+    return throwError('Error');
   }
 }
 
@@ -58,23 +55,20 @@ describe('SampleDataComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [SharedModule],
-      declarations: [ SampleDataComponent],
+      declarations: [SampleDataComponent],
       providers: [
         SampleDataComponent,
-        {provide: KafkaService, useClass: MockKafkaService}
+        { provide: KafkaService, useClass: MockKafkaService }
       ]
     });
-
     fixture = TestBed.createComponent(SampleDataComponent);
     sampleDataComponent = fixture.componentInstance;
-    kafkaService = fixture.debugElement.injector.get(KafkaService);
-
+    kafkaService = TestBed.get(KafkaService);
   }));
 
   it('can instantiate SampleDataComponent', async(() => {
     expect(sampleDataComponent instanceof SampleDataComponent).toBe(true);
   }));
-
 
   it('should emmit messages', async(() => {
     let expectedMessage;
@@ -140,11 +134,9 @@ describe('SampleDataComponent', () => {
     sampleDataComponent.getPreviousSample();
     expect(successCount).toEqual(7);
     expect(failureCount).toEqual(1);
-
   }));
 
   it('should emmit messages on blur', async(() => {
-
     let expectedMessage;
     let successCount = 0;
 
@@ -155,9 +147,10 @@ describe('SampleDataComponent', () => {
       expect(message).toEqual(expectedMessage);
     });
 
-
     expectedMessage = 'This is a simple message';
-    fixture.debugElement.nativeElement.querySelector('textarea').value = expectedMessage;
+    fixture.debugElement.nativeElement.querySelector(
+      'textarea'
+    ).value = expectedMessage;
     sampleDataComponent.onBlur();
 
     expect(successCount).toEqual(1);
@@ -165,15 +158,15 @@ describe('SampleDataComponent', () => {
     expect(sampleDataComponent.sampleData.length).toEqual(1);
     expect(sampleDataComponent.sampleData[0]).toEqual(expectedMessage);
 
-
     expectedMessage = '';
-    fixture.debugElement.nativeElement.querySelector('textarea').value = expectedMessage;
+    fixture.debugElement.nativeElement.querySelector(
+      'textarea'
+    ).value = expectedMessage;
     sampleDataComponent.onBlur();
 
     expect(successCount).toEqual(2);
     expect(sampleDataComponent.sampleDataIndex).toEqual(0);
     expect(sampleDataComponent.sampleData.length).toEqual(1);
-
 
     expectedMessage = sampleMessages[0];
     sampleDataComponent.getNextSample();
@@ -182,7 +175,5 @@ describe('SampleDataComponent', () => {
     expect(sampleDataComponent.sampleDataIndex).toEqual(1);
     expect(sampleDataComponent.sampleData.length).toEqual(2);
     expect(sampleDataComponent.sampleData[1]).toEqual(sampleMessages[0]);
-
   }));
-
 });

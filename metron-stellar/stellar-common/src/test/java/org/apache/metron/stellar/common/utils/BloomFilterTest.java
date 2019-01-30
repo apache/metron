@@ -38,6 +38,7 @@ public class BloomFilterTest {
   }};
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testMerge() {
 
     BloomFilter bloomString = (BloomFilter)run("BLOOM_ADD(BLOOM_INIT(), string)", variables);
@@ -58,6 +59,7 @@ public class BloomFilterTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testAdd() {
     BloomFilter result = (BloomFilter)run("BLOOM_ADD(BLOOM_INIT(), string, double, integer, map)", variables);
     for(Object val : variables.values()) {

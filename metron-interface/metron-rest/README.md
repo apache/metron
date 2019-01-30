@@ -66,10 +66,6 @@ No optional parameter has a default.
 
 | Environment Variable                  | Description
 | ------------------------------------- | -----------
-| METRON_JDBC_DRIVER                    | JDBC driver class
-| METRON_JDBC_URL                       | JDBC url
-| METRON_JDBC_USERNAME                  | JDBC username
-| METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle
 | ZOOKEEPER                             | Zookeeper quorum (ex. node1:2181,node2:2181)
 | BROKERLIST                            | Kafka Broker list (ex. node1:6667,node2:6667)
 | HDFS_URL                              | HDFS url or `fs.defaultFS` Hadoop setting (ex. hdfs://node1:8020)
@@ -88,6 +84,10 @@ No optional parameter has a default.
 ### Optional - Blank Defaults
 | Environment Variable                  | Description                                                       | Required
 | ------------------------------------- | ----------------------------------------------------------------- | --------
+| METRON_JDBC_DRIVER                    | JDBC driver class                                                 | Optional
+| METRON_JDBC_URL                       | JDBC url                                                          | Optional
+| METRON_JDBC_USERNAME                  | JDBC username                                                     | Optional
+| METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle)                | Optional
 | METRON_JVMFLAGS                       | JVM flags added to the start command                              | Optional
 | METRON_SPRING_PROFILES_ACTIVE         | Active Spring profiles (see [below](#spring-profiles))            | Optional
 | METRON_SPRING_OPTIONS                 | Additional Spring input parameters                                | Optional
@@ -373,7 +373,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/{name}`](#get-apiv1stormname)|
 | [ `GET /api/v1/storm/supervisors`](#get-apiv1stormsupervisors)|
 | [ `PATCH /api/v1/update/patch`](#patch-apiv1updatepatch)|
-| [ `PUT /api/v1/update/replace`](#put-apiv1updatereplace)|
 | [ `POST /api/v1/update/add/comment`](#put-apiv1updateaddcomment)|
 | [ `POST /api/v1/update/remove/comment`](#put-apiv1updateremovecomment)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
@@ -978,31 +977,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Nothing
     * 404 - Document not found
-
-### `PUT /api/v1/update/replace`
-  * Description: Replace a document
-  * Input:
-    * request - Replacement request
-      * guid - The Patch UUID
-      * sensorType - The sensor type
-      * replacement - A Map representing the replaced document
-    * Example replacing a `bro` message with guid of `000-000-0000` :
-        ```
-        {
-          "guid" : "000-000-0000",
-          "sensorType" : "bro",
-          "replacement" : {
-            "source:type": "bro",
-            "guid" : "bro_index_2017.01.01.01:1",
-            "ip_src_addr":"192.168.1.2",
-            "ip_src_port": 8009,
-            "timestamp":200,
-            "rejected":false
-          }
-        }
-        ```
-  * Returns:
-    * 200 - Current user
     
 ### `POST /api/v1/update/add/comment`
   * Description: Add a comment to an alert

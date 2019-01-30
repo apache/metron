@@ -15,54 +15,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
-import {SensorParserContext} from '../model/sensor-parser-context';
-import {HttpUtil} from '../util/httpUtil';
-import {StellarFunctionDescription} from '../model/stellar-function-description';
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+
+import { SensorParserContext } from '../model/sensor-parser-context';
+import { HttpUtil } from '../util/httpUtil';
+import { StellarFunctionDescription } from '../model/stellar-function-description';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class StellarService {
-  url = this.config.apiEndpoint + '/stellar';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  url = this.appConfigService.getApiRoot() + '/stellar';
 
-  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
-
-  }
+  constructor(
+    private http: HttpClient,
+    private appConfigService: AppConfigService
+  ) {}
 
   public validateRules(rules: string[]): Observable<{}> {
-    return this.http.post(this.url + '/validate/rules', JSON.stringify(rules),
-      new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http
+      .post(this.url + '/validate/rules', JSON.stringify(rules))
+      .pipe(
+        map(HttpUtil.extractData),
+        catchError(HttpUtil.handleError)
+      );
   }
 
-  public validate(transformationValidation: SensorParserContext): Observable<{}> {
-    return this.http.post(this.url + '/validate', JSON.stringify(transformationValidation),
-      new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+  public validate(
+    transformationValidation: SensorParserContext
+  ): Observable<{}> {
+    return this.http
+      .post(this.url + '/validate', JSON.stringify(transformationValidation))
+      .pipe(
+        map(HttpUtil.extractData),
+        catchError(HttpUtil.handleError)
+      );
   }
 
   public list(): Observable<string[]> {
-    return this.http.get(this.url + '/list', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(this.url + '/list').pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
   public listFunctions(): Observable<StellarFunctionDescription[]> {
-    return this.http.get(this.url + '/list/functions', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(this.url + '/list/functions').pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
   public listSimpleFunctions(): Observable<StellarFunctionDescription[]> {
-    return this.http.get(this.url + '/list/simple/functions', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(this.url + '/list/simple/functions').pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
-
 }

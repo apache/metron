@@ -15,45 +15,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
-import {KafkaTopic} from '../model/kafka-topic';
-import {HttpUtil} from '../util/httpUtil';
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { KafkaTopic } from '../model/kafka-topic';
+import { HttpUtil } from '../util/httpUtil';
+import { RestError } from '../model/rest-error';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class KafkaService {
-  url = this.config.apiEndpoint + '/kafka/topic';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  url = this.appConfigService.getApiRoot() + '/kafka/topic';
 
-  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
-
-  }
+  constructor(
+    private http: HttpClient,
+    private appConfigService: AppConfigService
+  ) {}
 
   public post(kafkaTopic: KafkaTopic): Observable<KafkaTopic> {
-    return this.http.post(this.url, JSON.stringify(kafkaTopic), new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.post(this.url, JSON.stringify(kafkaTopic)).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
   public get(name: string): Observable<KafkaTopic> {
-    return this.http.get(this.url + '/' + name, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(this.url + '/' + name).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
-  public list(): Observable<string[]> {
-    return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+  public list(): Observable<KafkaTopic[]> {
+    return this.http.get(this.url).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
-  public sample(name: string): Observable<string> {
-    return this.http.get(this.url + '/' + name + '/sample', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractString)
-      .catch(HttpUtil.handleError);
+  public sample(name: string): Observable<string | RestError> {
+    return this.http.get(this.url + '/' + name + '/sample').pipe(
+      map(HttpUtil.extractString),
+      catchError(HttpUtil.handleError)
+    );
   }
-
 }

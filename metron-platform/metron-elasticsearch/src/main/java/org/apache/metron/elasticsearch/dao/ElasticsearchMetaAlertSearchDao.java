@@ -41,6 +41,8 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 
+import java.io.IOException;
+
 public class ElasticsearchMetaAlertSearchDao implements MetaAlertSearchDao {
 
   protected ElasticsearchDao elasticsearchDao;
@@ -89,7 +91,7 @@ public class ElasticsearchMetaAlertSearchDao implements MetaAlertSearchDao {
   }
 
   @Override
-  public SearchResponse getAllMetaAlertsForAlert(String guid) throws InvalidSearchException {
+  public SearchResponse getAllMetaAlertsForAlert(String guid) throws InvalidSearchException, IOException {
     if (guid == null || guid.trim().isEmpty()) {
       throw new InvalidSearchException("Guid cannot be empty");
     }
@@ -104,7 +106,7 @@ public class ElasticsearchMetaAlertSearchDao implements MetaAlertSearchDao {
             ).innerHit(new InnerHitBuilder())
         )
         .must(termQuery(MetaAlertConstants.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
-    return queryAllResults(elasticsearchDao.getClient(), qb, config.getMetaAlertIndex(),
+    return queryAllResults(elasticsearchDao.getClient().getHighLevelClient(), qb, config.getMetaAlertIndex(),
         pageSize);
   }
 }

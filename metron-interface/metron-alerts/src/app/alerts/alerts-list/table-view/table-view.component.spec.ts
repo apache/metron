@@ -31,10 +31,18 @@ import { UpdateService } from '../../../service/update.service';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { MetaAlertService } from '../../../service/meta-alert.service';
 import { DialogService } from 'app/service/dialog.service';
+import { AppConfigService } from '../../../service/app-config.service';
 
 @Component({selector: 'metron-table-pagination', template: ''})
 class MetronTablePaginationComponent {
   @Input() pagination = 0;
+}
+
+class FakeAppConfigService {
+
+  getApiRoot() {
+    return '/api/v1'
+  }
 }
 
 describe('TableViewComponent', () => {
@@ -50,7 +58,8 @@ describe('TableViewComponent', () => {
         UpdateService,
         GlobalConfigService,
         MetaAlertService,
-        DialogService
+        DialogService,
+        { provide: AppConfigService, useClass: FakeAppConfigService }
       ],
       declarations: [
         MetronTableDirective,

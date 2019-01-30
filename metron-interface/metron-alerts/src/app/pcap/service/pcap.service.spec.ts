@@ -33,6 +33,7 @@ import { PcapStatusResponse } from '../model/pcap-status-response';
 import { PcapRequest } from '../model/pcap.request';
 import { fakePdml, fakePacket } from '../model/pdml.mock';
 import { fakePcapStatusResponse, fakePcapRequest } from '../model/pcap.mock';
+import { AppConfigService } from '../../service/app-config.service';
 
 const jobId = 'job_1234567890123_4567';
 let pdmlJsonMock = fakePdml;
@@ -42,11 +43,25 @@ let mockBackend: HttpTestingController;
 
 pdmlJsonMock['pdml']['packet'].push(fakePacket);
 
+class FakeAppConfigService {
+
+  getApiRoot() {
+    return '/api/v1'
+  }
+
+  getLoginPath() {
+    return '/login'
+  }
+}
+
 describe('PcapService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [PcapService]
+      providers: [
+        PcapService,
+        { provide: AppConfigService, useClass: FakeAppConfigService }
+      ]
     });
     injector = getTestBed();
     pcapService = injector.get(PcapService);

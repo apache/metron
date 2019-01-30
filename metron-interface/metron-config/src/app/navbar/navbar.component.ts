@@ -15,17 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {AuthenticationService} from '../service/authentication.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { AuthenticationService } from '../service/authentication.service';
+import { Subscription } from 'rxjs';
+import {HttpHeaders} from "@angular/common/http";
 
 @Component({
-    selector: 'metron-config-navbar',
-    templateUrl: 'navbar.html',
-    styleUrls: ['navbar.component.scss']
+  selector: 'metron-config-navbar',
+  templateUrl: 'navbar.html',
+  styleUrls: ['navbar.component.scss']
 })
+export class NavbarComponent implements OnInit, OnDestroy {
+  currentUser;
+  authService: Subscription;
 
-export class NavbarComponent {
+  constructor(private authenticationService: AuthenticationService) {}
 
-  constructor(private authenticationService: AuthenticationService) {
+  ngOnInit() {
+    this.authService = this.authenticationService
+      .getCurrentUser({ headers: new HttpHeaders({'Accept': 'text/plain'}), responseType: 'text'})
+      .subscribe(r => {
+        this.currentUser = r;
+      });
+  }
+
+  logout() {
+    this.authenticationService.logout();
+  }
+
+  ngOnDestroy() {
+    this.authService.unsubscribe();
   }
 }

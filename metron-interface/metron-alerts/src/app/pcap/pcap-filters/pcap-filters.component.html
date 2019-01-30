@@ -64,7 +64,7 @@
 <div class="pcap-search-validation-errors alert alert-danger" *ngIf="filterForm.invalid">
   <h5 class="alert-heading">Validation errors</h5>
   <ul>
-    <li *ngIf="filterForm.controls.startTime.invalid || filterForm.controls.endTime.invalid">Selected date range is invalid. The "To" date must be later than the "From" date and the "To" date cannot be in the future.</li>
+    <li *ngIf="filterForm.controls.startTime.invalid || filterForm.controls.endTime.invalid">Selected date range is invalid. The 'To' date must be later than the 'From' date and the 'To' date cannot be in the future.</li>
     <li *ngIf="filterForm.controls.ipSrcAddr.invalid">Source IP address format is invalid. Use valid v4IP format, for example, 192.168.0.1</li>
     <li *ngIf="filterForm.controls.ipSrcPort.invalid">Source port is invalid. Port number must be within the range of 0-65535.</li>
     <li *ngIf="filterForm.controls.ipDstAddr.invalid">Destination IP address format is invalid. Use valid v4IP format, for example, 192.168.0.1</li>

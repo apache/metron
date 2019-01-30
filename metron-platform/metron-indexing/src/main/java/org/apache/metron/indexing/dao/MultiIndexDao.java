@@ -20,14 +20,7 @@ package org.apache.metron.indexing.dao;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -38,11 +31,25 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class MultiIndexDao implements IndexDao {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private List<IndexDao> indices;
 
-  public MultiIndexDao( IndexDao... composedDao) {
+  public MultiIndexDao(IndexDao... composedDao) {
     indices = new ArrayList<>();
     Collections.addAll(indices, composedDao);
   }
@@ -117,16 +124,28 @@ public class MultiIndexDao implements IndexDao {
    */
   @Override
   public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    List<DocumentContainer> output =
-            indices.parallelStream().map(dao -> {
-              try {
-                return new DocumentContainer(dao.addCommentToAlert(request, latest));
-              } catch (Throwable e) {
-                return new DocumentContainer(e);
-              }
-            }).collect(Collectors.toList());
-
+    List<DocumentContainer> output = indices
+            .parallelStream()
+            .map(dao -> addCommentToAlert(dao, request, latest))
+            .collect(Collectors.toList());
     return getLatestDocument(output);
+  }
+
+  private DocumentContainer addCommentToAlert(IndexDao indexDao, CommentAddRemoveRequest request, Document latest) {
+    DocumentContainer container;
+    try {
+      Document document = indexDao.addCommentToAlert(request, latest);
+      container = new DocumentContainer(document);
+      LOG.debug("Added comment to alert; indexDao={}, guid={}, sensorType={}, document={}",
+              ClassUtils.getShortClassName(indexDao.getClass()), document.getGuid(), document.getSensorType(), document);
+
+    } catch (Throwable e) {
+      container = new DocumentContainer(e);
+      LOG.error("Unable to add comment to alert; indexDao={}, error={}",
+              ClassUtils.getShortClassName(indexDao.getClass()), ExceptionUtils.getRootCauseMessage(e));
+    }
+
+    return container;
   }
 
   @Override
@@ -145,16 +164,28 @@ public class MultiIndexDao implements IndexDao {
    */
   @Override
   public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    List<DocumentContainer> output =
-            indices.parallelStream().map(dao -> {
-              try {
-                return new DocumentContainer(dao.removeCommentFromAlert(request, latest));
-              } catch (Throwable e) {
-                return new DocumentContainer(e);
-              }
-            }).collect(Collectors.toList());
-
+    List<DocumentContainer> output = indices
+            .parallelStream()
+            .map(dao -> removeCommentFromAlert(dao, request, latest))
+            .collect(Collectors.toList());
     return getLatestDocument(output);
+  }
+
+  private DocumentContainer removeCommentFromAlert(IndexDao indexDao, CommentAddRemoveRequest request, Document latest) {
+    DocumentContainer container;
+    try {
+      Document document = indexDao.removeCommentFromAlert(request, latest);
+      container = new DocumentContainer(document);
+      LOG.debug("Removed comment from alert; indexDao={}, guid={}, sensorType={}, document={}",
+              ClassUtils.getShortClassName(indexDao.getClass()), document.getGuid(), document.getSensorType(), document);
+
+    } catch (Throwable e) {
+      container = new DocumentContainer(e);
+      LOG.error("Unable to remove comment from alert; indexDao={}, error={}",
+              ClassUtils.getShortClassName(indexDao.getClass()), ExceptionUtils.getRootCauseMessage(e));
+    }
+
+    return container;
   }
 
   protected static class DocumentContainer {
@@ -226,16 +257,28 @@ public class MultiIndexDao implements IndexDao {
 
   @Override
   public Document getLatest(final String guid, String sensorType) throws IOException {
-    List<DocumentContainer> output =
-            indices.parallelStream().map(dao -> {
-      try {
-        return new DocumentContainer(dao.getLatest(guid, sensorType));
-      } catch (Throwable e) {
-        return new DocumentContainer(e);
-      }
-    }).collect(Collectors.toList());
-
+    List<DocumentContainer> output = indices
+            .parallelStream()
+            .map(dao -> getLatest(dao, guid, sensorType))
+            .collect(Collectors.toList());
     return getLatestDocument(output);
+  }
+
+  private DocumentContainer getLatest(IndexDao indexDao, String guid, String sensorType) {
+    DocumentContainer container;
+    try {
+      Document document = indexDao.getLatest(guid, sensorType);
+      container = new DocumentContainer(document);
+      LOG.debug("Found latest document; indexDao={}, guid={}, sensorType={}, document={}",
+              ClassUtils.getShortClassName(indexDao.getClass()), guid, sensorType, document);
+
+    } catch (Throwable e) {
+      container = new DocumentContainer(e);
+      LOG.error("Unable to find latest document; indexDao={}, error={}",
+              ClassUtils.getShortClassName(indexDao.getClass()), ExceptionUtils.getRootCauseMessage(e));
+    }
+
+    return container;
   }
 
   @Override

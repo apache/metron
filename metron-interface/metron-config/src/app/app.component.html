@@ -18,8 +18,8 @@
 </div>
 <div [ngClass]="{'container-fluid body-fill px-0': loggedIn, 'fill': !loggedIn}">
   <div [ngClass]="{'card-group ': loggedIn}" class="fill">
-    <div  *ngIf="loggedIn" class="card fill navigation" ><metron-config-vertical-navbar></metron-config-vertical-navbar></div>
-    <div [ngClass]="{'card  fill content px-0 ' : loggedIn , 'fill': !loggedIn}"><router-outlet></router-outlet></div>
+    <div  *ngIf="loggedIn" class="fill navigation" ><metron-config-vertical-navbar></metron-config-vertical-navbar></div>
+    <div [ngClass]="{'fill content px-0 ' : loggedIn , 'fill': !loggedIn}"><router-outlet></router-outlet></div>
   </div>
 </div>
 <router-outlet name="dialog" ></router-outlet>

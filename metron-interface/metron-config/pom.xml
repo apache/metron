@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-interface</artifactId>
-        <version>0.6.1</version>
+        <version>0.7.1</version>
     </parent>
     <artifactId>metron-config</artifactId>
     <url>https://metron.apache.org/</url>
@@ -63,7 +63,7 @@
               </execution>
               <execution>
                 <phase>generate-resources</phase>
-                <id>ng build</id>
+                <id>npm run build</id>
                 <goals>
                   <goal>npm</goal>
                 </goals>
@@ -72,13 +72,13 @@
                 </configuration>
               </execution>
               <execution>
-                <id>npm test</id>
-                <goals>
-                  <goal>npm</goal>
-                </goals>
                 <phase>test</phase>
+                <id>npm testCI</id>
+                <goals>
+                    <goal>npm</goal>
+                </goals>
                 <configuration>
-                  <arguments>test</arguments>
+                    <arguments>run testCI</arguments>
                 </configuration>
               </execution>
             </executions>

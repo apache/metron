@@ -19,7 +19,22 @@ limitations under the License.
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
 
-## 0.6.0 to 0.6.1
+## 0.7.0 to 0.7.1
+### [METRON-1929: Build GET_ASN Stellar function](https://issues.apache.org/jira/browse/METRON-1929)
+The script for `geo_enrichment_load.sh` has been renamed, and now is `maxmind_enrichment_load.sh`. A couple changes should happen for users who are upgrading.
+
+* The MaxMind GeoLite2 ASN database should be loaded onto HDFS at /apps/metron/asn/default/GeoLite2-ASN.tar.gz OR the global configuration property `asn.hdfs.file` can be set to point to a custom HDFS location.
+* Any custom scripts or tasks that use this script should be updated. In addition, this updated script also retrieves the GeoLite2 ASN database.  The `-ra` flag can be used to provide a custom location for this database if offline install is needed. Otherwise, it will retrieve the latest from MaxMind.
+
+
+## 0.6.0 to 0.7.0
+
+### [METRON-1834: Migrate Elasticsearch from TransportClient to new Java REST API](https://issues.apache.org/jira/browse/METRON-1834)
+The Elasticsearch Java client has now been migrated from TransportClient to the new Java REST client. The motivation for this change
+is that TransportClient will be deprecated in Elasticsearch 7.0 and removed entirely in 8.0. See [ES Java API ](https://www.elastic.co/guide/en/elasticsearch/client/java-api/5.6/client.html) for more details.
+The primary client-facing change for upgrades will be the new properties for configuring the new client. An explanation of the new properties
+as well as a mapping from the old properties to the new can be found in [metron-elasticsearch](metron-platform/metron-elasticsearch/README.md#Properties) under `es.client.settings`.
+
 
 ### [METRON-1855: Make unified enrichment topology the default and deprecate split-join](https://issues.apache.org/jira/browse/METRON-1855)
 The unified enrichment topology will be the new default in this release,

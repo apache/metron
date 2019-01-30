@@ -21,9 +21,9 @@
 #
 
 # the upstream apache git repo for apache metron
-METRON_UPSTREAM="https://git-wip-us.apache.org/repos/asf/metron.git"
+METRON_UPSTREAM="https://gitbox.apache.org/repos/asf/metron.git"
 # the upstream apache git repo for apache metron bro plugin kafka
-BRO_PLUGIN_UPSTREAM="https://git-wip-us.apache.org/repos/asf/metron-bro-plugin-kafka.git"
+BRO_PLUGIN_UPSTREAM="https://gitbox.apache.org/repos/asf/metron-bro-plugin-kafka.git"
 # the common configuration file with the committer info
 CONFIG_FILE=~/.metron-prepare-commit
 
@@ -43,6 +43,7 @@ DESC=
 APACHE_NAME=
 APACHE_EMAIL=
 GITHUB_NAME=
+CHOSEN_REPO=
 
 #
 # Initialize the variables from the default configuration file, if it exists
@@ -50,7 +51,7 @@ GITHUB_NAME=
 function init_configuration {
     # does a config file already exist?
     echo "$CONFIG_FILE"
-    if [ -f ${CONFIG_FILE} ]; then
+    if [[ -f ${CONFIG_FILE} ]]; then
         #shellcheck source=/dev/null
         source ${CONFIG_FILE}
         echo "  ...using settings from $CONFIG_FILE"
@@ -64,28 +65,28 @@ function init_configuration {
 #
 function init_committer_info {
     # github account of committer (you)
-    if [ -z "$GITHUB_NAME" ]; then
+    if [[ -z "$GITHUB_NAME" ]]; then
         read -p "  your github username [$GITHUB_NAME]: " INPUT
-        [ -n "$INPUT" ] && GITHUB_NAME=${INPUT}
+        [[ -n "$INPUT" ]] && GITHUB_NAME=${INPUT}
 
         # write setting to config file
         echo "GITHUB_NAME=$GITHUB_NAME" >> ${CONFIG_FILE}
     fi
 
     # apache id of committer (you)
-    if [ -z "$APACHE_NAME" ]; then
+    if [[ -z "$APACHE_NAME" ]]; then
       read -p "  your apache userid [$APACHE_NAME]: " INPUT
-      [ -n "$INPUT" ] && APACHE_NAME=${INPUT}
+      [[ -n "$INPUT" ]] && APACHE_NAME=${INPUT}
 
       # write setting to config file
       echo "APACHE_NAME=$APACHE_NAME" >> ${CONFIG_FILE}
     fi
 
     # apache email addr of committer (you)
-    if [ -z "$APACHE_EMAIL" ]; then
+    if [[ -z "$APACHE_EMAIL" ]]; then
       APACHE_EMAIL=${APACHE_NAME}@apache.org
       read -p "  your apache email [$APACHE_EMAIL]: " INPUT
-      [ -n "$INPUT" ] && APACHE_EMAIL=${INPUT}
+      [[ -n "$INPUT" ]] && APACHE_EMAIL=${INPUT}
 
       # write setting to config file, so it is not needed next time
       echo "APACHE_EMAIL=$APACHE_EMAIL" >> ${CONFIG_FILE}
@@ -110,7 +111,7 @@ function choose_metron_or_bro_repo {
         exit 1
         ;;
     esac
-    [ -n "$INPUT" ] && UPSTREAM=${INPUT}
+    [[ -n "$INPUT" ]] && UPSTREAM=${INPUT}
 
     CHOSEN_REPO=$(basename ${UPSTREAM%%.git})
 }
@@ -121,14 +122,14 @@ function choose_metron_or_bro_repo {
 function read_pull_request {
     # retrieve the pull request identifier
     read -p "  pull request: " PR
-    if [ -z "$PR" ]; then
+    if [[ -z "$PR" ]]; then
       echo "Error: missing pr"
       exit 1
     fi
 
     # ensure that the pull request exists
-    PR_EXISTS=`curl -sI https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | grep Status: | sed 's/[^0-9]//g'`
-    if [ "$PR_EXISTS" != "200" ]; then
+    PR_EXISTS=$(curl -sI https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | grep Status: | sed 's/[^0-9]//g')
+    if [[ "$PR_EXISTS" != "200" ]]; then
       echo "Error: pull request #$PR does not exist"
       exit 1
     fi
@@ -141,20 +142,20 @@ function read_pull_request {
 #
 function setup_working_directory {
     # working directory
-    if [ -z $1 ]; then
+    if [[ -z $1 ]]; then
         WORK=~/tmp/${CHOSEN_REPO}-pr${PR}
     else
         WORK=$1
     fi
 
     read -p "  local working directory [$WORK]: " INPUT
-    [ -n "$INPUT" ] && WORK=${INPUT}
+    [[ -n "$INPUT" ]] && WORK=${INPUT}
 
     # handle tilde expansion
     WORK="${WORK/#\~/$HOME}"
 
     # warn the user if the working directory exists
-    if [ -d "$WORK" ]; then
+    if [[ -d "$WORK" ]]; then
       read -p "  directory exists [$WORK].  continue merge on existing repo? [yN] " -n 1 -r
       echo
       if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -171,27 +172,27 @@ function setup_working_directory {
 #
 function setup_code {
     # if working directory does not exist, checkout the base branch
-    if [ ! -d "$WORK" ]; then
+    if [[ ! -d "$WORK" ]]; then
 
         REPO_NAME="metron"
-        if [ -z $1 ]; then
+        if [[ -n $1 ]]; then
             REPO_NAME=$1
         fi
 
         # origin repository
         ORIGIN="https://github.com/apache/${REPO_NAME}"
         read -p "  origin repo [$ORIGIN]: " INPUT
-        [ -n "$INPUT" ] && ORIGIN=${INPUT}
+        [[ -n "$INPUT" ]] && ORIGIN=${INPUT}
 
         # what branch did the PR get submitted against?  could be a feature branch
-        BASE_BRANCH=`curl -s https://api.github.com/repos/apache/${REPO_NAME}/pulls/${PR} | python -c 'import sys, json; print json.load(sys.stdin)["base"]["ref"]'`
+        BASE_BRANCH=$(curl -s https://api.github.com/repos/apache/${REPO_NAME}/pulls/${PR} | python -c 'import sys, json; print json.load(sys.stdin)["base"]["ref"]')
         read -p "  base branch to merge into [$BASE_BRANCH]: " INPUT
-        [ -n "$INPUT" ] && BASE_BRANCH=${INPUT}
+        [[ -n "$INPUT" ]] && BASE_BRANCH=${INPUT}
 
         # clone the repository and fetch updates
         mkdir -p ${WORK}
         git clone ${ORIGIN} ${WORK}
-        cd ${WORK} || exit "Failed to cd to ${WORK}"
+        cd ${WORK} &> /dev/null || { echo "failed to change directory to ${WORK}" ; exit 1 ;}
 
         # setup the git user and email for your apache account
         git config user.name "$APACHE_NAME"
@@ -201,7 +202,7 @@ function setup_code {
         git remote add upstream ${UPSTREAM}
         if git fetch upstream "$BASE_BRANCH"; then
 
-            if [ ${BASE_BRANCH} = "master" ]; then
+            if [[ ${BASE_BRANCH} = "master" ]]; then
                 # merge any changes from upstream
                 git checkout ${BASE_BRANCH}
                 git merge upstream/${BASE_BRANCH}
@@ -222,13 +223,13 @@ function setup_code {
       # if the repo already exists, allow the user to provide the name of the Github remote
       # this is needed to checkout the code for the PR
       read -p "  name of github remote [$GITHUB_REMOTE]: " INPUT
-      [ -n "$INPUT" ] && GITHUB_REMOTE=${INPUT}
+      [[ -n "$INPUT" ]] && GITHUB_REMOTE=${INPUT}
 
     fi
 
     PR_BRANCH_REF="pull/$PR/head:pr-$PR"
     PR_BRANCH="pr-$PR"
-    cd ${WORK} || exit "failed to move to ${WORK}"
+    cd ${WORK} &> /dev/null || { echo "failed to change directory to ${WORK}" ; exit 1 ;}
     git fetch ${GITHUB_REMOTE} ${PR_BRANCH_REF}
     echo ""
 }
@@ -238,23 +239,23 @@ function setup_code {
 #
 function get_contributor_info {
     # use github api to retrieve the contributor's login
-    USER=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | grep login | head -1 | awk -F":" '{print $2}' | sed 's/[^a-zA-Z.@_-]//g'`
+    USER=$(curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | grep login | head -1 | awk -F":" '{print $2}' | sed 's/[^a-zA-Z0-9.@_-]//g')
     read -p "  github contributor's username [$USER]: " INPUT
-    [ -n "$INPUT" ] && USER=${INPUT}
+    [[ -n "$INPUT" ]] && USER=${INPUT}
 
     # validate the github contributor
-    if [ -z "$USER" ]; then
+    if [[ -z "$USER" ]]; then
       echo "Error: missing username"
       exit 1
     fi
 
     # retrieve the contributor's email from the git commit history
-    EMAIL=`git log ${PR_BRANCH} | grep Author | head -1 | awk -F"<" '{print $2}' | sed 's/[<>]//g'`
+    EMAIL=$(git log ${PR_BRANCH} | grep Author | head -1 | awk -F"<" '{print $2}' | sed 's/[<>]//g')
     read -p "  github contributor's email [$EMAIL]: " INPUT
-    [ -n "$INPUT" ] && EMAIL=${INPUT}
+    [[ -n "$INPUT" ]] && EMAIL=${INPUT}
 
     # validate email
-    if [ -z "$EMAIL" ] || [ "$EMAIL" = "null" ]; then
+    if [[ -z "$EMAIL" ]] || [[ "$EMAIL" = "null" ]]; then
       echo "Error: missing email"
       exit 1
     fi
@@ -265,23 +266,23 @@ function get_contributor_info {
 #
 function get_jira_info {
     # can we extract the JIRA from the PR title?
-    JIRA=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | grep title | head -1 | egrep -o -i 'METRON-[0-9]+' | awk '{print toupper($0)}'`
+    JIRA=$(curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | grep title | head -1 | egrep -o -i 'METRON-[0-9]+' | awk '{print toupper($0)}')
     read -p "  issue identifier in jira [$JIRA]: " INPUT
-    [ -n "$INPUT" ] && JIRA=${INPUT}
+    [[ -n "$INPUT" ]] && JIRA=${INPUT}
 
     # validate the JIRA issue
-    if [ -z "$JIRA" ]; then
+    if [[ -z "$JIRA" ]]; then
       echo "Error: missing jira"
       exit 1
     fi
 
     # attempt to use the jira api to get a description of the jira
-    DESC=`curl -s https://issues.apache.org/jira/si/jira.issueviews:issue-xml/${JIRA}/${JIRA}.xml | grep "<summary>" | sed 's/^.*<summary>//' | sed 's/<.summary>.*$//'`
+    DESC=$(curl -s https://issues.apache.org/jira/si/jira.issueviews:issue-xml/${JIRA}/${JIRA}.xml | grep "<summary>" | sed 's/^.*<summary>//' | sed 's/<.summary>.*$//')
     read -p "  issue description [$DESC]: " INPUT
-    [ -n "$INPUT" ] && DESC=${INPUT}
+    [[ -n "$INPUT" ]] && DESC=${INPUT}
 
     # validate description
-    if [ -z "$DESC" ]; then
+    if [[ -z "$DESC" ]]; then
       echo "Error: missing description"
       exit 1
     fi
@@ -293,13 +294,13 @@ function get_jira_info {
 function commit {
     # commit message
     AUTHOR="$USER <$EMAIL>"
-    if [ "$USER" == "$GITHUB_NAME" ]; then
+    if [[ "$USER" == "$GITHUB_NAME" ]]; then
       MSG="$JIRA $DESC ($USER) closes apache/${CHOSEN_REPO}#$PR"
     else
       MSG="$JIRA $DESC ($USER via $GITHUB_NAME) closes apache/${CHOSEN_REPO}#$PR"
     fi
     read -p "  commit message [$MSG]: " INPUT
-    [ -n "$INPUT" ] && MSG=${INPUT}
+    [[ -n "$INPUT" ]] && MSG=${INPUT}
 
     # merge the contributor's branch and commit
     echo ""
@@ -315,8 +316,6 @@ function commit {
 #
 function review_commit_info {
     # review the commit
-    echo ""
-    echo ""
     git diff --stat --color "upstream/$BASE_BRANCH..$BASE_BRANCH"
     echo ""
     echo ""
@@ -327,22 +326,124 @@ function review_commit_info {
 # Runs the metron unit, integration and metron-interface tests
 #
 function run_tests {
-    echo ""
-    echo ""
     read -p "  run test suite? [yN] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-      if [ "${UPSTREAM}" == "${METRON_UPSTREAM}" ]; then
-          mvn -q -T 2C -DskipTests clean install &&
-              mvn -q -T 2C surefire:test@unit-tests &&
-              mvn -q surefire:test@integration-tests &&
-              mvn -q test --projects metron-interface/metron-config &&
-          dev-utilities/build-utils/verify_licenses.sh
-      elif [ "${UPSTREAM}" == "${BRO_PLUGIN_UPSTREAM}" ]; then
+      if [[ "${UPSTREAM}" == "${METRON_UPSTREAM}" ]]; then
+        clean_metron_src
+
+        run_mvn_install
+
+        run_mvn_unit_tests
+
+        run_mvn_integration_tests
+
+        run_mvn_ui_tests
+
+        run_mvn_build_rpms
+
+        verify_licenses
+      elif [[ "${UPSTREAM}" == "${BRO_PLUGIN_UPSTREAM}" ]]; then
         echo "We don't currently support running metron-bro-plugin-kafka tests in this script"
       fi
     fi
 
+}
+
+#
+# Cleans the metron src and rpms
+#
+function clean_metron_src {
+
+    mvn -q clean
+
+    rc=$?; if [[ ${rc} != 0 ]]; then
+        echo "ERROR> FAILED TO CLEAN TOP LEVEL MVN PROJECT"
+        exit ${rc}
+    fi
+
+    cd metron-deployment &> /dev/null || { echo "failed to change directory to metron-deployment" ; exit 1 ;}
+
+    mvn -q clean -Pbuild-rpms
+
+    rc=$?; if [[ ${rc} != 0 ]]; then
+        echo "ERROR> FAILED TO CLEAN RPMS"
+        exit ${rc}
+    fi
+
+    cd .. &> /dev/null || { echo "failed to change directory to metron source root" ; exit 1 ;}
+}
+
+#
+# runs the mvn install
+#
+function run_mvn_install {
+    mvn -q -T 2C -DskipTests clean install
+    rc=$?; if [[ ${rc} != 0 ]]; then
+        echo "ERROR> FAILED mvn install"
+        exit ${rc}
+    fi
+}
+
+#
+# runs the mvn unit tests
+#
+function run_mvn_unit_tests {
+    mvn -q -T 2C surefire:test@unit-tests
+    rc=$?; if [[ ${rc} != 0 ]]; then
+        echo "ERROR> FAILED mvn unit tests"
+        exit ${rc}
+    fi
+}
+
+#
+# runs the mvn integration tests
+#
+function run_mvn_integration_tests {
+    mvn -q surefire:test@integration-tests
+    rc=$?; if [[ ${rc} != 0 ]]; then
+        echo "ERROR> FAILED mvn integration-tests"
+        exit ${rc}
+    fi
+}
+
+#
+# runs the mvn ui related tests
+#
+function run_mvn_ui_tests {
+    mvn -q test --projects metron-interface/metron-config,metron-interface/metron-alerts
+    rc=$?; if [[ ${rc} != 0 ]]; then
+        echo "ERROR> FAILED mvn tests for metron-config and metron-alerts"
+        exit ${rc}
+    fi
+
+
+}
+
+#
+# runs the mvn rpm build
+#
+function run_mvn_build_rpms {
+    cd metron-deployment &> /dev/null || { echo "failed to change directory to metron-deployment" ; exit 1 ; }
+
+    mvn -q package -Pbuild-rpms
+
+    rc=$?; if [[ ${rc} != 0 ]]; then
+        echo "ERROR> FAILED mvn build-rpms"
+        exit ${rc}
+    fi
+}
+
+#
+# verifies licenses using our script
+#
+function verify_licenses {
+    dev-utilities/build-utils/verify_licenses.sh
+
+    rc=$?; if [[ ${rc} != 0 ]]; then
+        echo "ERROR> FAILED license verification"
+        exit ${rc}
+    fi
 }
 
 #

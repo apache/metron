@@ -15,42 +15,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions, URLSearchParams} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
-import {GrokValidation} from '../model/grok-validation';
-import {HttpUtil} from '../util/httpUtil';
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { GrokValidation } from '../model/grok-validation';
+import { HttpUtil } from '../util/httpUtil';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class GrokValidationService {
-  url = this.config.apiEndpoint + '/grok';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  url = this.appConfigService.getApiRoot() + '/grok';
 
-  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
-
-  }
+  constructor(
+    private http: HttpClient,
+    private appConfigService: AppConfigService
+  ) {}
 
   public validate(grokValidation: GrokValidation): Observable<GrokValidation> {
-    return this.http.post(this.url + '/validate', JSON.stringify(grokValidation),
-      new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http
+      .post(this.url + '/validate', JSON.stringify(grokValidation))
+      .pipe(
+        map(HttpUtil.extractData),
+        catchError(HttpUtil.handleError)
+      );
   }
 
   public list(): Observable<string[]> {
-    return this.http.get(this.url + '/list', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(this.url + '/list').pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
-  public getStatement(path: string): Observable<string> {
-    let params: URLSearchParams = new URLSearchParams();
-    params.set('path', path);
-    return this.http.get(this.url + '/get/statement', new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
-        .map(HttpUtil.extractString)
-        .catch(HttpUtil.handleError);
+  public getStatement(path: string): Observable<Object> {
+    const options: HttpParams = new HttpParams().set('path', path);
+    return this.http.get(this.url + '/get/statement', { params: options }).pipe(
+      map(HttpUtil.extractString),
+      catchError(HttpUtil.handleError)
+    );
   }
-
 }

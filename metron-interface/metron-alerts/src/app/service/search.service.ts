@@ -30,6 +30,7 @@ import { RestError } from '../model/rest-error';
 import {INDEXES} from '../utils/constants';
 import {ColumnMetadata} from '../model/column-metadata';
 import {QueryBuilder} from '../alerts/alerts-list/query-builder';
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class SearchService {
@@ -52,10 +53,10 @@ export class SearchService {
   }
 
   constructor(private http: HttpClient,
-              private ngZone: NgZone) { }
+              private ngZone: NgZone, private appConfigService: AppConfigService) { }
 
   groups(groupRequest: GroupRequest): Observable<GroupResult> {
-    let url = '/api/v1/search/group';
+    let url = this.appConfigService.getApiRoot() + '/search/group';
     return this.http.post(url, groupRequest).pipe(
     map(HttpUtil.extractData),
     catchError(HttpUtil.handleError),
@@ -63,7 +64,7 @@ export class SearchService {
   }
 
   public getAlert(sourceType: string, alertId: string): Observable<AlertSource> {
-    let url = '/api/v1/search/findOne';
+    let url = this.appConfigService.getApiRoot() + '/search/findOne';
     let requestSchema = { guid: alertId, sensorType: sourceType};
     return this.http.post(url, requestSchema).pipe(
     map(HttpUtil.extractData),
@@ -72,7 +73,7 @@ export class SearchService {
   }
 
   public getColumnMetaData(): Observable<RestError | ColumnMetadata[]> {
-    let url = '/api/v1/search/column/metadata';
+    let url = this.appConfigService.getApiRoot() + '/search/column/metadata';
     return this.http.post(url, INDEXES).pipe(
     map(HttpUtil.extractData),
     map(SearchService.extractColumnNameDataFromRestApi),
@@ -90,7 +91,7 @@ export class SearchService {
   }
 
   public search(searchRequest: SearchRequest): Observable<SearchResponse> {
-    let url = '/api/v1/search/search';
+    let url = this.appConfigService.getApiRoot() + '/search/search';
     return this.http.post(url, searchRequest).pipe(
     map(HttpUtil.extractData),
     catchError(HttpUtil.handleError),

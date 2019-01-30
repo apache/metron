@@ -18,6 +18,11 @@
 
 package org.apache.metron.stellar.dsl.functions.resolver;
 
+import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -33,15 +38,8 @@ import org.apache.metron.stellar.common.utils.VFSClassloaderUtil;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
-
-import org.atteo.classindex.ClassFilter;
 import org.atteo.classindex.ClassIndex;
 import org.reflections.util.FilterBuilder;
-
-import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
 
 /**
  * Performs function resolution for Stellar by searching the classpath.
@@ -175,9 +173,10 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public void initialize(Context context) {
     super.initialize(context);
-    if(context != null) {
+    if (context != null) {
 
       Optional<Object> optional = context.getCapability(STELLAR_CONFIG, false);
       if (optional.isPresent()) {
@@ -191,7 +190,7 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
         Optional<ClassLoader> vfsLoader = Optional.empty();
         try {
           vfsLoader = VFSClassloaderUtil.configureClassloader(STELLAR_VFS_PATHS.get(stellarConfig, String.class));
-          if(vfsLoader.isPresent()) {
+          if (vfsLoader.isPresent()) {
             LOG.debug("CLASSLOADER LOADED WITH: {}", STELLAR_VFS_PATHS.get(stellarConfig, String.class));
             if(LOG.isDebugEnabled()) {
               for (FileObject fo : ((VFSClassLoader) vfsLoader.get()).getFileObjects()) {
@@ -203,10 +202,9 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
         } catch (FileSystemException e) {
           LOG.error("Unable to process filesystem: {}", e.getMessage(), e);
         }
-      }
-      else {
+      } else {
         LOG.info("No stellar config set; I'm reverting to the context classpath with no restrictions.");
-        if(LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
           try {
             throw new IllegalStateException("No config set, stacktrace follows.");
           } catch (IllegalStateException ise) {
@@ -214,8 +212,7 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
           }
         }
       }
-    }
-    else {
+    } else {
       throw new IllegalStateException("CONTEXT IS NULL!");
     }
   }
@@ -236,37 +233,44 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
    * (aka discovery) of Stellar functions.
    */
   @Override
+  @SuppressWarnings("unchecked")
   public Set<Class<? extends StellarFunction>> resolvables() {
 
     ClassLoader[] cls = null;
-    if(this.classLoaders.size() == 0) {
+    if (this.classLoaders.size() == 0) {
       LOG.warn("Using System classloader");
-      cls = new ClassLoader[] { getClass().getClassLoader() };
-    }
-    else {
-      cls = new ClassLoader[this.classLoaders.size()];
+      cls = new ClassLoader[]{getClass().getClassLoader()};
+    } else {
+      List<ClassLoader> classLoaderList = new ArrayList<>();
       for (int i = 0; i < this.classLoaders.size(); ++i) {
         ClassLoader cl = this.classLoaders.get(i);
-        LOG.debug("Using classloader: "+ cl.getClass().getCanonicalName());
-        cls[i] = cl;
+        if (null != cl) {
+          LOG.debug("Using classloader: {}", cl.getClass().getCanonicalName());
+          classLoaderList.add(cl);
+        } else {
+          LOG.error(
+              "This should not happen, so report a bug if you see this error - Classloader {} of {} was null. Classloader list is: {}",
+              i, this.classLoaders.size(), this.classLoaders);
+        }
       }
+      cls = classLoaderList.toArray(new ClassLoader[0]);
     }
 
     FilterBuilder filterBuilder = new FilterBuilder();
     excludes.forEach(excl -> {
-      if(excl != null) {
+      if (excl != null) {
         filterBuilder.exclude(excl);
       }
     });
     includes.forEach(incl -> {
-      if(incl != null) {
+      if (incl != null) {
         filterBuilder.include(incl);
       }
     });
     Set<String> classes = new HashSet<>();
     Set<Class<? extends StellarFunction>> ret = new HashSet<>();
-    for(ClassLoader cl : cls) {
-      for(Class<?> c : getStellarClasses(cl)) {
+    for (ClassLoader cl : cls) {
+      for (Class<?> c : getStellarClasses(cl)) {
         try {
           LOG.debug("{}: Found class: {}", cl.getClass().getCanonicalName(), c.getCanonicalName());
           if (includeClass(c, filterBuilder)) {
@@ -277,15 +281,13 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
               classes.add(className);
             }
           }
-        }
-        catch(Error le) {
+        } catch (Error le) {
           //we have had some error loading a stellar function.  This could mean that
           //the classpath is unstable (e.g. old copies of jars are on the classpath).
           try {
             LOG.error("Skipping class " + c.getName() + ": " + le.getMessage()
                     + ", please check that there are not old versions of stellar functions on the classpath.", le);
-          }
-          catch(Error ie) {
+          } catch (Error ie) {
             //it's possible that getName() will throw an exception if the class is VERY malformed.
             LOG.error("Skipping class: " + le.getMessage()
                     + ", please check that there are not old versions of stellar functions on the classpath.", le);

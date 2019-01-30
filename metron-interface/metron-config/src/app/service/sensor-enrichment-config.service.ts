@@ -15,57 +15,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions, Response} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
-import {SensorEnrichmentConfig} from '../model/sensor-enrichment-config';
-import {HttpUtil} from '../util/httpUtil';
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient, HttpResponse } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { SensorEnrichmentConfig } from '../model/sensor-enrichment-config';
+import { HttpUtil } from '../util/httpUtil';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class SensorEnrichmentConfigService {
-  url = this.config.apiEndpoint + '/sensor/enrichment/config';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  url = this.appConfigService.getApiRoot() + '/sensor/enrichment/config';
 
-  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
-  }
+  constructor(
+    private http: HttpClient,
+    private appConfigService: AppConfigService
+  ) {}
 
-  public post(name: string, sensorEnrichmentConfig: SensorEnrichmentConfig): Observable<SensorEnrichmentConfig> {
-    return this.http.post(this.url + '/' + name, JSON.stringify(sensorEnrichmentConfig),
-                          new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+  public post(
+    name: string,
+    sensorEnrichmentConfig: SensorEnrichmentConfig
+  ): Observable<SensorEnrichmentConfig> {
+    return this.http
+      .post(this.url + '/' + name, JSON.stringify(sensorEnrichmentConfig))
+      .pipe(
+        map(HttpUtil.extractData),
+        catchError(HttpUtil.handleError)
+      );
   }
 
   public get(name: string): Observable<SensorEnrichmentConfig> {
-    return this.http.get(this.url + '/' + name, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(this.url + '/' + name).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
   public getAll(): Observable<SensorEnrichmentConfig[]> {
-    return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
+    return this.http.get(this.url).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
-  public deleteSensorEnrichments(name: string): Observable<Response> {
-    return this.http.delete(this.url + '/' + name, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .catch(HttpUtil.handleError);
+  public deleteSensorEnrichments(name: string) {
+    return this.http
+      .delete<Observable<{}>>(this.url + '/' + name)
+      .pipe<HttpResponse<{}>>(catchError(HttpUtil.handleError));
   }
 
   public getAvailableEnrichments(): Observable<string[]> {
-    return this.http.get(this.url + '/list/available/enrichments', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-        .map(HttpUtil.extractData)
-        .catch(HttpUtil.handleError);
+    return this.http.get(this.url + '/list/available/enrichments').pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 
   public getAvailableThreatTriageAggregators(): Observable<string[]> {
-    return this.http.get(this.url + '/list/available/threat/triage/aggregators',
-        new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-        .map(HttpUtil.extractData)
-        .catch(HttpUtil.handleError);
+    return this.http
+      .get(this.url + '/list/available/threat/triage/aggregators')
+      .pipe(
+        map(HttpUtil.extractData),
+        catchError(HttpUtil.handleError)
+      );
   }
-
 }

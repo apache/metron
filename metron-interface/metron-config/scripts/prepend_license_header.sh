@@ -33,7 +33,7 @@ LICENSE_HEADER="/**
  * limitations under the License.
  */
  "
-for file in ./dist/*.js
+for file in ./dist/*.{js,css}
 do
     if !(grep -Fxq "$LICENSE_HEADER" $file)
     then

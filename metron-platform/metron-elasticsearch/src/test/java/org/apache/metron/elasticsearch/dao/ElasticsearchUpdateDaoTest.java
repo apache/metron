@@ -18,13 +18,15 @@
 
 package org.apache.metron.elasticsearch.dao;
 
+import static org.mockito.Mockito.mock;
+
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.UpdateDaoTest;
 import org.apache.metron.indexing.dao.update.UpdateDao;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.junit.Before;
-
-import static org.mockito.Mockito.mock;
 
 /**
  * This class returns the ElasticsearchUpdateDao implementation to be used in UpdateDaoTest.  UpdateDaoTest contains a
@@ -32,16 +34,16 @@ import static org.mockito.Mockito.mock;
  */
 public class ElasticsearchUpdateDaoTest extends UpdateDaoTest {
 
-  private TransportClient client;
   private AccessConfig accessConfig;
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
   private ElasticsearchUpdateDao updateDao;
 
   @Before
   public void setup() {
-    client = mock(TransportClient.class);
     accessConfig = new AccessConfig();
     retrieveLatestDao = mock(ElasticsearchRetrieveLatestDao.class);
+    RestHighLevelClient highLevel = mock(RestHighLevelClient.class);
+    ElasticsearchClient client = new ElasticsearchClient(mock(RestClient.class), highLevel);
     updateDao = new ElasticsearchUpdateDao(client, accessConfig, retrieveLatestDao);
   }
 

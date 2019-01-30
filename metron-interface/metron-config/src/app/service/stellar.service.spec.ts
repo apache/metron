@@ -15,128 +15,112 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {StellarService} from './stellar.service';
-import {SensorParserContext} from '../model/sensor-parser-context';
-import {SensorParserConfig} from '../model/sensor-parser-config';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
-import '../rxjs-operators';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
+import { TestBed } from '@angular/core/testing';
+import { StellarService } from './stellar.service';
+import { SensorParserContext } from '../model/sensor-parser-context';
+import { SensorParserConfig } from '../model/sensor-parser-config';
+import {
+  HttpClientTestingModule,
+  HttpTestingController
+} from '@angular/common/http/testing';
+import { StellarFunctionDescription } from '../model/stellar-function-description';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('StellarService', () => {
+  let mockBackend: HttpTestingController;
+  let transformationValidationService: StellarService;
 
-  beforeEach(async(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpModule],
+      imports: [HttpClientTestingModule],
       providers: [
         StellarService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
-    })
-      .compileComponents();
-  }));
-
-  it('can instantiate service when inject service',
-    inject([StellarService], (service: StellarService) => {
-      expect(service instanceof StellarService).toBe(true);
-    }));
-
-  it('can instantiate service with "new"', inject([Http, APP_CONFIG], (http: Http, config: IAppConfig) => {
-    expect(http).not.toBeNull('http should be provided');
-    let service = new StellarService(http, config);
-    expect(service instanceof StellarService).toBe(true, 'new service should be ok');
-  }));
-
-
-  it('can provide the mockBackend as XHRBackend',
-    inject([XHRBackend], (backend: MockBackend) => {
-      expect(backend).not.toBeNull('backend should be provided');
-    }));
+    });
+    mockBackend = TestBed.get(HttpTestingController);
+    transformationValidationService = TestBed.get(StellarService);
+  });
 
   describe('when service functions', () => {
-    let transformationValidationService: StellarService;
-    let mockBackend: MockBackend;
     let transformationRules = ['rule1', 'rule2'];
-    let transformationRulesValidation = {rule1: true, rule2: false};
+    let transformationRulesValidation = { rule1: true, rule2: false };
     let transformationValidation = new SensorParserContext();
-    transformationValidation.sampleData = {'data': 'data'};
+    transformationValidation.sampleData = { data: 'data' };
     transformationValidation.sensorParserConfig = new SensorParserConfig();
     transformationValidation.sensorParserConfig.sensorTopic = 'test';
     let transformations = ['STELLAR', 'REMOVE'];
-    let transformFunctions = [{'function1': 'desc1'}, {'function2': 'desc2'}];
-    let simpleTransformFunctions = [{'simplefunction1': 'simpledesc1'}, {'simplefunction2': 'simpledesc2'}];
-    let transformationRulesValidationResponse: Response;
-    let transformationValidationResponse: Response;
-    let transformationListResponse: Response;
-    let transformationListFunctionsResponse: Response;
-    let transformationListSimpleFunctionsResponse: Response;
+    let transformFunctions: StellarFunctionDescription[] = [
+      { name: 'function1', description: 'desc1', params: [], returns: '' },
+      { name: 'function2', description: 'desc2', params: [], returns: '' }
+    ];
+    let simpleTransformFunctions = Object.assign([], transformFunctions);
 
-    beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
-      mockBackend = be;
-      transformationValidationService = new StellarService(http, config);
-      transformationRulesValidationResponse = new Response(new ResponseOptions({
-        status: 200,
-        body: transformationRulesValidation
-      }));
-      transformationValidationResponse = new Response(new ResponseOptions({
-        status: 200,
-        body: transformationValidation
-      }));
-      transformationListResponse = new Response(new ResponseOptions({status: 200, body: transformations}));
-      transformationListFunctionsResponse = new Response(new ResponseOptions({status: 200, body: transformFunctions}));
-      transformationListSimpleFunctionsResponse = new Response(new ResponseOptions({status: 200, body: simpleTransformFunctions}));
-    }));
+    it('validateRules', () => {
+      transformationValidationService
+        .validateRules(transformationRules)
+        .subscribe(
+          result => {
+            expect(result).toEqual(transformationRulesValidation);
+          },
+          error => console.log(error)
+        );
+      const req = mockBackend.expectOne('/api/v1/stellar/validate/rules');
+      expect(req.request.method).toBe('POST');
+      req.flush(transformationRulesValidation);
+    });
 
-    it('validateRules', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(transformationRulesValidationResponse));
+    it('validate', () => {
+      transformationValidationService
+        .validate(transformationValidation)
+        .subscribe(
+          result => {
+            expect(result).toEqual(transformationValidation);
+          },
+          error => console.log(error)
+        );
+      const req = mockBackend.expectOne('/api/v1/stellar/validate');
+      expect(req.request.method).toBe('POST');
+      req.flush(transformationValidation);
+    });
 
-      transformationValidationService.validateRules(transformationRules).subscribe(
-        result => {
-          expect(result).toEqual(transformationRulesValidation);
-        }, error => console.log(error));
-    })));
-
-    it('validate', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(transformationValidationResponse));
-
-      transformationValidationService.validate(transformationValidation).subscribe(
-        result => {
-          expect(result).toEqual(transformationValidation);
-        }, error => console.log(error));
-    })));
-
-    it('list', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(transformationListResponse));
-
+    it('list', () => {
       transformationValidationService.list().subscribe(
         result => {
           expect(result).toEqual(transformations);
-        }, error => console.log(error));
-    })));
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/stellar/list');
+      expect(req.request.method).toBe('GET');
+      req.flush(transformations);
+    });
 
-    it('listFunctions', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(transformationListFunctionsResponse));
-
+    it('listFunctions', () => {
       transformationValidationService.listFunctions().subscribe(
         result => {
           expect(result).toEqual(transformFunctions);
-        }, error => console.log(error));
-    })));
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne('/api/v1/stellar/list/functions');
+      expect(req.request.method).toBe('GET');
+      req.flush(transformFunctions);
+    });
 
-    it('listSimpleFunctions', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(transformationListSimpleFunctionsResponse));
-
+    it('listSimpleFunctions', () => {
       transformationValidationService.listSimpleFunctions().subscribe(
-          result => {
-            expect(result).toEqual(simpleTransformFunctions);
-          }, error => console.log(error));
-    })));
+        result => {
+          expect(result).toEqual(simpleTransformFunctions);
+        },
+        error => console.log(error)
+      );
+      const req = mockBackend.expectOne(
+        '/api/v1/stellar/list/simple/functions'
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(simpleTransformFunctions);
+    });
   });
-
 });
-
-
-

@@ -30,6 +30,13 @@ public interface ConfigOption {
     return (s, o) -> o;
   }
 
+  /**
+   * Returns true if the map contains the key for the defined config option
+   */
+  default boolean containsOption(Map<String, Object> map) {
+    return map.containsKey(getKey());
+  }
+
   default void put(Map<String, Object> map, Object value) {
     map.put(getKey(), value);
   }

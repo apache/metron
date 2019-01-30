@@ -15,10 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
+import {APP_INITIALIZER, NgModule} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BrowserModule} from '@angular/platform-browser';
-import {HttpModule} from '@angular/http';
+import {HttpClientModule, HTTP_INTERCEPTORS} from '@angular/common/http';
+import { Router } from '@angular/router';
 import {AppComponent} from './app.component';
 import {SensorParserConfigService} from './service/sensor-parser-config.service';
 import {KafkaService} from './service/kafka.service';
@@ -27,7 +28,7 @@ import {StellarService} from './service/stellar.service';
 import {MetronAlerts} from './shared/metron-alerts';
 import {NavbarComponent} from './navbar/navbar.component';
 import {VerticalNavbarComponent} from './verticalnavbar/verticalnavbar.component';
-import {routing, appRoutingProviders} from './app.routes';
+import {MetronConfigRoutingModule} from './app.routes';
 import {AuthenticationService} from './service/authentication.service';
 import {AuthGuard} from './shared/auth-guard';
 import {LoginGuard} from './shared/login-guard';
@@ -43,16 +44,26 @@ import {StormService} from './service/storm.service';
 import {SensorParserConfigHistoryService} from './service/sensor-parser-config-history.service';
 import {SensorIndexingConfigService} from './service/sensor-indexing-config.service';
 import {HdfsService} from './service/hdfs.service';
+import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.interceptor';
+import {AppConfigService} from './service/app-config.service';
 
+export function initConfig(appConfigService: AppConfigService) {
+  return () => appConfigService.loadAppConfig();
+}
 
 @NgModule({
-  imports: [ BrowserModule, routing, FormsModule, ReactiveFormsModule, HttpModule, SensorParserListModule,
-    SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule ],
+  imports: [ BrowserModule, FormsModule, ReactiveFormsModule, HttpClientModule, SensorParserListModule,
+    SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule, MetronConfigRoutingModule ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
-  providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
+  providers: [  AppConfigService, AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
     StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
-    GlobalConfigService, MetronAlerts, MetronDialogBox, appRoutingProviders, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }],
+    GlobalConfigService, MetronAlerts, MetronDialogBox,
+    { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true },
+    { provide: APP_INITIALIZER, useFactory: initConfig, deps: [AppConfigService], multi: true }
+    ],
   bootstrap:    [ AppComponent ]
 })
-export class AppModule { }
+export class AppModule {
+  constructor(router: Router) {}
+}
