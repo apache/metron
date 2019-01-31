@@ -61,6 +61,7 @@
 		<module>metron-storm-kafka-override</module>
 		<module>metron-zookeeper</module>
     <module>metron-parsing</module>
+    <module>metron-hbase-server</module>
   </modules>
 	<dependencies>
 		<dependency>

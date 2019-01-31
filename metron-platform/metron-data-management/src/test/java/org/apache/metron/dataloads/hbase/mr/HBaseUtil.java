@@ -18,6 +18,16 @@
 package org.apache.metron.dataloads.hbase.mr;
 
 import com.google.common.base.Joiner;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -26,26 +36,33 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 
-import java.io.*;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 public enum HBaseUtil {
-    INSTANCE;
-    public Map.Entry<HBaseTestingUtility,Configuration> create(boolean startMRCluster) throws Exception {
-        Configuration config = HBaseConfiguration.create();
-        config.set("hbase.master.hostname", "localhost");
-        config.set("hbase.regionserver.hostname", "localhost");
-        HBaseTestingUtility testUtil = new HBaseTestingUtility(config);
+  INSTANCE;
 
-        testUtil.startMiniCluster(1);
-        if(startMRCluster) {
-            testUtil.startMiniMapReduceCluster();
-        }
-        return new AbstractMap.SimpleEntry<>(testUtil, config);
+  public Map.Entry<HBaseTestingUtility, Configuration> create(boolean startMRCluster)
+      throws Exception {
+    return create(startMRCluster, null);
+  }
+
+  public Map.Entry<HBaseTestingUtility, Configuration> create(boolean startMRCluster,
+      Configuration extraConfig) throws Exception {
+    Configuration config = HBaseConfiguration.create();
+    config.set("hbase.master.hostname", "localhost");
+    config.set("hbase.regionserver.hostname", "localhost");
+    if (null != extraConfig) {
+      for (Entry<String, String> entry : extraConfig) {
+        config.set(entry.getKey(), entry.getValue());
+      }
     }
+    HBaseTestingUtility testUtil = new HBaseTestingUtility(config);
+
+    testUtil.startMiniCluster(1);
+    if (startMRCluster) {
+      testUtil.startMiniMapReduceCluster();
+    }
+    return new AbstractMap.SimpleEntry<>(testUtil, config);
+  }
+
     public void writeFile(String contents, Path filename, FileSystem fs) throws IOException {
         FSDataOutputStream os = fs.create(filename, true);
         PrintWriter pw = new PrintWriter(new OutputStreamWriter(os));
