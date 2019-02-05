@@ -20,8 +20,6 @@ package org.apache.metron.parsers.bolt;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Function;
 import org.apache.metron.common.configuration.ParserConfigurations;
@@ -32,11 +30,11 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.MessageWriter;
+import org.apache.metron.writer.StormBulkWriterResponseHandler;
 import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.metron.writer.WriterToBulkWriter;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +44,7 @@ public class WriterHandler implements Serializable {
   private BulkMessageWriter<JSONObject> messageWriter;
   private transient BulkWriterComponent<JSONObject> writerComponent;
   private transient Function<ParserConfigurations, WriterConfiguration> writerTransformer;
-  private boolean isBulk = false;
+  private boolean isBulk;
   private ConfigurationStrategy configStrategy = ConfigurationsStrategies.PARSERS;
 
   public WriterHandler(MessageWriter<JSONObject> writer) {
@@ -59,10 +57,6 @@ public class WriterHandler implements Serializable {
     messageWriter = writer;
   }
 
-  public boolean handleAck() {
-    return isBulk;
-  }
-
   public boolean isWriterToBulkWriter() {
     return messageWriter instanceof  WriterToBulkWriter;
   }
@@ -71,7 +65,7 @@ public class WriterHandler implements Serializable {
     return messageWriter;
   }
 
-  public void init(Map stormConf, TopologyContext topologyContext, OutputCollector collector, ParserConfigurations configurations) {
+  public void init(Map stormConf, TopologyContext topologyContext, OutputCollector collector, ParserConfigurations configurations, StormBulkWriterResponseHandler stormBulkWriterResponseHandler) {
     if(isBulk) {
       writerTransformer = config -> configStrategy.createWriterConfig(messageWriter, config);
     }
@@ -83,21 +77,15 @@ public class WriterHandler implements Serializable {
     } catch (Exception e) {
       throw new IllegalStateException("Unable to initialize message writer", e);
     }
-    this.writerComponent = new BulkWriterComponent<JSONObject>(collector, isBulk, isBulk) {
-      @Override
-      protected Collection<Tuple> createTupleCollection() {
-        return new HashSet<>();
-      }
-    };
+    this.writerComponent = new BulkWriterComponent<JSONObject>(stormBulkWriterResponseHandler);
   }
 
   public void write( String sensorType
-                   , Tuple tuple
+                   , String messageId
                    , JSONObject message
                    , ParserConfigurations configurations
-                   , MessageGetStrategy messageGetStrategy
                    ) throws Exception {
-    writerComponent.write(sensorType, tuple, message, messageWriter, writerTransformer.apply(configurations), messageGetStrategy);
+    writerComponent.write(sensorType, messageId, message, messageWriter, writerTransformer.apply(configurations));
   }
 
   public void flush(ParserConfigurations configurations, MessageGetStrategy messageGetStrategy)
@@ -105,13 +93,8 @@ public class WriterHandler implements Serializable {
     if (!(messageWriter instanceof WriterToBulkWriter)) {
       //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
       LOG.debug("Flushing message queues older than their batchTimeouts");
-      writerComponent.flushTimeouts(messageWriter, writerTransformer.apply(configurations),
-          messageGetStrategy);
+      writerComponent.flushTimeouts(messageWriter, writerTransformer.apply(configurations));
     }
-  }
-
-  public void errorAll(String sensorType, Throwable e, MessageGetStrategy messageGetStrategy) {
-    writerComponent.errorAll(sensorType, e, messageGetStrategy);
   }
 
   /**

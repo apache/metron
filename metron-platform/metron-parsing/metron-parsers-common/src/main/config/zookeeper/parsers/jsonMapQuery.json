@@ -1,5 +1,5 @@
 {
   "parserClassName":"org.apache.metron.parsers.json.JSONMapParser",
   "sensorTopic":"jsonMapQuery",
-  "parserConfig": {"jsonpQuery":"$.foo"}
+  "parserConfig": {"jsonpQuery":"$.foo", "batchSize": 5}
 }

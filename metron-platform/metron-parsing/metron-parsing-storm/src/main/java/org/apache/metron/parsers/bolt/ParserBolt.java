@@ -23,9 +23,12 @@ import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.common.configuration.ParserConfigurations;
@@ -37,6 +40,8 @@ import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.common.utils.HashUtils;
+import org.apache.metron.writer.StormBulkWriterResponseHandler;
 import org.apache.metron.parsers.ParserRunner;
 import org.apache.metron.parsers.ParserRunnerResults;
 import org.apache.metron.stellar.common.CachingStellarProcessor;
@@ -69,6 +74,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private int requestedTickFreqSecs;
   private int defaultBatchTimeout;
   private int batchTimeoutDivisor = 1;
+  private transient StormBulkWriterResponseHandler bulkWriterResponseHandler;
 
   public ParserBolt( String zookeeperUrl
                    , ParserRunner parserRunner
@@ -77,17 +83,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     super(zookeeperUrl);
     this.parserRunner = parserRunner;
     this.sensorToWriterMap = sensorToWriterMap;
-
-    // Ensure that all sensors are either bulk sensors or not bulk sensors.  Can't mix and match.
-    Boolean handleAcks = null;
-    for (Map.Entry<String, WriterHandler> entry : sensorToWriterMap.entrySet()) {
-      boolean writerHandleAck = entry.getValue().handleAck();
-      if (handleAcks == null) {
-        handleAcks = writerHandleAck;
-      } else if (!handleAcks.equals(writerHandleAck)) {
-        throw new IllegalArgumentException("All writers must match when calling handleAck()");
-      }
-    }
   }
 
   /**
@@ -158,6 +153,13 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   }
 
   /**
+   * Used only for unit testing
+   */
+  public void setBulkWriterResponseHandler(StormBulkWriterResponseHandler bulkWriterResponseHandler) {
+    this.bulkWriterResponseHandler = bulkWriterResponseHandler;
+  }
+
+  /**
    * This method is called by TopologyBuilder.createTopology() to obtain topology and
    * bolt specific configuration parameters.  We use it primarily to configure how often
    * a tick tuple will be sent to our bolt.
@@ -201,6 +203,8 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     this.collector = collector;
     this.parserRunner.init(this::getConfigurations, initializeStellar());
 
+    bulkWriterResponseHandler = new StormBulkWriterResponseHandler(collector, messageGetStrategy);
+
     // Need to prep all sensors
     for (Map.Entry<String, WriterHandler> entry: sensorToWriterMap.entrySet()) {
       String sensor = entry.getKey();
@@ -215,7 +219,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       }
 
       WriterHandler writer = sensorToWriterMap.get(sensor);
-      writer.init(stormConf, context, collector, getConfigurations());
+      writer.init(stormConf, context, collector, getConfigurations(), bulkWriterResponseHandler);
       if (defaultBatchTimeout == 0) {
         //This means getComponentConfiguration was never called to initialize defaultBatchTimeout,
         //probably because we are in a unit test scenario.  So calculate it here.
@@ -250,16 +254,26 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
               , sensorParserConfig.getRawMessageStrategyConfig()
       );
       ParserRunnerResults<JSONObject> parserRunnerResults = parserRunner.execute(sensorType, rawMessage, parserConfigurations);
-      long numWritten = parserRunnerResults.getMessages().stream()
-              .map(message -> handleMessage(sensorType, originalMessage, tuple, message, collector))
-              .filter(result -> result)
-              .count();
       parserRunnerResults.getErrors().forEach(error -> ErrorUtils.handleError(collector, error));
 
-      //if we are supposed to ack the tuple OR if we've never passed this tuple to the bulk writer
-      //(meaning that none of the messages are valid either globally or locally)
-      //then we want to handle the ack ourselves.
-      if (!sensorToWriterMap.get(sensorType).handleAck() || numWritten == 0) {
+      WriterHandler writer = sensorToWriterMap.get(sensorType);
+      int numWritten = 0;
+      List<JSONObject> messages = parserRunnerResults.getMessages();
+      List<String> messageIds = messages.stream()
+              .map(this::getMessageId)
+              .collect(Collectors.toList());
+      bulkWriterResponseHandler.addTupleMessageIds(tuple, messageIds);
+      for(int i = 0; i < messages.size(); i++) {
+        JSONObject message = messages.get(i);
+        try {
+          writer.write(sensorType, messageIds.get(i), message, getConfigurations());
+          numWritten++;
+        } catch (Exception ex) {
+          handleError(sensorType, originalMessage, tuple, ex, collector);
+        }
+      }
+
+      if (numWritten == 0) {
         collector.ack(tuple);
       }
 
@@ -306,17 +320,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     }
   }
 
-  protected boolean handleMessage(String sensorType, byte[] originalMessage, Tuple tuple, JSONObject message, OutputCollector collector) {
-    WriterHandler writer = sensorToWriterMap.get(sensorType);
-    try {
-      writer.write(sensorType, tuple, message, getConfigurations(), messageGetStrategy);
-      return true;
-    } catch (Exception ex) {
-      handleError(sensorType, originalMessage, tuple, ex, collector);
-      return false;
-    }
-  }
-
   protected void handleError(String sensorType, byte[] originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
     MetronError error = new MetronError()
             .withErrorType(Constants.ErrorType.PARSER_ERROR)
@@ -324,6 +327,10 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             .withSensorType(Collections.singleton(sensorType))
             .addRawMessage(originalMessage);
     ErrorUtils.handleError(collector, error);
+  }
+
+  protected String getMessageId(JSONObject message) {
+    return HashUtils.getMessageHash(message);
   }
 
   @Override

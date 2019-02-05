@@ -40,7 +40,6 @@ import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.writer.AbstractWriter;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,6 +150,13 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
     return Optional.ofNullable(configPrefix);
   }
 
+  /**
+   * Used only for unit testing
+   */
+  protected void setKafkaProducer(KafkaProducer kafkaProducer) {
+    this.kafkaProducer = kafkaProducer;
+  }
+
   @Override
   public void configure(String sensorName, WriterConfiguration configuration) {
     Map<String, Object> configMap = configuration.getSensorConfig(sensorName);
@@ -228,17 +234,17 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
 
   @Override
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations,
-      Iterable<Tuple> tuples, List<JSONObject> messages) {
+      Map<String, JSONObject> messages) {
     BulkWriterResponse writerResponse = new BulkWriterResponse();
-    List<Map.Entry<Tuple, Future>> results = new ArrayList<>();
-    int i = 0;
-    for (Tuple tuple : tuples) {
-      JSONObject message = messages.get(i++);
+    List<Map.Entry<String, Future>> results = new ArrayList<>();
+    for (Map.Entry<String, JSONObject> entry: messages.entrySet()) {
+      String id = entry.getKey();
+      JSONObject message = entry.getValue();
       String jsonMessage;
       try {
          jsonMessage = message.toJSONString();
       } catch (Throwable t) {
-        writerResponse.addError(t, tuple);
+        writerResponse.addError(t, id);
         continue;
       }
       Optional<String> topic = getKafkaTopic(message);
@@ -246,7 +252,7 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
         Future future = kafkaProducer
             .send(new ProducerRecord<String, String>(topic.get(), jsonMessage));
         // we want to manage the batching
-        results.add(new AbstractMap.SimpleEntry<>(tuple, future));
+        results.add(new AbstractMap.SimpleEntry<>(id, future));
       }
       else {
         LOG.debug("Dropping {} because no topic is specified.", jsonMessage);
@@ -257,11 +263,11 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
       // ensures all Future.isDone() == true
       kafkaProducer.flush();
     } catch (InterruptException e) {
-      writerResponse.addAllErrors(e, tuples);
+      writerResponse.addAllErrors(e, messages.keySet());
       return writerResponse;
     }
 
-    for (Map.Entry<Tuple, Future> kv : results) {
+    for (Map.Entry<String, Future> kv : results) {
       try {
         kv.getValue().get();
         writerResponse.addSuccess(kv.getKey());

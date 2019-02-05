@@ -131,13 +131,13 @@ public class NoopWriter extends AbstractWriter implements BulkMessageWriter<JSON
   }
 
   @Override
-  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
+  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Map<String, JSONObject> messages) throws Exception {
     if(sleepFunction != null) {
       sleepFunction.apply(null);
     }
 
     BulkWriterResponse response = new BulkWriterResponse();
-    response.addAllSuccesses(tuples);
+    response.addAllSuccesses(messages.keySet());
     return response;
   }
 

@@ -15,30 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.elasticsearch.writer;
+package org.apache.metron.writer;
 
-import org.apache.metron.indexing.dao.update.Document;
-import org.apache.storm.tuple.Tuple;
-
-import java.util.Map;
+import org.apache.metron.common.writer.BulkWriterResponse;
 
 /**
- * An {@link Document} that is created from the contents of a {@link Tuple}.
+ * This interface is used by the {@link org.apache.metron.writer.BulkWriterComponent} to report that a queue for a
+ * sensor type has been flushed.  Different frameworks may have different requirements for committing processed messages
+ * so this abstraction provides a way to pass in the appropriate commit logic for the framework in use.
  */
-public class TupleBasedDocument extends Document {
+public interface BulkWriterResponseHandler {
 
-    private Tuple tuple;
-
-    public TupleBasedDocument(Map<String, Object> document,
-                              String guid,
-                              String sensorType,
-                              Long timestamp,
-                              Tuple tuple) {
-        super(document, guid, sensorType, timestamp);
-        this.tuple = tuple;
-    }
-
-    public Tuple getTuple() {
-        return tuple;
-    }
+  /**
+   * Called immediately after a batch has been flushed.
+   * @param sensorType The type of sensor generating the messages
+   * @param response A response containing successes and failures within the batch
+   */
+  void handleFlush(String sensorType, BulkWriterResponse response);
 }

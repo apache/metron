@@ -15,17 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.writer;
+package org.apache.metron.elasticsearch.writer;
 
-import org.apache.storm.tuple.Tuple;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.indexing.dao.update.Document;
 
-import java.io.Serializable;
+import java.util.Map;
 
-public interface MessageWriter<T> extends AutoCloseable, Serializable {
+/**
+ * An {@link Document} that is created from message id.
+ */
+public class MessageIdBasedDocument extends Document {
 
-  void init();
-  void write(String sensorType, WriterConfiguration configurations, String messageId, T message) throws Exception;
-  String getName();
+    private String messageId;
+
+    public MessageIdBasedDocument(Map<String, Object> document,
+                                  String guid,
+                                  String sensorType,
+                                  Long timestamp,
+                                  String messageId) {
+        super(document, guid, sensorType, timestamp);
+        this.messageId = messageId;
+    }
+
+    public String getMessageId() {
+        return messageId;
+    }
 }

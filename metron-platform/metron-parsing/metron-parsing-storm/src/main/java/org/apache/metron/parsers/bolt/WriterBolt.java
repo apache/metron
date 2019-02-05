@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers.bolt;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import org.apache.metron.common.Constants;
@@ -26,6 +27,8 @@ import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.common.utils.HashUtils;
+import org.apache.metron.writer.StormBulkWriterResponseHandler;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -40,6 +43,7 @@ public class WriterBolt extends BaseRichBolt {
   private Constants.ErrorType errorType = Constants.ErrorType.DEFAULT_ERROR;
   private transient MessageGetStrategy messageGetStrategy;
   private transient OutputCollector collector;
+  private transient StormBulkWriterResponseHandler bulkWriterResponseHandler;
   public WriterBolt(WriterHandler handler, ParserConfigurations configuration, String sensorType) {
     this.handler = handler;
     this.configuration = configuration;
@@ -55,7 +59,8 @@ public class WriterBolt extends BaseRichBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.collector = collector;
     messageGetStrategy = MessageGetters.DEFAULT_JSON_FROM_FIELD.get();
-    handler.init(stormConf, context, collector, configuration);
+    bulkWriterResponseHandler = new StormBulkWriterResponseHandler(collector, messageGetStrategy);
+    handler.init(stormConf, context, collector, configuration, bulkWriterResponseHandler);
   }
 
   private JSONObject getMessage(Tuple tuple) {
@@ -71,15 +76,18 @@ public class WriterBolt extends BaseRichBolt {
     }
   }
 
+  protected String getMessageId(JSONObject message) {
+    return HashUtils.getMessageHash(message);
+  }
+
   @Override
   public void execute(Tuple tuple) {
     JSONObject message = null;
     try {
       message = (JSONObject) messageGetStrategy.get(tuple);
-      handler.write(sensorType, tuple, message, configuration, messageGetStrategy);
-      if(!handler.handleAck()) {
-        collector.ack(tuple);
-      }
+      Collection<String> messagesIds = Collections.singleton(getMessageId(message));
+      bulkWriterResponseHandler.addTupleMessageIds(tuple, messagesIds);
+      handler.write(sensorType, messagesIds.iterator().next(), message, configuration);
     } catch (Throwable e) {
       MetronError error = new MetronError()
               .withErrorType(errorType)

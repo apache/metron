@@ -250,13 +250,12 @@ public class HdfsWriterTest {
     JSONObject message2 = new JSONObject();
     message2.put("test.key", "test.value3");
     message2.put("test.key2", "test.value2");
-    ArrayList<JSONObject> messages = new ArrayList<>();
-    messages.add(message);
-    messages.add(message2);
+    Map<String, JSONObject> messages = new HashMap<String, JSONObject>() {{
+      put("message1", message);
+      put("message2", message2);
+    }};
 
-    ArrayList<Tuple> tuples = new ArrayList<>();
-
-    writer.write(SENSOR_NAME, config, tuples, messages);
+    writer.write(SENSOR_NAME, config, messages);
     writer.close();
 
     ArrayList<String> expected = new ArrayList<>();
@@ -295,13 +294,12 @@ public class HdfsWriterTest {
     JSONObject message2 = new JSONObject();
     message2.put("test.key", "test.value");
     message2.put("test.key3", "test.value2");
-    ArrayList<JSONObject> messages = new ArrayList<>();
-    messages.add(message);
-    messages.add(message2);
+    Map<String, JSONObject> messages = new HashMap<String, JSONObject>() {{
+      put("message1", message);
+      put("message2", message2);
+    }};
 
-    ArrayList<Tuple> tuples = new ArrayList<>();
-
-    writer.write(SENSOR_NAME, config, tuples, messages);
+    writer.write(SENSOR_NAME, config, messages);
     writer.close();
 
     ArrayList<String> expected = new ArrayList<>();
@@ -339,13 +337,12 @@ public class HdfsWriterTest {
     JSONObject message2 = new JSONObject();
     message2.put("test.key", "test.value2");
     message2.put("test.key3", "test.value3");
-    ArrayList<JSONObject> messages = new ArrayList<>();
-    messages.add(message);
-    messages.add(message2);
+    Map<String, JSONObject> messages = new HashMap<String, JSONObject>() {{
+      put("message1", message);
+      put("message2", message2);
+    }};
 
-    ArrayList<Tuple> tuples = new ArrayList<>();
-
-    writer.write(SENSOR_NAME, config, tuples, messages);
+    writer.write(SENSOR_NAME, config, messages);
     writer.close();
 
     ArrayList<String> expected1 = new ArrayList<>();
@@ -392,12 +389,11 @@ public class HdfsWriterTest {
     // These two messages will be routed to the same folder, because test.key is the same
     JSONObject message = new JSONObject();
     message.put("test.key2", "test.value2");
-    ArrayList<JSONObject> messages = new ArrayList<>();
-    messages.add(message);
+    Map<String, JSONObject> messages = new HashMap<String, JSONObject>() {{
+      put("message1", message);
+    }};
 
-    ArrayList<Tuple> tuples = new ArrayList<>();
-
-    writer.write(SENSOR_NAME, config, tuples, messages);
+    writer.write(SENSOR_NAME, config,messages);
     writer.close();
 
     ArrayList<String> expected = new ArrayList<>();
@@ -425,15 +421,15 @@ public class HdfsWriterTest {
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
-    ArrayList<JSONObject> messages = new ArrayList<>();
-    messages.add(message);
-    ArrayList<Tuple> tuples = new ArrayList<>();
+    Map<String, JSONObject> messages = new HashMap<String, JSONObject>() {{
+      put("message1", message);
+    }};
 
     CountSyncPolicy basePolicy = new CountSyncPolicy(5);
     ClonedSyncPolicyCreator creator = new ClonedSyncPolicyCreator(basePolicy);
 
-    writer.write(SENSOR_NAME, config, tuples, messages);
-    writer.write(SENSOR_NAME, config, tuples, messages);
+    writer.write(SENSOR_NAME, config, messages);
+    writer.write(SENSOR_NAME, config, messages);
     writer.close();
 
     File outputFolder = new File(folder.getAbsolutePath() + "/test-test.value/test.value/");
@@ -463,14 +459,14 @@ public class HdfsWriterTest {
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
-    ArrayList<JSONObject> messages = new ArrayList<>();
-    messages.add(message);
-    ArrayList<Tuple> tuples = new ArrayList<>();
+    Map<String, JSONObject> messages = new HashMap<String, JSONObject>() {{
+      put("message1", message);
+    }};
 
     CountSyncPolicy basePolicy = new CountSyncPolicy(5);
     ClonedSyncPolicyCreator creator = new ClonedSyncPolicyCreator(basePolicy);
 
-    writer.write(SENSOR_NAME, config, tuples, messages);
+    writer.write(SENSOR_NAME, config, messages);
     writer.getSourceHandler(SENSOR_NAME, "test-test.value/test.value", config).closeOutputFile();
     writer.getSourceHandler(SENSOR_NAME, "test-test.value/test.value", config).handle(message, SENSOR_NAME, config, creator);
     writer.close();

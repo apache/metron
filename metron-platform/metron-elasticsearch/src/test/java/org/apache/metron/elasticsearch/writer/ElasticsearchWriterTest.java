@@ -24,15 +24,12 @@ import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -40,7 +37,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -62,216 +58,195 @@ public class ElasticsearchWriterTest {
 
     @Test
     public void shouldWriteSuccessfully() {
-        // create a tuple and a message associated with that tuple
-        List<Tuple> tuples = createTuples(1);
-        List<JSONObject> messages = createMessages(1);
+        // create a message id and a message associated with that id
+        Map<String, JSONObject> messages = createMessages(1);
 
         // create a document writer which will successfully write all
-        BulkDocumentWriterResults<TupleBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addSuccess(createDocument(messages.get(0), tuples.get(0)));
-        BulkDocumentWriter<TupleBasedDocument> docWriter = mock(BulkDocumentWriter.class);
+        BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
+        results.addSuccess(createDocument(messages.get("message1"), "message1"));
+        BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
         esWriter.init(stormConf, topologyContext, writerConfiguration);
-        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // response should only contain successes
         assertFalse(response.hasErrors());
-        assertTrue(response.getSuccesses().contains(tuples.get(0)));
+        assertTrue(response.getSuccesses().contains("message1"));
     }
 
     @Test
     public void shouldWriteManySuccessfully() {
-        // create a few tuples and the messages associated with the tuples
-        List<Tuple> tuples = createTuples(3);
-        List<JSONObject> messages = createMessages(3);
+        // create a few message ids and the messages associated with the ids
+        Map<String, JSONObject> messages = createMessages(3);
 
         // create a document writer which will successfully write all
-        BulkDocumentWriterResults<TupleBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addSuccess(createDocument(messages.get(0), tuples.get(0)));
-        results.addSuccess(createDocument(messages.get(1), tuples.get(1)));
-        results.addSuccess(createDocument(messages.get(2), tuples.get(2)));
-        BulkDocumentWriter<TupleBasedDocument> docWriter = mock(BulkDocumentWriter.class);
+        BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
+        results.addSuccess(createDocument(messages.get("message1"), "message1"));
+        results.addSuccess(createDocument(messages.get("message2"), "message2"));
+        results.addSuccess(createDocument(messages.get("message3"), "message3"));
+        BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
         esWriter.init(stormConf, topologyContext, writerConfiguration);
-        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // response should only contain successes
         assertFalse(response.hasErrors());
-        assertTrue(response.getSuccesses().contains(tuples.get(0)));
-        assertTrue(response.getSuccesses().contains(tuples.get(1)));
-        assertTrue(response.getSuccesses().contains(tuples.get(2)));
+        assertTrue(response.getSuccesses().contains("message1"));
+        assertTrue(response.getSuccesses().contains("message2"));
+        assertTrue(response.getSuccesses().contains("message3"));
     }
 
     @Test
     public void shouldHandleWriteFailure() {
-        // create a tuple and a message associated with that tuple
-        List<Tuple> tuples = createTuples(1);
-        List<JSONObject> messages = createMessages(1);
+        // create a message id and a message associated with that id
+        Map<String, JSONObject> messages = createMessages(3);
         Exception cause = new Exception();
 
         // create a document writer which will fail all writes
-        BulkDocumentWriterResults<TupleBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addFailure(createDocument(messages.get(0), tuples.get(0)), cause, "error");
-        BulkDocumentWriter<TupleBasedDocument> docWriter = mock(BulkDocumentWriter.class);
+        BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
+        results.addFailure(createDocument(messages.get("message1"), "message1"), cause, "error");
+        BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
         esWriter.init(stormConf, topologyContext, writerConfiguration);
-        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // the writer response should only contain failures
         assertEquals(0, response.getSuccesses().size());
         assertEquals(1, response.getErrors().size());
-        Collection<Tuple> errors = response.getErrors().get(cause);
-        assertTrue(errors.contains(tuples.get(0)));
+        Collection<String> errors = response.getErrors().get(cause);
+        assertTrue(errors.contains("message1"));
     }
 
     @Test
     public void shouldHandleManyWriteFailures() {
-        // create a few tuples and the messages associated with the tuples
+        // create a few message ids and the messages associated with the ids
         int count = 3;
-        List<Tuple> tuples = createTuples(count);
-        List<JSONObject> messages = createMessages(count);
+        Map<String, JSONObject> messages = createMessages(count);
         Exception cause = new Exception();
 
         // create a document writer which will fail all writes
-        BulkDocumentWriterResults<TupleBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addFailure(createDocument(messages.get(0), tuples.get(0)), cause, "error");
-        results.addFailure(createDocument(messages.get(1), tuples.get(1)), cause, "error");
-        results.addFailure(createDocument(messages.get(2), tuples.get(2)), cause, "error");
-        BulkDocumentWriter<TupleBasedDocument> docWriter = mock(BulkDocumentWriter.class);
+        BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
+        results.addFailure(createDocument(messages.get("message1"), "message1"), cause, "error");
+        results.addFailure(createDocument(messages.get("message2"), "message2"), cause, "error");
+        results.addFailure(createDocument(messages.get("message3"), "message3"), cause, "error");
+        BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
         esWriter.init(stormConf, topologyContext, writerConfiguration);
-        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // the writer response should only contain failures
         assertEquals(0, response.getSuccesses().size());
         assertEquals(1, response.getErrors().size());
-        Collection<Tuple> errors = response.getErrors().get(cause);
-        assertTrue(errors.contains(tuples.get(0)));
-        assertTrue(errors.contains(tuples.get(1)));
-        assertTrue(errors.contains(tuples.get(2)));
+        Collection<String> errors = response.getErrors().get(cause);
+        assertTrue(errors.contains("message1"));
+        assertTrue(errors.contains("message2"));
+        assertTrue(errors.contains("message3"));
     }
 
     @Test
     public void shouldHandlePartialFailures() {
-        // create a few tuples and the messages associated with the tuples
+        // create a few message ids and the messages associated with the ids
         int count = 2;
-        List<Tuple> tuples = createTuples(count);
-        List<JSONObject> messages = createMessages(count);
+        Map<String, JSONObject> messages = createMessages(count);
         Exception cause = new Exception();
 
         // create a document writer that will fail one and succeed the other
-        BulkDocumentWriterResults<TupleBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addFailure(createDocument(messages.get(0), tuples.get(0)), cause, "error");
-        results.addSuccess(createDocument(messages.get(1), tuples.get(1)));
-        BulkDocumentWriter<TupleBasedDocument> docWriter = mock(BulkDocumentWriter.class);
+        BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
+        results.addFailure(createDocument(messages.get("message1"), "message1"), cause, "error");
+        results.addSuccess(createDocument(messages.get("message2"), "message2"));
+        BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
         esWriter.init(stormConf, topologyContext, writerConfiguration);
-        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // response should contain some successes and some failures
         assertEquals(1, response.getSuccesses().size());
         assertEquals(1, response.getErrors().size());
-        assertTrue(response.getErrors().get(cause).contains(tuples.get(0)));
-        assertTrue(response.getSuccesses().contains(tuples.get(1)));
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void shouldCheckIfNumberOfMessagesMatchNumberOfTuples() {
-        ElasticsearchWriter esWriter = new ElasticsearchWriter();
-        esWriter.setDocumentWriter(mock(BulkDocumentWriter.class));
-        esWriter.init(stormConf, topologyContext, writerConfiguration);
-
-        // there are 5 tuples and only 1 message; there should be 5 messages to match the number of tuples
-        List<Tuple> tuples = createTuples(5);
-        List<JSONObject> messages = createMessages(1);
-
-        esWriter.write("bro", writerConfiguration, tuples, messages);
-        fail("expected exception");
+        assertTrue(response.getErrors().get(cause).contains("message1"));
+        assertTrue(response.getSuccesses().contains("message2"));
     }
 
     @Test
     public void shouldWriteSuccessfullyWhenMessageTimestampIsString() {
-        List<Tuple> tuples = createTuples(1);
-        List<JSONObject> messages = createMessages(1);
+        Map<String, JSONObject> messages = createMessages(1);
 
         // the timestamp is a String, rather than a Long
-        messages.get(0).put(Constants.Fields.TIMESTAMP.getName(), new Long(System.currentTimeMillis()).toString());
+        messages.get("message1").put(Constants.Fields.TIMESTAMP.getName(), new Long(System.currentTimeMillis()).toString());
 
         // create the document
-        JSONObject message = messages.get(0);
+        JSONObject message = messages.get("message1");
         String timestamp = (String) message.get(Constants.Fields.TIMESTAMP.getName());
         String guid = (String) message.get(Constants.GUID);
         String sensorType = (String) message.get(Constants.SENSOR_TYPE);
-        TupleBasedDocument document = new TupleBasedDocument(message, guid, sensorType, Long.parseLong(timestamp), tuples.get(0));
+        MessageIdBasedDocument document = new MessageIdBasedDocument(message, guid, sensorType, Long.parseLong(timestamp), "message1");
 
         // create a document writer which will successfully write that document
-        BulkDocumentWriterResults<TupleBasedDocument> results = new BulkDocumentWriterResults<>();
+        BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
         results.addSuccess(document);
-        BulkDocumentWriter<TupleBasedDocument> docWriter = mock(BulkDocumentWriter.class);
+        BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
         esWriter.init(stormConf, topologyContext, writerConfiguration);
-        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // response should only contain successes
         assertFalse(response.hasErrors());
-        assertTrue(response.getSuccesses().contains(tuples.get(0)));
+        assertTrue(response.getSuccesses().contains("message1"));
     }
 
     @Test
     public void shouldWriteSuccessfullyWhenMissingGUID() {
-        // create a tuple and a message associated with that tuple
-        List<Tuple> tuples = createTuples(1);
-        List<JSONObject> messages = createMessages(1);
+        // create a message id and a message associated with that tuple
+        Map<String, JSONObject> messages = createMessages(1);
 
         // remove the GUID from the message
-        assertNotNull(messages.get(0).remove(Constants.GUID));
+        assertNotNull(messages.get("message1").remove(Constants.GUID));
 
         // create a document writer which will successfully write all
-        BulkDocumentWriterResults<TupleBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addSuccess(createDocument(messages.get(0), tuples.get(0)));
-        BulkDocumentWriter<TupleBasedDocument> docWriter = mock(BulkDocumentWriter.class);
+        BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
+        results.addSuccess(createDocument(messages.get("message1"), "message1"));
+        BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
         esWriter.init(stormConf, topologyContext, writerConfiguration);
-        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, tuples, messages);
+        BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // response should only contain successes
         assertFalse(response.hasErrors());
-        assertTrue(response.getSuccesses().contains(tuples.get(0)));
+        assertTrue(response.getSuccesses().contains("message1"));
     }
 
-    private TupleBasedDocument createDocument(JSONObject message, Tuple tuple) {
+    private MessageIdBasedDocument createDocument(JSONObject message, String messageId) {
         Long timestamp = (Long) message.get(Constants.Fields.TIMESTAMP.getName());
         String guid = (String) message.get(Constants.GUID);
         String sensorType = (String) message.get(Constants.SENSOR_TYPE);
-        return new TupleBasedDocument(message, guid, sensorType, timestamp, tuple);
+        return new MessageIdBasedDocument(message, guid, sensorType, timestamp, messageId);
     }
 
     private JSONObject message() {
@@ -289,18 +264,10 @@ public class ElasticsearchWriterTest {
         return globals;
     }
 
-    private List<Tuple> createTuples(int count) {
-        List<Tuple> tuples = new ArrayList<>();
+    private Map<String, JSONObject> createMessages(int count) {
+        Map<String, JSONObject> messages = new HashMap<>();
         for(int i=0; i<count; i++) {
-            tuples.add(mock(Tuple.class));
-        }
-        return tuples;
-    }
-
-    private List<JSONObject> createMessages(int count) {
-        List<JSONObject> messages = new ArrayList<>();
-        for(int i=0; i<count; i++) {
-            messages.add(message());
+            messages.put("message" + (i + 1), message());
         }
         return messages;
     }

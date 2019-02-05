@@ -24,7 +24,6 @@ import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
@@ -94,16 +93,16 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   @Override
   public BulkWriterResponse write(String sourceType
                    , WriterConfiguration configurations
-                   , Iterable<Tuple> tuples
-                   , List<JSONObject> messages
+                   , Map<String, JSONObject> messages
                    ) throws Exception
   {
+    System.out.println(String.format("HDFS writer: recieved %d messages with a batch size of %d for sensor %s", messages.size(), configurations.getBatchSize(sourceType), sourceType));
     BulkWriterResponse response = new BulkWriterResponse();
 
     // Currently treating all the messages in a group for pass/failure.
     try {
       // Messages can all result in different HDFS paths, because of Stellar Expressions, so we'll need to iterate through
-      for(JSONObject message : messages) {
+      for(JSONObject message : messages.values()) {
         String path = getHdfsPathExtension(
                 sourceType,
                 (String)configurations.getSensorConfig(sourceType).getOrDefault(IndexingConfigurations.OUTPUT_PATH_FUNCTION_CONF, ""),
@@ -113,10 +112,10 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
         handler.handle(message, sourceType, configurations, syncPolicyCreator);
       }
     } catch (Exception e) {
-      response.addAllErrors(e, tuples);
+      response.addAllErrors(e, messages.keySet());
     }
 
-    response.addAllSuccesses(tuples);
+    response.addAllSuccesses(messages.keySet());
     return response;
   }
 

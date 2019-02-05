@@ -72,9 +72,8 @@ public class SimpleHBaseEnrichmentWriterTest {
 
     writer.write( SENSOR_TYPE
             , configuration
-            , null
-            , new ArrayList<JSONObject>() {{
-              add(new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar")));
+            , new HashMap<String, JSONObject>() {{
+              put("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar")));
             }}
     );
     List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();
@@ -100,9 +99,8 @@ public class SimpleHBaseEnrichmentWriterTest {
 
     writer.write( SENSOR_TYPE
             , configuration
-            , null
-            , new ArrayList<JSONObject>() {{
-              add(new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar")));
+            , new HashMap<String, JSONObject>() {{
+              put("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar")));
             }}
     );
     List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();
@@ -128,9 +126,8 @@ public class SimpleHBaseEnrichmentWriterTest {
 
     writer.write( SENSOR_TYPE
             , configuration
-            , null
-            , new ArrayList<JSONObject>() {{
-              add(new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar")));
+            , new HashMap<String, JSONObject>() {{
+              put("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar")));
             }}
     );
     List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();

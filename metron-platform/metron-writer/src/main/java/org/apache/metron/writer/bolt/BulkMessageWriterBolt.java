@@ -17,22 +17,32 @@
  */
 package org.apache.metron.writer.bolt;
 
+import static java.lang.String.format;
 import static org.apache.storm.utils.TupleUtils.isTick;
 
 import com.google.common.collect.ImmutableList;
+
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+
+import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredBolt;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.system.Clock;
+import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.common.utils.HashUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.MessageWriter;
+import org.apache.metron.writer.StormBulkWriterResponseHandler;
 import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.metron.writer.WriterToBulkWriter;
 import org.apache.storm.Config;
@@ -41,6 +51,7 @@ import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +70,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
   private int requestedTickFreqSecs;
   private int defaultBatchTimeout;
   private int batchTimeoutDivisor = 1;
+  private transient StormBulkWriterResponseHandler bulkWriterResponseHandler = null;
 
   public BulkMessageWriterBolt(String zookeeperUrl, String configurationStrategy) {
     super(zookeeperUrl, configurationStrategy);
@@ -172,7 +184,6 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
 
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-    setWriterComponent(new BulkWriterComponent<>(collector));
     this.collector = collector;
     super.prepare(stormConf, context, collector);
     if (messageGetField != null) {
@@ -186,6 +197,8 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
     else {
       configurationTransformation = x -> x;
     }
+    bulkWriterResponseHandler = new StormBulkWriterResponseHandler(collector, messageGetStrategy);
+    setWriterComponent(new BulkWriterComponent<>(bulkWriterResponseHandler));
     try {
       WriterConfiguration writerconf = configurationTransformation
           .apply(getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations()));
@@ -219,8 +232,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
           //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
           LOG.debug("Flushing message queues older than their batchTimeouts");
           getWriterComponent().flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
-              getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations())),
-              messageGetStrategy);
+              getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations())));
         }
       }
       catch(Exception e) {
@@ -254,13 +266,13 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
         //want to warn, but not fail the tuple
         collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
       }
-
+      Collection<String> messagesIds = Collections.singleton(getMessageId(message));
+      bulkWriterResponseHandler.addTupleMessageIds(tuple, messagesIds);
       getWriterComponent().write(sensorType
-              , tuple
+              , messagesIds.iterator().next()
               , message
               , bulkMessageWriter
               , writerConfiguration
-              , messageGetStrategy
       );
     }
     catch(Exception e) {
@@ -295,11 +307,19 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
   private void handleMissingSensorType(Tuple tuple, JSONObject message) {
     // sensor type somehow ended up being null.  We want to error this message directly.
     LOG.debug("Message is missing sensor type");
-    getWriterComponent().error("null",
-            new Exception("Sensor type is not specified for message " + message.toJSONString()),
-            ImmutableList.of(tuple),
-            messageGetStrategy
-    );
+    String sensorType = "null";
+    Exception e = new Exception("Sensor type is not specified for message " + message.toJSONString());
+    LOG.error(format("Failing %d tuple(s); sensorType=%s", Iterables.size(ImmutableList.of(tuple)), sensorType), e);
+    MetronError error = new MetronError()
+            .withSensorType(Collections.singleton(sensorType))
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+            .withThrowable(e)
+            .addRawMessage(messageGetStrategy.get(tuple));
+    collector.emit(Constants.ERROR_STREAM, new Values(error.getJSONObject()));
+
+    // there is only one error to report for all of the failed tuples
+    collector.reportError(e);
+    collector.ack(tuple);
   }
 
   /**
@@ -309,10 +329,17 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
    */
   private void handleMissingMessage(Tuple tuple) {
     LOG.debug("Unable to extract message from tuple; expected valid JSON");
-    getWriterComponent().error(
-            new Exception("Unable to extract message from tuple; expected valid JSON"),
-            tuple
-    );
+    Exception e = new Exception("Unable to extract message from tuple; expected valid JSON");
+    LOG.error("Failing tuple", e);
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+            .withThrowable(e);
+    collector.ack(tuple);
+    ErrorUtils.handleError(collector, error);
+  }
+
+  protected String getMessageId(JSONObject message) {
+    return HashUtils.getMessageHash(message);
   }
 
   @Override

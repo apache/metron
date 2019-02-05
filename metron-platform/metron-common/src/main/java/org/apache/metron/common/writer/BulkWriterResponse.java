@@ -18,7 +18,6 @@
 
 package org.apache.metron.common.writer;
 
-import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
@@ -29,16 +28,16 @@ import java.util.List;
 import java.util.Map;
 
 public class BulkWriterResponse {
-    private Multimap<Throwable, Tuple> errors = ArrayListMultimap.create();
-    private List<Tuple> successes = new ArrayList<>();
+    private Multimap<Throwable, String> errors = ArrayListMultimap.create();
+    private List<String> successes = new ArrayList<>();
 
-    public void addError(Throwable error, Tuple tuple) {
-        errors.put(error, tuple);
+    public void addError(Throwable error, String id) {
+        errors.put(error, id);
     }
 
-    public void addAllErrors(Throwable error, Iterable<Tuple> tuples) {
-        if(tuples != null) {
-            errors.putAll(error, tuples);
+    public void addAllErrors(Throwable error, Iterable<String> ids) {
+        if(ids != null) {
+            errors.putAll(error, ids);
         }
     }
 
@@ -46,21 +45,21 @@ public class BulkWriterResponse {
         return !errors.isEmpty();
     }
 
-    public void addSuccess(Tuple success) {
+    public void addSuccess(String success) {
         successes.add(success);
     }
 
-    public void addAllSuccesses(Iterable<Tuple> allSuccesses) {
+    public void addAllSuccesses(Iterable<String> allSuccesses) {
         if(allSuccesses != null) {
             Iterables.addAll(successes, allSuccesses);
         }
     }
 
-    public Map<Throwable, Collection<Tuple>> getErrors() {
+    public Map<Throwable, Collection<String>> getErrors() {
         return errors.asMap();
     }
 
-    public List<Tuple> getSuccesses() {
+    public List<String> getSuccesses() {
         return successes;
     }
 

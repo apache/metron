@@ -26,7 +26,6 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,7 +45,6 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,30 +197,30 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public BulkWriterResponse write(String sourceType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
+  public BulkWriterResponse write(String sourceType, WriterConfiguration configurations, Map<String, JSONObject> messages) throws Exception {
     String collection = getCollection(sourceType, configurations);
     BulkWriterResponse bulkResponse = new BulkWriterResponse();
-    Collection<SolrInputDocument> docs = toDocs(messages);
+    Collection<SolrInputDocument> docs = toDocs(messages.values());
     try {
       Optional<SolrException> exceptionOptional = fromUpdateResponse(solr.add(collection, docs));
       // Solr commits the entire batch or throws an exception for it.  There's no way to get partial failures.
       if(exceptionOptional.isPresent()) {
-        bulkResponse.addAllErrors(exceptionOptional.get(), tuples);
+        bulkResponse.addAllErrors(exceptionOptional.get(), messages.keySet());
       }
       else {
         if (shouldCommit) {
           exceptionOptional = fromUpdateResponse(solr.commit(collection, waitFlush, waitSearcher, softCommit));
           if(exceptionOptional.isPresent()) {
-            bulkResponse.addAllErrors(exceptionOptional.get(), tuples);
+            bulkResponse.addAllErrors(exceptionOptional.get(), messages.keySet());
           }
         }
         if(!exceptionOptional.isPresent()) {
-          bulkResponse.addAllSuccesses(tuples);
+          bulkResponse.addAllSuccesses(messages.keySet());
         }
       }
     }
     catch(HttpSolrClient.RemoteSolrException sse) {
-      bulkResponse.addAllErrors(sse, tuples);
+      bulkResponse.addAllErrors(sse, messages.keySet());
     }
 
     return bulkResponse;

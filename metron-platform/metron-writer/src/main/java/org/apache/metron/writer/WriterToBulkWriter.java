@@ -19,7 +19,6 @@
 package org.apache.metron.writer;
 
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.writer.SingleBatchConfigurationFacade;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
@@ -28,7 +27,6 @@ import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -46,21 +44,21 @@ public class WriterToBulkWriter<MESSAGE_T> implements BulkMessageWriter<MESSAGE_
   }
 
   @Override
-  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<MESSAGE_T> messages) throws Exception {
+  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Map<String, MESSAGE_T> messages) throws Exception {
     BulkWriterResponse response = new BulkWriterResponse();
     if(messages.size() > 1) {
-        response.addAllErrors(new IllegalStateException("WriterToBulkWriter expects a batch of exactly 1"), tuples);
+        response.addAllErrors(new IllegalStateException("WriterToBulkWriter expects a batch of exactly 1"), messages.keySet());
         return response;
     }
 
     try {
-      messageWriter.write(sensorType, configurations, Iterables.getFirst(tuples, null), Iterables.getFirst(messages, null));
+      messageWriter.write(sensorType, configurations, Iterables.getFirst(messages.keySet(), null), Iterables.getFirst(messages.values(), null));
     } catch(Exception e) {
-      response.addAllErrors(e, tuples);
+      response.addAllErrors(e, messages.keySet());
       return response;
     }
 
-    response.addAllSuccesses(tuples);
+    response.addAllSuccesses(messages.keySet());
     return response;
   }
 
