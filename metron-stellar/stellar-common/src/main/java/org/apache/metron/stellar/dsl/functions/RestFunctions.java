@@ -247,12 +247,9 @@ public class RestFunctions {
       if (restConfig.getResponseCodesAllowed().contains(statusCode)) {
         HttpEntity httpEntity = response.getEntity();
 
-        // Parse the reponse if present, return the empty value override if not
-        if (httpEntity != null && httpEntity.getContentLength() > 0) {
-          String json = EntityUtils.toString(response.getEntity());
-          return JSONUtils.INSTANCE.load(json, JSONUtils.MAP_SUPPLIER);
-        }
-        return restConfig.getEmptyContentOverride();
+        // Parse the response if present, return the empty value override if not
+        Optional<Object> parsedResponse = parseResponse(httpEntity);
+        return parsedResponse.orElseGet(restConfig::getEmptyContentOverride);
       } else {
         throw new IOException(String.format("Stellar REST request to %s expected status code to be one of %s but " +
                 "failed with http status code %d: %s",
@@ -372,6 +369,17 @@ public class RestFunctions {
         httpClientContext.setCredentialsProvider(credentialsProvider);
       }
       return httpClientContext;
+    }
+
+    protected Optional<Object> parseResponse(HttpEntity httpEntity) throws IOException {
+      Optional<Object> parsedResponse = Optional.empty();
+      if (httpEntity != null) {
+        String json = EntityUtils.toString(httpEntity);
+        if (json != null && !json.isEmpty()) {
+          parsedResponse = Optional.of(JSONUtils.INSTANCE.load(json, JSONUtils.MAP_SUPPLIER));
+        }
+      }
+      return parsedResponse;
     }
 
     /**

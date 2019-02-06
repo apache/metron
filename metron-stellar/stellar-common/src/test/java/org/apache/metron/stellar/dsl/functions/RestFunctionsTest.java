@@ -19,6 +19,7 @@ package org.apache.metron.stellar.dsl.functions;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -40,6 +41,7 @@ import org.mockserver.client.server.MockServerClient;
 import org.mockserver.junit.MockServerRule;
 import org.mockserver.junit.ProxyRule;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -65,6 +67,7 @@ import static org.apache.metron.stellar.dsl.functions.RestConfig.STELLAR_REST_SE
 import static org.apache.metron.stellar.dsl.functions.RestConfig.TIMEOUT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -72,6 +75,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -600,6 +604,29 @@ public class RestFunctionsTest {
 
     verify(httpClient, times(1)).close();
     verifyNoMoreInteractions(httpClient);
+  }
+
+  @Test
+  public void restGetShouldParseResponse() throws Exception {
+    RestFunctions.RestGet restGet = new RestFunctions.RestGet();
+    HttpEntity httpEntity = mock(HttpEntity.class);
+
+    // return empty on null httpEntity
+    assertEquals(Optional.empty(), restGet.parseResponse(null));
+
+    // return empty on null content
+    when(httpEntity.getContent()).thenReturn(null);
+    assertEquals(Optional.empty(), restGet.parseResponse(httpEntity));
+
+    // return empty on empty input stream
+    when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("".getBytes()));
+    assertEquals(Optional.empty(), restGet.parseResponse(httpEntity));
+
+    // return successfully parsed response
+    when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("{\"get\":\"success\"}".getBytes()));
+    Optional<Object> actual = restGet.parseResponse(httpEntity);
+    assertTrue(actual.isPresent());
+    assertEquals("success", ((Map<String, Object>) actual.get()).get("get"));
   }
 
 }
