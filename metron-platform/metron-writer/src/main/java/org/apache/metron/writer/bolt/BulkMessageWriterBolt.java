@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 import com.google.common.collect.Iterables;
@@ -266,7 +267,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
         //want to warn, but not fail the tuple
         collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
       }
-      Collection<String> messagesIds = Collections.singleton(getMessageId(message));
+      Collection<String> messagesIds = Collections.singleton(getMessageId());
       bulkWriterResponseHandler.addTupleMessageIds(tuple, messagesIds);
       getWriterComponent().write(sensorType
               , messagesIds.iterator().next()
@@ -338,8 +339,8 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
     ErrorUtils.handleError(collector, error);
   }
 
-  protected String getMessageId(JSONObject message) {
-    return HashUtils.getMessageHash(message);
+  protected String getMessageId() {
+    return UUID.randomUUID().toString();
   }
 
   @Override

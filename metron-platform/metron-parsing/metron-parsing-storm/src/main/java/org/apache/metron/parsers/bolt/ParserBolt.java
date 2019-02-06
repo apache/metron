@@ -21,11 +21,13 @@ package org.apache.metron.parsers.bolt;
 import com.github.benmanes.caffeine.cache.Cache;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -259,9 +261,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       WriterHandler writer = sensorToWriterMap.get(sensorType);
       int numWritten = 0;
       List<JSONObject> messages = parserRunnerResults.getMessages();
-      List<String> messageIds = messages.stream()
-              .map(this::getMessageId)
-              .collect(Collectors.toList());
+      List<String> messageIds = getMessageIds(messages.size());
       bulkWriterResponseHandler.addTupleMessageIds(tuple, messageIds);
       for(int i = 0; i < messages.size(); i++) {
         JSONObject message = messages.get(i);
@@ -329,8 +329,12 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     ErrorUtils.handleError(collector, error);
   }
 
-  protected String getMessageId(JSONObject message) {
-    return HashUtils.getMessageHash(message);
+  protected List<String> getMessageIds(int size) {
+    List<String> messageIds = new ArrayList<>();
+    for(int i =0; i < size; i++) {
+      messageIds.add(UUID.randomUUID().toString());
+    }
+    return messageIds;
   }
 
   @Override

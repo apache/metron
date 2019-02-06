@@ -284,7 +284,7 @@ public class ParserBoltTest extends BaseBoltTest {
 
     JSONObject message = new JSONObject();
     message.put("field", "value");
-    doReturn("messageId").when(parserBolt).getMessageId(message);
+    doReturn(Collections.singletonList("messageId")).when(parserBolt).getMessageIds(1);
     mockParserRunner.setMessages(Collections.singletonList(message));
     RawMessage expectedRawMessage = new RawMessage("originalMessage".getBytes(StandardCharsets.UTF_8), new HashMap<>());
 
@@ -323,12 +323,15 @@ public class ParserBoltTest extends BaseBoltTest {
     parserBolt.setBulkWriterResponseHandler(bulkWriterResponseHandler);
 
     List<JSONObject> messages = new ArrayList<>();
+    List<String> messageIds = new ArrayList<>();
     for(int i = 0; i < 5; i++) {
       JSONObject message = new JSONObject();
       message.put("field", String.format("value%s", i + 1));
       messages.add(message);
-      doReturn(String.format("messageId%s", i + 1)).when(parserBolt).getMessageId(message);
+      messageIds.add(String.format("messageId%s", i + 1));
     }
+    doReturn(messageIds).when(parserBolt).getMessageIds(5);
+
     mockParserRunner.setMessages(messages);
     RawMessage expectedRawMessage = new RawMessage("originalMessage".getBytes(StandardCharsets.UTF_8), new HashMap<>());
 
@@ -459,7 +462,7 @@ public class ParserBoltTest extends BaseBoltTest {
     parserBolt.setBulkWriterResponseHandler(bulkWriterResponseHandler);
     JSONObject message = new JSONObject();
     message.put("field", "value");
-    doReturn("messageId").when(parserBolt).getMessageId(message);
+    doReturn(Collections.singletonList("messageId")).when(parserBolt).getMessageIds(1);
     mockParserRunner.setMessages(Collections.singletonList(message));
 
     MetronError error = new MetronError()

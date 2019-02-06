@@ -21,6 +21,8 @@ package org.apache.metron.parsers.bolt;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
+
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.error.MetronError;
@@ -76,8 +78,8 @@ public class WriterBolt extends BaseRichBolt {
     }
   }
 
-  protected String getMessageId(JSONObject message) {
-    return HashUtils.getMessageHash(message);
+  protected String getMessageId() {
+    return UUID.randomUUID().toString();
   }
 
   @Override
@@ -85,7 +87,7 @@ public class WriterBolt extends BaseRichBolt {
     JSONObject message = null;
     try {
       message = (JSONObject) messageGetStrategy.get(tuple);
-      Collection<String> messagesIds = Collections.singleton(getMessageId(message));
+      Collection<String> messagesIds = Collections.singleton(getMessageId());
       bulkWriterResponseHandler.addTupleMessageIds(tuple, messagesIds);
       handler.write(sensorType, messagesIds.iterator().next(), message, configuration);
     } catch (Throwable e) {

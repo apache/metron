@@ -139,7 +139,6 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       when(tuple.getValueByField("message")).thenReturn(message);
       tupleList.add(tuple);
       messageList.put(messageId, message);
-      doReturn(messageId).when(bulkMessageWriterBolt).getMessageId(message);
     }
   }
 
@@ -196,6 +195,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     }
     {
       for(int i = 0; i < 4; i++) {
+        doReturn(String.format("message%s", i + 1)).when(bulkMessageWriterBolt).getMessageId();
         bulkMessageWriterBolt.execute(tupleList.get(i));
         verify(bulkMessageWriter, times(0)).write(eq(sensorType)
                 , any(WriterConfiguration.class), any(Map.class));
@@ -203,6 +203,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       BulkWriterResponse response = new BulkWriterResponse();
       response.addAllSuccesses(messageIdList);
       when(bulkMessageWriter.write(eq(sensorType), any(WriterConfiguration.class), argThat(new MessageListMatcher(messageList)))).thenReturn(response);
+      doReturn("message5").when(bulkMessageWriterBolt).getMessageId();
       bulkMessageWriterBolt.execute(tupleList.get(4));
       verify(bulkMessageWriter, times(1)).write(eq(sensorType)
               , any(WriterConfiguration.class), argThat(new MessageListMatcher(messageList)));
@@ -214,6 +215,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
               , Matchers.anyMapOf(String.class, JSONObject.class));
       UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.FATAL);
       for(int i = 0; i < 5; i++) {
+        doReturn(String.format("message%s", i + 1)).when(bulkMessageWriterBolt).getMessageId();
         bulkMessageWriterBolt.execute(tupleList.get(i));
       }
       UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.ERROR);
@@ -247,6 +249,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       int batchTimeout = bulkMessageWriterBolt.getDefaultBatchTimeout();
       assertEquals(4, batchTimeout);
       for(int i = 0; i < 4; i++) {
+        doReturn(String.format("message%s", i + 1)).when(bulkMessageWriterBolt).getMessageId();
         bulkMessageWriterBolt.execute(tupleList.get(i));
         verify(bulkMessageWriter, times(0)).write(eq(sensorType)
                 , any(WriterConfiguration.class), any(Map.class));
@@ -256,6 +259,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       response.addAllSuccesses(messageIdList);
 
       when(bulkMessageWriter.write(eq(sensorType), any(WriterConfiguration.class), argThat(new MessageListMatcher(messageList)))).thenReturn(response);
+      doReturn("message5").when(bulkMessageWriterBolt).getMessageId();
       bulkMessageWriterBolt.execute(tupleList.get(4));
       verify(bulkMessageWriter, times(1)).write(eq(sensorType), any(WriterConfiguration.class), argThat(new MessageListMatcher(messageList)));
       tupleList.forEach(tuple -> verify(outputCollector, times(1)).ack(tuple));
@@ -286,6 +290,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       int batchTimeout = bulkMessageWriterBolt.getDefaultBatchTimeout();
       assertEquals(14, batchTimeout);
       for(int i = 0; i < 5; i++) {
+        doReturn(String.format("message%s", i + 1)).when(bulkMessageWriterBolt).getMessageId();
         bulkMessageWriterBolt.execute(tupleList.get(i));
         verify(bulkMessageWriter, times(0)).write(eq(sensorType)
                 , any(WriterConfiguration.class), any());
