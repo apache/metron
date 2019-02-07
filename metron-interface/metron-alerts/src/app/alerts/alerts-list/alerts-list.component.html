@@ -24,7 +24,7 @@
                         <button class="btn btn-secondary btn-search-clear" type="button" (click)="onClear()"></button>
                     </span>
                     <span class="input-group-append" style="white-space: nowrap;">
-                        <app-time-range class="d-flex" (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampfilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
+                        <app-time-range class="d-flex position-relative" (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampfilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
                     </span>
                     <span class="input-group-append">
                         <button class="btn btn-secondary btn-search rounded-right" type="button" data-name="search" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
