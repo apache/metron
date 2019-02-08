@@ -31,7 +31,7 @@
       </div>
     </div>
     <div class="collapse" role="tabpanel"  [ngClass]="{'show': group.expand}">
-      <div class="card-block">
+      <div class="card-body">
         <div class="table-wrapper">
           <table class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true"  (onSort)="sortTreeSubGroup($event, group)" style="white-space: nowrap;" (window:resize)="resize()" #table>
             <thead>
