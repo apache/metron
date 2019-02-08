@@ -32,6 +32,7 @@
     <form class="form-inline">
         <div class="form-group score">
             <label class="score-label" attr.for="statement">SCORE ADJUSTMENT</label>
+<<<<<<< HEAD
             <metron-config-ace-editor
               name="scoreExpression"
               [(ngModel)]="newRiskLevelRule.scoreExpression"
@@ -44,6 +45,9 @@
               data-qe-id="score-editor"
             >
             </metron-config-ace-editor>
+=======
+            <input type="number" class="score-input form-control" name="scoreSlider" [(ngModel)]="newRiskLevelRule.score" />
+>>>>>>> Replace score slider with a numeric text box
         </div>
     </form>
 
