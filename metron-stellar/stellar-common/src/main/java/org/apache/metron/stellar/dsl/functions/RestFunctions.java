@@ -244,6 +244,7 @@ public class RestFunctions {
         scheduledFuture.cancel(true);
       }
       int statusCode = response.getStatusLine().getStatusCode();
+      LOG.error("request = {}; response = {}", httpGet, response);
       if (restConfig.getResponseCodesAllowed().contains(statusCode)) {
         HttpEntity httpEntity = response.getEntity();
 
