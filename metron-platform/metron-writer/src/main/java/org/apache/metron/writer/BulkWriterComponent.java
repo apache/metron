@@ -326,7 +326,6 @@ public class BulkWriterComponent<MESSAGE_T> {
           || clock.currentTimeMillis() - batchTimeoutInfo[LAST_CREATE_TIME_MS] >= batchTimeoutInfo[TIMEOUT_MS]) {
         flush(sensorType, bulkMessageWriter, configurations, messageGetStrategy
 	            , sensorTupleMap.get(sensorType), sensorMessageMap.get(sensorType));
-        return;
       }
     }
   }
