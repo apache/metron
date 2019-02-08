@@ -32,7 +32,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Writes documents to an Elasticsearch index in bulk.
@@ -86,7 +88,14 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
             // submit the request and handle the response
             BulkResponse bulkResponse = client.getHighLevelClient().bulk(bulkRequest);
             handleBulkResponse(bulkResponse, documents, results);
-
+            if (LOG.isDebugEnabled()) {
+                String shards = Arrays.stream(bulkResponse.getItems())
+                        .map(bulkItemResponse -> bulkItemResponse.getResponse().getShardId().toString())
+                        .collect(Collectors.joining(","));
+                LOG.debug("{} results written to shards {} in {} ms; batchSize={}, success={}, failed={}",
+                        bulkResponse.getItems().length, shards, bulkResponse.getTookInMillis(),
+                        documents.size(), results.getSuccesses().size(), results.getFailures().size());
+            }
         } catch(IOException e) {
             // assume all documents have failed
             for(Indexable indexable: documents) {
@@ -99,9 +108,6 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
             // flush all documents no matter which ones succeeded or failed
             documents.clear();
         }
-
-        LOG.debug("Wrote document(s) to Elasticsearch; batchSize={}, success={}, failed={}",
-                documents.size(), results.getSuccesses().size(), results.getFailures().size());
         return results;
     }
 

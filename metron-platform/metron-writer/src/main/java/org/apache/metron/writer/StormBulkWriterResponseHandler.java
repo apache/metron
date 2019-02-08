@@ -24,7 +24,10 @@ import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,8 +44,12 @@ import java.util.stream.Collectors;
  * reporting by handling flush events for writer responses.
  */
 public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  // Tracks the messages from a tuple that have not been flushed
   private Map<Tuple, Collection<String>> tupleMessageMap = new HashMap<>();
+
+  // Tracks the errors that have been reported for a Tuple.  We only want to report an error once.
   private Map<Tuple, Set<Throwable>> tupleErrorMap = new HashMap<>();
   private OutputCollector collector;
   private MessageGetStrategy messageGetStrategy;
@@ -68,19 +75,28 @@ public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler
    * @param messageIds
    */
   public void addTupleMessageIds(Tuple tuple, Collection<String> messageIds) {
+    LOG.debug("Adding tuple with messages ids: {}", String.join(",", messageIds));
     tupleMessageMap.put(tuple, messageIds);
   }
 
   @Override
   public void handleFlush(String sensorType, BulkWriterResponse response) {
+    LOG.debug("Handling flushed messages for sensor {} with response: {}", sensorType, response);
+
+    // Update tuple message map.  Tuple is ready to ack when all it's messages have been flushed.
     Collection<Tuple> tuplesToAck = new ArrayList<>();
     tupleMessageMap = tupleMessageMap.entrySet().stream()
             .map(entry -> {
               Tuple tuple = entry.getKey();
               Collection<String> ids = new ArrayList<>(entry.getValue());
+
+              // Remove successful messages from tuple message map
               ids.removeAll(response.getSuccesses());
+
+              // Remove failed messages from tuple message map
               response.getErrors().forEach((throwable, failedIds) -> {
                 if (ids.removeAll(failedIds)) {
+                  // Add an error to be reported when a tuple is acked
                   Set<Throwable> errorList = tupleErrorMap.getOrDefault(tuple, new HashSet<>());
                   tupleErrorMap.put(tuple, errorList);
                   errorList.add(throwable);
@@ -90,22 +106,34 @@ public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler
               return new AbstractMap.SimpleEntry<>(tuple, ids);
             })
             .filter(entry -> {
+              // Tuple is ready to be acked when all messages have succeeded/failed
               if (entry.getValue().isEmpty()) {
                 tuplesToAck.add(entry.getKey());
+
+                // Remove the tuple from tuple message map
                 return false;
               }
               return true;
             })
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-    Set<Throwable> errorsToReport = new HashSet<>();
+    LOG.debug("Acking {} tuples for sensor {}", tuplesToAck.size(), sensorType);
     tuplesToAck.forEach(tuple -> {
       collector.ack(tuple);
-      if (tupleErrorMap.containsKey(tuple)) {
-        errorsToReport.addAll(tupleErrorMap.remove(tuple));
-      }
-
     });
+
+    // Determine which tuples failed
+    Collection<Tuple> failedTuples = tuplesToAck.stream()
+            .filter(tuple -> tupleErrorMap.containsKey(tuple))
+            .collect(Collectors.toList());
+    LOG.error("Failing {} tuple(s) for sensorType {}", failedTuples.size(), sensorType);
+
+    Set<Throwable> errorsToReport = new HashSet<>();
+    failedTuples.forEach(tuple -> {
+      // Add the error to the errorsToReport Set so duplicate errors are removed
+      errorsToReport.addAll(tupleErrorMap.remove(tuple));
+    });
+
     errorsToReport.forEach(throwable -> {
       // there is only one error to report for all of the failed tuples
       collector.reportError(throwable);
