@@ -88,3 +88,18 @@ input[type=range]::-moz-range-thumb
   background-color: $range-gradient-start;
 }
 
+.score {
+
+  &.form-group {
+    display: block;
+    width: 100%;
+  }
+  .score-label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  .score-input {
+    width: 100%;
+  }
+}
+
