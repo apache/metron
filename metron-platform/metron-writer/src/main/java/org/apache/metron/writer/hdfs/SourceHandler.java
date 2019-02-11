@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 public class SourceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   List<RotationAction> rotationActions = new ArrayList<>();
   FileRotationPolicy rotationPolicy;
   SyncPolicy syncPolicy;
@@ -88,7 +89,9 @@ public class SourceHandler {
       }
       this.offset += bytes.length;
 
+      LOG.debug("Checking if hsync necessary");
       if (this.syncPolicy.mark(null, this.offset)) {
+        LOG.debug("Calling hsync on {}", this.out.getClass().getSimpleName());
         if (this.out instanceof HdfsDataOutputStream) {
           ((HdfsDataOutputStream) this.out)
               .hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
@@ -97,14 +100,17 @@ public class SourceHandler {
         }
         //recreate the sync policy for the next batch just in case something changed in the config
         //and the sync policy depends on the config.
+        LOG.debug("Recreating sync policy for next batch");
         this.syncPolicy = syncPolicyCreator.create(sensor, config);
       }
     }
 
+    LOG.debug("checking for rotation");
     if (this.rotationPolicy.mark(null, this.offset)) {
+      LOG.debug("Rotating output File from handle()");
       rotateOutputFile(); // synchronized
-      this.offset = 0;
-      this.rotationPolicy.reset();
+//      this.offset = 0;
+//      this.rotationPolicy.reset();
     }
   }
 
@@ -112,18 +118,21 @@ public class SourceHandler {
     this.fs = FileSystem.get(new Configuration());
     this.currentFile = createOutputFile();
     if(this.rotationPolicy instanceof TimedRotationPolicy){
+      LOG.debug("Creating timer task");
       long interval = ((TimedRotationPolicy)this.rotationPolicy).getInterval();
       this.rotationTimer = new Timer(true);
       TimerTask task = new TimerTask() {
         @Override
         public void run() {
           try {
+            LOG.debug("Rotating output file from TimerTask");
             rotateOutputFile();
           } catch(IOException e){
             LOG.warn("IOException during scheduled file rotation.", e);
           }
         }
       };
+      LOG.debug("Scheduling TimerTask at interval {}", interval);
       this.rotationTimer.scheduleAtFixedRate(task, interval, interval);
     }
   }
@@ -143,6 +152,8 @@ public class SourceHandler {
         action.execute(this.fs, this.currentFile);
       }
       this.currentFile = newFile;
+      this.offset = 0;
+      this.rotationPolicy.reset();
     }
     long time = System.currentTimeMillis() - start;
     LOG.info("File rotation took {} ms", time);
@@ -150,22 +161,27 @@ public class SourceHandler {
 
   private Path createOutputFile() throws IOException {
     Path path = new Path(this.fileNameFormat.getPath(), this.fileNameFormat.getName(this.rotation, System.currentTimeMillis()));
+    LOG.debug("Creating new output file {}", path);
     if(fs.getScheme().equals("file")) {
+      LOG.debug("Running on local file system");
       //in the situation where we're running this in a local filesystem, flushing doesn't work.
       fs.mkdirs(path.getParent());
       this.out = new FSDataOutputStream(new FileOutputStream(path.toString()), null);
     }
     else {
+      LOG.debug("Running on remote file system");
       this.out = this.fs.create(path);
     }
     return path;
   }
 
   protected void closeOutputFile() throws IOException {
+    LOG.debug("Closing output file");
     this.out.close();
   }
 
   private void cleanupCallback() {
+    LOG.debug("Performing cleanupCallback");
     this.cleanupCallback.removeKey();
   }
 

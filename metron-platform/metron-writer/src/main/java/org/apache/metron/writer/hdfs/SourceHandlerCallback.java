@@ -18,9 +18,14 @@
 
 package org.apache.metron.writer.hdfs;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SourceHandlerCallback {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   Map<SourceHandlerKey, SourceHandler> sourceHandlerMap;
   SourceHandlerKey key;
   SourceHandlerCallback(Map<SourceHandlerKey, SourceHandler> sourceHandlerMap, SourceHandlerKey key) {
@@ -29,7 +34,9 @@ public class SourceHandlerCallback {
   }
 
   public void removeKey() {
-    sourceHandlerMap.remove(key);
+    SourceHandler removed = sourceHandlerMap.remove(key);
+    LOG.debug("Removed {} -> {}", key, removed);
+    LOG.debug("Current state of sourceHandlerMap: {}", sourceHandlerMap);
   }
 }
 
