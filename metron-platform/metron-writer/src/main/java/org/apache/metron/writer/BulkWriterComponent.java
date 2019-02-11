@@ -103,7 +103,6 @@ public class BulkWriterComponent<MESSAGE_T> {
     Map<String, MESSAGE_T> messageList = sensorMessageMap.getOrDefault(sensorType, new LinkedHashMap<>());
     sensorMessageMap.put(sensorType, messageList);
     if (batchSize <= 1) { //simple case - no batching, no timeouts
-
       messageList.put(messageId, message);
 
         //still read in case batchSize changed
@@ -142,12 +141,8 @@ public class BulkWriterComponent<MESSAGE_T> {
     //Check for batchTimeout flush (if the tupleList isn't brand new).
     //Debugging note: If your queue always flushes at length==2 regardless of feed rate,
     //it may mean defaultBatchTimeout has somehow been set to zero.
-    long elapsed = clock.currentTimeMillis() - batchTimeoutInfo[LAST_CREATE_TIME_MS];
-    if (messageList.size() > 1 && (elapsed >= batchTimeoutInfo[TIMEOUT_MS])) {
-      LOG.debug("Batch timeout of {} reached because {} ms have elapsed. Flushing {} messages for sensor {}.",
-              batchTimeoutInfo[TIMEOUT_MS], elapsed, messageList.size(), sensorType);
+    if (messageList.size() > 1 && timeoutReached(sensorType)) {
       flush(sensorType, bulkMessageWriter, configurations, messageList);
-      return;
     }
   }
 
@@ -188,18 +183,26 @@ public class BulkWriterComponent<MESSAGE_T> {
     // No need to do "all" sensorTypes here, just the ones that have data batched up.
     // Note queues with batchSize == 1 don't get batched, so they never persist in the sensorGroupMap.
     for (String sensorType : sensorMessageMap.keySet()) {
-      long[] batchTimeoutInfo = batchTimeoutMap.get(sensorType);
-      if (batchTimeoutInfo == null) {  //Shouldn't happen, but conservatively flush if so
-        flush(sensorType, bulkMessageWriter, configurations, sensorMessageMap.get(sensorType));
-        continue;
-      }
-      long elapsed = clock.currentTimeMillis() - batchTimeoutInfo[LAST_CREATE_TIME_MS];
-      if (elapsed >= batchTimeoutInfo[TIMEOUT_MS]) {
-        LOG.debug("Flush timeouts called.  Batch timeout of {} reached because {} ms have elapsed. Flushing {} messages for sensor {}.",
-                batchTimeoutInfo[TIMEOUT_MS], elapsed, sensorType, sensorMessageMap.get(sensorType).size());
+      if (timeoutReached(sensorType)) {
         flush(sensorType, bulkMessageWriter, configurations, sensorMessageMap.get(sensorType));
       }
     }
+  }
+
+  private boolean timeoutReached(String sensorType) {
+     boolean timeoutReached = false;
+     long[] batchTimeoutInfo = batchTimeoutMap.get(sensorType);
+     if (batchTimeoutInfo == null) {  //Shouldn't happen, but conservatively timeout if so
+       timeoutReached = true;
+     } else {
+       long elapsed = clock.currentTimeMillis() - batchTimeoutInfo[LAST_CREATE_TIME_MS];
+       if (elapsed >= batchTimeoutInfo[TIMEOUT_MS]) {
+         LOG.debug("Batch timeout of {} reached because {} ms have elapsed. Flushing {} messages for sensor {}.",
+                 batchTimeoutInfo[TIMEOUT_MS], elapsed, sensorType, sensorMessageMap.get(sensorType).size());
+         timeoutReached = true;
+       }
+     }
+     return timeoutReached;
   }
 
   /**
