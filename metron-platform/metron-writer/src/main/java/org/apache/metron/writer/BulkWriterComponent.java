@@ -320,7 +320,7 @@ public class BulkWriterComponent<MESSAGE_T> {
   {
     // No need to do "all" sensorTypes here, just the ones that have data batched up.
     // Note queues with batchSize == 1 don't get batched, so they never persist in the sensorTupleMap.
-    for (String sensorType : sensorTupleMap.keySet()) {
+    for (String sensorType : new HashSet<>(sensorTupleMap.keySet())) {
       long[] batchTimeoutInfo = batchTimeoutMap.get(sensorType);
       if (batchTimeoutInfo == null  //Shouldn't happen, but conservatively flush if so
           || clock.currentTimeMillis() - batchTimeoutInfo[LAST_CREATE_TIME_MS] >= batchTimeoutInfo[TIMEOUT_MS]) {
