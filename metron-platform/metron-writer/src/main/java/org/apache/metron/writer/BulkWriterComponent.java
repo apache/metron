@@ -322,6 +322,8 @@ public class BulkWriterComponent<MESSAGE_T> {
   {
     // No need to do "all" sensorTypes here, just the ones that have data batched up.
     // Note queues with batchSize == 1 don't get batched, so they never persist in the sensorTupleMap.
+    // Sensors are removed from the sensorTupleMap when flushed so we need to iterate over a copy of sensorTupleMap keys
+    // to avoid a ConcurrentModificationException.
     for (String sensorType : new HashSet<>(sensorTupleMap.keySet())) {
       long[] batchTimeoutInfo = batchTimeoutMap.get(sensorType);
       if (batchTimeoutInfo == null  //Shouldn't happen, but conservatively flush if so
