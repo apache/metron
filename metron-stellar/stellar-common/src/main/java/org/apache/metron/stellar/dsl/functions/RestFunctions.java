@@ -244,12 +244,12 @@ public class RestFunctions {
         scheduledFuture.cancel(true);
       }
       int statusCode = response.getStatusLine().getStatusCode();
-      LOG.error("request = {}; response = {}", httpGet, response);
+      LOG.debug("request = {}; response = {}", httpGet, response);
       if (restConfig.getResponseCodesAllowed().contains(statusCode)) {
         HttpEntity httpEntity = response.getEntity();
 
         // Parse the response if present, return the empty value override if not
-        Optional<Object> parsedResponse = parseResponse(httpEntity);
+        Optional<Object> parsedResponse = parseResponse(restConfig, httpGet, httpEntity);
         return parsedResponse.orElseGet(restConfig::getEmptyContentOverride);
       } else {
         throw new IOException(String.format("Stellar REST request to %s expected status code to be one of %s but " +
@@ -372,12 +372,21 @@ public class RestFunctions {
       return httpClientContext;
     }
 
-    protected Optional<Object> parseResponse(HttpEntity httpEntity) throws IOException {
+    protected Optional<Object> parseResponse(RestConfig restConfig, HttpGet httpGet, HttpEntity httpEntity) throws IOException {
       Optional<Object> parsedResponse = Optional.empty();
       if (httpEntity != null) {
+        int actualContentLength = 0;
         String json = EntityUtils.toString(httpEntity);
         if (json != null && !json.isEmpty()) {
+          actualContentLength = json.length();
           parsedResponse = Optional.of(JSONUtils.INSTANCE.load(json, JSONUtils.MAP_SUPPLIER));
+        }
+        if (restConfig.verifyContentLength() && actualContentLength != httpEntity.getContentLength()) {
+          throw new IOException(String.format("Stellar REST request to %s returned incorrect or missing content length. " +
+                          "Content length in the response was %d but the actual body content length was %d.",
+                  httpGet.getURI().toString(),
+                  httpEntity.getContentLength(),
+                  actualContentLength));
         }
       }
       return parsedResponse;

@@ -44,6 +44,7 @@ import org.mockserver.junit.ProxyRule;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,6 +66,7 @@ import static org.apache.metron.stellar.dsl.functions.RestConfig.PROXY_PORT;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.SOCKET_TIMEOUT;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.STELLAR_REST_SETTINGS;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.TIMEOUT;
+import static org.apache.metron.stellar.dsl.functions.RestConfig.VERIFY_CONTENT_LENGTH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -273,7 +275,7 @@ public class RestFunctionsTest {
       // Test for default timeout
       RestConfig restConfig = restGet.getRestConfig(Collections.singletonList("uri"), new HashMap<>());
 
-      assertEquals(2, restConfig.size());
+      assertEquals(3, restConfig.size());
       assertEquals(1000, restConfig.getTimeout().intValue());
       assertEquals(Collections.singletonList(200), restConfig.getResponseCodesAllowed());
       assertNull(restConfig.getBasicAuthUser());
@@ -291,7 +293,7 @@ public class RestFunctionsTest {
     {
       RestConfig restConfig = restGet.getRestConfig(Collections.singletonList("uri"), globalRestConfig);
 
-      assertEquals(5, restConfig.size());
+      assertEquals(6, restConfig.size());
       assertEquals(1000, restConfig.getTimeout().intValue());
       assertEquals(Collections.singletonList(200), restConfig.getResponseCodesAllowed());
       assertEquals(2000, restConfig.getSocketTimeout().intValue());
@@ -310,7 +312,7 @@ public class RestFunctionsTest {
     {
       RestConfig restConfig = restGet.getRestConfig(Arrays.asList("uri", functionRestConfig), globalRestConfig);
 
-      assertEquals(5, restConfig.size());
+      assertEquals(6, restConfig.size());
       assertEquals(Collections.singletonList(200), restConfig.getResponseCodesAllowed());
       assertEquals(100, restConfig.getTimeout().intValue());
       assertEquals(1, restConfig.getSocketTimeout().intValue());
@@ -327,7 +329,7 @@ public class RestFunctionsTest {
     {
       RestConfig restConfig = restGet.getRestConfig(Arrays.asList("uri", functionRestConfig), globalRestConfig);
 
-      assertEquals(5, restConfig.size());
+      assertEquals(6, restConfig.size());
       assertEquals(Collections.singletonList(200), restConfig.getResponseCodesAllowed());
       assertEquals(100, restConfig.getTimeout().intValue());
       assertEquals(2000, restConfig.getSocketTimeout().intValue());
@@ -346,7 +348,7 @@ public class RestFunctionsTest {
     {
       RestConfig restConfig = restGet.getRestConfig(Arrays.asList("uri", functionRestConfig), globalRestConfig);
 
-      assertEquals(4, restConfig.size());
+      assertEquals(5, restConfig.size());
       assertEquals(Collections.singletonList(200), restConfig.getResponseCodesAllowed());
       assertEquals(100, restConfig.getTimeout().intValue());
       assertEquals(2000, restConfig.getSocketTimeout().intValue());
@@ -357,7 +359,7 @@ public class RestFunctionsTest {
     {
       RestConfig restConfig = restGet.getRestConfig(Collections.singletonList("uri"), globalRestConfig);
 
-      assertEquals(4, restConfig.size());
+      assertEquals(5, restConfig.size());
       assertEquals(Collections.singletonList(200), restConfig.getResponseCodesAllowed());
       assertEquals(1000, restConfig.getTimeout().intValue());
       assertEquals(2000, restConfig.getSocketTimeout().intValue());
@@ -368,7 +370,7 @@ public class RestFunctionsTest {
     {
       RestConfig restConfig = restGet.getRestConfig(Collections.singletonList("uri"), new HashMap<>());
 
-      assertEquals(2, restConfig.size());
+      assertEquals(3, restConfig.size());
       assertEquals(Collections.singletonList(200), restConfig.getResponseCodesAllowed());
       assertEquals(1000, restConfig.getTimeout().intValue());
     }
@@ -609,11 +611,13 @@ public class RestFunctionsTest {
   @Test
   public void restGetShouldParseResponse() throws Exception {
     RestFunctions.RestGet restGet = new RestFunctions.RestGet();
+    RestConfig restConfig = new RestConfig();
+    HttpGet httpGet = mock(HttpGet.class);
     HttpEntity httpEntity = mock(HttpEntity.class);
 
     // return successfully parsed response
     when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("{\"get\":\"success\"}".getBytes()));
-    Optional<Object> actual = restGet.parseResponse(httpEntity);
+    Optional<Object> actual = restGet.parseResponse(restConfig, httpGet, httpEntity);
     assertTrue(actual.isPresent());
     assertEquals("success", ((Map<String, Object>) actual.get()).get("get"));
   }
@@ -621,29 +625,52 @@ public class RestFunctionsTest {
   @Test
   public void restGetShouldParseResponseOnNullHttpEntity() throws Exception {
     RestFunctions.RestGet restGet = new RestFunctions.RestGet();
+    RestConfig restConfig = new RestConfig();
+    HttpGet httpGet = mock(HttpGet.class);
 
     // return empty on null httpEntity
-    assertEquals(Optional.empty(), restGet.parseResponse(null));
+    assertEquals(Optional.empty(), restGet.parseResponse(restConfig, httpGet, null));
   }
 
   @Test
   public void restGetShouldParseResponseOnNullContent() throws Exception {
     RestFunctions.RestGet restGet = new RestFunctions.RestGet();
+    RestConfig restConfig = new RestConfig();
+    HttpGet httpGet = mock(HttpGet.class);
     HttpEntity httpEntity = mock(HttpEntity.class);
 
     // return empty on null content
     when(httpEntity.getContent()).thenReturn(null);
-    assertEquals(Optional.empty(), restGet.parseResponse(httpEntity));
+    assertEquals(Optional.empty(), restGet.parseResponse(restConfig, httpGet, httpEntity));
   }
 
   @Test
   public void restGetShouldParseResponseOnEmptyInputStream() throws Exception {
     RestFunctions.RestGet restGet = new RestFunctions.RestGet();
+    RestConfig restConfig = new RestConfig();
+    HttpGet httpGet = mock(HttpGet.class);
     HttpEntity httpEntity = mock(HttpEntity.class);
 
     // return empty on empty input stream
     when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("".getBytes()));
-    assertEquals(Optional.empty(), restGet.parseResponse(httpEntity));
+    assertEquals(Optional.empty(), restGet.parseResponse(restConfig, httpGet, httpEntity));
+  }
+
+  @Test
+  public void restGetShouldThrowExceptionOnContentLengthMismatch() throws Exception {
+    thrown.expect(IOException.class);
+    thrown.expectMessage("Stellar REST request to uri returned incorrect or missing content length. Content length in the response was -1 but the actual body content length was 17.");
+
+    RestFunctions.RestGet restGet = new RestFunctions.RestGet();
+    RestConfig restConfig = new RestConfig();
+    HttpGet httpGet = mock(HttpGet.class);
+    HttpEntity httpEntity = mock(HttpEntity.class);
+
+    restConfig.put(VERIFY_CONTENT_LENGTH, true);
+    when(httpGet.getURI()).thenReturn(new URI("uri"));
+    when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("{\"get\":\"success\"}".getBytes()));
+    when(httpEntity.getContentLength()).thenReturn(-1L);
+    restGet.parseResponse(restConfig, httpGet, httpEntity);
   }
 
 }
