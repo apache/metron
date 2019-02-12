@@ -332,6 +332,10 @@ public class BulkWriterComponent<MESSAGE_T> {
     }
   }
 
+  public int getDefaultBatchTimeout() {
+    return defaultBatchTimeout;
+  }
+
   /**
    * @param defaultBatchTimeout
    */
