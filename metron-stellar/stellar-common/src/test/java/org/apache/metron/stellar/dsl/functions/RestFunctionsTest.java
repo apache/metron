@@ -611,22 +611,39 @@ public class RestFunctionsTest {
     RestFunctions.RestGet restGet = new RestFunctions.RestGet();
     HttpEntity httpEntity = mock(HttpEntity.class);
 
-    // return empty on null httpEntity
-    assertEquals(Optional.empty(), restGet.parseResponse(null));
-
-    // return empty on null content
-    when(httpEntity.getContent()).thenReturn(null);
-    assertEquals(Optional.empty(), restGet.parseResponse(httpEntity));
-
-    // return empty on empty input stream
-    when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("".getBytes()));
-    assertEquals(Optional.empty(), restGet.parseResponse(httpEntity));
-
     // return successfully parsed response
     when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("{\"get\":\"success\"}".getBytes()));
     Optional<Object> actual = restGet.parseResponse(httpEntity);
     assertTrue(actual.isPresent());
     assertEquals("success", ((Map<String, Object>) actual.get()).get("get"));
+  }
+
+  @Test
+  public void restGetShouldParseResponseOnNullHttpEntity() throws Exception {
+    RestFunctions.RestGet restGet = new RestFunctions.RestGet();
+
+    // return empty on null httpEntity
+    assertEquals(Optional.empty(), restGet.parseResponse(null));
+  }
+
+  @Test
+  public void restGetShouldParseResponseOnNullContent() throws Exception {
+    RestFunctions.RestGet restGet = new RestFunctions.RestGet();
+    HttpEntity httpEntity = mock(HttpEntity.class);
+
+    // return empty on null content
+    when(httpEntity.getContent()).thenReturn(null);
+    assertEquals(Optional.empty(), restGet.parseResponse(httpEntity));
+  }
+
+  @Test
+  public void restGetShouldParseResponseOnEmptyInputStream() throws Exception {
+    RestFunctions.RestGet restGet = new RestFunctions.RestGet();
+    HttpEntity httpEntity = mock(HttpEntity.class);
+
+    // return empty on empty input stream
+    when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("".getBytes()));
+    assertEquals(Optional.empty(), restGet.parseResponse(httpEntity));
   }
 
 }
