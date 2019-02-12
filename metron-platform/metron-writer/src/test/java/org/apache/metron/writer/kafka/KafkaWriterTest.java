@@ -28,6 +28,7 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
@@ -36,9 +37,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -184,16 +187,16 @@ public class KafkaWriterTest {
     KafkaWriter writer = spy(new KafkaWriter());
     writer.setKafkaProducer(kafkaProducer);
 
-    Map<String, JSONObject> messages = new LinkedHashMap<>();
+    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<>();
     JSONObject successMessage = new JSONObject();
     successMessage.put("value", "success");
     JSONObject errorMessage = new JSONObject();
     errorMessage.put("value", "error");
     JSONObject droppedMessage = new JSONObject();
     droppedMessage.put("value", "dropped");
-    messages.put("successId", successMessage);
-    messages.put("errorId", errorMessage);
-    messages.put("droppedId", droppedMessage);
+    messages.add(new BulkWriterMessage<>("successId", successMessage));
+    messages.add(new BulkWriterMessage<>("errorId", errorMessage));
+    messages.add(new BulkWriterMessage<>("droppedId", droppedMessage));
 
     doReturn(Optional.of("successTopic")).when(writer).getKafkaTopic(successMessage);
     doReturn(Optional.of("errorTopic")).when(writer).getKafkaTopic(errorMessage);
@@ -223,13 +226,13 @@ public class KafkaWriterTest {
     KafkaWriter writer = spy(new KafkaWriter());
     writer.setKafkaProducer(kafkaProducer);
 
-    Map<String, JSONObject> messages = new LinkedHashMap<>();
+    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<>();
     JSONObject message1 = new JSONObject();
     message1.put("value", "message1");
     JSONObject message2 = new JSONObject();
     message2.put("value", "message2");
-    messages.put("messageId1", message1);
-    messages.put("messageId2", message2);
+    messages.add(new BulkWriterMessage<>("messageId1", message1));
+    messages.add(new BulkWriterMessage<>("messageId2", message2));
 
     doReturn(Optional.of("topic1")).when(writer).getKafkaTopic(message1);
     doReturn(Optional.of("topic2")).when(writer).getKafkaTopic(message2);

@@ -126,7 +126,7 @@ public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler
     Collection<Tuple> failedTuples = tuplesToAck.stream()
             .filter(tuple -> tupleErrorMap.containsKey(tuple))
             .collect(Collectors.toList());
-    LOG.error("Failing {} tuple(s) for sensorType {}", failedTuples.size(), sensorType);
+    LOG.debug("Failing {} tuple(s) for sensorType {}", failedTuples.size(), sensorType);
 
     Set<Throwable> errorsToReport = new HashSet<>();
     failedTuples.forEach(tuple -> {

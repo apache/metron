@@ -22,6 +22,7 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.field.FieldNameConverter;
 import org.apache.metron.common.field.FieldNameConverters;
 import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
@@ -42,6 +43,7 @@ import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -88,7 +90,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   @Override
   public BulkWriterResponse write(String sensorType,
                                   WriterConfiguration configurations,
-                                  Map<String, JSONObject> messages) {
+                                  List<BulkWriterMessage<JSONObject>> messages) {
 
     // fetch the field name converter for this sensor type
     FieldNameConverter fieldNameConverter = FieldNameConverters.create(sensorType, configurations);
@@ -96,10 +98,8 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
 
     // create a document from each message
-    for(Map.Entry<String, JSONObject> entry: messages.entrySet()) {
-      String messageId = entry.getKey();
-      JSONObject message = entry.getValue();
-      MessageIdBasedDocument document = createDocument(message, messageId, sensorType, fieldNameConverter);
+    for(BulkWriterMessage<JSONObject> bulkWriterMessage: messages) {
+      MessageIdBasedDocument document = createDocument(bulkWriterMessage.getMessage(), bulkWriterMessage.getId(), sensorType, fieldNameConverter);
       documentWriter.addDocument(document, indexName);
     }
 

@@ -17,15 +17,38 @@
  */
 package org.apache.metron.common.writer;
 
-import org.apache.storm.tuple.Tuple;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import java.util.Objects;
 
-import java.io.Serializable;
+public class BulkWriterMessage<MESSAGE_T> {
 
-public interface MessageWriter<T> extends AutoCloseable, Serializable {
+  private String id;
+  private MESSAGE_T message;
 
-  void init();
-  void write(String sensorType, WriterConfiguration configurations, BulkWriterMessage<T> message) throws Exception;
-  String getName();
+  public BulkWriterMessage(String id, MESSAGE_T message) {
+    this.id = id;
+    this.message = message;
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public MESSAGE_T getMessage() {
+    return message;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    BulkWriterMessage<?> that = (BulkWriterMessage<?>) o;
+    return Objects.equals(id, that.id) &&
+            Objects.equals(message, that.message);
+  }
+
+  @Override
+  public int hashCode() {
+
+    return Objects.hash(id, message);
+  }
 }

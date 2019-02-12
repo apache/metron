@@ -26,12 +26,18 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -65,7 +71,8 @@ public class BulkWriterComponentTest {
   private String messageId2 = "messageId2";
 
   private String sensorType = "testSensor";
-  private Map<String, JSONObject> messages;
+  private List<String> messageIds;
+  private List<BulkWriterMessage<JSONObject>> messages;
   private JSONObject message1 = new JSONObject();
   private JSONObject message2 = new JSONObject();
 
@@ -75,9 +82,10 @@ public class BulkWriterComponentTest {
     mockStatic(ErrorUtils.class);
     message1.put("value", "message1");
     message2.put("value", "message2");
-    messages = new HashMap<String, JSONObject>() {{
-      put(messageId1, message1);
-      put(messageId2, message2);
+    messageIds = Arrays.asList(messageId1, messageId2);
+    messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
+      add(new BulkWriterMessage<>(messageId1, message1));
+      add(new BulkWriterMessage<>(messageId2, message2));
     }};
     when(configurations.isEnabled(any())).thenReturn(true);
     when(configurations.getBatchSize(any())).thenReturn(2);
@@ -86,7 +94,7 @@ public class BulkWriterComponentTest {
   @Test
   public void writeShouldProperlyAckTuplesInBatch() throws Exception {
     BulkWriterResponse response = new BulkWriterResponse();
-    response.addAllSuccesses(messages.keySet());
+    response.addAllSuccesses(messageIds);
 
     when(bulkMessageWriter.write(sensorType, configurations, messages)).thenReturn(response);
 
@@ -99,7 +107,7 @@ public class BulkWriterComponentTest {
     bulkWriterComponent.write(sensorType, messageId2, message2, bulkMessageWriter, configurations);
 
     BulkWriterResponse expectedResponse = new BulkWriterResponse();
-    expectedResponse.addAllSuccesses(messages.keySet());
+    expectedResponse.addAllSuccesses(messageIds);
     verify(bulkWriterResponseHandler, times(1)).handleFlush(sensorType, expectedResponse);
 
     // A disabled writer should still flush
@@ -118,7 +126,7 @@ public class BulkWriterComponentTest {
   public void writeShouldProperlyHandleWriterErrors() throws Exception {
     Throwable e = new Exception("test exception");
     BulkWriterResponse response = new BulkWriterResponse();
-    response.addAllErrors(e, messages.keySet());
+    response.addAllErrors(e, messageIds);
 
     when(bulkMessageWriter.write(sensorType, configurations, messages)).thenReturn(response);
 
@@ -127,7 +135,7 @@ public class BulkWriterComponentTest {
     bulkWriterComponent.write(sensorType, messageId2, message2, bulkMessageWriter, configurations);
 
     BulkWriterResponse expectedErrorResponse = new BulkWriterResponse();
-    expectedErrorResponse.addAllErrors(e, messages.keySet());
+    expectedErrorResponse.addAllErrors(e, messageIds);
 
     verify(bulkWriterResponseHandler, times(1)).handleFlush(sensorType, expectedErrorResponse);
     verifyNoMoreInteractions(bulkWriterResponseHandler);
@@ -137,7 +145,7 @@ public class BulkWriterComponentTest {
   public void writeShouldProperlyHandleWriterException() throws Exception {
     Throwable e = new Exception("test exception");
     BulkWriterResponse response = new BulkWriterResponse();
-    response.addAllErrors(e, messages.keySet());
+    response.addAllErrors(e, messageIds);
 
     when(bulkMessageWriter.write(sensorType, configurations, messages)).thenThrow(e);
 
@@ -146,7 +154,7 @@ public class BulkWriterComponentTest {
     bulkWriterComponent.write(sensorType, messageId2, message2, bulkMessageWriter, configurations);
 
     BulkWriterResponse expectedErrorResponse = new BulkWriterResponse();
-    expectedErrorResponse.addAllErrors(e, messages.keySet());
+    expectedErrorResponse.addAllErrors(e, messageIds);
 
     verify(bulkWriterResponseHandler, times(1)).handleFlush(sensorType, expectedErrorResponse);
     verifyNoMoreInteractions(bulkWriterResponseHandler);
@@ -164,10 +172,10 @@ public class BulkWriterComponentTest {
     errorMessage.put("name", "error");
     JSONObject missingMessage = new JSONObject();
     missingMessage.put("name", "missing");
-    Map<String, JSONObject> allMessages = new HashMap<String, JSONObject>() {{
-      put(successId, successMessage);
-      put(errorId, errorMessage);
-      put(missingId, missingMessage);
+    List<BulkWriterMessage<JSONObject>> allMessages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
+      add(new BulkWriterMessage<>(successId, successMessage));
+      add(new BulkWriterMessage<>(errorId, errorMessage));
+      add(new BulkWriterMessage<>(missingId, missingMessage));
     }};
     BulkWriterResponse bulkWriterResponse = new BulkWriterResponse();
     bulkWriterResponse.addSuccess(successId);

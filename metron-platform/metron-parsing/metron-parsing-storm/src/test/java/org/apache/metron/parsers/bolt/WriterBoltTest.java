@@ -135,7 +135,7 @@ public class WriterBoltTest extends BaseBoltTest{
     verify(writer, times(1)).init();
     bolt.execute(t);
     verify(outputCollector, times(1)).ack(t);
-    verify(writer, times(1)).write(eq(sensorType), any(), any(), any());
+    verify(writer, times(1)).write(eq(sensorType), any(), any());
     verify(outputCollector, times(0)).reportError(any());
     verify(outputCollector, times(0)).fail(any());
   }
@@ -150,7 +150,7 @@ public class WriterBoltTest extends BaseBoltTest{
     verify(writer, times(1)).init();
     bolt.execute(t);
     verify(outputCollector, times(1)).ack(t);
-    verify(writer, times(0)).write(eq(sensorType), any(), any(), any());
+    verify(writer, times(0)).write(eq(sensorType), any(), any());
     verify(outputCollector, times(1)).reportError(any());
     verify(outputCollector, times(0)).fail(any());
   }
@@ -163,11 +163,11 @@ public class WriterBoltTest extends BaseBoltTest{
     when(t.getValueByField(eq("message"))).thenReturn(new JSONObject());
     WriterBolt bolt = new WriterBolt(new WriterHandler(writer), configurations, sensorType);
     bolt.prepare(new HashMap(), topologyContext, outputCollector);
-    doThrow(new Exception("write error")).when(writer).write(any(), any(), any(), any());
+    doThrow(new Exception("write error")).when(writer).write(any(), any(), any());
     verify(writer, times(1)).init();
     bolt.execute(t);
     verify(outputCollector, times(1)).ack(t);
-    verify(writer, times(1)).write(eq(sensorType), any(), any(), any());
+    verify(writer, times(1)).write(eq(sensorType), any(), any());
     verify(outputCollector, times(1)).reportError(any());
     verify(outputCollector, times(0)).fail(any());
 

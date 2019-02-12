@@ -18,6 +18,7 @@
 package org.apache.metron.writer.hdfs;
 
 import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -37,6 +38,7 @@ import org.json.simple.JSONObject;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   List<RotationAction> rotationActions = new ArrayList<>();
@@ -93,29 +95,30 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   @Override
   public BulkWriterResponse write(String sourceType
                    , WriterConfiguration configurations
-                   , Map<String, JSONObject> messages
+                   , List<BulkWriterMessage<JSONObject>> messages
                    ) throws Exception
   {
     System.out.println(String.format("HDFS writer: recieved %d messages with a batch size of %d for sensor %s", messages.size(), configurations.getBatchSize(sourceType), sourceType));
     BulkWriterResponse response = new BulkWriterResponse();
 
     // Currently treating all the messages in a group for pass/failure.
+    Set<String> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
     try {
       // Messages can all result in different HDFS paths, because of Stellar Expressions, so we'll need to iterate through
-      for(JSONObject message : messages.values()) {
+      for(BulkWriterMessage<JSONObject> bulkWriterMessage : messages) {
         String path = getHdfsPathExtension(
                 sourceType,
                 (String)configurations.getSensorConfig(sourceType).getOrDefault(IndexingConfigurations.OUTPUT_PATH_FUNCTION_CONF, ""),
-                message
+                bulkWriterMessage.getMessage()
         );
         SourceHandler handler = getSourceHandler(sourceType, path, configurations);
-        handler.handle(message, sourceType, configurations, syncPolicyCreator);
+        handler.handle(bulkWriterMessage.getMessage(), sourceType, configurations, syncPolicyCreator);
       }
     } catch (Exception e) {
-      response.addAllErrors(e, messages.keySet());
+      response.addAllErrors(e, ids);
     }
 
-    response.addAllSuccesses(messages.keySet());
+    response.addAllSuccesses(ids);
     return response;
   }
 

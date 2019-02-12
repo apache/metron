@@ -26,14 +26,19 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.solr.SolrConstants;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
@@ -166,10 +171,11 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   }
 
-  public Collection<SolrInputDocument> toDocs(Iterable<JSONObject> messages) {
+  public Collection<SolrInputDocument> toDocs(Iterable<BulkWriterMessage<JSONObject>> messages) {
     Collection<SolrInputDocument> ret = new ArrayList<>();
-    for(JSONObject message: messages) {
+    for(BulkWriterMessage<JSONObject> bulkWriterMessage: messages) {
       SolrInputDocument document = new SolrInputDocument();
+      JSONObject message = bulkWriterMessage.getMessage();
       for (Object key : message.keySet()) {
         Object value = message.get(key);
         if (value instanceof Iterable) {
@@ -197,30 +203,31 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public BulkWriterResponse write(String sourceType, WriterConfiguration configurations, Map<String, JSONObject> messages) throws Exception {
+  public BulkWriterResponse write(String sourceType, WriterConfiguration configurations, List<BulkWriterMessage<JSONObject>> messages) throws Exception {
     String collection = getCollection(sourceType, configurations);
     BulkWriterResponse bulkResponse = new BulkWriterResponse();
-    Collection<SolrInputDocument> docs = toDocs(messages.values());
+    Collection<SolrInputDocument> docs = toDocs(messages);
+    Set<String> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
     try {
       Optional<SolrException> exceptionOptional = fromUpdateResponse(solr.add(collection, docs));
       // Solr commits the entire batch or throws an exception for it.  There's no way to get partial failures.
       if(exceptionOptional.isPresent()) {
-        bulkResponse.addAllErrors(exceptionOptional.get(), messages.keySet());
+        bulkResponse.addAllErrors(exceptionOptional.get(), ids);
       }
       else {
         if (shouldCommit) {
           exceptionOptional = fromUpdateResponse(solr.commit(collection, waitFlush, waitSearcher, softCommit));
           if(exceptionOptional.isPresent()) {
-            bulkResponse.addAllErrors(exceptionOptional.get(), messages.keySet());
+            bulkResponse.addAllErrors(exceptionOptional.get(), ids);
           }
         }
         if(!exceptionOptional.isPresent()) {
-          bulkResponse.addAllSuccesses(messages.keySet());
+          bulkResponse.addAllSuccesses(ids);
         }
       }
     }
     catch(HttpSolrClient.RemoteSolrException sse) {
-      bulkResponse.addAllErrors(sse, messages.keySet());
+      bulkResponse.addAllErrors(sse, ids);
     }
 
     return bulkResponse;

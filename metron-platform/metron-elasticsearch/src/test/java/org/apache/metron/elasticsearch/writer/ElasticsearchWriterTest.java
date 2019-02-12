@@ -20,6 +20,7 @@ package org.apache.metron.elasticsearch.writer;
 
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
@@ -28,8 +29,10 @@ import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,11 +62,11 @@ public class ElasticsearchWriterTest {
     @Test
     public void shouldWriteSuccessfully() {
         // create a message id and a message associated with that id
-        Map<String, JSONObject> messages = createMessages(1);
+        List<BulkWriterMessage<JSONObject>> messages = createMessages(1);
 
         // create a document writer which will successfully write all
         BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addSuccess(createDocument(messages.get("message1"), "message1"));
+        results.addSuccess(createDocument(messages.get(0)));
         BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
@@ -81,13 +84,13 @@ public class ElasticsearchWriterTest {
     @Test
     public void shouldWriteManySuccessfully() {
         // create a few message ids and the messages associated with the ids
-        Map<String, JSONObject> messages = createMessages(3);
+        List<BulkWriterMessage<JSONObject>> messages = createMessages(3);
 
         // create a document writer which will successfully write all
         BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addSuccess(createDocument(messages.get("message1"), "message1"));
-        results.addSuccess(createDocument(messages.get("message2"), "message2"));
-        results.addSuccess(createDocument(messages.get("message3"), "message3"));
+        results.addSuccess(createDocument(messages.get(0)));
+        results.addSuccess(createDocument(messages.get(1)));
+        results.addSuccess(createDocument(messages.get(2)));
         BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
@@ -107,12 +110,12 @@ public class ElasticsearchWriterTest {
     @Test
     public void shouldHandleWriteFailure() {
         // create a message id and a message associated with that id
-        Map<String, JSONObject> messages = createMessages(3);
+        List<BulkWriterMessage<JSONObject>> messages = createMessages(3);
         Exception cause = new Exception();
 
         // create a document writer which will fail all writes
         BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addFailure(createDocument(messages.get("message1"), "message1"), cause, "error");
+        results.addFailure(createDocument(messages.get(0)), cause, "error");
         BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
@@ -133,14 +136,14 @@ public class ElasticsearchWriterTest {
     public void shouldHandleManyWriteFailures() {
         // create a few message ids and the messages associated with the ids
         int count = 3;
-        Map<String, JSONObject> messages = createMessages(count);
+        List<BulkWriterMessage<JSONObject>> messages = createMessages(count);
         Exception cause = new Exception();
 
         // create a document writer which will fail all writes
         BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addFailure(createDocument(messages.get("message1"), "message1"), cause, "error");
-        results.addFailure(createDocument(messages.get("message2"), "message2"), cause, "error");
-        results.addFailure(createDocument(messages.get("message3"), "message3"), cause, "error");
+        results.addFailure(createDocument(messages.get(0)), cause, "error");
+        results.addFailure(createDocument(messages.get(1)), cause, "error");
+        results.addFailure(createDocument(messages.get(2)), cause, "error");
         BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
@@ -163,13 +166,13 @@ public class ElasticsearchWriterTest {
     public void shouldHandlePartialFailures() {
         // create a few message ids and the messages associated with the ids
         int count = 2;
-        Map<String, JSONObject> messages = createMessages(count);
+        List<BulkWriterMessage<JSONObject>> messages = createMessages(count);
         Exception cause = new Exception();
 
         // create a document writer that will fail one and succeed the other
         BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addFailure(createDocument(messages.get("message1"), "message1"), cause, "error");
-        results.addSuccess(createDocument(messages.get("message2"), "message2"));
+        results.addFailure(createDocument(messages.get(0)), cause, "error");
+        results.addSuccess(createDocument(messages.get(1)));
         BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
@@ -188,13 +191,14 @@ public class ElasticsearchWriterTest {
 
     @Test
     public void shouldWriteSuccessfullyWhenMessageTimestampIsString() {
-        Map<String, JSONObject> messages = createMessages(1);
+        List<BulkWriterMessage<JSONObject>> messages = createMessages(1);
+        JSONObject message = messages.get(0).getMessage();
 
         // the timestamp is a String, rather than a Long
-        messages.get("message1").put(Constants.Fields.TIMESTAMP.getName(), new Long(System.currentTimeMillis()).toString());
+        message.put(Constants.Fields.TIMESTAMP.getName(), new Long(System.currentTimeMillis()).toString());
 
         // create the document
-        JSONObject message = messages.get("message1");
+
         String timestamp = (String) message.get(Constants.Fields.TIMESTAMP.getName());
         String guid = (String) message.get(Constants.GUID);
         String sensorType = (String) message.get(Constants.SENSOR_TYPE);
@@ -220,14 +224,14 @@ public class ElasticsearchWriterTest {
     @Test
     public void shouldWriteSuccessfullyWhenMissingGUID() {
         // create a message id and a message associated with that tuple
-        Map<String, JSONObject> messages = createMessages(1);
+        List<BulkWriterMessage<JSONObject>> messages = createMessages(1);
 
         // remove the GUID from the message
-        assertNotNull(messages.get("message1").remove(Constants.GUID));
+        assertNotNull(messages.get(0).getMessage().remove(Constants.GUID));
 
         // create a document writer which will successfully write all
         BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
-        results.addSuccess(createDocument(messages.get("message1"), "message1"));
+        results.addSuccess(createDocument(messages.get(0)));
         BulkDocumentWriter<MessageIdBasedDocument> docWriter = mock(BulkDocumentWriter.class);
         when(docWriter.write()).thenReturn(results);
 
@@ -242,8 +246,10 @@ public class ElasticsearchWriterTest {
         assertTrue(response.getSuccesses().contains("message1"));
     }
 
-    private MessageIdBasedDocument createDocument(JSONObject message, String messageId) {
-        Long timestamp = (Long) message.get(Constants.Fields.TIMESTAMP.getName());
+    private MessageIdBasedDocument createDocument(BulkWriterMessage<JSONObject> bulkWriterMessage) {
+        String messageId = bulkWriterMessage.getId();
+        JSONObject message = bulkWriterMessage.getMessage();
+        Long timestamp = (Long) bulkWriterMessage.getMessage().get(Constants.Fields.TIMESTAMP.getName());
         String guid = (String) message.get(Constants.GUID);
         String sensorType = (String) message.get(Constants.SENSOR_TYPE);
         return new MessageIdBasedDocument(message, guid, sensorType, timestamp, messageId);
@@ -264,10 +270,10 @@ public class ElasticsearchWriterTest {
         return globals;
     }
 
-    private Map<String, JSONObject> createMessages(int count) {
-        Map<String, JSONObject> messages = new HashMap<>();
+    private List<BulkWriterMessage<JSONObject>> createMessages(int count) {
+        List<BulkWriterMessage<JSONObject>> messages = new ArrayList<>();
         for(int i=0; i<count; i++) {
-            messages.put("message" + (i + 1), message());
+            messages.add(new BulkWriterMessage<>("message" + (i + 1), message()));
         }
         return messages;
     }

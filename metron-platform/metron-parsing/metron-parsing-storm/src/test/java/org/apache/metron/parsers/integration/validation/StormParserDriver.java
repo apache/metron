@@ -28,12 +28,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.parsers.bolt.ParserBolt;
@@ -61,10 +64,11 @@ public class StormParserDriver extends ParserDriver {
     }
 
     @Override
-    public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Map<String, JSONObject> messages) throws Exception {
-      messages.forEach((messageId, message) -> output.add(message.toJSONString().getBytes()));
+    public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkWriterMessage<JSONObject>> messages) throws Exception {
+      messages.forEach(bulkWriterMessage -> output.add(bulkWriterMessage.getMessage().toJSONString().getBytes()));
+      Set<String> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
       BulkWriterResponse bulkWriterResponse = new BulkWriterResponse();
-      bulkWriterResponse.addAllSuccesses(messages.keySet());
+      bulkWriterResponse.addAllSuccesses(ids);
       return bulkWriterResponse;
     }
 

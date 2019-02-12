@@ -26,7 +26,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -36,6 +39,7 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.common.utils.StringUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.writer.AbstractWriter;
@@ -234,12 +238,12 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
 
   @Override
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations,
-      Map<String, JSONObject> messages) {
+                                  List<BulkWriterMessage<JSONObject>> messages) {
     BulkWriterResponse writerResponse = new BulkWriterResponse();
     List<Map.Entry<String, Future>> results = new ArrayList<>();
-    for (Map.Entry<String, JSONObject> entry: messages.entrySet()) {
-      String id = entry.getKey();
-      JSONObject message = entry.getValue();
+    for (BulkWriterMessage<JSONObject> bulkWriterMessage: messages) {
+      String id = bulkWriterMessage.getId();
+      JSONObject message = bulkWriterMessage.getMessage();
       String jsonMessage;
       try {
          jsonMessage = message.toJSONString();
@@ -259,11 +263,12 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
       }
     }
 
+    Set<String> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
     try {
       // ensures all Future.isDone() == true
       kafkaProducer.flush();
     } catch (InterruptException e) {
-      writerResponse.addAllErrors(e, messages.keySet());
+      writerResponse.addAllErrors(e, ids);
       return writerResponse;
     }
 

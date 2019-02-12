@@ -21,6 +21,7 @@ import org.apache.storm.task.TopologyContext;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 public interface BulkMessageWriter<MESSAGE_T> extends AutoCloseable, Serializable {
@@ -37,7 +38,7 @@ public interface BulkMessageWriter<MESSAGE_T> extends AutoCloseable, Serializabl
   */
   BulkWriterResponse write(String sensorType
             , WriterConfiguration configurations
-            , Map<String, MESSAGE_T> messages
+            , List<BulkWriterMessage<MESSAGE_T>> messages
             ) throws Exception;
 
   String getName();

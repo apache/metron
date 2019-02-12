@@ -33,6 +33,7 @@ import java.util.Map;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.enrichment.integration.utils.SampleUtil;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.SolrInputDocument;
@@ -114,9 +115,9 @@ public class SolrWriterTest {
     message2.put(Constants.SENSOR_TYPE, "test");
     message2.put("intField", 200);
     message2.put("doubleField", 200.0);
-    Map<String, JSONObject> messages = new LinkedHashMap<>();
-    messages.put("message1", message1);
-    messages.put("message2", message2);
+    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<>();
+    messages.add(new BulkWriterMessage<>("message1", message1));
+    messages.add(new BulkWriterMessage<>("message2", message2));
 
     String collection = "metron";
     MetronSolrClient solr = Mockito.mock(MetronSolrClient.class);
