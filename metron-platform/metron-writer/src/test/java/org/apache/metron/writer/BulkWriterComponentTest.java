@@ -278,26 +278,32 @@ public class BulkWriterComponentTest {
   public void flushTimeoutsShouldFlushAllMessages() throws Exception {
     Clock clock = mock(Clock.class);
     BulkMessageWriter<JSONObject> bulkMessageWriter = mock(BulkMessageWriter.class);
-    BulkWriterComponent<JSONObject> bulkWriterComponent = spy(new BulkWriterComponent<>(collector).withClock(clock));
-    doNothing().when(bulkWriterComponent).flush(any(), any(), any(), any(), any(), any());
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(collector, false, false).withClock(clock);
+
+    BulkWriterResponse response1 = new BulkWriterResponse();
+    response1.addSuccess(tuple1);
+    when(bulkMessageWriter.write("sensor1", configurations, Collections.singletonList(tuple1), Collections.singletonList(message1))).thenReturn(response1);
+    BulkWriterResponse response2 = new BulkWriterResponse();
+    response1.addSuccess(tuple2);
+    when(bulkMessageWriter.write("sensor2", configurations, Collections.singletonList(tuple2), Collections.singletonList(message2))).thenReturn(response2);
 
     when(clock.currentTimeMillis()).thenReturn(1000L);
     bulkWriterComponent.write("sensor1", tuple1, message1, bulkMessageWriter, configurations, messageGetStrategy);
     bulkWriterComponent.write("sensor2", tuple2, message2, bulkMessageWriter, configurations, messageGetStrategy);
 
-    verify(bulkWriterComponent, times(0)).flush(any(), any(), any(), any(), any(), any());
+    verify(bulkMessageWriter, times(0)).write(any(), any(), any(), any());
 
     when(clock.currentTimeMillis()).thenReturn(5000L);
     bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
 
-    verify(bulkWriterComponent, times(0)).flush(any(), any(), any(), any(), any(), any());
+    verify(bulkMessageWriter, times(0)).write(any(), any(), any(), any());
 
     when(clock.currentTimeMillis()).thenReturn(7000L);
     bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
 
-    verify(bulkWriterComponent, times(1)).flush("sensor1", bulkMessageWriter,
-            configurations, messageGetStrategy, Collections.singletonList(tuple1), Collections.singletonList(message1));
-    verify(bulkWriterComponent, times(1)).flush("sensor2", bulkMessageWriter,
-            configurations, messageGetStrategy, Collections.singletonList(tuple2), Collections.singletonList(message2));
+    verify(bulkMessageWriter, times(1)).write("sensor1", configurations, Collections.singletonList(tuple1), Collections.singletonList(message1));
+    verify(bulkMessageWriter, times(1)).write("sensor2", configurations, Collections.singletonList(tuple2), Collections.singletonList(message2));
+
+    verifyNoMoreInteractions(bulkMessageWriter);
   }
 }
