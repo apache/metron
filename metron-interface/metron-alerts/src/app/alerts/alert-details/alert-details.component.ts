@@ -260,9 +260,7 @@ export class AlertDetailsComponent implements OnInit {
         commentRequest.timestamp = deletedCommentWrapper.alertComment.timestamp;
         commentRequest.sensorType = this.alertSourceType;
         this.updateService.removeComment(commentRequest).subscribe(
-            () => {
-              this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)
-            },
+            null,
             () => {
               // add the deleted comment back
               this.alertCommentsWrapper.unshift(deletedCommentWrapper);
