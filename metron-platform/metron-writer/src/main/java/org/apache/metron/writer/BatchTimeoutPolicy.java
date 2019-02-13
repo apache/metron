@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class BatchTimeoutPolicy<MESSAGE_T> implements FlushPolicy<MESSAGE_T> {
+public class BatchTimeoutPolicy implements FlushPolicy {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -54,11 +54,11 @@ public class BatchTimeoutPolicy<MESSAGE_T> implements FlushPolicy<MESSAGE_T> {
    * see if the timeout has been reached and flushes if so.  A reset clears the timeout value for that sensor type.
    * @param sensorType sensor type
    * @param configurations writer configurations includes timeouts
-   * @param messages messages to be written (not used here)
+   * @param batchSize number of messages to be written (not used here)
    * @return true if the timeout has been reached
    */
   @Override
-  public boolean shouldFlush(String sensorType, WriterConfiguration configurations, List<BulkWriterMessage<MESSAGE_T>> messages) {
+  public boolean shouldFlush(String sensorType, WriterConfiguration configurations, int batchSize) {
     boolean shouldFlush = false;
     long currentTimeMillis = clock.currentTimeMillis();
     if (!timeouts.containsKey(sensorType)) {  // no timeout present so assume this is a new batch
@@ -70,14 +70,14 @@ public class BatchTimeoutPolicy<MESSAGE_T> implements FlushPolicy<MESSAGE_T> {
     }
     if (timeouts.get(sensorType) <= currentTimeMillis) {
       LOG.debug("Batch timeout of {} reached. Flushing {} messages for sensor {}.",
-              timeouts.get(sensorType), messages.size(), sensorType);
+              timeouts.get(sensorType), batchSize, sensorType);
       shouldFlush = true;
     }
     return shouldFlush;
   }
 
   /**
-   * Removes the timeout value for a sensor type.  The next call to {@link org.apache.metron.writer.BatchTimeoutPolicy#shouldFlush(String, WriterConfiguration, List)}
+   * Removes the timeout value for a sensor type.  The next call to {@link org.apache.metron.writer.BatchTimeoutPolicy#shouldFlush(String, WriterConfiguration, int)}
    * will set a new timeout.
    * @param sensorType
    */

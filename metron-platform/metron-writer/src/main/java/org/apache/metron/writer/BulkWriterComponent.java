@@ -48,14 +48,14 @@ public class BulkWriterComponent<MESSAGE_T> {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Map<String, List<BulkWriterMessage<MESSAGE_T>>> sensorMessageCache = new HashMap<>();
   private BulkWriterResponseHandler bulkWriterResponseHandler;
-  private BatchTimeoutPolicy<MESSAGE_T> batchTimeoutPolicy;
-  private List<FlushPolicy<MESSAGE_T>> flushPolicies;
+  private BatchTimeoutPolicy batchTimeoutPolicy;
+  private List<FlushPolicy> flushPolicies;
 
   public BulkWriterComponent(BulkWriterResponseHandler bulkWriterResponseHandler) {
     this.bulkWriterResponseHandler = bulkWriterResponseHandler;
     flushPolicies = new ArrayList<>();
-    flushPolicies.add(new BatchSizePolicy<>());
-    batchTimeoutPolicy = new BatchTimeoutPolicy<>();
+    flushPolicies.add(new BatchSizePolicy());
+    batchTimeoutPolicy = new BatchTimeoutPolicy();
     flushPolicies.add(batchTimeoutPolicy);
   }
 
@@ -166,8 +166,8 @@ public class BulkWriterComponent<MESSAGE_T> {
           , WriterConfiguration configurations
           , List<BulkWriterMessage<MESSAGE_T>> messages) {
     if (messages.size() > 0) { // no need to flush empty batches
-      for(FlushPolicy<MESSAGE_T> flushPolicy: flushPolicies) {
-        if (flushPolicy.shouldFlush(sensorType, configurations, messages)) {
+      for(FlushPolicy flushPolicy: flushPolicies) {
+        if (flushPolicy.shouldFlush(sensorType, configurations, messages.size())) {
           flush(sensorType, bulkMessageWriter, configurations, messages);
           break;
         }

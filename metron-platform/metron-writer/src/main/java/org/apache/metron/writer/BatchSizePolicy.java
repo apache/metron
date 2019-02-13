@@ -26,7 +26,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
-public class BatchSizePolicy<MESSAGE_T> implements FlushPolicy<MESSAGE_T> {
+public class BatchSizePolicy implements FlushPolicy {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -35,16 +35,16 @@ public class BatchSizePolicy<MESSAGE_T> implements FlushPolicy<MESSAGE_T> {
    * the sensor type.
    * @param sensorType sensor type
    * @param configurations writer configurations
-   * @param messages messages to be written
+   * @param batchSize number of messages to be written
    * @return true if message batch size is greater than configured batch size.
    */
   @Override
-  public boolean shouldFlush(String sensorType, WriterConfiguration configurations, List<BulkWriterMessage<MESSAGE_T>> messages) {
+  public boolean shouldFlush(String sensorType, WriterConfiguration configurations, int batchSize) {
     boolean shouldFlush = false;
-    int batchSize = configurations.getBatchSize(sensorType);
+    int configuredBatchSize = configurations.getBatchSize(sensorType);
     //Check for batchSize flush
-    if (messages.size() >= batchSize) {
-      LOG.debug("Batch size of {} reached. Flushing {} messages for sensor {}.", batchSize, messages.size(), sensorType);
+    if (batchSize >= configuredBatchSize) {
+      LOG.debug("Batch size of {} reached. Flushing {} messages for sensor {}.", configuredBatchSize, batchSize, sensorType);
       shouldFlush = true;
     }
     return shouldFlush;

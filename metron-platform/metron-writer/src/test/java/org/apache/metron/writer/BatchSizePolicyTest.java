@@ -36,7 +36,6 @@ public class BatchSizePolicyTest {
 
   private String sensorType = "sensorType";
   private WriterConfiguration configurations = mock(WriterConfiguration.class);
-  private List<BulkWriterMessage<JSONObject>> messages = new ArrayList<>();
 
   @Before
   public void setup() {
@@ -45,28 +44,22 @@ public class BatchSizePolicyTest {
 
   @Test
   public void shouldFlushWhenBatchSizeReached() {
-    BatchSizePolicy<JSONObject> batchSizePolicy = new BatchSizePolicy<>();
+    BatchSizePolicy batchSizePolicy = new BatchSizePolicy();
 
-    messages.add(new BulkWriterMessage<>("message1", new JSONObject()));
-    messages.add(new BulkWriterMessage<>("message2", new JSONObject()));
-    assertTrue(batchSizePolicy.shouldFlush(sensorType, configurations, messages));
+    assertTrue(batchSizePolicy.shouldFlush(sensorType, configurations, 2));
   }
 
   @Test
   public void shouldNotFlushWhenBatchSizeNotReached() {
-    BatchSizePolicy<JSONObject> batchSizePolicy = new BatchSizePolicy<>();
+    BatchSizePolicy batchSizePolicy = new BatchSizePolicy();
 
-    messages.add(new BulkWriterMessage<>("message1", new JSONObject()));
-    assertFalse(batchSizePolicy.shouldFlush(sensorType, configurations, messages));
+    assertFalse(batchSizePolicy.shouldFlush(sensorType, configurations, 1));
   }
 
   @Test
   public void shouldFlushWhenBatchSizeExceeded() {
-    BatchSizePolicy<JSONObject> batchSizePolicy = new BatchSizePolicy<>();
+    BatchSizePolicy batchSizePolicy = new BatchSizePolicy();
 
-    messages.add(new BulkWriterMessage<>("message1", new JSONObject()));
-    messages.add(new BulkWriterMessage<>("message2", new JSONObject()));
-    messages.add(new BulkWriterMessage<>("message3", new JSONObject()));
-    assertTrue(batchSizePolicy.shouldFlush(sensorType, configurations, messages));
+    assertTrue(batchSizePolicy.shouldFlush(sensorType, configurations, 3));
   }
 }

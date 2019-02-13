@@ -38,56 +38,55 @@ public class BatchTimeoutPolicyTest {
   private String sensor1 = "sensor1";
   private String sensor2 = "sensor2";
   private WriterConfiguration configurations = mock(WriterConfiguration.class);
-  private List<BulkWriterMessage<JSONObject>> messages = new ArrayList<>();
 
   @Test
   public void shouldFlushSensorsOnTimeouts() {
     Clock clock = mock(Clock.class);
 
-    BatchTimeoutPolicy<JSONObject> batchTimeoutPolicy = new BatchTimeoutPolicy<>();
+    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy();
     batchTimeoutPolicy.setClock(clock);
     when(configurations.getBatchTimeout(sensor1)).thenReturn(1);
     when(configurations.getBatchTimeout(sensor2)).thenReturn(2);
 
     when(clock.currentTimeMillis()).thenReturn(0L); // initial check
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, messages));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, 2));
 
     when(clock.currentTimeMillis()).thenReturn(999L); // no timeouts yet
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, messages));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, 2));
 
     when(clock.currentTimeMillis()).thenReturn(1000L); // first sensor timeout reached
-    assertTrue(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, messages));
+    assertTrue(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, 2));
 
     when(clock.currentTimeMillis()).thenReturn(2000L); // second sensor timeout reached
-    assertTrue(batchTimeoutPolicy.shouldFlush(sensor2, configurations, messages));
+    assertTrue(batchTimeoutPolicy.shouldFlush(sensor2, configurations, 2));
   }
 
   @Test
   public void shouldResetTimeouts() {
     Clock clock = mock(Clock.class);
 
-    BatchTimeoutPolicy<JSONObject> batchTimeoutPolicy = new BatchTimeoutPolicy<>();
+    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy();
     batchTimeoutPolicy.setClock(clock);
     when(configurations.getBatchTimeout(sensor1)).thenReturn(1);
 
     when(clock.currentTimeMillis()).thenReturn(0L); // initial check
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
 
     batchTimeoutPolicy.reset(sensor1);
 
     when(clock.currentTimeMillis()).thenReturn(1000L); // sensor was reset so shouldn't timeout
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
 
     when(clock.currentTimeMillis()).thenReturn(2000L); // sensor timeout should be 2 now
-    assertTrue(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
+    assertTrue(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
   }
 
   @Test
   public void getBatchTimeoutShouldReturnConfiguredTimeout() {
-    BatchTimeoutPolicy<JSONObject> batchTimeoutPolicy = new BatchTimeoutPolicy<>();
+    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy();
 
     when(configurations.getBatchTimeout(sensor1)).thenReturn(5);
 
@@ -96,7 +95,7 @@ public class BatchTimeoutPolicyTest {
 
   @Test
   public void getBatchTimeoutShouldReturnDefaultTimeout() {
-    BatchTimeoutPolicy<JSONObject> batchTimeoutPolicy = new BatchTimeoutPolicy<>();
+    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy();
 
     when(configurations.getBatchTimeout(sensor1)).thenReturn(0);
 
@@ -105,7 +104,7 @@ public class BatchTimeoutPolicyTest {
 
   @Test
   public void getBatchTimeoutShouldReturnConfiguredDefaultTimeout() {
-    BatchTimeoutPolicy<JSONObject> batchTimeoutPolicy = new BatchTimeoutPolicy<>();
+    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy();
 
     when(configurations.getBatchTimeout(sensor1)).thenReturn(0);
 
