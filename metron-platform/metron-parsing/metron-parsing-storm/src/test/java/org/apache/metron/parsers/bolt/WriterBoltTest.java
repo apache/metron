@@ -55,6 +55,10 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 public class WriterBoltTest extends BaseBoltTest{
+
+  private static final String MESSAGE_ID_FORMAT = "messageId%d";
+  private static final String MESSAGE_FORMAT = "message%d";
+
   @Mock
   protected TopologyContext topologyContext;
 
@@ -91,10 +95,10 @@ public class WriterBoltTest extends BaseBoltTest{
     List<String> messageIds = new ArrayList<>();
     for(int i = 0;i < 5;++i) {
       Tuple t = mock(Tuple.class);
-      String messageId = String.format("messageId%d", i + 1);
+      String messageId = String.format(MESSAGE_ID_FORMAT, i + 1);
       messageIds.add(messageId);
       JSONObject message = new JSONObject();
-      message.put("value", String.format("message%d", i + 1));
+      message.put("value", String.format(MESSAGE_FORMAT, i + 1));
       when(t.getValueByField(eq("message"))).thenReturn(message);
       tuples.add(t);
     }
@@ -188,10 +192,10 @@ public class WriterBoltTest extends BaseBoltTest{
     List<String> messageIds = new ArrayList<>();
     for(int i = 0;i < 4;++i) {
       Tuple t = mock(Tuple.class);
-      String messageId = String.format("messageId%d", i + 1);
+      String messageId = String.format(MESSAGE_ID_FORMAT, i + 1);
       messageIds.add(messageId);
       JSONObject message = new JSONObject();
-      message.put("value", String.format("message%d", i + 1));
+      message.put("value", String.format(MESSAGE_FORMAT, i + 1));
       when(t.getValueByField(eq("message"))).thenReturn(message);
       tuples.add(t);
     }
@@ -242,10 +246,10 @@ public class WriterBoltTest extends BaseBoltTest{
     List<String> messageIds = new ArrayList<>();
     for(int i = 0;i < 4;++i) {
       Tuple t = mock(Tuple.class);
-      String messageId = String.format("messageId%d", i + 1);
+      String messageId = String.format(MESSAGE_ID_FORMAT, i + 1);
       messageIds.add(messageId);
       JSONObject message = new JSONObject();
-      message.put("value", String.format("message%d", i + 1));
+      message.put("value", String.format(MESSAGE_FORMAT, i + 1));
       when(t.getValueByField(eq("message"))).thenReturn(message);
       tuples.add(t);
     }
@@ -302,10 +306,10 @@ public class WriterBoltTest extends BaseBoltTest{
     List<String> messageIds = new ArrayList<>();
     for(int i = 0;i < 4;++i) {
       Tuple t = mock(Tuple.class);
-      String messageId = String.format("messageId%d", i + 1);
+      String messageId = String.format(MESSAGE_ID_FORMAT, i + 1);
       messageIds.add(messageId);
       JSONObject message = new JSONObject();
-      message.put("value", String.format("message%d", i + 1));
+      message.put("value", String.format(MESSAGE_FORMAT, i + 1));
       when(t.getValueByField(eq("message"))).thenReturn(message);
       tuples.add(t);
     }

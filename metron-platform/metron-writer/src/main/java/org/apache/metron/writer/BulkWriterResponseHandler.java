@@ -22,7 +22,7 @@ import org.apache.metron.common.writer.BulkWriterResponse;
 /**
  * This interface is used by the {@link org.apache.metron.writer.BulkWriterComponent} to report that a queue for a
  * sensor type has been flushed.  Different frameworks may have different requirements for committing processed messages
- * so this abstraction provides a way to pass in the appropriate commit logic for the framework in use.
+ * so this interface provides a way to pass in the appropriate commit logic for the framework in use.
  */
 public interface BulkWriterResponseHandler {
 
