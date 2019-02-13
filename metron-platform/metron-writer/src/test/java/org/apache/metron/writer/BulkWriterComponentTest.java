@@ -28,11 +28,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.ErrorUtils;
@@ -108,18 +104,28 @@ public class BulkWriterComponentTest {
 
     BulkWriterResponse expectedResponse = new BulkWriterResponse();
     expectedResponse.addAllSuccesses(messageIds);
+    verify(bulkMessageWriter, times(1)).write(sensorType, configurations,
+            Arrays.asList(new BulkWriterMessage<>(messageId1, message1), new BulkWriterMessage<>(messageId2, message2)));
     verify(bulkWriterResponseHandler, times(1)).handleFlush(sensorType, expectedResponse);
 
-    // A disabled writer should still flush
-    String disabledId = "disabledId";
-    String disabledSensorType = "disabled";
-    when(configurations.isEnabled(disabledSensorType)).thenReturn(false);
-    bulkWriterComponent.write(disabledSensorType, disabledId, message2, bulkMessageWriter, configurations);
-    BulkWriterResponse expectedDisabledResponse = new BulkWriterResponse();
-    expectedDisabledResponse.addSuccess(disabledId);
-    verify(bulkWriterResponseHandler, times(1)).handleFlush(disabledSensorType, expectedDisabledResponse);
+    verifyNoMoreInteractions(bulkMessageWriter, bulkWriterResponseHandler);
+  }
 
-    verifyNoMoreInteractions(bulkWriterResponseHandler);
+  @Test
+  public void writeShouldFlushPreviousMessagesWhenDisabled() throws Exception {
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler);
+
+    when(configurations.isEnabled(sensorType)).thenReturn(false);
+
+    bulkWriterComponent.write(sensorType, messageId1, message1, bulkMessageWriter, configurations);
+
+    BulkWriterResponse expectedDisabledResponse = new BulkWriterResponse();
+    expectedDisabledResponse.addSuccess(messageId1);
+
+    verify(bulkMessageWriter, times(0)).write(eq(sensorType), eq(configurations), any());
+    verify(bulkWriterResponseHandler, times(1)).handleFlush(sensorType, expectedDisabledResponse);
+
+    verifyNoMoreInteractions(bulkMessageWriter, bulkWriterResponseHandler);
   }
 
   @Test

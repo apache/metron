@@ -39,7 +39,6 @@ import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.common.utils.HashUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.MessageWriter;
@@ -57,6 +56,32 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This bolt implements message batching and writing, with both flush on queue size, and flush on queue timeout.
+ * There is a queue for each sensorType.
+ * Ideally each queue would have its own timer, but we only have one global timer, the Tick Tuple
+ * generated at fixed intervals by the system and received by the Bolt.  Given this constraint,
+ * we use the following strategy:
+ *   - The default batchTimeout is, as recommended by Storm, 1/2 the Storm 'topology.message.timeout.secs',
+ *   modified by batchTimeoutDivisor, in case multiple batching writers are daisy-chained in one topology.
+ *   - If some sensors configure their own batchTimeouts, they are compared with the default.  Batch
+ *   timeouts greater than the default will be ignored, because they can cause message recycling in Storm.
+ *   Batch timeouts configured to {@literal <}= zero, or undefined, mean use the default.
+ *   - The *smallest* configured batchTimeout among all sensor types, greater than zero and less than
+ *   the default, will be used to configure the 'topology.tick.tuple.freq.secs' for the Bolt.  If there are no
+ *   valid configured batchTimeouts, the defaultBatchTimeout will be used.
+ *   - The age of the queue is checked every time a sensor message arrives.  Thus, if at least one message
+ *   per second is received for a given sensor, that queue will flush on timeout or sooner, depending on batchSize.
+ *   - On each Tick Tuple received, *all* queues will be checked, and if any are older than their respective
+ *   batchTimeout, they will be flushed.  Note that this does NOT guarantee timely flushing, depending on the
+ *   phase relationship between the queue's batchTimeout and the tick interval.  The maximum age of a queue
+ *   before it flushes is its batchTimeout + the tick interval, which is guaranteed to be less than 2x the
+ *   batchTimeout, and also less than the 'topology.message.timeout.secs'.  This guarantees that the messages
+ *   will not age out of the Storm topology, but it does not guarantee the flush interval requested, for
+ *   sensor types not receiving at least one message every second.
+ *
+ * @param <CONFIG_T>
+ */
 public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends ConfiguredBolt<CONFIG_T> {
 
   private static final Logger LOG = LoggerFactory
