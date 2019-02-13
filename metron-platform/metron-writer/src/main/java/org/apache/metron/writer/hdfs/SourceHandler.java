@@ -89,6 +89,7 @@ public class SourceHandler {
       this.offset += bytes.length;
 
       if (this.syncPolicy.mark(null, this.offset)) {
+        LOG.debug("Calling hsync per Sync Policy");
         if (this.out instanceof HdfsDataOutputStream) {
           ((HdfsDataOutputStream) this.out)
               .hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
@@ -97,11 +98,13 @@ public class SourceHandler {
         }
         //recreate the sync policy for the next batch just in case something changed in the config
         //and the sync policy depends on the config.
+        LOG.debug("Recreating sync policy");
         this.syncPolicy = syncPolicyCreator.create(sensor, config);
       }
     }
 
     if (this.rotationPolicy.mark(null, this.offset)) {
+      LOG.debug("Rotating due to rotationPolicy");
       rotateOutputFile(); // synchronized
       this.offset = 0;
       this.rotationPolicy.reset();
@@ -109,8 +112,10 @@ public class SourceHandler {
   }
 
   private void initialize() throws IOException {
+    LOG.info("Initializing Source Handler");
     this.fs = FileSystem.get(new Configuration());
     this.currentFile = createOutputFile();
+    LOG.debug("Source Handler initialized with starting file: {}", currentFile);
     if(this.rotationPolicy instanceof TimedRotationPolicy){
       long interval = ((TimedRotationPolicy)this.rotationPolicy).getInterval();
       this.rotationTimer = new Timer(true);
@@ -118,6 +123,7 @@ public class SourceHandler {
         @Override
         public void run() {
           try {
+            LOG.debug("Rotating output file from TimerTask");
             rotateOutputFile();
           } catch(IOException e){
             LOG.warn("IOException during scheduled file rotation.", e);
@@ -128,6 +134,7 @@ public class SourceHandler {
     }
   }
 
+  // Closes the output file, but ensures any RotationActions are performed.
   protected void rotateOutputFile() throws IOException {
     LOG.info("Rotating output file...");
     long start = System.currentTimeMillis();
@@ -135,14 +142,11 @@ public class SourceHandler {
       closeOutputFile();
       // Want to use the callback to make sure we have an accurate count of open files.
       cleanupCallback();
-      this.rotation++;
 
-      Path newFile = createOutputFile();
       LOG.info("Performing {} file rotation actions.", this.rotationActions.size());
       for (RotationAction action : this.rotationActions) {
         action.execute(this.fs, this.currentFile);
       }
-      this.currentFile = newFile;
     }
     long time = System.currentTimeMillis() - start;
     LOG.info("File rotation took {} ms", time);
@@ -150,6 +154,7 @@ public class SourceHandler {
 
   private Path createOutputFile() throws IOException {
     Path path = new Path(this.fileNameFormat.getPath(), this.fileNameFormat.getName(this.rotation, System.currentTimeMillis()));
+    LOG.debug("Creating new output file: {}", path.getName());
     if(fs.getScheme().equals("file")) {
       //in the situation where we're running this in a local filesystem, flushing doesn't work.
       fs.mkdirs(path.getParent());
@@ -172,6 +177,7 @@ public class SourceHandler {
   public void close() {
     try {
       closeOutputFile();
+      rotationTimer.cancel();
       // Don't call cleanup, to avoid HashMap's ConcurrentModificationException while iterating
     } catch (IOException e) {
       throw new RuntimeException("Unable to close output file.", e);

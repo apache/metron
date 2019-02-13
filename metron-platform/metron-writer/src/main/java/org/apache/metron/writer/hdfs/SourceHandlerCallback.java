@@ -35,6 +35,7 @@ public class SourceHandlerCallback {
 
   public void removeKey() {
     SourceHandler removed = sourceHandlerMap.remove(key);
+    removed.close(); // If it's getting removed, we want to close it to ensure things like Timers are ended.
     LOG.debug("Removed {} -> {}", key, removed);
     LOG.debug("Current state of sourceHandlerMap: {}", sourceHandlerMap);
   }
