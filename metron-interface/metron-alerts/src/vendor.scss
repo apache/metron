@@ -22,11 +22,13 @@
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  */
 
+ // Variables with theme overrides
+ @import "variables";
+
 // Core variables and mixins
 @import "../node_modules/bootstrap/scss/functions";
 @import "../node_modules/bootstrap/scss/variables";
 @import "../node_modules/bootstrap/scss/mixins";
-@import "variables";
 
 // Reset and dependencies
 @import "../node_modules/bootstrap/scss/print";
@@ -42,6 +44,7 @@
 @import "../node_modules/bootstrap/scss/buttons";
 
 // Components
+@import "../node_modules/bootstrap/scss/alert";
 @import "../node_modules/bootstrap/scss/transitions";
 @import "../node_modules/bootstrap/scss/dropdown";
 @import "../node_modules/bootstrap/scss/button-group";
