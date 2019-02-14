@@ -43,6 +43,7 @@ import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.HashUtils;
+import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.writer.StormBulkWriterResponseHandler;
 import org.apache.metron.parsers.ParserRunner;
 import org.apache.metron.parsers.ParserRunnerResults;
@@ -261,7 +262,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       WriterHandler writer = sensorToWriterMap.get(sensorType);
       int numWritten = 0;
       List<JSONObject> messages = parserRunnerResults.getMessages();
-      List<String> messageIds = getMessageIds(messages.size());
+      List<String> messageIds = messages.stream().map(MessageUtils::getGuid).collect(Collectors.toList());
       bulkWriterResponseHandler.addTupleMessageIds(tuple, messageIds);
       for(int i = 0; i < messages.size(); i++) {
         JSONObject message = messages.get(i);
@@ -327,14 +328,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             .withSensorType(Collections.singleton(sensorType))
             .addRawMessage(originalMessage);
     ErrorUtils.handleError(collector, error);
-  }
-
-  protected List<String> getMessageIds(int size) {
-    List<String> messageIds = new ArrayList<>();
-    for(int i =0; i < size; i++) {
-      messageIds.add(UUID.randomUUID().toString());
-    }
-    return messageIds;
   }
 
   @Override

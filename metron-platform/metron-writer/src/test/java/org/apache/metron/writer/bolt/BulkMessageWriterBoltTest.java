@@ -113,14 +113,19 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     JSONParser parser = new JSONParser();
     fullMessageList = new ArrayList<>();
     sampleMessage = (JSONObject) parser.parse(sampleMessageString);
+    sampleMessage.put(Constants.GUID, "message1");
     sampleMessage.put("field", "value1");
     fullMessageList.add(((JSONObject) sampleMessage.clone()));
+    sampleMessage.put(Constants.GUID, "message2");
     sampleMessage.put("field", "value2");
     fullMessageList.add(((JSONObject) sampleMessage.clone()));
+    sampleMessage.put(Constants.GUID, "message3");
     sampleMessage.put("field", "value3");
     fullMessageList.add(((JSONObject) sampleMessage.clone()));
+    sampleMessage.put(Constants.GUID, "message4");
     sampleMessage.put("field", "value4");
     fullMessageList.add(((JSONObject) sampleMessage.clone()));
+    sampleMessage.put(Constants.GUID, "message5");
     sampleMessage.put("field", "value5");
     fullMessageList.add(((JSONObject) sampleMessage.clone()));
 
@@ -197,7 +202,6 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     }
     {
       for(int i = 0; i < 4; i++) {
-        doReturn(String.format("message%s", i + 1)).when(bulkMessageWriterBolt).getMessageId();
         bulkMessageWriterBolt.execute(tupleList.get(i));
         verify(bulkMessageWriter, times(0)).write(eq(sensorType)
                 , any(WriterConfiguration.class), anyList());
@@ -205,7 +209,6 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       BulkWriterResponse response = new BulkWriterResponse();
       response.addAllSuccesses(messageIdList);
       when(bulkMessageWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(messageList))).thenReturn(response);
-      doReturn("message5").when(bulkMessageWriterBolt).getMessageId();
       bulkMessageWriterBolt.execute(tupleList.get(4));
       verify(bulkMessageWriter, times(1)).write(eq(sensorType)
               , any(WriterConfiguration.class), eq(messageList));
@@ -217,7 +220,6 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
               , anyList());
       UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.FATAL);
       for(int i = 0; i < 5; i++) {
-        doReturn(String.format("message%s", i + 1)).when(bulkMessageWriterBolt).getMessageId();
         bulkMessageWriterBolt.execute(tupleList.get(i));
       }
       UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.ERROR);
@@ -251,7 +253,6 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       int batchTimeout = bulkMessageWriterBolt.getDefaultBatchTimeout();
       assertEquals(4, batchTimeout);
       for(int i = 0; i < 4; i++) {
-        doReturn(String.format("message%s", i + 1)).when(bulkMessageWriterBolt).getMessageId();
         bulkMessageWriterBolt.execute(tupleList.get(i));
         verify(bulkMessageWriter, times(0)).write(eq(sensorType)
                 , any(WriterConfiguration.class), any(List.class));
@@ -261,7 +262,6 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       response.addAllSuccesses(messageIdList);
 
       when(bulkMessageWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(messageList))).thenReturn(response);
-      doReturn("message5").when(bulkMessageWriterBolt).getMessageId();
       bulkMessageWriterBolt.execute(tupleList.get(4));
       verify(bulkMessageWriter, times(1)).write(eq(sensorType), any(WriterConfiguration.class), eq(messageList));
       tupleList.forEach(tuple -> verify(outputCollector, times(1)).ack(tuple));
@@ -292,7 +292,6 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       int batchTimeout = bulkMessageWriterBolt.getDefaultBatchTimeout();
       assertEquals(14, batchTimeout);
       for(int i = 0; i < 5; i++) {
-        doReturn(String.format("message%s", i + 1)).when(bulkMessageWriterBolt).getMessageId();
         bulkMessageWriterBolt.execute(tupleList.get(i));
         verify(bulkMessageWriter, times(0)).write(eq(sensorType)
                 , any(WriterConfiguration.class), any());

@@ -98,6 +98,7 @@ public class WriterBoltTest extends BaseBoltTest{
       String messageId = String.format(MESSAGE_ID_FORMAT, i + 1);
       messageIds.add(messageId);
       JSONObject message = new JSONObject();
+      message.put(Constants.GUID, messageId);
       message.put("value", String.format(MESSAGE_FORMAT, i + 1));
       when(t.getValueByField(eq("message"))).thenReturn(message);
       tuples.add(t);
@@ -107,7 +108,6 @@ public class WriterBoltTest extends BaseBoltTest{
     verify(batchWriter, times(1)).init(any(), any(), any());
     for(int i = 0;i < 4;++i) {
       Tuple t = tuples.get(i);
-      doReturn(messageIds.get(i)).when(bolt).getMessageId();
       bolt.execute(t);
       verify(outputCollector, times(0)).ack(t);
       verify(batchWriter, times(0)).write(eq(sensorType), any(), any());
@@ -118,7 +118,6 @@ public class WriterBoltTest extends BaseBoltTest{
     writerResponse.addAllSuccesses(messageIds);
     when(batchWriter.write(any(), any(), any())).thenReturn(writerResponse);
 
-    doReturn(messageIds.get(4)).when(bolt).getMessageId();
     bolt.execute(tuples.get(4));
     for(Tuple t : tuples) {
       verify(outputCollector, times(1)).ack(t);
@@ -210,7 +209,6 @@ public class WriterBoltTest extends BaseBoltTest{
 
     for(int i = 0;i < 4;++i) {
       Tuple t = tuples.get(i);
-      doReturn(messageIds.get(i)).when(bolt).getMessageId();
       bolt.execute(t);
       verify(outputCollector, times(0)).ack(t);
       verify(batchWriter, times(0)).write(eq(sensorType), any(), any());
@@ -226,7 +224,6 @@ public class WriterBoltTest extends BaseBoltTest{
     for(Tuple t : tuples) {
       verify(outputCollector, times(0)).ack(t);
     }
-    doReturn("goodMessageId").when(bolt).getMessageId();
     bolt.execute(goodTuple);
     for(Tuple t : tuples) {
       verify(outputCollector, times(1)).ack(t);
@@ -249,6 +246,7 @@ public class WriterBoltTest extends BaseBoltTest{
       String messageId = String.format(MESSAGE_ID_FORMAT, i + 1);
       messageIds.add(messageId);
       JSONObject message = new JSONObject();
+      message.put(Constants.GUID, messageId);
       message.put("value", String.format(MESSAGE_FORMAT, i + 1));
       when(t.getValueByField(eq("message"))).thenReturn(message);
       tuples.add(t);
@@ -256,8 +254,10 @@ public class WriterBoltTest extends BaseBoltTest{
     Tuple errorTuple = mock(Tuple.class);
     Tuple goodTuple = mock(Tuple.class);
     JSONObject goodMessage = new JSONObject();
+    goodMessage.put(Constants.GUID, "goodMessageId");
     goodMessage.put("value", "goodMessage");
     JSONObject errorMessage = new JSONObject();
+    goodMessage.put(Constants.GUID, "errorMessageId");
     errorMessage.put("value", "errorMessage");
     when(goodTuple.getValueByField(eq("message"))).thenReturn(goodMessage);
     when(errorTuple.getValueByField(eq("message"))).thenReturn(errorMessage);
@@ -267,7 +267,6 @@ public class WriterBoltTest extends BaseBoltTest{
 
     for(int i = 0;i < 4;++i) {
       Tuple t = tuples.get(i);
-      doReturn(messageIds.get(i)).when(bolt).getMessageId();
       bolt.execute(t);
       verify(outputCollector, times(0)).ack(t);
       verify(batchWriter, times(0)).write(eq(sensorType), any(), any());
@@ -279,13 +278,11 @@ public class WriterBoltTest extends BaseBoltTest{
     writerResponse.addSuccess("goodMessageId");
     writerResponse.addError(new IllegalStateException(), "errorMessageId");
     when(batchWriter.write(any(), any(), any())).thenReturn(writerResponse);
-    doReturn("errorMessageId").when(bolt).getMessageId();
     bolt.execute(errorTuple);
     for(Tuple t : tuples) {
       verify(outputCollector, times(0)).ack(t);
     }
     UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.FATAL);
-    doReturn("goodMessageId").when(bolt).getMessageId();
     bolt.execute(goodTuple);
     UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.ERROR);
     for(Tuple t : tuples) {
@@ -321,14 +318,12 @@ public class WriterBoltTest extends BaseBoltTest{
     verify(batchWriter, times(1)).init(any(), any(), any());
     for(int i = 0;i < 4;++i) {
       Tuple t = tuples.get(i);
-      doReturn(messageIds.get(i)).when(bolt).getMessageId();
       bolt.execute(t);
       verify(outputCollector, times(0)).ack(t);
       verify(batchWriter, times(0)).write(eq(sensorType), any(), any());
     }
     UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.FATAL);
 
-    doReturn("goodMessageId").when(bolt).getMessageId();
     bolt.execute(goodTuple);
     UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.ERROR);
     for(Tuple t : tuples) {

@@ -292,10 +292,10 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
         //want to warn, but not fail the tuple
         collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
       }
-      Collection<String> messagesIds = Collections.singleton(getMessageId());
-      bulkWriterResponseHandler.addTupleMessageIds(tuple, messagesIds);
+      String messagesId = MessageUtils.getGuid(message);
+      bulkWriterResponseHandler.addTupleMessageIds(tuple, Collections.singleton(messagesId));
       getWriterComponent().write(sensorType
-              , messagesIds.iterator().next()
+              , messagesId
               , message
               , bulkMessageWriter
               , writerConfiguration
@@ -362,10 +362,6 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
             .withThrowable(e);
     collector.ack(tuple);
     ErrorUtils.handleError(collector, error);
-  }
-
-  protected String getMessageId() {
-    return UUID.randomUUID().toString();
   }
 
   @Override
