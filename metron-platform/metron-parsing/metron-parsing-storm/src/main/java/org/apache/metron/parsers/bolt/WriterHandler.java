@@ -65,7 +65,8 @@ public class WriterHandler implements Serializable {
     return messageWriter;
   }
 
-  public void init(Map stormConf, TopologyContext topologyContext, OutputCollector collector, ParserConfigurations configurations, StormBulkWriterResponseHandler stormBulkWriterResponseHandler) {
+  public void init(Map stormConf, TopologyContext topologyContext, OutputCollector collector, ParserConfigurations configurations,
+                   StormBulkWriterResponseHandler stormBulkWriterResponseHandler, int maxBatchTimeout) {
     if(isBulk) {
       writerTransformer = config -> configStrategy.createWriterConfig(messageWriter, config);
     }
@@ -77,7 +78,7 @@ public class WriterHandler implements Serializable {
     } catch (Exception e) {
       throw new IllegalStateException("Unable to initialize message writer", e);
     }
-    this.writerComponent = new BulkWriterComponent<JSONObject>(stormBulkWriterResponseHandler);
+    this.writerComponent = new BulkWriterComponent<>(stormBulkWriterResponseHandler, maxBatchTimeout);
   }
 
   public void write( String sensorType
@@ -95,17 +96,6 @@ public class WriterHandler implements Serializable {
       LOG.debug("Flushing message queues older than their batchTimeouts");
       writerComponent.flushTimeouts(messageWriter, writerTransformer.apply(configurations));
     }
-  }
-
-  /**
-   * Sets batch timeout on the underlying component
-   * @param defaultBatchTimeout
-   */
-  public void setDefaultBatchTimeout(int defaultBatchTimeout) {
-    if (writerComponent == null) {
-      throw new UnsupportedOperationException("Must call init prior to calling this method.");
-    }
-    writerComponent.setDefaultBatchTimeout(defaultBatchTimeout);
   }
 
 }

@@ -23,7 +23,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -61,7 +60,6 @@ import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -250,7 +248,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       verify(bulkMessageWriter, times(1)).init(eq(stormConf),any(TopologyContext.class), any(WriterConfiguration.class));
     }
     {
-      int batchTimeout = bulkMessageWriterBolt.getDefaultBatchTimeout();
+      int batchTimeout = bulkMessageWriterBolt.getMaxBatchTimeout();
       assertEquals(4, batchTimeout);
       for(int i = 0; i < 4; i++) {
         bulkMessageWriterBolt.execute(tupleList.get(i));
@@ -289,7 +287,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
               , any(WriterConfiguration.class));
     }
     {
-      int batchTimeout = bulkMessageWriterBolt.getDefaultBatchTimeout();
+      int batchTimeout = bulkMessageWriterBolt.getMaxBatchTimeout();
       assertEquals(14, batchTimeout);
       for(int i = 0; i < 5; i++) {
         bulkMessageWriterBolt.execute(tupleList.get(i));

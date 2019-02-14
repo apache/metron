@@ -19,13 +19,11 @@ package org.apache.metron.writer;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.system.Clock;
-import org.apache.metron.common.writer.BulkWriterMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -33,19 +31,22 @@ public class BatchTimeoutPolicy implements FlushPolicy {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  //In test scenarios, defaultBatchTimeout may not be correctly initialized, so do it here.
-  //This is a conservative defaultBatchTimeout for a vanilla bolt with batchTimeoutDivisor=2
-  public static final int UNINITIALIZED_DEFAULT_BATCH_TIMEOUT = 6;
-  private int defaultBatchTimeout = UNINITIALIZED_DEFAULT_BATCH_TIMEOUT;
+  private int maxBatchTimeout;
   private Clock clock = new Clock();
   private Map<String, Long> timeouts = new HashMap<>();
 
-  public void setClock(Clock clock) {
-    this.clock = clock;
+  public BatchTimeoutPolicy(int maxBatchTimeout) {
+    if (maxBatchTimeout <= 0) {
+      throw new IllegalArgumentException(String.format("The maxBatchTimeout setting is %d but must be greater than 0.", maxBatchTimeout));
+    }
+    LOG.debug("Setting maxBatchTimeout to {}.", maxBatchTimeout);
+    this.maxBatchTimeout = maxBatchTimeout;
   }
 
-  public void setDefaultBatchTimeout(int defaultBatchTimeout) {
-    this.defaultBatchTimeout = defaultBatchTimeout;
+
+  public BatchTimeoutPolicy(int maxBatchTimeout, Clock clock) {
+    this(maxBatchTimeout);
+    this.clock = clock;
   }
 
   /**
@@ -87,16 +88,16 @@ public class BatchTimeoutPolicy implements FlushPolicy {
   }
 
   /**
-   * Returns the configured timeout for a sensor type in milliseconds.  The default timeout will be used if the configured timeout is
-   * set to 0 or greater than the default timeout.
+   * Returns the configured timeout for a sensor type in milliseconds.  The max timeout will be used if the configured timeout is
+   * set to 0 or greater than the max timeout.
    * @param sensorType
    * @param configurations
    * @return
    */
   protected long getBatchTimeout(String sensorType, WriterConfiguration configurations) {
     int batchTimeoutSecs = configurations.getBatchTimeout(sensorType);
-    if (batchTimeoutSecs <= 0 || batchTimeoutSecs > defaultBatchTimeout) {
-      batchTimeoutSecs = defaultBatchTimeout;
+    if (batchTimeoutSecs <= 0 || batchTimeoutSecs > maxBatchTimeout) {
+      batchTimeoutSecs = maxBatchTimeout;
     }
     return TimeUnit.SECONDS.toMillis(batchTimeoutSecs);
   }

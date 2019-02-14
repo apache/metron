@@ -71,6 +71,8 @@ public class BulkWriterComponentTest {
   private List<BulkWriterMessage<JSONObject>> messages;
   private JSONObject message1 = new JSONObject();
   private JSONObject message2 = new JSONObject();
+  // batch size is used to test flushing so this could be anything
+  private int maxBatchTimeout = 6;
 
   @Before
   public void setup() {
@@ -94,7 +96,7 @@ public class BulkWriterComponentTest {
 
     when(bulkMessageWriter.write(sensorType, configurations, messages)).thenReturn(response);
 
-    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler);
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout);
     bulkWriterComponent.write(sensorType, messageId1, message1, bulkMessageWriter, configurations);
 
     verify(bulkMessageWriter, times(0)).write(eq(sensorType), eq(configurations), any());
@@ -113,7 +115,7 @@ public class BulkWriterComponentTest {
 
   @Test
   public void writeShouldFlushPreviousMessagesWhenDisabled() throws Exception {
-    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler);
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout);
 
     when(configurations.isEnabled(sensorType)).thenReturn(false);
 
@@ -136,7 +138,7 @@ public class BulkWriterComponentTest {
 
     when(bulkMessageWriter.write(sensorType, configurations, messages)).thenReturn(response);
 
-    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler);
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout);
     bulkWriterComponent.write(sensorType, messageId1, message1, bulkMessageWriter, configurations);
     bulkWriterComponent.write(sensorType, messageId2, message2, bulkMessageWriter, configurations);
 
@@ -155,7 +157,7 @@ public class BulkWriterComponentTest {
 
     when(bulkMessageWriter.write(sensorType, configurations, messages)).thenThrow(e);
 
-    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler);
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout);
     bulkWriterComponent.write(sensorType, messageId1, message1, bulkMessageWriter, configurations);
     bulkWriterComponent.write(sensorType, messageId2, message2, bulkMessageWriter, configurations);
 
@@ -190,7 +192,7 @@ public class BulkWriterComponentTest {
 
     when(bulkMessageWriter.write(sensorType, configurations, allMessages)).thenReturn(bulkWriterResponse);
 
-    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler);
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout);
     bulkWriterComponent.flush(sensorType, bulkMessageWriter, configurations, allMessages);
 
     BulkWriterResponse expectedResponse = new BulkWriterResponse();

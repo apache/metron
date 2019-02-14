@@ -22,11 +22,9 @@ import static org.apache.storm.utils.TupleUtils.isTick;
 
 import com.google.common.collect.ImmutableList;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 
 import com.google.common.collect.Iterables;
@@ -69,7 +67,7 @@ import org.slf4j.LoggerFactory;
  *   Batch timeouts configured to {@literal <}= zero, or undefined, mean use the default.
  *   - The *smallest* configured batchTimeout among all sensor types, greater than zero and less than
  *   the default, will be used to configure the 'topology.tick.tuple.freq.secs' for the Bolt.  If there are no
- *   valid configured batchTimeouts, the defaultBatchTimeout will be used.
+ *   valid configured batchTimeouts, the maxBatchTimeout will be used.
  *   - The age of the queue is checked every time a sensor message arrives.  Thus, if at least one message
  *   per second is received for a given sensor, that queue will flush on timeout or sooner, depending on batchSize.
  *   - On each Tick Tuple received, *all* queues will be checked, and if any are older than their respective
@@ -94,7 +92,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
   private transient OutputCollector collector;
   private transient Function<WriterConfiguration, WriterConfiguration> configurationTransformation = null;
   private int requestedTickFreqSecs;
-  private int defaultBatchTimeout;
+  private int maxBatchTimeout;
   private int batchTimeoutDivisor = 1;
   private transient StormBulkWriterResponseHandler bulkWriterResponseHandler = null;
 
@@ -150,17 +148,17 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
 
   /**
    * Used only for unit testing
-   * @param defaultBatchTimeout
+   * @param maxBatchTimeout
    */
-  protected void setDefaultBatchTimeout(int defaultBatchTimeout) {
-    this.defaultBatchTimeout = defaultBatchTimeout;
+  protected void setMaxBatchTimeout(int maxBatchTimeout) {
+    this.maxBatchTimeout = maxBatchTimeout;
   }
 
   /**
    * Used only for unit testing
    */
-  public int getDefaultBatchTimeout() {
-    return defaultBatchTimeout;
+  public int getMaxBatchTimeout() {
+    return maxBatchTimeout;
   }
 
   public BulkWriterComponent<JSONObject> getWriterComponent() {
@@ -194,8 +192,8 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
 
     BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
     this.requestedTickFreqSecs = timeoutHelper.getRecommendedTickInterval();
-    //And while we've got BatchTimeoutHelper handy, capture the defaultBatchTimeout for writerComponent.
-    this.defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
+    //And while we've got BatchTimeoutHelper handy, capture the maxBatchTimeout for writerComponent.
+    this.maxBatchTimeout = timeoutHelper.getMaxBatchTimeout();
 
     Map<String, Object> conf = super.getComponentConfiguration();
     if (conf == null) {
@@ -224,17 +222,16 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
       configurationTransformation = x -> x;
     }
     bulkWriterResponseHandler = new StormBulkWriterResponseHandler(collector, messageGetStrategy);
-    setWriterComponent(new BulkWriterComponent<>(bulkWriterResponseHandler));
     try {
       WriterConfiguration writerconf = configurationTransformation
           .apply(getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations()));
-      if (defaultBatchTimeout == 0) {
-        //This means getComponentConfiguration was never called to initialize defaultBatchTimeout,
+      if (maxBatchTimeout == 0) {
+        //This means getComponentConfiguration was never called to initialize maxBatchTimeout,
         //probably because we are in a unit test scenario.  So calculate it here.
         BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
-        defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
+        maxBatchTimeout = timeoutHelper.getMaxBatchTimeout();
       }
-      getWriterComponent().setDefaultBatchTimeout(defaultBatchTimeout);
+      setWriterComponent(new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout));
       bulkMessageWriter.init(stormConf, context, writerconf);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -246,7 +243,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
    */
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector, Clock clock) {
     prepare(stormConf, context, collector);
-    getWriterComponent().withClock(clock);
+    setWriterComponent(new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout, clock));
   }
 
   @SuppressWarnings("unchecked")

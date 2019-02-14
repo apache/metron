@@ -210,8 +210,7 @@ public class ParserBoltTest extends BaseBoltTest {
     Map<String, String> topicToSensorMap = parserBolt.getTopicToSensorMap();
     Assert.assertEquals(1, topicToSensorMap.size());
     Assert.assertEquals("yaf", topicToSensorMap.get("yafTopic"));
-    verify(writerHandler).init(eq(stormConf), eq(topologyContext), eq(outputCollector), eq(parserConfigurations), any(StormBulkWriterResponseHandler.class));
-    verify(writerHandler).setDefaultBatchTimeout(14);
+    verify(writerHandler).init(eq(stormConf), eq(topologyContext), eq(outputCollector), eq(parserConfigurations), any(StormBulkWriterResponseHandler.class), eq(14));
   }
 
   @Test

@@ -18,18 +18,12 @@
 
 package org.apache.metron.parsers.bolt;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.UUID;
-
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.common.utils.HashUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.writer.StormBulkWriterResponseHandler;
 import org.apache.storm.task.OutputCollector;
@@ -39,11 +33,17 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 
+import java.util.Collections;
+import java.util.Map;
+
 public class WriterBolt extends BaseRichBolt {
   private WriterHandler handler;
   private ParserConfigurations configuration;
   private String sensorType;
   private Constants.ErrorType errorType = Constants.ErrorType.DEFAULT_ERROR;
+  //In test scenarios, maxBatchTimeout may not be correctly initialized, so do it here.
+  //This is a conservative maxBatchTimeout for a vanilla bolt with batchTimeoutDivisor=2
+  public static final int UNINITIALIZED_MAX_BATCH_TIMEOUT = 6;
   private transient MessageGetStrategy messageGetStrategy;
   private transient OutputCollector collector;
   private transient StormBulkWriterResponseHandler bulkWriterResponseHandler;
@@ -63,7 +63,7 @@ public class WriterBolt extends BaseRichBolt {
     this.collector = collector;
     messageGetStrategy = MessageGetters.DEFAULT_JSON_FROM_FIELD.get();
     bulkWriterResponseHandler = new StormBulkWriterResponseHandler(collector, messageGetStrategy);
-    handler.init(stormConf, context, collector, configuration, bulkWriterResponseHandler);
+    handler.init(stormConf, context, collector, configuration, bulkWriterResponseHandler, UNINITIALIZED_MAX_BATCH_TIMEOUT);
   }
 
   private JSONObject getMessage(Tuple tuple) {

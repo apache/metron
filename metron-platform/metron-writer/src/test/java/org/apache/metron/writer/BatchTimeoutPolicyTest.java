@@ -20,12 +20,7 @@ package org.apache.metron.writer;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.system.Clock;
-import org.apache.metron.common.writer.BulkWriterMessage;
-import org.json.simple.JSONObject;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -38,13 +33,13 @@ public class BatchTimeoutPolicyTest {
   private String sensor1 = "sensor1";
   private String sensor2 = "sensor2";
   private WriterConfiguration configurations = mock(WriterConfiguration.class);
+  private int maxBatchTimeout = 6;
 
   @Test
   public void shouldFlushSensorsOnTimeouts() {
     Clock clock = mock(Clock.class);
 
-    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy();
-    batchTimeoutPolicy.setClock(clock);
+    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy(maxBatchTimeout, clock);
     when(configurations.getBatchTimeout(sensor1)).thenReturn(1);
     when(configurations.getBatchTimeout(sensor2)).thenReturn(2);
 
@@ -68,8 +63,7 @@ public class BatchTimeoutPolicyTest {
   public void shouldResetTimeouts() {
     Clock clock = mock(Clock.class);
 
-    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy();
-    batchTimeoutPolicy.setClock(clock);
+    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy(maxBatchTimeout, clock);
     when(configurations.getBatchTimeout(sensor1)).thenReturn(1);
 
     when(clock.currentTimeMillis()).thenReturn(0L); // initial check
@@ -86,7 +80,7 @@ public class BatchTimeoutPolicyTest {
 
   @Test
   public void getBatchTimeoutShouldReturnConfiguredTimeout() {
-    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy();
+    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy(maxBatchTimeout);
 
     when(configurations.getBatchTimeout(sensor1)).thenReturn(5);
 
@@ -94,21 +88,11 @@ public class BatchTimeoutPolicyTest {
   }
 
   @Test
-  public void getBatchTimeoutShouldReturnDefaultTimeout() {
-    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy();
+  public void getBatchTimeoutShouldReturnMaxBatchTimeout() {
+    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy(maxBatchTimeout);
 
     when(configurations.getBatchTimeout(sensor1)).thenReturn(0);
 
-    assertEquals(6000L, batchTimeoutPolicy.getBatchTimeout(sensor1, configurations));
-  }
-
-  @Test
-  public void getBatchTimeoutShouldReturnConfiguredDefaultTimeout() {
-    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy();
-
-    when(configurations.getBatchTimeout(sensor1)).thenReturn(0);
-
-    batchTimeoutPolicy.setDefaultBatchTimeout(7);
-    assertEquals(7000L, batchTimeoutPolicy.getBatchTimeout(sensor1, configurations));
+    assertEquals(maxBatchTimeout * 1000, batchTimeoutPolicy.getBatchTimeout(sensor1, configurations));
   }
 }

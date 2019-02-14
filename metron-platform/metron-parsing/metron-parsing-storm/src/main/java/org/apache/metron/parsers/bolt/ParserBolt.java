@@ -21,13 +21,11 @@ package org.apache.metron.parsers.bolt;
 import com.github.benmanes.caffeine.cache.Cache;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,7 +40,6 @@ import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.common.utils.HashUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.writer.StormBulkWriterResponseHandler;
 import org.apache.metron.parsers.ParserRunner;
@@ -75,7 +72,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
   private transient MessageGetStrategy messageGetStrategy;
   private int requestedTickFreqSecs;
-  private int defaultBatchTimeout;
+  private int maxBatchTimeout;
   private int batchTimeoutDivisor = 1;
   private transient StormBulkWriterResponseHandler bulkWriterResponseHandler;
 
@@ -92,14 +89,14 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
    * If this ParserBolt is in a topology where it is daisy-chained with
    * other queuing Writers, then the max amount of time it takes for a tuple
    * to clear the whole topology is the sum of all the batchTimeouts for all the
-   * daisy-chained Writers.  In the common case where each Writer is using the default
+   * daisy-chained Writers.  In the common case where each Writer is using the max
    * batchTimeout, it is then necessary to divide that batchTimeout by the number of
    * daisy-chained Writers.  There are no examples of daisy-chained batching Writers
    * in the current Metron topologies, but the feature is available as a "fluent"-style
    * mutator if needed.  It would be used in the parser topology builder.
    * Default value, if not otherwise set, is 1.
    *
-   * If non-default batchTimeouts are configured for some components, the administrator
+   * If sensor batchTimeouts are configured for some components, the administrator
    * may want to take this behavior into account.
    *
    * @param batchTimeoutDivisor
@@ -186,8 +183,8 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
     BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
     this.requestedTickFreqSecs = timeoutHelper.getRecommendedTickInterval();
-    //And while we've got BatchTimeoutHelper handy, capture the defaultBatchTimeout for writerComponent.
-    this.defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
+    //And while we've got BatchTimeoutHelper handy, capture the maxBatchTimeout for writerComponent.
+    this.maxBatchTimeout = timeoutHelper.getMaxBatchTimeout();
 
     Map<String, Object> conf = super.getComponentConfiguration();
     if (conf == null) {
@@ -222,17 +219,17 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       }
 
       WriterHandler writer = sensorToWriterMap.get(sensor);
-      writer.init(stormConf, context, collector, getConfigurations(), bulkWriterResponseHandler);
-      if (defaultBatchTimeout == 0) {
-        //This means getComponentConfiguration was never called to initialize defaultBatchTimeout,
+      if (maxBatchTimeout == 0) {
+        //This means getComponentConfiguration was never called to initialize maxBatchTimeout,
         //probably because we are in a unit test scenario.  So calculate it here.
         WriterConfiguration writerConfig = getConfigurationStrategy()
-            .createWriterConfig(writer.getBulkMessageWriter(), getConfigurations());
+                .createWriterConfig(writer.getBulkMessageWriter(), getConfigurations());
         BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(
-            writerConfig::getAllConfiguredTimeouts, batchTimeoutDivisor);
-        defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
+                writerConfig::getAllConfiguredTimeouts, batchTimeoutDivisor);
+        maxBatchTimeout = timeoutHelper.getMaxBatchTimeout();
       }
-      writer.setDefaultBatchTimeout(defaultBatchTimeout);
+
+      writer.init(stormConf, context, collector, getConfigurations(), bulkWriterResponseHandler, maxBatchTimeout);
     }
   }
 

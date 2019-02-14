@@ -51,21 +51,18 @@ public class BulkWriterComponent<MESSAGE_T> {
   private BatchTimeoutPolicy batchTimeoutPolicy;
   private List<FlushPolicy> flushPolicies;
 
-  public BulkWriterComponent(BulkWriterResponseHandler bulkWriterResponseHandler) {
+  public BulkWriterComponent(BulkWriterResponseHandler bulkWriterResponseHandler, int maxBatchTimeout) {
     this.bulkWriterResponseHandler = bulkWriterResponseHandler;
     flushPolicies = new ArrayList<>();
     flushPolicies.add(new BatchSizePolicy());
-    batchTimeoutPolicy = new BatchTimeoutPolicy();
-    flushPolicies.add(batchTimeoutPolicy);
+    flushPolicies.add(new BatchTimeoutPolicy(maxBatchTimeout));
   }
 
-  /**
-   * Used only for testing.  Overrides the default (actual) wall clock.
-   * @return this mutated BulkWriterComponent
-   */
-   public BulkWriterComponent<MESSAGE_T> withClock(Clock clock) {
-     this.batchTimeoutPolicy.setClock(clock);
-     return this;
+  public BulkWriterComponent(BulkWriterResponseHandler bulkWriterResponseHandler, int maxBatchTimeout, Clock clock) {
+    this.bulkWriterResponseHandler = bulkWriterResponseHandler;
+    flushPolicies = new ArrayList<>();
+    flushPolicies.add(new BatchSizePolicy());
+    flushPolicies.add(new BatchTimeoutPolicy(maxBatchTimeout, clock));
   }
 
   /**
@@ -173,12 +170,5 @@ public class BulkWriterComponent<MESSAGE_T> {
         }
       }
     }
-  }
-
-  /**
-   * @param defaultBatchTimeout
-   */
-  public void setDefaultBatchTimeout(int defaultBatchTimeout) {
-    this.batchTimeoutPolicy.setDefaultBatchTimeout(defaultBatchTimeout);
   }
 }
