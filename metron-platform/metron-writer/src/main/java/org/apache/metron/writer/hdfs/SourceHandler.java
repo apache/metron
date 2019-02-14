@@ -177,7 +177,9 @@ public class SourceHandler {
   public void close() {
     try {
       closeOutputFile();
-      rotationTimer.cancel();
+      if(rotationTimer != null) {
+        rotationTimer.cancel();
+      }
       // Don't call cleanup, to avoid HashMap's ConcurrentModificationException while iterating
     } catch (IOException e) {
       throw new RuntimeException("Unable to close output file.", e);
