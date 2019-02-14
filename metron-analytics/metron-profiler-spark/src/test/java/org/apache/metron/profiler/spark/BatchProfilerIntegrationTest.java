@@ -70,29 +70,6 @@ import static org.junit.Assert.assertTrue;
 public class BatchProfilerIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  /**
-   * {
-   *   "timestampField": "timestamp",
-   *   "profiles": [
-   *      {
-   *        "profile": "count-by-ip",
-   *        "foreach": "ip_src_addr",
-   *        "init": { "count": 0 },
-   *        "update": { "count" : "count + 1" },
-   *        "result": "count"
-   *      },
-   *      {
-   *        "profile": "total-count",
-   *        "foreach": "'total'",
-   *        "init": { "count": 0 },
-   *        "update": { "count": "count + 1" },
-   *        "result": "count"
-   *      }
-   *   ]
-   * }
-   */
-  @Multiline
-  private static String profileJson;
   private static SparkSession spark;
   private Properties profilerProperties;
   private Properties readerProperties;
@@ -150,6 +127,30 @@ public class BatchProfilerIntegrationTest {
                     .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
                     .build());
   }
+
+  /**
+   * {
+   *   "timestampField": "timestamp",
+   *   "profiles": [
+   *      {
+   *        "profile": "count-by-ip",
+   *        "foreach": "ip_src_addr",
+   *        "init": { "count": 0 },
+   *        "update": { "count" : "count + 1" },
+   *        "result": "count"
+   *      },
+   *      {
+   *        "profile": "total-count",
+   *        "foreach": "'total'",
+   *        "init": { "count": 0 },
+   *        "update": { "count": "count + 1" },
+   *        "result": "count"
+   *      }
+   *   ]
+   * }
+   */
+  @Multiline
+  private static String profileJson;
 
   /**
    * This test uses the Batch Profiler to seed two profiles using archived telemetry.
@@ -325,6 +326,42 @@ public class BatchProfilerIntegrationTest {
     // the batch profiler should error out, if there is a bug in *any* of the profiles
     BatchProfiler profiler = new BatchProfiler();
     profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(invalidProfileJson));
+  }
+
+  /**
+    * {
+    *   "timestampField": "timestamp",
+    *   "profiles": [
+    *      {
+    *        "profile": "count-by-ip",
+    *        "foreach": "ip_src_addr",
+    *        "init": { "count": "STATS_INIT()" },
+    *        "update": { "count" : "STATS_ADD(count, 1)" },
+    *        "result": "TO_INTEGER(STATS_COUNT(count))"
+    *      },
+    *      {
+    *        "profile": "total-count",
+    *        "foreach": "'total'",
+    *        "init": { "count": "STATS_INIT()" },
+    *        "update": { "count": "STATS_ADD(count, 1)" },
+    *        "result": "TO_INTEGER(STATS_COUNT(count))"
+    *      }
+    *   ]
+    * }
+    */
+  @Multiline
+  private static String statsProfileJson;
+
+  @Test
+  public void testBatchProfilerWithStatsFunctions() throws Exception {
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), JSON.toString());
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
+
+    BatchProfiler profiler = new BatchProfiler();
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(statsProfileJson));
+
+    // the profiles do the exact same counting, but using the STATS functions
+    validateProfiles();
   }
 
   /**

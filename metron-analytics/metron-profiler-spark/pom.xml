@@ -52,13 +52,17 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-profiler-client</artifactId>
             <version>${project.parent.version}</version>
-            <scope>test</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.antlr</groupId>
                     <artifactId>antlr4-runtime</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>stellar-common</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
@@ -182,8 +186,7 @@
                                 </excludes>
                             </artifactSet>
                             <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                                     <resources>
                                         <resource>.yaml</resource>
                                         <resource>LICENSE.txt</resource>
@@ -191,16 +194,36 @@
                                         <resource>NOTICE.txt</resource>
                                     </resources>
                                 </transformer>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass></mainClass>
                                 </transformer>
+                                <!--
+                                    The ClassIndex library is used to create an index of all Stellar functions at
+                                    compile-time. This index is packaged in the JAR as
+                                    `META-INF/annotations/org.apache.metron.stellar.dsl.Stellar`.
+
+                                    When creating a shaded jar using the Maven Shade Plugin, the index files created by
+                                    ClassIndex are overwritten by default. ClassIndex provides a special transformer for
+                                    Maven which merges the index files instead of overwriting them.
+
+                                    Without using this transformer, the index files are overwritten and Stellar function
+                                    resolution will not work.
+
+                                    https://github.com/atteo/classindex#making-shaded-jar
+                                    -->
+                                <transformer implementation="org.atteo.classindex.ClassIndexTransformer"/>
                             </transformers>
                         </configuration>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.atteo.classindex</groupId>
+                        <artifactId>classindex-transformer</artifactId>
+                        <version>${global_classindex_version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
