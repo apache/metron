@@ -20,18 +20,24 @@
 
 package org.apache.metron.hbase.client;
 
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.*;
-import org.apache.storm.tuple.Tuple;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
+import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.client.Delete;
+import org.apache.hadoop.hbase.client.Durability;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.Widget;
 import org.apache.metron.hbase.WidgetMapper;
 import org.apache.metron.hbase.bolt.mapper.ColumnList;
 import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 import org.apache.metron.hbase.bolt.mapper.HBaseProjectionCriteria;
+import org.apache.storm.tuple.Tuple;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -39,6 +45,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,6 +56,9 @@ import static org.apache.metron.hbase.WidgetMapper.CF;
 import static org.apache.metron.hbase.WidgetMapper.QCOST;
 import static org.apache.metron.hbase.WidgetMapper.QNAME;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -266,6 +276,47 @@ public class HBaseClientTest {
             .filter(w -> w != null)
             .collect(Collectors.toList());
     assertEquals(0, widgets.size());
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void testUnableToOpenConnection() throws IOException {
+    // used to trigger a failure condition
+    TableProvider tableProvider = mock(TableProvider.class);
+    when(tableProvider.getTable(any(), any())).thenThrow(new IllegalArgumentException("test exception"));
+
+    client = new HBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void testFailureToMutate() throws IOException, InterruptedException {
+    // used to trigger a failure condition in `HbaseClient.mutate`
+    HTableInterface table = mock(HTableInterface.class);
+    doThrow(new IOException("exception!")).when(table).batch(any(), any());
+
+    TableProvider tableProvider = mock(TableProvider.class);
+    when(tableProvider.getTable(any(), any())).thenReturn(table);
+
+    client = new HBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
+    client.addMutation(rowKey1, cols1, Durability.SYNC_WAL);
+    client.mutate();
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void testFailureToGetAll() throws IOException {
+    // used to trigger a failure condition in `HbaseClient.getAll`
+    HTableInterface table = mock(HTableInterface.class);
+    when(table.get(anyListOf(Get.class))).thenThrow(new IOException("exception!"));
+
+    TableProvider tableProvider = mock(TableProvider.class);
+    when(tableProvider.getTable(any(), any())).thenReturn(table);
+
+    HBaseProjectionCriteria criteria = new HBaseProjectionCriteria();
+    criteria.addColumnFamily(WidgetMapper.CF_STRING);
+
+    client = new HBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
+    client.addGet(rowKey1, criteria);
+    client.addGet(rowKey2, criteria);
+    client.getAll();
   }
 
   /**

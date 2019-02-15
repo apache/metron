@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Get;
@@ -38,6 +40,8 @@ import org.apache.metron.hbase.bolt.mapper.ColumnList;
 import org.apache.metron.hbase.bolt.mapper.HBaseProjectionCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.commons.collections4.CollectionUtils.size;
 
 /**
  * A client that interacts with HBase.
@@ -67,7 +71,9 @@ public class HBaseClient implements Closeable {
     try {
       this.table = provider.getTable(configuration, tableName);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      String msg = String.format("Unable to open connection to HBase for table '%s'", tableName);
+      LOG.error(msg, e);
+      throw new RuntimeException(msg, e);
     }
   }
 
@@ -142,9 +148,10 @@ public class HBaseClient implements Closeable {
       table.batch(mutations, result);
       mutations.clear();
 
-    } catch (InterruptedException | IOException e) {
-      LOG.warn("Error performing a mutation to HBase.", e);
-      throw new RuntimeException(e);
+    } catch (Exception e) {
+      String msg = String.format("'%d' HBase write(s) failed on table '%s'", size(mutations), tableName(table));
+      LOG.error(msg, e);
+      throw new RuntimeException(msg, e);
     }
 
     return mutationCount;
@@ -187,8 +194,9 @@ public class HBaseClient implements Closeable {
       return results;
 
     } catch (Exception e) {
-      LOG.warn("Could not perform HBase lookup.", e);
-      throw new RuntimeException(e);
+      String msg = String.format("'%d' HBase read(s) failed on table '%s'", size(gets), tableName(table));
+      LOG.error(msg, e);
+      throw new RuntimeException(msg, e);
     }
   }
 
@@ -197,7 +205,9 @@ public class HBaseClient implements Closeable {
    */
   @Override
   public void close() throws IOException {
-    table.close();
+    if(table != null) {
+      table.close();
+    }
   }
 
   /**
@@ -275,5 +285,21 @@ public class HBaseClient implements Closeable {
     inc.setTTL(timeToLiveMillis);
     cols.getCounters().forEach(cnt -> inc.addColumn(cnt.getFamily(), cnt.getQualifier(), cnt.getIncrement()));
     return inc;
+  }
+
+  /**
+   * Returns the name of the HBase table.
+   * <p>Attempts to avoid any null pointers that might be encountered along the way.
+   * @param table The table to retrieve the name of.
+   * @return The name of the table
+   */
+  private static String tableName(HTableInterface table) {
+    String tableName = "null";
+    if(table != null) {
+      if(table.getName() != null) {
+        tableName = table.getName().getNameAsString();
+      }
+    }
+    return tableName;
   }
 }

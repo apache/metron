@@ -165,13 +165,13 @@ Errors, which are defined as unexpected exceptions happening during the
 parse, are sent along to the error queue with a message indicating that
 there was an error in parse along with a stacktrace.  This is to
 distinguish from the invalid messages.
- 
+
 ## Filtered
 
 One can also filter a message by specifying a `filterClassName` in the
 parser config.  Filtered messages are just dropped rather than passed
 through.
-   
+
 ## Parser Architecture
 
 ![Architecture](parser_arch.png)
@@ -180,7 +180,7 @@ Data flows through the parser via kafka and into the `enrichments`
 topology in kafka.  Errors are collected with the context of the error
 (e.g. stacktrace) and original message causing the error and sent to an
 `error` queue.  Invalid messages as determined by global validation
-functions are also treated as errors and sent to an `error` queue. 
+functions are also treated as errors and sent to an `error` queue.
 
 ## Message Format
 
@@ -218,7 +218,7 @@ So putting it all together a typical Metron message with all 5-tuple fields pres
 }
 ```
 
-## Global Configuration 
+## Global Configuration
 
 There are a few properties which can be managed in the global configuration that have pertinence to
 parsers and parsing in general.
@@ -261,7 +261,7 @@ The document is structured in the following way
         }
         ```
 
-* `sensorTopic` : The kafka topic to send the parsed messages to.  If the topic is prefixed and suffixed by `/` 
+* `sensorTopic` : The kafka topic to send the parsed messages to.  If the topic is prefixed and suffixed by `/`
 then it is assumed to be a regex and will match any topic matching the pattern (e.g. `/bro.*/` would match `bro_cust0`, `bro_cust1` and `bro_cust2`)
 * `readMetadata` : Boolean indicating whether to read metadata or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
 * `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
@@ -291,7 +291,7 @@ then it is assumed to be a regex and will match any topic matching the pattern (
         ```
 
 The `fieldTransformations` is a complex object which defines a
-transformation which can be done to a message.  This transformation can 
+transformation which can be done to a message.  This transformation can
 * Modify existing fields to a message
 * Add new fields given the values of existing fields of a message
 * Remove existing fields of a message
@@ -303,7 +303,7 @@ For platform specific configs, see the README of the appropriate project. This w
 
 Metadata is a useful thing to send to Metron and use during enrichment or threat intelligence.  
 Consider the following scenarios:
-* You have multiple telemetry sources of the same type that you want to 
+* You have multiple telemetry sources of the same type that you want to
     * ensure downstream analysts can differentiate
     * ensure profiles consider independently as they have different seasonality or some other fundamental characteristic
 
@@ -311,7 +311,7 @@ As such, there are two types of metadata that we seek to support in Metron:
 * Environmental metadata : Metadata about the system at large
     * Consider the possibility that you have multiple kafka topics being processed by one parser and you want to tag the messages with the kafka topic
     * At the moment, only the kafka topic is kept as the field name.
-* Custom metadata: Custom metadata from an individual telemetry source that one might want to use within Metron. 
+* Custom metadata: Custom metadata from an individual telemetry source that one might want to use within Metron.
 
 Metadata is controlled by the following parser configs:
 * `rawMessageStrategy` : This is a strategy which indicates how to read data and metadata.  The strategies supported are:
@@ -324,7 +324,7 @@ Metadata is controlled by the following parser configs:
     * `ENVELOPE`
         * `metadataPrefix` defines the key prefix for metadata (default is `metron.metadata`)
         * `messageField` defines the field from the envelope to use as the data.  All other fields are considered metadata.
-* `readMetadata` : This is a boolean indicating whether metadata will be read and made available to Field 
+* `readMetadata` : This is a boolean indicating whether metadata will be read and made available to Field
 transformations (i.e. Stellar field transformations).  The default is
 dependent upon the `rawMessageStrategy`:
     * `DEFAULT` : default to `false`.
@@ -350,7 +350,31 @@ For instance, sending a metadata field called `customer_id` could be done by sen
 in the kafka key.  This would be exposed as the field `metron.metadata.customer_id` to stellar field transformations
 as well, if `mergeMetadata` is `true`, available as a field in its own right.
 
+#### Metadata and Error Handling
 
+When a telemetry message fails to parse correctly, a separate error message is produced and sent to the error topic.  This error message will contain detailed information to reflect the error that occurred.  
+
+If the telemetry message that failed contains metadata, this metadata is included in the error message.  For example, here is an error message that contains two metadata fields; `metron.metadata.topic` and `metron.metadata.customer`.
+
+```
+{
+  "exception": "java.lang.IllegalStateException: Unable to parse Message: \"this is an invalid synthetic message\" }",
+  "stack": "java.lang.IllegalStateException: Unable to parse Message: \"this is an invalid synthetic message\" ...\n",
+  "raw_message": "\"this is an invalid synthetic message\" }",
+  "error_hash": "3d498968e8df7f28d05db3037d4ad2a3a0095c22c14d881be45fac3f184dbcc3",
+  "message": "Unable to parse Message: \"this is an invalid synthetic message\" }",
+  "source.type": "error",
+  "failed_sensor_type": "bro",
+  "hostname": "node1",
+  "error_type": "parser_error",
+  "guid": "563d8d2a-1493-4758-be2f-5613bfd2d615",
+  "timestamp": 1548366516634,
+  "metron.metadata.topic": "bro",
+  "metron.metadata.customer": "acme-inc"
+}
+```
+
+By default, error messages are sent to the `indexing` topic.  This will cause the errors to be indexed in whichever endpoints you have configured, namely Solr, Elasticsearch, and HDFS.  You may need to update your configuration of these endpoints to accurately reflect the metadata fields contained in the error message.  For example, you may need to update the schema definition of your Solr Collection for the metadata fields to be accurately indexed in the Error collection.
 
 ### `fieldTransformation` configuration
 
@@ -359,9 +383,9 @@ The format of a `fieldTransformation` is as follows:
 * `output` : The outputs to produce from the transformation.  If unspecified, it is assumed to be the same as inputs.
 * `transformation` : The fully qualified classname of the transformation to be used.  This is either a class which implements `FieldTransformation` or a member of the `FieldTransformations` enum.
 * `config` : A String to Object map of transformation specific configuration.
- 
+
 The currently implemented fieldTransformations are:
-* `REMOVE` : This transformation removes the specified input fields.  If you want a conditional removal, you can pass a Metron Query Language statement to define the conditions under which you want to remove the fields. 
+* `REMOVE` : This transformation removes the specified input fields.  If you want a conditional removal, you can pass a Metron Query Language statement to define the conditions under which you want to remove the fields.
 
     Consider the following simple configuration which will remove `field1`
     unconditionally:
@@ -396,7 +420,7 @@ The currently implemented fieldTransformations are:
     }
     ```
 
-* `SELECT`: This transformation filters the fields in the message to include only the configured output fields, and drops any not explicitly included. 
+* `SELECT`: This transformation filters the fields in the message to include only the configured output fields, and drops any not explicitly included.
 
     For example:
 
@@ -459,7 +483,7 @@ and the values for the config map are the associated new field name.
     ```
 
 * `REGEX_SELECT` : This transformation lets users set an output field to one of a set of possibilities based on matching regexes. This transformation is useful when the number or conditions are large enough to make a stellar language match statement unwieldy.
- 
+
     The following config will set the field `logical_source_type` to one of the
     following, dependent upon the value of the `pix_type` field:
     * `cisco-6-302` if `pix_type` starts with either `6-302` or `06-302`
@@ -659,4 +683,3 @@ from your parser topology.
 - [JSON Path concept](http://goessner.net/articles/JsonPath/)
 - [Read about JSON Path library Apache Metron uses](https://github.com/json-path/JsonPath)
 - [Try JSON Path expressions online](http://jsonpath.herokuapp.com)
-

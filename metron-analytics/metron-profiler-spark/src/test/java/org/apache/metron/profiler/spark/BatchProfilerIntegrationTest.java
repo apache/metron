@@ -20,7 +20,6 @@
 package org.apache.metron.profiler.spark;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.profiler.client.stellar.FixedLookback;
 import org.apache.metron.profiler.client.stellar.GetProfile;
@@ -30,6 +29,7 @@ import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.spark.SparkConf;
+import org.apache.spark.SparkException;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
 import org.junit.AfterClass;
@@ -41,13 +41,13 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.apache.metron.common.configuration.profiler.ProfilerConfig.fromJSON;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
@@ -59,9 +59,10 @@ import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INP
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_FORMAT;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_PATH;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_READER;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.JSON;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.ORC;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.PARQUET;
 import static org.junit.Assert.assertTrue;
-
-import static org.apache.metron.profiler.spark.reader.TelemetryReaders.*;
 
 /**
  * An integration test for the {@link BatchProfiler}.
@@ -69,29 +70,6 @@ import static org.apache.metron.profiler.spark.reader.TelemetryReaders.*;
 public class BatchProfilerIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  /**
-   * {
-   *   "timestampField": "timestamp",
-   *   "profiles": [
-   *      {
-   *        "profile": "count-by-ip",
-   *        "foreach": "ip_src_addr",
-   *        "init": { "count": 0 },
-   *        "update": { "count" : "count + 1" },
-   *        "result": "count"
-   *      },
-   *      {
-   *        "profile": "total-count",
-   *        "foreach": "'total'",
-   *        "init": { "count": 0 },
-   *        "update": { "count": "count + 1" },
-   *        "result": "count"
-   *      }
-   *   ]
-   * }
-   */
-  @Multiline
-  private static String profileJson;
   private static SparkSession spark;
   private Properties profilerProperties;
   private Properties readerProperties;
@@ -151,6 +129,30 @@ public class BatchProfilerIntegrationTest {
   }
 
   /**
+   * {
+   *   "timestampField": "timestamp",
+   *   "profiles": [
+   *      {
+   *        "profile": "count-by-ip",
+   *        "foreach": "ip_src_addr",
+   *        "init": { "count": 0 },
+   *        "update": { "count" : "count + 1" },
+   *        "result": "count"
+   *      },
+   *      {
+   *        "profile": "total-count",
+   *        "foreach": "'total'",
+   *        "init": { "count": 0 },
+   *        "update": { "count": "count + 1" },
+   *        "result": "count"
+   *      }
+   *   ]
+   * }
+   */
+  @Multiline
+  private static String profileJson;
+
+  /**
    * This test uses the Batch Profiler to seed two profiles using archived telemetry.
    *
    * The first profile counts the number of messages by 'ip_src_addr'.  The second profile counts the total number
@@ -166,7 +168,7 @@ public class BatchProfilerIntegrationTest {
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
 
     BatchProfiler profiler = new BatchProfiler();
-    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(profileJson));
 
     validateProfiles();
   }
@@ -188,7 +190,7 @@ public class BatchProfilerIntegrationTest {
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), pathToORC);
 
     BatchProfiler profiler = new BatchProfiler();
-    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(profileJson));
 
     validateProfiles();
   }
@@ -210,7 +212,7 @@ public class BatchProfilerIntegrationTest {
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), inputPath);
 
     BatchProfiler profiler = new BatchProfiler();
-    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(profileJson));
 
     validateProfiles();
   }
@@ -239,7 +241,7 @@ public class BatchProfilerIntegrationTest {
     readerProperties.put("header", "true");
 
     BatchProfiler profiler = new BatchProfiler();
-    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(profileJson));
 
     validateProfiles();
   }
@@ -255,7 +257,7 @@ public class BatchProfilerIntegrationTest {
     profilerProperties.put(TELEMETRY_INPUT_END.getKey(), "2018-07-07T15:51:48Z");
 
     BatchProfiler profiler = new BatchProfiler();
-    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(profileJson));
 
     // the max timestamp in the data is around July 7, 2018
     assign("maxTimestamp", "1530978728982L");
@@ -279,7 +281,7 @@ public class BatchProfilerIntegrationTest {
     profilerProperties.put(TELEMETRY_INPUT_END.getKey(), "");
 
     BatchProfiler profiler = new BatchProfiler();
-    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, getProfile());
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(profileJson));
 
     // the max timestamp in the data is around July 7, 2018
     assign("maxTimestamp", "1530978728982L");
@@ -290,6 +292,76 @@ public class BatchProfilerIntegrationTest {
     assertTrue(execute("[14] == PROFILE_GET('count-by-ip', '192.168.66.1', window)", Boolean.class));
     assertTrue(execute("[46] == PROFILE_GET('count-by-ip', '192.168.138.158', window)", Boolean.class));
     assertTrue(execute("[60] == PROFILE_GET('total-count', 'total', window)", Boolean.class));
+  }
+
+  /**
+   * {
+   *   "timestampField": "timestamp",
+   *   "profiles": [
+   *      {
+   *        "profile": "count-by-ip",
+   *        "foreach": "ip_src_addr",
+   *        "init": { "count": 0 },
+   *        "update": { "count" : "count + 1" },
+   *        "result": "count"
+   *      },
+   *      {
+   *        "profile": "invalid-profile",
+   *        "foreach": "'total'",
+   *        "init": { "count": 0 },
+   *        "update": { "count": "count + 1" },
+   *        "result": "INVALID_FUNCTION(count)"
+   *      }
+   *   ]
+   * }
+   */
+  @Multiline
+  private static String invalidProfileJson;
+
+  @Test(expected = SparkException.class)
+  public void testBatchProfilerWithInvalidProfile() throws Exception {
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), JSON.toString());
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
+
+    // the batch profiler should error out, if there is a bug in *any* of the profiles
+    BatchProfiler profiler = new BatchProfiler();
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(invalidProfileJson));
+  }
+
+  /**
+    * {
+    *   "timestampField": "timestamp",
+    *   "profiles": [
+    *      {
+    *        "profile": "count-by-ip",
+    *        "foreach": "ip_src_addr",
+    *        "init": { "count": "STATS_INIT()" },
+    *        "update": { "count" : "STATS_ADD(count, 1)" },
+    *        "result": "TO_INTEGER(STATS_COUNT(count))"
+    *      },
+    *      {
+    *        "profile": "total-count",
+    *        "foreach": "'total'",
+    *        "init": { "count": "STATS_INIT()" },
+    *        "update": { "count": "STATS_ADD(count, 1)" },
+    *        "result": "TO_INTEGER(STATS_COUNT(count))"
+    *      }
+    *   ]
+    * }
+    */
+  @Multiline
+  private static String statsProfileJson;
+
+  @Test
+  public void testBatchProfilerWithStatsFunctions() throws Exception {
+    profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), JSON.toString());
+    profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
+
+    BatchProfiler profiler = new BatchProfiler();
+    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(statsProfileJson));
+
+    // the profiles do the exact same counting, but using the STATS functions
+    validateProfiles();
   }
 
   /**
@@ -314,10 +386,6 @@ public class BatchProfilerIntegrationTest {
 
     // there are 100 messages in all
     assertTrue(execute("[100] == PROFILE_GET('total-count', 'total', window)", Boolean.class));
-  }
-
-  private ProfilerConfig getProfile() throws IOException {
-    return ProfilerConfig.fromJSON(profileJson);
   }
 
   private Properties getGlobals() {
