@@ -111,7 +111,7 @@ public class SourceHandler {
   }
 
   private void initialize() throws IOException {
-    LOG.info("Initializing Source Handler");
+    LOG.debug("Initializing Source Handler");
     this.fs = FileSystem.get(new Configuration());
     this.currentFile = createOutputFile();
     LOG.debug("Source Handler initialized with starting file: {}", currentFile);
@@ -135,14 +135,14 @@ public class SourceHandler {
 
   // Closes the output file, but ensures any RotationActions are performed.
   protected void rotateOutputFile() throws IOException {
-    LOG.info("Rotating output file...");
+    LOG.debug("Rotating output file...");
     long start = System.currentTimeMillis();
     synchronized (this.writeLock) {
       closeOutputFile();
       // Want to use the callback to make sure we have an accurate count of open files.
       cleanupCallback();
 
-      LOG.info("Performing {} file rotation actions.", this.rotationActions.size());
+      LOG.debug("Performing {} file rotation actions.", this.rotationActions.size());
       for (RotationAction action : this.rotationActions) {
         action.execute(this.fs, this.currentFile);
       }
