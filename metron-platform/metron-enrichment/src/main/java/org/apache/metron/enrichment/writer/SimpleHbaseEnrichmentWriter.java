@@ -19,6 +19,7 @@
 package org.apache.metron.enrichment.writer;
 
 import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.storm.task.TopologyContext;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -335,7 +336,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
         puts.add(put);
       }
     }
-    Set<String> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
+    Set<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
     BulkWriterResponse response = new BulkWriterResponse();
     try {
       table.put(puts);

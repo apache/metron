@@ -29,6 +29,7 @@ import org.apache.metron.common.configuration.writer.SingleBatchConfigurationFac
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.writer.StormBulkWriterResponseHandler;
 import org.apache.metron.writer.BulkWriterComponent;
@@ -81,12 +82,11 @@ public class WriterHandler implements Serializable {
     this.writerComponent = new BulkWriterComponent<>(stormBulkWriterResponseHandler, maxBatchTimeout);
   }
 
-  public void write( String sensorType
-                   , String messageId
-                   , JSONObject message
-                   , ParserConfigurations configurations
-                   ) throws Exception {
-    writerComponent.write(sensorType, messageId, message, messageWriter, writerTransformer.apply(configurations));
+  public void write(String sensorType
+          , BulkWriterMessage<JSONObject> bulkWriterMessage
+          , ParserConfigurations configurations
+  ) throws Exception {
+    writerComponent.write(sensorType, bulkWriterMessage, messageWriter, writerTransformer.apply(configurations));
   }
 
   public void flush(ParserConfigurations configurations, MessageGetStrategy messageGetStrategy)

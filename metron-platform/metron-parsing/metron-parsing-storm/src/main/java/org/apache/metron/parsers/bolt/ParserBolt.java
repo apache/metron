@@ -41,6 +41,7 @@ import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.writer.StormBulkWriterResponseHandler;
 import org.apache.metron.parsers.ParserRunner;
 import org.apache.metron.parsers.ParserRunnerResults;
@@ -262,9 +263,10 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       List<String> messageIds = messages.stream().map(MessageUtils::getGuid).collect(Collectors.toList());
       bulkWriterResponseHandler.addTupleMessageIds(tuple, messageIds);
       for(int i = 0; i < messages.size(); i++) {
+        String messageId = messageIds.get(i);
         JSONObject message = messages.get(i);
         try {
-          writer.write(sensorType, messageIds.get(i), message, getConfigurations());
+          writer.write(sensorType, new BulkWriterMessage<>(messageId, message), getConfigurations());
           numWritten++;
         } catch (Exception ex) {
           handleError(sensorType, originalMessage, tuple, ex, collector);

@@ -47,6 +47,7 @@ import org.apache.metron.common.system.FakeClock;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.metron.writer.BulkWriterComponent;
@@ -65,28 +66,6 @@ import org.mockito.MockitoAnnotations;
 
 public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
 
-  protected class MessageListMatcher extends ArgumentMatcher<Map<String, JSONObject>> {
-
-    private Map<String, JSONObject> expectedMessageList;
-
-    public MessageListMatcher(Map<String, JSONObject> expectedMessageList) {
-      this.expectedMessageList = expectedMessageList;
-    }
-
-    @Override
-    public boolean matches(Object o) {
-      Map<String, JSONObject> actualMessageList = (Map<String, JSONObject>) o;
-      for(JSONObject message: actualMessageList.values()) removeTimingFields(message);
-      return expectedMessageList.equals(actualMessageList);
-    }
-
-    @Override
-    public void describeTo(Description description) {
-      description.appendText(String.format("[%s]", expectedMessageList));
-    }
-
-  }
-
   /**
    * {
    * "field": "value",
@@ -101,7 +80,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
 
   private BulkMessageWriterBolt<IndexingConfigurations> bulkMessageWriterBolt;
   private JSONObject sampleMessage;
-  private List<String> messageIdList;
+  private List<MessageId> messageIdList;
   private List<BulkWriterMessage<JSONObject>> messageList;
   private List<JSONObject> fullMessageList;
   private List<Tuple> tupleList;
@@ -138,7 +117,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
             .withMessageGetterField("message"));
     for(int i = 0; i < 5; i++) {
       String messageId = String.format("message%s", i + 1);
-      messageIdList.add(messageId);
+      messageIdList.add(new MessageId(messageId));
       JSONObject message = fullMessageList.get(i);
       Tuple tuple = mock(Tuple.class);
       when(tuple.getValueByField("message")).thenReturn(message);

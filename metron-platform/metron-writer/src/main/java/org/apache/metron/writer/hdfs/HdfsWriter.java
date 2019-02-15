@@ -19,6 +19,7 @@ package org.apache.metron.writer.hdfs;
 
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -102,7 +103,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     BulkWriterResponse response = new BulkWriterResponse();
 
     // Currently treating all the messages in a group for pass/failure.
-    Set<String> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
+    Set<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
     try {
       // Messages can all result in different HDFS paths, because of Stellar Expressions, so we'll need to iterate through
       for(BulkWriterMessage<JSONObject> bulkWriterMessage : messages) {

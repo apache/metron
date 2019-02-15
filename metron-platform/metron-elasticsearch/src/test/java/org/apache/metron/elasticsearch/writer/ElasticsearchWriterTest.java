@@ -22,6 +22,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
 import org.apache.storm.task.TopologyContext;
@@ -78,7 +79,7 @@ public class ElasticsearchWriterTest {
 
         // response should only contain successes
         assertFalse(response.hasErrors());
-        assertTrue(response.getSuccesses().contains("message1"));
+        assertTrue(response.getSuccesses().contains(new MessageId("message1")));
     }
 
     @Test
@@ -102,9 +103,9 @@ public class ElasticsearchWriterTest {
 
         // response should only contain successes
         assertFalse(response.hasErrors());
-        assertTrue(response.getSuccesses().contains("message1"));
-        assertTrue(response.getSuccesses().contains("message2"));
-        assertTrue(response.getSuccesses().contains("message3"));
+        assertTrue(response.getSuccesses().contains(new MessageId("message1")));
+        assertTrue(response.getSuccesses().contains(new MessageId("message2")));
+        assertTrue(response.getSuccesses().contains(new MessageId("message3")));
     }
 
     @Test
@@ -128,8 +129,8 @@ public class ElasticsearchWriterTest {
         // the writer response should only contain failures
         assertEquals(0, response.getSuccesses().size());
         assertEquals(1, response.getErrors().size());
-        Collection<String> errors = response.getErrors().get(cause);
-        assertTrue(errors.contains("message1"));
+        Collection<MessageId> errors = response.getErrors().get(cause);
+        assertTrue(errors.contains(new MessageId("message1")));
     }
 
     @Test
@@ -156,10 +157,10 @@ public class ElasticsearchWriterTest {
         // the writer response should only contain failures
         assertEquals(0, response.getSuccesses().size());
         assertEquals(1, response.getErrors().size());
-        Collection<String> errors = response.getErrors().get(cause);
-        assertTrue(errors.contains("message1"));
-        assertTrue(errors.contains("message2"));
-        assertTrue(errors.contains("message3"));
+        Collection<MessageId> errors = response.getErrors().get(cause);
+        assertTrue(errors.contains(new MessageId("message1")));
+        assertTrue(errors.contains(new MessageId("message2")));
+        assertTrue(errors.contains(new MessageId("message3")));
     }
 
     @Test
@@ -185,8 +186,8 @@ public class ElasticsearchWriterTest {
         // response should contain some successes and some failures
         assertEquals(1, response.getSuccesses().size());
         assertEquals(1, response.getErrors().size());
-        assertTrue(response.getErrors().get(cause).contains("message1"));
-        assertTrue(response.getSuccesses().contains("message2"));
+        assertTrue(response.getErrors().get(cause).contains(new MessageId("message1")));
+        assertTrue(response.getSuccesses().contains(new MessageId("message2")));
     }
 
     @Test
@@ -202,7 +203,7 @@ public class ElasticsearchWriterTest {
         String timestamp = (String) message.get(Constants.Fields.TIMESTAMP.getName());
         String guid = (String) message.get(Constants.GUID);
         String sensorType = (String) message.get(Constants.SENSOR_TYPE);
-        MessageIdBasedDocument document = new MessageIdBasedDocument(message, guid, sensorType, Long.parseLong(timestamp), "message1");
+        MessageIdBasedDocument document = new MessageIdBasedDocument(message, guid, sensorType, Long.parseLong(timestamp), new MessageId("message1"));
 
         // create a document writer which will successfully write that document
         BulkDocumentWriterResults<MessageIdBasedDocument> results = new BulkDocumentWriterResults<>();
@@ -218,7 +219,7 @@ public class ElasticsearchWriterTest {
 
         // response should only contain successes
         assertFalse(response.hasErrors());
-        assertTrue(response.getSuccesses().contains("message1"));
+        assertTrue(response.getSuccesses().contains(new MessageId("message1")));
     }
 
     @Test
@@ -243,11 +244,11 @@ public class ElasticsearchWriterTest {
 
         // response should only contain successes
         assertFalse(response.hasErrors());
-        assertTrue(response.getSuccesses().contains("message1"));
+        assertTrue(response.getSuccesses().contains(new MessageId("message1")));
     }
 
     private MessageIdBasedDocument createDocument(BulkWriterMessage<JSONObject> bulkWriterMessage) {
-        String messageId = bulkWriterMessage.getId();
+        MessageId messageId = bulkWriterMessage.getId();
         JSONObject message = bulkWriterMessage.getMessage();
         Long timestamp = (Long) bulkWriterMessage.getMessage().get(Constants.Fields.TIMESTAMP.getName());
         String guid = (String) message.get(Constants.GUID);
@@ -273,7 +274,7 @@ public class ElasticsearchWriterTest {
     private List<BulkWriterMessage<JSONObject>> createMessages(int count) {
         List<BulkWriterMessage<JSONObject>> messages = new ArrayList<>();
         for(int i=0; i<count; i++) {
-            messages.add(new BulkWriterMessage<>("message" + (i + 1), message()));
+            messages.add(new BulkWriterMessage<>(new MessageId("message" + (i + 1)), message()));
         }
         return messages;
     }

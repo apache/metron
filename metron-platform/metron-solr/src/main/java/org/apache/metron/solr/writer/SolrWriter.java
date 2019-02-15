@@ -40,6 +40,7 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.solr.SolrConstants;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -207,7 +208,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     String collection = getCollection(sourceType, configurations);
     BulkWriterResponse bulkResponse = new BulkWriterResponse();
     Collection<SolrInputDocument> docs = toDocs(messages);
-    Set<String> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
+    Set<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
     try {
       Optional<SolrException> exceptionOptional = fromUpdateResponse(solr.add(collection, docs));
       // Solr commits the entire batch or throws an exception for it.  There's no way to get partial failures.

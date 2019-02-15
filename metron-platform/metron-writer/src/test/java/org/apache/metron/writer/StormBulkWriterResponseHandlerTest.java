@@ -21,6 +21,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -89,8 +90,8 @@ public class StormBulkWriterResponseHandlerTest {
             .withSensorType(Collections.singleton(sensorType))
             .withErrorType(Constants.ErrorType.INDEXING_ERROR).withThrowable(e).withRawMessages(Collections.singletonList(message2));
     BulkWriterResponse response = new BulkWriterResponse();
-    response.addAllErrors(e, Arrays.asList(messageId1, messageId2));
-    response.addSuccess(messageId3);
+    response.addAllErrors(e, Arrays.asList(new MessageId(messageId1), new MessageId(messageId2)));
+    response.addSuccess(new MessageId(messageId3));
 
     when(messageGetStrategy.get(tuple1)).thenReturn(message1);
     when(messageGetStrategy.get(tuple2)).thenReturn(message2);
@@ -150,7 +151,7 @@ public class StormBulkWriterResponseHandlerTest {
     stormBulkWriterResponseHandler.addTupleMessageIds(tuple2, Collections.singletonList(messageId3));
 
     BulkWriterResponse response = new BulkWriterResponse();
-    response.addError(e1, messageId1);
+    response.addError(e1, new MessageId(messageId1));
 
     stormBulkWriterResponseHandler.handleFlush(sensorType, response);
 
@@ -161,8 +162,8 @@ public class StormBulkWriterResponseHandlerTest {
     verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM), new Values(argThat(new MetronErrorJSONMatcher(expectedError1.getJSONObject()))));
 
     response = new BulkWriterResponse();
-    response.addError(e2, messageId2);
-    response.addError(e1, messageId3);
+    response.addError(e2, new MessageId(messageId2));
+    response.addError(e1, new MessageId(messageId3));
 
     stormBulkWriterResponseHandler.handleFlush(sensorType, response);
 
@@ -183,8 +184,8 @@ public class StormBulkWriterResponseHandlerTest {
     stormBulkWriterResponseHandler.addTupleMessageIds(tuple2, Collections.singletonList("message2"));
 
     BulkWriterResponse response = new BulkWriterResponse();
-    response.addSuccess("message1");
-    response.addSuccess("message2");
+    response.addSuccess(new MessageId("message1"));
+    response.addSuccess(new MessageId("message2"));
 
     stormBulkWriterResponseHandler.handleFlush(sensorType, response);
 
@@ -199,14 +200,14 @@ public class StormBulkWriterResponseHandlerTest {
     stormBulkWriterResponseHandler.addTupleMessageIds(tuple1, Arrays.asList("message1", "message2", "message3"));
 
     BulkWriterResponse response = new BulkWriterResponse();
-    response.addSuccess("message1");
-    response.addSuccess("message2");
+    response.addSuccess(new MessageId("message1"));
+    response.addSuccess(new MessageId("message2"));
 
     stormBulkWriterResponseHandler.handleFlush(sensorType, response);
     verify(collector, times(0)).ack(any());
 
     response = new BulkWriterResponse();
-    response.addSuccess("message3");
+    response.addSuccess(new MessageId("message3"));
 
     stormBulkWriterResponseHandler.handleFlush(sensorType, response);
 

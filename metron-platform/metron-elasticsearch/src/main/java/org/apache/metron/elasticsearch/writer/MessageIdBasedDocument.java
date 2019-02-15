@@ -17,27 +17,28 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
+import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.indexing.dao.update.Document;
 
 import java.util.Map;
 
 /**
- * An {@link Document} that is created from message id.
+ * A {@link Document} that is created from message id.
  */
 public class MessageIdBasedDocument extends Document {
 
-    private String messageId;
+    private MessageId messageId;
 
     public MessageIdBasedDocument(Map<String, Object> document,
                                   String guid,
                                   String sensorType,
                                   Long timestamp,
-                                  String messageId) {
+                                  MessageId messageId) {
         super(document, guid, sensorType, timestamp);
         this.messageId = messageId;
     }
 
-    public String getMessageId() {
+    public MessageId getMessageId() {
         return messageId;
     }
 }

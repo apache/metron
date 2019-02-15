@@ -23,16 +23,17 @@ import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +49,6 @@ public class BulkWriterComponent<MESSAGE_T> {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Map<String, List<BulkWriterMessage<MESSAGE_T>>> sensorMessageCache = new HashMap<>();
   private BulkWriterResponseHandler bulkWriterResponseHandler;
-  private BatchTimeoutPolicy batchTimeoutPolicy;
   private List<FlushPolicy> flushPolicies;
 
   public BulkWriterComponent(BulkWriterResponseHandler bulkWriterResponseHandler, int maxBatchTimeout) {
@@ -69,29 +69,27 @@ public class BulkWriterComponent<MESSAGE_T> {
    * Accepts a message to be written and stores it in an internal cache of messages.  Iterates through {@link org.apache.metron.writer.FlushPolicy}
    * implementations to determine if a batch should be flushed.
    * @param sensorType sensor type
-   * @param messageId messageId used to track write success/failure
-   * @param message message to be written
+   * @param bulkWriterMessage message to be written
    * @param bulkMessageWriter writer that will do the actual writing
    * @param configurations writer configurations
    */
-  public void write( String sensorType
-                   , String messageId
-                   , MESSAGE_T message
-                   , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
-                   , WriterConfiguration configurations
-                   )
+  public void write(String sensorType
+          , BulkWriterMessage<MESSAGE_T> bulkWriterMessage
+          , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
+          , WriterConfiguration configurations
+  )
   {
     // if sensor is disabled a response should still be sent so that the message can be acknowledged
     if (!configurations.isEnabled(sensorType)) {
       BulkWriterResponse response = new BulkWriterResponse();
-      response.addSuccess(messageId);
+      response.addSuccess(bulkWriterMessage.getId());
       bulkWriterResponseHandler.handleFlush(sensorType, response);
       return;
     }
 
     List<BulkWriterMessage<MESSAGE_T>> messages = sensorMessageCache.getOrDefault(sensorType, new ArrayList<>());
     sensorMessageCache.put(sensorType, messages);
-    messages.add(new BulkWriterMessage<>(messageId, message));
+    messages.add(bulkWriterMessage);
 
     applyFlushPolicies(sensorType, bulkMessageWriter, configurations, sensorMessageCache.get(sensorType));
   }
@@ -114,7 +112,7 @@ public class BulkWriterComponent<MESSAGE_T> {
     long startTime = System.currentTimeMillis(); //no need to mock, so use real time
     BulkWriterResponse response = new BulkWriterResponse();
 
-    Set<String> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
+    Collection<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toList());
     try {
       response = bulkMessageWriter.write(sensorType, configurations, messages);
 

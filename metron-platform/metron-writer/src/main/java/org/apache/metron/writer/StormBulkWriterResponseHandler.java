@@ -21,6 +21,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -34,7 +35,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,7 +47,7 @@ public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   // Tracks the messages from a tuple that have not been flushed
-  private Map<Tuple, Collection<String>> tupleMessageMap = new HashMap<>();
+  private Map<Tuple, Collection<MessageId>> tupleMessageMap = new HashMap<>();
 
   // Tracks the errors that have been reported for a Tuple.  We only want to report an error once.
   private Map<Tuple, Set<Throwable>> tupleErrorMap = new HashMap<>();
@@ -60,7 +60,7 @@ public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler
   }
 
   // Used only for unit testing
-  protected Map<Tuple, Collection<String>> getTupleMessageMap() {
+  protected Map<Tuple, Collection<MessageId>> getTupleMessageMap() {
     return tupleMessageMap;
   }
 
@@ -76,7 +76,7 @@ public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler
    */
   public void addTupleMessageIds(Tuple tuple, Collection<String> messageIds) {
     LOG.debug("Adding tuple with messages ids: {}", String.join(",", messageIds));
-    tupleMessageMap.put(tuple, messageIds);
+    tupleMessageMap.put(tuple, messageIds.stream().map(MessageId::new).collect(Collectors.toSet()));
   }
 
   @Override
@@ -88,7 +88,7 @@ public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler
     tupleMessageMap = tupleMessageMap.entrySet().stream()
             .map(entry -> {
               Tuple tuple = entry.getKey();
-              Collection<String> ids = new ArrayList<>(entry.getValue());
+              Collection<MessageId> ids = new ArrayList<>(entry.getValue());
 
               // Remove successful messages from tuple message map
               ids.removeAll(response.getSuccesses());

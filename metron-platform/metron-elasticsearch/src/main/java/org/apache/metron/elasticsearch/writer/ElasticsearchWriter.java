@@ -99,7 +99,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     // create a document from each message
     for(BulkWriterMessage<JSONObject> bulkWriterMessage: messages) {
-      MessageIdBasedDocument document = createDocument(bulkWriterMessage.getMessage(), bulkWriterMessage.getId(), sensorType, fieldNameConverter);
+      MessageIdBasedDocument document = createDocument(bulkWriterMessage, sensorType, fieldNameConverter);
       documentWriter.addDocument(document, indexName);
     }
 
@@ -117,12 +117,12 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     return response;
   }
 
-  private MessageIdBasedDocument createDocument(JSONObject message,
-                                                String messageId,
+  private MessageIdBasedDocument createDocument(BulkWriterMessage<JSONObject> bulkWriterMessage,
                                                 String sensorType,
                                                 FieldNameConverter fieldNameConverter) {
     // transform the message fields to the source fields of the indexed document
     JSONObject source = new JSONObject();
+    JSONObject message = bulkWriterMessage.getMessage();
     for(Object k : message.keySet()){
       copyField(k.toString(), message, source, fieldNameConverter);
     }
@@ -142,7 +142,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       LOG.warn("Missing '{}' field; timestamp will be set to system time.", TIMESTAMP.getName());
     }
 
-    return new MessageIdBasedDocument(source, guid, sensorType, timestamp, messageId);
+    return new MessageIdBasedDocument(source, guid, sensorType, timestamp, bulkWriterMessage.getId());
   }
 
   @Override

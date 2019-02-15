@@ -24,6 +24,7 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.metadata.RawMessage;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.writer.StormBulkWriterResponseHandler;
 import org.apache.metron.parsers.DefaultParserRunnerResults;
 import org.apache.metron.parsers.ParserRunnerImpl;
@@ -51,6 +52,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -292,7 +294,7 @@ public class ParserBoltTest extends BaseBoltTest {
 
       Assert.assertEquals(expectedRawMessage, mockParserRunner.getRawMessage());
       verify(bulkWriterResponseHandler).addTupleMessageIds(t1, Collections.singletonList("messageId"));
-      verify(writerHandler, times(1)).write("yaf", "messageId", message, parserConfigurations);
+      verify(writerHandler, times(1)).write("yaf", new BulkWriterMessage<>("messageId", message), parserConfigurations);
     }
   }
 
@@ -321,18 +323,16 @@ public class ParserBoltTest extends BaseBoltTest {
     }});
     parserBolt.setBulkWriterResponseHandler(bulkWriterResponseHandler);
 
-    List<JSONObject> messages = new ArrayList<>();
-    List<String> messageIds = new ArrayList<>();
+    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<>();
     for(int i = 0; i < 5; i++) {
       String messageId = String.format("messageId%s", i + 1);
-      messageIds.add(messageId);
       JSONObject message = new JSONObject();
       message.put(Constants.GUID, messageId);
       message.put("field", String.format("value%s", i + 1));
-      messages.add(message);
+      messages.add(new BulkWriterMessage<>(messageId, message));
     }
 
-    mockParserRunner.setMessages(messages);
+    mockParserRunner.setMessages(messages.stream().map(BulkWriterMessage::getMessage).collect(Collectors.toList()));
     RawMessage expectedRawMessage = new RawMessage("originalMessage".getBytes(StandardCharsets.UTF_8), new HashMap<>());
 
     {
@@ -344,11 +344,11 @@ public class ParserBoltTest extends BaseBoltTest {
       InOrder inOrder = inOrder(bulkWriterResponseHandler, writerHandler);
 
       inOrder.verify(bulkWriterResponseHandler).addTupleMessageIds(t1, Arrays.asList("messageId1", "messageId2", "messageId3", "messageId4", "messageId5"));
-      inOrder.verify(writerHandler, times(1)).write("yaf", "messageId1", messages.get(0), parserConfigurations);
-      inOrder.verify(writerHandler, times(1)).write("yaf", "messageId2", messages.get(1), parserConfigurations);
-      inOrder.verify(writerHandler, times(1)).write("yaf", "messageId3", messages.get(2), parserConfigurations);
-      inOrder.verify(writerHandler, times(1)).write("yaf", "messageId4", messages.get(3), parserConfigurations);
-      inOrder.verify(writerHandler, times(1)).write("yaf", "messageId5", messages.get(4), parserConfigurations);
+      inOrder.verify(writerHandler, times(1)).write("yaf", messages.get(0), parserConfigurations);
+      inOrder.verify(writerHandler, times(1)).write("yaf", messages.get(1), parserConfigurations);
+      inOrder.verify(writerHandler, times(1)).write("yaf", messages.get(2), parserConfigurations);
+      inOrder.verify(writerHandler, times(1)).write("yaf", messages.get(3), parserConfigurations);
+      inOrder.verify(writerHandler, times(1)).write("yaf", messages.get(4), parserConfigurations);
     }
     verifyNoMoreInteractions(writerHandler, bulkWriterResponseHandler, outputCollector);
   }
@@ -442,7 +442,7 @@ public class ParserBoltTest extends BaseBoltTest {
     MockParserRunner mockParserRunner = new MockParserRunner(new HashSet<String>() {{ add("yaf"); }});
     ParserConfigurations parserConfigurations = new ParserConfigurations();
     parserConfigurations.updateSensorParserConfig("yaf", new SensorParserConfig());
-    doThrow(new IllegalStateException("write failed")).when(writerHandler).write(any(), any(), any(), any());
+    doThrow(new IllegalStateException("write failed")).when(writerHandler).write(any(), any(), any());
 
     ParserBolt parserBolt = spy(new ParserBolt("zookeeperUrl", mockParserRunner, new HashMap<String, WriterHandler>() {{
       put("yaf", writerHandler);

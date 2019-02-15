@@ -25,6 +25,7 @@ import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.writer.StormBulkWriterResponseHandler;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -86,7 +87,7 @@ public class WriterBolt extends BaseRichBolt {
       message = (JSONObject) messageGetStrategy.get(tuple);
       String messageId = MessageUtils.getGuid(message);
       bulkWriterResponseHandler.addTupleMessageIds(tuple, Collections.singleton(messageId));
-      handler.write(sensorType, messageId, message, configuration);
+      handler.write(sensorType, new BulkWriterMessage<>(messageId, message), configuration);
     } catch (Throwable e) {
       MetronError error = new MetronError()
               .withErrorType(errorType)

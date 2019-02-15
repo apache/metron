@@ -21,15 +21,19 @@ import java.util.Objects;
 
 public class BulkWriterMessage<MESSAGE_T> {
 
-  private String id;
+  private MessageId id;
   private MESSAGE_T message;
 
-  public BulkWriterMessage(String id, MESSAGE_T message) {
+  public BulkWriterMessage(MessageId id, MESSAGE_T message) {
     this.id = id;
     this.message = message;
   }
 
-  public String getId() {
+  public BulkWriterMessage(String id, MESSAGE_T message) {
+    this(new MessageId(id), message);
+  }
+
+  public MessageId getId() {
     return id;
   }
 

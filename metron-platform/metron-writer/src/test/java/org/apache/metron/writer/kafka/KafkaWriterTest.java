@@ -30,6 +30,7 @@ import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -211,8 +212,8 @@ public class KafkaWriterTest {
     when(errorFuture.get()).thenThrow(throwable);
 
     BulkWriterResponse response = new BulkWriterResponse();
-    response.addSuccess("successId");
-    response.addError(throwable, "errorId");
+    response.addSuccess(new MessageId("successId"));
+    response.addError(throwable, new MessageId("errorId"));
 
     assertEquals(response, writer.write(SENSOR_TYPE, createConfiguration(new HashMap<>()), messages));
     verify(kafkaProducer, times(1)).flush();
@@ -245,7 +246,7 @@ public class KafkaWriterTest {
     doThrow(throwable).when(kafkaProducer).flush();
 
     BulkWriterResponse response = new BulkWriterResponse();
-    response.addAllErrors(throwable, Arrays.asList("messageId1", "messageId2"));
+    response.addAllErrors(throwable, Arrays.asList(new MessageId("messageId1"), new MessageId("messageId2")));
 
     assertEquals(response, writer.write(SENSOR_TYPE, createConfiguration(new HashMap<>()), messages));
     verify(kafkaProducer, times(1)).flush();
