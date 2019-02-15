@@ -22,7 +22,6 @@ import {
   EnrichmentConfig
 } from '../model/sensor-enrichment-config';
 import { HttpResponse } from '@angular/common/http';
-import { METRON_REST_CONFIG, APP_CONFIG } from '../app.config';
 import {
   HttpClientTestingModule,
   HttpTestingController

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable, Inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject, from, of } from 'rxjs';
 import { catchError, map, take, mergeMap, finalize, filter, reduce } from 'rxjs/operators';
@@ -23,8 +23,6 @@ import { ParserConfigModel } from '../sensors/models/parser-config.model';
 import { HttpUtil } from '../util/httpUtil';
 import { ParseMessageRequest } from '../model/parse-message-request';
 import { RestError } from '../model/rest-error';
-import { IAppConfig } from '../app.config.interface';
-import { APP_CONFIG } from '../app.config';
 import { ParserGroupModel } from '../sensors/models/parser-group.model';
 import { ParserModel } from 'app/sensors/models/parser.model';
 import { ParserMetaInfoModel } from '../sensors/models/parser-meta-info.model';

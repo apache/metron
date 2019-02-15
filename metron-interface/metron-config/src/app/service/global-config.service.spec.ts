@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 import { GlobalConfigService } from './global-config.service';
 import {
   HttpTestingController,

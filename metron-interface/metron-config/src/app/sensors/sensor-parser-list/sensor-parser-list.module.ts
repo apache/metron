@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import {routing} from './sensor-parser-list.routing';
-import {SensorParserListComponent} from './sensor-parser-list.component';
-import {SharedModule} from '../../shared/shared.module';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
-import {MetronTableModule} from '../../shared/metron-table/metron-table.module';
+import { routing } from './sensor-parser-list.routing';
+import { SensorParserListComponent } from './sensor-parser-list.component';
+import { SharedModule } from '../../shared/shared.module';
+import { MetronTableModule } from '../../shared/metron-table/metron-table.module';
 import { SensorStatusPipe } from './sensor-status.pipe';
 import { SensorParserLatencyPipe } from './sensor-parser-latency.pipe';
 import { SensorParserThroughputPipe } from './sensor-parser-throughput.pipe';
+import { AppConfigService } from 'app/service/app-config.service';
 
 @NgModule ({
   imports: [ routing, SharedModule, MetronTableModule ],
@@ -33,6 +33,8 @@ import { SensorParserThroughputPipe } from './sensor-parser-throughput.pipe';
     SensorParserLatencyPipe,
     SensorParserThroughputPipe,
   ],
-  providers: [{ provide: APP_CONFIG, useValue: METRON_REST_CONFIG }]
+  providers: [
+    AppConfigService,
+  ]
 })
 export class SensorParserListModule { }
