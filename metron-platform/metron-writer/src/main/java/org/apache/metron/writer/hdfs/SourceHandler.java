@@ -49,7 +49,6 @@ public class SourceHandler {
   FileNameFormat fileNameFormat;
   SourceHandlerCallback cleanupCallback;
   private long offset = 0;
-  private int rotation = 0;
   private transient FSDataOutputStream out;
   private transient final Object writeLock = new Object();
   protected transient Timer rotationTimer; // only used for TimedRotationPolicy
@@ -153,7 +152,7 @@ public class SourceHandler {
   }
 
   private Path createOutputFile() throws IOException {
-    Path path = new Path(this.fileNameFormat.getPath(), this.fileNameFormat.getName(this.rotation, System.currentTimeMillis()));
+    Path path = new Path(this.fileNameFormat.getPath(), this.fileNameFormat.getName(0, System.currentTimeMillis()));
     LOG.debug("Creating new output file: {}", path.getName());
     if(fs.getScheme().equals("file")) {
       //in the situation where we're running this in a local filesystem, flushing doesn't work.
@@ -194,7 +193,6 @@ public class SourceHandler {
             ", syncPolicy=" + syncPolicy +
             ", fileNameFormat=" + fileNameFormat +
             ", offset=" + offset +
-            ", rotation=" + rotation +
             ", out=" + out +
             ", writeLock=" + writeLock +
             ", rotationTimer=" + rotationTimer +
