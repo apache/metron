@@ -20,11 +20,13 @@ package org.apache.metron.writer;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkWriterResponse;
 
 import java.util.List;
 
 /**
- * This interface is used by the {@link org.apache.metron.writer.BulkWriterComponent} to determine if a batch should be flushed.
+ * This interface is used by the {@link org.apache.metron.writer.BulkWriterComponent} to determine if a batch should be flushed
+ * and handle the {@link org.apache.metron.common.writer.BulkWriterResponse} when a batch is flushed.
  */
 public interface FlushPolicy {
 
@@ -32,18 +34,18 @@ public interface FlushPolicy {
    * This method is called whenever messages are passed to {@link BulkWriterComponent#write(String, BulkWriterMessage, BulkMessageWriter, WriterConfiguration)}.
    * Each implementation of {@link org.apache.metron.writer.FlushPolicy#shouldFlush(String, WriterConfiguration, int)} will be called in order
    * and the first one to return true will trigger a flush and continue on.
-   * @param sensorType
-   * @param configurations
-   * @param batchSize
-   * @return
+   * @param sensorType sensor type
+   * @param configurations configurations
+   * @param batchSize batch size of messages written
+   * @return true if batch should be flushed
    */
   boolean shouldFlush(String sensorType, WriterConfiguration configurations, int batchSize);
 
   /**
-   * This method is used to clear any internal state a {@link org.apache.metron.writer.FlushPolicy} maintains to determine if a batch should be flushed.
-   * This method is called for all {@link org.apache.metron.writer.FlushPolicy} implementations after a batch is flushed with
-   * {@link org.apache.metron.writer.BulkWriterComponent#flush(String, BulkMessageWriter, WriterConfiguration, List)}.
-   * @param sensorType
+   * This method is called after a flush happens.  It can be used to clear any internal state a {@link org.apache.metron.writer.FlushPolicy}
+   * maintains to determine if a batch should be flushed.  This method is called for all {@link org.apache.metron.writer.FlushPolicy}
+   * implementations after a batch is flushed with {@link org.apache.metron.writer.BulkWriterComponent#flush(String, BulkMessageWriter, WriterConfiguration, List)}.
+   * @param sensorType sensor type
    */
-  void reset(String sensorType);
+  void onFlush(String sensorType, BulkWriterResponse response);
 }

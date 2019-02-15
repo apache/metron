@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 
-public class StormBulkWriterResponseHandlerTest {
+public class AckTuplesPolicyTest {
 
 
   @Mock
@@ -62,12 +62,12 @@ public class StormBulkWriterResponseHandlerTest {
 
   private String sensorType = "testSensor";
 
-  private StormBulkWriterResponseHandler stormBulkWriterResponseHandler;
+  private AckTuplesPolicy ackTuplesPolicy;
 
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
-    stormBulkWriterResponseHandler = new StormBulkWriterResponseHandler(collector, messageGetStrategy);
+    ackTuplesPolicy = new AckTuplesPolicy(collector, messageGetStrategy);
   }
 
   @Test
@@ -96,14 +96,14 @@ public class StormBulkWriterResponseHandlerTest {
     when(messageGetStrategy.get(tuple1)).thenReturn(message1);
     when(messageGetStrategy.get(tuple2)).thenReturn(message2);
 
-    stormBulkWriterResponseHandler.addTupleMessageIds(tuple1, Collections.singleton(messageId1));
-    stormBulkWriterResponseHandler.addTupleMessageIds(tuple2, Collections.singleton(messageId2));
-    stormBulkWriterResponseHandler.addTupleMessageIds(tuple3, Collections.singleton(messageId3));
+    ackTuplesPolicy.addTupleMessageIds(tuple1, Collections.singleton(messageId1));
+    ackTuplesPolicy.addTupleMessageIds(tuple2, Collections.singleton(messageId2));
+    ackTuplesPolicy.addTupleMessageIds(tuple3, Collections.singleton(messageId3));
 
-    stormBulkWriterResponseHandler.handleFlush(sensorType, response);
+    ackTuplesPolicy.onFlush(sensorType, response);
 
-    assertEquals(0, stormBulkWriterResponseHandler.getTupleMessageMap().size());
-    assertEquals(0, stormBulkWriterResponseHandler.getTupleErrorMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleErrorMap().size());
     verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
             new Values(argThat(new MetronErrorJSONMatcher(expectedError1.getJSONObject()))));
     verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
@@ -117,7 +117,7 @@ public class StormBulkWriterResponseHandlerTest {
 
   @Test
   public void shouldOnlyReportErrorsOncePerBatch() {
-    StormBulkWriterResponseHandler stormBulkWriterResponseHandler = new StormBulkWriterResponseHandler(collector, messageGetStrategy);
+    AckTuplesPolicy ackTuplesPolicy = new AckTuplesPolicy(collector, messageGetStrategy);
     JSONObject rawMessage1 = new JSONObject();
     JSONObject rawMessage2 = new JSONObject();
     rawMessage1.put("value", "rawMessage1");
@@ -147,16 +147,16 @@ public class StormBulkWriterResponseHandlerTest {
     when(messageGetStrategy.get(tuple1)).thenReturn(rawMessage1);
     when(messageGetStrategy.get(tuple2)).thenReturn(rawMessage2);
 
-    stormBulkWriterResponseHandler.addTupleMessageIds(tuple1, Arrays.asList(messageId1, messageId2));
-    stormBulkWriterResponseHandler.addTupleMessageIds(tuple2, Collections.singletonList(messageId3));
+    ackTuplesPolicy.addTupleMessageIds(tuple1, Arrays.asList(messageId1, messageId2));
+    ackTuplesPolicy.addTupleMessageIds(tuple2, Collections.singletonList(messageId3));
 
     BulkWriterResponse response = new BulkWriterResponse();
     response.addError(e1, new MessageId(messageId1));
 
-    stormBulkWriterResponseHandler.handleFlush(sensorType, response);
+    ackTuplesPolicy.onFlush(sensorType, response);
 
-    assertEquals(2, stormBulkWriterResponseHandler.getTupleMessageMap().size());
-    assertEquals(1, stormBulkWriterResponseHandler.getTupleErrorMap().size());
+    assertEquals(2, ackTuplesPolicy.getTupleMessageMap().size());
+    assertEquals(1, ackTuplesPolicy.getTupleErrorMap().size());
     verify(collector, times(0)).ack(any());
     verify(collector, times(0)).reportError(any());
     verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM), new Values(argThat(new MetronErrorJSONMatcher(expectedError1.getJSONObject()))));
@@ -165,10 +165,10 @@ public class StormBulkWriterResponseHandlerTest {
     response.addError(e2, new MessageId(messageId2));
     response.addError(e1, new MessageId(messageId3));
 
-    stormBulkWriterResponseHandler.handleFlush(sensorType, response);
+    ackTuplesPolicy.onFlush(sensorType, response);
 
-    assertEquals(0, stormBulkWriterResponseHandler.getTupleMessageMap().size());
-    assertEquals(0, stormBulkWriterResponseHandler.getTupleErrorMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleErrorMap().size());
     verify(collector, times(1)).ack(tuple1);
     verify(collector, times(1)).ack(tuple2);
     verify(collector, times(1)).reportError(e1);
@@ -180,16 +180,16 @@ public class StormBulkWriterResponseHandlerTest {
 
   @Test
   public void shouldProperlyAckTuples() {
-    stormBulkWriterResponseHandler.addTupleMessageIds(tuple1, Collections.singletonList("message1"));
-    stormBulkWriterResponseHandler.addTupleMessageIds(tuple2, Collections.singletonList("message2"));
+    ackTuplesPolicy.addTupleMessageIds(tuple1, Collections.singletonList("message1"));
+    ackTuplesPolicy.addTupleMessageIds(tuple2, Collections.singletonList("message2"));
 
     BulkWriterResponse response = new BulkWriterResponse();
     response.addSuccess(new MessageId("message1"));
     response.addSuccess(new MessageId("message2"));
 
-    stormBulkWriterResponseHandler.handleFlush(sensorType, response);
+    ackTuplesPolicy.onFlush(sensorType, response);
 
-    assertEquals(0, stormBulkWriterResponseHandler.getTupleMessageMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
     verify(collector, times(1)).ack(tuple1);
     verify(collector, times(1)).ack(tuple2);
     verifyNoMoreInteractions(collector);
@@ -197,21 +197,21 @@ public class StormBulkWriterResponseHandlerTest {
 
   @Test
   public void shouldOnlyAckTupleAfterHandlingAllMessages() {
-    stormBulkWriterResponseHandler.addTupleMessageIds(tuple1, Arrays.asList("message1", "message2", "message3"));
+    ackTuplesPolicy.addTupleMessageIds(tuple1, Arrays.asList("message1", "message2", "message3"));
 
     BulkWriterResponse response = new BulkWriterResponse();
     response.addSuccess(new MessageId("message1"));
     response.addSuccess(new MessageId("message2"));
 
-    stormBulkWriterResponseHandler.handleFlush(sensorType, response);
+    ackTuplesPolicy.onFlush(sensorType, response);
     verify(collector, times(0)).ack(any());
 
     response = new BulkWriterResponse();
     response.addSuccess(new MessageId("message3"));
 
-    stormBulkWriterResponseHandler.handleFlush(sensorType, response);
+    ackTuplesPolicy.onFlush(sensorType, response);
 
-    assertEquals(0, stormBulkWriterResponseHandler.getTupleMessageMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
     verify(collector, times(1)).ack(tuple1);
     verifyNoMoreInteractions(collector);
   }

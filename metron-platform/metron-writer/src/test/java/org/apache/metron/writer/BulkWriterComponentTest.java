@@ -28,6 +28,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
@@ -55,7 +56,7 @@ public class BulkWriterComponentTest {
   public final ExpectedException exception = ExpectedException.none();
 
   @Mock
-  private BulkWriterResponseHandler bulkWriterResponseHandler;
+  private FlushPolicy flushPolicy;
 
   @Mock
   private BulkMessageWriter<JSONObject> bulkMessageWriter;
@@ -64,16 +65,12 @@ public class BulkWriterComponentTest {
   private WriterConfiguration configurations;
 
   private MessageId messageId1 = new MessageId("messageId1");
-
   private MessageId messageId2 = new MessageId("messageId2");
-
   private String sensorType = "testSensor";
   private List<MessageId> messageIds;
   private List<BulkWriterMessage<JSONObject>> messages;
   private JSONObject message1 = new JSONObject();
   private JSONObject message2 = new JSONObject();
-  // batch size is used to test flushing so this could be anything
-  private int maxBatchTimeout = 6;
 
   @Before
   public void setup() {
@@ -92,16 +89,18 @@ public class BulkWriterComponentTest {
 
   @Test
   public void writeShouldProperlyAckTuplesInBatch() throws Exception {
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(Collections.singletonList(flushPolicy));
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllSuccesses(messageIds);
 
+    when(flushPolicy.shouldFlush(sensorType, configurations, 2)).thenReturn(true);
     when(bulkMessageWriter.write(sensorType, configurations, messages)).thenReturn(response);
 
-    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout);
     bulkWriterComponent.write(sensorType, messages.get(0), bulkMessageWriter, configurations);
 
     verify(bulkMessageWriter, times(0)).write(eq(sensorType), eq(configurations), any());
-    verify(bulkWriterResponseHandler, times(0)).handleFlush(any(), any());
+    verify(flushPolicy, times(1)).shouldFlush(sensorType, configurations, 1);
+    verify(flushPolicy, times(0)).onFlush(any(), any());
 
     bulkWriterComponent.write(sensorType, messages.get(1), bulkMessageWriter, configurations);
 
@@ -109,68 +108,101 @@ public class BulkWriterComponentTest {
     expectedResponse.addAllSuccesses(messageIds);
     verify(bulkMessageWriter, times(1)).write(sensorType, configurations,
             Arrays.asList(new BulkWriterMessage<>(messageId1, message1), new BulkWriterMessage<>(messageId2, message2)));
-    verify(bulkWriterResponseHandler, times(1)).handleFlush(sensorType, expectedResponse);
+    verify(flushPolicy, times(1)).shouldFlush(sensorType, configurations, 2);
+    verify(flushPolicy, times(1)).onFlush(sensorType, expectedResponse);
 
-    verifyNoMoreInteractions(bulkMessageWriter, bulkWriterResponseHandler);
+    verifyNoMoreInteractions(bulkMessageWriter, flushPolicy);
   }
 
   @Test
   public void writeShouldFlushPreviousMessagesWhenDisabled() throws Exception {
-    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout);
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(Collections.singletonList(flushPolicy));
+    BulkWriterMessage<JSONObject> beforeDisabledMessage = messages.get(0);
+    BulkWriterMessage<JSONObject> afterDisabledMessage = messages.get(1);
+    BulkWriterResponse beforeDisabledResponse = new BulkWriterResponse();
+    beforeDisabledResponse.addSuccess(beforeDisabledMessage.getId());
+    BulkWriterResponse afterDisabledResponse = new BulkWriterResponse();
+    afterDisabledResponse.addSuccess(afterDisabledMessage.getId());
+
+    when(bulkMessageWriter.write(sensorType, configurations, Collections.singletonList(messages.get(0)))).thenReturn(beforeDisabledResponse);
+
+    bulkWriterComponent.write(sensorType, beforeDisabledMessage, bulkMessageWriter, configurations);
+
+    verify(bulkMessageWriter, times(0)).write(eq(sensorType), eq(configurations), any());
+    verify(flushPolicy, times(1)).shouldFlush(sensorType, configurations, 1);
+    verify(flushPolicy, times(0)).onFlush(any(), any());
 
     when(configurations.isEnabled(sensorType)).thenReturn(false);
 
-    bulkWriterComponent.write(sensorType, messages.get(0), bulkMessageWriter, configurations);
+    bulkWriterComponent.write(sensorType, messages.get(1), bulkMessageWriter, configurations);
 
-    BulkWriterResponse expectedDisabledResponse = new BulkWriterResponse();
-    expectedDisabledResponse.addSuccess(messageId1);
+    verify(bulkMessageWriter, times(1)).write(sensorType, configurations, Collections.singletonList(messages.get(0)));
+    verify(flushPolicy, times(1)).shouldFlush(sensorType, configurations, 1);
+    verify(flushPolicy, times(1)).onFlush(sensorType, beforeDisabledResponse);
+    verify(flushPolicy, times(1)).onFlush(sensorType, afterDisabledResponse);
 
-    verify(bulkMessageWriter, times(0)).write(eq(sensorType), eq(configurations), any());
-    verify(bulkWriterResponseHandler, times(1)).handleFlush(sensorType, expectedDisabledResponse);
-
-    verifyNoMoreInteractions(bulkMessageWriter, bulkWriterResponseHandler);
+    verifyNoMoreInteractions(bulkMessageWriter, flushPolicy);
   }
 
   @Test
   public void writeShouldProperlyHandleWriterErrors() throws Exception {
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(Collections.singletonList(flushPolicy));
     Throwable e = new Exception("test exception");
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllErrors(e, messageIds);
 
+    when(flushPolicy.shouldFlush(sensorType, configurations, 2)).thenReturn(true);
     when(bulkMessageWriter.write(sensorType, configurations, messages)).thenReturn(response);
 
-    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout);
     bulkWriterComponent.write(sensorType, messages.get(0), bulkMessageWriter, configurations);
+
+    verify(bulkMessageWriter, times(0)).write(eq(sensorType), eq(configurations), any());
+    verify(flushPolicy, times(1)).shouldFlush(sensorType, configurations, 1);
+    verify(flushPolicy, times(0)).onFlush(any(), any());
+
     bulkWriterComponent.write(sensorType, messages.get(1), bulkMessageWriter, configurations);
 
     BulkWriterResponse expectedErrorResponse = new BulkWriterResponse();
     expectedErrorResponse.addAllErrors(e, messageIds);
 
-    verify(bulkWriterResponseHandler, times(1)).handleFlush(sensorType, expectedErrorResponse);
-    verifyNoMoreInteractions(bulkWriterResponseHandler);
+    verify(bulkMessageWriter, times(1)).write(sensorType, configurations, messages);
+    verify(flushPolicy, times(1)).shouldFlush(sensorType, configurations, 2);
+    verify(flushPolicy, times(1)).onFlush(sensorType, expectedErrorResponse);
+
+    verifyNoMoreInteractions(bulkMessageWriter, flushPolicy);
   }
 
   @Test
   public void writeShouldProperlyHandleWriterException() throws Exception {
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(Collections.singletonList(flushPolicy));
     Throwable e = new Exception("test exception");
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllErrors(e, messageIds);
 
+    when(flushPolicy.shouldFlush(sensorType, configurations, 2)).thenReturn(true);
     when(bulkMessageWriter.write(sensorType, configurations, messages)).thenThrow(e);
 
-    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout);
     bulkWriterComponent.write(sensorType, messages.get(0), bulkMessageWriter, configurations);
+
+    verify(bulkMessageWriter, times(0)).write(eq(sensorType), eq(configurations), any());
+    verify(flushPolicy, times(1)).shouldFlush(sensorType, configurations, 1);
+    verify(flushPolicy, times(0)).onFlush(any(), any());
+
     bulkWriterComponent.write(sensorType, messages.get(1), bulkMessageWriter, configurations);
 
     BulkWriterResponse expectedErrorResponse = new BulkWriterResponse();
     expectedErrorResponse.addAllErrors(e, messageIds);
 
-    verify(bulkWriterResponseHandler, times(1)).handleFlush(sensorType, expectedErrorResponse);
-    verifyNoMoreInteractions(bulkWriterResponseHandler);
+    verify(bulkMessageWriter, times(1)).write(sensorType, configurations, messages);
+    verify(flushPolicy, times(1)).shouldFlush(sensorType, configurations, 2);
+    verify(flushPolicy, times(1)).onFlush(sensorType, expectedErrorResponse);
+
+    verifyNoMoreInteractions(flushPolicy);
   }
 
   @Test
   public void flushShouldAckMissingTuples() throws Exception{
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(Collections.singletonList(flushPolicy));
     BulkMessageWriter<JSONObject> bulkMessageWriter = mock(BulkMessageWriter.class);
     MessageId successId = new MessageId("successId");
     MessageId errorId = new MessageId("errorId");
@@ -193,7 +225,6 @@ public class BulkWriterComponentTest {
 
     when(bulkMessageWriter.write(sensorType, configurations, allMessages)).thenReturn(bulkWriterResponse);
 
-    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout);
     bulkWriterComponent.flush(sensorType, bulkMessageWriter, configurations, allMessages);
 
     BulkWriterResponse expectedResponse = new BulkWriterResponse();
@@ -201,7 +232,7 @@ public class BulkWriterComponentTest {
     expectedResponse.addError(throwable, errorId);
     expectedResponse.addSuccess(missingId);
 
-    verify(bulkWriterResponseHandler, times(1)).handleFlush(sensorType, expectedResponse);
-    verifyNoMoreInteractions(bulkWriterResponseHandler);
+    verify(flushPolicy, times(1)).onFlush(sensorType, expectedResponse);
+    verifyNoMoreInteractions(flushPolicy);
   }
 }

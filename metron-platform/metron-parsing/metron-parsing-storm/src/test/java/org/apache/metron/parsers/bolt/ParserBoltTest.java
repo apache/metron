@@ -25,7 +25,7 @@ import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.common.writer.BulkWriterMessage;
-import org.apache.metron.writer.StormBulkWriterResponseHandler;
+import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.parsers.DefaultParserRunnerResults;
 import org.apache.metron.parsers.ParserRunnerImpl;
 import org.apache.metron.parsers.ParserRunnerResults;
@@ -88,7 +88,7 @@ public class ParserBoltTest extends BaseBoltTest {
   private Context stellarContext;
 
   @Mock
-  private StormBulkWriterResponseHandler bulkWriterResponseHandler;
+  private AckTuplesPolicy bulkWriterResponseHandler;
 
   private class MockParserRunner extends ParserRunnerImpl {
 
@@ -212,7 +212,7 @@ public class ParserBoltTest extends BaseBoltTest {
     Map<String, String> topicToSensorMap = parserBolt.getTopicToSensorMap();
     Assert.assertEquals(1, topicToSensorMap.size());
     Assert.assertEquals("yaf", topicToSensorMap.get("yafTopic"));
-    verify(writerHandler).init(eq(stormConf), eq(topologyContext), eq(outputCollector), eq(parserConfigurations), any(StormBulkWriterResponseHandler.class), eq(14));
+    verify(writerHandler).init(eq(stormConf), eq(topologyContext), eq(outputCollector), eq(parserConfigurations), any(AckTuplesPolicy.class), eq(14));
   }
 
   @Test
@@ -281,7 +281,7 @@ public class ParserBoltTest extends BaseBoltTest {
     parserBolt.setTopicToSensorMap(new HashMap<String, String>() {{
       put("yafTopic", "yaf");
     }});
-    parserBolt.setBulkWriterResponseHandler(bulkWriterResponseHandler);
+    parserBolt.setAckTuplesPolicy(bulkWriterResponseHandler);
 
     JSONObject message = new JSONObject();
     message.put(Constants.GUID, "messageId");
@@ -321,7 +321,7 @@ public class ParserBoltTest extends BaseBoltTest {
     parserBolt.setTopicToSensorMap(new HashMap<String, String>() {{
       put("yafTopic", "yaf");
     }});
-    parserBolt.setBulkWriterResponseHandler(bulkWriterResponseHandler);
+    parserBolt.setAckTuplesPolicy(bulkWriterResponseHandler);
 
     List<BulkWriterMessage<JSONObject>> messages = new ArrayList<>();
     for(int i = 0; i < 5; i++) {
@@ -459,7 +459,7 @@ public class ParserBoltTest extends BaseBoltTest {
     parserBolt.setTopicToSensorMap(new HashMap<String, String>() {{
       put("yafTopic", "yaf");
     }});
-    parserBolt.setBulkWriterResponseHandler(bulkWriterResponseHandler);
+    parserBolt.setAckTuplesPolicy(bulkWriterResponseHandler);
     JSONObject message = new JSONObject();
     message.put(Constants.GUID, "messageId");
     message.put("field", "value");

@@ -20,6 +20,7 @@ package org.apache.metron.writer;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.system.Clock;
+import org.apache.metron.common.writer.BulkWriterResponse;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -69,7 +70,7 @@ public class BatchTimeoutPolicyTest {
     when(clock.currentTimeMillis()).thenReturn(0L); // initial check
     assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
 
-    batchTimeoutPolicy.reset(sensor1);
+    batchTimeoutPolicy.onFlush(sensor1, new BulkWriterResponse());
 
     when(clock.currentTimeMillis()).thenReturn(1000L); // sensor was reset so shouldn't timeout
     assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));

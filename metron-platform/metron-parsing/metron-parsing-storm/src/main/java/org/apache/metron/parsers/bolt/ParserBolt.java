@@ -42,7 +42,7 @@ import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkWriterMessage;
-import org.apache.metron.writer.StormBulkWriterResponseHandler;
+import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.parsers.ParserRunner;
 import org.apache.metron.parsers.ParserRunnerResults;
 import org.apache.metron.stellar.common.CachingStellarProcessor;
@@ -75,7 +75,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private int requestedTickFreqSecs;
   private int maxBatchTimeout;
   private int batchTimeoutDivisor = 1;
-  private transient StormBulkWriterResponseHandler bulkWriterResponseHandler;
+  private transient AckTuplesPolicy ackTuplesPolicy;
 
   public ParserBolt( String zookeeperUrl
                    , ParserRunner parserRunner
@@ -156,8 +156,8 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   /**
    * Used only for unit testing
    */
-  public void setBulkWriterResponseHandler(StormBulkWriterResponseHandler bulkWriterResponseHandler) {
-    this.bulkWriterResponseHandler = bulkWriterResponseHandler;
+  public void setAckTuplesPolicy(AckTuplesPolicy ackTuplesPolicy) {
+    this.ackTuplesPolicy = ackTuplesPolicy;
   }
 
   /**
@@ -204,7 +204,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     this.collector = collector;
     this.parserRunner.init(this::getConfigurations, initializeStellar());
 
-    bulkWriterResponseHandler = new StormBulkWriterResponseHandler(collector, messageGetStrategy);
+    ackTuplesPolicy = new AckTuplesPolicy(collector, messageGetStrategy);
 
     // Need to prep all sensors
     for (Map.Entry<String, WriterHandler> entry: sensorToWriterMap.entrySet()) {
@@ -230,7 +230,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         maxBatchTimeout = timeoutHelper.getMaxBatchTimeout();
       }
 
-      writer.init(stormConf, context, collector, getConfigurations(), bulkWriterResponseHandler, maxBatchTimeout);
+      writer.init(stormConf, context, collector, getConfigurations(), ackTuplesPolicy, maxBatchTimeout);
     }
   }
 
@@ -261,7 +261,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       int numWritten = 0;
       List<JSONObject> messages = parserRunnerResults.getMessages();
       List<String> messageIds = messages.stream().map(MessageUtils::getGuid).collect(Collectors.toList());
-      bulkWriterResponseHandler.addTupleMessageIds(tuple, messageIds);
+      ackTuplesPolicy.addTupleMessageIds(tuple, messageIds);
       for(int i = 0; i < messages.size(); i++) {
         String messageId = messageIds.get(i);
         JSONObject message = messages.get(i);

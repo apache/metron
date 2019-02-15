@@ -41,7 +41,7 @@ import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.MessageWriter;
-import org.apache.metron.writer.StormBulkWriterResponseHandler;
+import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.metron.writer.WriterToBulkWriter;
 import org.apache.storm.Config;
@@ -95,7 +95,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
   private int requestedTickFreqSecs;
   private int maxBatchTimeout;
   private int batchTimeoutDivisor = 1;
-  private transient StormBulkWriterResponseHandler bulkWriterResponseHandler = null;
+  private transient AckTuplesPolicy ackTuplesPolicy = null;
 
   public BulkMessageWriterBolt(String zookeeperUrl, String configurationStrategy) {
     super(zookeeperUrl, configurationStrategy);
@@ -222,7 +222,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
     else {
       configurationTransformation = x -> x;
     }
-    bulkWriterResponseHandler = new StormBulkWriterResponseHandler(collector, messageGetStrategy);
+    ackTuplesPolicy = new AckTuplesPolicy(collector, messageGetStrategy);
     try {
       WriterConfiguration writerconf = configurationTransformation
           .apply(getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations()));
@@ -232,7 +232,9 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
         BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
         maxBatchTimeout = timeoutHelper.getMaxBatchTimeout();
       }
-      setWriterComponent(new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout));
+      BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(maxBatchTimeout);
+      bulkWriterComponent.addFlushPolicy(ackTuplesPolicy);
+      setWriterComponent(bulkWriterComponent);
       bulkMessageWriter.init(stormConf, context, writerconf);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -244,7 +246,9 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
    */
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector, Clock clock) {
     prepare(stormConf, context, collector);
-    setWriterComponent(new BulkWriterComponent<>(bulkWriterResponseHandler, maxBatchTimeout, clock));
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(maxBatchTimeout, clock);
+    bulkWriterComponent.addFlushPolicy(ackTuplesPolicy);
+    setWriterComponent(bulkWriterComponent);
   }
 
   @SuppressWarnings("unchecked")
@@ -291,7 +295,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
         collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
       }
       String messagesId = MessageUtils.getGuid(message);
-      bulkWriterResponseHandler.addTupleMessageIds(tuple, Collections.singleton(messagesId));
+      ackTuplesPolicy.addTupleMessageIds(tuple, Collections.singleton(messagesId));
       getWriterComponent().write(sensorType
               , new BulkWriterMessage<>(messagesId, message)
               , bulkMessageWriter

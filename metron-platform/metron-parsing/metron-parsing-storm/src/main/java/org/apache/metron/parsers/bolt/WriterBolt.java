@@ -26,7 +26,7 @@ import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkWriterMessage;
-import org.apache.metron.writer.StormBulkWriterResponseHandler;
+import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -47,7 +47,7 @@ public class WriterBolt extends BaseRichBolt {
   public static final int UNINITIALIZED_MAX_BATCH_TIMEOUT = 6;
   private transient MessageGetStrategy messageGetStrategy;
   private transient OutputCollector collector;
-  private transient StormBulkWriterResponseHandler bulkWriterResponseHandler;
+  private transient AckTuplesPolicy ackTuplesPolicy;
   public WriterBolt(WriterHandler handler, ParserConfigurations configuration, String sensorType) {
     this.handler = handler;
     this.configuration = configuration;
@@ -63,8 +63,8 @@ public class WriterBolt extends BaseRichBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.collector = collector;
     messageGetStrategy = MessageGetters.DEFAULT_JSON_FROM_FIELD.get();
-    bulkWriterResponseHandler = new StormBulkWriterResponseHandler(collector, messageGetStrategy);
-    handler.init(stormConf, context, collector, configuration, bulkWriterResponseHandler, UNINITIALIZED_MAX_BATCH_TIMEOUT);
+    ackTuplesPolicy = new AckTuplesPolicy(collector, messageGetStrategy);
+    handler.init(stormConf, context, collector, configuration, ackTuplesPolicy, UNINITIALIZED_MAX_BATCH_TIMEOUT);
   }
 
   private JSONObject getMessage(Tuple tuple) {
@@ -86,7 +86,7 @@ public class WriterBolt extends BaseRichBolt {
     try {
       message = (JSONObject) messageGetStrategy.get(tuple);
       String messageId = MessageUtils.getGuid(message);
-      bulkWriterResponseHandler.addTupleMessageIds(tuple, Collections.singleton(messageId));
+      ackTuplesPolicy.addTupleMessageIds(tuple, Collections.singleton(messageId));
       handler.write(sensorType, new BulkWriterMessage<>(messageId, message), configuration);
     } catch (Throwable e) {
       MetronError error = new MetronError()

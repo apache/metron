@@ -19,6 +19,7 @@ package org.apache.metron.writer;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.system.Clock;
+import org.apache.metron.common.writer.BulkWriterResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +84,7 @@ public class BatchTimeoutPolicy implements FlushPolicy {
    * @param sensorType
    */
   @Override
-  public void reset(String sensorType) {
+  public void onFlush(String sensorType, BulkWriterResponse response) {
     timeouts.remove(sensorType);
   }
 

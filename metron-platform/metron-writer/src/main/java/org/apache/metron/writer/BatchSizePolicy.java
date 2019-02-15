@@ -18,13 +18,11 @@
 package org.apache.metron.writer;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkWriterResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Map;
 
 public class BatchSizePolicy implements FlushPolicy {
 
@@ -51,6 +49,7 @@ public class BatchSizePolicy implements FlushPolicy {
   }
 
   @Override
-  public void reset(String sensorType) {
+  public void onFlush(String sensorType, BulkWriterResponse response) {
+
   }
 }

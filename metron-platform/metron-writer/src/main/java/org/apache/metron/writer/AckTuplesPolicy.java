@@ -18,6 +18,7 @@
 package org.apache.metron.writer;
 
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.writer.BulkWriterResponse;
@@ -40,10 +41,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A {@link org.apache.metron.writer.BulkWriterResponseHandler} implementation for Storm.  This class handles tuple acking and error
+ * A {@link org.apache.metron.writer.FlushPolicy} implementation for Storm that handles tuple acking and error
  * reporting by handling flush events for writer responses.
  */
-public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler {
+public class AckTuplesPolicy implements FlushPolicy {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   // Tracks the messages from a tuple that have not been flushed
@@ -54,7 +55,7 @@ public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler
   private OutputCollector collector;
   private MessageGetStrategy messageGetStrategy;
 
-  public StormBulkWriterResponseHandler(OutputCollector collector, MessageGetStrategy messageGetStrategy) {
+  public AckTuplesPolicy(OutputCollector collector, MessageGetStrategy messageGetStrategy) {
     this.collector = collector;
     this.messageGetStrategy = messageGetStrategy;
   }
@@ -69,18 +70,13 @@ public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler
     return tupleErrorMap;
   }
 
-  /**
-   * Adds a tuple to be acked when all messages have been processed (either as a successful write or a failure).
-   * @param tuple
-   * @param messageIds
-   */
-  public void addTupleMessageIds(Tuple tuple, Collection<String> messageIds) {
-    LOG.debug("Adding tuple with messages ids: {}", String.join(",", messageIds));
-    tupleMessageMap.put(tuple, messageIds.stream().map(MessageId::new).collect(Collectors.toSet()));
+  @Override
+  public boolean shouldFlush(String sensorType, WriterConfiguration configurations, int batchSize) {
+    return false;
   }
 
   @Override
-  public void handleFlush(String sensorType, BulkWriterResponse response) {
+  public void onFlush(String sensorType, BulkWriterResponse response) {
     LOG.debug("Handling flushed messages for sensor {} with response: {}", sensorType, response);
 
     // Update tuple message map.  Tuple is ready to ack when all it's messages have been flushed.
@@ -140,7 +136,17 @@ public class StormBulkWriterResponseHandler implements BulkWriterResponseHandler
     });
   }
 
-  public void handleError(String sensorType, Throwable e, Tuple tuple) {
+  /**
+   * Adds a tuple to be acked when all messages have been processed (either as a successful write or a failure).
+   * @param tuple
+   * @param messageIds
+   */
+  public void addTupleMessageIds(Tuple tuple, Collection<String> messageIds) {
+    LOG.debug("Adding tuple with messages ids: {}", String.join(",", messageIds));
+    tupleMessageMap.put(tuple, messageIds.stream().map(MessageId::new).collect(Collectors.toSet()));
+  }
+
+  private void handleError(String sensorType, Throwable e, Tuple tuple) {
     MetronError error = new MetronError()
             .withSensorType(Collections.singleton(sensorType))
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
