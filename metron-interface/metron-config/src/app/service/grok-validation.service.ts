@@ -50,7 +50,7 @@ export class GrokValidationService {
 
   public getStatement(path: string): Observable<Object> {
     const options: HttpParams = new HttpParams().set('path', path);
-    return this.http.get(this.url + '/get/statement', { params: options }).pipe(
+    return this.http.get(this.url + '/get/statement', { params: options, responseType: 'text' }).pipe(
       map(HttpUtil.extractString),
       catchError(HttpUtil.handleError)
     );

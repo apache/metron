@@ -78,7 +78,7 @@ export class SensorParserConfigComponent implements OnInit {
   grokStatementValid = false;
   availableParsers = {};
   availableParserNames = [];
-  grokStatement = {};
+  grokStatement = '';
   patternLabel = '';
   currentSensors = [];
 
@@ -135,12 +135,12 @@ export class SensorParserConfigComponent implements OnInit {
             if (path) {
               this.hdfsService.read(path).subscribe(
                 contents => {
-                  this.grokStatement = contents;
+                  this.grokStatement = contents as string;
                 },
                 (hdfsError: RestError) => {
                   this.grokValidationService.getStatement(path).subscribe(
                     contents => {
-                      this.grokStatement = contents;
+                      this.grokStatement = contents as string;
                     },
                     (grokError: RestError) => {
                       this.metronAlerts.showErrorMessage(
