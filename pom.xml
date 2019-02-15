@@ -125,6 +125,8 @@
         <global_spark_version>2.3.1</global_spark_version>
         <global_httpclient_version>4.3.2</global_httpclient_version>
         <global_aesh_version>0.66.19</global_aesh_version>
+        <global_jacoco_version>0.8.3</global_jacoco_version>
+        <argLine></argLine>
     </properties>
 
     <profiles>
@@ -164,7 +166,7 @@
                     <version>${global_surefire_version}</version>
                     <configuration>
                         <!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
-                        <argLine>-Xmx2048m</argLine>
+                        <argLine>@{argLine} -Xmx2048m</argLine>
                         <skip>true</skip>
                         <!-- Show 100% of the lines from the stack trace (doesn't work) -->
                         <trimStackTrace>false</trimStackTrace>
@@ -276,7 +278,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.9</version>
+                <version>${global_jacoco_version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -496,7 +498,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.9</version>
+                <version>${global_jacoco_version}</version>
                 <reportSets>
                     <reportSet>
                         <reports>
