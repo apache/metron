@@ -34,7 +34,6 @@ import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +64,8 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
    * Responsible for writing documents.
    *
    * <p>Uses a {@link MessageIdBasedDocument} to maintain the relationship between
-   * a {@link Tuple} and the document created from the contents of that tuple. If
-   * a document cannot be written, the associated tuple needs to be failed.
+   * a {@link org.apache.metron.common.writer.MessageId} and the document created from the contents of that message. If
+   * a document cannot be written, the associated message needs to be reported as a failure.
    */
   private transient BulkDocumentWriter<MessageIdBasedDocument> documentWriter;
 

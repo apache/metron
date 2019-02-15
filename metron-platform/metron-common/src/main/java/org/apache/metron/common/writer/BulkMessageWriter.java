@@ -32,7 +32,7 @@ public interface BulkMessageWriter<MESSAGE_T> extends AutoCloseable, Serializabl
   * Writes the messages to a particular output (e.g. Elasticsearch).  A response is returned with successful and failed message ids.
   * @param sensorType The type of sensor generating the messages
   * @param configurations Configurations that should be passed to the writer (e.g. index and
-  * @param messages  The message to be written in the form of a message id to message map.  Message ids are used in the response to report successes/failures.
+  * @param messages  A list of messages to be written.  Message ids are used in the response to report successes/failures.
   * @return A response containing successes and failures within the batch.
   * @throws Exception If an unrecoverable error is made, an Exception is thrown which should be treated as a full-batch failure (e.g. target system is down).
   */
