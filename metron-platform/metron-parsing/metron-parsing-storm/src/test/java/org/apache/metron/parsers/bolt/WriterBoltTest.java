@@ -42,6 +42,7 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
@@ -92,11 +93,11 @@ public class WriterBoltTest extends BaseBoltTest{
     String sensorType = "test";
     WriterBolt bolt = spy(new WriterBolt(new WriterHandler(batchWriter), configurations, sensorType));
     List<Tuple> tuples = new ArrayList<>();
-    List<String> messageIds = new ArrayList<>();
+    List<MessageId> messageIds = new ArrayList<>();
     for(int i = 0;i < 5;++i) {
       Tuple t = mock(Tuple.class);
       String messageId = String.format(MESSAGE_ID_FORMAT, i + 1);
-      messageIds.add(messageId);
+      messageIds.add(new MessageId(messageId));
       JSONObject message = new JSONObject();
       message.put(Constants.GUID, messageId);
       message.put("value", String.format(MESSAGE_FORMAT, i + 1));
@@ -188,11 +189,11 @@ public class WriterBoltTest extends BaseBoltTest{
     String sensorType = "test";
     WriterBolt bolt = spy(new WriterBolt(new WriterHandler(batchWriter), configurations, sensorType));
     List<Tuple> tuples = new ArrayList<>();
-    List<String> messageIds = new ArrayList<>();
+    List<MessageId> messageIds = new ArrayList<>();
     for(int i = 0;i < 4;++i) {
       Tuple t = mock(Tuple.class);
       String messageId = String.format(MESSAGE_ID_FORMAT, i + 1);
-      messageIds.add(messageId);
+      messageIds.add(new MessageId(messageId));
       JSONObject message = new JSONObject();
       message.put("value", String.format(MESSAGE_FORMAT, i + 1));
       when(t.getValueByField(eq("message"))).thenReturn(message);
@@ -217,7 +218,7 @@ public class WriterBoltTest extends BaseBoltTest{
     // Add the good tuples.  Do not add the error tuple, because this is testing an exception on access, not a failure on write.
     BulkWriterResponse writerResponse = new BulkWriterResponse();
     writerResponse.addAllSuccesses(messageIds);
-    writerResponse.addSuccess("goodMessage");
+    writerResponse.addSuccess(new MessageId("goodMessage"));
     when(batchWriter.write(any(), any(), any())).thenReturn(writerResponse);
 
     bolt.execute(errorTuple);
@@ -240,11 +241,11 @@ public class WriterBoltTest extends BaseBoltTest{
     String sensorType = "test";
     WriterBolt bolt = spy(new WriterBolt(new WriterHandler(batchWriter), configurations, sensorType));
     List<Tuple> tuples = new ArrayList<>();
-    List<String> messageIds = new ArrayList<>();
+    List<MessageId> messageIds = new ArrayList<>();
     for(int i = 0;i < 4;++i) {
       Tuple t = mock(Tuple.class);
       String messageId = String.format(MESSAGE_ID_FORMAT, i + 1);
-      messageIds.add(messageId);
+      messageIds.add(new MessageId(messageId));
       JSONObject message = new JSONObject();
       message.put(Constants.GUID, messageId);
       message.put("value", String.format(MESSAGE_FORMAT, i + 1));
@@ -275,8 +276,8 @@ public class WriterBoltTest extends BaseBoltTest{
     // Add both the good and error Tuples. This simulates a seemingly good Tuple that fails on write.
     BulkWriterResponse writerResponse = new BulkWriterResponse();
     writerResponse.addAllSuccesses(messageIds);
-    writerResponse.addSuccess("goodMessageId");
-    writerResponse.addError(new IllegalStateException(), "errorMessageId");
+    writerResponse.addSuccess(new MessageId("goodMessageId"));
+    writerResponse.addError(new IllegalStateException(), new MessageId("errorMessageId"));
     when(batchWriter.write(any(), any(), any())).thenReturn(writerResponse);
     bolt.execute(errorTuple);
     for(Tuple t : tuples) {
