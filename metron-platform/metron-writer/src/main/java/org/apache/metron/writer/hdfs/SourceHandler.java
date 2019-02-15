@@ -152,6 +152,9 @@ public class SourceHandler {
   }
 
   private Path createOutputFile() throws IOException {
+    // The rotation is set to 0. With the way open files are tracked and managed with the callback, there will
+    // never be data that would go into a rotation > 0. Instead a new SourceHandler, and by extension file, will
+    // be created.
     Path path = new Path(this.fileNameFormat.getPath(), this.fileNameFormat.getName(0, System.currentTimeMillis()));
     LOG.debug("Creating new output file: {}", path.getName());
     if(fs.getScheme().equals("file")) {

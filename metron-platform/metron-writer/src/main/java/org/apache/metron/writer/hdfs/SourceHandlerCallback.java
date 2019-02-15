@@ -23,6 +23,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Callback intended to be able to manage open files in {@link HdfsWriter}. This callback will close
+ * the associated {@link SourceHandler} and remove it from the map of open files.
+ */
 public class SourceHandlerCallback {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -33,11 +37,20 @@ public class SourceHandlerCallback {
     this.key = key;
   }
 
+  /**
+   * Removes {@link SourceHandler} from the map of open files. Also closes it to ensure resources such as
+   * {@link java.util.Timer} is closed.
+   */
   public void removeKey() {
     SourceHandler removed = sourceHandlerMap.remove(key);
-    removed.close(); // If it's getting removed, we want to close it to ensure things like Timers are ended.
-    LOG.debug("Removed {} -> {}", key, removed);
-    LOG.debug("Current state of sourceHandlerMap: {}", sourceHandlerMap);
+    if(removed != null) {
+      removed.close();
+    }
+    LOG.debug("Removed {} -> {}. Current state of sourceHandlerMap: {}",
+        key,
+        removed,
+        sourceHandlerMap
+    );
   }
 }
 

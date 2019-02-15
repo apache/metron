@@ -100,32 +100,38 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     }
   }
 
-
   @Override
   public BulkWriterResponse write(String sourceType
                    , WriterConfiguration configurations
                    , Iterable<Tuple> tuples
                    , List<JSONObject> messages
-                   ) throws Exception
-  {
+                   ) throws Exception {
     BulkWriterResponse response = new BulkWriterResponse();
 
     // Currently treating all the messages in a group for pass/failure.
-    try {
-      // Messages can all result in different HDFS paths, because of Stellar Expressions, so we'll need to iterate through
-      for(JSONObject message : messages) {
-        String path = getHdfsPathExtension(
-                sourceType,
-                (String)configurations.getSensorConfig(sourceType).getOrDefault(IndexingConfigurations.OUTPUT_PATH_FUNCTION_CONF, ""),
-                message
-        );
+    // Messages can all result in different HDFS paths, because of Stellar Expressions, so we'll need to iterate through
+    for (JSONObject message : messages) {
+      String path = getHdfsPathExtension(
+          sourceType,
+          (String) configurations.getSensorConfig(sourceType)
+              .getOrDefault(IndexingConfigurations.OUTPUT_PATH_FUNCTION_CONF, ""),
+          message
+      );
+
+      try {
         LOG.trace("Writing message {} to path: {}", message.toJSONString(), path);
         SourceHandler handler = getSourceHandler(sourceType, path, configurations);
         handler.handle(message, sourceType, configurations, syncPolicyCreator);
+      } catch (Exception e) {
+        LOG.error(
+            "HdfsWriter encountered error writing. Source type: {}. # messages: {}. Output path: {}.",
+            sourceType,
+            messages.size(),
+            path,
+            e
+        );
+        response.addAllErrors(e, tuples);
       }
-    } catch (Exception e) {
-      LOG.error("HdfsWriter encountered error writing", e);
-      response.addAllErrors(e, tuples);
     }
 
     response.addAllSuccesses(tuples);
@@ -170,7 +176,8 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     SourceHandler ret = sourceHandlerMap.get(key);
     if(ret == null) {
       if(sourceHandlerMap.size() >= maxOpenFiles) {
-        String errorMsg = "Too many HDFS files open! Maximum number of open files is: " + maxOpenFiles;
+        String errorMsg = "Too many HDFS files open! Maximum number of open files is: " + maxOpenFiles +
+            ". Current number of open files is: " + sourceHandlerMap.size();
         LOG.error(errorMsg);
         throw new IllegalStateException(errorMsg);
       }
