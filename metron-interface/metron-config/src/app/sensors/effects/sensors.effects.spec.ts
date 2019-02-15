@@ -36,6 +36,8 @@ import { StormService } from '../../service/storm.service';
 import { cold, hot } from 'jasmine-marbles';
 import { TopologyResponse } from '../../model/topology-response';
 import { provideMockActions } from '@ngrx/effects/testing';
+import { AppConfigService } from 'app/service/app-config.service';
+import { MockAppConfigService } from 'app/service/mock.app-config.service';
 
 @Injectable()
 class FakeParserService {
@@ -95,6 +97,7 @@ describe('sensor.effects.ts', () => {
       providers: [
         SensorsEffects,
         HttpClient,
+        { provide: AppConfigService, useClass: MockAppConfigService },
         { provide: SensorParserConfigService, useClass: FakeParserService },
         { provide: MetronAlerts, useClass: FakeMetronAlerts },
       ]
@@ -155,6 +158,7 @@ describe('sensors control operation effects', () => {
       providers: [
         SensorsEffects,
         HttpClient,
+        { provide: AppConfigService, useClass: MockAppConfigService },
         { provide: MetronAlerts, useClass: FakeMetronAlerts },
         { provide: StormService, useClass: FakeStormService },
         provideMockActions(() => actions$),

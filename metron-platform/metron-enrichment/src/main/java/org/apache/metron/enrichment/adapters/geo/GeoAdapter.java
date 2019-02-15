@@ -19,9 +19,9 @@ package org.apache.metron.enrichment.adapters.geo;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
@@ -40,11 +40,10 @@ public class GeoAdapter implements EnrichmentAdapter<CacheKey>, Serializable {
     return value.getField();
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public JSONObject enrich(CacheKey value) {
     JSONObject enriched = new JSONObject();
-    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(value.coerceValue(String.class));
+    Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get(value.coerceValue(String.class));
     if(!result.isPresent()) {
       return new JSONObject();
     }
@@ -56,13 +55,13 @@ public class GeoAdapter implements EnrichmentAdapter<CacheKey>, Serializable {
 
   @Override
   public boolean initializeAdapter(Map<String, Object> config) {
-    GeoLiteDatabase.INSTANCE.update((String)config.get(GeoLiteDatabase.GEO_HDFS_FILE));
+    GeoLiteCityDatabase.INSTANCE.update((String)config.get(GeoLiteCityDatabase.GEO_HDFS_FILE));
     return true;
   }
 
   @Override
   public void updateAdapter(Map<String, Object> config) {
-    GeoLiteDatabase.INSTANCE.updateIfNecessary(config);
+    GeoLiteCityDatabase.INSTANCE.updateIfNecessary(config);
   }
 
   @Override

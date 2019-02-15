@@ -182,5 +182,48 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>metron.knox.enabled</name>
+    <display-name>Knox Enabled</display-name>
+    <value>false</value>
+    <description>Enable Knox</description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>metron.knox.sso.pubkey</name>
+    <display-name>Knox SSO Public Key</display-name>
+    <value></value>
+    <description>Knox public key used to verify Knox SSO tokens.</description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <overridable>false</overridable>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+  <property>
+    <name>metron.knox.sso.token.ttl</name>
+    <display-name>Knox SSO Token Time to live</display-name>
+    <value>300000</value>
+    <description>Controls the time to live for Knox SSO tokens in Metron.  Units are in milliseconds.</description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
 
 </configuration>

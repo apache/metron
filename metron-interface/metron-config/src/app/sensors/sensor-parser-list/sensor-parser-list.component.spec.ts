@@ -19,7 +19,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { SpyLocation } from '@angular/common/testing';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 
-import { DebugElement, Inject } from '@angular/core';
+import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { Router, NavigationStart } from '@angular/router';
 import { Observable, of } from 'rxjs';
@@ -32,21 +32,15 @@ import { AuthenticationService } from '../../service/authentication.service';
 import { SensorParserListModule } from './sensor-parser-list.module';
 import { MetronDialogBox } from '../../shared/metron-dialog-box';
 import 'jquery';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../../app.config';
-import { StormService } from '../../service/storm.service';
-import { IAppConfig } from '../../app.config.interface';
 import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { Store } from '@ngrx/store';
+import { StormService } from '../../service/storm.service';
+import { AppConfigService } from '../../service/app-config.service';
+import { MockAppConfigService } from '../../service/mock.app-config.service';
+import { SensorParserConfigHistoryService } from 'app/service/sensor-parser-config-history.service';
+import { SensorParserConfigHistory } from 'app/model/sensor-parser-config-history';
 
 class MockAuthenticationService extends AuthenticationService {
-  constructor(
-    private http2: HttpClient,
-    private router2: Router,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, router2, config2);
-  }
-
   public checkAuthentication() {}
 
   public getCurrentUser(options: {}): Observable<HttpResponse<{}>> {
@@ -57,15 +51,25 @@ class MockAuthenticationService extends AuthenticationService {
   }
 }
 
+class MockSensorParserConfigHistoryService extends SensorParserConfigHistoryService {
+  private allSensorParserConfigHistory: SensorParserConfigHistory[];
+
+  public setSensorParserConfigHistoryForTest(
+    allSensorParserConfigHistory: SensorParserConfigHistory[]
+  ) {
+    this.allSensorParserConfigHistory = allSensorParserConfigHistory;
+  }
+
+  public getAll(): Observable<SensorParserConfigHistory[]> {
+    return Observable.create(observer => {
+      observer.next(this.allSensorParserConfigHistory);
+      observer.complete();
+    });
+  }
+}
+
 class MockSensorParserConfigService extends SensorParserConfigService {
   private sensorParserConfigs: {};
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setSensorParserConfigForTest(sensorParserConfigs: {}) {
     this.sensorParserConfigs = sensorParserConfigs;
@@ -98,13 +102,6 @@ class MockSensorParserConfigService extends SensorParserConfigService {
 
 class MockStormService extends StormService {
   private topologyStatuses: TopologyStatus[];
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setTopologyStatusForTest(topologyStatuses: TopologyStatus[]) {
     this.topologyStatuses = topologyStatuses;
@@ -217,7 +214,7 @@ describe('Component: SensorParserList', () => {
         { provide: StormService, useClass: MockStormService },
         { provide: Router, useClass: MockRouter },
         { provide: MetronDialogBox, useClass: MockMetronDialogBox },
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
+        { provide: AppConfigService, useClass: MockAppConfigService },
         MetronAlerts
       ]
     });

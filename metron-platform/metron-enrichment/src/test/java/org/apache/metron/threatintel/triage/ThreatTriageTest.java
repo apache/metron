@@ -30,6 +30,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -351,6 +352,60 @@ public class ThreatTriageTest {
       // the 'reason' is the result of executing the rule's 'reason' expression
       assertEquals(null, ruleScore.getReason());
     }
+  }
+
+  /**
+   * {
+   *    "threatIntel" : {
+   *      "triageConfig": {
+   *        "riskLevelRules": [
+   *          {
+   *            "rule" : "true",
+   *            "score" : 10
+   *          }
+   *        ],
+   *        "aggregator" : "MAX"
+   *      }
+   *    }
+   * }
+   */
+  @Multiline
+  private static String shouldAllowNumericRuleScore;
+
+  @Test
+  public void shouldAllowNumericRuleScore() throws Exception {
+    Map<String, Object> message = new HashMap<>();
+    ThreatTriageProcessor threatTriageProcessor = getProcessor(shouldAllowNumericRuleScore);
+    Assert.assertEquals(10d, threatTriageProcessor.apply(message).getScore(), 1e-10);
+  }
+
+  /**
+   * {
+   *    "threatIntel" : {
+   *      "triageConfig": {
+   *        "riskLevelRules": [
+   *          {
+   *            "rule" : "true",
+   *            "score" : "priority * 10.1"
+   *          }
+   *        ],
+   *        "aggregator" : "MAX"
+   *      }
+   *    }
+   * }
+   */
+  @Multiline
+  private static String shouldAllowScoreAsStellarExpression;
+
+  @Test
+  public void shouldAllowScoreAsStellarExpression() throws Exception {
+    // the message being triaged has a field 'priority' that is referenced in the score expression
+    Map<Object, Object> message = new HashMap<Object, Object>() {{
+      put("priority", 100);
+    }};
+
+    ThreatTriageProcessor threatTriageProcessor = getProcessor(shouldAllowScoreAsStellarExpression);
+    Assert.assertEquals(1010.0d, threatTriageProcessor.apply(message).getScore(), 1e-10);
   }
 
   private static ThreatTriageProcessor getProcessor(String config) throws IOException {

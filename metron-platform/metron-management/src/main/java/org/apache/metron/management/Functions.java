@@ -19,11 +19,16 @@
 
 package org.apache.metron.management;
 
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.String.format;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.ZOOKEEPER_CLIENT;
 
 /**
  * Contains utility functionality that is useful across all of the Stellar management functions.
@@ -39,10 +44,10 @@ public class Functions {
    * @param args All of the arguments.
    * @param <T> The type of the argument expected.
    */
-  public static <T> T getArg(String argName, int index, Class<T> clazz, List<Object> args) {
+  public static <T> T getArg(String argName, int index, Class<T> clazz, List<Object> args) throws ParseException {
     if(index >= args.size()) {
       String msg = format("missing '%s'; expected at least %d argument(s), found %d", argName, index+1, args.size());
-      throw new IllegalArgumentException(msg);
+      throw new ParseException(msg);
     }
 
     return ConversionUtils.convert(args.get(index), clazz);
@@ -68,5 +73,19 @@ public class Functions {
     }
 
     return result;
+  }
+
+  /**
+   * Retrieves the Zookeeper client from the execution context.
+   *
+   * @param context The execution context.
+   * @return A Zookeeper client, if one exists.  Otherwise, an exception is thrown.
+   */
+  public static CuratorFramework getZookeeperClient(Context context) throws ParseException {
+    return context
+            .getCapability(ZOOKEEPER_CLIENT, false)
+            .filter(CuratorFramework.class::isInstance)
+            .map(CuratorFramework.class::cast)
+            .orElseThrow(() -> new ParseException("Missing ZOOKEEPER_CLIENT; zookeeper connection required"));
   }
 }

@@ -23,16 +23,15 @@ import { map, catchError } from 'rxjs/operators';
 import { SensorParserContext } from '../model/sensor-parser-context';
 import { HttpUtil } from '../util/httpUtil';
 import { StellarFunctionDescription } from '../model/stellar-function-description';
-import { IAppConfig } from '../app.config.interface';
-import { APP_CONFIG } from '../app.config';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class StellarService {
-  url = this.config.apiEndpoint + '/stellar';
+  url = this.appConfigService.getApiRoot() + '/stellar';
 
   constructor(
     private http: HttpClient,
-    @Inject(APP_CONFIG) private config: IAppConfig
+    private appConfigService: AppConfigService
   ) {}
 
   public validateRules(rules: string[]): Observable<{}> {

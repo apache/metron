@@ -229,6 +229,7 @@ public class BasicStellarTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testConditionalsAsMapKeys() {
     {
       String query = "{ ( RET_TRUE() && y < 50 ) : 'info', y >= 50 : 'warn'}";
@@ -556,6 +557,7 @@ public class BasicStellarTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testInNotIN(){
     HashMap variables = new HashMap<>();
     boolean thrown = false;
@@ -1036,6 +1038,7 @@ public class BasicStellarTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void all_fields_test() {
     final Map<String, Object> varMap1 = new HashMap<String, Object>();
     varMap1.put("field1", "val1");

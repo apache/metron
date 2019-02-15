@@ -22,19 +22,11 @@ import { Observable } from 'rxjs';
 import { AppComponent } from './app.component';
 import { AuthenticationService } from './service/authentication.service';
 import { AppModule } from './app.module';
-import { APP_CONFIG, METRON_REST_CONFIG } from './app.config';
-import { IAppConfig } from './app.config.interface';
 import { HttpResponse, HttpClient } from '@angular/common/http';
+import {AppConfigService} from './service/app-config.service';
+import {MockAppConfigService} from './service/mock.app-config.service';
 
 class MockAuthenticationService extends AuthenticationService {
-  constructor(
-    private http2: HttpClient,
-    private router2: Router,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, router2, config2);
-    this.onLoginEvent.next(false);
-  }
 
   public checkAuthentication() {}
 
@@ -61,7 +53,7 @@ describe('App: Static', () => {
       providers: [
         { provide: AuthenticationService, useClass: MockAuthenticationService },
         { provide: Router, useClass: MockRouter },
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     fixture = TestBed.createComponent(AppComponent);
@@ -74,7 +66,6 @@ describe('App: Static', () => {
   });
 
   it('should return true/false from loginevent and loggedIn should be set', () => {
-    expect(comp.loggedIn).toEqual(false);
     authenticationService.onLoginEvent.next(true);
     expect(comp.loggedIn).toEqual(true);
     authenticationService.onLoginEvent.next(false);

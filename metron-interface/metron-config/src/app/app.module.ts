@@ -15,7 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
+import { StoreModule, MetaReducer } from '@ngrx/store';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { EffectsModule } from '@ngrx/effects'
+import { SensorsModule } from './sensors/sensors.module';
+import { storeFreeze } from 'ngrx-store-freeze';
+import { environment } from '../environments/environment';
+
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -30,18 +37,16 @@ import { LoginGuard } from './shared/login-guard';
 import { MetronDialogBox } from './shared/metron-dialog-box';
 import { GeneralSettingsModule } from './general-settings/general-settings.module';
 import { GlobalConfigService } from './service/global-config.service';
-import { APP_CONFIG, METRON_REST_CONFIG } from './app.config';
 import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.interceptor';
-import { StoreModule, MetaReducer } from '@ngrx/store';
-import { StoreDevtoolsModule } from '@ngrx/store-devtools';
-import { EffectsModule } from '@ngrx/effects'
-import { SensorsModule } from './sensors/sensors.module';
-import { storeFreeze } from 'ngrx-store-freeze';
-import { environment } from '../environments/environment';
+import {AppConfigService } from './service/app-config.service';
 
 export const metaReducers: MetaReducer<{}>[] = !environment.production
 ? [storeFreeze]
 : [];
+
+export function initConfig(appConfigService: AppConfigService) {
+  return () => appConfigService.loadAppConfig();
+}
 
 @NgModule({
   imports: [
@@ -58,14 +63,15 @@ export const metaReducers: MetaReducer<{}>[] = !environment.production
   ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
   providers: [
+    AppConfigService,
     AuthenticationService,
     AuthGuard,
     LoginGuard,
     GlobalConfigService,
     MetronAlerts,
     MetronDialogBox,
-    { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
     { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true },
+    { provide: APP_INITIALIZER, useFactory: initConfig, deps: [AppConfigService], multi: true },
   ],
   bootstrap: [ AppComponent ]
 })

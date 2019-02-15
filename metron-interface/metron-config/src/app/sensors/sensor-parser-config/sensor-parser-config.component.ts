@@ -78,6 +78,7 @@ export class SensorParserConfigComponent implements OnInit {
   configValid = false;
   sensorNameValid = false;
   sensorNameUnique = true;
+  sensorNameNoSpecChars = false;
   kafkaTopicValid = false;
   parserClassValid = false;
   grokStatementValid = false;
@@ -309,10 +310,14 @@ export class SensorParserConfigComponent implements OnInit {
 
   onSetSensorName(): void {
     this.sensorNameUnique = this.currentSensors.indexOf(this.sensorName) === -1;
+    this.sensorNameNoSpecChars = !/[^a-zA-Z0-9_-]/.test(this.sensorName);
+
     this.sensorNameValid =
       this.sensorName !== undefined &&
       this.sensorName.length > 0 &&
-      this.sensorNameUnique;
+      this.sensorNameUnique &&
+      this.sensorNameNoSpecChars;
+
     this.isConfigValid();
   }
 

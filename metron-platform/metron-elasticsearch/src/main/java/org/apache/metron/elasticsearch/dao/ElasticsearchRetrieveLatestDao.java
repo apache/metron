@@ -18,8 +18,18 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
+import org.apache.metron.common.Constants;
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.indexing.dao.RetrieveLatestDao;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.update.Document;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,29 +39,23 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import org.apache.metron.elasticsearch.client.ElasticsearchClient;
-import org.apache.metron.indexing.dao.RetrieveLatestDao;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.update.Document;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.index.query.IdsQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.typeQuery;
 
 public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
 
-  private ElasticsearchClient transportClient;
+  private ElasticsearchClient client;
+  private ElasticsearchRequestSubmitter submitter;
 
-  public ElasticsearchRetrieveLatestDao(ElasticsearchClient transportClient) {
-    this.transportClient = transportClient;
+  public ElasticsearchRetrieveLatestDao(ElasticsearchClient client) {
+    this.client = client;
+    this.submitter = new ElasticsearchRequestSubmitter(client);
   }
 
   @Override
   public Document getLatest(String guid, String sensorType) throws IOException {
-    Optional<Document> doc = searchByGuid(guid, sensorType, hit -> toDocument(guid, hit));
+    Optional<Document> doc = searchByGuid(guid, sensorType, hit -> toDocument(hit));
     return doc.orElse(null);
   }
 
@@ -63,21 +67,7 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
       guids.add(getRequest.getGuid());
       sensorTypes.add(getRequest.getSensorType());
     }
-    List<Document> documents = searchByGuids(
-        guids,
-        sensorTypes,
-        hit -> {
-          Long ts = 0L;
-          String doc = hit.getSourceAsString();
-          String sourceType = Iterables.getFirst(Splitter.on("_doc").split(hit.getType()), null);
-          try {
-            return Optional.of(new Document(doc, hit.getId(), sourceType, ts));
-          } catch (IOException e) {
-            throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
-          }
-        }
-
-    );
+    List<Document> documents = searchByGuids(guids, sensorTypes, hit -> toDocument(hit));
     return documents;
   }
 
@@ -102,54 +92,47 @@ public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
     if (guids == null || guids.isEmpty()) {
       return Collections.emptyList();
     }
-    QueryBuilder query = null;
-    IdsQueryBuilder idsQuery;
-    if (sensorTypes != null) {
-      String[] types = sensorTypes.stream().map(sensorType -> sensorType + "_doc")
-          .toArray(String[]::new);
-      idsQuery = QueryBuilders.idsQuery(types);
-    } else {
-      idsQuery = QueryBuilders.idsQuery();
+
+    // should match any of the guids
+    // the 'guid' field must be of type 'keyword' or this term query will not match
+    BoolQueryBuilder guidQuery = boolQuery().must(termsQuery(Constants.GUID, guids));
+
+    // should match any of the sensor types
+    BoolQueryBuilder sensorQuery = boolQuery();
+    sensorTypes.forEach(sensorType -> sensorQuery.should(typeQuery(sensorType + "_doc")));
+
+    // must have a match for both guid and sensor
+    BoolQueryBuilder query = boolQuery()
+            .must(guidQuery)
+            .must(sensorQuery);
+
+    // submit the search
+    SearchResponse response;
+    try {
+      SearchSourceBuilder source = new SearchSourceBuilder()
+              .query(query)
+              .size(guids.size());
+      SearchRequest request = new SearchRequest().source(source);
+      response = submitter.submitSearch(request);
+
+    } catch(InvalidSearchException e) {
+      throw new IOException(e);
     }
 
-    for (String guid : guids) {
-      query = idsQuery.addIds(guid);
-    }
-    SearchRequest request = new SearchRequest();
-    SearchSourceBuilder builder = new SearchSourceBuilder();
-    builder.query(query);
-    builder.size(guids.size());
-    request.source(builder);
-
-    org.elasticsearch.action.search.SearchResponse response = transportClient.getHighLevelClient().search(request);
-    SearchHits hits = response.getHits();
+    // transform the search hits to results using the callback
     List<T> results = new ArrayList<>();
-    for (SearchHit hit : hits) {
+    for(SearchHit hit: response.getHits()) {
       Optional<T> result = callback.apply(hit);
-      if (result.isPresent()) {
-        results.add(result.get());
-      }
+      result.ifPresent(r -> results.add(r));
     }
+
     return results;
   }
 
-  private Optional<Document> toDocument(final String guid, SearchHit hit) {
-    Long ts = 0L;
-    String doc = hit.getSourceAsString();
-    String sourceType = toSourceType(hit.getType());
-    try {
-      return Optional.of(new Document(doc, guid, sourceType, ts));
-    } catch (IOException e) {
-      throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
-    }
-  }
+  private Optional<Document> toDocument(SearchHit hit) {
+    Document document = Document.fromJSON(hit.getSource());
+    document.setDocumentID(hit.getId());
 
-  /**
-   * Returns the source type based on a given doc type.
-   * @param docType The document type.
-   * @return The source type.
-   */
-  private String toSourceType(String docType) {
-    return Iterables.getFirst(Splitter.on("_doc").split(docType), null);
+    return Optional.of(document);
   }
 }

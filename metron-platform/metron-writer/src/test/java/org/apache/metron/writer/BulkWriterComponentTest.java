@@ -28,10 +28,13 @@ import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
@@ -235,5 +238,36 @@ public class BulkWriterComponentTest {
     verify(bulkMessageWriter, times(0)).write(sensorType, configurations, Collections.singletonList(tuple1), Collections.singletonList(message1));
   }
 
+  @Test
+  public void flushShouldAckMissingTuples() throws Exception{
+    BulkMessageWriter<JSONObject> bulkMessageWriter = mock(BulkMessageWriter.class);
+    Tuple successTuple = mock(Tuple.class);
+    Tuple errorTuple = mock(Tuple.class);
+    Tuple missingTuple = mock(Tuple.class);
+    Collection<Tuple> tupleList = Arrays.asList(successTuple, errorTuple, missingTuple);
+    JSONObject successMessage = new JSONObject();
+    successMessage.put("name", "success");
+    JSONObject errorMessage = new JSONObject();
+    errorMessage.put("name", "error");
+    JSONObject missingMessage = new JSONObject();
+    missingMessage.put("name", "missing");
+    List<JSONObject> messageList = Arrays.asList(successMessage, errorMessage, missingMessage);
+    OutputCollector collector = mock(OutputCollector.class);
+    BulkWriterResponse bulkWriterResponse = new BulkWriterResponse();
+    bulkWriterResponse.addSuccess(successTuple);
+    Throwable throwable = mock(Throwable.class);
+    bulkWriterResponse.addError(throwable, errorTuple);
 
+    when(bulkMessageWriter.write(sensorType, configurations, tupleList, messageList)).thenReturn(bulkWriterResponse);
+
+    BulkWriterComponent bulkWriterComponent = new BulkWriterComponent(collector, true, true);
+    bulkWriterComponent.flush(sensorType, bulkMessageWriter, configurations, messageGetStrategy, tupleList, messageList);
+
+    verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM), any(Values.class));
+    verify(collector, times(1)).reportError(throwable);
+    verify(collector, times(1)).ack(successTuple);
+    verify(collector, times(1)).ack(errorTuple);
+    verify(collector, times(1)).ack(missingTuple);
+    verifyNoMoreInteractions(collector);
+  }
 }

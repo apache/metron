@@ -1,6 +1,6 @@
 {
   "name": "metron-alerts",
-  "version": "0.6.1",
+  "version": "0.7.1",
   "license": "Apache-2.0",
   "angular-cli": {},
   "scripts": {
@@ -13,7 +13,8 @@
     "e2e": "protractor-flake --protractor-path=./node_modules/.bin/protractor --max-attempts=3 -- ./protractor.conf.js",
     "cypress:run": "cypress run",
     "cypress:open": "cypress open",
-    "cypress:ci": "run-p --race start cypress:run"
+    "cypress:ci": "ng build --prod && run-p --race start:ci cypress:run",
+    "start:ci": "node ./scripts/alerts-server.js -c alerts_ui_cypress.yml"
   },
   "private": true,
   "dependencies": {
@@ -75,6 +76,7 @@
     "serve-static": "^1.13.2",
     "ssh2": "^0.5.5",
     "tslint": "~5.0.0",
-    "typescript": "~2.9.2"
+    "typescript": "~2.9.2",
+    "yamljs": "^0.3.0"
   }
 }

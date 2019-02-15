@@ -21,7 +21,8 @@ The aim of the build utilities project is to provide some scripting
 around the care and maintenance of the building infrastructure.  At the
 moment the primary mission is around utilities that assist us manage the
 licenses of our dependencies and generate the appropriate notices or
-licenses.
+licenses.  These utilities assume you have already built the repo via `mvn
+clean install -DskipTests`.
 
 ## `dependencies_with_url.csv`
 This file is the reference file for all of our dependencies.

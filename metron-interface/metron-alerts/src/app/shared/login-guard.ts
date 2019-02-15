@@ -32,7 +32,7 @@ export class LoginGuard implements CanActivate {
 
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
 
-    this.authService.logout();
+    this.authService.clearAuthentication();
 
     return true;
 

@@ -17,13 +17,14 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
-import { METRON_REST_CONFIG, APP_CONFIG } from '../app.config';
 import { SensorIndexingConfigService } from './sensor-indexing-config.service';
 import { IndexingConfigurations } from '../model/sensor-indexing-config';
 import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('SensorIndexingConfigService', () => {
   let mockBackend: HttpTestingController;
@@ -34,7 +35,7 @@ describe('SensorIndexingConfigService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         SensorIndexingConfigService,
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     mockBackend = TestBed.get(HttpTestingController);

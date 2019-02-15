@@ -17,7 +17,6 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import com.google.common.cache.CacheLoader;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
@@ -26,7 +25,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
@@ -166,8 +165,8 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
 
     HashMap<String, Object> globalConfig = new HashMap<>();
     String baseDir = UnitTestHelper.findDir("GeoLite");
-    File geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
-    globalConfig.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
+    File geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");
+    globalConfig.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
     genericEnrichmentBolt.getConfigurations().updateGlobalConfig(globalConfig);
 
     try {

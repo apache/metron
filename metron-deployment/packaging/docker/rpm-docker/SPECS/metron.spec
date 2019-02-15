@@ -44,7 +44,7 @@ License:        ASL 2.0
 Group:          Applications/Internet
 URL:            %{url}
 Source0:        metron-common-%{full_version}-archive.tar.gz
-Source1:        metron-parsers-%{full_version}-archive.tar.gz
+Source1:        metron-parsers-common-%{full_version}-archive.tar.gz
 Source2:        metron-elasticsearch-%{full_version}-archive.tar.gz
 Source3:        metron-data-management-%{full_version}-archive.tar.gz
 Source4:        metron-solr-%{full_version}-archive.tar.gz
@@ -60,6 +60,8 @@ Source13:       metron-alerts-%{full_version}-archive.tar.gz
 Source14:       metron-performance-%{full_version}-archive.tar.gz
 Source15:       metron-profiler-spark-%{full_version}-archive.tar.gz
 Source16:       metron-profiler-repl-%{full_version}-archive.tar.gz
+Source17:       metron-parsing-storm-%{full_version}-archive.tar.gz
+Source18:        metron-parsers-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -99,6 +101,8 @@ tar -xzf %{SOURCE13} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE14} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE15} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE16} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE17} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE18} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
@@ -133,43 +137,82 @@ This package installs the Metron common files %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-%package        parsers
-Summary:        Metron Parser Files
+%package        parsers-common
+Summary:        Metron Parser Common Files
 Group:          Applications/Internet
-Provides:       parsers = %{version}
+Provides:       parsers-common = %{version}
 
-%description    parsers
-This package installs the Metron Parser files
+%description    parsers-common
+This package installs the Metron Parser Common files
 
-%files          parsers
+%files          parsers-common
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
-%dir %{metron_home}/bin
 %dir %{metron_home}/config
 %dir %{metron_home}/config/zookeeper
 %dir %{metron_home}/config/zookeeper/parsers
 %dir %{metron_home}/patterns
 %dir %{metron_home}/lib
-%{metron_home}/bin/start_parser_topology.sh
-%{metron_home}/config/zookeeper/parsers/bro.json
 %{metron_home}/config/zookeeper/parsers/jsonMap.json
 %{metron_home}/config/zookeeper/parsers/jsonMapQuery.json
 %{metron_home}/config/zookeeper/parsers/jsonMapWrappedQuery.json
+%{metron_home}/config/zookeeper/parsers/syslog3164.json
+%{metron_home}/config/zookeeper/parsers/syslog5424.json
+%{metron_home}/patterns/common
+%attr(0644,root,root) %{metron_home}/lib/metron-parsers-common-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        parsers
+Summary:        Metron Bundled Parser Files
+Group:          Applications/Internet
+Provides:       parsers = %{version}
+
+%description    parsers
+This package installs the Metron Bundled Parser files
+
+%files          parsers
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/config
+%dir %{metron_home}/config/zookeeper
+%dir %{metron_home}/config/zookeeper/parsers
+%dir %{metron_home}/patterns
+%dir %{metron_home}/lib
+%{metron_home}/config/zookeeper/parsers/bro.json
 %{metron_home}/config/zookeeper/parsers/snort.json
 %{metron_home}/config/zookeeper/parsers/squid.json
-%{metron_home}/config/zookeeper/parsers/syslog5424.json
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
 %{metron_home}/config/zookeeper/parsers/asa.json
 %{metron_home}/patterns/asa
-%{metron_home}/patterns/common
 %{metron_home}/patterns/fireeye
 %{metron_home}/patterns/sourcefire
 %{metron_home}/patterns/squid
 %{metron_home}/patterns/websphere
 %{metron_home}/patterns/yaf
 %attr(0644,root,root) %{metron_home}/lib/metron-parsers-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        parsing-storm
+Summary:        Metron Parser Storm Files
+Group:          Applications/Internet
+Provides:       parsing-storm = %{version}
+
+%description    parsing-storm
+This package installs the Metron Parser Storm files
+
+%files          parsing-storm
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/lib
+%{metron_home}/bin/start_parser_topology.sh
+%attr(0644,root,root) %{metron_home}/lib/metron-parsing-storm-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -228,7 +271,7 @@ This package installs the Metron Parser files
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/bin/Whois_CSV_to_JSON.py
-%{metron_home}/bin/geo_enrichment_load.sh
+%{metron_home}/bin/maxmind_enrichment_load.sh
 %{metron_home}/bin/flatfile_loader.sh
 %{metron_home}/bin/flatfile_summarizer.sh
 %{metron_home}/bin/prune_elasticsearch_indices.sh
@@ -424,8 +467,17 @@ This package installs the Metron Rest %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/config/rest_application.yml
+%{metron_home}/config/knox/conf/topologies/metron.xml
+%{metron_home}/config/knox/conf/topologies/metronsso.xml
+%{metron_home}/config/knox/data/services/alerts/rewrite.xml
+%{metron_home}/config/knox/data/services/alerts/service.xml
+%{metron_home}/config/knox/data/services/management/rewrite.xml
+%{metron_home}/config/knox/data/services/management/service.xml
+%{metron_home}/config/knox/data/services/rest/rewrite.xml
+%{metron_home}/config/knox/data/services/rest/service.xml
 %{metron_home}/bin/metron-rest.sh
 %{metron_home}/bin/pcap_to_pdml.sh
+%{metron_home}/bin/install_metron_knox.sh
 %attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -477,6 +529,7 @@ This package installs the Metron Management UI %{metron_home}
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/LICENSE.txt
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/*.ttf
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/images/*
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/app-config.json
 %attr(0644,root,root) %{metron_home}/web/management-ui/license/*
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -591,13 +644,19 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
-* Wed Oct 31 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
+* Thu Dec 27 2018 Apache Metron <dev@metron.apache.og> - 0.7.1
+- Updat metron SPEC to move syslog configurations to right place
+* Wed Dec 26 2018 Apache Metron <dev@metron.apache.org> - 0.7.1
+- Update metron SPEC file to include syslog 3164 parser
+* Thu Nov 15 2018 Apache Metron <dev@metron.apache.org> - 0.7.0
+- Split metron-parsers into metron-parsing and submodules
+* Wed Oct 31 2018 Apache Metron <dev@metron.apache.org> - 0.7.0
 - Update files in Management UI from Angular upgrade
-* Thu Aug 30 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
+* Thu Aug 30 2018 Apache Metron <dev@metron.apache.org> - 0.7.0
 - Update compiled css file name for Alerts UI
-* Fri Aug 24 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
+* Fri Aug 24 2018 Apache Metron <dev@metron.apache.org> - 0.7.0
 - Add syslog5424 parser
-* Tue Aug 21 2018 Apache Metron <dev@metron.apache.org> - 0.6.1
+* Tue Aug 21 2018 Apache Metron <dev@metron.apache.org> - 0.7.0
 - Add Profiler for REPL
 * Tue Aug 14 2018 Apache Metron <dev@metron.apache.org> - 0.5.1
 - Add Profiler for Spark

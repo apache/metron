@@ -446,12 +446,13 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public void exitNotFunc(StellarParser.NotFuncContext ctx) {
     final FrameContext.Context context = getArgContext();
-    expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
-    Token<Boolean> arg = (Token<Boolean>) popDeque(tokenDeque);
-    Boolean v = Optional.ofNullable(ConversionUtils.convert(arg.getValue(), Boolean.class)).orElse(false);
-    tokenDeque.push(new Token<>(!v, Boolean.class, context));
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+      Token<Boolean> arg = (Token<Boolean>) popDeque(tokenDeque);
+      Boolean v = Optional.ofNullable(ConversionUtils.convert(arg.getValue(), Boolean.class)).orElse(false);
+      tokenDeque.push(new Token<>(!v, Boolean.class, context));
     }, DeferredFunction.class, context));
   }
 
@@ -600,10 +601,11 @@ public class StellarCompiler extends StellarBaseListener {
     expression.tokenDeque.push(LAMBDA_VARIABLES);
   }
 
+  @SuppressWarnings("ReferenceEquality")
   private void exitLambdaVariables() {
     Token<?> t = expression.tokenDeque.pop();
     LinkedList<String> variables = new LinkedList<>();
-    for(; !expression.tokenDeque.isEmpty() && t != LAMBDA_VARIABLES; t = expression.tokenDeque.pop()) {
+    for (; !expression.tokenDeque.isEmpty() && t != LAMBDA_VARIABLES; t = expression.tokenDeque.pop()) {
       variables.addFirst(t.getValue().toString());
     }
     expression.tokenDeque.push(new Token<>(variables, List.class, getArgContext()));
@@ -613,6 +615,7 @@ public class StellarCompiler extends StellarBaseListener {
     expression.tokenDeque.push(EXPRESSION_REFERENCE);
   }
 
+  @SuppressWarnings({"unchecked","ReferenceEquality"})
   private void exitLambda(boolean hasArgs) {
     final FrameContext.Context context = getArgContext();
     Token<?> t = expression.tokenDeque.pop();
@@ -620,11 +623,11 @@ public class StellarCompiler extends StellarBaseListener {
     for(; !expression.tokenDeque.isEmpty() && t != EXPRESSION_REFERENCE; t = expression.tokenDeque.pop()) {
       instanceDeque.addLast(t);
     }
-    final List<String> variables = hasArgs? (List<String>) instanceDeque.removeLast().getValue() :new ArrayList<>();
-    expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
+    final List<String> variables = hasArgs ? (List<String>) instanceDeque.removeLast().getValue() :new ArrayList<>();
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
       LambdaExpression expr = new LambdaExpression(variables, instanceDeque, state);
       tokenDeque.push(new Token<>(expr, Object.class, context));
-    }, DeferredFunction.class, context) );
+    }, DeferredFunction.class, context));
   }
 
   @Override

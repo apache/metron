@@ -21,19 +21,39 @@ package org.apache.metron.indexing.dao.update;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+import static org.apache.metron.common.Constants.Fields.TIMESTAMP;
+import static org.apache.metron.common.Constants.GUID;
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
 import org.apache.metron.common.utils.JSONUtils;
 
 public class Document {
+
   Long timestamp;
   Map<String, Object> document;
   String guid;
   String sensorType;
+  String documentID;
+
+  public static Document fromJSON(Map<String, Object> json) {
+    String guid = getGUID(json);
+    Long timestamp = getTimestamp(json).orElse(0L);
+    String sensorType = getSensorType(json);
+    return new Document(json, guid, sensorType, timestamp);
+  }
 
   public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp) {
+    this(document, guid, sensorType, timestamp, null);
+  }
+
+  public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp, String documentID) {
     setDocument(document);
     setGuid(guid);
     setTimestamp(timestamp);
     setSensorType(sensorType);
+    setDocumentID(documentID);
   }
 
   public Document(String document, String guid, String sensorType, Long timestamp) throws IOException {
@@ -41,7 +61,7 @@ public class Document {
   }
 
   public Document(String document, String guid, String sensorType) throws IOException {
-    this( document, guid, sensorType, null);
+    this(document, guid, sensorType, null);
   }
 
   /**
@@ -49,8 +69,11 @@ public class Document {
    * @param other The document to be copied.
    */
   public Document(Document other) {
-    this(new HashMap<>(other.getDocument()), other.getGuid(), other.getSensorType(),
-        other.getTimestamp());
+    this(new HashMap<>(other.getDocument()),
+            other.getGuid(),
+            other.getSensorType(),
+            other.getTimestamp(),
+            other.getDocumentID().orElse(null));
   }
 
   private static Map<String, Object> convertDoc(String document) throws IOException {
@@ -89,46 +112,83 @@ public class Document {
     this.guid = guid;
   }
 
-  @Override
-  public String toString() {
-    return "Document{" +
-        "timestamp=" + timestamp +
-        ", document=" + document +
-        ", guid='" + guid + '\'' +
-        ", sensorType='" + sensorType + '\'' +
-        '}';
+  /**
+   * Returns the unique identifier that is used when persisting this document.
+   *
+   * <p>This value will be different than the Metron guid.
+   *
+   * <p>Only present when a document has been retrieved from a store
+   * that supports a document ID, like Elasticsearch.  This value will
+   * not be present when retrieved from HBase.
+   */
+  public Optional<String> getDocumentID() {
+    return Optional.ofNullable(documentID);
+  }
+
+  public void setDocumentID(Optional<String> documentID) {
+    this.documentID = documentID.orElse(null);
+  }
+
+  public void setDocumentID(String documentID) {
+    this.documentID = documentID;
+  }
+
+  private static Optional<Long> getTimestamp(Map<String, Object> document) {
+    Object value = document.get(TIMESTAMP.getName());
+    if(value != null && value instanceof Long) {
+      return Optional.of(Long.class.cast(value));
+    }
+    return Optional.empty();
+  }
+
+  private static String getGUID(Map<String, Object> document) {
+    Object value = document.get(GUID);
+    if(value != null && value instanceof String) {
+      return String.class.cast(value);
+    }
+
+    throw new IllegalStateException(String.format("Missing '%s' field", GUID));
+  }
+
+  private static String getSensorType(Map<String, Object> document) {
+    Object value = document.get(SENSOR_TYPE);
+    if(value != null && value instanceof String) {
+      return String.class.cast(value);
+    }
+
+    value = document.get(SENSOR_TYPE.replace(".", ":"));
+    if(value != null && value instanceof String) {
+      return String.class.cast(value);
+    }
+
+    throw new IllegalStateException(String.format("Missing '%s' field", SENSOR_TYPE));
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
+    if (this == o) return true;
+    if (!(o instanceof Document)) return false;
     Document document1 = (Document) o;
-
-    if (timestamp != null ? !timestamp.equals(document1.timestamp) : document1.timestamp != null) {
-      return false;
-    }
-    if (document != null ? !document.equals(document1.document) : document1.document != null) {
-      return false;
-    }
-    if (guid != null ? !guid.equals(document1.guid) : document1.guid != null) {
-      return false;
-    }
-    return sensorType != null ? sensorType.equals(document1.sensorType)
-        : document1.sensorType == null;
+    return Objects.equals(timestamp, document1.timestamp) &&
+            Objects.equals(document, document1.document) &&
+            Objects.equals(guid, document1.guid) &&
+            Objects.equals(sensorType, document1.sensorType) &&
+            Objects.equals(documentID, document1.documentID);
   }
 
   @Override
   public int hashCode() {
-    int result = timestamp != null ? timestamp.hashCode() : 0;
-    result = 31 * result + (document != null ? document.hashCode() : 0);
-    result = 31 * result + (guid != null ? guid.hashCode() : 0);
-    result = 31 * result + (sensorType != null ? sensorType.hashCode() : 0);
-    return result;
+    return Objects.hash(timestamp, document, guid, sensorType, documentID);
+  }
+
+  @Override
+  public String toString() {
+    return "Document{" +
+            "timestamp=" + timestamp +
+            ", document=" + document +
+            ", guid='" + guid + '\'' +
+            ", sensorType='" + sensorType + '\'' +
+            ", documentID=" + documentID +
+            '}';
   }
 }

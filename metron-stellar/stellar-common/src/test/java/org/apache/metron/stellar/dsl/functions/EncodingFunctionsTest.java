@@ -53,6 +53,7 @@ public class EncodingFunctionsTest {
   }};
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testSupportedEncodingsList() throws Exception{
     Object ret = run("GET_SUPPORTED_ENCODINGS()", new HashMap());
     Assert.assertTrue(ret instanceof List );

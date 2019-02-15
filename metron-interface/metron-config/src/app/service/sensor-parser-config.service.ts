@@ -28,19 +28,20 @@ import { APP_CONFIG } from '../app.config';
 import { ParserGroupModel } from '../sensors/models/parser-group.model';
 import { ParserModel } from 'app/sensors/models/parser.model';
 import { ParserMetaInfoModel } from '../sensors/models/parser-meta-info.model';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class SensorParserConfigService {
 
-  readonly parserConfigEndpoint = this.config.apiEndpoint + '/sensor/parser/config';
-  readonly parserGroupEndpoint = this.config.apiEndpoint + '/sensor/parser/group';
+  readonly parserConfigEndpoint = this.appConfigService.getApiRoot() + '/sensor/parser/config';
+  readonly parserGroupEndpoint = this.appConfigService.getApiRoot() + '/sensor/parser/group';
 
   dataChangedSource = new Subject<string[]>();
   dataChanged$ = this.dataChangedSource.asObservable();
 
   constructor(
     private http: HttpClient,
-    @Inject(APP_CONFIG) private config: IAppConfig
+    private appConfigService: AppConfigService
   ) {}
 
   public getAllGroups(): Observable<ParserGroupModel[]> {
