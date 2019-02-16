@@ -30,6 +30,7 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -337,16 +338,17 @@ public class PcapCliTest {
    * @param type Fixed|Query
    * @param optMsg Expected error message
    */
-  public void assertCliError(String[] args, String type, String optMsg) {
+  public void assertCliError(String[] args, String type, String optMsg)
+      throws UnsupportedEncodingException {
     PrintStream originalOutStream = System.out;
     PrintStream originalErrOutStream = System.err;
     try {
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      PrintStream outStream = new PrintStream(new BufferedOutputStream(bos));
+      PrintStream outStream = new PrintStream(new BufferedOutputStream(bos), false, StandardCharsets.UTF_8.name());
       System.setOut(outStream);
 
       ByteArrayOutputStream ebos = new ByteArrayOutputStream();
-      PrintStream errOutStream = new PrintStream(new BufferedOutputStream(ebos));
+      PrintStream errOutStream = new PrintStream(new BufferedOutputStream(ebos), false, StandardCharsets.UTF_8.name());
       System.setErr(errOutStream);
 
       PcapCli cli = new PcapCli(jobRunner, clock -> "random_prefix");
