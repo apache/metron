@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.configuration;
 
+import java.nio.charset.StandardCharsets;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import org.apache.commons.io.IOUtils;
@@ -49,9 +50,10 @@ public class SensorEnrichmentConfigTest {
       SensorEnrichmentConfig config = null;
       try (BufferedReader br = new BufferedReader(new FileReader(enrichmentConfig))) {
         String parserStr = IOUtils.toString(br);
-        config = SensorEnrichmentConfig.fromBytes(parserStr.getBytes());
+        config = SensorEnrichmentConfig.fromBytes(parserStr.getBytes(StandardCharsets.UTF_8));
       }
-      SensorEnrichmentConfig config2 = SensorEnrichmentConfig.fromBytes(config.toJSON().getBytes());
+      SensorEnrichmentConfig config2 = SensorEnrichmentConfig.fromBytes(config.toJSON().getBytes(
+          StandardCharsets.UTF_8));
       Assert.assertEquals(config2, config);
     }
   }

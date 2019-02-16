@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -307,7 +308,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
             message -> {
               try {
                 return new JSONObject(
-                    JSONUtils.INSTANCE.load(new String(message), JSONUtils.MAP_SUPPLIER));
+                    JSONUtils.INSTANCE.load(new String(message, StandardCharsets.UTF_8), JSONUtils.MAP_SUPPLIER));
               } catch (Exception ex) {
                 throw new IllegalStateException(ex);
               }
@@ -524,7 +525,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
       for (byte[] b : kc.readMessages(topic)) {
         try {
           JSONObject m = new JSONObject(
-              JSONUtils.INSTANCE.load(new String(b), JSONUtils.MAP_SUPPLIER));
+              JSONUtils.INSTANCE.load(new String(b, StandardCharsets.UTF_8), JSONUtils.MAP_SUPPLIER));
           out.add(m);
         } catch (IOException e) {
           throw new IllegalStateException(e);

@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -107,7 +108,8 @@ public class TestConfig {
       File globalConfigFile = new File("src/test/resources/zookeeper/global.json");
       try(BufferedReader r = new BufferedReader(new FileReader(globalConfigFile))){
         String globalConfig = IOUtils.toString(r);
-        ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(), zkServerComponent.getConnectionString());
+        ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(
+            StandardCharsets.UTF_8), zkServerComponent.getConnectionString());
       } catch (Exception e) {
         throw new IllegalStateException("Unable to upload global config", e);
       }

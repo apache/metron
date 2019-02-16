@@ -20,6 +20,7 @@
 package org.apache.metron.parsers.ise;
 
 import com.esotericsoftware.minlog.Log;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -55,7 +56,7 @@ public class BasicIseParser extends BasicParser {
 		List<JSONObject> messages = new ArrayList<>();
 		try {
 
-			raw_message = new String(msg, "UTF-8");
+			raw_message = new String(msg, StandardCharsets.UTF_8);
 			_LOG.debug("Received message: {}", raw_message);
 
 			/*

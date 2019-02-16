@@ -21,6 +21,7 @@ package org.apache.metron.writer.hdfs;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -70,7 +71,7 @@ public class SourceHandler {
 
 
   protected void handle(JSONObject message, String sensor, WriterConfiguration config, SyncPolicyCreator syncPolicyCreator) throws IOException {
-    byte[] bytes = (message.toJSONString() + "\n").getBytes();
+    byte[] bytes = (message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8);
     synchronized (this.writeLock) {
       try {
         out.write(bytes);

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.sourcefire;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.metron.parsers.AbstractParserConfigTest;
@@ -40,8 +41,8 @@ public class BasicSourcefireParserTest extends AbstractParserConfigTest {
   @Test
   public void testParse() throws ParseException {
     for (String inputString : inputStrings) {
-      byte[] srcBytes = inputString.getBytes();
-      JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
+      byte[] srcBytes = inputString.getBytes(StandardCharsets.UTF_8);
+      JSONObject parsed = parser.parse(inputString.getBytes(StandardCharsets.UTF_8)).get(0);
       Assert.assertNotNull(parsed);
 
       JSONParser parser = new JSONParser();

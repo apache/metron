@@ -23,6 +23,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.Message;
 import com.google.protobuf.Service;
 import com.google.protobuf.ServiceException;
+import java.nio.charset.StandardCharsets;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -264,7 +265,7 @@ public class MockHTable implements HTableInterface {
           qualifiers = data.get(row).get(family).navigableKeySet();
         for (byte[] qualifier : qualifiers){
           if (qualifier == null)
-            qualifier = "".getBytes();
+            qualifier = "".getBytes(StandardCharsets.UTF_8);
           if (!data.get(row).containsKey(family) ||
                   !data.get(row).get(family).containsKey(qualifier) ||
                   data.get(row).get(family).get(qualifier).isEmpty())

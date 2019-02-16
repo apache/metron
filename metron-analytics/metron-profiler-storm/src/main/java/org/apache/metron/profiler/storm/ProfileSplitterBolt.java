@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.storm;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.profiler.DefaultMessageRouter;
@@ -170,7 +171,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
       return;
     }
 
-    JSONObject message = (JSONObject) parser.parse(new String(data, "UTF8"));
+    JSONObject message = (JSONObject) parser.parse(new String(data, StandardCharsets.UTF_8));
     routeMessage(input, message, config);
   }
 

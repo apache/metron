@@ -20,6 +20,7 @@ package org.apache.metron.parsers.syslog;
 
 import com.github.palindromicity.syslog.SyslogParser;
 import com.github.palindromicity.syslog.dsl.SyslogFieldKeys;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.parsers.DefaultMessageParserResult;
 import org.apache.metron.parsers.ParseException;
@@ -109,7 +110,7 @@ public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Ser
         return Optional.empty();
       }
 
-      String originalString = new String(rawMessage);
+      String originalString = new String(rawMessage, StandardCharsets.UTF_8);
       final List<JSONObject> returnList = new ArrayList<>();
       Map<Object,Throwable> errorMap = new HashMap<>();
       try (Reader reader = new BufferedReader(new StringReader(originalString))) {
@@ -131,7 +132,7 @@ public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Ser
         return Optional.of(new DefaultMessageParserResult<JSONObject>(returnList,errorMap));
       }
     } catch (IOException e) {
-      String message = "Unable to read buffer " + new String(rawMessage) + ": " + e.getMessage();
+      String message = "Unable to read buffer " + new String(rawMessage, StandardCharsets.UTF_8) + ": " + e.getMessage();
       LOG.error(message, e);
       return Optional.of(new DefaultMessageParserResult<JSONObject>( new IllegalStateException(message, e)));
     }

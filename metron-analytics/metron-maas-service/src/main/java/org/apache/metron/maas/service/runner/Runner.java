@@ -21,6 +21,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -314,7 +315,7 @@ public class Runner {
         }
         if(content != null && content.length() > 0) {
           try {
-            Endpoint ep = ConfigUtil.INSTANCE.read(content.getBytes(), Endpoint.class);
+            Endpoint ep = ConfigUtil.INSTANCE.read(content.getBytes(StandardCharsets.UTF_8), Endpoint.class);
             return ep;
           }
           catch(Exception ex) {

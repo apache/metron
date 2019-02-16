@@ -23,6 +23,7 @@ package org.apache.metron.hbase.bolt.mapper;
 import com.google.common.collect.Lists;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -44,8 +45,8 @@ public class HBaseProjectionCriteria implements Serializable {
     private byte[] qualifier;
 
     public ColumnMetaData(String columnFamily, String qualifier) {
-      this.columnFamily = columnFamily.getBytes();
-      this.qualifier = qualifier.getBytes();
+      this.columnFamily = columnFamily.getBytes(StandardCharsets.UTF_8);
+      this.qualifier = qualifier.getBytes(StandardCharsets.UTF_8);
     }
 
     public byte[] getColumnFamily() {
@@ -68,7 +69,7 @@ public class HBaseProjectionCriteria implements Serializable {
    * @return column family along with all of its columns from an HBase lookup
    */
   public HBaseProjectionCriteria addColumnFamily(String columnFamily) {
-    this.columnFamilies.add(columnFamily.getBytes());
+    this.columnFamilies.add(columnFamily.getBytes(StandardCharsets.UTF_8));
     return this;
   }
 

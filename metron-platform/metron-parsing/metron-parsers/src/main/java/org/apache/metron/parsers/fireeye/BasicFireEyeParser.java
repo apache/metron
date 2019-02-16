@@ -94,7 +94,7 @@ public class BasicFireEyeParser extends BasicParser {
       messages.add(toReturn);
       return messages;
     } catch (Exception e) {
-      String message = "Unable to parse " + new String(rawMessage) + ": " + e.getMessage();
+      String message = "Unable to parse " + new String(rawMessage, StandardCharsets.UTF_8) + ": " + e.getMessage();
       LOG.error(message, e);
       throw new IllegalStateException(message, e);
     }

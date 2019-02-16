@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -160,7 +161,7 @@ public class HBaseDao implements IndexDao {
       }
       try {
         tableInterface = config.getTableProvider().getTable(HBaseConfiguration.create(), table);
-        this.cf = cf.getBytes();
+        this.cf = cf.getBytes(StandardCharsets.UTF_8);
       } catch (IOException e) {
         throw new IllegalStateException("Unable to initialize HBaseDao: " + e.getMessage(), e);
       }
@@ -209,7 +210,8 @@ public class HBaseDao implements IndexDao {
     Map.Entry<byte[], byte[]> entry= columns.lastEntry();
     Long ts = Bytes.toLong(entry.getKey());
     if(entry.getValue()!= null) {
-      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue()),
+      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue(),
+              StandardCharsets.UTF_8),
           JSONUtils.MAP_SUPPLIER);
 
       // Make sure comments are in the proper format

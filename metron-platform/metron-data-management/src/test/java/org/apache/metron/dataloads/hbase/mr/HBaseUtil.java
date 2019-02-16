@@ -18,6 +18,7 @@
 package org.apache.metron.dataloads.hbase.mr;
 
 import com.google.common.base.Joiner;
+import java.nio.charset.StandardCharsets;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -48,7 +49,7 @@ public enum HBaseUtil {
     }
     public void writeFile(String contents, Path filename, FileSystem fs) throws IOException {
         FSDataOutputStream os = fs.create(filename, true);
-        PrintWriter pw = new PrintWriter(new OutputStreamWriter(os));
+        PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
         pw.print(contents);
         pw.flush();
         os.close();
@@ -56,7 +57,7 @@ public enum HBaseUtil {
 
     public String readFile(FileSystem fs, Path filename) throws IOException {
         FSDataInputStream in = fs.open(filename);
-        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+        BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
         List<String> contents = new ArrayList<>();
         for(String line = null;(line = br.readLine()) != null;) {
             contents.add(line);

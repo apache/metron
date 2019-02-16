@@ -17,6 +17,7 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
@@ -203,42 +204,44 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       lineByLineExtractorConfigFile.delete();
     }
     Files.write( lineByLineExtractorConfigFile.toPath()
-               , lineByLineExtractorConfig.getBytes()
+               , lineByLineExtractorConfig.getBytes(StandardCharsets.UTF_8)
                , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(wholeFileExtractorConfigFile.exists()) {
       wholeFileExtractorConfigFile.delete();
     }
     Files.write( wholeFileExtractorConfigFile.toPath()
-               , wholeFileExtractorConfig.getBytes()
+               , wholeFileExtractorConfig.getBytes(StandardCharsets.UTF_8)
                , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(stellarExtractorConfigFile.exists()) {
       stellarExtractorConfigFile.delete();
     }
     Files.write( stellarExtractorConfigFile.toPath()
-            , stellarExtractorConfig.replace("%ZK_QUORUM%", zookeeperUrl).getBytes()
+            , stellarExtractorConfig.replace("%ZK_QUORUM%", zookeeperUrl).getBytes(
+            StandardCharsets.UTF_8)
             , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(customLineByLineExtractorConfigFile.exists()) {
       customLineByLineExtractorConfigFile.delete();
     }
     Files.write( customLineByLineExtractorConfigFile.toPath()
-               , customLineByLineExtractorConfig.replace("%EXTRACTOR_CLASS%", CSVExtractor.class.getName()).getBytes()
+               , customLineByLineExtractorConfig.replace("%EXTRACTOR_CLASS%", CSVExtractor.class.getName()).getBytes(
+            StandardCharsets.UTF_8)
                , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(file1.exists()) {
       file1.delete();
     }
     Files.write( file1.toPath()
-               , "google1.com,1,foo2\n".getBytes()
+               , "google1.com,1,foo2\n".getBytes(StandardCharsets.UTF_8)
                , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(file2.exists()) {
       file2.delete();
     }
     Files.write( file2.toPath()
-               , "google2.com,2,foo2\n".getBytes()
+               , "google2.com,2,foo2\n".getBytes(StandardCharsets.UTF_8)
                , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
 
@@ -282,7 +285,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
   private static void setupGlobalConfig(String zookeeperUrl) throws Exception {
     client = ConfigurationsUtils.getClient(zookeeperUrl);
     client.start();
-    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(), zookeeperUrl);
+    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(StandardCharsets.UTF_8), zookeeperUrl);
   }
 
   @AfterClass
@@ -425,7 +428,8 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
             , "-p 2", "-b 128", "-q"
     };
     FileSystem fs = FileSystem.get(config);
-    HBaseUtil.INSTANCE.writeFile(new String(Files.readAllBytes(multilineFile.toPath())), new Path(multilineFile.getName()), fs);
+    HBaseUtil.INSTANCE.writeFile(new String(Files.readAllBytes(multilineFile.toPath()),
+        StandardCharsets.UTF_8), new Path(multilineFile.getName()), fs);
     SimpleEnrichmentFlatFileLoader.main(config, argv);
     EnrichmentConverter converter = new EnrichmentConverter();
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));

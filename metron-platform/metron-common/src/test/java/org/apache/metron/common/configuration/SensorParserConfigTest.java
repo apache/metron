@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.configuration;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.metron.TestConstants;
 import org.junit.Assert;
@@ -32,9 +33,10 @@ public class SensorParserConfigTest {
       SensorParserConfig config = null;
       try (BufferedReader br = new BufferedReader(new FileReader(parserConfig))) {
         String parserStr = IOUtils.toString(br);
-        config = SensorParserConfig.fromBytes(parserStr.getBytes());
+        config = SensorParserConfig.fromBytes(parserStr.getBytes(StandardCharsets.UTF_8));
       }
-      SensorParserConfig config2 = SensorParserConfig.fromBytes(config.toJSON().getBytes());
+      SensorParserConfig config2 = SensorParserConfig.fromBytes(config.toJSON().getBytes(
+          StandardCharsets.UTF_8));
       Assert.assertEquals(config2, config);
     }
   }

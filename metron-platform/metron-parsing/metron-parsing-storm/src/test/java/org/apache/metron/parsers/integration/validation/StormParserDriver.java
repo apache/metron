@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,7 +62,7 @@ public class StormParserDriver extends ParserDriver {
 
     @Override
     public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
-      messages.forEach(message -> output.add(message.toJSONString().getBytes()));
+      messages.forEach(message -> output.add(message.toJSONString().getBytes(StandardCharsets.UTF_8)));
       BulkWriterResponse bulkWriterResponse = new BulkWriterResponse();
       bulkWriterResponse.addAllSuccesses(tuples);
       return bulkWriterResponse;

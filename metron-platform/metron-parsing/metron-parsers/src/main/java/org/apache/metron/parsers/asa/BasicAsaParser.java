@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -108,7 +109,7 @@ public class BasicAsaParser extends BasicParser {
   private void addGrok(String key, String pattern) throws GrokException {
     Grok grok = new Grok();
     InputStream patternStream = this.getClass().getResourceAsStream("/patterns/asa");
-    grok.addPatternFromReader(new InputStreamReader(patternStream));
+    grok.addPatternFromReader(new InputStreamReader(patternStream, StandardCharsets.UTF_8));
     grok.compile("%{" + pattern + "}");
     grokers.put(key, grok);
   }
@@ -118,7 +119,7 @@ public class BasicAsaParser extends BasicParser {
     syslogGrok = new Grok();
     InputStream syslogStream = this.getClass().getResourceAsStream("/patterns/asa");
     try {
-      syslogGrok.addPatternFromReader(new InputStreamReader(syslogStream));
+      syslogGrok.addPatternFromReader(new InputStreamReader(syslogStream, StandardCharsets.UTF_8));
       syslogGrok.compile(syslogPattern);
     } catch (GrokException e) {
       LOG.error("[Metron] Failed to load grok patterns from jar", e);
@@ -144,12 +145,7 @@ public class BasicAsaParser extends BasicParser {
     List<JSONObject> messages = new ArrayList<>();
     Map<String, Object> syslogJson = new HashMap<String, Object>();
 
-    try {
-      logLine = new String(rawMessage, "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      LOG.error("[Metron] Could not read raw message", e);
-      throw new RuntimeException(e.getMessage(), e);
-    }
+    logLine = new String(rawMessage, StandardCharsets.UTF_8);
 
     try {
       LOG.debug("[Metron] Started parsing raw message: {}", logLine);

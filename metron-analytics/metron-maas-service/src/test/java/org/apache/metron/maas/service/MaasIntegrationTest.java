@@ -20,6 +20,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -279,7 +280,7 @@ public class MaasIntegrationTest {
       String line;
       Process p = Runtime.getRuntime().exec("ps -e");
       BufferedReader input =
-              new BufferedReader(new InputStreamReader(p.getInputStream()));
+              new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8));
       while ((line = input.readLine()) != null) {
         if(line.contains("dummy_rest.sh")) {
           String pid = Iterables.get(Splitter.on(" ").split(line.replaceAll("\\s+", " ").trim()), 0);
@@ -305,7 +306,7 @@ public class MaasIntegrationTest {
       }
 
       BufferedReader br = new BufferedReader(new InputStreamReader(
-              (conn.getInputStream())));
+              (conn.getInputStream()), StandardCharsets.UTF_8));
 
       String output = "";
       String line;

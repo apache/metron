@@ -19,6 +19,7 @@ package org.apache.metron.parsers.integration;
 
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +62,8 @@ public abstract class EnvelopedParserIntegrationTest {
     Assert.assertFalse(results.failed());
     List<byte[]> resultList = results.getResult();
     Assert.assertEquals(1, resultList.size());
-    Map<String, Object> outputRecord = JSONUtils.INSTANCE.load(new String(resultList.get(0)), JSONUtils.MAP_SUPPLIER);
+    Map<String, Object> outputRecord = JSONUtils.INSTANCE.load(new String(resultList.get(0),
+        StandardCharsets.UTF_8), JSONUtils.MAP_SUPPLIER);
     Assert.assertEquals("field1_val", outputRecord.get("field1"));
     Assert.assertEquals(inputRecord.get(Constants.Fields.ORIGINAL.getName()), outputRecord.get(Constants.Fields.ORIGINAL.getName()));
     Assert.assertEquals(inputRecord.get(MetadataUtil.METADATA_PREFIX + ".metadata_field"), outputRecord.get("metadata_field"));
@@ -98,7 +100,8 @@ public abstract class EnvelopedParserIntegrationTest {
     Assert.assertFalse(results.failed());
     List<byte[]> resultList = results.getResult();
     Assert.assertEquals(1, resultList.size());
-    Map<String, Object> outputRecord = JSONUtils.INSTANCE.load(new String(resultList.get(0)), JSONUtils.MAP_SUPPLIER);
+    Map<String, Object> outputRecord = JSONUtils.INSTANCE.load(new String(resultList.get(0),
+        StandardCharsets.UTF_8), JSONUtils.MAP_SUPPLIER);
     Assert.assertEquals("field1_val", outputRecord.get("field1"));
     Assert.assertEquals(inputRecord.get(Constants.Fields.ORIGINAL.getName()), outputRecord.get(Constants.Fields.ORIGINAL.getName()));
     Assert.assertEquals(inputRecord.get("metadata_field"), outputRecord.get("metadata_field"));
@@ -134,7 +137,8 @@ public abstract class EnvelopedParserIntegrationTest {
     Assert.assertFalse(results.failed());
     List<byte[]> resultList = results.getResult();
     Assert.assertEquals(1, resultList.size());
-    Map<String, Object> outputRecord = JSONUtils.INSTANCE.load(new String(resultList.get(0)), JSONUtils.MAP_SUPPLIER);
+    Map<String, Object> outputRecord = JSONUtils.INSTANCE.load(new String(resultList.get(0),
+        StandardCharsets.UTF_8), JSONUtils.MAP_SUPPLIER);
     Assert.assertEquals("field1_val", outputRecord.get("field1"));
     Assert.assertEquals(inputRecord.get(Constants.Fields.ORIGINAL.getName()), outputRecord.get(Constants.Fields.ORIGINAL.getName()));
     Assert.assertFalse(outputRecord.containsKey(MetadataUtil.METADATA_PREFIX + ".metadata_field"));
@@ -179,7 +183,8 @@ public abstract class EnvelopedParserIntegrationTest {
       throws Exception {
     byte[] envelopedData = null;
     String inputRecord = "Mar 29 2004 09:54:18: %PIX-6-302005: Built UDP connection for faddr 198.207.223.240/53337 gaddr 10.0.0.187/53 laddr 192.168.0.2/53";
-    ProcessorResult<List<byte[]>> syslogResult = syslogDriver.run(ImmutableList.of(inputRecord.getBytes()));
+    ProcessorResult<List<byte[]>> syslogResult = syslogDriver.run(ImmutableList.of(inputRecord.getBytes(
+        StandardCharsets.UTF_8)));
     Assert.assertFalse(syslogResult.failed());
     List<byte[]> syslogResultList = syslogResult.getResult();
     envelopedData = syslogResultList.get(0);
@@ -187,7 +192,8 @@ public abstract class EnvelopedParserIntegrationTest {
     Assert.assertFalse(results.failed());
     List<byte[]> resultList = results.getResult();
     Assert.assertEquals(1, resultList.size());
-    Map<String, Object> result = JSONUtils.INSTANCE.load(new String(resultList.get(0)), JSONUtils.MAP_SUPPLIER);
+    Map<String, Object> result = JSONUtils.INSTANCE.load(new String(resultList.get(0),
+        StandardCharsets.UTF_8), JSONUtils.MAP_SUPPLIER);
     Assert.assertEquals("UDP", result.get("protocol"));
     Assert.assertTrue((long) result.get("timestamp") > 1000);
   }

@@ -18,6 +18,7 @@
 
 package org.apache.metron.indexing.integration;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
@@ -77,7 +78,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     }});
     List<Map<String, Object>> inputDocs = new ArrayList<>();
     for(byte[] b : inputMessages) {
-      Map<String, Object> m = JSONUtils.INSTANCE.load(new String(b), JSONUtils.MAP_SUPPLIER);
+      Map<String, Object> m = JSONUtils.INSTANCE.load(new String(b, StandardCharsets.UTF_8), JSONUtils.MAP_SUPPLIER);
       inputDocs.add(m);
 
     }

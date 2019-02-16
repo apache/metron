@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.message.metadata;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.json.simple.JSONObject;
@@ -70,7 +71,8 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
 
     try {
       String prefix = MetadataUtil.INSTANCE.getMetadataPrefix(config);
-      Map<String, Object> extraMetadata = JSONUtils.INSTANCE.load(new String(envelope), JSONUtils.MAP_SUPPLIER);
+      Map<String, Object> extraMetadata = JSONUtils.INSTANCE.load(new String(envelope,
+          StandardCharsets.UTF_8), JSONUtils.MAP_SUPPLIER);
       String message = null;
       if(extraMetadata != null) {
         for(Map.Entry<String, Object> kv : extraMetadata.entrySet()) {
@@ -83,13 +85,13 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
       if(message != null) {
         if(!readMetadata) {
           LOG.debug("Ignoring metadata; Message: " + message + " rawMetadata: " + rawMetadata + " and field = " + messageField);
-          return new RawMessage(message.getBytes(), new HashMap<>());
+          return new RawMessage(message.getBytes(StandardCharsets.UTF_8), new HashMap<>());
         }
         else {
           //remove the message field from the metadata since it's data, not metadata.
           rawMetadata.remove(MetadataUtil.INSTANCE.prefixKey(prefix, messageField));
           LOG.debug("Attaching metadata; Message: " + message + " rawMetadata: " + rawMetadata + " and field = " + messageField);
-          return new RawMessage(message.getBytes(), rawMetadata);
+          return new RawMessage(message.getBytes(StandardCharsets.UTF_8), rawMetadata);
         }
       }
     } catch (IOException e) {

@@ -19,6 +19,7 @@ package org.apache.metron.enrichment.bolt;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.json.simple.JSONObject;
@@ -72,7 +73,7 @@ public class EnrichmentSplitterBoltTest extends BaseEnrichmentBoltTest {
     when(sampleMessage.get("guid")).thenReturn(guid);
     key = enrichmentSplitterBolt.getKey(tuple, sampleMessage);
     Assert.assertEquals(guid, key);
-    when(tuple.getBinary(0)).thenReturn(sampleMessageString.getBytes());
+    when(tuple.getBinary(0)).thenReturn(sampleMessageString.getBytes(StandardCharsets.UTF_8));
     JSONObject generatedMessage = enrichmentSplitterBolt.generateMessage(tuple);
     removeTimingFields(generatedMessage);
     Assert.assertEquals(sampleMessage, generatedMessage);

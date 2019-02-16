@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.integration.components;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
@@ -154,7 +155,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
       }
 
       if(globalConfig.isPresent()) {
-        writeGlobalConfigToZookeeper(globalConfig.get().getBytes(), zookeeperUrl);
+        writeGlobalConfigToZookeeper(globalConfig.get().getBytes(StandardCharsets.UTF_8), zookeeperUrl);
       }
       if(postStartCallback.isPresent()) {
         postStartCallback.get().accept(this);

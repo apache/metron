@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.junit.Before;
@@ -99,17 +100,17 @@ public class SensorIndexingConfigControllerIntegrationTest {
     this.mockMvc.perform(get(sensorIndexingConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(content().bytes("{}".getBytes()));
+            .andExpect(content().bytes("{}".getBytes(StandardCharsets.UTF_8)));
 
     this.mockMvc.perform(get(sensorIndexingConfigUrl + "/list/indices/elasticsearch").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(content().bytes("[]".getBytes()));
+            .andExpect(content().bytes("[]".getBytes(StandardCharsets.UTF_8)));
 
     this.mockMvc.perform(get(sensorIndexingConfigUrl + "/list/indices/blah").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(content().bytes("[]".getBytes()));
+            .andExpect(content().bytes("[]".getBytes(StandardCharsets.UTF_8)));
 
     this.mockMvc.perform(post(sensorIndexingConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isCreated())
@@ -120,7 +121,7 @@ public class SensorIndexingConfigControllerIntegrationTest {
     assertEventually(() -> this.mockMvc.perform(get(sensorIndexingConfigUrl + "/list/indices/elasticsearch").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(content().bytes("[\"broTest\"]".getBytes()))
+            .andExpect(content().bytes("[\"broTest\"]".getBytes(StandardCharsets.UTF_8)))
     );
 
     assertEventually(() -> this.mockMvc.perform(post(sensorIndexingConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))

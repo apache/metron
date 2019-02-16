@@ -61,7 +61,7 @@ public class TestUtils {
     BufferedReader br = new BufferedReader(new FileReader(samplePath));
     List<byte[]> ret = new ArrayList<>();
     for (String line = null; (line = br.readLine()) != null; ) {
-      ret.add(line.getBytes());
+      ret.add(line.getBytes(StandardCharsets.UTF_8));
     }
     br.close();
     return ret;

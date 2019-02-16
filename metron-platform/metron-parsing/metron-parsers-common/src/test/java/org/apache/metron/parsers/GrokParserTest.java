@@ -19,6 +19,7 @@ package org.apache.metron.parsers;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -54,7 +55,7 @@ public abstract class GrokParserTest {
     for( Map.Entry<String,String> e : testData.entrySet() ){
 
       JSONObject expected = (JSONObject) jsonParser.parse(e.getValue());
-      byte[] rawMessage = e.getKey().getBytes();
+      byte[] rawMessage = e.getKey().getBytes(StandardCharsets.UTF_8);
       Optional<MessageParserResult<JSONObject>> resultOptional = grokParser.parseOptionalResult(rawMessage);
       Assert.assertNotNull(resultOptional);
       Assert.assertTrue(resultOptional.isPresent());

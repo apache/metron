@@ -20,6 +20,7 @@ package org.apache.metron.parsers.csv;
 
 import com.google.common.collect.ImmutableList;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +56,7 @@ public class CSVParser extends BasicParser {
   @Override
   public List<JSONObject> parse(byte[] rawMessage) {
     try {
-      String msg = new String(rawMessage, "UTF-8");
+      String msg = new String(rawMessage, StandardCharsets.UTF_8);
       Map<String, String> value = converter.toMap(msg);
       if(value != null) {
         value.put("original_string", msg);
@@ -87,7 +88,7 @@ public class CSVParser extends BasicParser {
         return Collections.emptyList();
       }
     } catch (Throwable e) {
-      String message = "Unable to parse " + new String(rawMessage) + ": " + e.getMessage();
+      String message = "Unable to parse " + new String(rawMessage, StandardCharsets.UTF_8) + ": " + e.getMessage();
       LOG.error(message, e);
       throw new IllegalStateException(message, e);
     }

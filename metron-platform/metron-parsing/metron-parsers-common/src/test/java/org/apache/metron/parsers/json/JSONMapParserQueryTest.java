@@ -18,6 +18,7 @@
 package org.apache.metron.parsers.json;
 
 import com.google.common.collect.ImmutableMap;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import org.adrianwalker.multilinestring.Multiline;
@@ -60,7 +61,7 @@ public class JSONMapParserQueryTest {
     parser.configure(new HashMap<String, Object>() {{
       put(JSONMapParser.JSONP_QUERY, "$.foo");
     }});
-    List<JSONObject> output = parser.parse(JSON_LIST.getBytes());
+    List<JSONObject> output = parser.parse(JSON_LIST.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(output.size(), 2);
     //don't forget the timestamp field!
     Assert.assertEquals(output.get(0).size(), 5);
@@ -90,7 +91,7 @@ public class JSONMapParserQueryTest {
     parser.configure(new HashMap<String, Object>() {{
       put(JSONMapParser.JSONP_QUERY, "$$..$$SDSE$#$#.");
     }});
-    List<JSONObject> output = parser.parse(JSON_LIST.getBytes());
+    List<JSONObject> output = parser.parse(JSON_LIST.getBytes(StandardCharsets.UTF_8));
 
   }
 
@@ -100,7 +101,7 @@ public class JSONMapParserQueryTest {
     parser.configure(new HashMap<String, Object>() {{
       put(JSONMapParser.JSONP_QUERY, "$.foo");
     }});
-    List<JSONObject> output = parser.parse(JSON_SINGLE.getBytes());
+    List<JSONObject> output = parser.parse(JSON_SINGLE.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(0, output.size());
   }
 
@@ -126,7 +127,7 @@ public class JSONMapParserQueryTest {
     parser.configure(new HashMap<String, Object>() {{
       put(JSONMapParser.JSONP_QUERY, "$.foo");
     }});
-    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
+    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(output.size(), 2);
 
     //don't forget the timestamp field!
@@ -148,7 +149,7 @@ public class JSONMapParserQueryTest {
         .of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ERROR.name(),
             JSONMapParser.JSONP_QUERY, "$.foo"));
     UnitTestHelper.setLog4jLevel(BasicParser.class, Level.FATAL);
-    parser.parse(collectionHandlingJSON.getBytes());
+    parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
     UnitTestHelper.setLog4jLevel(BasicParser.class, Level.ERROR);
   }
 
@@ -159,7 +160,7 @@ public class JSONMapParserQueryTest {
     parser.configure(ImmutableMap
         .of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ALLOW.name(),
             JSONMapParser.JSONP_QUERY, "$.foo"));
-    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
+    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(output.size(), 2);
     Assert.assertEquals(output.get(0).size(), 3);
     JSONObject message = output.get(0);
@@ -178,7 +179,7 @@ public class JSONMapParserQueryTest {
     parser.configure(ImmutableMap
         .of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.UNFOLD.name(),
             JSONMapParser.JSONP_QUERY, "$.foo"));
-    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
+    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(output.size(), 2);
     Assert.assertEquals(output.get(0).size(), 6);
     JSONObject message = output.get(0);

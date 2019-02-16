@@ -20,6 +20,7 @@ package org.apache.metron.common.configuration.profiler;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -135,7 +136,7 @@ public class ProfilerConfig implements Serializable {
    * @throws IOException
    */
   public static ProfilerConfig fromBytes(byte[] bytes) throws IOException {
-    return JSONUtils.INSTANCE.load(new String(bytes), ProfilerConfig.class);
+    return JSONUtils.INSTANCE.load(new String(bytes, StandardCharsets.UTF_8), ProfilerConfig.class);
   }
 
   /**

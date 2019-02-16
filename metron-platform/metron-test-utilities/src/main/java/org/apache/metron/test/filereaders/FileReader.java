@@ -19,6 +19,7 @@
 package org.apache.metron.test.filereaders;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class FileReader {
 					.getResourceAsStream(filename);
 		}
 		DataInputStream in = new DataInputStream(stream);
-		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
 		String strLine;
 		while ((strLine = br.readLine()) != null) 
 		{

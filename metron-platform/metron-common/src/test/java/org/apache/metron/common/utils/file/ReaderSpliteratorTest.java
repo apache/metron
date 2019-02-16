@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.utils.file;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.junit.Assert;
 import org.junit.Before;
@@ -67,7 +68,7 @@ public class ReaderSpliteratorTest {
     if(dataFile.exists()) {
       dataFile.delete();
     }
-    Files.write(dataFile.toPath(), data.getBytes(), StandardOpenOption.CREATE_NEW, StandardOpenOption.TRUNCATE_EXISTING);
+    Files.write(dataFile.toPath(), data.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE_NEW, StandardOpenOption.TRUNCATE_EXISTING);
     dataFile.deleteOnExit();
   }
 

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.message.metadata;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.storm.tuple.Fields;
@@ -106,7 +107,7 @@ public enum MetadataUtil {
     byte[] keyObj = t.getBinary(KEY_INDEX);
     String keyStr = null;
     try {
-      keyStr = keyObj == null ? null : new String(keyObj);
+      keyStr = keyObj == null ? null : new String(keyObj, StandardCharsets.UTF_8);
       if (!StringUtils.isEmpty(keyStr)) {
         Map<String, Object> rawMetadata = JSONUtils.INSTANCE.load(keyStr, JSONUtils.MAP_SUPPLIER);
         for (Map.Entry<String, Object> kv : rawMetadata.entrySet()) {

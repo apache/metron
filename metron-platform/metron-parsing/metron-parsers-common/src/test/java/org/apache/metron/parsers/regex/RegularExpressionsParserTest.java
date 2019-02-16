@@ -14,6 +14,7 @@
  */
 package org.apache.metron.parsers.regex;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -266,7 +267,8 @@ public class RegularExpressionsParserTest {
     }
 
     private JSONObject parse(String message) throws Exception {
-        List<JSONObject> result = regularExpressionsParser.parse(message.getBytes());
+        List<JSONObject> result = regularExpressionsParser.parse(message.getBytes(
+            StandardCharsets.UTF_8));
         if (result.size() > 0) {
             return result.get(0);
         }

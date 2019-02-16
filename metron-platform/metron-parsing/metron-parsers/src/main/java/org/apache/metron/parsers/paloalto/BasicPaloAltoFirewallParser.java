@@ -20,6 +20,7 @@ package org.apache.metron.parsers.paloalto;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -177,7 +178,7 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
     List<JSONObject> messages = new ArrayList<>();
     try {
 
-      toParse = new String(msg, "UTF-8");
+      toParse = new String(msg, StandardCharsets.UTF_8);
       _LOG.debug("Received message: {}", toParse);
       parseMessage(toParse, outputMessage);
       long timestamp = System.currentTimeMillis();

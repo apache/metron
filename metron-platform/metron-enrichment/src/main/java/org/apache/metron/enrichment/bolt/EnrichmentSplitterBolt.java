@@ -19,6 +19,7 @@ package org.apache.metron.enrichment.bolt;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -92,9 +93,9 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
     if (messageFieldName == null) {
       byte[] data = tuple.getBinary(0);
       try {
-        message = (JSONObject) parser.parse(new String(data, "UTF8"));
+        message = (JSONObject) parser.parse(new String(data, StandardCharsets.UTF_8));
         message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
-      } catch (ParseException | UnsupportedEncodingException e) {
+      } catch (ParseException e) {
         e.printStackTrace();
       }
     } else {

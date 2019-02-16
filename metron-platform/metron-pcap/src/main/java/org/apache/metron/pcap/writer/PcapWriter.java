@@ -17,6 +17,7 @@
  */
 package org.apache.metron.pcap.writer;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.hbase.writer.HBaseWriter;
 import org.apache.metron.pcap.utils.PcapUtils;
@@ -37,7 +38,7 @@ public class PcapWriter extends HBaseWriter {
   @Override
   public byte[] getKey(Tuple tuple, JSONObject message) {
     String key = PcapUtils.getSessionKey(message);
-    return key.getBytes();
+    return key.getBytes(StandardCharsets.UTF_8);
   }
 
   @Override

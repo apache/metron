@@ -20,6 +20,7 @@ package org.apache.metron.parsers.lancope;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.json.simple.JSONObject;
@@ -44,7 +45,7 @@ public class BasicLancopeParserTest extends AbstractParserConfigTest {
   @Test
   public void testParse() throws ParseException, IOException, ProcessingException {
     for (String inputString : inputStrings) {
-      JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
+      JSONObject parsed = parser.parse(inputString.getBytes(StandardCharsets.UTF_8)).get(0);
       Assert.assertNotNull(parsed);
 
       JSONParser parser = new JSONParser();

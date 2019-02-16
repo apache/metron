@@ -19,6 +19,7 @@
  */
 package org.apache.metron.profiler.storm.integration;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
@@ -96,7 +97,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
       configBytes = readProfilerConfigFromFile(profilerConfigurationPath);
 
     } else if(profilerConfig != null) {
-      configBytes = profilerConfig.toJSON().getBytes();
+      configBytes = profilerConfig.toJSON().getBytes(StandardCharsets.UTF_8);
     }
 
     if (ArrayUtils.getLength(configBytes) > 0) {

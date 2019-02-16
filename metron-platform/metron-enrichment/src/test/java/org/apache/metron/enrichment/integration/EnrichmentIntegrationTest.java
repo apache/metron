@@ -25,6 +25,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -106,7 +107,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       List<byte[]> ret = TestUtils.readSampleData(path);
       {
         //we want one of the fields without a destination IP to ensure that enrichments can function
-        Map<String, Object> sansDestinationIp = JSONUtils.INSTANCE.load(new String(ret.get(ret.size() -1))
+        Map<String, Object> sansDestinationIp = JSONUtils.INSTANCE.load(new String(ret.get(ret.size() -1),
+                StandardCharsets.UTF_8)
                                                                        , JSONUtils.MAP_SUPPLIER);
         sansDestinationIp.remove(Constants.Fields.DST_ADDR.getName());
         ret.add(JSONUtils.INSTANCE.toJSONPretty(sansDestinationIp));
@@ -553,7 +555,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             , Iterables.transform(outputMessages
                     , message -> {
                       try {
-                        return new HashMap<>(JSONUtils.INSTANCE.load(new String(message)
+                        return new HashMap<>(JSONUtils.INSTANCE.load(new String(message,
+                                StandardCharsets.UTF_8)
                                 , JSONUtils.MAP_SUPPLIER
                         )
                         );
