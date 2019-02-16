@@ -19,6 +19,7 @@ package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
@@ -189,7 +190,8 @@ public class SensorEnrichmentConfigServiceImplTest {
     exception.expect(RestException.class);
 
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro", broJson.getBytes())).thenThrow(Exception.class);
+    when(setDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro", broJson.getBytes(
+        StandardCharsets.UTF_8))).thenThrow(Exception.class);
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
@@ -203,11 +205,11 @@ public class SensorEnrichmentConfigServiceImplTest {
     when(objectMapper.writeValueAsString(sensorEnrichmentConfig)).thenReturn(broJson);
 
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro", broJson.getBytes())).thenReturn(new Stat());
+    when(setDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro", broJson.getBytes(StandardCharsets.UTF_8))).thenReturn(new Stat());
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
     assertEquals(sensorEnrichmentConfig, sensorEnrichmentConfigService.save("bro", sensorEnrichmentConfig));
-    verify(setDataBuilder).forPath(eq(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro"), eq(broJson.getBytes()));
+    verify(setDataBuilder).forPath(eq(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro"), eq(broJson.getBytes(StandardCharsets.UTF_8)));
   }
 
   @Test
