@@ -408,7 +408,7 @@ public class MaasIntegrationTest {
           try {
 
             String sCurrentLine;
-            br = new BufferedReader(new FileReader(output));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(output), StandardCharsets.UTF_8));
             int numOfline = 0;
             while ((sCurrentLine = br.readLine()) != null) {
               if (count) {

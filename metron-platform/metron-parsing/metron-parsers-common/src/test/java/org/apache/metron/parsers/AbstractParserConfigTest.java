@@ -25,9 +25,12 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.main.JsonValidator;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class AbstractParserConfigTest {
@@ -51,8 +54,8 @@ public class AbstractParserConfigTest {
   }
 
   protected String readSchemaFromFile(URL schema_url) throws Exception {
-    BufferedReader br = new BufferedReader(new FileReader(
-        schema_url.getFile()));
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(schema_url.getFile()),
+        StandardCharsets.UTF_8));
     String line;
     StringBuilder sb = new StringBuilder();
     while ((line = br.readLine()) != null) {
@@ -67,7 +70,7 @@ public class AbstractParserConfigTest {
   }
 
   protected String[] readTestDataFromFile(String test_data_url) throws Exception {
-    BufferedReader br = new BufferedReader(new FileReader(new File(test_data_url)));
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(test_data_url), StandardCharsets.UTF_8));
     ArrayList<String> inputDataLines = new ArrayList<>();
 
     String line;

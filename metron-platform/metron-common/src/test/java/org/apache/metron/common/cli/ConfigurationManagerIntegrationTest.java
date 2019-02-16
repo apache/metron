@@ -308,7 +308,7 @@ public class ConfigurationManagerIntegrationTest {
 
   private String redirectSystemOut(final String[] args, RedirectCallback callback) throws Exception {
     PrintStream os = System.out;
-    try (OutputStream baos = new ByteArrayOutputStream(); PrintStream ps = new PrintStream(baos)) {
+    try (OutputStream baos = new ByteArrayOutputStream(); PrintStream ps = new PrintStream(baos, false, StandardCharsets.UTF_8.name())) {
       System.setOut(ps);
       callback.call(args);
       System.out.flush();

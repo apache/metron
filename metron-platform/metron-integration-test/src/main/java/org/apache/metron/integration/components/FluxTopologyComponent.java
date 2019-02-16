@@ -18,10 +18,14 @@
 package org.apache.metron.integration.components;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -267,7 +271,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
     File tmpFile = File.createTempFile(topologyName, "props");
     tmpFile.deleteOnExit();
     if (templateFile != null) {
-      try (FileWriter propWriter = new FileWriter(tmpFile)){
+      try (Writer propWriter = new OutputStreamWriter(new FileOutputStream(tmpFile), StandardCharsets.UTF_8)){
         String templateContents = FileUtils.readFileToString(templateFile);
         for(Map.Entry prop: properties.entrySet()) {
           String replacePattern = String.format("{{%s}}", prop.getKey());
@@ -278,7 +282,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
         return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, tmpFile.getAbsolutePath(), false);
       }
     } else {
-      try (FileWriter propWriter = new FileWriter(tmpFile)){
+      try (Writer propWriter = new OutputStreamWriter(new FileOutputStream(tmpFile), StandardCharsets.UTF_8)){
         properties.store(propWriter, topologyName + " properties");
         return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, tmpFile.getAbsolutePath(), false);
       }

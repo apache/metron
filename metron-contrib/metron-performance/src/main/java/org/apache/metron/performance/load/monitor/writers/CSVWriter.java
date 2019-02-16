@@ -18,6 +18,9 @@
 package org.apache.metron.performance.load.monitor.writers;
 
 import com.google.common.base.Joiner;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.performance.load.monitor.Results;
 
 import java.io.File;
@@ -34,7 +37,7 @@ public class CSVWriter implements Consumer<Writable> {
 
   public CSVWriter(File outFile) throws IOException {
     if(outFile != null) {
-      pw = Optional.of(new PrintWriter(new FileWriter(outFile)));
+      pw = Optional.of(new PrintWriter(new OutputStreamWriter(new FileOutputStream(outFile), StandardCharsets.UTF_8)));
     }
   }
 

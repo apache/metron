@@ -74,7 +74,7 @@ public class ReaderSpliteratorTest {
 
   public static BufferedReader getReader() {
     try {
-      return new BufferedReader(new FileReader(dataFile));
+      return new BufferedReader(new InputStreamReader(new FileInputStream(dataFile), StandardCharsets.UTF_8));
     } catch (FileNotFoundException e) {
       throw new IllegalStateException(e.getMessage(), e);
     }

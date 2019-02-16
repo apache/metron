@@ -17,6 +17,7 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile;
 
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
@@ -259,10 +260,11 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(multilineZipFile));
       ZipEntry entry = new ZipEntry("file");
       zos.putNextEntry(entry);
+      // Use intermediate OutputStreamWriters to specify encoding, instead of platform default.
        pws = new PrintWriter[]{
-         new PrintWriter(multilineFile),
-         new PrintWriter(zos),
-         new PrintWriter(new GZIPOutputStream(new FileOutputStream(multilineGzFile)))
+         new PrintWriter(multilineFile, StandardCharsets.UTF_8.name()),
+         new PrintWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8)),
+         new PrintWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(multilineGzFile)), StandardCharsets.UTF_8))
                               };
       for(int i = 0;i < NUM_LINES;++i) {
         for(PrintWriter pw : pws) {

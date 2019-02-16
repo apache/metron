@@ -31,7 +31,7 @@ public class SensorParserConfigTest {
   public void testSerDe() throws IOException {
     for(File parserConfig : new File(new File(TestConstants.PARSER_CONFIGS_PATH), "parsers").listFiles()) {
       SensorParserConfig config = null;
-      try (BufferedReader br = new BufferedReader(new FileReader(parserConfig))) {
+      try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(parserConfig), StandardCharsets.UTF_8))) {
         String parserStr = IOUtils.toString(br);
         config = SensorParserConfig.fromBytes(parserStr.getBytes(StandardCharsets.UTF_8));
       }
