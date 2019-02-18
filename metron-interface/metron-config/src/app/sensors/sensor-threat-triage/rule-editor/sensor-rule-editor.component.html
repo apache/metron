@@ -32,7 +32,16 @@
     <form class="form-inline">
         <div class="form-group score">
             <label class="score-label" attr.for="statement">SCORE ADJUSTMENT</label>
-            <input type="number" class="score-input form-control" name="scoreSlider" [(ngModel)]="newRiskLevelRule.score" />
+            <metron-config-ace-editor
+              name="scoreSlider"
+              [(ngModel)]="newRiskLevelRule.score"
+              [liveAutocompletion]="false"
+              [enableSnippets]="false"
+              [useWorker]="false"
+              [type]="'STELLAR'"
+              [placeHolder]="'Enter a number or a Stellar expression'"
+            >
+            </metron-config-ace-editor>
         </div>
     </form>
 

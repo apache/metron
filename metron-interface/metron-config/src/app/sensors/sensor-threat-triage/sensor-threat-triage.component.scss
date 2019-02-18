@@ -104,10 +104,26 @@ textarea
   display: inline-block;
   position: relative;
   vertical-align: top;
+  padding: 0 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:first-child {
+    padding-left: 0;
+  }
+
+  &:last-child {
+    padding-right: 0;
+    overflow: visible;
+    text-overflow: initial;
+  }
 
   .fa {
     color: $nav-active-color;
     font-size: large;
+    cursor: pointer;
+    margin: 0 3px;
   }
 }
 
@@ -124,14 +140,15 @@ textarea
 
 .threat-triage-rule-str
 {
-  width: 64%;
   padding-right: 10px;
   font-size: small;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 metron-config-sensor-rule-editor
 {
   @extend .flexbox-row-reverse;
+}
+
+.threat-triage-rule-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
 }

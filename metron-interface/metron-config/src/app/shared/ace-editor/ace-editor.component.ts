@@ -38,9 +38,12 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
 
   inputJson: any = '';
   aceConfigEditor: AceAjax.Editor;
-  @Input() type = 'JSON';
+  @Input() type: 'GROK' | 'JSON' | 'STELLAR' = 'JSON';
   @Input() placeHolder = 'Enter text here';
   @Input() options: AutocompleteOption[] = [];
+  @Input() liveAutocompletion = true;
+  @Input() enableSnippets = true;
+  @Input() useWorker = true;
   @ViewChild('aceEditor') aceEditorEle: ElementRef;
 
   private onTouchedCallback;
@@ -110,8 +113,9 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
       highlightActiveLine: false,
       maxLines: Infinity,
       enableBasicAutocompletion: true,
-      enableSnippets: true,
-      enableLiveAutocompletion: true
+      enableSnippets: this.enableSnippets,
+      useWorker: this.useWorker,
+      enableLiveAutocompletion: this.liveAutocompletion
     });
     parserConfigEditor.on('change', (e: any) => {
       this.inputJson = this.aceConfigEditor.getValue();
@@ -184,6 +188,8 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   private getEditorType() {
       if (this.type === 'GROK') {
         return 'ace/mode/grok';
+      } else if (this.type === 'STELLAR') {
+        return 'ace/mode/javascript';
       }
 
       return 'ace/mode/json';

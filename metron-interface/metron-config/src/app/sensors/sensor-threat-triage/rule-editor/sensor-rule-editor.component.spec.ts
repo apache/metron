@@ -21,6 +21,7 @@ import {SensorRuleEditorComponent} from './sensor-rule-editor.component';
 import {SharedModule} from '../../../shared/shared.module';
 import {NumberSpinnerComponent} from '../../../shared/number-spinner/number-spinner.component';
 import {RiskLevelRule} from '../../../model/risk-level-rule';
+import {AceEditorModule} from '../../../shared/ace-editor/ace-editor.module';
 
 describe('Component: SensorRuleEditorComponent', () => {
 
@@ -29,8 +30,7 @@ describe('Component: SensorRuleEditorComponent', () => {
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            imports: [SharedModule
-            ],
+            imports: [SharedModule, AceEditorModule],
             declarations: [ SensorRuleEditorComponent, NumberSpinnerComponent ],
             providers: [
               SensorRuleEditorComponent

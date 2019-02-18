@@ -60,21 +60,21 @@
             </div>
         </div>
         <div class="form-group threat-triage-rules-list">
-            <div *ngFor="let riskLevelRule of this.visibleRules">
-                <div class="row mx-0 py-0">
+            <div class="threat-triage-rule" *ngFor="let riskLevelRule of this.visibleRules">
+                <div class="row mx-0 py-0 threat-triage-rule-wrapper">
                     <div class="threat-triage-rule-row" style="color: khaki; font-size: 30px; margin-top: -7px" [style.color]="getRuleColor(riskLevelRule)">
                         <b>I</b>
                     </div>
-                    <div class="threat-triage-rule-row" style="font-size: small; width: 8%">
+                    <div class="threat-triage-rule-row" style="font-size: small;" [title]="riskLevelRule.score">
                         {{ riskLevelRule.score }}
                     </div>
-                    <div class="threat-triage-rule-row threat-triage-rule-str">
+                    <div class="threat-triage-rule-row threat-triage-rule-str" [title]="getDisplayName(riskLevelRule)">
                         {{ getDisplayName(riskLevelRule) }}
                     </div>
-                    <div class="threat-triage-rule-row" style=""><i class="fa fa-i-cursor" aria-hidden="true"
-                                                                        style="cursor: pointer;" (click)="onEditRule(riskLevelRule)"></i></div>
-
-                    <div class="threat-triage-rule-row" style=""><i  class="fa fa-trash-o" aria-hidden="true" (click)="onDeleteRule(riskLevelRule)" style="cursor: pointer"></i></div>
+                    <div class="threat-triage-rule-row" style="">
+                        <i class="fa fa-i-cursor" aria-hidden="true" (click)="onEditRule(riskLevelRule)"></i>
+                        <i class="fa fa-trash-o" aria-hidden="true" (click)="onDeleteRule(riskLevelRule)"></i>
+                    </div>
                 </div>
                 <div class="form-seperator-edit"></div>
             </div>
