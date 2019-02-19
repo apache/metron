@@ -55,7 +55,7 @@ export class KafkaService {
   }
 
   public sample(name: string): Observable<string | RestError> {
-    return this.http.get(this.url + '/' + name + '/sample').pipe(
+    return this.http.get(this.url + '/' + name + '/sample', {responseType: 'text'}).pipe(
       map(HttpUtil.extractString),
       catchError(HttpUtil.handleError)
     );
