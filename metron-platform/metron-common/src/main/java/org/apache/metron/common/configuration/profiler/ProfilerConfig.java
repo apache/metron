@@ -132,7 +132,7 @@ public class ProfilerConfig implements Serializable {
    *
    * @param bytes Raw bytes containing a UTF-8 JSON String.
    * @return The Profiler configuration.
-   * @throws IOException
+   * @throws IOException If there's an error deserializing the raw bytes
    */
   public static ProfilerConfig fromBytes(byte[] bytes) throws IOException {
     return JSONUtils.INSTANCE.load(new String(bytes), ProfilerConfig.class);
@@ -143,7 +143,7 @@ public class ProfilerConfig implements Serializable {
    *
    * @param json A String containing JSON.
    * @return The Profiler configuration.
-   * @throws IOException
+   * @throws IOException If there's an error deserializing the string
    */
   public static ProfilerConfig fromJSON(String json) throws IOException {
     return JSONUtils.INSTANCE.load(json, ProfilerConfig.class);
@@ -153,7 +153,7 @@ public class ProfilerConfig implements Serializable {
    * Serialize a {@link ProfilerConfig} to a JSON string.
    *
    * @return The Profiler configuration serialized as a JSON string.
-   * @throws JsonProcessingException
+   * @throws JsonProcessingException If an error occurs serializing this as a Json string
    */
   public String toJSON() throws JsonProcessingException {
     return JSONUtils.INSTANCE.toJSON(this, true);

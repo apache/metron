@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public enum RawMessageStrategies implements RawMessageStrategy {
   /**
-   * The default strategy
+   * The default strategy.
    */
   DEFAULT(new DefaultRawMessageStrategy()),
   /**
@@ -41,13 +41,13 @@ public enum RawMessageStrategies implements RawMessageStrategy {
   }
 
   /**
-   * Retrieve the raw message given the strategy specified. Note the javadocs for the individual strategy for more info.
+   * Retrieve the raw message given the strategy specified. Note the Javadocs for the individual strategy for more info.
    *
    * @param rawMetadata The metadata read from kafka Key (e.g. the topic, index, etc.)
-   * @param originalMessage
+   * @param originalMessage The raw bytes of the original message
    * @param readMetadata True if we want to read read the metadata
    * @param config The config for the RawMessageStrategy (See the rawMessageStrategyConfig in the SensorParserConfig)
-   * @return
+   * @return a {@link RawMessage} based on the given strategy.
    */
   @Override
   public RawMessage get(Map<String, Object> rawMetadata, byte[] originalMessage, boolean readMetadata, Map<String, Object> config) {
@@ -55,7 +55,7 @@ public enum RawMessageStrategies implements RawMessageStrategy {
   }
 
   /**
-   * Merge metadata given the strategy specified. Note the javadocs for the individual strategy for more info.
+   * Merge metadata given the strategy specified. Note the Javadocs for the individual strategy for more info.
    *
    * @param message The parsed message (note: prior to the field transformations)
    * @param metadata The metadata passed along

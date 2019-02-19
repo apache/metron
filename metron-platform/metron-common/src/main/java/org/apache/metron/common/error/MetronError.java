@@ -81,6 +81,12 @@ public class MetronError {
     return this;
   }
 
+  /**
+   * Adds a rawMessage to the error. Calls can be chained, as the method returns this.
+   *
+   * @param rawMessage The raw message to add
+   * @return this, to allow for call chaining
+   */
   public MetronError addRawMessage(Object rawMessage) {
     if (rawMessage != null) {
       if (this.rawMessages == null) {
@@ -100,6 +106,11 @@ public class MetronError {
     return throwable != null ? Optional.of(throwable) : Optional.empty();
   }
 
+  /**
+   * Serializes the MetronError into a JSON object.
+   *
+   * @return The resulting json object
+   */
   @SuppressWarnings({"unchecked"})
   public JSONObject getJSONObject() {
     JSONObject errorMessage = new JSONObject();

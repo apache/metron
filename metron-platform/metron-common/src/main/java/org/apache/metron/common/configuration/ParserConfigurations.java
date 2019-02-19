@@ -25,6 +25,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Allows for retrieval and update of parsing configurations.
+ */
 public class ParserConfigurations extends Configurations {
   public static final Integer DEFAULT_KAFKA_BATCH_SIZE = 15;
 
@@ -46,6 +49,11 @@ public class ParserConfigurations extends Configurations {
     getConfigurations().put(getKey(sensorType), sensorParserConfig);
   }
 
+  /**
+   * Gets the list of sensor types that parsing configurations exist for.
+   *
+   * @return List of sensor types
+   */
   public List<String> getTypes() {
     List<String> ret = new ArrayList<>();
     for(String keyedSensor : getConfigurations().keySet()) {

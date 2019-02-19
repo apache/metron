@@ -41,7 +41,7 @@ public abstract class ConfigurationsUpdater<T extends Configurations> implements
   private Supplier<T> configSupplier;
 
   /**
-   * Construct a ConfigurationsUpdater
+   * Construct a ConfigurationsUpdater.
    * @param reloadable A callback which gets called whenever a reload happens
    * @param configSupplier A Supplier which creates the Configurations object.
    */
@@ -122,21 +122,22 @@ public abstract class ConfigurationsUpdater<T extends Configurations> implements
   public abstract void delete(String name);
 
   /**
+   * Gets the class for the {@link Configurations} type.
    *
-   * @return The Class for the Configurations type.
+   * @return The class
    */
   public abstract Class<T> getConfigurationClass();
 
   /**
    * This pulls the configuration from zookeeper and updates the cache.  It represents the initial state.
    * Force update is called when the zookeeper cache is initialized to ensure that the caches are updated.
-   * @param client
+   * @param client The ZK client interacting with configuration
    */
   public abstract void forceUpdate(CuratorFramework client);
 
   /**
-   * Create an empty Configurations object of type T.
-   * @return
+   * Create an empty {@link Configurations} object of type T.
+   * @return configurations
    */
   public abstract T defaultConfigurations();
 

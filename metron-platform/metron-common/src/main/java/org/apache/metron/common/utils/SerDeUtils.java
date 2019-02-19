@@ -226,7 +226,7 @@ public class SerDeUtils {
   /**
    * Serialize a profile measurement's value.
    *
-   * The value produced by a Profile definition can be any numeric data type.  The data
+   * <p>The value produced by a Profile definition can be any numeric data type.  The data
    * type depends on how the profile is defined by the user.  The user should be able to
    * choose the data type that is most suitable for their use case.
    *
@@ -250,7 +250,7 @@ public class SerDeUtils {
   /**
    * Deserialize a profile measurement's value.
    *
-   * The value produced by a Profile definition can be any numeric data type.  The data
+   * <p>The value produced by a Profile definition can be any numeric data type.  The data
    * type depends on how the profile is defined by the user.  The user should be able to
    * choose the data type that is most suitable for their use case.
    *

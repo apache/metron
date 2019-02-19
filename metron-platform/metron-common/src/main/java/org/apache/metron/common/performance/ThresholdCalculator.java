@@ -21,7 +21,7 @@ package org.apache.metron.common.performance;
 public class ThresholdCalculator {
 
   /**
-   * Returns true roughly the provided percent of the time, false 100%-'percent' of the time
+   * Returns true roughly the provided percent of the time, false 100%-'percent' of the time.
    *
    * @param percent Desired probability to return true
    * @return true if the percent probability is true for this call.

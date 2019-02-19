@@ -284,7 +284,7 @@ public class ProfileConfig implements Serializable {
    *
    * @param bytes Raw bytes containing a UTF-8 JSON String.
    * @return The Profile definition.
-   * @throws IOException
+   * @throws IOException If unable to deserialize the bytes into a {@link ProfileConfig}
    */
   public static ProfileConfig fromBytes(byte[] bytes) throws IOException {
     return JSONUtils.INSTANCE.load(new String(bytes), ProfileConfig.class);
@@ -295,7 +295,7 @@ public class ProfileConfig implements Serializable {
    *
    * @param json A String containing JSON.
    * @return The Profile definition.
-   * @throws IOException
+   * @throws IOException If unable to deserialize the string into a {@link ProfileConfig}
    */
   public static ProfileConfig fromJSON(String json) throws IOException {
     return JSONUtils.INSTANCE.load(json, ProfileConfig.class);
@@ -305,7 +305,7 @@ public class ProfileConfig implements Serializable {
    * Serialize the profile definition to a JSON string.
    *
    * @return The Profiler configuration serialized as a JSON string.
-   * @throws JsonProcessingException
+   * @throws JsonProcessingException If there's an error converting this to Json
    */
   public String toJSON() throws JsonProcessingException {
     return JSONUtils.INSTANCE.toJSON(this, true);

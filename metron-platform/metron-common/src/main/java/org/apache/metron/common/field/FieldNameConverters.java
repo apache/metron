@@ -58,7 +58,7 @@ public enum FieldNameConverters implements FieldNameConverter {
   }
 
   /**
-   * Returns a shared instance of the {@link FieldNameConverter}/
+   * Returns a shared instance of the {@link FieldNameConverter}.
    *
    * @return A shared {@link FieldNameConverter} instance.
    */
@@ -74,7 +74,7 @@ public enum FieldNameConverters implements FieldNameConverter {
    * }
    *
    * @param originalField The original field name.
-   * @return
+   * @return the converted field name
    */
   @Override
   public String convert(String originalField) {
@@ -82,11 +82,11 @@ public enum FieldNameConverters implements FieldNameConverter {
   }
 
   /**
-   * Create a new {@link FieldNameConverter}.
+   * Create a new {@link FieldNameConverter} for a given sensor type and config.
    *
    * @param sensorType The type of sensor.
    * @param config The writer configuration.
-   * @return
+   * @return The new {@link FieldNameConverter}
    */
   public static FieldNameConverter create(String sensorType, WriterConfiguration config) {
     FieldNameConverter result = null;

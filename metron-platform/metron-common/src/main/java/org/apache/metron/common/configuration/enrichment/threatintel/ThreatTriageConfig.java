@@ -40,6 +40,12 @@ public class ThreatTriageConfig {
     return riskLevelRules;
   }
 
+  /**
+   * Given a list of @{link RiskLevelRule}, builds up the necessary context to evaluate them.
+   * This includes validation of the Stellar expression contained.
+   *
+   * @param riskLevelRules The list of {@link RiskLevelRule}s to be evaluated
+   */
   public void setRiskLevelRules(List<RiskLevelRule> riskLevelRules) {
     List<RiskLevelRule> rules = new ArrayList<>();
     Set<String> ruleIndex = new HashSet<>();
@@ -72,6 +78,11 @@ public class ThreatTriageConfig {
     return aggregator;
   }
 
+  /**
+   * Sets an aggregator by name from {@link Aggregators}.
+   *
+   * @param aggregator The aggregator name to grab
+   */
   public void setAggregator(String aggregator) {
     try {
       this.aggregator = Aggregators.valueOf(aggregator);

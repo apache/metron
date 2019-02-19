@@ -23,6 +23,14 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public class StringUtils {
+
+  /**
+   * Joins string optionals potentially containing string with a delimiter.
+   *
+   * @param delim The delimiter
+   * @param parts The string optionals to join
+   * @return The joined string, without any missing optionals.
+   */
   public static String join(String delim, Optional<String>... parts) {
     return Joiner.on(delim).join(
             Arrays.asList(parts).stream().filter(
@@ -33,9 +41,9 @@ public class StringUtils {
   }
 
   /**
-   * Strips specified number of lines from beginning for String val
-   * @param val
-   * @param numLines
+   * Strips specified number of lines from beginning for String val.
+   * @param val The input string
+   * @param numLines The number of lines to remove
    */
   public static String stripLines(String val, int numLines) {
     int start = org.apache.commons.lang3.StringUtils.ordinalIndexOf(val, System.lineSeparator(), numLines);

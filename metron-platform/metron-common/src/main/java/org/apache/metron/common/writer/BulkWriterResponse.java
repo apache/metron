@@ -36,6 +36,12 @@ public class BulkWriterResponse {
         errors.put(error, tuple);
     }
 
+    /**
+     * Adds provided errors and associated tuples.
+     *
+     * @param error The error to add
+     * @param tuples Iterable of all tuples with the error
+     */
     public void addAllErrors(Throwable error, Iterable<Tuple> tuples) {
         if(tuples != null) {
             errors.putAll(error, tuples);
@@ -50,6 +56,11 @@ public class BulkWriterResponse {
         successes.add(success);
     }
 
+    /**
+     * Adds all provided successes.
+     *
+     * @param allSuccesses Successes to add
+     */
     public void addAllSuccesses(Iterable<Tuple> allSuccesses) {
         if(allSuccesses != null) {
             Iterables.addAll(successes, allSuccesses);

@@ -32,6 +32,12 @@ public abstract class OptionHandler<OPT_T extends Enum<OPT_T> & CLIOptions<OPT_T
 
   public abstract String getShortCode();
 
+  /**
+   * Returns options based on the {@link CLIOptions} provided.
+   *
+   * @param values the values to produce options with
+   * @return The resulting options
+   */
   public static Options getOptions(CLIOptions[] values) {
     Options ret = new Options();
     for(CLIOptions o : values) {
@@ -45,6 +51,16 @@ public abstract class OptionHandler<OPT_T extends Enum<OPT_T> & CLIOptions<OPT_T
     formatter.printHelp( name, getOptions(values));
   }
 
+  /**
+   * Creates a config based on the provided command line options, allowing user to get an enum
+   * based view of the options map.
+   *
+   * @param cli The command line with the parsed options.
+   * @param values The values of the options.
+   * @param clazz The class of the enum representing the option keys.
+   * @param <OPT_T> The type parameter of the enum
+   * @return A Map of enum key -> option value
+   */
   public static <OPT_T extends Enum<OPT_T> & CLIOptions<OPT_T>>
   EnumMap<OPT_T, Optional<Object> > createConfig(CommandLine cli, OPT_T[] values, Class<OPT_T> clazz) {
     EnumMap<OPT_T, Optional<Object> > ret = new EnumMap<>(clazz);
@@ -54,6 +70,16 @@ public abstract class OptionHandler<OPT_T extends Enum<OPT_T> & CLIOptions<OPT_T
     return ret;
   }
 
+  /**
+   * Parses options of a program and returns a command line representing them.
+   *
+   * @param name Name of the program
+   * @param parser The command line parser to be used
+   * @param args The arguments to the program
+   * @param values The cli option values
+   * @param helpOption The cli help option
+   * @return A command line representing the parsed options.
+   */
   public static CommandLine parse(String name, CommandLineParser parser, String[] args, CLIOptions[] values, CLIOptions helpOption) {
     try {
       CommandLine cli = parser.parse(getOptions(values), args);
