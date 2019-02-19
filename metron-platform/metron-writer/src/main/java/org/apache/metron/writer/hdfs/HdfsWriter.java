@@ -24,10 +24,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
@@ -40,7 +45,6 @@ import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,40 +105,38 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public BulkWriterResponse write(String sourceType
-                   , WriterConfiguration configurations
-                   , Iterable<Tuple> tuples
-                   , List<JSONObject> messages
-                   ) throws Exception {
+  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkWriterMessage<JSONObject>> messages) throws Exception {
     BulkWriterResponse response = new BulkWriterResponse();
+    Set<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
 
     // Currently treating all the messages in a group for pass/failure.
     // Messages can all result in different HDFS paths, because of Stellar Expressions, so we'll need to iterate through
-    for (JSONObject message : messages) {
+    for (BulkWriterMessage<JSONObject> bulkWriterMessage : messages) {
+      JSONObject message = bulkWriterMessage.getMessage();
       String path = getHdfsPathExtension(
-          sourceType,
-          (String) configurations.getSensorConfig(sourceType)
-              .getOrDefault(IndexingConfigurations.OUTPUT_PATH_FUNCTION_CONF, ""),
-          message
+              sensorType,
+              (String) configurations.getSensorConfig(sensorType)
+                      .getOrDefault(IndexingConfigurations.OUTPUT_PATH_FUNCTION_CONF, ""),
+              message
       );
 
       try {
         LOG.trace("Writing message {} to path: {}", message.toJSONString(), path);
-        SourceHandler handler = getSourceHandler(sourceType, path, configurations);
-        handler.handle(message, sourceType, configurations, syncPolicyCreator);
+        SourceHandler handler = getSourceHandler(sensorType, path, configurations);
+        handler.handle(message, sensorType, configurations, syncPolicyCreator);
       } catch (Exception e) {
         LOG.error(
-            "HdfsWriter encountered error writing. Source type: {}. # messages: {}. Output path: {}.",
-            sourceType,
-            messages.size(),
-            path,
-            e
+                "HdfsWriter encountered error writing. Source type: {}. # messages: {}. Output path: {}.",
+                sensorType,
+                messages.size(),
+                path,
+                e
         );
-        response.addAllErrors(e, tuples);
+        response.addAllErrors(e, ids);
       }
     }
 
-    response.addAllSuccesses(tuples);
+    response.addAllSuccesses(ids);
     return response;
   }
 
