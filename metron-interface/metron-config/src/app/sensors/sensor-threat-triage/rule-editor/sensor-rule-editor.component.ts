@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, EventEmitter, Output, OnInit, ChangeDetectorRef} from '@angular/core';
+import {Component, Input, EventEmitter, Output, OnInit} from '@angular/core';
 import {RiskLevelRule} from '../../../model/risk-level-rule';
 import {StellarService} from '../../../service/stellar.service';
 
@@ -34,7 +34,7 @@ export class SensorRuleEditorComponent implements OnInit {
   newRiskLevelRule = new RiskLevelRule();
   ruleIsValid = false;
 
-  constructor(private stellarService: StellarService, private cd: ChangeDetectorRef) { }
+  constructor(private stellarService: StellarService) { }
 
   ngOnInit() {
     Object.assign(this.newRiskLevelRule, this.riskLevelRule);
@@ -57,7 +57,6 @@ export class SensorRuleEditorComponent implements OnInit {
 
   onRuleChange = () => {
     this.ruleIsValid = false;
-    this.cd.markForCheck();
   }
 
 }
