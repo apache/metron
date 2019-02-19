@@ -29,7 +29,6 @@ import java.util.Map;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.writer.BulkWriterMessage;
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
@@ -251,12 +250,13 @@ public class HdfsWriterTest {
     JSONObject message2 = new JSONObject();
     message2.put("test.key", "test.value3");
     message2.put("test.key2", "test.value2");
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage("message1", message));
-      add(new BulkWriterMessage("message2", message2));
-    }};
+    ArrayList<JSONObject> messages = new ArrayList<>();
+    messages.add(message);
+    messages.add(message2);
 
-    writer.write(SENSOR_NAME, config, messages);
+    ArrayList<Tuple> tuples = new ArrayList<>();
+
+    writer.write(SENSOR_NAME, config, tuples, messages);
     writer.close();
 
     ArrayList<String> expected = new ArrayList<>();
@@ -295,12 +295,13 @@ public class HdfsWriterTest {
     JSONObject message2 = new JSONObject();
     message2.put("test.key", "test.value");
     message2.put("test.key3", "test.value2");
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage<>("message1", message));
-      add(new BulkWriterMessage<>("message2", message2));
-    }};
+    ArrayList<JSONObject> messages = new ArrayList<>();
+    messages.add(message);
+    messages.add(message2);
 
-    writer.write(SENSOR_NAME, config, messages);
+    ArrayList<Tuple> tuples = new ArrayList<>();
+
+    writer.write(SENSOR_NAME, config, tuples, messages);
     writer.close();
 
     ArrayList<String> expected = new ArrayList<>();
@@ -338,12 +339,13 @@ public class HdfsWriterTest {
     JSONObject message2 = new JSONObject();
     message2.put("test.key", "test.value2");
     message2.put("test.key3", "test.value3");
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage("message1", message));
-      add(new BulkWriterMessage("message2", message2));
-    }};
+    ArrayList<JSONObject> messages = new ArrayList<>();
+    messages.add(message);
+    messages.add(message2);
 
-    writer.write(SENSOR_NAME, config, messages);
+    ArrayList<Tuple> tuples = new ArrayList<>();
+
+    writer.write(SENSOR_NAME, config, tuples, messages);
     writer.close();
 
     ArrayList<String> expected1 = new ArrayList<>();
@@ -390,11 +392,12 @@ public class HdfsWriterTest {
     // These two messages will be routed to the same folder, because test.key is the same
     JSONObject message = new JSONObject();
     message.put("test.key2", "test.value2");
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage("message1", message));
-    }};
+    ArrayList<JSONObject> messages = new ArrayList<>();
+    messages.add(message);
 
-    writer.write(SENSOR_NAME, config,messages);
+    ArrayList<Tuple> tuples = new ArrayList<>();
+
+    writer.write(SENSOR_NAME, config, tuples, messages);
     writer.close();
 
     ArrayList<String> expected = new ArrayList<>();
@@ -422,15 +425,15 @@ public class HdfsWriterTest {
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage("message1", message));
-    }};
+    ArrayList<JSONObject> messages = new ArrayList<>();
+    messages.add(message);
+    ArrayList<Tuple> tuples = new ArrayList<>();
 
     CountSyncPolicy basePolicy = new CountSyncPolicy(5);
     ClonedSyncPolicyCreator creator = new ClonedSyncPolicyCreator(basePolicy);
 
-    writer.write(SENSOR_NAME, config, messages);
-    writer.write(SENSOR_NAME, config, messages);
+    writer.write(SENSOR_NAME, config, tuples, messages);
+    writer.write(SENSOR_NAME, config, tuples, messages);
     writer.close();
 
     File outputFolder = new File(folder.getAbsolutePath() + "/test-test.value/test.value/");
@@ -446,44 +449,6 @@ public class HdfsWriterTest {
       List<String> lines = Files.readAllLines(file.toPath());
       // One line per file
       Assert.assertEquals(2, lines.size());
-      Assert.assertEquals(expected, lines);
-    }
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testHandleAttemptsRotateIfStreamClosed() throws Exception {
-    String function = "FORMAT('test-%s/%s', test.key, test.key)";
-    WriterConfiguration config = buildWriterConfiguration(function);
-    HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
-
-    JSONObject message = new JSONObject();
-    message.put("test.key", "test.value");
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage("message1", message));
-    }};
-
-    CountSyncPolicy basePolicy = new CountSyncPolicy(5);
-    ClonedSyncPolicyCreator creator = new ClonedSyncPolicyCreator(basePolicy);
-
-    writer.write(SENSOR_NAME, config, messages);
-    writer.getSourceHandler(SENSOR_NAME, "test-test.value/test.value", config).closeOutputFile();
-    writer.getSourceHandler(SENSOR_NAME, "test-test.value/test.value", config).handle(message, SENSOR_NAME, config, creator);
-    writer.close();
-
-    File outputFolder = new File(folder.getAbsolutePath() + "/test-test.value/test.value/");
-
-    // The message should show up twice, once in each file
-    ArrayList<String> expected = new ArrayList<>();
-    expected.add(message.toJSONString());
-
-    // Assert this went into a new file because it actually rotated
-    Assert.assertEquals(2, outputFolder.listFiles().length);
-    for (File file : outputFolder.listFiles()) {
-      List<String> lines = Files.readAllLines(file.toPath());
-      // One line per file
-      Assert.assertEquals(1, lines.size());
       Assert.assertEquals(expected, lines);
     }
   }
