@@ -15,8 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, EventEmitter, Output, OnInit} from '@angular/core';
+import {Component, Input, EventEmitter, Output, OnInit, ChangeDetectorRef} from '@angular/core';
 import {RiskLevelRule} from '../../../model/risk-level-rule';
+import {StellarService} from '../../../service/stellar.service';
 
 @Component({
   selector: 'metron-config-sensor-rule-editor',
@@ -31,8 +32,9 @@ export class SensorRuleEditorComponent implements OnInit {
   @Output() onCancelTextEditor: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onSubmitTextEditor: EventEmitter<RiskLevelRule> = new EventEmitter<RiskLevelRule>();
   newRiskLevelRule = new RiskLevelRule();
+  ruleIsValid = false;
 
-  constructor() { }
+  constructor(private stellarService: StellarService, private cd: ChangeDetectorRef) { }
 
   ngOnInit() {
     Object.assign(this.newRiskLevelRule, this.riskLevelRule);
@@ -44,6 +46,18 @@ export class SensorRuleEditorComponent implements OnInit {
 
   onCancel(): void {
     this.onCancelTextEditor.emit(true);
+  }
+
+  onTest() {
+    const rule = String(this.newRiskLevelRule.score);
+    this.stellarService.validateRules([rule]).subscribe((response) => {
+      this.ruleIsValid = !!response[rule];
+    });
+  }
+
+  onRuleChange = () => {
+    this.ruleIsValid = false;
+    this.cd.markForCheck();
   }
 
 }

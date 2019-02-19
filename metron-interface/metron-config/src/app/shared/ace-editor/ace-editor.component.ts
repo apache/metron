@@ -44,6 +44,7 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   @Input() liveAutocompletion = true;
   @Input() enableSnippets = true;
   @Input() useWorker = true;
+  @Input() onChange;
   @ViewChild('aceEditor') aceEditorEle: ElementRef;
 
   private onTouchedCallback;
@@ -119,7 +120,12 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
     });
     parserConfigEditor.on('change', (e: any) => {
       this.inputJson = this.aceConfigEditor.getValue();
-      this.onChangeCallback(this.aceConfigEditor.getValue());
+      if (typeof this.onChangeCallback === 'function') {
+        this.onChangeCallback(this.inputJson);
+      }
+      if (typeof this.onChange === 'function') {
+        this.onChange(this.inputJson);
+      }
     });
 
     if (this.type === 'GROK') {

@@ -39,6 +39,7 @@
               [enableSnippets]="false"
               [useWorker]="false"
               [type]="'STELLAR'"
+              [onChange]="onRuleChange"
               [placeHolder]="'Enter a number or a Stellar expression'"
             >
             </metron-config-ace-editor>
@@ -48,7 +49,8 @@
     <div class="form-group">
         <div class="form-seperator-edit"></div>
         <div class="button-row">
-            <button type="submit" class="btn form-enable-disable-button" (click)="onSave()">SAVE</button>
+            <button class="btn form-enable-disable-button" (click)="onTest()">TEST</button>
+            <button type="submit" class="btn form-enable-disable-button" (click)="onSave()" [disabled]="!ruleIsValid">SAVE</button>
             <button class="btn form-enable-disable-button ml-1" (click)="onCancel()" >CANCEL</button>
         </div>
     </div>

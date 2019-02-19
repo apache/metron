@@ -22,6 +22,9 @@ import {SharedModule} from '../../../shared/shared.module';
 import {NumberSpinnerComponent} from '../../../shared/number-spinner/number-spinner.component';
 import {RiskLevelRule} from '../../../model/risk-level-rule';
 import {AceEditorModule} from '../../../shared/ace-editor/ace-editor.module';
+import {StellarService} from '../../../service/stellar.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { AppConfigService } from 'app/service/app-config.service';
 
 describe('Component: SensorRuleEditorComponent', () => {
 
@@ -30,11 +33,12 @@ describe('Component: SensorRuleEditorComponent', () => {
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            imports: [SharedModule, AceEditorModule],
+            imports: [SharedModule, AceEditorModule, HttpClientTestingModule],
             declarations: [ SensorRuleEditorComponent, NumberSpinnerComponent ],
-            providers: [
-              SensorRuleEditorComponent
-            ]
+            providers: [SensorRuleEditorComponent, StellarService, { provide: AppConfigService, useValue: {
+              appConfigStatic: {},
+              getApiRoot: () => {}
+            } }]
         });
 
         fixture = TestBed.createComponent(SensorRuleEditorComponent);
