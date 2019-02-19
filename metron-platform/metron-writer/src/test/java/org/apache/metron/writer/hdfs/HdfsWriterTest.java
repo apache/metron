@@ -453,44 +453,6 @@ public class HdfsWriterTest {
     }
   }
 
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testHandleAttemptsRotateIfStreamClosed() throws Exception {
-    String function = "FORMAT('test-%s/%s', test.key, test.key)";
-    WriterConfiguration config = buildWriterConfiguration(function);
-    HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
-
-    JSONObject message = new JSONObject();
-    message.put("test.key", "test.value");
-    ArrayList<JSONObject> messages = new ArrayList<>();
-    messages.add(message);
-    ArrayList<Tuple> tuples = new ArrayList<>();
-
-    CountSyncPolicy basePolicy = new CountSyncPolicy(5);
-    ClonedSyncPolicyCreator creator = new ClonedSyncPolicyCreator(basePolicy);
-
-    writer.write(SENSOR_NAME, config, tuples, messages);
-    writer.getSourceHandler(SENSOR_NAME, "test-test.value/test.value", config).closeOutputFile();
-    writer.getSourceHandler(SENSOR_NAME, "test-test.value/test.value", config).handle(message, SENSOR_NAME, config, creator);
-    writer.close();
-
-    File outputFolder = new File(folder.getAbsolutePath() + "/test-test.value/test.value/");
-
-    // The message should show up twice, once in each file
-    ArrayList<String> expected = new ArrayList<>();
-    expected.add(message.toJSONString());
-
-    // Assert this went into a new file because it actually rotated
-    Assert.assertEquals(2, outputFolder.listFiles().length);
-    for (File file : outputFolder.listFiles()) {
-      List<String> lines = Files.readAllLines(file.toPath());
-      // One line per file
-      Assert.assertEquals(1, lines.size());
-      Assert.assertEquals(expected, lines);
-    }
-  }
-
   protected WriterConfiguration buildWriterConfiguration(String function) {
     IndexingConfigurations indexingConfig = new IndexingConfigurations();
     Map<String, Object> sensorIndexingConfig = new HashMap<>();
