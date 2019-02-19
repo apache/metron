@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 /// <reference path="../../../../node_modules/@types/ace/index.d.ts" />
-import { Component, AfterViewInit, ViewChild, ElementRef, forwardRef, Input} from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, forwardRef, Input, Output, EventEmitter} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import {AutocompleteOption} from '../../model/autocomplete-option';
 
@@ -44,7 +44,7 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   @Input() liveAutocompletion = true;
   @Input() enableSnippets = true;
   @Input() useWorker = true;
-  @Input() onChange;
+  @Output() onChange = new EventEmitter();
   @ViewChild('aceEditor') aceEditorEle: ElementRef;
 
   private onTouchedCallback;
@@ -120,11 +120,9 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
     });
     parserConfigEditor.on('change', (e: any) => {
       this.inputJson = this.aceConfigEditor.getValue();
+      this.onChange.emit(this.inputJson);
       if (typeof this.onChangeCallback === 'function') {
         this.onChangeCallback(this.inputJson);
-      }
-      if (typeof this.onChange === 'function') {
-        this.onChange(this.inputJson);
       }
     });
 

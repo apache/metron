@@ -39,7 +39,7 @@
               [enableSnippets]="false"
               [useWorker]="false"
               [type]="'STELLAR'"
-              [onChange]="onRuleChange"
+              (onChange)="onRuleChange($event)"
               [placeHolder]="'Enter a number or a Stellar expression'"
             >
             </metron-config-ace-editor>
