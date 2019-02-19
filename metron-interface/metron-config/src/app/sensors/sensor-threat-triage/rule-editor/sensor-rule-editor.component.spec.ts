@@ -22,13 +22,10 @@ import {SharedModule} from '../../../shared/shared.module';
 import {NumberSpinnerComponent} from '../../../shared/number-spinner/number-spinner.component';
 import {RiskLevelRule} from '../../../model/risk-level-rule';
 import {AceEditorModule} from '../../../shared/ace-editor/ace-editor.module';
-<<<<<<< HEAD
 import {StellarService} from '../../../service/stellar.service';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { AppConfigService } from 'app/service/app-config.service';
 import { By } from '@angular/platform-browser';
-=======
->>>>>>> add stellar syntax highlighting and fix some css
+import { AppConfigService } from 'app/service/app-config.service';
 
 describe('Component: SensorRuleEditorComponent', () => {
 
@@ -37,11 +34,7 @@ describe('Component: SensorRuleEditorComponent', () => {
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-<<<<<<< HEAD
             imports: [SharedModule, AceEditorModule, HttpClientTestingModule],
-=======
-            imports: [SharedModule, AceEditorModule],
->>>>>>> add stellar syntax highlighting and fix some css
             declarations: [ SensorRuleEditorComponent, NumberSpinnerComponent ],
             providers: [SensorRuleEditorComponent, StellarService, { provide: AppConfigService, useValue: {
               appConfigStatic: {},
