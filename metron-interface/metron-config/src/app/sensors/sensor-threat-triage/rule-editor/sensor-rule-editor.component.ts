@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, EventEmitter, Output, OnInit, ChangeDetectorRef} from '@angular/core';
+import {Component, Input, EventEmitter, Output, OnInit} from '@angular/core';
 import {RiskLevelRule} from '../../../model/risk-level-rule';
 import {StellarService} from '../../../service/stellar.service';
 
