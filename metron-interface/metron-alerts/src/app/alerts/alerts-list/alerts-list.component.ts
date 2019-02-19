@@ -46,6 +46,7 @@ import {Facets} from '../../model/facets';
 import { GlobalConfigService } from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
+import {AlertSource} from "../../model/alert-source";
 
 @Component({
   selector: 'app-alerts-list',
@@ -101,12 +102,15 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   addAlertChangedListner() {
-    this.metaAlertsService.alertChanged$.subscribe(metaAlertAddRemoveRequest => {
-      this.updateAlert(META_ALERTS_SENSOR_TYPE, metaAlertAddRemoveRequest.metaAlertGuid, (metaAlertAddRemoveRequest.alerts === null));
+    this.metaAlertsService.alertChanged$.subscribe(alertSource => {
+      if (alertSource['status'] === 'inactive') {
+        this.removeAlert(alertSource)
+      }
+      this.updateAlert(alertSource);
     });
 
-    this.alertChangedSubscription = this.updateService.alertChanged$.subscribe(patchRequest => {
-      this.updateAlert(patchRequest.sensorType, patchRequest.guid, false);
+    this.alertChangedSubscription = this.updateService.alertChanged$.subscribe(alertSource => {
+      this.updateAlert(alertSource);
     });
   }
 
@@ -456,20 +460,17 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.searchService.interval = this.refreshInterval;
   }
 
-  updateAlert(sensorType: string, guid: string, isDelete: boolean) {
-    if (isDelete) {
-      let alertIndex = -1;
-      this.alerts.forEach((alert, index) => {
-        alertIndex = (alert.source.guid === guid) ? index : alertIndex;
-      });
-      this.alerts.splice(alertIndex, 1);
-      return;
-    }
+  updateAlert(alertSource: AlertSource) {
+    this.alerts.filter(alert => alert.source.guid === alertSource.guid)
+            .map(alert => alert.source = alertSource);
+  }
 
-    this.searchService.getAlert(sensorType, guid).subscribe(alertSource => {
-      this.alerts.filter(alert => alert.source.guid === guid)
-      .map(alert => alert.source = alertSource);
+  removeAlert(alertSource: AlertSource) {
+    let alertIndex = -1;
+    this.alerts.forEach((alert, index) => {
+      alertIndex = (alert.source.guid === alertSource.guid) ? index : alertIndex;
     });
+    this.alerts.splice(alertIndex, 1);
   }
 
   updateSelectedAlertStatus(status: string) {

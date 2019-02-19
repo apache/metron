@@ -98,7 +98,6 @@ export class AlertDetailsComponent implements OnInit {
     this.alertCommentStr = '';
     this.searchService.getAlert(this.alertSourceType, this.alertId).subscribe(alertSource => {
       this.setAlert(alertSource);
-      this.setComments(alertSource['comments'] || []);
     });
   }
 
@@ -106,11 +105,9 @@ export class AlertDetailsComponent implements OnInit {
     this.alertSource = alertSource;
     this.alertSources = (alertSource.metron_alert && alertSource.metron_alert.length > 0) ? alertSource.metron_alert : [alertSource];
     this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
-  }
-
-  setComments(alertComments) {
+    let alertComments = alertSource['comments'] || [];
     this.alertCommentsWrapper = alertComments.map(alertComment =>
-        new AlertCommentWrapper(alertComment, moment(new Date(alertComment.timestamp)).fromNow()));
+            new AlertCommentWrapper(alertComment, moment(new Date(alertComment.timestamp)).fromNow()));
   }
 
   getAlertState(alertStatus) {
@@ -177,12 +174,8 @@ export class AlertDetailsComponent implements OnInit {
     let tAlert = new Alert();
     tAlert.source = this.alertSource;
 
-    let previousAlertStatus = this.alertSource['alert_status'];
-    this.alertSource['alert_status'] = state;
-    this.setAlert(this.alertSource);
-    this.updateService.updateAlertState([tAlert], state).subscribe(() => {}, () => {
-      this.alertSource['alert_status'] = previousAlertStatus;
-      this.setAlert(this.alertSource);
+    this.updateService.updateAlertState([tAlert], state).subscribe(alertSource => {
+      this.setAlert(alertSource[0]);
     });
   }
 
@@ -200,36 +193,25 @@ export class AlertDetailsComponent implements OnInit {
       patchRequest.sensorType = 'metaalert';
       patchRequest.patch = [new Patch('add', '/name', this.alertName)];
 
-      let previousName = this.alertSource['name'];
-      this.alertSource['name'] = this.alertName;
-      this.updateService.patch(patchRequest).subscribe(rep => {
+      this.updateService.patch(patchRequest).subscribe(alertSource => {
+        this.setAlert(alertSource);
         this.toggleNameEditor();
       }, () => {
-        this.alertSource['name'] = previousName;
-        this.alertName = previousName;
         this.toggleNameEditor();
       });
     }
   }
 
   onAddComment() {
-    let newComment = new AlertComment(this.alertCommentStr, this.authenticationService.getCurrentUserName(), new Date().getTime());
-    let alertComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
-    alertComments.unshift(newComment);
-    this.setComments(alertComments);
     let commentRequest = new CommentAddRemoveRequest();
     commentRequest.guid = this.alertSource.guid;
     commentRequest.comment = this.alertCommentStr;
     commentRequest.username = this.authenticationService.getCurrentUserName();
     commentRequest.timestamp = new Date().getTime();
     commentRequest.sensorType = this.alertSourceType;
-    this.updateService.addComment(commentRequest).subscribe(
-        () => {},
-        () => {
-          let previousComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)
-          .filter(alertComment => alertComment !== newComment);
-          this.setComments(previousComments);
-        });
+    this.updateService.addComment(commentRequest).subscribe(alertSource => {
+      this.setAlert(alertSource);
+    });
   }
 
   patchAlert(patch: Patch, onPatchError) {
@@ -252,22 +234,15 @@ export class AlertDetailsComponent implements OnInit {
 
     const confirmedSubscription = this.dialogService.launchDialog(commentText).subscribe(action => {
       if (action === ConfirmationType.Confirmed) {
-        let deletedCommentWrapper = this.alertCommentsWrapper.splice(index, 1)[0];
         let commentRequest = new CommentAddRemoveRequest();
         commentRequest.guid = this.alertSource.guid;
         commentRequest.comment = this.alertCommentsWrapper[index].alertComment.comment;
         commentRequest.username = this.alertCommentsWrapper[index].alertComment.username;
         commentRequest.timestamp = this.alertCommentsWrapper[index].alertComment.timestamp;
         commentRequest.sensorType = this.alertSourceType;
-        this.updateService.removeComment(commentRequest).subscribe(
-            () => {
-              this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)
-            },
-            () => {
-              // add the deleted comment back
-              this.alertCommentsWrapper.unshift(deletedCommentWrapper);
-              this.alertCommentsWrapper.sort((a, b) => b.alertComment.timestamp - a.alertComment.timestamp);
-            });
+        this.updateService.removeComment(commentRequest).subscribe(alertSource => {
+          this.setAlert(alertSource);
+        });
       }
       confirmedSubscription.unsubscribe();
     });
