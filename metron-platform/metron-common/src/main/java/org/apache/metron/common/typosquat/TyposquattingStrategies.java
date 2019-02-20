@@ -54,6 +54,12 @@ public enum TyposquattingStrategies implements TyposquattingStrategy {
     return candidates;
   }
 
+  /**
+   * Generates all typosquatting candidates.
+   *
+   * @param originalString The original string to generate candidates for
+   * @return A set of candidates for typosquatting
+   */
   public static Set<String> generateAllCandidates(String originalString) {
     Set<String> ret = new HashSet<>();
     for(TyposquattingStrategy s : values() ) {
@@ -62,6 +68,12 @@ public enum TyposquattingStrategies implements TyposquattingStrategy {
     return ret;
   }
 
+  /**
+   * Retrieves a strategy by name.
+   *
+   * @param name The name of the strategy
+   * @return The associated {@link TyposquattingStrategy}
+   */
   public static TyposquattingStrategies byName(String name) {
     for(TyposquattingStrategies s : values()) {
       if(s.strategy.name().equals(name)) {

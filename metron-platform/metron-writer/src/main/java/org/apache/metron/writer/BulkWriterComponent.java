@@ -132,7 +132,7 @@ public class BulkWriterComponent<MESSAGE_T> {
     }
     long endTime = System.currentTimeMillis();
     long elapsed = endTime - startTime;
-    LOG.debug("Bulk batch for sensor {} wrote {} messages in ~{} ms", sensorType, messages.size(), elapsed);
+    LOG.debug("Flushed batch successfully; sensorType={}, batchSize={}, took={} ms", sensorType, CollectionUtils.size(tupleList), elapsed);
   }
 
   /**
@@ -146,6 +146,8 @@ public class BulkWriterComponent<MESSAGE_T> {
           )
   {
     // No need to do "all" sensorTypes here, just the ones that have data batched up.
+    // Sensors are removed from the sensorTupleMap when flushed so we need to iterate over a copy of sensorTupleMap keys
+    // to avoid a ConcurrentModificationException.
     for (String sensorType : new HashSet<>(sensorMessageCache.keySet())) {
       applyShouldFlush(sensorType, bulkMessageWriter, configurations, sensorMessageCache.get(sensorType));
     }

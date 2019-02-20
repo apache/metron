@@ -65,13 +65,13 @@ public interface RawMessageStrategy extends Serializable {
 
   /**
    * The default value for merging metadata.
-   * @return
+   * @return true if default to merge, false otherwise
    */
   boolean mergeMetadataDefault();
 
   /**
    * The default value for reading metadata.
-   * @return
+   * @return true if default to read, false otherwise
    */
   boolean readMetadataDefault();
 }

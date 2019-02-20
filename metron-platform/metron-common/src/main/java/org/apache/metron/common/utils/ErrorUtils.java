@@ -56,7 +56,7 @@ public class ErrorUtils {
     }
 
     /**
-     * Throw runtime exception with format "reason + cause message + cause Throwable"
+     * Throw runtime exception with format "reason + cause message + cause Throwable".
      *
      * @param reason Message to include in exception
      * @param t Wrapped exception
@@ -89,6 +89,12 @@ public class ErrorUtils {
     }
   }
 
+  /**
+   * Handles a {@link MetronError} that occurs.
+   *
+   * @param collector The Storm output collector being reported to
+   * @param error The error that occurred
+   */
   public static void handleError(OutputCollector collector, MetronError error)
   {
     collector.emit(Constants.ERROR_STREAM, new Values(error.getJSONObject()));
@@ -99,6 +105,11 @@ public class ErrorUtils {
 
   }
 
+  /**
+   * Generates a string version of a thread dump.
+   *
+   * @return String of the thread dump
+   */
 	public static String generateThreadDump() {
 		final StringBuilder dump = new StringBuilder();
 		final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
