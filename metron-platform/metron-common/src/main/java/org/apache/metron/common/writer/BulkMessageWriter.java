@@ -38,7 +38,7 @@ public interface BulkMessageWriter<MESSAGE_T> extends AutoCloseable, Serializabl
   */
   BulkWriterResponse write(String sensorType
             , WriterConfiguration configurations
-            , List<BulkWriterMessage<MESSAGE_T>> messages
+            , List<BulkMessage<MESSAGE_T>> messages
             ) throws Exception;
 
   String getName();

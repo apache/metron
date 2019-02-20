@@ -21,7 +21,7 @@ package org.apache.metron.writer;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.slf4j.Logger;
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  */
 public class BulkWriterComponent<MESSAGE_T> {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private Map<String, List<BulkWriterMessage<MESSAGE_T>>> sensorMessageCache = new HashMap<>();
+  private Map<String, List<BulkMessage<MESSAGE_T>>> sensorMessageCache = new HashMap<>();
   private List<FlushPolicy> flushPolicies;
 
   public BulkWriterComponent(int maxBatchTimeout) {
@@ -76,12 +76,12 @@ public class BulkWriterComponent<MESSAGE_T> {
    * @param configurations writer configurations
    */
   public void write(String sensorType
-          , BulkWriterMessage<MESSAGE_T> bulkWriterMessage
+          , BulkMessage<MESSAGE_T> bulkWriterMessage
           , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
           , WriterConfiguration configurations
   )
   {
-    List<BulkWriterMessage<MESSAGE_T>> messages = sensorMessageCache.getOrDefault(sensorType, new ArrayList<>());
+    List<BulkMessage<MESSAGE_T>> messages = sensorMessageCache.getOrDefault(sensorType, new ArrayList<>());
     sensorMessageCache.put(sensorType, messages);
 
     // if a sensor type is disabled flush all pending messages and discard the new message
@@ -111,13 +111,13 @@ public class BulkWriterComponent<MESSAGE_T> {
   protected void flush( String sensorType
                     , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
                     , WriterConfiguration configurations
-                    , List<BulkWriterMessage<MESSAGE_T>> messages
+                    , List<BulkMessage<MESSAGE_T>> messages
                     )
   {
     long startTime = System.currentTimeMillis(); //no need to mock, so use real time
     BulkWriterResponse response = new BulkWriterResponse();
 
-    Collection<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toList());
+    Collection<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toList());
     try {
       response = bulkMessageWriter.write(sensorType, configurations, messages);
 
@@ -170,7 +170,7 @@ public class BulkWriterComponent<MESSAGE_T> {
   private void applyShouldFlush(String sensorType
           , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
           , WriterConfiguration configurations
-          , List<BulkWriterMessage<MESSAGE_T>> messages) {
+          , List<BulkMessage<MESSAGE_T>> messages) {
     if (messages.size() > 0) { // no need to flush empty batches
       for(FlushPolicy flushPolicy: flushPolicies) {
         if (flushPolicy.shouldFlush(sensorType, configurations, messages.size())) {

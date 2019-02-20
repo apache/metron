@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.stellar.common.StellarProcessor;
@@ -105,13 +105,13 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkWriterMessage<JSONObject>> messages) throws Exception {
+  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkMessage<JSONObject>> messages) throws Exception {
     BulkWriterResponse response = new BulkWriterResponse();
-    Set<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
+    Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
 
     // Currently treating all the messages in a group for pass/failure.
     // Messages can all result in different HDFS paths, because of Stellar Expressions, so we'll need to iterate through
-    for (BulkWriterMessage<JSONObject> bulkWriterMessage : messages) {
+    for (BulkMessage<JSONObject> bulkWriterMessage : messages) {
       JSONObject message = bulkWriterMessage.getMessage();
       String path = getHdfsPathExtension(
               sensorType,

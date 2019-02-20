@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
@@ -73,8 +73,8 @@ public class SimpleHBaseEnrichmentWriterTest {
 
     writer.write( SENSOR_TYPE
             , configuration
-            , new ArrayList<BulkWriterMessage<JSONObject>>() {{
-              add(new BulkWriterMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
+            , new ArrayList<BulkMessage<JSONObject>>() {{
+              add(new BulkMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
             }}
     );
     List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();
@@ -100,8 +100,8 @@ public class SimpleHBaseEnrichmentWriterTest {
 
     writer.write( SENSOR_TYPE
             , configuration
-            , new ArrayList<BulkWriterMessage<JSONObject>>() {{
-              add(new BulkWriterMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
+            , new ArrayList<BulkMessage<JSONObject>>() {{
+              add(new BulkMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
             }}
     );
     List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();
@@ -127,8 +127,8 @@ public class SimpleHBaseEnrichmentWriterTest {
 
     writer.write( SENSOR_TYPE
             , configuration
-            , new ArrayList<BulkWriterMessage<JSONObject>>() {{
-              add(new BulkWriterMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
+            , new ArrayList<BulkMessage<JSONObject>>() {{
+              add(new BulkMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
             }}
     );
     List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();

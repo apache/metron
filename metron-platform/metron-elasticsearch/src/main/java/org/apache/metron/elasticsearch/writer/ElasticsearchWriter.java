@@ -22,7 +22,7 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.field.FieldNameConverter;
 import org.apache.metron.common.field.FieldNameConverters;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
@@ -89,7 +89,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   @Override
   public BulkWriterResponse write(String sensorType,
                                   WriterConfiguration configurations,
-                                  List<BulkWriterMessage<JSONObject>> messages) {
+                                  List<BulkMessage<JSONObject>> messages) {
 
     // fetch the field name converter for this sensor type
     FieldNameConverter fieldNameConverter = FieldNameConverters.create(sensorType, configurations);
@@ -97,7 +97,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
 
     // create a document from each message
-    for(BulkWriterMessage<JSONObject> bulkWriterMessage: messages) {
+    for(BulkMessage<JSONObject> bulkWriterMessage: messages) {
       MessageIdBasedDocument document = createDocument(bulkWriterMessage, sensorType, fieldNameConverter);
       documentWriter.addDocument(document, indexName);
     }
@@ -116,7 +116,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     return response;
   }
 
-  private MessageIdBasedDocument createDocument(BulkWriterMessage<JSONObject> bulkWriterMessage,
+  private MessageIdBasedDocument createDocument(BulkMessage<JSONObject> bulkWriterMessage,
                                                 String sensorType,
                                                 FieldNameConverter fieldNameConverter) {
     // transform the message fields to the source fields of the indexed document

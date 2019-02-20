@@ -21,7 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.metron.solr.writer.SolrWriter;
@@ -91,7 +91,7 @@ public class SchemaValidationIntegrationTest {
       component.addCollection(String.format("%s", sensorType), String.format("src/main/config/schema/%s", sensorType));
       Map<String, Object> globalConfig = getGlobalConfig(sensorType, component);
 
-      List<BulkWriterMessage<JSONObject>> messages = new ArrayList<>();
+      List<BulkMessage<JSONObject>> messages = new ArrayList<>();
       Map<String, Map<String, Object>> index = new HashMap<>();
       int i = 0;
       for (String message : getData(sensorType)) {
@@ -99,7 +99,7 @@ public class SchemaValidationIntegrationTest {
           Map<String, Object> m = JSONUtils.INSTANCE.load(message.trim(), JSONUtils.MAP_SUPPLIER);
           String guid = getGuid(m);
           index.put(guid, m);
-          messages.add(new BulkWriterMessage<>(String.format("message%d", ++i), new JSONObject(m)));
+          messages.add(new BulkMessage<>(String.format("message%d", ++i), new JSONObject(m)));
         }
       }
       Assert.assertTrue(messages.size() > 0);

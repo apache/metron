@@ -41,7 +41,7 @@ import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.parsers.ParserRunner;
 import org.apache.metron.parsers.ParserRunnerResults;
@@ -266,7 +266,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         String messageId = messageIds.get(i);
         JSONObject message = messages.get(i);
         try {
-          writer.write(sensorType, new BulkWriterMessage<>(messageId, message), getConfigurations());
+          writer.write(sensorType, new BulkMessage<>(messageId, message), getConfigurations());
           numWritten++;
         } catch (Exception ex) {
           handleError(sensorType, originalMessage, tuple, ex, collector);

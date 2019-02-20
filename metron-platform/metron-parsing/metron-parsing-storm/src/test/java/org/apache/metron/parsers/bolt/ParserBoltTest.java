@@ -24,7 +24,7 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.metadata.RawMessage;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.parsers.DefaultParserRunnerResults;
 import org.apache.metron.parsers.ParserRunnerImpl;
@@ -294,7 +294,7 @@ public class ParserBoltTest extends BaseBoltTest {
 
       Assert.assertEquals(expectedRawMessage, mockParserRunner.getRawMessage());
       verify(bulkWriterResponseHandler).addTupleMessageIds(t1, Collections.singletonList("messageId"));
-      verify(writerHandler, times(1)).write("yaf", new BulkWriterMessage<>("messageId", message), parserConfigurations);
+      verify(writerHandler, times(1)).write("yaf", new BulkMessage<>("messageId", message), parserConfigurations);
     }
   }
 
@@ -323,16 +323,16 @@ public class ParserBoltTest extends BaseBoltTest {
     }});
     parserBolt.setAckTuplesPolicy(bulkWriterResponseHandler);
 
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<>();
+    List<BulkMessage<JSONObject>> messages = new ArrayList<>();
     for(int i = 0; i < 5; i++) {
       String messageId = String.format("messageId%s", i + 1);
       JSONObject message = new JSONObject();
       message.put(Constants.GUID, messageId);
       message.put("field", String.format("value%s", i + 1));
-      messages.add(new BulkWriterMessage<>(messageId, message));
+      messages.add(new BulkMessage<>(messageId, message));
     }
 
-    mockParserRunner.setMessages(messages.stream().map(BulkWriterMessage::getMessage).collect(Collectors.toList()));
+    mockParserRunner.setMessages(messages.stream().map(BulkMessage::getMessage).collect(Collectors.toList()));
     RawMessage expectedRawMessage = new RawMessage("originalMessage".getBytes(StandardCharsets.UTF_8), new HashMap<>());
 
     {

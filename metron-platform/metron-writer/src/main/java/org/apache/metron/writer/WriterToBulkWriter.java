@@ -18,7 +18,7 @@
 
 package org.apache.metron.writer;
 
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.storm.task.TopologyContext;
 import com.google.common.collect.Iterables;
@@ -49,8 +49,8 @@ public class WriterToBulkWriter<MESSAGE_T> implements BulkMessageWriter<MESSAGE_
   }
 
   @Override
-  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkWriterMessage<MESSAGE_T>> messages) throws Exception {
-    Set<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
+  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkMessage<MESSAGE_T>> messages) throws Exception {
+    Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
     BulkWriterResponse response = new BulkWriterResponse();
     if(messages.size() > 1) {
         response.addAllErrors(new IllegalStateException("WriterToBulkWriter expects a batch of exactly 1"), ids);

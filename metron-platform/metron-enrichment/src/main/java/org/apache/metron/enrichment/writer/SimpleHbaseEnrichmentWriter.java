@@ -18,7 +18,7 @@
 
 package org.apache.metron.enrichment.writer;
 
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.storm.task.TopologyContext;
 import com.google.common.collect.ImmutableList;
@@ -314,7 +314,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   @Override
   public BulkWriterResponse write(String sensorType
                     , WriterConfiguration configurations
-                    , List<BulkWriterMessage<JSONObject>> messages
+                    , List<BulkMessage<JSONObject>> messages
                     ) throws Exception
   {
     Map<String, Object> sensorConfig = configurations.getSensorConfig(sensorType);
@@ -324,7 +324,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
     String enrichmentType = enrichmentTypeObj == null?null:enrichmentTypeObj.toString();
     Set<String> valueColumns = new HashSet<>(getColumns(Configurations.VALUE_COLUMNS.get(sensorConfig), true));
     List<Put> puts = new ArrayList<>();
-    for(BulkWriterMessage<JSONObject> bulkWriterMessage : messages) {
+    for(BulkMessage<JSONObject> bulkWriterMessage : messages) {
       EnrichmentKey key = getKey(bulkWriterMessage.getMessage(), transformer, enrichmentType);
       EnrichmentValue value = getValue(bulkWriterMessage.getMessage(), transformer.keySet, valueColumns);
       if(key == null || value == null) {
@@ -336,7 +336,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
         puts.add(put);
       }
     }
-    Set<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
+    Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
     BulkWriterResponse response = new BulkWriterResponse();
     try {
       table.put(puts);

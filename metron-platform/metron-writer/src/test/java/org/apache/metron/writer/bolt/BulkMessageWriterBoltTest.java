@@ -45,7 +45,7 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.system.FakeClock;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
@@ -54,13 +54,11 @@ import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.hamcrest.Description;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -81,7 +79,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   private BulkMessageWriterBolt<IndexingConfigurations> bulkMessageWriterBolt;
   private JSONObject sampleMessage;
   private List<MessageId> messageIdList;
-  private List<BulkWriterMessage<JSONObject>> messageList;
+  private List<BulkMessage<JSONObject>> messageList;
   private List<JSONObject> fullMessageList;
   private List<Tuple> tupleList;
 
@@ -122,7 +120,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       Tuple tuple = mock(Tuple.class);
       when(tuple.getValueByField("message")).thenReturn(message);
       tupleList.add(tuple);
-      messageList.add(new BulkWriterMessage<>(messageId, message));
+      messageList.add(new BulkMessage<>(messageId, message));
     }
   }
 

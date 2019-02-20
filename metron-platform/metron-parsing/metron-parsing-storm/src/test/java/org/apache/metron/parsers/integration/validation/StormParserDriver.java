@@ -36,7 +36,7 @@ import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.integration.ProcessorResult;
@@ -65,9 +65,9 @@ public class StormParserDriver extends ParserDriver {
     }
 
     @Override
-    public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkWriterMessage<JSONObject>> messages) throws Exception {
+    public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkMessage<JSONObject>> messages) throws Exception {
       messages.forEach(bulkWriterMessage -> output.add(bulkWriterMessage.getMessage().toJSONString().getBytes()));
-      Set<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
+      Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
       BulkWriterResponse bulkWriterResponse = new BulkWriterResponse();
       bulkWriterResponse.addAllSuccesses(ids);
       return bulkWriterResponse;

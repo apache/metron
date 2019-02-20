@@ -29,7 +29,7 @@ import java.util.Map;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
@@ -249,9 +249,9 @@ public class HdfsWriterTest {
     JSONObject message2 = new JSONObject();
     message2.put("test.key", "test.value3");
     message2.put("test.key2", "test.value2");
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage("message1", message));
-      add(new BulkWriterMessage("message2", message2));
+    List<BulkMessage<JSONObject>> messages = new ArrayList<BulkMessage<JSONObject>>() {{
+      add(new BulkMessage("message1", message));
+      add(new BulkMessage("message2", message2));
     }};
 
     writer.write(SENSOR_NAME, config, messages);
@@ -293,9 +293,9 @@ public class HdfsWriterTest {
     JSONObject message2 = new JSONObject();
     message2.put("test.key", "test.value");
     message2.put("test.key3", "test.value2");
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage<>("message1", message));
-      add(new BulkWriterMessage<>("message2", message2));
+    List<BulkMessage<JSONObject>> messages = new ArrayList<BulkMessage<JSONObject>>() {{
+      add(new BulkMessage<>("message1", message));
+      add(new BulkMessage<>("message2", message2));
     }};
 
     writer.write(SENSOR_NAME, config, messages);
@@ -336,9 +336,9 @@ public class HdfsWriterTest {
     JSONObject message2 = new JSONObject();
     message2.put("test.key", "test.value2");
     message2.put("test.key3", "test.value3");
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage("message1", message));
-      add(new BulkWriterMessage("message2", message2));
+    List<BulkMessage<JSONObject>> messages = new ArrayList<BulkMessage<JSONObject>>() {{
+      add(new BulkMessage("message1", message));
+      add(new BulkMessage("message2", message2));
     }};
 
     writer.write(SENSOR_NAME, config, messages);
@@ -388,8 +388,8 @@ public class HdfsWriterTest {
     // These two messages will be routed to the same folder, because test.key is the same
     JSONObject message = new JSONObject();
     message.put("test.key2", "test.value2");
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage("message1", message));
+    List<BulkMessage<JSONObject>> messages = new ArrayList<BulkMessage<JSONObject>>() {{
+      add(new BulkMessage("message1", message));
     }};
 
     writer.write(SENSOR_NAME, config,messages);
@@ -420,8 +420,8 @@ public class HdfsWriterTest {
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
-    List<BulkWriterMessage<JSONObject>> messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage("message1", message));
+    List<BulkMessage<JSONObject>> messages = new ArrayList<BulkMessage<JSONObject>>() {{
+      add(new BulkMessage("message1", message));
     }};
 
     CountSyncPolicy basePolicy = new CountSyncPolicy(5);

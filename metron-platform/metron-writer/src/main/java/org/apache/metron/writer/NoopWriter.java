@@ -17,7 +17,7 @@
  */
 package org.apache.metron.writer;
 
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.storm.task.TopologyContext;
 import com.google.common.base.Splitter;
@@ -134,11 +134,11 @@ public class NoopWriter extends AbstractWriter implements BulkMessageWriter<JSON
   }
 
   @Override
-  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkWriterMessage<JSONObject>> messages) throws Exception {
+  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkMessage<JSONObject>> messages) throws Exception {
     if(sleepFunction != null) {
       sleepFunction.apply(null);
     }
-    Set<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
+    Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllSuccesses(ids);
     return response;

@@ -19,7 +19,7 @@ package org.apache.metron.writer;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 
 import java.util.List;
@@ -31,7 +31,7 @@ import java.util.List;
 public interface FlushPolicy {
 
   /**
-   * This method is called whenever messages are passed to {@link BulkWriterComponent#write(String, BulkWriterMessage, BulkMessageWriter, WriterConfiguration)}.
+   * This method is called whenever messages are passed to {@link BulkWriterComponent#write(String, BulkMessage, BulkMessageWriter, WriterConfiguration)}.
    * Each implementation of {@link org.apache.metron.writer.FlushPolicy#shouldFlush(String, WriterConfiguration, int)} will be called in order
    * and the first one to return true will trigger a flush and continue on.
    * @param sensorType sensor type

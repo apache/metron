@@ -38,7 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.solr.SolrConstants;
@@ -172,9 +172,9 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   }
 
-  public Collection<SolrInputDocument> toDocs(Iterable<BulkWriterMessage<JSONObject>> messages) {
+  public Collection<SolrInputDocument> toDocs(Iterable<BulkMessage<JSONObject>> messages) {
     Collection<SolrInputDocument> ret = new ArrayList<>();
-    for(BulkWriterMessage<JSONObject> bulkWriterMessage: messages) {
+    for(BulkMessage<JSONObject> bulkWriterMessage: messages) {
       SolrInputDocument document = new SolrInputDocument();
       JSONObject message = bulkWriterMessage.getMessage();
       for (Object key : message.keySet()) {
@@ -204,11 +204,11 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public BulkWriterResponse write(String sourceType, WriterConfiguration configurations, List<BulkWriterMessage<JSONObject>> messages) throws Exception {
+  public BulkWriterResponse write(String sourceType, WriterConfiguration configurations, List<BulkMessage<JSONObject>> messages) throws Exception {
     String collection = getCollection(sourceType, configurations);
     BulkWriterResponse bulkResponse = new BulkWriterResponse();
     Collection<SolrInputDocument> docs = toDocs(messages);
-    Set<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toSet());
+    Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
     try {
       Optional<SolrException> exceptionOptional = fromUpdateResponse(solr.add(collection, docs));
       // Solr commits the entire batch or throws an exception for it.  There's no way to get partial failures.

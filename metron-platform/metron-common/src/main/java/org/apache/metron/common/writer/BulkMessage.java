@@ -19,17 +19,17 @@ package org.apache.metron.common.writer;
 
 import java.util.Objects;
 
-public class BulkWriterMessage<MESSAGE_T> {
+public class BulkMessage<MESSAGE_T> {
 
   private MessageId id;
   private MESSAGE_T message;
 
-  public BulkWriterMessage(MessageId id, MESSAGE_T message) {
+  public BulkMessage(MessageId id, MESSAGE_T message) {
     this.id = id;
     this.message = message;
   }
 
-  public BulkWriterMessage(String id, MESSAGE_T message) {
+  public BulkMessage(String id, MESSAGE_T message) {
     this(new MessageId(id), message);
   }
 
@@ -45,7 +45,7 @@ public class BulkWriterMessage<MESSAGE_T> {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    BulkWriterMessage<?> that = (BulkWriterMessage<?>) o;
+    BulkMessage<?> that = (BulkMessage<?>) o;
     return Objects.equals(id, that.id) &&
             Objects.equals(message, that.message);
   }

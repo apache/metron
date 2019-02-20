@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -40,7 +39,7 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.common.utils.StringUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
@@ -240,10 +239,10 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
 
   @Override
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations,
-                                  List<BulkWriterMessage<JSONObject>> messages) {
+                                  List<BulkMessage<JSONObject>> messages) {
     BulkWriterResponse writerResponse = new BulkWriterResponse();
     List<Map.Entry<MessageId, Future>> results = new ArrayList<>();
-    for (BulkWriterMessage<JSONObject> bulkWriterMessage: messages) {
+    for (BulkMessage<JSONObject> bulkWriterMessage: messages) {
       MessageId messageId = bulkWriterMessage.getId();
       JSONObject message = bulkWriterMessage.getMessage();
       String jsonMessage;
@@ -265,7 +264,7 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
       }
     }
 
-    Collection<MessageId> ids = messages.stream().map(BulkWriterMessage::getId).collect(Collectors.toList());
+    Collection<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toList());
     try {
       // ensures all Future.isDone() == true
       kafkaProducer.flush();

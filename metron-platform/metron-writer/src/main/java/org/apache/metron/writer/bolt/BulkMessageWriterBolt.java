@@ -39,7 +39,7 @@ import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.writer.BulkWriterComponent;
@@ -297,7 +297,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
       String messagesId = MessageUtils.getGuid(message);
       ackTuplesPolicy.addTupleMessageIds(tuple, Collections.singleton(messagesId));
       getWriterComponent().write(sensorType
-              , new BulkWriterMessage<>(messagesId, message)
+              , new BulkMessage<>(messagesId, message)
               , bulkMessageWriter
               , writerConfiguration
       );

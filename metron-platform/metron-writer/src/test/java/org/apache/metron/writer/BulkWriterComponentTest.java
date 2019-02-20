@@ -34,7 +34,7 @@ import java.util.List;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkWriterMessage;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.json.simple.JSONObject;
@@ -68,7 +68,7 @@ public class BulkWriterComponentTest {
   private MessageId messageId2 = new MessageId("messageId2");
   private String sensorType = "testSensor";
   private List<MessageId> messageIds;
-  private List<BulkWriterMessage<JSONObject>> messages;
+  private List<BulkMessage<JSONObject>> messages;
   private JSONObject message1 = new JSONObject();
   private JSONObject message2 = new JSONObject();
 
@@ -79,9 +79,9 @@ public class BulkWriterComponentTest {
     message1.put("value", "message1");
     message2.put("value", "message2");
     messageIds = Arrays.asList(messageId1, messageId2);
-    messages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage<>(messageId1, message1));
-      add(new BulkWriterMessage<>(messageId2, message2));
+    messages = new ArrayList<BulkMessage<JSONObject>>() {{
+      add(new BulkMessage<>(messageId1, message1));
+      add(new BulkMessage<>(messageId2, message2));
     }};
     when(configurations.isEnabled(any())).thenReturn(true);
     when(configurations.getBatchSize(any())).thenReturn(2);
@@ -107,7 +107,7 @@ public class BulkWriterComponentTest {
     BulkWriterResponse expectedResponse = new BulkWriterResponse();
     expectedResponse.addAllSuccesses(messageIds);
     verify(bulkMessageWriter, times(1)).write(sensorType, configurations,
-            Arrays.asList(new BulkWriterMessage<>(messageId1, message1), new BulkWriterMessage<>(messageId2, message2)));
+            Arrays.asList(new BulkMessage<>(messageId1, message1), new BulkMessage<>(messageId2, message2)));
     verify(flushPolicy, times(1)).shouldFlush(sensorType, configurations, 2);
     verify(flushPolicy, times(1)).onFlush(sensorType, expectedResponse);
 
@@ -117,8 +117,8 @@ public class BulkWriterComponentTest {
   @Test
   public void writeShouldFlushPreviousMessagesWhenDisabled() throws Exception {
     BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(Collections.singletonList(flushPolicy));
-    BulkWriterMessage<JSONObject> beforeDisabledMessage = messages.get(0);
-    BulkWriterMessage<JSONObject> afterDisabledMessage = messages.get(1);
+    BulkMessage<JSONObject> beforeDisabledMessage = messages.get(0);
+    BulkMessage<JSONObject> afterDisabledMessage = messages.get(1);
     BulkWriterResponse beforeDisabledResponse = new BulkWriterResponse();
     beforeDisabledResponse.addSuccess(beforeDisabledMessage.getId());
     BulkWriterResponse afterDisabledResponse = new BulkWriterResponse();
@@ -213,10 +213,10 @@ public class BulkWriterComponentTest {
     errorMessage.put("name", "error");
     JSONObject missingMessage = new JSONObject();
     missingMessage.put("name", "missing");
-    List<BulkWriterMessage<JSONObject>> allMessages = new ArrayList<BulkWriterMessage<JSONObject>>() {{
-      add(new BulkWriterMessage<>(successId, successMessage));
-      add(new BulkWriterMessage<>(errorId, errorMessage));
-      add(new BulkWriterMessage<>(missingId, missingMessage));
+    List<BulkMessage<JSONObject>> allMessages = new ArrayList<BulkMessage<JSONObject>>() {{
+      add(new BulkMessage<>(successId, successMessage));
+      add(new BulkMessage<>(errorId, errorMessage));
+      add(new BulkMessage<>(missingId, missingMessage));
     }};
     BulkWriterResponse bulkWriterResponse = new BulkWriterResponse();
     bulkWriterResponse.addSuccess(successId);
