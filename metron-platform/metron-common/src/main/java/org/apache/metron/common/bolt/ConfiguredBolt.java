@@ -28,6 +28,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.ConfigurationStrategy;
 import org.apache.metron.common.configuration.writer.ConfigurationsStrategies;
 import org.apache.metron.zookeeper.SimpleEventListener;
@@ -40,6 +41,12 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A Storm bolt that will manage configuration via ZooKeeper. A cache is maintained using an
+ * {@link ZKCache}
+ *
+ * @param <CONFIG_T> The config type being used, e.g. {@link ParserConfigurations}
+ */
 public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends BaseRichBolt implements Reloadable {
 
   private static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -50,6 +57,14 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
   protected CuratorFramework client;
   protected ZKCache cache;
   private final CONFIG_T configurations;
+
+  /**
+   * Builds the bolt that knows where to communicate with ZooKeeper and which configuration this
+   * bolt will be responsible for.
+   *
+   * @param zookeeperUrl A URL for ZooKeeper in the form host:port
+   * @param configurationStrategy The configuration strategy to use, e.g. INDEXING or PROFILER
+   */
   public ConfiguredBolt(String zookeeperUrl, String configurationStrategy) {
     this.zookeeperUrl = zookeeperUrl;
     this.configurationStrategy = configurationStrategy;
@@ -86,6 +101,9 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
     prepCache();
   }
 
+  /**
+   * Prepares the cache that will be used during Metron's interaction with ZooKeeper.
+   */
   protected void prepCache() {
     try {
       if (client == null) {

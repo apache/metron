@@ -92,7 +92,7 @@ public class IPValidation implements FieldValidation, Predicate<List<Object>> {
    *
    * @param strings the input argument
    * @return {@code true} if the input argument matches the predicate,
-   * otherwise {@code false}
+   *     otherwise {@code false}
    */
   @Override
   public boolean test(List<Object> strings) {

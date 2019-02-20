@@ -23,7 +23,7 @@ import java.util.Objects;
  * This class represents the score resulting from applying a RiskLevelRule
  * to a message.
  *
- * The goal of threat triage is to prioritize the alerts that pose the greatest
+ * <p>The goal of threat triage is to prioritize the alerts that pose the greatest
  * threat and thus need urgent attention.  To perform threat triage, a set of rules
  * are applied to each message.  Each rule has a predicate to determine if the rule
  * applies or not.  The threat score from each applied rule is aggregated into a single
@@ -40,7 +40,7 @@ public class RuleScore {
    * Allows a rule author to provide contextual information when a rule is applied
    * to a message.  This can assist a SOC analyst when actioning a threat.
    *
-   * This is the result of executing the 'reason' Stellar expression from the
+   * <p>This is the result of executing the 'reason' Stellar expression from the
    * associated RiskLevelRule.
    */
   private String reason;
@@ -51,6 +51,8 @@ public class RuleScore {
   private Number score;
 
   /**
+   * Constructs a RuleScore.
+   *
    * @param rule The threat triage rule that when applied resulted in this score.
    * @param reason The result of executing the rule's 'reason' expression.  Provides context to why a rule was applied.
    * @param score The result of executing the rule's 'score' expression.

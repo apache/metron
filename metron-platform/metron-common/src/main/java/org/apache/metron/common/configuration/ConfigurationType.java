@@ -22,6 +22,9 @@ import com.google.common.base.Function;
 import java.io.IOException;
 import org.apache.curator.framework.CuratorFramework;
 
+/**
+ * Defines the types of configurations available and the associated {@link ConfigurationOperations}.
+ */
 public enum ConfigurationType implements Function<String, Object>, ConfigurationOperations {
 
   GLOBAL(new GlobalConfigurationOperations()),
@@ -44,6 +47,13 @@ public enum ConfigurationType implements Function<String, Object>, Configuration
     return ops.getDirectory();
   }
 
+  /**
+   * Deserializes a string according for the config type.
+   *
+   * @param s The string to be deserialized
+   * @return The deserialized string
+   * @throws RuntimeException If the string cannot be deserialized
+   */
   public Object deserialize(String s) {
     try {
       return ops.deserialize(s);

@@ -32,12 +32,25 @@ public enum KeyUtil {
     }
   };
 
+  /**
+   * Determines the prefix, given a key.
+   *
+   * @param key The key to get a prefix for
+   * @return A 16 byte hashed prefix based on the key.
+   */
   public byte[] getPrefix(byte[] key) {
     Hasher hasher = hFunction.get().newHasher();
     hasher.putBytes(key);
     return hasher.hash().asBytes();
   }
 
+  /**
+   * Merges a prefix and a key into a single byte array. Simple concatenation.
+   *
+   * @param prefix A byte array with the prefix
+   * @param key A byte array with the key
+   * @return A byte array with the prefix and key concatenated.
+   */
   public byte[] merge(byte[] prefix, byte[] key) {
     byte[] val = new byte[key.length + prefix.length];
     int offset = 0;
