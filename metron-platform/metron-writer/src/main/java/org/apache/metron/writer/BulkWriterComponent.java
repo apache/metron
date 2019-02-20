@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
@@ -308,7 +310,7 @@ public class BulkWriterComponent<MESSAGE_T> {
     }
     long endTime = System.currentTimeMillis();
     long elapsed = endTime - startTime;
-    LOG.debug("Bulk batch for sensor {} completed in ~{} ns", sensorType, elapsed);
+    LOG.debug("Flushed batch successfully; sensorType={}, batchSize={}, took={} ms", sensorType, CollectionUtils.size(tupleList), elapsed);
   }
 
   // Flushes all queues older than their batchTimeouts.
@@ -320,15 +322,20 @@ public class BulkWriterComponent<MESSAGE_T> {
   {
     // No need to do "all" sensorTypes here, just the ones that have data batched up.
     // Note queues with batchSize == 1 don't get batched, so they never persist in the sensorTupleMap.
-    for (String sensorType : sensorTupleMap.keySet()) {
+    // Sensors are removed from the sensorTupleMap when flushed so we need to iterate over a copy of sensorTupleMap keys
+    // to avoid a ConcurrentModificationException.
+    for (String sensorType : new HashSet<>(sensorTupleMap.keySet())) {
       long[] batchTimeoutInfo = batchTimeoutMap.get(sensorType);
       if (batchTimeoutInfo == null  //Shouldn't happen, but conservatively flush if so
           || clock.currentTimeMillis() - batchTimeoutInfo[LAST_CREATE_TIME_MS] >= batchTimeoutInfo[TIMEOUT_MS]) {
         flush(sensorType, bulkMessageWriter, configurations, messageGetStrategy
 	            , sensorTupleMap.get(sensorType), sensorMessageMap.get(sensorType));
-        return;
       }
     }
+  }
+
+  public int getDefaultBatchTimeout() {
+    return defaultBatchTimeout;
   }
 
   /**
