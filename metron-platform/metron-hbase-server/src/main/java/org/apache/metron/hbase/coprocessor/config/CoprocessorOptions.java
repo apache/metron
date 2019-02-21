@@ -3,9 +3,9 @@ package org.apache.metron.hbase.coprocessor.config;
 import org.apache.metron.common.configuration.ConfigOption;
 
 public enum CoprocessorOptions implements ConfigOption {
-  TABLE_NAME("tableName"),
-  COLUMN_FAMILY("columnFamily"),
-  COLUMN_QUALIFIER("columnQualifier");
+  TABLE_NAME("metron.coprocessor.tableName"),
+  COLUMN_FAMILY("metron.coprocessor.columnFamily"),
+  COLUMN_QUALIFIER("metron.coprocessor.columnQualifier");
 
   private String key;
 

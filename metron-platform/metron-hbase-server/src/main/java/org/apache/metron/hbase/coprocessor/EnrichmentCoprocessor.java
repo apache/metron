@@ -23,8 +23,6 @@ import com.github.benmanes.caffeine.cache.CacheWriter;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.hadoop.hbase.CoprocessorEnvironment;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Durability;
@@ -35,7 +33,6 @@ import org.apache.hadoop.hbase.coprocessor.ObserverContext;
 import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
 import org.apache.hadoop.hbase.regionserver.wal.WALEdit;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.hbase.coprocessor.config.CoprocessorOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,8 +80,8 @@ public class EnrichmentCoprocessor extends BaseRegionObserver {
       throw new CoprocessorException("Enrichment coprocessor must be loaded on a table region.");
     }
     if (null == this.cache) {
-      CacheWriter<String, String> cacheWriter = new HBaseCacheWriter(getWriterConfig(),
-          this.coprocessorEnv, c -> {
+      CacheWriter<String, String> cacheWriter = new HBaseCacheWriter(
+          this.coprocessorEnv.getConfiguration(), c -> {
         try {
           return ConnectionFactory.createConnection(c);
         } catch (IOException e) {
@@ -93,14 +90,6 @@ public class EnrichmentCoprocessor extends BaseRegionObserver {
       });
       this.cache = Caffeine.newBuilder().writer(cacheWriter).build();
     }
-  }
-
-  private Map<String, Object> getWriterConfig() {
-    Map<String, Object> config = new HashMap<>();
-    CoprocessorOptions.TABLE_NAME.put(config, "enrichment_list");
-    CoprocessorOptions.COLUMN_FAMILY.put(config, "c");
-    CoprocessorOptions.COLUMN_QUALIFIER.put(config, "q");
-    return config;
   }
 
   @Override

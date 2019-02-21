@@ -22,7 +22,6 @@ import com.github.benmanes.caffeine.cache.CacheWriter;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.Map;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,7 +30,6 @@ import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.coprocessor.config.CoprocessorOptions;
 import org.slf4j.Logger;
@@ -43,23 +41,20 @@ import org.slf4j.LoggerFactory;
 public class HBaseCacheWriter implements CacheWriter<String, String> {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private Map<String, Object> config;
   private Connection connection;
   private Function<Configuration, Connection> connectionFactory;
-  private RegionCoprocessorEnvironment coprocessorEnv;
+  private final Configuration config;
   private final String tableName;
   private final String columnFamily;
   private final String columnQualifier;
 
-  public HBaseCacheWriter(Map<String, Object> config,
-      RegionCoprocessorEnvironment coprocessorEnv,
+  public HBaseCacheWriter(Configuration config,
       Function<Configuration, Connection> connectionFactory) {
     this.config = config;
-    this.coprocessorEnv = coprocessorEnv;
     this.connectionFactory = connectionFactory;
-    this.tableName = CoprocessorOptions.TABLE_NAME.get(this.config, String.class);
-    this.columnFamily = CoprocessorOptions.COLUMN_FAMILY.get(this.config, String.class);
-    this.columnQualifier = CoprocessorOptions.COLUMN_QUALIFIER.get(this.config, String.class);
+    this.tableName = config.get(CoprocessorOptions.TABLE_NAME.getKey());
+    this.columnFamily = config.get(CoprocessorOptions.COLUMN_FAMILY.getKey());
+    this.columnQualifier = config.get(CoprocessorOptions.COLUMN_QUALIFIER.getKey());
   }
 
   @Override
@@ -90,24 +85,24 @@ public class HBaseCacheWriter implements CacheWriter<String, String> {
     }
   }
 
-  @Override
-  public void delete(@Nonnull String key, @Nullable String value, @Nonnull RemovalCause cause) {
-    // not implemented
-  }
-
   private Table getTable(String tableName) throws IOException {
     return getConnection().getTable(TableName.valueOf(tableName));
   }
 
   private Connection getConnection() throws IOException {
     if (null == this.connection || this.connection.isClosed()) {
-      if (null == this.coprocessorEnv) {
-        throw new IOException("Coprocessor environment cannot be null.");
+      if (null == this.config) {
+        throw new IOException("Config cannot be null.");
       }
-      this.connection = connectionFactory.apply(this.coprocessorEnv.getConfiguration());
+      this.connection = connectionFactory.apply(this.config);
     }
 
     return this.connection;
+  }
+
+  @Override
+  public void delete(@Nonnull String key, @Nullable String value, @Nonnull RemovalCause cause) {
+    // not implemented
   }
 
 }
