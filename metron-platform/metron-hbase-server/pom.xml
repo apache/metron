@@ -39,6 +39,21 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>metron-enrichment</artifactId>
+      <version>${project.parent.version}</version>
+<!--      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs</artifactId>
+        </exclusion>
+      </exclusions>-->
+    </dependency>
     <!-- HBase -->
     <dependency>
       <groupId>org.apache.hbase</groupId>
@@ -126,6 +141,11 @@
       <version>1.2.17</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>${global_caffeine_version}</version>
+    </dependency>
 
     <!-- TEST DEPS -->
 
@@ -180,12 +200,6 @@
           <artifactId>hadoop-minicluster</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>${global_mockito_version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.metron</groupId>

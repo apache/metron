@@ -18,13 +18,58 @@
 
 package org.apache.metron.hbase.coprocessor;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import com.github.benmanes.caffeine.cache.CacheWriter;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.coprocessor.ObserverContext;
+import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class EnrichmentCoprocessorTest {
 
-  @Test
-  public void writes_to_enrichment_list() throws Exception {
+  @Mock
+  CacheWriter<String, String> cacheWriter;
+  @Mock
+  RegionCoprocessorEnvironment copEnv;
+  @Mock
+  ObserverContext<RegionCoprocessorEnvironment> observerContext;
 
+  @Before
+  public void setup() {
+    MockitoAnnotations.initMocks(this);
+  }
+
+  @Test
+  public void cache_writes_only_on_first_cache_miss() throws Exception {
+    EnrichmentCoprocessor cop = new EnrichmentCoprocessor(cacheWriter);
+    cop.start(copEnv);
+    for (Map.Entry<String, Put> entry : generatePutsFromEnrichmentType("foo", "foo", "bar", "bar", "baz",
+        "baz").entrySet()) {
+      String type = entry.getKey();
+      Put put = entry.getValue();
+      cop.postPut(observerContext, put, null, null);
+      verify(cacheWriter, times(1)).write(type, type);
+    }
+  }
+
+  private Map<String, Put> generatePutsFromEnrichmentType(String... types) {
+    Map<String, Put> puts = new HashMap<>();
+    for (String type : types) {
+      EnrichmentKey ek = new EnrichmentKey(type, "123");
+      Put put = new Put(ek.toBytes());
+      put.addColumn(Bytes.toBytes("c"), Bytes.toBytes("q"), Bytes.toBytes("blah"));
+      puts.put(type, put);
+    }
+    return puts;
   }
 
 }
