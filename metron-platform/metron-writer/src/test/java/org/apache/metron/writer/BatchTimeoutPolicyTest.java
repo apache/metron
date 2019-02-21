@@ -21,7 +21,12 @@ package org.apache.metron.writer;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.BulkMessage;
+import org.json.simple.JSONObject;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -35,29 +40,30 @@ public class BatchTimeoutPolicyTest {
   private String sensor2 = "sensor2";
   private WriterConfiguration configurations = mock(WriterConfiguration.class);
   private int maxBatchTimeout = 6;
+  private List<BulkMessage<JSONObject>> messages = new ArrayList<>();
 
   @Test
   public void shouldFlushSensorsOnTimeouts() {
     Clock clock = mock(Clock.class);
 
-    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy(maxBatchTimeout, clock);
+    BatchTimeoutPolicy batchTimeoutPolicy = new BatchTimeoutPolicy<>(maxBatchTimeout, clock);
     when(configurations.getBatchTimeout(sensor1)).thenReturn(1);
     when(configurations.getBatchTimeout(sensor2)).thenReturn(2);
 
     when(clock.currentTimeMillis()).thenReturn(0L); // initial check
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, 2));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, messages));
 
     when(clock.currentTimeMillis()).thenReturn(999L); // no timeouts yet
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, 2));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, messages));
 
     when(clock.currentTimeMillis()).thenReturn(1000L); // first sensor timeout reached
-    assertTrue(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, 2));
+    assertTrue(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor2, configurations, messages));
 
     when(clock.currentTimeMillis()).thenReturn(2000L); // second sensor timeout reached
-    assertTrue(batchTimeoutPolicy.shouldFlush(sensor2, configurations, 2));
+    assertTrue(batchTimeoutPolicy.shouldFlush(sensor2, configurations, messages));
   }
 
   @Test
@@ -68,15 +74,15 @@ public class BatchTimeoutPolicyTest {
     when(configurations.getBatchTimeout(sensor1)).thenReturn(1);
 
     when(clock.currentTimeMillis()).thenReturn(0L); // initial check
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
 
     batchTimeoutPolicy.onFlush(sensor1, new BulkWriterResponse());
 
     when(clock.currentTimeMillis()).thenReturn(1000L); // sensor was reset so shouldn't timeout
-    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
+    assertFalse(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
 
     when(clock.currentTimeMillis()).thenReturn(2000L); // sensor timeout should be 2 now
-    assertTrue(batchTimeoutPolicy.shouldFlush(sensor1, configurations, 2));
+    assertTrue(batchTimeoutPolicy.shouldFlush(sensor1, configurations, messages));
   }
 
   @Test

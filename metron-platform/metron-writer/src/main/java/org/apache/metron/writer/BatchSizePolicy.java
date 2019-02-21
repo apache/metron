@@ -18,13 +18,15 @@
 package org.apache.metron.writer;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
+import java.util.List;
 
-public class BatchSizePolicy implements FlushPolicy {
+public class BatchSizePolicy<MESSAGE_T> implements FlushPolicy<MESSAGE_T> {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -33,12 +35,13 @@ public class BatchSizePolicy implements FlushPolicy {
    * the sensor type.
    * @param sensorType sensor type
    * @param configurations writer configurations
-   * @param batchSize number of messages to be written
+   * @param messages messages to be written
    * @return true if message batch size is greater than configured batch size.
    */
   @Override
-  public boolean shouldFlush(String sensorType, WriterConfiguration configurations, int batchSize) {
+  public boolean shouldFlush(String sensorType, WriterConfiguration configurations, List<BulkMessage<MESSAGE_T>> messages) {
     boolean shouldFlush = false;
+    int batchSize = messages.size();
     int configuredBatchSize = configurations.getBatchSize(sensorType);
     //Check for batchSize flush
     if (batchSize >= configuredBatchSize) {

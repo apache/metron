@@ -95,7 +95,7 @@ public class WriterHandler implements Serializable {
     if (!(messageWriter instanceof WriterToBulkWriter)) {
       //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
       LOG.debug("Flushing message queues older than their batchTimeouts");
-      writerComponent.flushTimeouts(messageWriter, writerTransformer.apply(configurations));
+      writerComponent.flushAll(messageWriter, writerTransformer.apply(configurations));
     }
   }
 

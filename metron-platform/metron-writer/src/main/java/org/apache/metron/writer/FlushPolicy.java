@@ -28,18 +28,18 @@ import java.util.List;
  * This interface is used by the {@link org.apache.metron.writer.BulkWriterComponent} to determine if a batch should be flushed
  * and handle the {@link org.apache.metron.common.writer.BulkWriterResponse} when a batch is flushed.
  */
-public interface FlushPolicy {
+public interface FlushPolicy<MESSAGE_T> {
 
   /**
    * This method is called whenever messages are passed to {@link BulkWriterComponent#write(String, BulkMessage, BulkMessageWriter, WriterConfiguration)}.
-   * Each implementation of {@link org.apache.metron.writer.FlushPolicy#shouldFlush(String, WriterConfiguration, int)} will be called in order
+   * Each implementation of {@link org.apache.metron.writer.FlushPolicy#shouldFlush(String, WriterConfiguration, List)} will be called in order
    * and the first one to return true will trigger a flush and continue on.
    * @param sensorType sensor type
    * @param configurations configurations
-   * @param batchSize batch size of messages written
+   * @param messages messages to be written
    * @return true if batch should be flushed
    */
-  boolean shouldFlush(String sensorType, WriterConfiguration configurations, int batchSize);
+  boolean shouldFlush(String sensorType, WriterConfiguration configurations, List<BulkMessage<MESSAGE_T>> messages);
 
   /**
    * This method is called after a flush happens.  It can be used to clear any internal state a {@link org.apache.metron.writer.FlushPolicy}

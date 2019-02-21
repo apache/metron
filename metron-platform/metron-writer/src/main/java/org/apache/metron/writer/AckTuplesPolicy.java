@@ -21,6 +21,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.storm.task.OutputCollector;
@@ -36,6 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,7 +46,7 @@ import java.util.stream.Collectors;
  * A {@link org.apache.metron.writer.FlushPolicy} implementation for Storm that handles tuple acking and error
  * reporting by handling flush events for writer responses.
  */
-public class AckTuplesPolicy implements FlushPolicy {
+public class AckTuplesPolicy<MESSAGE_T> implements FlushPolicy<MESSAGE_T> {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   // Tracks the messages from a tuple that have not been flushed
@@ -71,7 +73,7 @@ public class AckTuplesPolicy implements FlushPolicy {
   }
 
   @Override
-  public boolean shouldFlush(String sensorType, WriterConfiguration configurations, int batchSize) {
+  public boolean shouldFlush(String sensorType, WriterConfiguration configurations, List<BulkMessage<MESSAGE_T>> messages) {
     return false;
   }
 

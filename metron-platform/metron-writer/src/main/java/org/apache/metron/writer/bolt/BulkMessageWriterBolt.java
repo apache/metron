@@ -259,7 +259,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
         if (!(bulkMessageWriter instanceof WriterToBulkWriter)) {
           //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
           LOG.debug("Flushing message queues older than their batchTimeouts");
-          getWriterComponent().flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
+          getWriterComponent().flushAll(bulkMessageWriter, configurationTransformation.apply(
               getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations())));
         }
       }

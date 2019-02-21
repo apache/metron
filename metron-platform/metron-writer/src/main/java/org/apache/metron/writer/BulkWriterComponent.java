@@ -18,6 +18,7 @@
 
 package org.apache.metron.writer;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.writer.BulkMessageWriter;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 
 /**
  * This component manages an internal cache of messages to be written in batch.  A separate cache is used for each sensor.
- * Each time a message is written to this component, the {@link org.apache.metron.writer.FlushPolicy#shouldFlush(String, WriterConfiguration, int)}
+ * Each time a message is written to this component, the {@link org.apache.metron.writer.FlushPolicy#shouldFlush(String, WriterConfiguration, List)}
  * method is called for each flush policy to determine if a batch of messages should be flushed.  When a flush does happen,
  * the {@link org.apache.metron.writer.FlushPolicy#onFlush(String, BulkWriterResponse)} method is called for each flush policy
  * so that any post-processing (message acknowledgement for example) can be done.  This component also ensures all messages
@@ -49,21 +50,21 @@ import java.util.stream.Collectors;
 public class BulkWriterComponent<MESSAGE_T> {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Map<String, List<BulkMessage<MESSAGE_T>>> sensorMessageCache = new HashMap<>();
-  private List<FlushPolicy> flushPolicies;
+  private List<FlushPolicy<MESSAGE_T>> flushPolicies;
 
   public BulkWriterComponent(int maxBatchTimeout) {
     flushPolicies = new ArrayList<>();
-    flushPolicies.add(new BatchSizePolicy());
-    flushPolicies.add(new BatchTimeoutPolicy(maxBatchTimeout));
+    flushPolicies.add(new BatchSizePolicy<>());
+    flushPolicies.add(new BatchTimeoutPolicy<>(maxBatchTimeout));
   }
 
   public BulkWriterComponent(int maxBatchTimeout, Clock clock) {
     flushPolicies = new ArrayList<>();
-    flushPolicies.add(new BatchSizePolicy());
-    flushPolicies.add(new BatchTimeoutPolicy(maxBatchTimeout, clock));
+    flushPolicies.add(new BatchSizePolicy<>());
+    flushPolicies.add(new BatchTimeoutPolicy<>(maxBatchTimeout, clock));
   }
 
-  protected BulkWriterComponent(List<FlushPolicy> flushPolicies) {
+  protected BulkWriterComponent(List<FlushPolicy<MESSAGE_T>> flushPolicies) {
     this.flushPolicies = flushPolicies;
   }
 
@@ -132,20 +133,19 @@ public class BulkWriterComponent<MESSAGE_T> {
     }
     long endTime = System.currentTimeMillis();
     long elapsed = endTime - startTime;
-    LOG.debug("Flushed batch successfully; sensorType={}, batchSize={}, took={} ms", sensorType, CollectionUtils.size(tupleList), elapsed);
+    LOG.debug("Flushed batch successfully; sensorType={}, batchSize={}, took={} ms", sensorType, CollectionUtils.size(ids), elapsed);
   }
 
   /**
-   * Flushes all queues older than their batchTimeouts.
+   * Apply flush policies to all sensors and flush if necessary.
    * @param bulkMessageWriter writer that will do the actual writing
    * @param configurations writer configurations
    */
-  public void flushTimeouts(
+  public void flushAll(
             BulkMessageWriter<MESSAGE_T> bulkMessageWriter
           , WriterConfiguration configurations
           )
   {
-    // No need to do "all" sensorTypes here, just the ones that have data batched up.
     // Sensors are removed from the sensorTupleMap when flushed so we need to iterate over a copy of sensorTupleMap keys
     // to avoid a ConcurrentModificationException.
     for (String sensorType : new HashSet<>(sensorMessageCache.keySet())) {
@@ -174,8 +174,8 @@ public class BulkWriterComponent<MESSAGE_T> {
           , WriterConfiguration configurations
           , List<BulkMessage<MESSAGE_T>> messages) {
     if (messages.size() > 0) { // no need to flush empty batches
-      for(FlushPolicy flushPolicy: flushPolicies) {
-        if (flushPolicy.shouldFlush(sensorType, configurations, messages.size())) {
+      for(FlushPolicy<MESSAGE_T> flushPolicy: flushPolicies) {
+        if (flushPolicy.shouldFlush(sensorType, configurations, messages)) {
           flush(sensorType, bulkMessageWriter, configurations, messages);
           break;
         }

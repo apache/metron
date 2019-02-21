@@ -19,8 +19,13 @@
 package org.apache.metron.writer;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.writer.BulkMessage;
+import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -31,6 +36,7 @@ public class BatchSizePolicyTest {
 
   private String sensorType = "sensorType";
   private WriterConfiguration configurations = mock(WriterConfiguration.class);
+  private List<BulkMessage<JSONObject>> messages = new ArrayList<>();
 
   @Before
   public void setup() {
@@ -39,22 +45,28 @@ public class BatchSizePolicyTest {
 
   @Test
   public void shouldFlushWhenBatchSizeReached() {
-    BatchSizePolicy batchSizePolicy = new BatchSizePolicy();
+    BatchSizePolicy<JSONObject> batchSizePolicy = new BatchSizePolicy<>();
 
-    assertTrue(batchSizePolicy.shouldFlush(sensorType, configurations, 2));
+    messages.add(new BulkMessage<>("message1", new JSONObject()));
+    messages.add(new BulkMessage<>("message2", new JSONObject()));
+    assertTrue(batchSizePolicy.shouldFlush(sensorType, configurations, messages));
   }
 
   @Test
   public void shouldNotFlushWhenBatchSizeNotReached() {
-    BatchSizePolicy batchSizePolicy = new BatchSizePolicy();
+    BatchSizePolicy<JSONObject> batchSizePolicy = new BatchSizePolicy<>();
 
-    assertFalse(batchSizePolicy.shouldFlush(sensorType, configurations, 1));
+    messages.add(new BulkMessage<>("message1", new JSONObject()));
+    assertFalse(batchSizePolicy.shouldFlush(sensorType, configurations, messages));
   }
 
   @Test
   public void shouldFlushWhenBatchSizeExceeded() {
-    BatchSizePolicy batchSizePolicy = new BatchSizePolicy();
+    BatchSizePolicy<JSONObject> batchSizePolicy = new BatchSizePolicy<>();
 
-    assertTrue(batchSizePolicy.shouldFlush(sensorType, configurations, 3));
+    messages.add(new BulkMessage<>("message1", new JSONObject()));
+    messages.add(new BulkMessage<>("message2", new JSONObject()));
+    messages.add(new BulkMessage<>("message3", new JSONObject()));
+    assertTrue(batchSizePolicy.shouldFlush(sensorType, configurations, messages));
   }
 }
