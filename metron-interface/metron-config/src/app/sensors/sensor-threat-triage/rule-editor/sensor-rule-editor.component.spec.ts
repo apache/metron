@@ -16,15 +16,16 @@
  * limitations under the License.
  */
 
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
+import {async, TestBed, ComponentFixture, inject} from '@angular/core/testing';
 import {SensorRuleEditorComponent} from './sensor-rule-editor.component';
 import {SharedModule} from '../../../shared/shared.module';
 import {NumberSpinnerComponent} from '../../../shared/number-spinner/number-spinner.component';
 import {RiskLevelRule} from '../../../model/risk-level-rule';
 import {AceEditorModule} from '../../../shared/ace-editor/ace-editor.module';
 import {StellarService} from '../../../service/stellar.service';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AppConfigService } from 'app/service/app-config.service';
+import { By } from '@angular/platform-browser';
 
 describe('Component: SensorRuleEditorComponent', () => {
 
@@ -37,12 +38,13 @@ describe('Component: SensorRuleEditorComponent', () => {
             declarations: [ SensorRuleEditorComponent, NumberSpinnerComponent ],
             providers: [SensorRuleEditorComponent, StellarService, { provide: AppConfigService, useValue: {
               appConfigStatic: {},
-              getApiRoot: () => {}
+              getApiRoot: () => '/api/v1'
             } }]
         });
 
         fixture = TestBed.createComponent(SensorRuleEditorComponent);
         component = fixture.componentInstance;
+        fixture.detectChanges();
     }));
 
     it('should create an instance', () => {
@@ -75,4 +77,41 @@ describe('Component: SensorRuleEditorComponent', () => {
         component.onCancel();
         expect(numCancelled).toEqual(1);
     }));
+
+    it('the save button should be disabled by default', () => {
+      const saveButton = fixture.debugElement.query(By.css('[data-qe-id="save-score"]'));
+      expect(saveButton.nativeElement.getAttribute('disabled')).not.toBeNull();
+    });
+
+    it('the save button should be enabled if the stellar expression is valid', inject(
+      [HttpTestingController],
+      (httpMock: HttpTestingController) => {
+        component.newRiskLevelRule.scoreExpression = 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}';
+        fixture.detectChanges();
+        const saveButton = fixture.debugElement.query(By.css('[data-qe-id="save-score"]'));
+        const testButton = fixture.debugElement.query(By.css('[data-qe-id="test-score"]'));
+        expect(saveButton.nativeElement.getAttribute('disabled')).not.toBeNull();
+        testButton.nativeElement.click();
+        let validateRequest = httpMock.expectOne('/api/v1/stellar/validate/rules');
+        validateRequest.flush({ 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}': true });
+        fixture.detectChanges();
+        expect(saveButton.nativeElement.getAttribute('disabled')).toBeNull();
+      }
+    ));
+
+    it('the save button should be disabled if the stellar expression is invalid', inject(
+      [HttpTestingController],
+      (httpMock: HttpTestingController) => {
+        component.newRiskLevelRule.scoreExpression = 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}';
+        fixture.detectChanges();
+        const saveButton = fixture.debugElement.query(By.css('[data-qe-id="save-score"]'));
+        const testButton = fixture.debugElement.query(By.css('[data-qe-id="test-score"]'));
+        expect(saveButton.nativeElement.getAttribute('disabled')).not.toBeNull();
+        testButton.nativeElement.click();
+        let validateRequest = httpMock.expectOne('/api/v1/stellar/validate/rules');
+        validateRequest.flush({ 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}': false });
+        fixture.detectChanges();
+        expect(saveButton.nativeElement.getAttribute('disabled')).not.toBeNull();
+      }
+    ));
 });

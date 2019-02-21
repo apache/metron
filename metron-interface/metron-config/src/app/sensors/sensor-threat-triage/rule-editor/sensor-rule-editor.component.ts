@@ -32,7 +32,7 @@ export class SensorRuleEditorComponent implements OnInit {
   @Output() onCancelTextEditor: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onSubmitTextEditor: EventEmitter<RiskLevelRule> = new EventEmitter<RiskLevelRule>();
   newRiskLevelRule = new RiskLevelRule();
-  ruleIsValid = false;
+  isScoreValid = false;
 
   constructor(private stellarService: StellarService) { }
 
@@ -49,14 +49,14 @@ export class SensorRuleEditorComponent implements OnInit {
   }
 
   onTest() {
-    const rule = String(this.newRiskLevelRule.score);
-    this.stellarService.validateRules([rule]).subscribe((response) => {
-      this.ruleIsValid = !!response[rule];
+    const scoreExpression = this.newRiskLevelRule.scoreExpression;
+    this.stellarService.validateRules([scoreExpression]).subscribe((response) => {
+      this.isScoreValid = !!response[scoreExpression];
     });
   }
 
-  onRuleChange = () => {
-    this.ruleIsValid = false;
+  onScoreChange = () => {
+    this.isScoreValid = false;
   }
 
 }

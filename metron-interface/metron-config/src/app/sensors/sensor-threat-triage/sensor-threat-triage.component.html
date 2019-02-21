@@ -65,8 +65,8 @@
                     <div class="threat-triage-rule-row" style="color: khaki; font-size: 30px; margin-top: -7px" [style.color]="getRuleColor(riskLevelRule)">
                         <b>I</b>
                     </div>
-                    <div class="threat-triage-rule-row" style="font-size: small;" [title]="riskLevelRule.score">
-                        {{ riskLevelRule.score }}
+                    <div class="threat-triage-rule-row" style="font-size: small;" [title]="riskLevelRule.scoreExpression">
+                        {{ riskLevelRule.scoreExpression }}
                     </div>
                     <div class="threat-triage-rule-row threat-triage-rule-str" [title]="getDisplayName(riskLevelRule)">
                         {{ getDisplayName(riskLevelRule) }}

@@ -33,14 +33,15 @@
         <div class="form-group score">
             <label class="score-label" attr.for="statement">SCORE ADJUSTMENT</label>
             <metron-config-ace-editor
-              name="scoreSlider"
-              [(ngModel)]="newRiskLevelRule.score"
+              name="scoreExpression"
+              [(ngModel)]="newRiskLevelRule.scoreExpression"
               [liveAutocompletion]="false"
               [enableSnippets]="false"
               [useWorker]="false"
               [type]="'STELLAR'"
-              (onChange)="onRuleChange($event)"
-              [placeHolder]="'Enter a number or a Stellar expression'"
+              (onChange)="onScoreChange()"
+              [placeHolder]="'Enter a valid Stellar expression'"
+              data-qe-id="score-editor"
             >
             </metron-config-ace-editor>
         </div>
@@ -49,8 +50,22 @@
     <div class="form-group">
         <div class="form-seperator-edit"></div>
         <div class="button-row">
-            <button class="btn form-enable-disable-button" (click)="onTest()">TEST</button>
-            <button type="submit" class="btn form-enable-disable-button" (click)="onSave()" [disabled]="!ruleIsValid">SAVE</button>
+            <button
+              class="btn form-enable-disable-button"
+              (click)="onTest()"
+              data-qe-id="test-score"
+            >
+              TEST
+            </button>
+            <button
+              type="submit"
+              class="btn form-enable-disable-button"
+              (click)="onSave()"
+              [disabled]="!isScoreValid"
+              data-qe-id="save-score"
+            >
+              SAVE
+            </button>
             <button class="btn form-enable-disable-button ml-1" (click)="onCancel()" >CANCEL</button>
         </div>
     </div>
