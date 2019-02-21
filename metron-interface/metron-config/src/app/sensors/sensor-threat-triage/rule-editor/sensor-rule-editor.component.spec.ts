@@ -24,8 +24,8 @@ import {RiskLevelRule} from '../../../model/risk-level-rule';
 import {AceEditorModule} from '../../../shared/ace-editor/ace-editor.module';
 import {StellarService} from '../../../service/stellar.service';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { By } from '@angular/platform-browser';
 import { AppConfigService } from 'app/service/app-config.service';
+import { By } from '@angular/platform-browser';
 
 describe('Component: SensorRuleEditorComponent', () => {
 
