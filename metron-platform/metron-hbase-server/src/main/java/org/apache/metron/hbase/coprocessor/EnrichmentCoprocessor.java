@@ -112,8 +112,11 @@ public class EnrichmentCoprocessor extends BaseRegionObserver {
   }
 
   private void addToCache(String cacheKey) {
-    // Only the key is important to us since we're using the cache like a list.
-    cache.put(cacheKey, cacheKey);
+    // We don't want to invoke the cache writer unless we have a new key
+    if (null == cache.getIfPresent(cacheKey)) {
+      // Only the key is important to us since we're using the cache like a list.
+      cache.put(cacheKey, cacheKey);
+    }
   }
 
 }

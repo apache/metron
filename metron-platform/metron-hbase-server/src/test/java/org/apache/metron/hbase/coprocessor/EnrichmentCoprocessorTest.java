@@ -18,58 +18,113 @@
 
 package org.apache.metron.hbase.coprocessor;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertThat;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.github.benmanes.caffeine.cache.CacheWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.coprocessor.ObserverContext;
 import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class EnrichmentCoprocessorTest {
 
   @Mock
-  CacheWriter<String, String> cacheWriter;
+  private CacheWriter<String, String> cacheWriter;
   @Mock
-  RegionCoprocessorEnvironment copEnv;
+  private RegionCoprocessorEnvironment copEnv;
   @Mock
-  ObserverContext<RegionCoprocessorEnvironment> observerContext;
+  private ObserverContext<RegionCoprocessorEnvironment> observerContext;
+  private EnrichmentCoprocessor cop;
 
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
+    cop = new EnrichmentCoprocessor(cacheWriter);
   }
 
   @Test
   public void cache_writes_only_on_first_cache_miss() throws Exception {
-    EnrichmentCoprocessor cop = new EnrichmentCoprocessor(cacheWriter);
     cop.start(copEnv);
-    for (Map.Entry<String, Put> entry : generatePutsFromEnrichmentType("foo", "foo", "bar", "bar", "baz",
-        "baz").entrySet()) {
+    String[] enrichTypes = new String[]{"foo", "bar", "baz", "metron"};
+    final int putsPerType = 3;
+    Map<String, List<Put>> putsByType = simulateMultiplePutsPerType(putsPerType, enrichTypes);
+    int totalPuts = 0;
+    for (Map.Entry<String, List<Put>> entry : putsByType.entrySet()) {
       String type = entry.getKey();
-      Put put = entry.getValue();
-      cop.postPut(observerContext, put, null, null);
-      verify(cacheWriter, times(1)).write(type, type);
+      List<Put> puts = entry.getValue();
+      for (Put put : puts) {
+        cop.postPut(observerContext, put, null, null);
+        verify(cacheWriter, times(1)).write(eq(type), eq(type));
+        totalPuts++;
+      }
     }
+    assertThat(totalPuts, equalTo(enrichTypes.length * putsPerType));
   }
 
-  private Map<String, Put> generatePutsFromEnrichmentType(String... types) {
-    Map<String, Put> puts = new HashMap<>();
+  /**
+   * Generate a list of 'count' puts for each type in 'types'.
+   *
+   * @param count Number of puts to create per type
+   * @param types List of types to create the puts for.
+   * @return Map of types to a List of size 'count' puts
+   */
+  private Map<String, List<Put>> simulateMultiplePutsPerType(int count, String... types) {
+    Map<String, List<Put>> putsByType = new HashMap<>();
     for (String type : types) {
-      EnrichmentKey ek = new EnrichmentKey(type, "123");
-      Put put = new Put(ek.toBytes());
-      put.addColumn(Bytes.toBytes("c"), Bytes.toBytes("q"), Bytes.toBytes("blah"));
-      puts.put(type, put);
+      List<Put> puts = putsByType.getOrDefault(type, new ArrayList<>());
+      for (int i = 0; i < count; i++) {
+        EnrichmentKey ek = new EnrichmentKey(type, String.valueOf(i));
+        puts.add(new Put(ek.toBytes()));
+        putsByType.put(type, puts);
+      }
     }
-    return puts;
+    return putsByType;
+  }
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
+  @Test
+  public void bad_enrichment_key_exceptions_thrown_as_IOException() throws Exception {
+    thrown.expect(IOException.class);
+    thrown.expectMessage("Error occurred while processing enrichment Put.");
+    thrown.expectCause(instanceOf(RuntimeException.class));
+    cop.start(copEnv);
+    cop.postPut(observerContext, new Put("foo".getBytes()), null, null);
+  }
+
+  @Test
+  public void general_exceptions_thrown_as_IOException() throws Exception {
+    Throwable cause = new Throwable("Bad things happened.");
+    thrown.expect(IOException.class);
+    thrown.expectMessage("Error occurred while processing enrichment Put.");
+    thrown.expectCause(equalTo(cause));
+    // strictly speaking, this is a checked exception not in the api for CacheWriter, but it allows
+    // us to test catching all Throwable types
+    willAnswer(i -> {
+      throw cause;
+    }).given(cacheWriter).write(any(), any());
+    cop.start(copEnv);
+    EnrichmentKey ek = new EnrichmentKey("foo", "bar");
+    cop.postPut(observerContext, new Put(ek.toBytes()), null, null);
   }
 
 }
