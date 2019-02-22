@@ -45,18 +45,6 @@
                         <i aria-hidden="true" class="fa fa-circle" style="color: khaki"></i> {{lowAlerts}}
                     </div>
                 </div>
-                <div class="row mx-0 threat-triage-rules-sort">
-                    <span class="label">Sort by </span>
-                    <li class="nav-item dropdown">
-                        <span class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">{{sortOrderOption[sortOrder].replace('_', ' ')}}</span>
-                        <div class="dropdown-menu bg-inverse">
-                            <span class="dropdown-item" (click)="onSortOrderChange(sortOrderOption.Highest_Score)">Highest Score</span>
-                            <span class="dropdown-item" (click)="onSortOrderChange(sortOrderOption.Lowest_Score)">Lowest Score</span>
-                            <span class="dropdown-item" (click)="onSortOrderChange(sortOrderOption.Highest_Name)">Highest Name</span>
-                            <span class="dropdown-item" (click)="onSortOrderChange(sortOrderOption.Lowest_Name)">Lowest Name</span>
-                        </div>
-                    </li>
-                </div>
             </div>
         </div>
         <div class="form-group threat-triage-rules-list">
