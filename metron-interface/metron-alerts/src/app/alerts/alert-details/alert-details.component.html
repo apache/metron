@@ -17,12 +17,22 @@
             <div class="nav-container" *ngIf="!isMetaAlert">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link" [ngClass]="{'active': activeTab === tabs.DETAILS}" (click)="activeTab=tabs.DETAILS">
+                        <a
+                            class="nav-link"
+                            [ngClass]="{'active': activeTab === tabs.DETAILS}"
+                            (click)="activeTab=tabs.DETAILS"
+                            data-qe-id="details"
+                        >
                             <i class="fa fa-info-circle" aria-hidden="true"></i>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" [ngClass]="{'active': activeTab === tabs.COMMENTS}" (click)="activeTab=tabs.COMMENTS">
+                        <a
+                            class="nav-link"
+                            [ngClass]="{'active': activeTab === tabs.COMMENTS}"
+                            (click)="activeTab=tabs.COMMENTS"
+                            data-qe-id="comments"
+                        >
                             <i class="fa fa-comment" aria-hidden="true"></i>
                         </a>
                     </li>
@@ -86,8 +96,14 @@
                         <button class="btn btn-mine_shaft_2" [disabled]="alertCommentStr.trim().length === 0" (click)="onAddComment()">ADD COMMENT</button>
                         <ng-container *ngFor="let alertCommentWrapper of alertCommentsWrapper; let i = index">
                             <hr>
-                            <div class="comment-container">
-                                <i class="fa fa-trash-o" aria-hidden="true" (click)="onDeleteComment(i)"></i>
+                            <div class="comment-container" data-qe-id="comment">
+                                <i
+                                    class="fa fa-trash-o"
+                                    aria-hidden="true"
+                                    (click)="onDeleteComment(i)"
+                                    data-qe-id="delete-comment"
+                                >
+                                </i>
                                 <div class="comment"> {{ alertCommentWrapper.alertComment.comment }} </div>
                                 <div class="font-italic username-timestamp"> - {{ alertCommentWrapper.alertComment.username }} - {{alertCommentWrapper.displayTime}}</div>
                             </div>
