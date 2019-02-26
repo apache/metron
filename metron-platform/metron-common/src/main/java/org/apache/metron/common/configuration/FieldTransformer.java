@@ -20,14 +20,20 @@ package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.stellar.dsl.Context;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.metron.common.field.transformation.FieldTransformation;
 import org.apache.metron.common.field.transformation.FieldTransformations;
+import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 
-import java.io.Serializable;
-import java.util.*;
-
+/**
+ * Performs an {@link FieldTransformation} on Json.
+ */
 public class FieldTransformer implements Serializable {
   private List<String> input = new ArrayList<>();
   private List<String> output;
@@ -42,6 +48,12 @@ public class FieldTransformer implements Serializable {
     return input;
   }
 
+  /**
+   * Setter for input fields. Will handle either a plain string or a list of strings.
+   *
+   * @param inputFields The input fields to the transformation. Can be either a string or list of
+   *     strings.
+   */
   public void setInput(Object inputFields) {
     if(inputFields instanceof String) {
       this.input= ImmutableList.of(inputFields.toString());
@@ -55,6 +67,12 @@ public class FieldTransformer implements Serializable {
     return output;
   }
 
+  /**
+   * Setter for output fields. Will handle either a plain string or a list of strings.
+   *
+   * @param outputField The output fields of the transformation. Can be either a string or list of
+   *     strings.
+   */
   public void setOutput(Object outputField) {
     if(outputField instanceof String) {
       this.output = ImmutableList.of(outputField.toString());
@@ -86,6 +104,9 @@ public class FieldTransformer implements Serializable {
     this.transformation = FieldTransformations.get(transformation);
   }
 
+  /**
+   * Initializes the FieldTransformer and does some basic checking of input and output fields.
+   */
   public void initAndValidate() {
     if(!initialized) {
       if (getTransformation() == null) {
@@ -105,6 +126,14 @@ public class FieldTransformer implements Serializable {
     }
   }
 
+  /**
+   * Performs the actual transformation on Json input. Returns a map of fields to values.
+   *
+   * @param input The input Json to be transformed
+   * @param context The Stellar context of the transformation
+   * @param sensorConfig Map of the sensor config
+   * @return A map of field -> value
+   */
   public Map<String, Object> transform(JSONObject input, Context context, Map<String, Object>... sensorConfig) {
     if(getInput() == null || getInput().isEmpty()) {
       return transformation.map(input, getOutput(), config, context, sensorConfig);
@@ -118,6 +147,14 @@ public class FieldTransformer implements Serializable {
     }
   }
 
+  /**
+   * Performs the actual transformation on Json input in place, removing or adding keys as
+   * necessary.
+   *
+   * @param message The input Json to be transformed
+   * @param context The Stellar context of the transformation
+   * @param sensorConfig Map of the sensor config
+   */
   public void transformAndUpdate(JSONObject message, Context context, Map<String, Object>... sensorConfig) {
     Map<String, Object> currentValue = transform(message, context, sensorConfig);
     if(currentValue != null) {

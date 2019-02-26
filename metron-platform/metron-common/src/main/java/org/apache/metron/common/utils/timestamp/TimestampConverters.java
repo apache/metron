@@ -30,6 +30,12 @@ public enum TimestampConverters implements TimestampConverter{
     this.converter = converter;
   }
 
+  /**
+   * Gets a {@link TimestampConverter} by name.
+   *
+   * @param converter The name of the converter to get
+   * @return The timestamp converter
+   */
   public static TimestampConverter getConverter(String converter) {
     if(converter != null) {
       return TimestampConverters.valueOf(converter.toUpperCase()).converter;

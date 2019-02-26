@@ -39,12 +39,12 @@ public enum RawMessageUtil {
 
   /**
    * Extract the raw message given the strategy, the tuple and the metadata configs.
-   * @param strategy
-   * @param t
-   * @param rawMessage
-   * @param readMetadata
-   * @param config
-   * @return
+   * @param strategy The {@link RawMessageStrategy} to use for extraction
+   * @param t The tuple to pull the message from
+   * @param rawMessage The raw message in bytes
+   * @param readMetadata True if read metadata, false otherwise
+   * @param config The config to use during extraction
+   * @return The resulting {@link RawMessage}
    */
   public RawMessage getRawMessage(RawMessageStrategy strategy, Tuple t, byte[] rawMessage, boolean readMetadata, Map<String, Object> config) {
     Map<String, Object> metadata = new HashMap<>();

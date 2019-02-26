@@ -17,10 +17,13 @@
  */
 package org.apache.metron.writer;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -38,6 +41,7 @@ import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
@@ -269,5 +273,79 @@ public class BulkWriterComponentTest {
     verify(collector, times(1)).ack(errorTuple);
     verify(collector, times(1)).ack(missingTuple);
     verifyNoMoreInteractions(collector);
+  }
+
+  @Test
+  public void flushTimeoutsShouldFlushAllMessagesAfterDefaultTimeout() throws Exception {
+    Clock clock = mock(Clock.class);
+    BulkMessageWriter<JSONObject> bulkMessageWriter = mock(BulkMessageWriter.class);
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(collector, false, false).withClock(clock);
+    assertEquals(6, bulkWriterComponent.getDefaultBatchTimeout());
+
+    BulkWriterResponse response1 = new BulkWriterResponse();
+    response1.addSuccess(tuple1);
+    when(bulkMessageWriter.write("sensor1", configurations, Collections.singletonList(tuple1), Collections.singletonList(message1))).thenReturn(response1);
+    BulkWriterResponse response2 = new BulkWriterResponse();
+    response1.addSuccess(tuple2);
+    when(bulkMessageWriter.write("sensor2", configurations, Collections.singletonList(tuple2), Collections.singletonList(message2))).thenReturn(response2);
+
+    when(clock.currentTimeMillis()).thenReturn(0L);
+    bulkWriterComponent.write("sensor1", tuple1, message1, bulkMessageWriter, configurations, messageGetStrategy);
+    bulkWriterComponent.write("sensor2", tuple2, message2, bulkMessageWriter, configurations, messageGetStrategy);
+
+    when(clock.currentTimeMillis()).thenReturn(1000L);
+    bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
+    when(clock.currentTimeMillis()).thenReturn(2000L);
+    bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
+    when(clock.currentTimeMillis()).thenReturn(3000L);
+    bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
+    when(clock.currentTimeMillis()).thenReturn(4000L);
+    bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
+    when(clock.currentTimeMillis()).thenReturn(5000L);
+    bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
+    when(clock.currentTimeMillis()).thenReturn(5999L);
+    bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
+    when(clock.currentTimeMillis()).thenReturn(6000L); // triggers timeout
+    bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
+
+    verify(bulkMessageWriter, times(1)).write("sensor1", configurations, Collections.singletonList(tuple1), Collections.singletonList(message1));
+    verify(bulkMessageWriter, times(1)).write("sensor2", configurations, Collections.singletonList(tuple2), Collections.singletonList(message2));
+
+    when(clock.currentTimeMillis()).thenReturn(6001L); // no trigger
+    bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
+
+    verifyNoMoreInteractions(bulkMessageWriter);
+  }
+
+  @Test
+  public void flushTimeoutsShouldFlushAllMessagesAfterConfiguredTimeout() throws Exception {
+    Clock clock = mock(Clock.class);
+    BulkMessageWriter<JSONObject> bulkMessageWriter = mock(BulkMessageWriter.class);
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(collector, false, false).withClock(clock);
+    bulkWriterComponent.setDefaultBatchTimeout(1);
+
+    BulkWriterResponse response1 = new BulkWriterResponse();
+    response1.addSuccess(tuple1);
+    when(bulkMessageWriter.write("sensor1", configurations, Collections.singletonList(tuple1), Collections.singletonList(message1))).thenReturn(response1);
+    BulkWriterResponse response2 = new BulkWriterResponse();
+    response1.addSuccess(tuple2);
+    when(bulkMessageWriter.write("sensor2", configurations, Collections.singletonList(tuple2), Collections.singletonList(message2))).thenReturn(response2);
+
+    when(clock.currentTimeMillis()).thenReturn(0L);
+    bulkWriterComponent.write("sensor1", tuple1, message1, bulkMessageWriter, configurations, messageGetStrategy);
+    bulkWriterComponent.write("sensor2", tuple2, message2, bulkMessageWriter, configurations, messageGetStrategy);
+
+    when(clock.currentTimeMillis()).thenReturn(999L);
+    bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
+    when(clock.currentTimeMillis()).thenReturn(1000L); // triggers timeout
+    bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
+
+    verify(bulkMessageWriter, times(1)).write("sensor1", configurations, Collections.singletonList(tuple1), Collections.singletonList(message1));
+    verify(bulkMessageWriter, times(1)).write("sensor2", configurations, Collections.singletonList(tuple2), Collections.singletonList(message2));
+
+    when(clock.currentTimeMillis()).thenReturn(1001L); // no trigger
+    bulkWriterComponent.flushTimeouts(bulkMessageWriter, configurations, messageGetStrategy);
+
+    verifyNoMoreInteractions(bulkMessageWriter);
   }
 }

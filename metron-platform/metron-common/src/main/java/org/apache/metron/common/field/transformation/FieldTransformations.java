@@ -32,6 +32,13 @@ public enum FieldTransformations {
   FieldTransformations(FieldTransformation mapping) {
     this.mapping = mapping;
   }
+
+  /**
+   * Gets a {@link FieldTransformation} based on the provided mapping.
+   *
+   * @param mapping The name of the mapping to pull
+   * @return The field transformation associated with the mapping
+   */
   public static FieldTransformation get(String mapping) {
     try {
       return FieldTransformations.valueOf(mapping).mapping;

@@ -65,7 +65,7 @@ public class RegexSelectTransformation implements FieldTransformation {
    * Return true if there is a regex match or false otherwise.
    * @param regexes This could be either a list of regexes or a single regex
    * @param field The field to match
-   * @return
+   * @return True if match, false otherwise
    */
   private static boolean isMatch(Object regexes, String field) {
     if(regexes instanceof String) {

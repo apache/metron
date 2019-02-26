@@ -57,7 +57,7 @@ public class ProfileResult implements Serializable {
   /**
    * Allows a single result expression to be interpreted as a 'profile' expression.
    *
-   * The profile definition
+   * <p>The profile definition
    *    <pre>{@code {..., "result": "2 + 2" }}</pre>
    * is equivalent to
    *    <pre>{@code {..., "result": { "profile": "2 + 2" }}}</pre>

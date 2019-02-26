@@ -36,7 +36,7 @@ import java.util.Map;
  *  <li>The non-data fields are considered metadata</li>
  * </ul>
  *
- * Additionally, the defaults around merging and reading metadata are adjusted to be on by default.
+ * <p>Additionally, the defaults around merging and reading metadata are adjusted to be on by default.
  * Note, this strategy allows for parser chaining and for a fully worked example, check the parser chaining use-case.
  */
 public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
@@ -51,13 +51,13 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
    * Retrieve the raw message by parsing the JSON Map in the kafka value and pulling the appropriate field.
    * Also, augment the default metadata with the non-data fields in the JSON Map.
    *
-   * Note: The data field in the JSON Map is not considered metadata.
+   * <p>Note: The data field in the JSON Map is not considered metadata.
    *
    * @param rawMetadata The metadata read from kafka Key (e.g. the topic, index, etc.)
    * @param rawMessage The raw message from the kafka value
    * @param readMetadata True if we want to read read the metadata
    * @param config The config for the RawMessageStrategy (See the rawMessageStrategyConfig in the SensorParserConfig)
-   * @return
+   * @return The {@link RawMessage}, potentially including metadata
    */
   @Override
   public RawMessage get(Map<String, Object> rawMetadata, byte[] rawMessage, boolean readMetadata, Map<String, Object> config) {
@@ -128,7 +128,7 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
   /**
    * By default merge metadata.
    *
-   * @return
+   * @return true
    */
   @Override
   public boolean mergeMetadataDefault() {
@@ -137,7 +137,7 @@ public class EnvelopedRawMessageStrategy implements RawMessageStrategy {
 
   /**
    * By default read metadata.
-   * @return
+   * @return true
    */
   @Override
   public boolean readMetadataDefault() {

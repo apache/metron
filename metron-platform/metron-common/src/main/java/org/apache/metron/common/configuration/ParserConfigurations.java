@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Allows for retrieval and update of parsing configurations.
+ */
 public class ParserConfigurations extends Configurations {
   public static final Integer DEFAULT_KAFKA_BATCH_SIZE = 15;
   public static final String PARSER_GROUPS_CONF = "parser.groups";
@@ -63,6 +66,11 @@ public class ParserConfigurations extends Configurations {
             .collect(Collectors.toMap(SensorParserGroup::getName, sensorParserGroup -> sensorParserGroup));
   }
 
+  /**
+   * Gets the list of sensor types that parsing configurations exist for.
+   *
+   * @return List of sensor types
+   */
   public List<String> getTypes() {
     List<String> ret = new ArrayList<>();
     for(String keyedSensor : getConfigurations().keySet()) {
