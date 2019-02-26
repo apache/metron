@@ -17,8 +17,8 @@
  */
 package org.apache.metron.rest.config;
 
-import static org.apache.metron.hbase.client.UserSettingsClient.USER_SETTINGS_HBASE_CF;
-import static org.apache.metron.hbase.client.UserSettingsClient.USER_SETTINGS_HBASE_TABLE;
+import static org.apache.metron.rest.user.UserSettingsClient.USER_SETTINGS_HBASE_CF;
+import static org.apache.metron.rest.user.UserSettingsClient.USER_SETTINGS_HBASE_TABLE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
