@@ -74,7 +74,7 @@ class ParserCommands:
         parserList = []
         parsers = shlex.shlex(params.parsers)
         for name in parsers:
-            sensors = name.strip('"').split(",")
+            sensors = name.strip('",').split(",")
             # if name contains multiple sensors, sort them alphabetically
             if len(sensors) > 1:
                 sensors.sort()
