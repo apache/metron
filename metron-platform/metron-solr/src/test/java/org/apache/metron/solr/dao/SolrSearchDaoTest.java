@@ -136,6 +136,42 @@ public class SolrSearchDaoTest {
   }
 
   @Test
+  public void searchShouldThrowInvalidSearchExceptionOnNullGroup() throws Exception {
+    exception.expect(InvalidSearchException.class);
+    exception.expectMessage("At least 1 group must be provided.");
+
+    GroupRequest groupRequest = mock(GroupRequest.class);
+    GroupResponse groupResponse = mock(GroupResponse.class);
+
+    solrSearchDao = spy(new SolrSearchDao(client, accessConfig));
+    when(groupRequest.getQuery()).thenReturn("query");
+    when(groupRequest.getGroups()).thenReturn(null);
+    when(groupRequest.getScoreField()).thenReturn(Optional.of("scoreField"));
+    when(groupRequest.getIndices()).thenReturn(Arrays.asList("bro", "snort"));
+
+    assertEquals(groupResponse, solrSearchDao.group(groupRequest));
+    verifyNoMoreInteractions(client);
+  }
+
+  @Test
+  public void searchShouldThrowInvalidSearchExceptionOnEmptyGroup() throws Exception {
+    exception.expect(InvalidSearchException.class);
+    exception.expectMessage("At least 1 group must be provided.");
+
+    GroupRequest groupRequest = mock(GroupRequest.class);
+    GroupResponse groupResponse = mock(GroupResponse.class);
+
+    solrSearchDao = spy(new SolrSearchDao(client, accessConfig));
+    when(groupRequest.getQuery()).thenReturn("query");
+    when(groupRequest.getGroups()).thenReturn(Collections.EMPTY_LIST);
+    when(groupRequest.getScoreField()).thenReturn(Optional.of("scoreField"));
+    when(groupRequest.getIndices()).thenReturn(Arrays.asList("bro", "snort"));
+
+    assertEquals(groupResponse, solrSearchDao.group(groupRequest));
+    verifyNoMoreInteractions(client);
+  }
+
+  @Test
   public void searchShouldThrowSearchResultSizeException() throws Exception {
     exception.expect(InvalidSearchException.class);
     exception.expectMessage("Search result size must be less than 100");

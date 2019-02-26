@@ -105,6 +105,9 @@ public class SolrSearchDao implements SearchDao {
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
     try {
+      if (groupRequest.getGroups() == null || groupRequest.getGroups().size() == 0) {
+        throw new InvalidSearchException("At least 1 group must be provided.");
+      }
       String groupNames = groupRequest.getGroups().stream().map(Group::getField).collect(
           Collectors.joining(","));
       SolrQuery query = new SolrQuery()
