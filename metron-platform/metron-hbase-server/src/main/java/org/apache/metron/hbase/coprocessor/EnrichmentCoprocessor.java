@@ -23,8 +23,9 @@ import com.github.benmanes.caffeine.cache.CacheWriter;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.CoprocessorEnvironment;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.coprocessor.BaseRegionObserver;
@@ -33,11 +34,16 @@ import org.apache.hadoop.hbase.coprocessor.ObserverContext;
 import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
 import org.apache.hadoop.hbase.regionserver.wal.WALEdit;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.coprocessor.config.CoprocessorOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Handle collecting a list of enrichment coprocessors.
+ * <p>
+ * Configuration supplied via hbase-site.xml.
  * <p>
  * <b>Note:</b> We need to be careful of our exception handling so as not to inadvertantly get our
  * coprocessor disabled by the RegionServer. From the HBase documentation:
@@ -53,6 +59,7 @@ import org.slf4j.LoggerFactory;
  * </ul>
  *
  * @see <a href="https://hbase.apache.org/devapidocs/org/apache/hadoop/hbase/coprocessor/RegionObserver.html">https://hbase.apache.org/devapidocs/org/apache/hadoop/hbase/coprocessor/RegionObserver.html</a>
+ * @see org.apache.metron.hbase.coprocessor.config.CoprocessorOptions Available options.
  */
 public class EnrichmentCoprocessor extends BaseRegionObserver {
 
@@ -60,11 +67,14 @@ public class EnrichmentCoprocessor extends BaseRegionObserver {
   private Cache<String, String> cache;
   private RegionCoprocessorEnvironment coprocessorEnv;
 
+  /**
+   * HBase requires a no-arg constructor.
+   */
   public EnrichmentCoprocessor() {
   }
 
   /**
-   * Allow injecting writer used by Caffeine cache.
+   * Allow injecting the writer used by Caffeine cache.
    *
    * @param cacheWriter
    */
@@ -74,35 +84,45 @@ public class EnrichmentCoprocessor extends BaseRegionObserver {
 
   @Override
   public void start(CoprocessorEnvironment ce) throws IOException {
+    LOG.info("Starting enrichment coprocessor");
     if (ce instanceof RegionCoprocessorEnvironment) {
       this.coprocessorEnv = (RegionCoprocessorEnvironment) ce;
     } else {
       throw new CoprocessorException("Enrichment coprocessor must be loaded on a table region.");
     }
+    LOG.info("Checking if internal cache initialized");
     if (null == this.cache) {
-      CacheWriter<String, String> cacheWriter = new HBaseCacheWriter(
-          this.coprocessorEnv.getConfiguration(), c -> {
-        try {
-          return ConnectionFactory.createConnection(c);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      });
+      LOG.info("Cache null, initializing");
+      Configuration config = this.coprocessorEnv.getConfiguration();
+      String hbaseTableProviderName = config.get(CoprocessorOptions.TABLE_PROVIDER.getKey());
+      CacheWriter<String, String> cacheWriter = null;
+      try {
+        cacheWriter = new HBaseCacheWriter(config, TableProvider
+            .create(hbaseTableProviderName, HTableProvider::new));
+      } catch (ClassNotFoundException | InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+        throw new IOException("Unable to instantiate cache writer", e);
+      }
       this.cache = Caffeine.newBuilder().writer(cacheWriter).build();
+      LOG.info("Finished initializing cache");
     }
+    LOG.info("Finished starting enrichment coprocessor");
   }
 
   @Override
   public void postPut(ObserverContext<RegionCoprocessorEnvironment> e, Put put, WALEdit edit,
       Durability durability) throws IOException {
+    LOG.trace("enrichment coprocessor postPut call begin");
     try {
+      LOG.trace("Extracting enrichment type from rowkey");
       String type = getEnrichmentType(put);
+      LOG.trace("Enrichment type '{}' extracted from rowkey", type);
       addToCache(type);
     } catch (Throwable t) {
       LOG.warn("Exception occurred while processing Put operation in coprocessor", t);
       // Anything other than an IOException will cause the coprocessor to be disabled.
       throw new IOException("Error occurred while processing enrichment Put.", t);
     }
+    LOG.trace("enrichment coprocessor postPut call complete");
   }
 
   private String getEnrichmentType(Put put) {
@@ -112,10 +132,13 @@ public class EnrichmentCoprocessor extends BaseRegionObserver {
   }
 
   private void addToCache(String cacheKey) {
+    LOG.trace("Checking if cacheKey '{}'present in cache", cacheKey);
     // We don't want to invoke the cache writer unless we have a new key
     if (null == cache.getIfPresent(cacheKey)) {
+      LOG.trace("cacheKey '{}' not present, adding to cache", cacheKey);
       // Only the key is important to us since we're using the cache like a list.
       cache.put(cacheKey, cacheKey);
+      LOG.trace("cacheKey '{}' not present, adding to cache", cacheKey);
     }
   }
 

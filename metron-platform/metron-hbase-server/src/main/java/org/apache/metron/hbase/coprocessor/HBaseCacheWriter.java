@@ -22,15 +22,11 @@ import com.github.benmanes.caffeine.cache.CacheWriter;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.hbase.coprocessor.config.CoprocessorOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,63 +37,37 @@ import org.slf4j.LoggerFactory;
 public class HBaseCacheWriter implements CacheWriter<String, String> {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private Connection connection;
-  private Function<Configuration, Connection> connectionFactory;
+  private TableProvider tableProvider;
   private final Configuration config;
   private final String tableName;
   private final String columnFamily;
   private final String columnQualifier;
 
-  public HBaseCacheWriter(Configuration config,
-      Function<Configuration, Connection> connectionFactory) {
+  public HBaseCacheWriter(Configuration config, TableProvider tableProvider) {
     this.config = config;
-    this.connectionFactory = connectionFactory;
+    this.tableProvider = tableProvider;
     this.tableName = config.get(CoprocessorOptions.TABLE_NAME.getKey());
     this.columnFamily = config.get(CoprocessorOptions.COLUMN_FAMILY.getKey());
     this.columnQualifier = config.get(CoprocessorOptions.COLUMN_QUALIFIER.getKey());
   }
 
+  /**
+   * Writes a rowkey as provided by 'key' to the configured hbase table.
+   * @param key value to use as a row key.
+   * @param value not used.
+   */
   @Override
   public void write(@Nonnull String key, @Nonnull String value) {
-    Table enrichmentListTable = null;
-    try {
-      enrichmentListTable = getTable(tableName);
-      LOG.debug("enrichment_list table retrieved '{}'",
-          enrichmentListTable.getTableDescriptor().getFamilies());
-      Put eListPut = new Put(Bytes.toBytes(key));
-      eListPut.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(columnQualifier),
-          Bytes.toBytes(value));
-      LOG.debug("Performing put into '{}' of '{}'", tableName, eListPut);
-      enrichmentListTable.put(eListPut);
-      LOG.debug("Done with put in enrichment list table");
+    LOG.debug("Calling hbase cache writer with key='{}', value='{}'", key, value);
+    try (HBaseClient hbClient = new HBaseClient(this.tableProvider, this.config, this.tableName)) {
+      LOG.debug("rowKey={}, columnFamily={}, columnQualifier={}, value={}", key, columnFamily,
+          columnQualifier, value);
+      hbClient.put(key, columnFamily, columnQualifier, value);
+      LOG.debug("Done with put");
     } catch (IOException e) {
       throw new RuntimeException("Error writing to HBase table", e);
-    } finally {
-      LOG.info("Closing table");
-      if (null != enrichmentListTable) {
-        try {
-          enrichmentListTable.close();
-        } catch (IOException e) {
-          // ignore
-        }
-      }
-      LOG.debug("Done closing table");
     }
-  }
-
-  private Table getTable(String tableName) throws IOException {
-    return getConnection().getTable(TableName.valueOf(tableName));
-  }
-
-  private Connection getConnection() throws IOException {
-    if (null == this.connection || this.connection.isClosed()) {
-      if (null == this.config) {
-        throw new IOException("Config cannot be null.");
-      }
-      this.connection = connectionFactory.apply(this.config);
-    }
-
-    return this.connection;
+    LOG.debug("Done calling hbase cache writer");
   }
 
   @Override

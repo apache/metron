@@ -26,6 +26,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.github.benmanes.caffeine.cache.CacheWriter;
 import java.io.IOException;
@@ -33,10 +34,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.coprocessor.ObserverContext;
 import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.coprocessor.config.CoprocessorOptions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,11 +59,16 @@ public class EnrichmentCoprocessorTest {
   @Mock
   private ObserverContext<RegionCoprocessorEnvironment> observerContext;
   private EnrichmentCoprocessor cop;
+  private Configuration config;
+  private static boolean instantiatedCustomTableProvider;
 
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
     cop = new EnrichmentCoprocessor(cacheWriter);
+    config = HBaseConfiguration.create();
+    when(copEnv.getConfiguration()).thenReturn(config);
+    instantiatedCustomTableProvider = false;
   }
 
   @Test
@@ -97,6 +108,26 @@ public class EnrichmentCoprocessorTest {
       }
     }
     return putsByType;
+  }
+
+  public static class TestTableProvider implements TableProvider {
+
+    public TestTableProvider() {
+      instantiatedCustomTableProvider = true;
+    }
+
+    @Override
+    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
+      return null; // not used for instantiation test
+    }
+  }
+
+  @Test
+  public void creates_tableprovider_from_config_property() throws Exception {
+    cop = new EnrichmentCoprocessor();
+    config.set(CoprocessorOptions.TABLE_PROVIDER.getKey(), TestTableProvider.class.getName());
+    cop.start(copEnv);
+    assertThat(instantiatedCustomTableProvider, equalTo(true));
   }
 
   @Rule

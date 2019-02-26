@@ -35,6 +35,7 @@ import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.bolt.mapper.ColumnList;
 import org.apache.metron.hbase.bolt.mapper.HBaseProjectionCriteria;
@@ -300,4 +301,16 @@ public class HBaseClient implements Closeable {
     }
     return tableName;
   }
+
+  /**
+   * Puts a record into the configured HBase table synchronously (not batched).
+   */
+  public void put(String rowKey, String columnFamily, String columnQualifier, String value)
+      throws IOException {
+    Put put = new Put(Bytes.toBytes(rowKey));
+    put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(columnQualifier),
+        Bytes.toBytes(value));
+    table.put(put);
+  }
+
 }
