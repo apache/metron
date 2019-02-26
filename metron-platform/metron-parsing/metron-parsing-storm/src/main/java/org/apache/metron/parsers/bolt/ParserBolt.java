@@ -23,9 +23,12 @@ import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.common.configuration.ParserConfigurations;
@@ -37,6 +40,9 @@ import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.common.message.metadata.RawMessageUtil;
 import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.common.utils.MessageUtils;
+import org.apache.metron.common.writer.BulkMessage;
+import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.parsers.ParserRunner;
 import org.apache.metron.parsers.ParserRunnerResults;
 import org.apache.metron.stellar.common.CachingStellarProcessor;
@@ -67,8 +73,9 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
   private transient MessageGetStrategy messageGetStrategy;
   private int requestedTickFreqSecs;
-  private int defaultBatchTimeout;
+  private int maxBatchTimeout;
   private int batchTimeoutDivisor = 1;
+  private transient AckTuplesPolicy ackTuplesPolicy;
 
   public ParserBolt( String zookeeperUrl
                    , ParserRunner parserRunner
@@ -77,31 +84,20 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     super(zookeeperUrl);
     this.parserRunner = parserRunner;
     this.sensorToWriterMap = sensorToWriterMap;
-
-    // Ensure that all sensors are either bulk sensors or not bulk sensors.  Can't mix and match.
-    Boolean handleAcks = null;
-    for (Map.Entry<String, WriterHandler> entry : sensorToWriterMap.entrySet()) {
-      boolean writerHandleAck = entry.getValue().handleAck();
-      if (handleAcks == null) {
-        handleAcks = writerHandleAck;
-      } else if (!handleAcks.equals(writerHandleAck)) {
-        throw new IllegalArgumentException("All writers must match when calling handleAck()");
-      }
-    }
   }
 
   /**
    * If this ParserBolt is in a topology where it is daisy-chained with
    * other queuing Writers, then the max amount of time it takes for a tuple
    * to clear the whole topology is the sum of all the batchTimeouts for all the
-   * daisy-chained Writers.  In the common case where each Writer is using the default
+   * daisy-chained Writers.  In the common case where each Writer is using the max
    * batchTimeout, it is then necessary to divide that batchTimeout by the number of
    * daisy-chained Writers.  There are no examples of daisy-chained batching Writers
    * in the current Metron topologies, but the feature is available as a "fluent"-style
    * mutator if needed.  It would be used in the parser topology builder.
    * Default value, if not otherwise set, is 1.
    *
-   * If non-default batchTimeouts are configured for some components, the administrator
+   * If sensor batchTimeouts are configured for some components, the administrator
    * may want to take this behavior into account.
    *
    * @param batchTimeoutDivisor
@@ -158,6 +154,13 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   }
 
   /**
+   * Used only for unit testing
+   */
+  public void setAckTuplesPolicy(AckTuplesPolicy ackTuplesPolicy) {
+    this.ackTuplesPolicy = ackTuplesPolicy;
+  }
+
+  /**
    * This method is called by TopologyBuilder.createTopology() to obtain topology and
    * bolt specific configuration parameters.  We use it primarily to configure how often
    * a tick tuple will be sent to our bolt.
@@ -181,8 +184,8 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
     BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
     this.requestedTickFreqSecs = timeoutHelper.getRecommendedTickInterval();
-    //And while we've got BatchTimeoutHelper handy, capture the defaultBatchTimeout for writerComponent.
-    this.defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
+    //And while we've got BatchTimeoutHelper handy, capture the maxBatchTimeout for writerComponent.
+    this.maxBatchTimeout = timeoutHelper.getMaxBatchTimeout();
 
     Map<String, Object> conf = super.getComponentConfiguration();
     if (conf == null) {
@@ -201,6 +204,8 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     this.collector = collector;
     this.parserRunner.init(this::getConfigurations, initializeStellar());
 
+    ackTuplesPolicy = new AckTuplesPolicy(collector, messageGetStrategy);
+
     // Need to prep all sensors
     for (Map.Entry<String, WriterHandler> entry: sensorToWriterMap.entrySet()) {
       String sensor = entry.getKey();
@@ -215,17 +220,17 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       }
 
       WriterHandler writer = sensorToWriterMap.get(sensor);
-      writer.init(stormConf, context, collector, getConfigurations());
-      if (defaultBatchTimeout == 0) {
-        //This means getComponentConfiguration was never called to initialize defaultBatchTimeout,
+      if (maxBatchTimeout == 0) {
+        //This means getComponentConfiguration was never called to initialize maxBatchTimeout,
         //probably because we are in a unit test scenario.  So calculate it here.
         WriterConfiguration writerConfig = getConfigurationStrategy()
-            .createWriterConfig(writer.getBulkMessageWriter(), getConfigurations());
+                .createWriterConfig(writer.getBulkMessageWriter(), getConfigurations());
         BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(
-            writerConfig::getAllConfiguredTimeouts, batchTimeoutDivisor);
-        defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
+                writerConfig::getAllConfiguredTimeouts, batchTimeoutDivisor);
+        maxBatchTimeout = timeoutHelper.getMaxBatchTimeout();
       }
-      writer.setDefaultBatchTimeout(defaultBatchTimeout);
+
+      writer.init(stormConf, context, collector, getConfigurations(), ackTuplesPolicy, maxBatchTimeout);
     }
   }
 
@@ -250,16 +255,25 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
               , sensorParserConfig.getRawMessageStrategyConfig()
       );
       ParserRunnerResults<JSONObject> parserRunnerResults = parserRunner.execute(sensorType, rawMessage, parserConfigurations);
-      long numWritten = parserRunnerResults.getMessages().stream()
-              .map(message -> handleMessage(sensorType, originalMessage, tuple, message, collector))
-              .filter(result -> result)
-              .count();
       parserRunnerResults.getErrors().forEach(error -> ErrorUtils.handleError(collector, error));
 
-      //if we are supposed to ack the tuple OR if we've never passed this tuple to the bulk writer
-      //(meaning that none of the messages are valid either globally or locally)
-      //then we want to handle the ack ourselves.
-      if (!sensorToWriterMap.get(sensorType).handleAck() || numWritten == 0) {
+      WriterHandler writer = sensorToWriterMap.get(sensorType);
+      int numWritten = 0;
+      List<JSONObject> messages = parserRunnerResults.getMessages();
+      List<String> messageIds = messages.stream().map(MessageUtils::getGuid).collect(Collectors.toList());
+      ackTuplesPolicy.addTupleMessageIds(tuple, messageIds);
+      for(int i = 0; i < messages.size(); i++) {
+        String messageId = messageIds.get(i);
+        JSONObject message = messages.get(i);
+        try {
+          writer.write(sensorType, new BulkMessage<>(messageId, message), getConfigurations());
+          numWritten++;
+        } catch (Exception ex) {
+          handleError(sensorType, originalMessage, tuple, ex, collector);
+        }
+      }
+
+      if (numWritten == 0) {
         collector.ack(tuple);
       }
 
@@ -303,17 +317,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
               "This should have been caught in the writerHandler.  If you see this, file a JIRA", e);
     } finally {
       collector.ack(tuple);
-    }
-  }
-
-  protected boolean handleMessage(String sensorType, byte[] originalMessage, Tuple tuple, JSONObject message, OutputCollector collector) {
-    WriterHandler writer = sensorToWriterMap.get(sensorType);
-    try {
-      writer.write(sensorType, tuple, message, getConfigurations(), messageGetStrategy);
-      return true;
-    } catch (Exception ex) {
-      handleError(sensorType, originalMessage, tuple, ex, collector);
-      return false;
     }
   }
 

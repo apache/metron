@@ -1,2 +1,10 @@
-{ "string" : "bar", "number" : 2, "ignored" : [ "blah" ], "original_string":"{ \"string\" : \"bar\", \"number\" : 2, \"ignored\" : [ \"blah\" ] }","timestamp":1000000000000, "source.type":"jsonMapQuery","guid":"this-is-random-uuid-will-be-36-chars" }
+{ "number" : 1, "ignored" : [ "blah" ], "original_string":"{ \"string\" : \"bar\", \"number\" : 1, \"ignored\" : [ \"blah\" ] }","string" : "bar","timestamp":1000000000000, "source.type":"jsonMapQuery","guid":"this-is-random-uuid-will-be-36-chars" }
+{ "number" : 2 , "original_string" : "{ \"number\" : 2 }", "source.type":"jsonMapQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}
+{ "number" : 3 , "original_string" : "{ \"number\" : 3 }", "source.type":"jsonMapQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}
+{ "number" : 4 , "original_string" : "{ \"number\" : 4 }", "source.type":"jsonMapQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}
+{ "number" : 5 , "original_string" : "{ \"number\" : 5 }", "source.type":"jsonMapQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}
+{ "number" : 6 , "original_string" : "{ \"number\" : 6 }", "source.type":"jsonMapQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}
 { "number" : 7 , "original_string" : "{ \"number\" : 7 }", "source.type":"jsonMapQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}
+{ "number" : 8 , "original_string" : "{ \"number\" : 8 }", "source.type":"jsonMapQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}
+{ "number" : 9 , "original_string" : "{ \"number\" : 9 }", "source.type":"jsonMapQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}
+{ "number" : 10 , "original_string" : "{ \"number\" : 10 }", "source.type":"jsonMapQuery","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}

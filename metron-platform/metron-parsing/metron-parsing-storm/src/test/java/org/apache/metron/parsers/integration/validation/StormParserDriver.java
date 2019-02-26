@@ -19,21 +19,26 @@ package org.apache.metron.parsers.integration.validation;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
-import org.apache.metron.common.writer.MessageWriter;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
@@ -60,10 +65,11 @@ public class StormParserDriver extends ParserDriver {
     }
 
     @Override
-    public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
-      messages.forEach(message -> output.add(message.toJSONString().getBytes()));
+    public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkMessage<JSONObject>> messages) throws Exception {
+      messages.forEach(bulkWriterMessage -> output.add(bulkWriterMessage.getMessage().toJSONString().getBytes()));
+      Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
       BulkWriterResponse bulkWriterResponse = new BulkWriterResponse();
-      bulkWriterResponse.addAllSuccesses(tuples);
+      bulkWriterResponse.addAllSuccesses(ids);
       return bulkWriterResponse;
     }
 
@@ -92,7 +98,7 @@ public class StormParserDriver extends ParserDriver {
 
     @Override
     public ParserConfigurations getConfigurations() {
-      config.getSensorParserConfig(sensorType).getParserConfig().put(IndexingConfigurations.BATCH_SIZE_CONF, 1);
+      config.getSensorParserConfig(sensorType).getParserConfig().putIfAbsent(IndexingConfigurations.BATCH_SIZE_CONF, 1);
       return config;
     }
 
@@ -114,21 +120,6 @@ public class StormParserDriver extends ParserDriver {
     }
   }
 
-//
-//  private ParserConfigurations config;
-//  private String sensorType;
-//  private ParserRunner parserRunner;
-//
-//  public ParserDriver(String sensorType, String parserConfig, String globalConfig) throws IOException {
-//    SensorParserConfig sensorParserConfig = SensorParserConfig.fromBytes(parserConfig.getBytes());
-//    this.sensorType = sensorType == null ? sensorParserConfig.getSensorTopic() : sensorType;
-//    config = new ParserConfigurations();
-//    config.updateSensorParserConfig(this.sensorType, SensorParserConfig.fromBytes(parserConfig.getBytes()));
-//    config.updateGlobalConfig(JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER));
-//
-//    parserRunner = new ParserRunnerImpl(new HashSet<String>() {{
-//      add(sensorType);
-//    }});
   public StormParserDriver(String sensorType, String parserConfig, String globalConfig) throws IOException {
     super(sensorType, parserConfig, globalConfig);
   }
@@ -140,7 +131,9 @@ public class StormParserDriver extends ParserDriver {
     OutputCollector collector = mock(OutputCollector.class);
     bolt.prepare(null, null, collector);
     for(byte[] record : in) {
-      bolt.execute(toTuple(record));
+      Tuple tuple = toTuple(record);
+      bolt.execute(tuple);
+      verify(collector, times(1)).ack(tuple);
     }
     return bolt.getResults();
   }
