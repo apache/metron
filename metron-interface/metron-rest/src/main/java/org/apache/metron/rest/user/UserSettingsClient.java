@@ -15,20 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.hbase.client;
-
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.hbase.TableProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package org.apache.metron.rest.user;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -38,6 +25,18 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Delete;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.hbase.TableProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UserSettingsClient {
 
@@ -46,7 +45,7 @@ public class UserSettingsClient {
   public static String USER_SETTINGS_HBASE_TABLE = "user.settings.hbase.table";
   public static String USER_SETTINGS_HBASE_CF = "user.settings.hbase.cf";
 
-  private HTableInterface userSettingsTable;
+  private Table userSettingsTable;
   private byte[] cf;
   private Supplier<Map<String, Object>> globalConfigSupplier;
   private TableProvider tableProvider;
@@ -59,7 +58,7 @@ public class UserSettingsClient {
     this.tableProvider = tableProvider;
   }
 
-  public UserSettingsClient(HTableInterface userSettingsTable, byte[] cf) {
+  public UserSettingsClient(Table userSettingsTable, byte[] cf) {
     this.userSettingsTable = userSettingsTable;
     this.cf = cf;
   }
@@ -85,7 +84,7 @@ public class UserSettingsClient {
     }
   }
 
-  public HTableInterface getTableInterface() {
+  public Table getTableInterface() {
     if(userSettingsTable == null) {
       init(globalConfigSupplier, tableProvider);
     }
