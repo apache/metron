@@ -23,6 +23,10 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 
 import java.io.IOException;
 
+/**
+ * Note: HBase, like Hadoop, occasionally deprecates interfaces. We anticipate this HTable API
+ * should be around for quite some time.
+ */
 public class HTableProvider implements TableProvider {
     @Override
     public HTableInterface getTable(Configuration config, String tableName) throws IOException {

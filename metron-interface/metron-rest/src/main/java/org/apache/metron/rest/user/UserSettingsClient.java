@@ -28,11 +28,11 @@ import java.util.function.Supplier;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.TableProvider;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class UserSettingsClient {
   public static String USER_SETTINGS_HBASE_TABLE = "user.settings.hbase.table";
   public static String USER_SETTINGS_HBASE_CF = "user.settings.hbase.cf";
 
-  private Table userSettingsTable;
+  private HTableInterface userSettingsTable;
   private byte[] cf;
   private Supplier<Map<String, Object>> globalConfigSupplier;
   private TableProvider tableProvider;
@@ -58,7 +58,7 @@ public class UserSettingsClient {
     this.tableProvider = tableProvider;
   }
 
-  public UserSettingsClient(Table userSettingsTable, byte[] cf) {
+  public UserSettingsClient(HTableInterface userSettingsTable, byte[] cf) {
     this.userSettingsTable = userSettingsTable;
     this.cf = cf;
   }
@@ -84,7 +84,7 @@ public class UserSettingsClient {
     }
   }
 
-  public Table getTableInterface() {
+  public HTableInterface getTableInterface() {
     if(userSettingsTable == null) {
       init(globalConfigSupplier, tableProvider);
     }

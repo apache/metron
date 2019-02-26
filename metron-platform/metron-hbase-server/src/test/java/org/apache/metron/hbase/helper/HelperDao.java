@@ -21,11 +21,11 @@ package org.apache.metron.hbase.helper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
@@ -34,7 +34,7 @@ import org.apache.metron.enrichment.converter.EnrichmentValue;
 
 public class HelperDao {
 
-  public static void insertRecord(Table table, EnrichmentKey key, String cf, String value)
+  public static void insertRecord(HTableInterface table, EnrichmentKey key, String cf, String value)
       throws IOException {
     Put put = createPut(key, cf, value);
     table.put(put);
@@ -45,7 +45,7 @@ public class HelperDao {
         new EnrichmentValue(JSONUtils.INSTANCE.load(value, JSONUtils.MAP_SUPPLIER)));
   }
 
-  public static List<String> readRecords(Table table) throws Exception {
+  public static List<String> readRecords(HTableInterface table) throws Exception {
     Scan scan = new Scan();
     ResultScanner scanner = table.getScanner(scan);
     List<String> rows = new ArrayList<>();

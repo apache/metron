@@ -17,16 +17,16 @@
  */
 package org.apache.metron.rest.config;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+
 import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.hbase.client.UserSettingsClient;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
+import org.apache.metron.rest.user.UserSettingsClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
 @Configuration
 @Profile("!" + TEST_PROFILE)

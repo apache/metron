@@ -145,6 +145,4 @@ public class EnrichmentCoprocessorIntegrationTest {
     assertThat(new HashSet<String>(enrichmentsList), equalTo(expectedEnrichmentTypes));
   }
 
-  // TODO - test exception doesn't disable the coprocessor
-
 }
