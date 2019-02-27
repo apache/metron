@@ -21,6 +21,10 @@ import {SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
 import {RiskLevelRule} from '../../model/risk-level-rule';
 import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
 
+export enum SortOrderOption {
+  Lowest_Score, Highest_Score, Lowest_Name, Highest_Name
+}
+
 export enum ThreatTriageFilter {
   NONE, LOW, MEDIUM, HIGH
 }
@@ -47,6 +51,8 @@ export class SensorThreatTriageComponent implements OnChanges {
   mediumAlerts = 0;
   highAlerts = 0;
 
+  sortOrderOption = SortOrderOption;
+  sortOrder = SortOrderOption.Highest_Score;
   threatTriageFilter = ThreatTriageFilter;
   filter: ThreatTriageFilter = ThreatTriageFilter.NONE;
 
@@ -64,6 +70,7 @@ export class SensorThreatTriageComponent implements OnChanges {
       this.availableAggregators = results;
     });
     this.updateBuckets();
+    this.onSortOrderChange(null);
   }
 
   onClose(): void {
@@ -105,52 +112,89 @@ export class SensorThreatTriageComponent implements OnChanges {
   }
 
   updateBuckets() {
-    // this.lowAlerts = 0;
-    // this.mediumAlerts = 0;
-    // this.highAlerts = 0;
-    // for (let riskLevelRule of this.visibleRules) {
-    //   if (riskLevelRule.score <= 20) {
-    //     this.lowAlerts++;
-    //   } else if (riskLevelRule.score >= 80) {
-    //     this.highAlerts++;
-    //   } else {
-    //     this.mediumAlerts++;
-    //   }
-    // }
+    this.lowAlerts = 0;
+    this.mediumAlerts = 0;
+    this.highAlerts = 0;
+    for (let riskLevelRule of this.visibleRules) {
+      if (riskLevelRule.score <= 20) {
+        this.lowAlerts++;
+      } else if (riskLevelRule.score >= 80) {
+        this.highAlerts++;
+      } else {
+        this.mediumAlerts++;
+      }
+    }
   }
 
   getRuleColor(riskLevelRule: RiskLevelRule): string {
-    // let color: string;
-    // if (riskLevelRule.score <= 20) {
-    //   color = 'khaki';
-    // } else if (riskLevelRule.score >= 80) {
-    //   color = 'red';
-    // } else {
-    //   color = 'orange';
-    // }
-    // return color;
-    return 'khaki';
+    let color: string;
+    if (riskLevelRule.score <= 20) {
+      color = 'khaki';
+    } else if (riskLevelRule.score >= 80) {
+      color = 'red';
+    } else {
+      color = 'orange';
+    }
+    return color;
+  }
+
+  onSortOrderChange(sortOrder: any) {
+    if (sortOrder !== null) {
+      this.sortOrder = sortOrder;
+    }
+
+    // all comparisons with enums must be == and not ===
+    if (this.sortOrder == this.sortOrderOption.Highest_Score) {
+      this.visibleRules.sort((a, b) => {
+        return b.score - a.score;
+      });
+    } else if (this.sortOrder == SortOrderOption.Lowest_Score) {
+      this.visibleRules.sort((a, b) => {
+        return a.score - b.score;
+      });
+    } else if (this.sortOrder == SortOrderOption.Lowest_Name) {
+      this.visibleRules.sort((a, b) => {
+        let aName = a.name ? a.name : '';
+        let bName = b.name ? b.name : '';
+        if (aName.toLowerCase() >= bName.toLowerCase()) {
+          return 1;
+        } else if (aName.toLowerCase() < bName.toLowerCase()) {
+          return -1;
+        }
+      });
+    } else {
+      this.visibleRules.sort((a, b) => {
+        let aName = a.name ? a.name : '';
+        let bName = b.name ? b.name : '';
+        if (aName.toLowerCase() >= bName.toLowerCase()) {
+          return -1;
+        } else if (aName.toLowerCase() < bName.toLowerCase()) {
+          return 1;
+        }
+      });
+    }
   }
 
   onFilterChange(filter: ThreatTriageFilter) {
-    // if (filter === this.filter) {
-    //   this.filter = ThreatTriageFilter.NONE;
-    // } else {
-    //   this.filter = filter;
-    // }
-    // this.visibleRules = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules.filter(riskLevelRule => {
-    //   if (this.filter === ThreatTriageFilter.NONE) {
-    //     return true;
-    //   } else {
-    //     if (this.filter === ThreatTriageFilter.HIGH) {
-    //       return riskLevelRule.score >= 80;
-    //     } else if (this.filter === ThreatTriageFilter.LOW) {
-    //       return riskLevelRule.score <= 20;
-    //     } else {
-    //       return riskLevelRule.score < 80 && riskLevelRule.score > 20;
-    //     }
-    //   }
-    // });
+    if (filter === this.filter) {
+      this.filter = ThreatTriageFilter.NONE;
+    } else {
+      this.filter = filter;
+    }
+    this.visibleRules = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules.filter(riskLevelRule => {
+      if (this.filter === ThreatTriageFilter.NONE) {
+        return true;
+      } else {
+        if (this.filter === ThreatTriageFilter.HIGH) {
+          return riskLevelRule.score >= 80;
+        } else if (this.filter === ThreatTriageFilter.LOW) {
+          return riskLevelRule.score <= 20;
+        } else {
+          return riskLevelRule.score < 80 && riskLevelRule.score > 20;
+        }
+      }
+    });
+    this.onSortOrderChange(null);
   }
 
   getDisplayName(riskLevelRule: RiskLevelRule): string {

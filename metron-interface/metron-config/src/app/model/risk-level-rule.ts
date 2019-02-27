@@ -19,5 +19,6 @@ export class RiskLevelRule {
   name = '';
   comment = '';
   rule = '';
+  score = 0;
   scoreExpression? = '';
 }
