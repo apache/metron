@@ -44,6 +44,8 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   @Input() liveAutocompletion = true;
   @Input() enableSnippets = true;
   @Input() useWorker = true;
+  @Input() wrapLimitRangeMin: number | null = 72;
+  @Input() wrapLimitRangeMax: number | null = 72;
   @Output() onChange = new EventEmitter();
   @ViewChild('aceEditor') aceEditorEle: ElementRef;
 
@@ -105,7 +107,7 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
     parserConfigEditor.getSession().setMode(this.getEditorType());
     parserConfigEditor.getSession().setTabSize(2);
     parserConfigEditor.getSession().setUseWrapMode(true);
-    parserConfigEditor.getSession().setWrapLimitRange(72, 72);
+    parserConfigEditor.getSession().setWrapLimitRange(this.wrapLimitRangeMin, this.wrapLimitRangeMax);
 
     parserConfigEditor.$blockScrolling = Infinity;
     parserConfigEditor.setTheme('ace/theme/monokai');

@@ -55,6 +55,10 @@ export class SensorRuleEditorComponent implements OnInit {
     });
   }
 
+  onRuleChange = () => {
+
+  }
+
   onScoreChange = () => {
     this.isScoreValid = false;
   }

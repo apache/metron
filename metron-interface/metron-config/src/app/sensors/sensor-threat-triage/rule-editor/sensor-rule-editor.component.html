@@ -25,8 +25,21 @@
           <input type="text" class="form-control" name="ruleName" [(ngModel)]="newRiskLevelRule.name">
         </div>
         <div class="form-group">
-            <label attr.for="statement">TEXT</label>
-            <textarea rows="30" class="form-control" name="ruleValue" [(ngModel)]="newRiskLevelRule.rule" style="height: inherit"></textarea>
+            <label attr.for="statement">RULE</label>
+            <metron-config-ace-editor
+              name="ruleValue"
+              [(ngModel)]="newRiskLevelRule.rule"
+              [liveAutocompletion]="false"
+              [enableSnippets]="false"
+              [useWorker]="false"
+              [type]="'STELLAR'"
+              (onChange)="onRuleChange()"
+              [placeHolder]="'Enter a valid Stellar expression'"
+              [wrapLimitRangeMin]="null"
+              [wrapLimitRangeMax]="null"
+              data-qe-id="score-editor"
+            >
+            </metron-config-ace-editor>
         </div>
     </form>
     <form class="form-inline">
@@ -41,6 +54,8 @@
               [type]="'STELLAR'"
               (onChange)="onScoreChange()"
               [placeHolder]="'Enter a valid Stellar expression'"
+              [wrapLimitRangeMin]="null"
+              [wrapLimitRangeMax]="null"
               data-qe-id="score-editor"
             >
             </metron-config-ace-editor>
