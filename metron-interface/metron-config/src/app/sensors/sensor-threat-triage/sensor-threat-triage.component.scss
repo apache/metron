@@ -46,47 +46,9 @@ textarea
   padding-bottom: 5px;
 }
 
-.filter-button
-{
-  width: 32%;
-  background: $field-background;
-  border: 1px solid $form-button-border;
-  border-radius: .25em;
-  cursor: default;
-  color: $nav-active-color;
-  i {
-    font-size: smaller;
-  }
-}
-
-.filter-button-selected
-{
-  @extend .filter-button;
-  background-color: #006ea0;
-  color: #bdbdbd;
-}
-
 .threat-triage-aggregator
 {
   padding-bottom: 10px;
-}
-
-.threat-triage-rules-sort
-{
-  padding-top: 5px;
-  font-size: 12px;
-  font-family: Roboto-Regular;
-  .label
-  {
-    display: inline-block;
-    padding-right: 8px;
-  }
-  .dropdown
-  {
-    list-style: none;
-    display: inline-block;
-    color: $field-button-color;
-  }
 }
 
 .rules-summary-title

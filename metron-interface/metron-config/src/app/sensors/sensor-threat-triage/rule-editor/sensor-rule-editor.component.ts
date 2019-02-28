@@ -49,9 +49,9 @@ export class SensorRuleEditorComponent implements OnInit {
   }
 
   onTest() {
-    const scoreExpression = this.newRiskLevelRule.scoreExpression;
-    this.stellarService.validateRules([scoreExpression]).subscribe((response) => {
-      this.isScoreValid = !!response[scoreExpression];
+    const score = this.newRiskLevelRule.score;
+    this.stellarService.validateRules([score]).subscribe((response) => {
+      this.isScoreValid = !!response[score];
     });
   }
 

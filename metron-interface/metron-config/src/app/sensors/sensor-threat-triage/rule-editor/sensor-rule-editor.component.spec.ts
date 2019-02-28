@@ -61,16 +61,16 @@ describe('Component: SensorRuleEditorComponent', () => {
           savedRule = rule;
         });
 
-        component.riskLevelRule =  {name: 'rule1', rule: 'initial rule', score: 1, comment: ''};
+        component.riskLevelRule =  {name: 'rule1', rule: 'initial rule', score: '1', comment: ''};
         component.ngOnInit();
         component.onSave();
-        let rule1 = Object.assign(new RiskLevelRule(), {name: 'rule1', rule: 'initial rule', score: 1, comment: ''});
+        let rule1 = Object.assign(new RiskLevelRule(), {name: 'rule1', rule: 'initial rule', score: '1', comment: ''});
         expect(savedRule).toEqual(rule1);
 
-        component.riskLevelRule = {name: 'rule2', rule: 'new rule', score: 2, comment: ''};
+        component.riskLevelRule = {name: 'rule2', rule: 'new rule', score: '2', comment: ''};
         component.ngOnInit();
         component.onSave();
-        let rule2 = Object.assign(new RiskLevelRule(), {name: 'rule2', rule: 'new rule', score: 2, comment: ''});
+        let rule2 = Object.assign(new RiskLevelRule(), {name: 'rule2', rule: 'new rule', score: '2', comment: ''});
         expect(savedRule).toEqual(rule2);
 
         expect(numCancelled).toEqual(0);
@@ -86,7 +86,7 @@ describe('Component: SensorRuleEditorComponent', () => {
     it('the save button should be enabled if the stellar expression is valid', inject(
       [HttpTestingController],
       (httpMock: HttpTestingController) => {
-        component.newRiskLevelRule.scoreExpression = 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}';
+        component.newRiskLevelRule.score = 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}';
         fixture.detectChanges();
         const saveButton = fixture.debugElement.query(By.css('[data-qe-id="save-score"]'));
         const testButton = fixture.debugElement.query(By.css('[data-qe-id="test-score"]'));
@@ -102,7 +102,7 @@ describe('Component: SensorRuleEditorComponent', () => {
     it('the save button should be disabled if the stellar expression is invalid', inject(
       [HttpTestingController],
       (httpMock: HttpTestingController) => {
-        component.newRiskLevelRule.scoreExpression = 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}';
+        component.newRiskLevelRule.score = 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}';
         fixture.detectChanges();
         const saveButton = fixture.debugElement.query(By.css('[data-qe-id="save-score"]'));
         const testButton = fixture.debugElement.query(By.css('[data-qe-id="test-score"]'));

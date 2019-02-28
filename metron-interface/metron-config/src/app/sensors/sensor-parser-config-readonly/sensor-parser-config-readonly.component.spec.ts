@@ -462,13 +462,13 @@ describe('Component: SensorParserConfigReadonly', () => {
         riskLevelRules: [
           {
             rule: "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')",
-            score: 3,
+            score: '3',
             name: 'test1',
             comment: 'This is a comment'
           },
           {
             rule: "user.type in [ 'admin', 'power' ] and asset.type == 'web'",
-            score: 3,
+            score: '3',
             name: 'test2',
             comment: 'This is another comment'
           }
@@ -480,13 +480,13 @@ describe('Component: SensorParserConfigReadonly', () => {
     let expected: RiskLevelRule[] = [
       {
         rule: "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')",
-        score: 3,
+        score: '3',
         name: 'test1',
         comment: 'This is a comment'
       },
       {
         rule: "user.type in [ 'admin', 'power' ] and asset.type == 'web'",
-        score: 3,
+        score: '3',
         name: 'test2',
         comment: 'This is another comment'
       }

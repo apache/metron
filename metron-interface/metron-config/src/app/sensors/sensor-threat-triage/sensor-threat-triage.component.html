@@ -34,39 +34,13 @@
         <div class="threat-triage-summary">
             <div class="form-group">
                 <div class="rules-summary-title">Rules</div>
-                <div class="row mx-0">
-                    <div class="btn" (click)="onFilterChange(threatTriageFilter.HIGH)" [ngClass]="{'filter-button': filter != threatTriageFilter.HIGH, 'filter-button-selected': filter == threatTriageFilter.HIGH}">
-                        <i aria-hidden="true" class="fa fa-circle" style="color: red"></i> {{highAlerts}}
-                    </div>
-                    <div class="btn" (click)="onFilterChange(threatTriageFilter.MEDIUM)" [ngClass]="{'filter-button': filter != threatTriageFilter.MEDIUM, 'filter-button-selected': filter == threatTriageFilter.MEDIUM}">
-                        <i aria-hidden="true" class="fa fa-circle" style="color: orange"></i> {{mediumAlerts}}
-                    </div>
-                    <div class="btn" (click)="onFilterChange(threatTriageFilter.LOW)" [ngClass]="{'filter-button': filter != threatTriageFilter.LOW, 'filter-button-selected': filter == threatTriageFilter.LOW}">
-                        <i aria-hidden="true" class="fa fa-circle" style="color: khaki"></i> {{lowAlerts}}
-                    </div>
-                </div>
-                <div class="row mx-0 threat-triage-rules-sort">
-                    <span class="label">Sort by </span>
-                    <li class="nav-item dropdown">
-                        <span class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">{{sortOrderOption[sortOrder].replace('_', ' ')}}</span>
-                        <div class="dropdown-menu bg-inverse">
-                            <span class="dropdown-item" (click)="onSortOrderChange(sortOrderOption.Highest_Score)">Highest Score</span>
-                            <span class="dropdown-item" (click)="onSortOrderChange(sortOrderOption.Lowest_Score)">Lowest Score</span>
-                            <span class="dropdown-item" (click)="onSortOrderChange(sortOrderOption.Highest_Name)">Highest Name</span>
-                            <span class="dropdown-item" (click)="onSortOrderChange(sortOrderOption.Lowest_Name)">Lowest Name</span>
-                        </div>
-                    </li>
-                </div>
             </div>
         </div>
         <div class="form-group threat-triage-rules-list">
             <div class="threat-triage-rule" *ngFor="let riskLevelRule of this.visibleRules">
                 <div class="row mx-0 py-0 threat-triage-rule-wrapper">
-                    <div class="threat-triage-rule-row" style="color: khaki; font-size: 30px; margin-top: -7px" [style.color]="getRuleColor(riskLevelRule)">
-                        <b>I</b>
-                    </div>
-                    <div class="threat-triage-rule-row" style="font-size: small;" [title]="riskLevelRule.scoreExpression">
-                        {{ riskLevelRule.scoreExpression }}
+                    <div class="threat-triage-rule-row" style="font-size: small;" [title]="riskLevelRule.score">
+                        {{ riskLevelRule.score }}
                     </div>
                     <div class="threat-triage-rule-row threat-triage-rule-str" [title]="getDisplayName(riskLevelRule)">
                         {{ getDisplayName(riskLevelRule) }}
