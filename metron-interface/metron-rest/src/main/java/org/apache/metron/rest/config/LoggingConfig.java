@@ -15,21 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest;
+package org.apache.metron.rest.config;
 
-import org.apache.metron.rest.util.ParserIndex;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
-@SpringBootApplication
-@EnableAutoConfiguration(exclude = { GsonAutoConfiguration.class, KafkaAutoConfiguration.class })
-public class MetronRestApplication {
+@Configuration
+public class LoggingConfig {
 
-  public static void main(String[] args) {
-    ParserIndex.reload();
-    SpringApplication.run(MetronRestApplication.class, args);
+  @Bean
+  public CommonsRequestLoggingFilter logFilter() {
+    CommonsRequestLoggingFilter filter
+            = new CommonsRequestLoggingFilter();
+    filter.setIncludeQueryString(true);
+    filter.setIncludePayload(true);
+    filter.setMaxPayloadLength(10000);
+    filter.setIncludeHeaders(true);
+    filter.setAfterMessagePrefix("request: ");
+    filter.setAfterMessageSuffix("");
+    return filter;
   }
 }
