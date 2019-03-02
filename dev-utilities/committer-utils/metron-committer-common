@@ -343,8 +343,17 @@ function run_tests {
         run_mvn_build_rpms
 
         verify_licenses
+
       elif [[ "${UPSTREAM}" == "${BRO_PLUGIN_UPSTREAM}" ]]; then
-        echo "We don't currently support running metron-bro-plugin-kafka tests in this script"
+        echo "  please verify that no bro docker containers are running before continuing,"
+        read -p "  no bro docker containers are running, ready to proceed [yN] " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            run_bro_docker
+        else
+            echo "  when you are ready and the containers are stopped, please cd into the docker"
+            echo "  directory and execute the run_end_to_end.sh script"
+        fi
       fi
     fi
 
@@ -432,6 +441,20 @@ function run_mvn_build_rpms {
         echo "ERROR> FAILED mvn build-rpms"
         exit ${rc}
     fi
+}
+
+#
+#  runs the bro kafka plugin's docker based tests
+#
+function run_bro_docker {
+    cd docker &> /dev/null || { echo "failed to change directory to docker" ; exit 1; }
+    ./run_end_to_end.sh
+
+    rc=$?; if [[ ${rc} != 0 ]]; then
+        echo "ERROR> FAILED run_end_to_end"
+        exit ${rc}
+    fi
+
 }
 
 #
