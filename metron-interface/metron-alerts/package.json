@@ -2,19 +2,18 @@
   "name": "metron-alerts",
   "version": "0.7.1",
   "license": "Apache-2.0",
-  "angular-cli": {},
   "scripts": {
-    "build": "./node_modules/@angular/cli/bin/ng build --prod",
+    "build": "ng build --prod",
     "start": "ng serve --aot",
+    "start:prod": "ng serve --prod",
     "lint": "tslint \"src/**/*.ts\"",
     "test": "ng test --browsers=Chrome",
-    "testCI": "ng test --watch=false --browsers=ChromeHeadless && npm run cypress:ci",
-    "pree2e": "webdriver-manager update",
-    "e2e": "protractor-flake --protractor-path=./node_modules/.bin/protractor --max-attempts=3 -- ./protractor.conf.js",
-    "cypress:run": "cypress run",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless",
+    "cypress": "cypress run",
     "cypress:open": "cypress open",
-    "cypress:ci": "ng build --prod && run-p --race start:ci cypress:run",
-    "start:ci": "node ./scripts/alerts-server.js -c alerts_ui_cypress.yml"
+    "cypress:ci": "start-server-and-test start:prod http-get://localhost:4200 cypress",
+    "pree2e": "webdriver-manager update",
+    "e2e": "protractor-flake --protractor-path=./node_modules/.bin/protractor --max-attempts=3 -- ./protractor.conf.js"
   },
   "private": true,
   "dependencies": {
@@ -55,9 +54,7 @@
     "@types/pikaday-time": "^1.4.2",
     "codelyzer": "^4.0.1",
     "compression": "^1.7.3",
-    "cypress": "^3.1.0",
-    "express": "^4.16.3",
-    "http-proxy-middleware": "^0.18.0",
+    "cypress": "3.1.0",
     "jasmine-core": "~2.5.2",
     "jasmine-spec-reporter": "~3.2.0",
     "karma": "^3.0.0",
@@ -68,15 +65,14 @@
     "karma-jasmine-html-reporter": "^0.2.2",
     "node-sass": "^4.9.3",
     "npm-run-all": "^4.1.5",
-    "optimist": "0.6.1",
     "protractor": "^5.4.0",
     "protractor-flake": "^3.3.0",
     "rxjs-tslint": "^0.1.5",
     "serve-favicon": "^2.5.0",
-    "serve-static": "^1.13.2",
     "ssh2": "^0.5.5",
+    "start-server-and-test": "^1.7.11",
+    "ts-node": "^7.0.0",
     "tslint": "~5.0.0",
-    "typescript": "~2.9.2",
-    "yamljs": "^0.3.0"
+    "typescript": "~2.9.2"
   }
 }

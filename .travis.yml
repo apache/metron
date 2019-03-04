@@ -23,7 +23,7 @@ env:
   - SCRIPT="mvn surefire:test@unit-tests -T 2C"
   - SCRIPT="mvn surefire:test@integration-tests"
   - SCRIPT="mvn clean site --projects site-book"
-  - SCRIPT="mvn test --projects metron-interface/metron-config,metron-interface/metron-alerts"
+  - SCRIPT="./metron-interface/scripts/run-all-ui-test.sh"
   - SCRIPT="./dev-utilities/build-utils/verify_licenses.sh"
 
 install: true
@@ -35,8 +35,6 @@ before_install:
   - unzip -qq apache-maven-3.3.9-bin.zip
   - export M2_HOME=$PWD/apache-maven-3.3.9
   - export PATH=$M2_HOME/bin:$PATH
-  - npm config set cache $HOME/.npm-cache --global
-  - npm config set prefix $HOME/.npm-prefix --global
 
 install:
   - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V
@@ -53,8 +51,5 @@ before_cache:
 cache:
   timeout: 1000
   directories:
-  - $HOME/.npm-cache
-  - $HOME/.npm-prefix
-  - metron-interface/metron-config/node_modules
   - $HOME/.m2
   - $HOME/.npm
