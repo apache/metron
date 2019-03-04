@@ -132,6 +132,7 @@
                   </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -151,11 +152,11 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                              <relocations>
-                                  <relocation>
-                                      <pattern>com.google.common</pattern>
-                                      <shadedPattern>org.apache.metron.metron-profiler-client.guava</shadedPattern>
-                                  </relocation>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>org.apache.metron.guava</shadedPattern>
+                                </relocation>
                               </relocations>
                               <filters>
                                 <filter>
@@ -167,20 +168,27 @@
                                   </excludes>
                                 </filter>
                               </filters>
-                              <transformers>
-                                 <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-                                    <resources>
-                                      <resource>.yaml</resource>
-                                      <resource>LICENSE.txt</resource>
-                                      <resource>ASL2.0</resource>
-                                      <resource>NOTICE.txt</resource>
-                                    </resources>
-                                  </transformer>
-                                  <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                                  <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                      <mainClass></mainClass>
-                                  </transformer>
-                              </transformers>
+                            <transformers>
+                               <transformer
+                                  implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                  <resources>
+                                    <resource>.yaml</resource>
+                                    <resource>LICENSE.txt</resource>
+                                    <resource>ASL2.0</resource>
+                                    <resource>NOTICE.txt</resource>
+                                  </resources>
+                                </transformer>
+                                <!-- UNCOMMENT THIS IF YOU NEED TO REGENERATE THE BEST GUESS NOTICES FILE WHICH REQUIRES PRUNING EVERY RELEASE -->
+                                <!--transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                                  <addHeader>false</addHeader>
+                                  <projectName>${project.name}</projectName>
+                                </transformer-->
+
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass></mainClass>
+                                </transformer>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>
