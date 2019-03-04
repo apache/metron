@@ -21,6 +21,7 @@
 package org.apache.metron.profiler;
 
 import com.github.benmanes.caffeine.cache.Ticker;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
@@ -300,7 +301,7 @@ public class DefaultMessageDistributorTest {
       this.timestampNanos += units.toNanos(time);
       return this;
     }
-
+    
     @Override
     public long read() {
       return this.timestampNanos;
