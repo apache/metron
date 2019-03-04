@@ -26,24 +26,33 @@ import {StellarService} from '../../../service/stellar.service';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AppConfigService } from 'app/service/app-config.service';
 import { By } from '@angular/platform-browser';
+import { Observable } from 'rxjs';
 
 describe('Component: SensorRuleEditorComponent', () => {
 
     let fixture: ComponentFixture<SensorRuleEditorComponent>;
     let component: SensorRuleEditorComponent;
+    let stellarService: StellarService;
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
             imports: [SharedModule, AceEditorModule, HttpClientTestingModule],
             declarations: [ SensorRuleEditorComponent, NumberSpinnerComponent ],
-            providers: [SensorRuleEditorComponent, StellarService, { provide: AppConfigService, useValue: {
-              appConfigStatic: {},
-              getApiRoot: () => '/api/v1'
-            } }]
+            providers: [
+              SensorRuleEditorComponent,
+              StellarService,
+              {
+                provide: AppConfigService,
+                useValue: {
+                  appConfigStatic: {},
+                  getApiRoot: () => '/api/v1'
+                }
+            }]
         });
 
         fixture = TestBed.createComponent(SensorRuleEditorComponent);
         component = fixture.componentInstance;
+        stellarService = TestBed.get(StellarService);
         fixture.detectChanges();
     }));
 
@@ -54,6 +63,17 @@ describe('Component: SensorRuleEditorComponent', () => {
     it('should edit rules', async(() => {
         let numCancelled = 0;
         let savedRule = new RiskLevelRule();
+
+        stellarService.validateRules = (expressions: string[]) => {
+          return new Observable((observer) => {
+            const response = {
+              [expressions[0]]: true,
+              [expressions[1]]: true,
+            };
+            observer.next(response);
+          });
+        }
+
         component.onCancelTextEditor.subscribe((cancelled: boolean) => {
           numCancelled++;
         });
@@ -78,40 +98,49 @@ describe('Component: SensorRuleEditorComponent', () => {
         expect(numCancelled).toEqual(1);
     }));
 
-    it('the save button should be disabled by default', () => {
-      const saveButton = fixture.debugElement.query(By.css('[data-qe-id="save-score"]'));
-      expect(saveButton.nativeElement.getAttribute('disabled')).not.toBeNull();
-    });
-
-    it('the save button should be enabled if the stellar expression is valid', inject(
+    it('should warn if either the rule or the score is invalid', inject(
       [HttpTestingController],
       (httpMock: HttpTestingController) => {
-        component.newRiskLevelRule.score = 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}';
-        fixture.detectChanges();
         const saveButton = fixture.debugElement.query(By.css('[data-qe-id="save-score"]'));
-        const testButton = fixture.debugElement.query(By.css('[data-qe-id="test-score"]'));
-        expect(saveButton.nativeElement.getAttribute('disabled')).not.toBeNull();
-        testButton.nativeElement.click();
-        let validateRequest = httpMock.expectOne('/api/v1/stellar/validate/rules');
-        validateRequest.flush({ 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}': true });
-        fixture.detectChanges();
-        expect(saveButton.nativeElement.getAttribute('disabled')).toBeNull();
-      }
-    ));
 
-    it('the save button should be disabled if the stellar expression is invalid', inject(
-      [HttpTestingController],
-      (httpMock: HttpTestingController) => {
-        component.newRiskLevelRule.score = 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}';
+        component.newRiskLevelRule.rule = 'value > 10';
+        component.newRiskLevelRule.score = 'value &&&&';
         fixture.detectChanges();
-        const saveButton = fixture.debugElement.query(By.css('[data-qe-id="save-score"]'));
-        const testButton = fixture.debugElement.query(By.css('[data-qe-id="test-score"]'));
-        expect(saveButton.nativeElement.getAttribute('disabled')).not.toBeNull();
-        testButton.nativeElement.click();
+        saveButton.nativeElement.click();
         let validateRequest = httpMock.expectOne('/api/v1/stellar/validate/rules');
-        validateRequest.flush({ 'match{ var1 < 10 => \'warn\', var1 >= 10 => \'critical\', default => \'info\'}': false });
+        validateRequest.flush({
+          [component.newRiskLevelRule.rule]: true,
+          [component.newRiskLevelRule.score]: false
+        });
         fixture.detectChanges();
-        expect(saveButton.nativeElement.getAttribute('disabled')).not.toBeNull();
+        let warning = fixture.debugElement.queryAll(By.css('.warning-text'));
+        expect(warning.length).toBe(1);
+
+        component.newRiskLevelRule.rule = 'value > 10';
+        component.newRiskLevelRule.score = 'value * 10';
+        fixture.detectChanges();
+        saveButton.nativeElement.click();
+        validateRequest = httpMock.expectOne('/api/v1/stellar/validate/rules');
+        validateRequest.flush({
+          [component.newRiskLevelRule.score]: true,
+          [component.newRiskLevelRule.rule]: true
+        });
+        fixture.detectChanges();
+        warning = fixture.debugElement.queryAll(By.css('.warning-text'));
+        expect(warning.length).toBe(0);
+
+        component.newRiskLevelRule.rule = 'value &&&&';
+        component.newRiskLevelRule.score = 'value &&& &&&&';
+        fixture.detectChanges();
+        saveButton.nativeElement.click();
+        validateRequest = httpMock.expectOne('/api/v1/stellar/validate/rules');
+        validateRequest.flush({
+          [component.newRiskLevelRule.score]: false,
+          [component.newRiskLevelRule.rule]: false
+        });
+        fixture.detectChanges();
+        warning = fixture.debugElement.queryAll(By.css('.warning-text'));
+        expect(warning.length).toBe(2);
       }
     ));
 });
