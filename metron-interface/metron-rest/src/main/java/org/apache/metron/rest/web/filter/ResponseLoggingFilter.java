@@ -54,9 +54,11 @@ public class ResponseLoggingFilter implements Filter {
 
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
-    response = new ContentCachingResponseWrapper((HttpServletResponse) response);
+    if (LOG.isDebugEnabled()) {
+      response = new ContentCachingResponseWrapper((HttpServletResponse) response);
+    }
     try {
-    filterChain.doFilter(request, response);
+      filterChain.doFilter(request, response);
     } finally {
       if (LOG.isDebugEnabled()) {
         int status = -1;
