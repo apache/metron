@@ -40,6 +40,7 @@
               data-qe-id="score-editor"
             >
             </metron-config-ace-editor>
+            <span *ngIf="!isRuleValid" class="warning-text">Invalid Stellar expression</span>
         </div>
     </form>
     <form class="form-inline">
@@ -59,6 +60,7 @@
               data-qe-id="score-editor"
             >
             </metron-config-ace-editor>
+            <span *ngIf="!isScoreValid" class="warning-text">Invalid Stellar expression</span>
         </div>
     </form>
 
@@ -66,17 +68,9 @@
         <div class="form-seperator-edit"></div>
         <div class="button-row">
             <button
-              class="btn form-enable-disable-button"
-              (click)="onTest()"
-              data-qe-id="test-score"
-            >
-              TEST
-            </button>
-            <button
               type="submit"
               class="btn form-enable-disable-button"
               (click)="onSave()"
-              [disabled]="!isScoreValid"
               data-qe-id="save-score"
             >
               SAVE
