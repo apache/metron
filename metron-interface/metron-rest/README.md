@@ -248,6 +248,20 @@ Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 ```
 
+## Logging
+
+Logging for the REST application can be configured in Ambari.  Log levels can be changed at the root, package and class level:
+
+1. Navigate to Services > Metron > Configs > REST and locate the `Metron Spring options` setting.
+
+1. Logging configuration is exposed through Spring properties as explained [here](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-logging).
+
+1. The root logging level defaults to ERROR but can be changed to INFO by adding `--logging.level.root=INFO` to the `Metron Spring options` setting.
+
+1. The Metron REST logging level can be changed to INFO by adding `--logging.level.org.apache.metron.rest=INFO`.
+
+1. HTTP request and response logging can be enabled by adding `--logging.level.org.springframework.web.filter.CommonsRequestLoggingFilter=DEBUG --logging.level.org.apache.metron.rest.web.filter.ResponseLoggingFilter=DEBUG`.
+
 ## Pcap Query
 
 The REST application exposes endpoints for querying Pcap data.  For more information about filtering options see [Query Filter Utility](../../metron-platform/metron-pcap-backend#query-filter-utility).
