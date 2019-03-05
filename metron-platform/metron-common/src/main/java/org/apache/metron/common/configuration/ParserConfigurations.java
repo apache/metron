@@ -17,19 +17,24 @@
  */
 package org.apache.metron.common.configuration;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Allows for retrieval and update of parsing configurations.
  */
 public class ParserConfigurations extends Configurations {
   public static final Integer DEFAULT_KAFKA_BATCH_SIZE = 15;
+  public static final String PARSER_GROUPS_CONF = "parser.groups";
 
   public SensorParserConfig getSensorParserConfig(String sensorType) {
     return (SensorParserConfig) getConfigurations().get(getKey(sensorType));
@@ -47,6 +52,18 @@ public class ParserConfigurations extends Configurations {
   public void updateSensorParserConfig(String sensorType, SensorParserConfig sensorParserConfig) {
     sensorParserConfig.init();
     getConfigurations().put(getKey(sensorType), sensorParserConfig);
+  }
+
+  /**
+   * Retrieves all the sensor groups from the global config
+   * @return Map of sensor groups with the group name as the key
+   */
+  public Map<String, SensorParserGroup> getSensorParserGroups() {
+    Object groups = getGlobalConfig(true).getOrDefault(PARSER_GROUPS_CONF, new ArrayList<>());
+    Collection<SensorParserGroup> sensorParserGroups = JSONUtils.INSTANCE.getMapper()
+            .convertValue(groups, new TypeReference<Collection<SensorParserGroup>>() {{}});
+    return sensorParserGroups.stream()
+            .collect(Collectors.toMap(SensorParserGroup::getName, sensorParserGroup -> sensorParserGroup));
   }
 
   /**
