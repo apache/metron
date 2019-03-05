@@ -25,6 +25,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <guava_version>${global_hbase_guava_version}</guava_version>
     </properties>
     <dependencies>
         <dependency>
@@ -56,6 +57,11 @@
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava_version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
@@ -151,12 +157,12 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                              <relocations>
-                                  <relocation>
-                                      <pattern>com.google.common</pattern>
-                                      <shadedPattern>org.apache.metron.metron-profiler-client.guava</shadedPattern>
-                                  </relocation>
-                              </relocations>
+                          <relocations>
+                              <relocation>
+                                  <pattern>com.google.common</pattern>
+                                  <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
+                              </relocation>
+                          </relocations>
                               <filters>
                                 <filter>
                                   <artifact>*:*</artifact>
@@ -168,7 +174,8 @@
                                 </filter>
                               </filters>
                               <transformers>
-                                 <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                 <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                                     <resources>
                                       <resource>.yaml</resource>
                                       <resource>LICENSE.txt</resource>
@@ -176,35 +183,41 @@
                                       <resource>NOTICE.txt</resource>
                                     </resources>
                                   </transformer>
+                                  <!-- UNCOMMENT THIS IF YOU NEED TO REGENERATE THE BEST GUESS NOTICES FILE WHICH REQUIRES PRUNING EVERY RELEASE -->
+                                  <!--transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                                    <addHeader>false</addHeader>
+                                    <projectName>${project.name}</projectName>
+                                  </transformer-->
+
                                   <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                                   <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                       <mainClass></mainClass>
                                   </transformer>
                               </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptor>src/main/assembly/assembly.xml</descriptor>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id> <!-- this is used for inheritance merges -->
-                        <phase>package</phase> <!-- bind to the packaging phase -->
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-        </resources>
-    </build>
-</project>
+                          </configuration>
+                      </execution>
+                  </executions>
+              </plugin>
+              <plugin>
+                  <artifactId>maven-assembly-plugin</artifactId>
+                  <configuration>
+                      <descriptor>src/main/assembly/assembly.xml</descriptor>
+                  </configuration>
+                  <executions>
+                      <execution>
+                          <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                          <phase>package</phase> <!-- bind to the packaging phase -->
+                          <goals>
+                              <goal>single</goal>
+                          </goals>
+                      </execution>
+                  </executions>
+              </plugin>
+          </plugins>
+          <resources>
+              <resource>
+                  <directory>src/main/resources</directory>
+              </resource>
+          </resources>
+      </build>
+  </project>

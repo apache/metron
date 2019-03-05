@@ -26,12 +26,13 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <guava_version>${global_guava_version}</guava_version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${global_guava_version}</version>
+            <version>${guava_version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.solr</groupId>
@@ -300,7 +301,7 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.apache.metron.guava.metron-solr</shadedPattern>
+                                    <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
