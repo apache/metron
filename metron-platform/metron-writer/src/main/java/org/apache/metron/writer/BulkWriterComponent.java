@@ -18,323 +18,181 @@
 
 package org.apache.metron.writer;
 
-import static java.lang.String.format;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.system.Clock;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkMessage;
+import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Iterables;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.error.MetronError;
-import org.apache.metron.common.message.MessageGetStrategy;
-import org.apache.metron.common.system.Clock;
-import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkWriterResponse;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.stream.Collectors;
 
 /**
- * This component implements message batching, with both flush on queue size, and flush on queue timeout.
- * There is a queue for each sensorType.
- * Ideally each queue would have its own timer, but we only have one global timer, the Tick Tuple
- * generated at fixed intervals by the system and received by the Bolt.  Given this constraint,
- * we use the following strategy:
- *   - The default batchTimeout is, as recommended by Storm, 1/2 the Storm 'topology.message.timeout.secs',
- *   modified by batchTimeoutDivisor, in case multiple batching writers are daisy-chained in one topology.
- *   - If some sensors configure their own batchTimeouts, they are compared with the default.  Batch
- *   timeouts greater than the default will be ignored, because they can cause message recycling in Storm.
- *   Batch timeouts configured to {@literal <}= zero, or undefined, mean use the default.
- *   - The *smallest* configured batchTimeout among all sensor types, greater than zero and less than
- *   the default, will be used to configure the 'topology.tick.tuple.freq.secs' for the Bolt.  If there are no
- *   valid configured batchTimeouts, the defaultBatchTimeout will be used.
- *   - The age of the queue is checked every time a sensor message arrives.  Thus, if at least one message
- *   per second is received for a given sensor, that queue will flush on timeout or sooner, depending on batchSize.
- *   - On each Tick Tuple received, *all* queues will be checked, and if any are older than their respective
- *   batchTimeout, they will be flushed.  Note that this does NOT guarantee timely flushing, depending on the
- *   phase relationship between the queue's batchTimeout and the tick interval.  The maximum age of a queue
- *   before it flushes is its batchTimeout + the tick interval, which is guaranteed to be less than 2x the
- *   batchTimeout, and also less than the 'topology.message.timeout.secs'.  This guarantees that the messages
- *   will not age out of the Storm topology, but it does not guarantee the flush interval requested, for
- *   sensor types not receiving at least one message every second.
+ * This component manages an internal cache of messages to be written in batch.  A separate cache is used for each sensor.
+ * Each time a message is written to this component, the {@link org.apache.metron.writer.FlushPolicy#shouldFlush(String, WriterConfiguration, List)}
+ * method is called for each flush policy to determine if a batch of messages should be flushed.  When a flush does happen,
+ * the {@link org.apache.metron.writer.FlushPolicy#onFlush(String, BulkWriterResponse)} method is called for each flush policy
+ * so that any post-processing (message acknowledgement for example) can be done.  This component also ensures all messages
+ * in a batch are included in the response as either a success or failure.
  *
  * @param <MESSAGE_T>
  */
 public class BulkWriterComponent<MESSAGE_T> {
-  public static final Logger LOG = LoggerFactory
-            .getLogger(BulkWriterComponent.class);
-  private Map<String, Collection<Tuple>> sensorTupleMap = new HashMap<>();
-  private Map<String, List<MESSAGE_T>> sensorMessageMap = new HashMap<>();
-  private Map<String, long[]> batchTimeoutMap = new HashMap<>();
-  private OutputCollector collector;
-  //In test scenarios, defaultBatchTimeout may not be correctly initialized, so do it here.
-  //This is a conservative defaultBatchTimeout for a vanilla bolt with batchTimeoutDivisor=2
-  public static final int UNINITIALIZED_DEFAULT_BATCH_TIMEOUT = 6;
-  private int defaultBatchTimeout = UNINITIALIZED_DEFAULT_BATCH_TIMEOUT;
-  private boolean handleCommit = true;
-  private boolean handleError = true;
-  private static final int LAST_CREATE_TIME_MS = 0; //index zero'th element of long[] in batchTimeoutMap
-  private static final int TIMEOUT_MS = 1;          //index next element of long[] in batchTimeoutMap
-  private Clock clock = new Clock();
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private Map<String, List<BulkMessage<MESSAGE_T>>> sensorMessageCache = new HashMap<>();
+  private List<FlushPolicy<MESSAGE_T>> flushPolicies;
 
-  public BulkWriterComponent(OutputCollector collector) {
-    this.collector = collector;
+  public BulkWriterComponent(int maxBatchTimeout) {
+    flushPolicies = new ArrayList<>();
+    flushPolicies.add(new BatchSizePolicy<>());
+    flushPolicies.add(new BatchTimeoutPolicy<>(maxBatchTimeout));
   }
 
-  public BulkWriterComponent(OutputCollector collector, boolean handleCommit, boolean handleError) {
-    this(collector);
-    this.handleCommit = handleCommit;
-    this.handleError = handleError;
+  public BulkWriterComponent(int maxBatchTimeout, Clock clock) {
+    flushPolicies = new ArrayList<>();
+    flushPolicies.add(new BatchSizePolicy<>());
+    flushPolicies.add(new BatchTimeoutPolicy<>(maxBatchTimeout, clock));
+  }
+
+  protected BulkWriterComponent(List<FlushPolicy<MESSAGE_T>> flushPolicies) {
+    this.flushPolicies = flushPolicies;
   }
 
   /**
-   * Used only for testing.  Overrides the default (actual) wall clock.
-   * @return this mutated BulkWriterComponent
+   * Accepts a message to be written and stores it in an internal cache of messages.  Iterates through {@link org.apache.metron.writer.FlushPolicy}
+   * implementations to determine if a batch should be flushed.
+   * @param sensorType sensor type
+   * @param bulkWriterMessage message to be written
+   * @param bulkMessageWriter writer that will do the actual writing
+   * @param configurations writer configurations
    */
-   public BulkWriterComponent withClock(Clock clock) {
-    this.clock = clock;
-    return this;
-  }
-
-  public void commit(Iterable<Tuple> tuples) {
-    tuples.forEach(t -> collector.ack(t));
-    if(LOG.isDebugEnabled()) {
-      LOG.debug("Acking {} tuples", Iterables.size(tuples));
-    }
-  }
-
-  public void commit(BulkWriterResponse response) {
-    commit(response.getSuccesses());
-  }
-
-  public void error(String sensorType, Throwable e, Iterable<Tuple> tuples, MessageGetStrategy messageGetStrategy) {
-    LOG.error(format("Failing %d tuple(s); sensorType=%s", Iterables.size(tuples), sensorType), e);
-    tuples.forEach(t -> {
-      MetronError error = new MetronError()
-              .withSensorType(Collections.singleton(sensorType))
-              .withErrorType(Constants.ErrorType.INDEXING_ERROR)
-              .withThrowable(e)
-              .addRawMessage(messageGetStrategy.get(t));
-      collector.emit(Constants.ERROR_STREAM, new Values(error.getJSONObject()));
-    });
-    if (handleCommit) {
-      commit(tuples);
-    }
-    // there is only one error to report for all of the failed tuples
-    collector.reportError(e);
-
-  }
-
-  /**
-   * Error a set of tuples that may not contain a valid message.
-   *
-   * <p>Without a valid message, the source type is unknown.
-   * <p>Without a valid message, the JSON message cannot be added to the error.
-   *
-   * @param e The exception that occurred.
-   * @param tuple The tuple to error that may not contain a valid message.
-   */
-  public void error(Throwable e, Tuple tuple) {
-    LOG.error("Failing tuple", e);
-    MetronError error = new MetronError()
-            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
-            .withThrowable(e);
-    handleError(tuple, error);
-  }
-
-  /**
-   * Errors a set of tuples.
-   *
-   * @param tuple The tuple to error.
-   * @param error
-   */
-  private void handleError(Tuple tuple, MetronError error) {
-    collector.ack(tuple);
-    ErrorUtils.handleError(collector, error);
-  }
-
-  public void error(String sensorType, BulkWriterResponse errors, MessageGetStrategy messageGetStrategy) {
-    Map<Throwable, Collection<Tuple>> errorMap = errors.getErrors();
-    for(Map.Entry<Throwable, Collection<Tuple>> entry : errorMap.entrySet()) {
-      error(sensorType, entry.getKey(), entry.getValue(), messageGetStrategy);
-    }
-  }
-
-  protected Collection<Tuple> createTupleCollection() {
-    return new ArrayList<>();
-  }
-
-  public void errorAll(Throwable e, MessageGetStrategy messageGetStrategy) {
-    for(String key : new HashSet<>(sensorTupleMap.keySet())) {
-      errorAll(key, e, messageGetStrategy);
-    }
-  }
-
-  public void errorAll(String sensorType, Throwable e, MessageGetStrategy messageGetStrategy) {
-    Collection<Tuple> tuples = Optional.ofNullable(sensorTupleMap.get(sensorType)).orElse(new ArrayList<>());
-    error(sensorType, e, tuples, messageGetStrategy);
-    sensorTupleMap.remove(sensorType);
-    sensorMessageMap.remove(sensorType);
-  }
-
-  public void write( String sensorType
-                   , Tuple tuple
-                   , MESSAGE_T message
-                   , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
-                   , WriterConfiguration configurations
-                   , MessageGetStrategy messageGetStrategy
-                   ) throws Exception
+  public void write(String sensorType
+          , BulkMessage<MESSAGE_T> bulkWriterMessage
+          , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
+          , WriterConfiguration configurations
+  )
   {
+    List<BulkMessage<MESSAGE_T>> messages = sensorMessageCache.getOrDefault(sensorType, new ArrayList<>());
+    sensorMessageCache.put(sensorType, messages);
+
+    // if a sensor type is disabled flush all pending messages and discard the new message
     if (!configurations.isEnabled(sensorType)) {
-      collector.ack(tuple);
-      return;
-    }
-    int batchSize = configurations.getBatchSize(sensorType);
+      // flush pending messages
+      flush(sensorType, bulkMessageWriter, configurations, messages);
 
-    if (batchSize <= 1) { //simple case - no batching, no timeouts
-      Collection<Tuple> tupleList = sensorTupleMap.get(sensorType);  //still read in case batchSize changed
-      if (tupleList == null) {
-        tupleList = createTupleCollection();
-      }
-      tupleList.add(tuple);
-
-      List<MESSAGE_T> messageList = sensorMessageMap.get(sensorType);  //still read in case batchSize changed
-      if (messageList == null) {
-        messageList = new ArrayList<>();
-      }
-      messageList.add(message);
-
-      flush(sensorType, bulkMessageWriter, configurations, messageGetStrategy, tupleList, messageList);
-      return;
-    }
-
-    //Otherwise do the full batch buffering with timeouts
-    long[] batchTimeoutInfo = batchTimeoutMap.get(sensorType);
-    if (batchTimeoutInfo == null) {
-      //lazily create the batchTimeoutInfo array, once per sensor.
-      batchTimeoutInfo = new long[] {0L, 0L};
-      batchTimeoutMap.put(sensorType, batchTimeoutInfo);
-    }
-
-    Collection<Tuple> tupleList = sensorTupleMap.get(sensorType);
-    if (tupleList == null) {
-      //This block executes at the beginning of every batch, per sensor.
-      tupleList = createTupleCollection();
-      sensorTupleMap.put(sensorType, tupleList);
-      batchTimeoutInfo[LAST_CREATE_TIME_MS] = clock.currentTimeMillis();
-      //configurations can change, so (re)init getBatchTimeout(sensorType) at start of every batch
-      int batchTimeoutSecs = configurations.getBatchTimeout(sensorType);
-      if (batchTimeoutSecs <= 0 || batchTimeoutSecs > defaultBatchTimeout) {
-        batchTimeoutSecs = defaultBatchTimeout;
-      }
-      batchTimeoutInfo[TIMEOUT_MS] = TimeUnit.SECONDS.toMillis(batchTimeoutSecs);
-    }
-    tupleList.add(tuple);
-
-    List<MESSAGE_T> messageList = sensorMessageMap.get(sensorType);
-    if (messageList == null) {
-      messageList = new ArrayList<>();
-      sensorMessageMap.put(sensorType, messageList);
-    }
-    messageList.add(message);
-
-    //Check for batchSize flush
-    if (tupleList.size() >= batchSize) {
-      flush(sensorType, bulkMessageWriter, configurations, messageGetStrategy, tupleList, messageList);
-      return;
-    }
-    //Check for batchTimeout flush (if the tupleList isn't brand new).
-    //Debugging note: If your queue always flushes at length==2 regardless of feed rate,
-    //it may mean defaultBatchTimeout has somehow been set to zero.
-    if (tupleList.size() > 1 && (clock.currentTimeMillis() - batchTimeoutInfo[LAST_CREATE_TIME_MS] >= batchTimeoutInfo[TIMEOUT_MS])) {
-      flush(sensorType, bulkMessageWriter, configurations, messageGetStrategy, tupleList, messageList);
-      return;
+      // Include the new message for any post-processing but don't write it
+      BulkWriterResponse response = new BulkWriterResponse();
+      response.addSuccess(bulkWriterMessage.getId());
+      onFlush(sensorType, response);
+    } else {
+      messages.add(bulkWriterMessage);
+      applyShouldFlush(sensorType, bulkMessageWriter, configurations, sensorMessageCache.get(sensorType));
     }
   }
 
+  /**
+   * Flushes a batch for a sensor type by writing messages with the supplied {@link org.apache.metron.common.writer.BulkMessageWriter}.
+   * Ensures all message ids in a batch are included in the response. After messages are written the cache is cleared and
+   * flush policies are reset for that sensor type.
+   * @param sensorType sensor type
+   * @param bulkMessageWriter writer that will do the actual writing
+   * @param configurations writer configurations
+   * @param messages messages to be written
+   */
   protected void flush( String sensorType
                     , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
                     , WriterConfiguration configurations
-		                , MessageGetStrategy messageGetStrategy
-                    , Collection<Tuple> tupleList
-                    , List<MESSAGE_T> messageList
-                    ) throws Exception
+                    , List<BulkMessage<MESSAGE_T>> messages
+                    )
   {
     long startTime = System.currentTimeMillis(); //no need to mock, so use real time
+    BulkWriterResponse response = new BulkWriterResponse();
+
+    Collection<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toList());
     try {
-      BulkWriterResponse response = bulkMessageWriter.write(sensorType, configurations, tupleList, messageList);
+      response = bulkMessageWriter.write(sensorType, configurations, messages);
 
-      // Commit or error piecemeal.
-      if(handleCommit) {
-        commit(response);
-      }
-
-      if(handleError) {
-        error(sensorType, response, messageGetStrategy);
-      } else if (response.hasErrors()) {
-        throw new IllegalStateException("Unhandled bulk errors in response: " + response.getErrors());
-      }
-
-      // Make sure all tuples are acked by acking any tuples not returned in the BulkWriterResponse
-      if (handleCommit) {
-        Set<Tuple> tuplesToAck = new HashSet<>(tupleList);
-        tuplesToAck.removeAll(response.getSuccesses());
-        response.getErrors().values().forEach(tuplesToAck::removeAll);
-        commit(tuplesToAck);
-      }
-
+      // Make sure all ids are included in the BulkWriterResponse
+      ids.removeAll(response.getSuccesses());
+      response.getErrors().values().forEach(ids::removeAll);
+      response.addAllSuccesses(ids);
     } catch (Throwable e) {
-      if(handleError) {
-        error(sensorType, e, tupleList, messageGetStrategy);
-      }
-      else {
-        throw e;
-      }
-    }
-    finally {
-      sensorTupleMap.remove(sensorType);
-      sensorMessageMap.remove(sensorType);
+      response.addAllErrors(e, ids);
+    } finally {
+      onFlush(sensorType, response);
     }
     long endTime = System.currentTimeMillis();
     long elapsed = endTime - startTime;
-    LOG.debug("Bulk batch for sensor {} completed in ~{} ns", sensorType, elapsed);
+    LOG.debug("Flushed batch successfully; sensorType={}, batchSize={}, took={} ms", sensorType, CollectionUtils.size(ids), elapsed);
   }
 
-  // Flushes all queues older than their batchTimeouts.
-  public void flushTimeouts(
+  /**
+   * Apply flush policies to all sensors and flush if necessary.
+   * @param bulkMessageWriter writer that will do the actual writing
+   * @param configurations writer configurations
+   */
+  public void flushAll(
             BulkMessageWriter<MESSAGE_T> bulkMessageWriter
           , WriterConfiguration configurations
-          , MessageGetStrategy messageGetStrategy
-          ) throws Exception
+          )
   {
-    // No need to do "all" sensorTypes here, just the ones that have data batched up.
-    // Note queues with batchSize == 1 don't get batched, so they never persist in the sensorTupleMap.
-    for (String sensorType : sensorTupleMap.keySet()) {
-      long[] batchTimeoutInfo = batchTimeoutMap.get(sensorType);
-      if (batchTimeoutInfo == null  //Shouldn't happen, but conservatively flush if so
-          || clock.currentTimeMillis() - batchTimeoutInfo[LAST_CREATE_TIME_MS] >= batchTimeoutInfo[TIMEOUT_MS]) {
-        flush(sensorType, bulkMessageWriter, configurations, messageGetStrategy
-	            , sensorTupleMap.get(sensorType), sensorMessageMap.get(sensorType));
-        return;
+    // Sensors are removed from the sensorTupleMap when flushed so we need to iterate over a copy of sensorTupleMap keys
+    // to avoid a ConcurrentModificationException.
+    for (String sensorType : new HashSet<>(sensorMessageCache.keySet())) {
+      applyShouldFlush(sensorType, bulkMessageWriter, configurations, sensorMessageCache.get(sensorType));
+    }
+  }
+
+  /**
+   * Add a custom flush policy in addition to the default policies.
+   * @param flushPolicy flush policy
+   */
+  public void addFlushPolicy(FlushPolicy flushPolicy) {
+    this.flushPolicies.add(flushPolicy);
+  }
+
+  /**
+   * Checks each flush policy to determine if a batch should be flushed.  A batch is flushed and the remaining policies
+   * are skipped when a policy returns true.
+   * @param sensorType sensor type
+   * @param bulkMessageWriter writer that will do the actual writing
+   * @param configurations writer configurations
+   * @param messages messages to be written
+   */
+  private void applyShouldFlush(String sensorType
+          , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
+          , WriterConfiguration configurations
+          , List<BulkMessage<MESSAGE_T>> messages) {
+    if (messages.size() > 0) { // no need to flush empty batches
+      for(FlushPolicy<MESSAGE_T> flushPolicy: flushPolicies) {
+        if (flushPolicy.shouldFlush(sensorType, configurations, messages)) {
+          flush(sensorType, bulkMessageWriter, configurations, messages);
+          break;
+        }
       }
     }
   }
 
   /**
-   * @param defaultBatchTimeout
+   * Called after a batch is flushed.  The message cache is cleared and the {@link org.apache.metron.writer.FlushPolicy#onFlush(String, BulkWriterResponse)}
+   * method is called for each flush policy.
+   * @param sensorType sensor type
+   * @param response response from a bulk write call
    */
-  public void setDefaultBatchTimeout(int defaultBatchTimeout) {
-    this.defaultBatchTimeout = defaultBatchTimeout;
+  private void onFlush(String sensorType, BulkWriterResponse response) {
+    sensorMessageCache.remove(sensorType);
+    for(FlushPolicy flushPolicy: flushPolicies) {
+      flushPolicy.onFlush(sensorType, response);
+    }
   }
 }

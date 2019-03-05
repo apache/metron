@@ -24,13 +24,13 @@ import java.util.List;
  * The overall threat score which is arrived at by aggregating the individual
  * scores from each applied rule.
  *
- * The goal of threat triage is to prioritize the alerts that pose the greatest
+ * <p>The goal of threat triage is to prioritize the alerts that pose the greatest
  * threat and thus need urgent attention.  To perform threat triage, a set of rules
  * are applied to each message.  Each rule has a predicate to determine if the rule
  * applies or not.  The threat score from each applied rule is aggregated into a single
  * threat triage score that can be used to prioritize high risk threats.
  *
- * Tuning the threat triage process involves creating one or more rules, adjusting
+ * <p>Tuning the threat triage process involves creating one or more rules, adjusting
  * the score of each rule, and changing the way that each rule's score is aggregated.
  */
 public class ThreatScore {

@@ -21,25 +21,20 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.metron.solr.writer.SolrWriter;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.storm.tuple.Tuple;
-import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.mockito.Mockito.mock;
 
 public class SchemaValidationIntegrationTest {
   public static Iterable<String> getData(String sensor) throws IOException {
@@ -96,27 +91,25 @@ public class SchemaValidationIntegrationTest {
       component.addCollection(String.format("%s", sensorType), String.format("src/main/config/schema/%s", sensorType));
       Map<String, Object> globalConfig = getGlobalConfig(sensorType, component);
 
-      List<JSONObject> inputs = new ArrayList<>();
-      List<Tuple> tuples = new ArrayList<>();
+      List<BulkMessage<JSONObject>> messages = new ArrayList<>();
       Map<String, Map<String, Object>> index = new HashMap<>();
+      int i = 0;
       for (String message : getData(sensorType)) {
         if (message.trim().length() > 0) {
-          Tuple t = mock(Tuple.class);
-          tuples.add(t);
           Map<String, Object> m = JSONUtils.INSTANCE.load(message.trim(), JSONUtils.MAP_SUPPLIER);
           String guid = getGuid(m);
           index.put(guid, m);
-          inputs.add(new JSONObject(m));
+          messages.add(new BulkMessage<>(String.format("message%d", ++i), new JSONObject(m)));
         }
       }
-      Assert.assertTrue(inputs.size() > 0);
+      Assert.assertTrue(messages.size() > 0);
 
       SolrWriter solrWriter = new SolrWriter();
 
       WriterConfiguration writerConfig = new WriterConfiguration() {
         @Override
         public int getBatchSize(String sensorName) {
-          return inputs.size();
+          return messages.size();
         }
 
         @Override
@@ -143,7 +136,7 @@ public class SchemaValidationIntegrationTest {
         public Map<String, Object> getSensorConfig(String sensorName) {
           return new HashMap<String, Object>() {{
             put("index", sensorType);
-            put("batchSize", inputs.size());
+            put("batchSize", messages.size());
             put("enabled", true);
           }};
         }
@@ -166,7 +159,7 @@ public class SchemaValidationIntegrationTest {
 
       solrWriter.init(null, null, writerConfig);
 
-      BulkWriterResponse response = solrWriter.write(sensorType, writerConfig, tuples, inputs);
+      BulkWriterResponse response = solrWriter.write(sensorType, writerConfig, messages);
       Assert.assertTrue(response.getErrors().isEmpty());
       for (Map<String, Object> m : component.getAllIndexedDocs(sensorType)) {
         Map<String, Object> expected = index.get(getGuid(m));

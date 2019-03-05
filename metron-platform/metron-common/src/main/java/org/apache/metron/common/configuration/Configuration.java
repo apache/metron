@@ -22,11 +22,19 @@ import org.apache.curator.framework.CuratorFramework;
 import java.nio.file.Path;
 import java.util.Map;
 
+/**
+ * Allows users to have a {@link Configurations} that can use a ZooKeeper curator or a file during
+ * updates of the global config.
+ */
 public class Configuration extends Configurations {
 
     protected CuratorFramework curatorFramework = null;
     private Path configFileRoot;
 
+    /**
+     * Constructor for interacting with ZooKeeper.
+     * @param curatorFramework The ZooKeeper curator to use for configs
+     */
     public Configuration(CuratorFramework curatorFramework){
 
         this.curatorFramework = curatorFramework;
@@ -34,11 +42,20 @@ public class Configuration extends Configurations {
     }
 
 
+    /**
+     * Constructor for interacting with a file.
+     * @param configFileRoot The config file path to use
+     */
     public Configuration(Path configFileRoot){
 
         this.configFileRoot = configFileRoot;
     }
 
+    /**
+     * If there's a ZooKeeper client available, use that for updating configs, otherwise
+     * update global configs from a file.
+     * @throws Exception If there's an issue updating the config
+     */
     public void update() throws Exception {
 
         if( null != curatorFramework ) {

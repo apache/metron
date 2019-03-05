@@ -32,6 +32,7 @@ import java.util.Map;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.enrichment.integration.utils.SampleUtil;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.SolrInputDocument;
@@ -113,9 +114,9 @@ public class SolrWriterTest {
     message2.put(Constants.SENSOR_TYPE, "test");
     message2.put("intField", 200);
     message2.put("doubleField", 200.0);
-    List<JSONObject> messages = new ArrayList<>();
-    messages.add(message1);
-    messages.add(message2);
+    List<BulkMessage<JSONObject>> messages = new ArrayList<>();
+    messages.add(new BulkMessage<>("message1", message1));
+    messages.add(new BulkMessage<>("message2", message2));
 
     String collection = "metron";
     MetronSolrClient solr = Mockito.mock(MetronSolrClient.class);
@@ -131,7 +132,7 @@ public class SolrWriterTest {
     writer.init(null, null, new IndexingWriterConfiguration("solr", configurations));
     verify(solr, times(1)).setDefaultCollection(collection);
 
-    writer.write("test", new IndexingWriterConfiguration("solr", configurations), new ArrayList<>(), messages);
+    writer.write("test", new IndexingWriterConfiguration("solr", configurations), messages);
     verify(solr, times(1)).add(eq("yaf"), argThat(new SolrInputDocumentMatcher(ImmutableList.of(message1, message2))));
     verify(solr, times(1)).commit("yaf"
                                  , (boolean)SolrWriter.SolrProperties.COMMIT_WAIT_FLUSH.defaultValue.get()

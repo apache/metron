@@ -43,6 +43,13 @@ public enum FieldValidations {
   FieldValidations(FieldValidation validation) {
     this.validation = validation;
   }
+
+  /**
+   * Gets a {@link FieldValidation} based on the provided validation.
+   *
+   * @param validation The validation to pull
+   * @return The field validation associated with the mapping
+   */
   public static FieldValidation get(String validation) {
     try {
       return FieldValidations.valueOf(validation).validation;

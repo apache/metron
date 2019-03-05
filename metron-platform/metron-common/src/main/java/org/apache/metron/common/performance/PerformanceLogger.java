@@ -48,13 +48,21 @@ public class PerformanceLogger {
    *
    * @param configSupplier provides configuration for the logger as a Map&lt;String, Object&gt;
    * @param loggerName     name for the underlying logger. This name is used when enabling/disabling
-   * the logger.
+   *     the logger.
    */
   public PerformanceLogger(Supplier<Map<String, Object>> configSupplier, String loggerName) {
     this(configSupplier, LoggerFactory.getLogger(loggerName), new ThresholdCalculator(),
         new Timing());
   }
 
+  /**
+   * Constructor that allows more fine grained control.
+   *
+   * @param configSupplier provides configuration for the logger as a Map&lt;String, Object&gt;
+   * @param logger The actual logger to be used
+   * @param thresholdCalc The {@link ThresholdCalculator} to use
+   * @param timing The {@link Timing} to use
+   */
   public PerformanceLogger(Supplier<Map<String, Object>> configSupplier, Logger logger,
       ThresholdCalculator thresholdCalc, Timing timing) {
     this.configSupplier = configSupplier;
@@ -68,7 +76,7 @@ public class PerformanceLogger {
    * Marks a timer start. Works in conjunction with the log methods. Calling log after
    * calling mark will log elapsed time for the provided markName.
    *
-   * @param markName
+   * @param markName The name of the mark to use
    */
   public void mark(String markName) {
     timing.mark(markName);
@@ -77,7 +85,7 @@ public class PerformanceLogger {
   /**
    * Log a message at DEBUG level for the given markName.
    * Warns when logging for a markName that hasn't been set.
-   * <p>
+   *
    * <p>This form avoids superfluous string concatenation when the logger
    * is disabled for the DEBUG level.</p>
    *
@@ -92,7 +100,7 @@ public class PerformanceLogger {
   /**
    * Log a message at DEBUG level for the given markName according to the specified message.
    * Warns when logging for a markName that hasn't been set.
-   * <p>
+   *
    * <p>This form avoids superfluous string concatenation when the logger
    * is disabled for the DEBUG level.</p>
    *
@@ -127,7 +135,7 @@ public class PerformanceLogger {
   /**
    * Log a message at DEBUG level for the given markName according to the specified format
    * and argument. Warns when logging for a markName that hasn't been set.
-   * <p>
+   *
    * <p>This form avoids superfluous string concatenation when the logger
    * is disabled for the DEBUG level.</p>
    *
@@ -144,7 +152,7 @@ public class PerformanceLogger {
 
   /**
    * Log a message at DEBUG level according to the specified format and argument.
-   * <p>
+   *
    * <p>This form avoids superfluous string concatenation when the logger
    * is disabled for the DEBUG level.</p>
    *
@@ -162,7 +170,7 @@ public class PerformanceLogger {
 
   /**
    * Log a message at DEBUG level according to the specified format and arguments.
-   * <p>
+   *
    * <p>This form avoids superfluous string concatenation when the logger
    * is disabled for the DEBUG level. However, this variant incurs the hidden
    * (and relatively small) cost of creating an <code>Object[]</code> before invoking the method,

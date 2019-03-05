@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
- * A holder class for the message and metadata
+ * A holder class for the message and metadata.
  */
 public class RawMessage {
   byte[] message;
@@ -34,7 +34,7 @@ public class RawMessage {
 
   /**
    * Get the data to be parsed.
-   * @return
+   * @return Raw bytes data of the message
    */
   public byte[] getMessage() {
     return message;
@@ -46,7 +46,7 @@ public class RawMessage {
 
   /**
    * Get the metadata to use based on the RawMessageStrategy.
-   * @return
+   * @return Map of the metadata
    */
   public Map<String, Object> getMetadata() {
     return metadata;

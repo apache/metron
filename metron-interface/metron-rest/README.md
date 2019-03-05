@@ -248,6 +248,20 @@ Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 ```
 
+## Logging
+
+Logging for the REST application can be configured in Ambari.  Log levels can be changed at the root, package and class level:
+
+1. Navigate to Services > Metron > Configs > REST and locate the `Metron Spring options` setting.
+
+1. Logging configuration is exposed through Spring properties as explained [here](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-logging).
+
+1. The root logging level defaults to ERROR but can be changed to INFO by adding `--logging.level.root=INFO` to the `Metron Spring options` setting.
+
+1. The Metron REST logging level can be changed to INFO by adding `--logging.level.org.apache.metron.rest=INFO`.
+
+1. HTTP request and response logging can be enabled by adding `--logging.level.org.springframework.web.filter.CommonsRequestLoggingFilter=DEBUG --logging.level.org.apache.metron.rest.web.filter.ResponseLoggingFilter=DEBUG`.
+
 ## Pcap Query
 
 The REST application exposes endpoints for querying Pcap data.  For more information about filtering options see [Query Filter Utility](../../metron-platform/metron-pcap-backend#query-filter-utility).
@@ -344,6 +358,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/sensor/parser/config/reload/available`](#get-apiv1sensorparserconfigreloadavailable)|
 | [ `DELETE /api/v1/sensor/parser/config/{name}`](#delete-apiv1sensorparserconfigname)|
 | [ `GET /api/v1/sensor/parser/config/{name}`](#get-apiv1sensorparserconfigname)|
+| [ `POST /api/v1/sensor/parser/group`](#post-apiv1sensorparsergroup)|
+| [ `GET /api/v1/sensor/parser/group/{name}`](#get-apiv1sensorparsergroupname)|
+| [ `GET /api/v1/sensor/parser/group`](#get-apiv1sensorparsergroup)|
+| [ `DELETE /api/v1/sensor/parser/group/{name}`](#delete-apiv1sensorparsergroupname)|
 | [ `POST /api/v1/stellar/apply/transformations`](#post-apiv1stellarapplytransformations)|
 | [ `GET /api/v1/stellar/list`](#get-apiv1stellarlist)|
 | [ `GET /api/v1/stellar/list/functions`](#get-apiv1stellarlistfunctions)|
@@ -787,6 +805,35 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns SensorParserConfig
     * 404 - SensorParserConfig is missing
+    
+### `POST /api/v1/sensor/parser/group`
+  * Description: Updates or creates a SensorParserGroup in Zookeeper
+  * Input:
+    * sensorParserGroup - SensorParserGroup
+  * Returns:
+    * 200 - SensorParserGroup updated. Returns saved SensorParserGroup
+    * 201 - SensorParserGroup created. Returns saved SensorParserGroup
+    
+### `GET /api/v1/sensor/parser/group/{name}`
+  * Description: Retrieves a SensorParserGroup from Zookeeper
+  * Input:
+    * name - SensorParserGroup name
+  * Returns:
+    * 200 - Returns SensorParserGroup
+    * 404 - SensorParserGroup is missing
+    
+### `GET /api/v1/sensor/parser/group`
+  * Description: Retrieves all SensorParserGroups from Zookeeper
+  * Returns:
+    * 200 - Returns all SensorParserGroups
+    
+### `DELETE /api/v1/sensor/parser/group/{name}`
+  * Description: Deletes a SensorParserGroup from Zookeeper
+  * Input:
+    * name - SensorParserGroup name
+  * Returns:
+    * 200 - SensorParserGroup was deleted
+    * 404 - SensorParserGroup is missing
 
 ### `POST /api/v1/stellar/apply/transformations`
   * Description: Executes transformations against a sample message

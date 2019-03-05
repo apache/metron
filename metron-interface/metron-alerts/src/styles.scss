@@ -337,3 +337,7 @@ $background_color_3: #2196F3;
   animation: none !important;
 }
 
+.dropdown-item.disabled {
+  cursor: not-allowed;
+  pointer-events: all;
+}

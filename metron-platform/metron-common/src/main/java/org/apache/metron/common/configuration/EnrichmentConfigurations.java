@@ -26,6 +26,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Allows for retrieval and update of enrichment configurations. Some fields are pulled from
+ * global config and provided here for convenience.
+ */
 public class EnrichmentConfigurations extends Configurations {
   public static final Integer DEFAULT_KAFKA_BATCH_SIZE = 15;
   public static final String BATCH_SIZE_CONF = "enrichment.writer.batchSize";
@@ -74,6 +78,11 @@ public class EnrichmentConfigurations extends Configurations {
     return getAs(BATCH_TIMEOUT_CONF, getGlobalConfig(true), 0, Integer.class);
   }
 
+  /**
+   * Gets the sensor names that have associated enrichments.
+   *
+   * @return List of sensor names
+   */
   public List<String> getTypes() {
     List<String> ret = new ArrayList<>();
     for(String keyedSensor : getConfigurations().keySet()) {

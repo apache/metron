@@ -32,14 +32,14 @@ public class FixedFrequencyFlushSignal implements FlushSignal {
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
-   * The latest known timestamp.
+   * Tracks the min timestamp.
    */
-  private long currentTime;
+  private long minTime;
 
   /**
-   * The time when the next flush should occur.
+   * Tracks the max timestamp.
    */
-  private long flushTime;
+  private long maxTime;
 
   /**
    * The amount of time between flushes in milliseconds.
@@ -47,7 +47,6 @@ public class FixedFrequencyFlushSignal implements FlushSignal {
   private long flushFrequency;
 
   public FixedFrequencyFlushSignal(long flushFrequencyMillis) {
-
     if(flushFrequencyMillis < 0) {
       throw new IllegalArgumentException("flush frequency must be >= 0");
     }
@@ -61,9 +60,8 @@ public class FixedFrequencyFlushSignal implements FlushSignal {
    */
   @Override
   public void reset() {
-    flushTime = 0;
-    currentTime = 0;
-
+    minTime = Long.MAX_VALUE;
+    maxTime = Long.MIN_VALUE;
     LOG.debug("Flush counters reset");
   }
 
@@ -74,31 +72,34 @@ public class FixedFrequencyFlushSignal implements FlushSignal {
    */
   @Override
   public void update(long timestamp) {
-
-    if(timestamp > currentTime) {
-
-      // need to update current time
-      LOG.debug("Updating current time; last={}, new={}", currentTime, timestamp);
-      currentTime = timestamp;
-
-    } else if ((currentTime - timestamp) > flushFrequency) {
-
-      // significantly out-of-order timestamps
-      LOG.warn("Timestamps out-of-order by '{}' ms. This may indicate a problem in the data. last={}, current={}",
-              (currentTime - timestamp),
-              timestamp,
-              currentTime);
+    if(LOG.isWarnEnabled()) {
+      checkIfOutOfOrder(timestamp);
     }
 
-    if(flushTime == 0) {
+    if(timestamp < minTime) {
+      minTime = timestamp;
+    }
 
-      // set the next time to flush
-      flushTime = currentTime + flushFrequency;
-      LOG.debug("Setting flush time; '{}' ms until flush; flushTime={}, currentTime={}, flushFreq={}",
-              timeToNextFlush(),
-              flushTime,
-              currentTime,
-              flushFrequency);
+    if(timestamp > maxTime) {
+      maxTime = timestamp;
+    }
+  }
+
+  /**
+   * Checks if the timestamp is significantly out-of-order.
+   *
+   * @param timestamp The last timestamp.
+   */
+  private void checkIfOutOfOrder(long timestamp) {
+    // do not warn if this is the first timestamp we've seen, which will always be 'out-of-order'
+    if (maxTime > Long.MIN_VALUE) {
+
+      long outOfOrderBy = maxTime - timestamp;
+      if (Math.abs(outOfOrderBy) > flushFrequency) {
+        LOG.warn("Timestamp out-of-order by {} ms. This may indicate a problem in the data. " +
+                        "timestamp={}, maxKnown={}, flushFreq={} ms",
+                outOfOrderBy, timestamp, maxTime, flushFrequency);
+      }
     }
   }
 
@@ -109,27 +110,20 @@ public class FixedFrequencyFlushSignal implements FlushSignal {
    */
   @Override
   public boolean isTimeToFlush() {
+    boolean flush = false;
 
-    boolean flush = currentTime > flushTime;
-    LOG.debug("Flush={}, '{}' ms until flush; currentTime={}, flushTime={}",
-            flush,
-            timeToNextFlush(),
-            currentTime,
-            flushTime);
+    long flushTime = minTime + flushFrequency;
+    if(maxTime >= flushTime) {
+      flush = true;
+    }
 
+    LOG.debug("'{}' ms until flush; flush?={}, minTime={}, maxTime={}, flushTime={}",
+            Math.max(0, flushTime - maxTime), flush, minTime, maxTime, flushTime);
     return flush;
   }
 
   @Override
   public long currentTimeMillis() {
-    return currentTime;
-  }
-
-  /**
-   * Returns the number of milliseconds to the next flush.
-   * @return The time left until the next flush.
-   */
-  private long timeToNextFlush() {
-    return Math.max(0, flushTime - currentTime);
+    return maxTime;
   }
 }

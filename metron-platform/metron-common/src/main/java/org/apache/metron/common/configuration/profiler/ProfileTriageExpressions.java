@@ -30,7 +30,7 @@ import java.util.Map;
  * A set of Stellar expressions that are executed to produce a single
  * measurement that can be interrogated by the threat triage process.
  *
- * The result of evaluating each expression are made available, keyed
+ * <p>The result of evaluating each expression are made available, keyed
  * by the given name, to the threat triage process.
  */
 public class ProfileTriageExpressions implements Serializable {
@@ -39,7 +39,7 @@ public class ProfileTriageExpressions implements Serializable {
    * A set of named Stellar expressions.  The name of the expression
    * serves as the key and the value is the expression itself.
    *
-   * Evaluating the expression(s) must result in a basic data type
+   * <p>Evaluating the expression(s) must result in a basic data type
    * or map of basic data types that can be serialized.
    */
   @JsonIgnore

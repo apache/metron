@@ -30,7 +30,7 @@ public class Timing {
   }
 
   /**
-   * Stores a starting time from current nanoTime with the provided name
+   * Stores a starting time from current nanoTime with the provided name.
    *
    * @param name starting time mark name
    */
@@ -40,7 +40,7 @@ public class Timing {
 
   /**
    * Returns elapsed nanoTime given a stored marked time for the given name. Returns 0 for
-   * non-existent mark names
+   * non-existent mark names.
    *
    * @param name mark name to get elapsed time for.
    */

@@ -43,6 +43,11 @@ import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Program for managing configuration in ZooKeeper. This can handle pushing/pulling data in ZK.
+ * This can be done by specific configuration type (e.g. INDEXING) and by specific configuration
+ * (e.g. bro).
+ */
 public class ConfigurationManager {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -136,6 +141,14 @@ public class ConfigurationManager {
       return cli.getOptionValue(shortCode);
     }
 
+    /**
+     * Parses the arguments passed via the command line using Apache Commons CLI.
+     * If a parsing error occurs, help will be printed and the program will exit.
+     *
+     * @param parser The parser to be used for parsing incoming arguments
+     * @param args The arguments to be parsed
+     * @return The parsed arguments
+     */
     public static CommandLine parse(CommandLineParser parser, String[] args) {
       try {
         CommandLine cli = parser.parse(getOptions(), args);
@@ -153,11 +166,18 @@ public class ConfigurationManager {
       }
     }
 
+    /**
+     * Prints formatted help if the user requested it or provided invalid arguments.
+     */
     public static void printHelp() {
       HelpFormatter formatter = new HelpFormatter();
       formatter.printHelp( "configuration_manager", getOptions());
     }
 
+    /**
+     * Returns the configurations options that are available.
+     * @return The options available
+     */
     public static Options getOptions() {
       Options ret = new Options();
       for(ConfigurationOptions o : ConfigurationOptions.values()) {
@@ -167,29 +187,39 @@ public class ConfigurationManager {
     }
   }
 
+  /**
+   * What type of patch is being applied. ADD/REMOVE modify keys when no patch file is present.
+   */
   public enum PatchMode {
     ADD, REMOVE, REPLACE, MOVE, COPY, TEST;
   }
 
   /**
-   * Dumps all config
-   * @param client
-   * @throws Exception
+   * Dumps all config.
+   * @param client The ZooKeeper client for configs
+   * @throws Exception If there's an error retrieving configs
    */
   public void dump(CuratorFramework client) throws Exception {
     ConfigurationsUtils.dumpConfigs(System.out, client);
   }
 
   /**
-   * Dumps specific config type only
-   * @param client
-   * @param type
-   * @throws Exception
+   * Dumps specific config type only.
+   * @param client The ZooKeeper client for configs
+   * @param type The type of config to retrieve, e.g. INDEXING
+   * @throws Exception If there's an error retrieving the config.
    */
   public void dump(CuratorFramework client, ConfigurationType type, Optional<String> configName) throws Exception {
     ConfigurationsUtils.dumpConfigs(System.out, client, type, configName);
   }
 
+  /**
+   * Retrieves configuration and writes it on local disk.
+   * @param client The Zookeeper client for configs
+   * @param outFileStr The output location to write the config to
+   * @param force Overwrite, if there's already data in the output location.
+   * @throws Exception If there's an issue retrieving data or writing out.
+   */
   public void pull(CuratorFramework client, String outFileStr, final boolean force) throws Exception {
     final File outputDir = new File(outFileStr);
     if (!outputDir.exists()) {
@@ -218,6 +248,12 @@ public class ConfigurationManager {
     });
   }
 
+  /**
+   * Pushes local config data to ZooKeeper.
+   * @param inputDirStr The input dir where config data is located.
+   * @param client The ZooKeeper client for configs
+   * @throws Exception If there's no data in the input location or there's an error writing to ZK
+   */
   public void push(String inputDirStr, CuratorFramework client) throws Exception {
     final File inputDir = new File(inputDirStr);
 
@@ -227,6 +263,14 @@ public class ConfigurationManager {
     ConfigurationsUtils.uploadConfigsToZookeeper(inputDirStr, client);
   }
 
+  /**
+   * Pushes local config data to ZooKeeper for a specific config type and, optionally, config name.
+   * @param inputDirStr The input dir where config data is located
+   * @param client The ZooKeeper client for configs
+   * @param type The config type being pushed, e.g. INDEXING
+   * @param configName The config name being pushed, e.g. bro
+   * @throws Exception If there's no data in the input location or there's an error writing to ZK
+   */
   public void push(String inputDirStr, CuratorFramework client, ConfigurationType type, Optional<String> configName)
       throws Exception {
     final File inputDir = new File(inputDirStr);
@@ -238,12 +282,26 @@ public class ConfigurationManager {
     ConfigurationsUtils.uploadConfigsToZookeeper(inputDirStr, client, type, configName);
   }
 
+  /**
+   * Opens a connection to ZooKeeper and performs the requested operation.
+   * @param cli The command line options provided by the user
+   * @throws Exception If there's an error executing requested actions
+   */
   public void run(CommandLine cli) throws Exception {
     try(CuratorFramework client = ConfigurationsUtils.getClient(ConfigurationOptions.ZK_QUORUM.get(cli))) {
       client.start();
       run(client, cli);
     }
   }
+
+
+  /**
+   * Performs the requested actions with ZooKeeper, e.g. pushing / pulling requested configs.
+   *
+   * @param client The ZooKeeper client for configs
+   * @param cli The command line options provided by the user
+   * @throws Exception If there's an error executing requested actions
+   */
   public void run(CuratorFramework client, CommandLine cli) throws Exception {
     final boolean force = ConfigurationOptions.FORCE.has(cli);
     String mode = ConfigurationOptions.MODE.get(cli);
@@ -353,6 +411,12 @@ public class ConfigurationManager {
     return new File(new File(baseDir, configurationType.getDirectory()), name + ".json");
   }
 
+  /**
+   * Parses and executes the program to manage configs in ZooKeeper.
+   *
+   * @param argv User input arguments.
+   * @throws Exception If there's an issue running the program
+   */
   public static void main(String... argv) throws Exception {
     CommandLineParser parser = new PosixParser();
     CommandLine cli = ConfigurationOptions.parse(parser, argv);

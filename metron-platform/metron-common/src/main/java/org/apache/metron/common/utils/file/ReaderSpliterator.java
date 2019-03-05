@@ -33,7 +33,7 @@ import static java.util.Spliterators.spliterator;
  * which gives up and reports no size and has no strategy for batching.  This is a bug
  * in Java 8 and will be fixed in Java 9.
  *
- * The ideas have been informed by https://www.airpair.com/java/posts/parallel-processing-of-io-based-data-with-java-streams
+ * <p>The ideas have been informed by https://www.airpair.com/java/posts/parallel-processing-of-io-based-data-with-java-streams
  * except more specific to strings and motivated by a JDK 8 bug as
  * described at http://bytefish.de/blog/jdk8_files_lines_parallel_stream/
  */
@@ -122,6 +122,14 @@ public class ReaderSpliterator implements Spliterator<String> {
     return lineStream(in, batchSize, false);
   }
 
+  /**
+   * Creates a {@link Stream} with a ReaderSpliterator underlying it.
+   *
+   * @param in the input for creating the stream
+   * @param batchSize The batch size to be used by the spliterator
+   * @param isParallel True if stream should be parallel, false otherwise
+   * @return The created {@link Stream}
+   */
   public static Stream<String> lineStream(BufferedReader in, int batchSize, boolean isParallel) {
     return StreamSupport.stream(new ReaderSpliterator(in, batchSize), isParallel)
                         .onClose(() -> {

@@ -63,13 +63,6 @@
             <url>http://repo.hortonworks.com/content/repositories/releases/</url>
             <layout>default</layout>
         </repository>
-        <repository>
-            <id>multiline-release-repo</id>
-            <url>https://raw.github.com/benelog/multiline/master/maven-repository</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
     </repositories>
     <properties>
         <twitter>@ApacheMetron</twitter>
