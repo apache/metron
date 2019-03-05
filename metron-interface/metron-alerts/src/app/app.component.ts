@@ -19,8 +19,6 @@ import { Component, OnInit } from '@angular/core';
 import {AuthenticationService} from './service/authentication.service';
 import { environment } from 'environments/environment';
 
-declare var $;
-
 @Component({
   selector: 'metron-alerts-root',
   templateUrl: './app.component.html',
@@ -38,17 +36,6 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    $('body').tooltip({
-      trigger : 'hover',
-      selector: '[data-toggle="tooltip"]'
-    });
 
-    $('body').on('show.bs.tooltip	', function () {
-      $('.tooltip').tooltip('hide');
-    });
-
-    $(document).on('click', function () {
-      $('.tooltip').tooltip('hide');
-    });
   }
 }
