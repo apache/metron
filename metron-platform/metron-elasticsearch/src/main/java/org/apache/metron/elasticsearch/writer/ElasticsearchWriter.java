@@ -33,7 +33,6 @@ import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.storm.task.TopologyContext;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +74,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   private SimpleDateFormat dateFormat;
 
   @Override
-  public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
+  public void init(Map stormConf, WriterConfiguration configurations) {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
 

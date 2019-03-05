@@ -88,10 +88,9 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public void init(Map stormConfig, TopologyContext topologyContext, WriterConfiguration configurations) {
+  public void init(Map stormConfig, WriterConfiguration configurations) {
     this.stormConfig = stormConfig;
     this.stellarProcessor = new StellarProcessor();
-    this.fileNameFormat.prepare(stormConfig,topologyContext);
     if(syncPolicy != null) {
       //if the user has specified the sync policy, we don't want to override their wishes.
       LOG.debug("Using user specified sync policy {}", syncPolicy.getClass().getSimpleName());
@@ -102,6 +101,10 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
       LOG.debug("No user specified sync policy, using CountSyncPolicy based on batch size");
       syncPolicyCreator = (source, config) -> new CountSyncPolicy(config == null?1:config.getBatchSize(source));
     }
+  }
+
+  public void initFileNameFormat(TopologyContext topologyContext) {
+    this.fileNameFormat.prepare(stormConfig,topologyContext);
   }
 
   @Override

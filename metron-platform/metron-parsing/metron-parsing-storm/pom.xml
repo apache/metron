@@ -33,7 +33,7 @@
     <!-- Metron dependencies -->
     <dependency>
       <groupId>org.apache.metron</groupId>
-      <artifactId>metron-common</artifactId>
+      <artifactId>metron-storm-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
