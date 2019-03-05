@@ -29,6 +29,7 @@ import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
+import org.apache.metron.common.message.metadata.MetadataUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,7 +57,7 @@ public class RawMessageUtilTest {
     }
 
     when(t.getFields()).thenReturn(f);
-    when(t.getBinary(eq(MetadataUtil.KEY_INDEX))).thenReturn(metadata.getBytes());
+    when(t.getBinary(eq(RawMessageUtil.KEY_INDEX))).thenReturn(metadata.getBytes());
     return t;
   }
 
