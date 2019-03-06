@@ -442,7 +442,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
       let group = this.treeGroupSubscriptionMap[key].group;
       if (group.response && group.response.results && group.response.results.length > 0) {
         group.response.results.filter(alert => alert.source.guid === alertSource.guid)
-        .map(alert => alert.source = alertSource);
+        .forEach(alert => alert.source = alertSource);
       }
     });
   }

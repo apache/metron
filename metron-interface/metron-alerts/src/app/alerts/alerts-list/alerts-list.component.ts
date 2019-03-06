@@ -466,11 +466,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   removeAlert(alertSource: AlertSource) {
-    let alertIndex = -1;
-    this.alerts.forEach((alert, index) => {
-      alertIndex = (alert.source.guid === alertSource.guid) ? index : alertIndex;
-    });
-    this.alerts.splice(alertIndex, 1);
+    this.alerts = this.alerts.filter(alert => alert.source.guid !== alertSource.guid);
   }
 
   updateSelectedAlertStatus(status: string) {
