@@ -36,6 +36,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 
+/**
+ * Spin up a test HBase cluster
+ */
 public enum HBaseUtil {
   INSTANCE;
 

@@ -40,9 +40,9 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.coprocessor.ObserverContext;
 import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.hbase.coprocessor.config.CoprocessorOptions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -59,14 +59,17 @@ public class EnrichmentCoprocessorTest {
   @Mock
   private ObserverContext<RegionCoprocessorEnvironment> observerContext;
   private EnrichmentCoprocessor cop;
+  @Mock
+  private GlobalConfigService globalConfigService;
   private Configuration config;
   private static boolean instantiatedCustomTableProvider;
 
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
-    cop = new EnrichmentCoprocessor(cacheWriter);
+    cop = new EnrichmentCoprocessor(cacheWriter, globalConfigService);
     config = HBaseConfiguration.create();
+    config.set(EnrichmentCoprocessor.ZOOKEEPER_URL, "foobar");
     when(copEnv.getConfiguration()).thenReturn(config);
     instantiatedCustomTableProvider = false;
   }
@@ -83,7 +86,7 @@ public class EnrichmentCoprocessorTest {
       List<Put> puts = entry.getValue();
       for (Put put : puts) {
         cop.postPut(observerContext, put, null, null);
-        verify(cacheWriter, times(1)).write(eq(type), eq(type));
+        verify(cacheWriter, times(1)).write(eq(type), eq("{}"));
         totalPuts++;
       }
     }
@@ -124,8 +127,11 @@ public class EnrichmentCoprocessorTest {
 
   @Test
   public void creates_tableprovider_from_config_property() throws Exception {
-    cop = new EnrichmentCoprocessor();
-    config.set(CoprocessorOptions.TABLE_PROVIDER.getKey(), TestTableProvider.class.getName());
+    cop = new EnrichmentCoprocessor(globalConfigService);
+    Map<String, Object> globalConfig = new HashMap<String, Object>() {{
+      put(EnrichmentConfigurations.TABLE_PROVIDER, TestTableProvider.class.getName());
+    }};
+    when(globalConfigService.get()).thenReturn(globalConfig);
     cop.start(copEnv);
     assertThat(instantiatedCustomTableProvider, equalTo(true));
   }

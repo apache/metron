@@ -16,28 +16,12 @@
  * limitations under the License.
  */
 
-package org.apache.metron.hbase.coprocessor.config;
+package org.apache.metron.hbase.coprocessor;
 
-import org.apache.metron.common.configuration.ConfigOption;
+import java.util.Map;
 
-/**
- * Available enrichment coprocessor configuration options. These are primarily HBase table details.
- */
-public enum CoprocessorOptions implements ConfigOption {
-  TABLE_PROVIDER("metron.coprocessor.tableProvider"),
-  TABLE_NAME("metron.coprocessor.tableName"),
-  COLUMN_FAMILY("metron.coprocessor.columnFamily"),
-  COLUMN_QUALIFIER("metron.coprocessor.columnQualifier");
+public interface GlobalConfigService {
 
-  private String key;
-
-  CoprocessorOptions(String key) {
-    this.key = key;
-  }
-
-  @Override
-  public String getKey() {
-    return key;
-  }
+  Map<String, Object> get();
 
 }

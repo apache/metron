@@ -31,9 +31,14 @@ import java.util.List;
  * global config and provided here for convenience.
  */
 public class EnrichmentConfigurations extends Configurations {
+  // Writer batch params
   public static final Integer DEFAULT_KAFKA_BATCH_SIZE = 15;
   public static final String BATCH_SIZE_CONF = "enrichment.writer.batchSize";
   public static final String BATCH_TIMEOUT_CONF = "enrichment.writer.batchTimeout";
+  // Enrichment list table params - assumes HBase implementation
+  public static final String TABLE_PROVIDER = "enrichment.list.tableProvider";
+  public static final String TABLE_NAME = "enrichment.list.tableName";
+  public static final String COLUMN_FAMILY = "enrichment.list.columnFamily";
 
   public SensorEnrichmentConfig getSensorEnrichmentConfig(String sensorType) {
     return (SensorEnrichmentConfig) getConfigurations().get(getKey(sensorType));

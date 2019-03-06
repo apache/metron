@@ -21,11 +21,14 @@ package org.apache.metron.hbase.coprocessor;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -37,39 +40,63 @@ import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Level;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.dataloads.hbase.mr.HBaseUtil;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.hbase.coprocessor.config.CoprocessorOptions;
 import org.apache.metron.hbase.helper.HelperDao;
+import org.apache.metron.integration.BaseIntegrationTest;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class EnrichmentCoprocessorIntegrationTest {
+public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
 
   private static final String ENRICHMENT_TABLE = "enrichment";
   private static final String ENRICHMENT_LIST_TABLE = "enrichment_list";
   private static final String CF = "c";
-  private static final String CQ = "q";
 
   private static Level originalLog4jRootLoggerLevel;
   private static java.util.logging.Level originalJavaLoggerLevel;
+  private static ZKServerComponent zookeeperComponent;
+  private static ComponentRunner runner;
   private static HBaseTestingUtility testUtil;
   private static HTable enrichmentTable;
   private static HTable enrichmentListTable;
-  private static Configuration config;
+  private static Configuration hBaseConfig;
+
+  /**
+   * {
+   *    "enrichment.list.tableProvider" : "org.apache.metron.hbase.HTableProvider",
+   *    "enrichment.list.tableName" : "%TABLE_NAME%",
+   *    "enrichment.list.columnFamily" : "%COLUMN_FAMILY%"
+   * }
+   */
+  @Multiline
+  private static String globalConfig;
 
   @BeforeClass
   public static void setupAll() throws Exception {
     silenceLogging();
+    Properties zkProperties = new Properties();
+    zookeeperComponent = getZKServerComponent(zkProperties);
+    runner = new ComponentRunner.Builder()
+        .withComponent("zk", zookeeperComponent)
+        .withMillisecondsBetweenAttempts(15000)
+        .withNumRetries(10)
+        .build();
+    runner.start();
+    globalConfig = globalConfig.replace("%TABLE_NAME%", ENRICHMENT_LIST_TABLE)
+        .replace("%COLUMN_FAMILY%", CF);
+    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(StandardCharsets.UTF_8),
+        zookeeperComponent.getConnectionString());
     Configuration extraConfig = new Configuration();
-    extraConfig.set(CoprocessorOptions.TABLE_NAME.getKey(), "enrichment_list");
-    extraConfig.set(CoprocessorOptions.COLUMN_FAMILY.getKey(), "c");
-    extraConfig.set(CoprocessorOptions.COLUMN_QUALIFIER.getKey(), "q");
+    extraConfig.set(EnrichmentCoprocessor.ZOOKEEPER_URL, zookeeperComponent.getConnectionString());
     Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true, extraConfig);
     testUtil = kv.getKey();
-    config = kv.getValue();
+    hBaseConfig = kv.getValue();
     enrichmentTable = testUtil.createTable(Bytes.toBytes(ENRICHMENT_TABLE), Bytes.toBytes(CF));
     enrichmentListTable = testUtil
         .createTable(Bytes.toBytes(ENRICHMENT_LIST_TABLE), Bytes.toBytes(CF));
@@ -114,6 +141,7 @@ public class EnrichmentCoprocessorIntegrationTest {
   @AfterClass
   public static void teardown() throws Exception {
     HBaseUtil.INSTANCE.teardown(testUtil);
+    runner.stop();
     resetLogging();
   }
 

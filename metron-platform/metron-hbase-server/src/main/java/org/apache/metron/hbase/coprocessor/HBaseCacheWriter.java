@@ -27,7 +27,6 @@ import javax.annotation.Nullable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.client.HBaseClient;
-import org.apache.metron.hbase.coprocessor.config.CoprocessorOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +42,13 @@ public class HBaseCacheWriter implements CacheWriter<String, String> {
   private final String columnFamily;
   private final String columnQualifier;
 
-  public HBaseCacheWriter(Configuration config, TableProvider tableProvider) {
+  public HBaseCacheWriter(Configuration config, TableProvider tableProvider, String tableName,
+      String columnFamily, String columnQualifier) {
     this.config = config;
     this.tableProvider = tableProvider;
-    this.tableName = config.get(CoprocessorOptions.TABLE_NAME.getKey());
-    this.columnFamily = config.get(CoprocessorOptions.COLUMN_FAMILY.getKey());
-    this.columnQualifier = config.get(CoprocessorOptions.COLUMN_QUALIFIER.getKey());
+    this.tableName = tableName;
+    this.columnFamily = columnFamily;
+    this.columnQualifier = columnQualifier;
   }
 
   /**
