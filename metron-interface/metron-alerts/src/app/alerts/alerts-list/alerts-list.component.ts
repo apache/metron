@@ -61,7 +61,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   alerts: Alert[] = [];
   searchResponse: SearchResponse = new SearchResponse();
   colNumberTimerId: number;
-  refreshInterval = RefreshInterval.ONE_MIN;
+  refreshInterval = RefreshInterval.TEN_MIN;
   refreshTimer: Subscription;
   pauseRefresh = POLLING_DEFAULT_STATE;
   lastPauseRefreshValue = false;
@@ -164,8 +164,15 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         this.configureTableService.getTableMetadata(),
         this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {
-      this.prepareData(response[0], response[1], resetPaginationForSearch);
+      this.prepareData(response[0], response[1]);
+      this.refreshAlertData(resetPaginationForSearch);
     });
+  }
+
+  private refreshAlertData(resetPaginationForSearch: boolean) {
+    if (this.alerts.length) {
+      this.search(resetPaginationForSearch);
+    }
   }
 
   getColumnNamesForQuery() {
@@ -278,14 +285,12 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.calcColumnsToDisplay();
   }
 
-  prepareData(tableMetaData: TableMetadata, defaultColumns: ColumnMetadata[], resetPagination: boolean) {
+  prepareData(tableMetaData: TableMetadata, defaultColumns: ColumnMetadata[]) {
     this.tableMetaData = tableMetaData;
     this.refreshInterval = this.tableMetaData.refreshInterval;
 
     this.updateConfigRowsSettings();
     this.prepareColumnData(tableMetaData.tableColumns, defaultColumns);
-
-    this.search(resetPagination);
   }
 
   processEscalate() {
