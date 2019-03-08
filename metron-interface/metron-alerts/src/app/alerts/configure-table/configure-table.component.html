@@ -14,11 +14,18 @@
 <div class="metron-slider-pane-editable load-right-to-left dialog2x">
   <div class="container-fluid">
     <div class="row mb-3">
-      <div class="col-md-10">
-        <div class="form-title font-weight-bold">Configure Table</div>
-        <input type="text" #filterColResults >
+      <div class="col-md-12">
+        <div class="d-flex pb-3">
+          <div class="form-title font-weight-bold">Configure Table</div>
+          <i class="fa fa-times ml-auto close-button" aria-hidden="true" (click)="goBack()"></i>
+        </div>
+        <div class="input-group">
+          <input class="input flex-fill" type="text" placeholder="Filter list" #filterColResults >
+          <div class="input-group-append">
+            <button class="btn btn-secondary btn-search-clear"></button>
+          </div>
+        </div>
       </div>
-      <div class="col-md-2"><i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i></div>
     </div>
     <div class="row mx-0">
       <table class="table">
