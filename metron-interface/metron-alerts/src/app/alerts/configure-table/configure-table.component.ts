@@ -116,7 +116,10 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
     });
   }
 
-
+  clearFilter() {
+    this.filterColResults.nativeElement.value = '';
+    this.filteredColumns = this.allColumns;
+  }
 
   onSelectDeselectAll($event) {
     let checked = $event.target.checked;
