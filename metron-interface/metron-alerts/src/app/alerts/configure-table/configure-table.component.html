@@ -16,6 +16,7 @@
     <div class="row mb-3">
       <div class="col-md-10">
         <div class="form-title font-weight-bold">Configure Table</div>
+        <input type="text" #filterColResults >
       </div>
       <div class="col-md-2"><i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i></div>
     </div>
@@ -40,7 +41,7 @@
             <td> - </td>
             <td> - </td>
           </tr>
-          <tr *ngFor="let columns of allColumns; let i = index" [ngClass]="{'background-tiber': columns.selected}">
+          <tr *ngFor="let columns of filteredColumns; let i = index" [ngClass]="{'background-tiber': columns.selected}">
             <td>
               <input #selectColName id="select-deselect-{{ columns.columnMetadata.name }}" class="fontawesome-checkbox" type="checkbox" [checked]="columns.selected" (click)="selectColumn(columns)">
               <label for="select-deselect-{{ columns.columnMetadata.name }}"></label>
