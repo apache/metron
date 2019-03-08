@@ -16,10 +16,12 @@
  * limitations under the License.
  */
 import { ParserModel } from './parser.model';
+import * as cloneDeep from 'clone-deep';
 
 export class ParserGroupModel implements ParserModel {
   name: string;
   description: string;
+  sensors: string[];
 
   constructor(rawJson: object) {
     if (rawJson['name']) {
@@ -28,15 +30,14 @@ export class ParserGroupModel implements ParserModel {
       throw new Error('Json response not contains name');
     }
     this.description = rawJson['description'] || '';
+    this.sensors = rawJson['sensors'] || [];
   }
 
-  clone(rawJson) {
-    const clone = new ParserGroupModel(rawJson);
-
-    clone.name = this.name;
-    clone.description = this.description;
-
-    return clone;
+  clone(rawJson): ParserGroupModel {
+    return new ParserGroupModel({
+      ...cloneDeep(this),
+      ...rawJson,
+    });
   }
 
   getName(): string {
@@ -53,5 +54,13 @@ export class ParserGroupModel implements ParserModel {
 
   setDescription(value: string) {
     this.description = value;
+  }
+
+  getSensors(): string[] {
+    return this.sensors;
+  }
+
+  setSensors(sensors: string[]) {
+    this.sensors = sensors;
   }
 }

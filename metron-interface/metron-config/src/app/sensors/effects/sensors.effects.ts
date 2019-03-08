@@ -51,13 +51,22 @@ export class SensorsEffects {
             };
             return metaInfo;
           });
-          const groupsArray: ParserMetaInfoModel[] =  groups.map((group) => {
+          const groupsArray: ParserMetaInfoModel[] =  Array.isArray(groups) ? groups.map((group) => {
             const metaInfo: ParserMetaInfoModel = {
               config: new ParserGroupModel(group),
               isGroup: true
             };
+            const sensors = (metaInfo.config as ParserGroupModel).getSensors();
+            if (sensors && sensors.length > 0) {
+              sensors.map((sensor: string) => {
+                const configMeta = configsArray.find(c => c.config.getName() === sensor);
+                if (configMeta) {
+                  configMeta.config.group = metaInfo.config.getName();
+                }
+              });
+            }
             return metaInfo;
-          });
+          }) : [];
           return new fromActions.LoadSuccess({
             parsers: configsArray,
             groups: groupsArray,
@@ -91,13 +100,12 @@ export class SensorsEffects {
         this.parserService.syncGroups(state.groups.items),
       ).pipe(
         catchError((error) => {
-          console.error(error);
-          this.alertSvc.showErrorMessage('Applying changes FAILED');
+          const message = error.error ? error.error.message : error.message;
+          this.alertSvc.showErrorMessage(message);
           return error;
         }),
         map(() => {
-          console.log('Changes successfully syncronized with the server');
-          this.alertSvc.showSuccessMessage('Changes applied');
+          this.alertSvc.showSuccessMessage('Your changes has been applied successfully');
           return new fromActions.LoadStart();
       }));
     })

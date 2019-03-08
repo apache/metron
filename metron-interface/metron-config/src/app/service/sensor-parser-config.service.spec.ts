@@ -172,12 +172,15 @@ describe('SensorParserConfigService', () => {
     it('creating/editing single parser group by name', () => {
       sensorParserConfigService.saveGroup('TestGroup', new ParserGroupModel({
         name: 'TestGroupName1',
-        description: 'TestDesc1'
+        description: 'TestDesc1',
+        sensors: ['foo']
       })).subscribe();
 
-      const request = mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup');
+      const request = mockBackend.expectOne('/api/v1/sensor/parser/group');
       expect(request.request.method).toEqual('POST');
       expect(request.request.body.name).toBe('TestGroupName1');
+      expect(request.request.body.description).toBe('TestDesc1');
+      expect(request.request.body.sensors).toEqual(['foo']);
     });
 
     it('deleting single parser group by name', () => {
@@ -272,7 +275,7 @@ describe('SensorParserConfigService', () => {
 
       sensorParserConfigService.syncGroups(testData).subscribe();
 
-      const request = mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup01');
+      const request = mockBackend.expectOne('/api/v1/sensor/parser/group');
       expect(request.request.method).toEqual('POST');
       expect(request.request.body.name).toEqual('TestGroup01');
       expect(request.request.body.description).toEqual('');
@@ -285,14 +288,14 @@ describe('SensorParserConfigService', () => {
 
       sensorParserConfigService.syncGroups(testData).subscribe();
 
-      const requests = [];
-      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup01'));
-      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup03'));
-      expect(requests[0].request.method).toEqual('POST');
-      expect(requests[1].request.method).toEqual('POST');
+      const calls = mockBackend.match((request) => {
+        return request.url.match(/\/api\/v1\/sensor\/parser\/group/)
+          && request.method === 'POST';
+      });
 
-      expect(requests[0].request.body.name).toEqual('TestGroup01');
-      expect(requests[1].request.body.name).toEqual('TestGroup03');
+      expect(calls.length).toBe(2);
+      expect(calls[0].request.body.name).toEqual('TestGroup01');
+      expect(calls[1].request.body.name).toEqual('TestGroup03');
     });
 
     it('syncronizing list of parser GROUPS with the backend - SINGLE CHANGED', () => {
@@ -302,7 +305,7 @@ describe('SensorParserConfigService', () => {
 
       sensorParserConfigService.syncGroups(testData).subscribe();
 
-      const request = mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup04');
+      const request = mockBackend.expectOne('/api/v1/sensor/parser/group');
       expect(request.request.method).toEqual('POST');
       expect(request.request.body.name).toEqual('TestGroup04');
       expect(request.request.body.description).toEqual('');
@@ -315,14 +318,14 @@ describe('SensorParserConfigService', () => {
 
       sensorParserConfigService.syncGroups(testData).subscribe();
 
-      const requests = [];
-      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup01'));
-      requests.push(mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup03'));
-      expect(requests[0].request.method).toEqual('POST');
-      expect(requests[1].request.method).toEqual('POST');
+      const calls = mockBackend.match(request => {
+        return request.url.match(/\/api\/v1\/sensor\/parser\/group/)
+          && request.method === 'POST';
+      });
 
-      expect(requests[0].request.body.name).toEqual('TestGroup01');
-      expect(requests[1].request.body.name).toEqual('TestGroup03');
+      expect(calls.length).toBe(2);
+      expect(calls[0].request.body.name).toEqual('TestGroup01');
+      expect(calls[1].request.body.name).toEqual('TestGroup03');
     });
 
     it('syncronizing list of PARSER CONFIGS with the backend - SINGLE DELETE', () => {
@@ -457,7 +460,7 @@ describe('SensorParserConfigService', () => {
           }
         );
 
-        const request = mockBackend.expectOne('/api/v1/sensor/parser/group/TestGroup02');
+        const request = mockBackend.expectOne('/api/v1/sensor/parser/group');
         request.flush('Invalid request parameters', { status: 404, statusText: 'Bad Request' });
     });
 

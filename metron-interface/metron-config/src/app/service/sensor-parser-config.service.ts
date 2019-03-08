@@ -47,11 +47,14 @@ export class SensorParserConfigService {
     return this.appConfigService.getApiRoot() + '/sensor/parser/group';
   }
 
-  public getAllGroups(): Observable<ParserGroupModel[]> {
-    function extractParserGroups(rawJsonArray) {
-      return rawJsonArray.map(group => new ParserGroupModel(group));
+  public getAllGroups(): Observable<ParserGroupModel[] | RestError> {
+    function extractParserGroups(raw) {
+      return Object.keys(raw).map((groupName) => {
+        return new ParserGroupModel({
+          ...raw[groupName]
+        })
+      });
     }
-
     return this.http.get(this.getParserGroupSvcUrl()).pipe(
       map(extractParserGroups),
       catchError(HttpUtil.handleError)
@@ -66,7 +69,7 @@ export class SensorParserConfigService {
   }
 
   public saveGroup(name: string, group: ParserGroupModel | ParserModel): Observable<RestError | ParserGroupModel> {
-    return this.http.post(`${this.getParserGroupSvcUrl()}/${name}`, group).pipe(
+    return this.http.post(`${this.getParserGroupSvcUrl()}`, group).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );

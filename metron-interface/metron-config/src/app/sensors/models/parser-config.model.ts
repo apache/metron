@@ -17,10 +17,11 @@
  */
 import {FieldTransformer} from '../../model/field-transformer';
 import { ParserModel } from './parser.model';
+import * as cloneDeep from 'clone-deep';
+
 export class ParserConfigModel implements ParserModel {
 
   id: string;
-
   cacheConfig: Object;
   errorTopic: any;
   errorWriterClassName: string;
@@ -66,25 +67,13 @@ export class ParserConfigModel implements ParserModel {
     this.stormConfig = config.stormConfig || {};
   }
 
-  clone(params = {}) {
-    const clone = new ParserConfigModel(this.id);
-    Object.keys(this).forEach((key) => {
-      if (typeof this[key] !== 'function' && this.hasOwnProperty(key)) {
-        if (typeof this[key] === 'object') {
-          if (Array.isArray(this[key])) {
-            clone[key] = [ ...this[key] ];
-          } else {
-            clone[key] = { ...this[key] };
-          }
-        } else {
-          clone[key] = this[key]
-        }
-      }
-    });
-    Object.keys(params).forEach((key) => {
-      clone[key] = params[key];
-    });
-    return clone;
+  clone(params = {}): ParserConfigModel {
+    const clone = {
+      ...cloneDeep(this),
+      ...params
+    };
+
+    return new ParserConfigModel(clone.id, clone);
   }
 
   getName(): string {

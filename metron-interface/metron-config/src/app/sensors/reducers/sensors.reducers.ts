@@ -222,6 +222,75 @@ export function groupConfigsReducer(state: GroupState = initialGroupState, actio
         ]
       }
     }
+    case fromActions.SensorsActionTypes.AddToGroup: {
+      const a = (action as fromActions.AddToGroup);
+      const groupName = a.payload.groupName;
+      const parserIds = a.payload.parserIds;
+      if (groupName === '') {
+        return {
+          ...state,
+          items: state.items.map(item => {
+            let config = item.config as ParserGroupModel;
+            let changed;
+            parserIds.forEach(id => {
+              if (config.sensors.includes(id)) {
+                config = config.clone({
+                  sensors: config.sensors.filter(sensor => sensor !== id),
+                });
+                changed = true;
+              }
+            });
+            return {
+              ...item,
+              config,
+              isDirty: typeof changed === 'undefined' ? item.isDirty : changed,
+            }
+          })
+        };
+      } else {
+        return {
+          ...state,
+          items: state.items.map(item => {
+            const config = item.config as ParserGroupModel;
+            if (config.getName() === groupName) {
+              const newConfig = config.clone({
+                name: groupName,
+                sensors: [...config.sensors, ...parserIds],
+              });
+              return {
+                ...item,
+                config: newConfig,
+                isDirty: true
+              };
+            }
+            return item;
+          })
+        };
+      }
+    }
+    case fromActions.SensorsActionTypes.AggregateParsers: {
+      const a = (action as fromActions.AggregateParsers);
+      const groupName = a.payload.groupName;
+      const parserIds = a.payload.parserIds;
+      return {
+        ...state,
+        items: state.items.map(item => {
+          const config = item.config as ParserGroupModel;
+          if (config.getName() === groupName) {
+            const newConfig = config.clone({
+              name: groupName,
+              sensors: [...config.sensors, ...parserIds]
+            });
+            return {
+              ...item,
+              config: newConfig,
+              isDirty: true
+            };
+          }
+          return item;
+        })
+      };
+    }
     case fromActions.SensorsActionTypes.UpdateGroupDescription: {
       const a = (action as fromActions.UpdateGroupDescription);
       return {
@@ -379,7 +448,6 @@ export function layoutReducer(state: LayoutState = initialLayoutState, action: A
 
     case fromActions.SensorsActionTypes.CreateGroup: {
       const a = (action as fromActions.CreateGroup);
-      let placeholder = state;
       return {
         ...state,
         order: [
@@ -486,6 +554,13 @@ export const getGroups = createSelector(
   }
 );
 
+export const getGroupByName = createSelector(
+  getGroups,
+  (groups) => (name: string): ParserMetaInfoModel => {
+    return groups.find((group: ParserMetaInfoModel) => group.config.getName() === name);
+  }
+);
+
 export const getParsers = createSelector(
   getSensorsState,
   (state: SensorState): ParserMetaInfoModel[] => {
@@ -560,4 +635,3 @@ export const getParserConfig = () => createSelector(
     return parsers.find(parser => parser.config.getName() === props.id);
   }
 );
-

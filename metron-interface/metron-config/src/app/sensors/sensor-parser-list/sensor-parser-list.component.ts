@@ -27,6 +27,8 @@ import { Store, select } from '@ngrx/store';
 import * as fromActions from '../actions';
 import * as fromReducers from '../reducers';
 import { MetronDialogBox } from '../../shared';
+import { ParserGroupModel } from '../models/parser-group.model';
+import { first } from 'rxjs/operators';
 
 @Component({
   selector: 'metron-config-sensor-parser-list',
@@ -321,14 +323,26 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     if (dragged.config.getName() !== referenceMetaInfo.config.getName() && !referenceMetaInfo.isDeleted) {
       if (el.classList.contains('drop-before') || el.classList.contains('drop-after')) {
         if (referenceMetaInfo.config.group !== dragged.config.group || referenceMetaInfo.isGroup) {
-          this.store.dispatch(new fromActions.AddToGroup({
-            groupName: this.hasGroup(referenceMetaInfo)
+          const groupName = this.hasGroup(referenceMetaInfo)
               ? referenceMetaInfo.config.group
               : referenceMetaInfo.isGroup
                 ? referenceMetaInfo.config.getName()
-                : '',
+                : '';
+          this.store.dispatch(new fromActions.AddToGroup({
+            groupName,
             parserIds: [dragged.config.getName()]
           }));
+          if (groupName === '') {
+            this.store.pipe(select(fromReducers.getGroupByName), first())
+              .subscribe((getGroup) => {
+                const group = getGroup(dragged.config.group);
+                if ((group.config as ParserGroupModel).sensors.length === 0) {
+                  this.store.dispatch(new fromActions.MarkAsDeleted({
+                    parserIds: [dragged.config.group]
+                  }));
+                }
+              });
+          }
         }
       }
       if (el.classList.contains('drop-before')) {
