@@ -97,7 +97,7 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     fromEvent(this.filterColResults.nativeElement, 'keyup').pipe(debounceTime(250)).subscribe(e => {
-      this.filterColumns(e.target.value);
+      this.filterColumns(e['target'].value);
     });
   }
 
