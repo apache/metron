@@ -61,10 +61,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   alerts: Alert[] = [];
   searchResponse: SearchResponse = new SearchResponse();
   colNumberTimerId: number;
-  refreshInterval = RefreshInterval.ONE_MIN;
+  refreshInterval = RefreshInterval.TEN_MIN;
   refreshTimer: Subscription;
-  pauseRefresh = POLLING_DEFAULT_STATE;
-  lastPauseRefreshValue = false;
+  isRefreshPaused = POLLING_DEFAULT_STATE;
+  lastIsRefreshPausedValue = false;
   isMetaAlertPresentInSelectedAlerts = false;
   timeStampfilterPresent = false;
   selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
@@ -164,8 +164,15 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         this.configureTableService.getTableMetadata(),
         this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {
-      this.prepareData(response[0], response[1], resetPaginationForSearch);
+      this.prepareData(response[0], response[1]);
+      this.refreshAlertData(resetPaginationForSearch);
     });
+  }
+
+  private refreshAlertData(resetPaginationForSearch: boolean) {
+    if (this.alerts.length) {
+      this.search(resetPaginationForSearch);
+    }
   }
 
   getColumnNamesForQuery() {
@@ -249,8 +256,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onPausePlay() {
-    this.pauseRefresh = !this.pauseRefresh;
-    if (this.pauseRefresh) {
+    this.isRefreshPaused = !this.isRefreshPaused;
+    if (this.isRefreshPaused) {
       this.tryStopPolling();
     } else {
       this.search(false);
@@ -278,14 +285,12 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.calcColumnsToDisplay();
   }
 
-  prepareData(tableMetaData: TableMetadata, defaultColumns: ColumnMetadata[], resetPagination: boolean) {
+  prepareData(tableMetaData: TableMetadata, defaultColumns: ColumnMetadata[]) {
     this.tableMetaData = tableMetaData;
     this.refreshInterval = this.tableMetaData.refreshInterval;
 
     this.updateConfigRowsSettings();
     this.prepareColumnData(tableMetaData.tableColumns, defaultColumns);
-
-    this.search(resetPagination);
   }
 
   processEscalate() {
@@ -326,7 +331,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   restoreRefreshState() {
-    this.pauseRefresh = this.lastPauseRefreshValue;
+    this.isRefreshPaused = this.lastIsRefreshPausedValue;
     this.tryStartPolling();
   }
 
@@ -412,17 +417,17 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   saveRefreshState() {
-    this.lastPauseRefreshValue = this.pauseRefresh;
+    this.lastIsRefreshPausedValue = this.isRefreshPaused;
     this.tryStopPolling();
   }
 
   pause() {
-    this.pauseRefresh = true;
+    this.isRefreshPaused = true;
     this.tryStopPolling();
   }
 
   resume() {
-    this.pauseRefresh = false;
+    this.isRefreshPaused = false;
     this.tryStartPolling();
   }
 
@@ -438,7 +443,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   tryStartPolling() {
-    if (!this.pauseRefresh) {
+    if (!this.isRefreshPaused) {
       this.tryStopPolling();
       this.refreshTimer = this.searchService.pollSearch(this.queryBuilder).subscribe(results => {
         this.setData(results);
