@@ -100,6 +100,9 @@ but a convenient index is provided here:
 | [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`            |
 | [`enrichment.writer.batchSize`](../metron-enrichment#enrichmentwriterbatchsize)                                     | Enrichment    | Integer    |  N/A                       |
 | [`enrichment.writer.batchTimeout`](../metron-enrichment#enrichmentwriterbatchtimeout)                               | Enrichment    | Integer    |  N/A                       |
+| [`enrichment.list.hbase.provider.impl`](../metron-enrichment#enrichmentlisthbaseproviderimpl)                       | Enrichment    | String     |  N/A                       |
+| [`enrichment.list.hbase.table`](../metron-enrichment#enrichmentlisthbasetable)                                      | Enrichment    | String     |  N/A                       |
+| [`enrichment.list.hbase.cf`](../metron-enrichment#enrichmentlisthbasecf)                                            | Enrichment    | String     |  N/A                       |
 | [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`            |
 | [`source.type.field`](../../metron-interface/metron-alerts#sourcetypefield)                                         | UI            | String     |  `source_type_field`       |
 | [`threat.triage.score.field`](../../metron-interface/metron-alerts#threattriagescorefield)                          | UI            | String     |  `threat_triage_score_field`       |

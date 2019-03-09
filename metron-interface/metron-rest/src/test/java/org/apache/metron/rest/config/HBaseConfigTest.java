@@ -67,5 +67,10 @@ public class HBaseConfigTest {
     verifyZeroInteractions(htableProvider);
   }
 
+  @Test
+  public void hBaseClientShouldBeCreated() {
+    hBaseConfig.hBaseClient();
+  }
+
 
 }

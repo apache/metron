@@ -36,9 +36,9 @@ public class EnrichmentConfigurations extends Configurations {
   public static final String BATCH_SIZE_CONF = "enrichment.writer.batchSize";
   public static final String BATCH_TIMEOUT_CONF = "enrichment.writer.batchTimeout";
   // Enrichment list table params - assumes HBase implementation
-  public static final String TABLE_PROVIDER = "enrichment.list.tableProvider";
-  public static final String TABLE_NAME = "enrichment.list.tableName";
-  public static final String COLUMN_FAMILY = "enrichment.list.columnFamily";
+  public static final String TABLE_PROVIDER = "enrichment.list.hbase.provider.impl";
+  public static final String TABLE_NAME = "enrichment.list.hbase.table";
+  public static final String COLUMN_FAMILY = "enrichment.list.hbase.cf";
 
   public SensorEnrichmentConfig getSensorEnrichmentConfig(String sensorType) {
     return (SensorEnrichmentConfig) getConfigurations().get(getKey(sensorType));

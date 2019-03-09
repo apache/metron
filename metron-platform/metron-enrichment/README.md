@@ -38,3 +38,30 @@ There is currently one option for running enrichments in Metron, which is as a S
 * metron-enrichment-common - this module houses the prepackaged enrichment configuration by sensor. It also contains the core enrichment and threat intelligence processing functionality.
 * metron-common-storm - this module is home to Storm-specific code such as Flux files and Storm Bolts.
 
+## Enrichments List
+
+Metron provides an HBase table for storing enrichments. The rowkeys are a combination of a salt (for managing
+RegionServer hotspotting), indicator (this would be the search value, e.g. "192.168.1.1"), and type (whois, geoip, etc.).
+
+This approach performs well for both inserts and lookups, but poses a challenge when looking to get an
+up-to-date list of all the current enrichments. This is of particular concern for the Management UI where
+it's desirable to provide an accurate list of all available enrichment types.
+A table scan is undesirable because it results in a performance hit for inserts and reads.
+The alternative approach that mitigates these performance bottlenecks is to leverage a custom HBase
+Coprocessor which will listen to postPut calls from the RegionServer, extract the enrichment type from the rowkey, and
+perform an insert into a separate `enrichment_list` HBase table.
+
+Below is the list of properties to configure the HBase enrichment coprocessor `org.apache.metron.hbase.coprocessor.EnrichmentCoprocessor`
+for writing to HBase.
+
+#### `enrichment.list.hhase.provider.impl`
+
+Provider to use for obtaining the HBase table. Defaults to `org.apache.metron.hbase.HTableProvider`.
+
+#### `enrichment.list.hbase.table`
+
+HBase table name for the enrichments list.
+
+#### `enrichment.list.hbase.cf`
+
+HBase table column family for the enrichments list.

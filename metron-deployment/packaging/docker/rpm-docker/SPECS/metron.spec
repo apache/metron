@@ -63,6 +63,7 @@ Source16:       metron-profiler-spark-%{full_version}-archive.tar.gz
 Source17:       metron-profiler-repl-%{full_version}-archive.tar.gz
 Source18:       metron-parsing-storm-%{full_version}-archive.tar.gz
 Source19:       metron-parsers-%{full_version}-archive.tar.gz
+Source20:       metron-hbase-server-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -105,6 +106,7 @@ tar -xzf %{SOURCE16} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE17} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE18} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE19} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE20} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
@@ -654,6 +656,23 @@ This package installs the Metron Profiler for the Stellar REPL %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        hbase-server
+Summary:        Metron HBase Server Files
+Group:          Applications/Internet
+Provides:       hbase-server = %{version}
+
+%description    hbase-server
+This package installs the Metron HBase Server files
+
+%files          hbase-server
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/coprocessor
+%attr(0644,root,root) %{metron_home}/coprocessor/metron-hbase-server-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %post config
 chkconfig --add metron-management-ui
 chkconfig --add metron-alerts-ui
@@ -663,6 +682,8 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Mon Apr 8 2019 Apache Metron <dev@metron.apache.og> - 0.7.1
+- Updat metron SPEC to include metron-hbase-server for enrichment coprocessor
 * Tue Mar 12 2019 Apache Metron <dev@metron.apache.og> - 0.7.1
 - Split metron-enrichment into submodules
 * Thu Dec 27 2018 Apache Metron <dev@metron.apache.og> - 0.7.1

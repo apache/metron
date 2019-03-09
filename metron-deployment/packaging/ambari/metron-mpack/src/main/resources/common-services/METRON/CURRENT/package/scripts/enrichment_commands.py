@@ -46,6 +46,7 @@ class EnrichmentCommands:
         self.__kafka_configured = os.path.isfile(self.__params.enrichment_kafka_configured_flag_file)
         self.__kafka_acl_configured = os.path.isfile(self.__params.enrichment_kafka_acl_configured_flag_file)
         self.__hbase_configured = os.path.isfile(self.__params.enrichment_hbase_configured_flag_file)
+        self.__hbase_coprocessor_configured = os.path.isfile(self.__params.enrichment_hbase_coprocessor_configured_flag_file)
         self.__hbase_acl_configured = os.path.isfile(self.__params.enrichment_hbase_acl_configured_flag_file)
         self.__maxmind_configured = os.path.isfile(self.__params.enrichment_maxmind_configured_flag_file)
 
@@ -64,6 +65,9 @@ class EnrichmentCommands:
     def is_hbase_configured(self):
         return self.__hbase_configured
 
+    def is_hbase_coprocessor_configured(self):
+        return self.__hbase_coprocessor_configured
+
     def is_hbase_acl_configured(self):
         return self.__hbase_acl_configured
 
@@ -78,6 +82,9 @@ class EnrichmentCommands:
 
     def set_hbase_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_configured_flag_file, "Setting HBase configured to True for enrichment")
+
+    def set_hbase_coprocessor_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_coprocessor_configured_flag_file, "Setting HBase coprocessor configured to True for enrichment")
 
     def set_hbase_acl_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True for enrichment")
@@ -206,13 +213,62 @@ class EnrichmentCommands:
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables")
         metron_service.create_hbase_table(self.__params,
-                                        self.__params.enrichment_hbase_table,
-                                        self.__params.enrichment_hbase_cf)
+                                          self.__params.enrichment_hbase_table,
+                                          self.__params.enrichment_hbase_cf)
+        metron_service.create_hbase_table(self.__params,
+                                        self.__params.enrichment_list_hbase_table,
+                                        self.__params.enrichment_list_hbase_cf)
         metron_service.create_hbase_table(self.__params,
                                         self.__params.threatintel_hbase_table,
                                         self.__params.threatintel_hbase_cf)
         Logger.info("Done creating HBase Tables")
         self.set_hbase_configured()
+
+    def load_enrichment_coprocessor(self):
+        Logger.info("Creating HDFS location for enrichment coprocessor and loading from local disk")
+
+        self.__params.HdfsResource(self.__params.hbase_coprocessor_hdfs_dir,
+                                   type="directory",
+                                   action="create_on_execute",
+                                   owner=self.__params.metron_user,
+                                   group=self.__params.metron_group,
+                                   mode=0755,
+                                   source=self.__params.hbase_coprocessor_local_dir,
+                                   recursive_chown = True)
+
+        Logger.info("Loading HBase coprocessor for enrichments")
+        Logger.info("See https://hbase.apache.org/1.1/book.html#load_coprocessor_in_shell for more detail")
+
+        Logger.info("HBase coprocessor setup - first disabling the enrichments HBase table.")
+        command_template = "echo \"disable '{0}'\" | hbase shell -n"
+        command = command_template.format(self.__params.enrichment_hbase_table)
+        Logger.info("Executing command " + command)
+        Execute(command, user=self.__params.metron_user, tries=1, logoutput=True)
+
+        Logger.info("HBase coprocessor setup - altering table and adding coprocessor.")
+        command_template = "echo \"alter '{0}', METHOD => 'table_att', 'Coprocessor'=>'{1}/{2}|{3}||zookeeperUrl={4}'\" | hbase shell -n"
+        command = command_template.format(self.__params.enrichment_hbase_table,
+                                          self.__params.hdfs_url,
+                                          self.__params.hbase_coprocessor_hdfs_dir,
+                                          self.__params.enrichment_hbase_coprocessor_impl,
+                                          self.__params.zookeeper_quorum)
+        Logger.info("Executing command " + command)
+        Execute(command, user=self.__params.metron_user, tries=1, logoutput=True)
+
+        Logger.info("HBase coprocessor setup - re-enabling enrichments table.")
+        command_template = "echo \"enable'{0}'\" | hbase shell -n"
+        command = command_template.format(self.__params.enrichment_hbase_table)
+        Logger.info("Executing command " + command)
+        Execute(command, user=self.__params.metron_user, tries=1, logoutput=True)
+
+        Logger.info("HBase coprocessor setup - verifying coprocessor was loaded. The coprocessor should be listed in the TABLE_ATTRIBUTES.")
+        command_template = "echo \"describe '{0}'\" | hbase shell -n"
+        command = command_template.format(self.__params.enrichment_hbase_table)
+        Logger.info("Executing command " + command)
+        Execute(command, user=self.__params.metron_user, tries=1, logoutput=True)
+
+        Logger.info("Done loading HBase coprocessor for enrichments")
+        self.set_hbase_coprocessor_configured()
 
     def set_hbase_acls(self):
         Logger.info("Setting HBase ACLs")
@@ -225,6 +281,15 @@ class EnrichmentCommands:
         cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
         add_enrichment_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_hbase_table)
         Execute(add_enrichment_acl_cmd,
+                tries=3,
+                try_sleep=5,
+                logoutput=False,
+                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+                user=self.__params.hbase_user
+                )
+
+        add_enrichment_list_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_list_hbase_table)
+        Execute(add_enrichment_list_acl_cmd,
                 tries=3,
                 try_sleep=5,
                 logoutput=False,
@@ -260,31 +325,42 @@ class EnrichmentCommands:
 
         Logger.info("Checking HBase for Enrichment")
         metron_service.check_hbase_table(
-          self.__params,
-          self.__params.enrichment_hbase_table)
+            self.__params,
+            self.__params.enrichment_hbase_table)
         metron_service.check_hbase_column_family(
-          self.__params,
-          self.__params.enrichment_hbase_table,
-          self.__params.enrichment_hbase_cf)
+            self.__params,
+            self.__params.enrichment_hbase_table,
+            self.__params.enrichment_hbase_cf)
+
+        Logger.info("Checking HBase for Enrichment List")
+        metron_service.check_hbase_table(
+            self.__params,
+            self.__params.enrichment_list_hbase_table)
+        metron_service.check_hbase_column_family(
+            self.__params,
+            self.__params.enrichment_list_hbase_table,
+            self.__params.enrichment_list_hbase_cf)
 
         Logger.info("Checking HBase for Threat Intel")
         metron_service.check_hbase_table(
-          self.__params,
-          self.__params.threatintel_hbase_table)
+            self.__params,
+            self.__params.threatintel_hbase_table)
         metron_service.check_hbase_column_family(
-          self.__params,
-          self.__params.threatintel_hbase_table,
-          self.__params.threatintel_hbase_cf)
+            self.__params,
+            self.__params.threatintel_hbase_table,
+            self.__params.threatintel_hbase_cf)
 
         if self.__params.security_enabled:
+            Logger.info('Checking Kafka ACLs for Enrichment')
+            metron_service.check_kafka_acls(self.__params, self.__get_topics())
+            metron_service.check_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
 
-          Logger.info('Checking Kafka ACLs for Enrichment')
-          metron_service.check_kafka_acls(self.__params, self.__get_topics())
-          metron_service.check_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
-
-          Logger.info("Checking HBase ACLs for Enrichment")
-          metron_service.check_hbase_acls(self.__params, self.__params.enrichment_hbase_table)
-          metron_service.check_hbase_acls(self.__params, self.__params.threatintel_hbase_table)
+            Logger.info("Checking HBase ACLs for Enrichment")
+            metron_service.check_hbase_acls(self.__params, self.__params.enrichment_hbase_table)
+            Logger.info("Checking HBase ACLs for Enrichment List")
+            metron_service.check_hbase_acls(self.__params, self.__params.enrichment_list_hbase_table)
+            Logger.info("Checking HBase ACLs for Threat Intel")
+            metron_service.check_hbase_acls(self.__params, self.__params.threatintel_hbase_table)
 
         Logger.info("Checking for Enrichment topology")
         if not self.is_topology_active(env):

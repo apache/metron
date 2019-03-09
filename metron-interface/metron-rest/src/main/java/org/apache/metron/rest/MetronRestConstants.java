@@ -80,6 +80,8 @@ public class MetronRestConstants {
   public static final String USER_SETTINGS_HBASE_CF_SPRING_PROPERTY = "user.settings.cf";
   public static final String USER_JOB_LIMIT_SPRING_PROPERTY = "user.job.limit";
 
+  public static final String ENRICHMENT_LIST_TABLE = "enrichment.list.tableName";
+
   public static final String LOGGING_SYSTEM_PROPERTY = "org.springframework.boot.logging.LoggingSystem";
 
   public static final String PCAP_BASE_PATH_SPRING_PROPERTY = "pcap.base.path";

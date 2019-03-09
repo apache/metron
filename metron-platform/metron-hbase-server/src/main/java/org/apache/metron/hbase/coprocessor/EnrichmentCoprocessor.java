@@ -46,7 +46,9 @@ import org.slf4j.LoggerFactory;
 /**
  * Handle collecting a list of enrichment coprocessors.
  * <p>
- * Configuration supplied via hbase-site.xml.
+ * Configuration supplied via Metron global config from Zookeeper. Requires one property on startup
+ * - "zookeeperUrl" - which can be provided via HBase shell or hbase-site.xml. The typical installation
+ * mechanism provided by Metron will leverage the HBase shell.
  * <p>
  * <b>Note:</b> We need to be careful of our exception handling so as not to inadvertantly get our
  * coprocessor disabled by the RegionServer. From the HBase documentation:

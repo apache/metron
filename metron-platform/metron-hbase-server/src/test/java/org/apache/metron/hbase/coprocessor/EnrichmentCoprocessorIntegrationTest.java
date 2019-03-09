@@ -21,6 +21,7 @@ package org.apache.metron.hbase.coprocessor;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,6 +47,7 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.hbase.helper.HelperDao;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.AfterClass;
@@ -56,22 +58,26 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
 
   private static final String ENRICHMENT_TABLE = "enrichment";
   private static final String ENRICHMENT_LIST_TABLE = "enrichment_list";
-  private static final String CF = "c";
+  private static final String COLUMN_FAMILY = "c";
 
   private static Level originalLog4jRootLoggerLevel;
   private static java.util.logging.Level originalJavaLoggerLevel;
   private static ZKServerComponent zookeeperComponent;
-  private static ComponentRunner runner;
+  private static ComponentRunner componentRunner;
   private static HBaseTestingUtility testUtil;
   private static HTable enrichmentTable;
   private static HTable enrichmentListTable;
   private static Configuration hBaseConfig;
 
+  /*
+   * Test Setup
+   */
+
   /**
    * {
-   *    "enrichment.list.tableProvider" : "org.apache.metron.hbase.HTableProvider",
-   *    "enrichment.list.tableName" : "%TABLE_NAME%",
-   *    "enrichment.list.columnFamily" : "%COLUMN_FAMILY%"
+   *    "enrichment.list.hbase.provider.impl" : "org.apache.metron.hbase.HTableProvider",
+   *    "enrichment.list.hbase.table" : "%TABLE_NAME%",
+   *    "enrichment.list.hbase.cf" : "%COLUMN_FAMILY%"
    * }
    */
   @Multiline
@@ -80,52 +86,18 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
   @BeforeClass
   public static void setupAll() throws Exception {
     silenceLogging();
-    Properties zkProperties = new Properties();
-    zookeeperComponent = getZKServerComponent(zkProperties);
-    runner = new ComponentRunner.Builder()
-        .withComponent("zk", zookeeperComponent)
-        .withMillisecondsBetweenAttempts(15000)
-        .withNumRetries(10)
-        .build();
-    runner.start();
+    // don't need the properties for anything else now, but could extract var if desired.
+    startZookeeper(new Properties());
     globalConfig = globalConfig.replace("%TABLE_NAME%", ENRICHMENT_LIST_TABLE)
-        .replace("%COLUMN_FAMILY%", CF);
-    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(StandardCharsets.UTF_8),
-        zookeeperComponent.getConnectionString());
-    Configuration extraConfig = new Configuration();
-    extraConfig.set(EnrichmentCoprocessor.ZOOKEEPER_URL, zookeeperComponent.getConnectionString());
-    Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true, extraConfig);
-    testUtil = kv.getKey();
-    hBaseConfig = kv.getValue();
-    enrichmentTable = testUtil.createTable(Bytes.toBytes(ENRICHMENT_TABLE), Bytes.toBytes(CF));
-    enrichmentListTable = testUtil
-        .createTable(Bytes.toBytes(ENRICHMENT_LIST_TABLE), Bytes.toBytes(CF));
-
-    for (Result r : enrichmentTable.getScanner(Bytes.toBytes(CF))) {
-      Delete d = new Delete(r.getRow());
-      enrichmentTable.delete(d);
-    }
-    for (Result r : enrichmentListTable.getScanner(Bytes.toBytes(CF))) {
-      Delete d = new Delete(r.getRow());
-      enrichmentListTable.delete(d);
-    }
-
-    // https://hbase.apache.org/1.1/book.html#cp_loading
-    Admin hbaseAdmin = testUtil.getConnection().getAdmin();
-    TableName tableName = enrichmentTable.getName();
-    hbaseAdmin.disableTable(tableName);
-    HTableDescriptor htd = new HTableDescriptor(tableName);
-    htd.addFamily(new HColumnDescriptor(CF));
-    for (int j = 1; j <= 2; j++) {
-      String colFamily = "cf-" + j;
-      HColumnDescriptor colDesc = new HColumnDescriptor(colFamily);
-      htd.addFamily(colDesc);
-    }
-    htd.addCoprocessor(EnrichmentCoprocessor.class.getCanonicalName());
-    hbaseAdmin.modifyTable(tableName, htd);
-    hbaseAdmin.enableTable(tableName);
+        .replace("%COLUMN_FAMILY%", COLUMN_FAMILY);
+    uploadGlobalConfigToZK(globalConfig);
+    configureAndStartHBase();
+    addCoprocessor(enrichmentTable.getName());
   }
 
+  /**
+   * log4j and java logging set to ERROR, SEVERE respectively.
+   */
   private static void silenceLogging() {
     originalLog4jRootLoggerLevel = UnitTestHelper.getLog4jLevel();
     originalJavaLoggerLevel = UnitTestHelper.getJavaLoggingLevel();
@@ -138,10 +110,66 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
     UnitTestHelper.setJavaLoggingLevel(java.util.logging.Level.SEVERE);
   }
 
+  /**
+   * Starts zookeeper.
+   * @param properties the zk setup will modify properties arg with the setup detail.
+   * @throws UnableToStartException zk fails to start.
+   */
+  private static void startZookeeper(Properties properties) throws UnableToStartException {
+    zookeeperComponent = getZKServerComponent(properties);
+    componentRunner = new ComponentRunner.Builder()
+        .withComponent("zk", zookeeperComponent)
+        .withMillisecondsBetweenAttempts(15000)
+        .withNumRetries(10)
+        .build();
+    componentRunner.start();
+  }
+
+  private static void uploadGlobalConfigToZK(String config) throws Exception {
+    ConfigurationsUtils.writeGlobalConfigToZookeeper(config.getBytes(StandardCharsets.UTF_8),
+        zookeeperComponent.getConnectionString());
+  }
+
+  /**
+   * Start HBase.
+   * Create enrichment and enrichment list tables.
+   */
+  private static void configureAndStartHBase() throws Exception {
+    Configuration extraConfig = new Configuration();
+    extraConfig.set(EnrichmentCoprocessor.ZOOKEEPER_URL, zookeeperComponent.getConnectionString());
+    Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true, extraConfig);
+    testUtil = kv.getKey();
+    hBaseConfig = kv.getValue();
+    enrichmentTable = testUtil.createTable(Bytes.toBytes(ENRICHMENT_TABLE), Bytes.toBytes(
+        COLUMN_FAMILY));
+    enrichmentListTable = testUtil
+        .createTable(Bytes.toBytes(ENRICHMENT_LIST_TABLE), Bytes.toBytes(COLUMN_FAMILY));
+
+    for (Result r : enrichmentTable.getScanner(Bytes.toBytes(COLUMN_FAMILY))) {
+      Delete d = new Delete(r.getRow());
+      enrichmentTable.delete(d);
+    }
+    for (Result r : enrichmentListTable.getScanner(Bytes.toBytes(COLUMN_FAMILY))) {
+      Delete d = new Delete(r.getRow());
+      enrichmentListTable.delete(d);
+    }
+  }
+
+  private static void addCoprocessor(TableName tableName) throws IOException {
+    // https://hbase.apache.org/1.1/book.html#cp_loading
+    Admin hbaseAdmin = testUtil.getConnection().getAdmin();
+    hbaseAdmin.disableTable(tableName);
+    HTableDescriptor htd = new HTableDescriptor(tableName);
+    htd.addFamily(new HColumnDescriptor(COLUMN_FAMILY));
+    htd.addCoprocessor(EnrichmentCoprocessor.class.getCanonicalName());
+    hbaseAdmin.modifyTable(tableName, htd);
+    hbaseAdmin.enableTable(tableName);
+  }
+
   @AfterClass
   public static void teardown() throws Exception {
     HBaseUtil.INSTANCE.teardown(testUtil);
-    runner.stop();
+    componentRunner.stop();
     resetLogging();
   }
 
@@ -149,6 +177,10 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
     UnitTestHelper.setLog4jLevel(originalLog4jRootLoggerLevel);
     UnitTestHelper.setJavaLoggingLevel(originalJavaLoggerLevel);
   }
+
+  /*
+   * Tests
+   */
 
   @Test
   public void enrichments_loaded_in_list_table() throws Exception {
@@ -166,7 +198,7 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
       String indicator = enrichKV.getKey();
       String type = enrichKV.getValue();
       expectedEnrichmentTypes.add(type);
-      HelperDao.insertRecord(enrichmentTable, new EnrichmentKey(type, indicator), CF,
+      HelperDao.insertRecord(enrichmentTable, new EnrichmentKey(type, indicator), COLUMN_FAMILY,
           "{ \"apache\" : \"metron\" }");
     }
     List<String> enrichmentsList = HelperDao.readRecords(enrichmentListTable);
