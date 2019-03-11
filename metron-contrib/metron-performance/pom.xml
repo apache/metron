@@ -27,12 +27,14 @@
   </parent>
   <description>Performance Testing Utilities</description>
   <url>https://metron.apache.org/</url>
-
+  <properties>
+    <guava_version>${global_guava_version}</guava_version>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${global_guava_version}</version>
+      <version>${guava_version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.metron</groupId>
@@ -87,8 +89,8 @@
               </filters>
               <relocations>
                 <relocation>
-                  <pattern>com.google.common</pattern>
-                  <shadedPattern>org.apache.metron.perf.guava</shadedPattern>
+                    <pattern>com.google.common</pattern>
+                    <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>

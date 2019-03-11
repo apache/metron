@@ -4,5 +4,7 @@
   "video": false,
   "supportFile": false,
   "pluginsFile": false,
-  "baseUrl": "http://localhost:4200"
+  "baseUrl": "http://localhost:4200",
+  "defaultCommandTimeout": 30000,
+  "requestTimeout": 30000
 }
