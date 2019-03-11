@@ -71,15 +71,17 @@ No optional parameter has a default.
 | HDFS_URL                              | HDFS url or `fs.defaultFS` Hadoop setting (ex. hdfs://node1:8020)
 
 ### Optional - With Defaults
-| Environment Variable                  | Description                                                       | Required | Default
-| ------------------------------------- | ----------------------------------------------------------------- | -------- | -------
-| METRON_LOG_DIR                        | Directory where the log file is written                           | Optional | /var/log/metron/
-| METRON_PID_FILE                       | File where the pid is written                                     | Optional | /var/run/metron/
-| METRON_REST_PORT                      | REST application port                                             | Optional | 8082
-| METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled
-| METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp
-| METRON_DEFAULT_GROK_PATH              | Defaults HDFS directory used to store grok statements             | Optional | /apps/metron/patterns
-| SECURITY_ENABLED                      | Enables Kerberos support                                          | Optional | false
+| Environment Variable                  | Description                                                                          | Required | Default
+| ------------------------------------- | ------------------------------------------------------------------------------------ | -------- | -------
+| METRON_LOG_DIR                        | Directory where the log file is written                                              | Optional | /var/log/metron/
+| METRON_PID_FILE                       | File where the pid is written                                                        | Optional | /var/run/metron/
+| METRON_REST_PORT                      | REST application port                                                                | Optional | 8082
+| METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                                              | Optional | H2 is bundled
+| METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                                     | Optional | ./patterns/temp
+| METRON_DEFAULT_GROK_PATH              | Defaults HDFS directory used to store grok statements                                | Optional | /apps/metron/patterns
+| SECURITY_ENABLED                      | Enables Kerberos support                                                             | Optional | false
+| METRON_USER_ROLE                      | Name of the role at the authentication provider that provides user access to Metron. | Optional | USER
+| METRON_ADMIN_ROLE                     | Name of the role at the authentication provider that provides administrative access to Metron.| Optional | ADMIN
 
 ### Optional - Blank Defaults
 | Environment Variable                  | Description                                                       | Required
@@ -206,9 +208,11 @@ There is configuration to provide a path to a truststore with SSL certificates a
 keytool -import -alias <alias> -file <certificate> -keystore <keystore_file> -storepass <password>
 ```
 
-
 #### Roles
-Roles used by Metron are ROLE_ADMIN and ROLE_USER. Metron will use a property in a group containing the appropriate role to construct this.
+
+Roles used by Metron are `ROLE_ADMIN` and `ROLE_USER`. Metron will use a property in a group containing the appropriate role to construct this.
+
+Metron can be configured to map the roles defined in your authorization provider to the authorities used internally for access control.  This can be configured under Security > Roles in Ambari.
 
 For example, our ldif file could create this group:
 ```
