@@ -29,8 +29,18 @@
   text-overflow: ellipsis;
 }
 
+.table-config {
+  overflow-y: scroll;
+
+  .main-column {
+    text-transform: uppercase;
+    font-size: 1.1rem;
+  }
+}
+
 .table th, .table td {
   padding: 0.6rem 0.25rem;
+  text-overflow: ellipsis;
 }
 
 .up:before {
