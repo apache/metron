@@ -17,7 +17,7 @@
  */
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import {Router, ActivatedRoute} from '@angular/router';
-import {forkJoin as observableForkJoin, fromEvent} from 'rxjs';
+import {forkJoin as observableForkJoin, fromEvent, Observable, of, Subject} from 'rxjs';
 
 import {ConfigureTableService} from '../../service/configure-table.service';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
@@ -26,6 +26,7 @@ import {ColumnNamesService} from '../../service/column-names.service';
 import {ColumnNames} from '../../model/column-names';
 import {SearchService} from '../../service/search.service';
 import { debounceTime } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -55,6 +56,9 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
   allColumns: ColumnMetadataWrapper[] = [];
   filteredColumns: ColumnMetadataWrapper[] = [];
   columnHeaders: string;
+  allColumns$: Subject<ColumnMetadataWrapper[]> = new Subject<ColumnMetadataWrapper[]>();
+  visibleColumns$: Observable<ColumnMetadataWrapper[]>;
+  availableColumns$: Observable<ColumnMetadataWrapper[]>;
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute,
               private configureTableService: ConfigureTableService,
@@ -92,7 +96,19 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
       this.configureTableService.getTableMetadata()
     ).subscribe((response: any) => {
       this.prepareData(response[0], response[1], response[2].tableColumns);
+      // TODO eliminate original impl, refactore this
+      // column data need to be prepared by this.prepareData
+      this.allColumns$.next(this.allColumns);
     });
+
+    this.visibleColumns$ = this.allColumns$
+      .pipe(
+        map(columns => columns.filter(column => column.selected))
+      );
+    this.availableColumns$ = this.allColumns$
+      .pipe(
+        map(columns => columns.filter(column => !column.selected))
+      );
   }
 
   ngAfterViewInit() {
