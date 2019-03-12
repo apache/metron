@@ -96,22 +96,40 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    fromEvent(this.filterColResults.nativeElement, 'keyup').pipe(debounceTime(250)).subscribe(e => {
-      this.filterColumns(e['target'].value);
-    });
+    fromEvent(this.filterColResults.nativeElement, 'keyup')
+      .pipe(debounceTime(250))
+      .subscribe(e => {
+        this.filterColumns(e['target'].value);
+      });
   }
 
   filterColumns(val) {
     const words = val.trim().split(' ');
     this.filteredColumns = this.allColumns.filter(col => {
       if (typeof col.displayName === 'undefined') {
-        if (words.map(word => col.columnMetadata.name.toLowerCase().includes(word.toLowerCase())).includes(false)) {
+        if (
+          words
+            .map(word =>
+              col.columnMetadata.name.toLowerCase().includes(word.toLowerCase())
+            )
+            .includes(false)
+        ) {
           return false;
-        } else { return true; }
+        } else {
+          return true;
+        }
       } else {
-        if (words.map(word => col.displayName.toLowerCase().includes(word.toLowerCase())).includes(false)) {
+        if (
+          words
+            .map(word =>
+              col.displayName.toLowerCase().includes(word.toLowerCase())
+            )
+            .includes(false)
+        ) {
           return false;
-        } else { return true; }
+        } else {
+          return true;
+        }
       }
     });
   }
