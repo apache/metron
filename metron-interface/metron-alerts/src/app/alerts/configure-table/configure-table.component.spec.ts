@@ -109,24 +109,42 @@ describe('ConfigureTableComponent', () => {
   });
 
   it('should filter available columns when input is present', fakeAsync(() =>  {
-    let filter   = fixture.nativeElement.querySelector('[data-qe-id="filter-input"]');
-    let filterEl = filter;
+    const filter = fixture.nativeElement.querySelector('[data-qe-id="filter-input"]');
 
     component.ngOnInit();
     component.ngAfterViewInit();
     expect(component.filteredColumns.length).toBe(18);
 
-    filterEl.value = 'guid';
-    filterEl.dispatchEvent(new Event('keyup'));
+    filter.value = 'guid';
+    filter.dispatchEvent(new Event('keyup'));
     tick(300);
     fixture.detectChanges();
     expect(component.filteredColumns.length).toBe(1);
     expect(component.filteredColumns[0].columnMetadata.name).toBe('guid');
 
-    filterEl.value = '';
-    filterEl.dispatchEvent(new Event('keyup'));
+    filter.value = '';
+    filter.dispatchEvent(new Event('keyup'));
     tick(300);
     fixture.detectChanges();
+    expect(component.filteredColumns.length).toBe(18);
+  }));
+
+  it('should reset filter input and available columns when clear button is clicked', fakeAsync(() => {
+    const filter = fixture.nativeElement.querySelector('[data-qe-id="filter-input"]');
+    const filterReset = fixture.nativeElement.querySelector('[data-qe-id="filter-reset"]');
+
+    component.ngOnInit();
+    component.ngAfterViewInit();
+
+    filter.value = 'guid';
+    filter.dispatchEvent(new Event('keyup'));
+    tick(300);
+    fixture.detectChanges();
+    expect(component.filteredColumns.length).toBe(1);
+
+    filterReset.dispatchEvent(new Event('click'));
+    fixture.detectChanges();
+    expect(filter.value).toBe('');
     expect(component.filteredColumns.length).toBe(18);
   }));
 
