@@ -385,6 +385,7 @@ org.springframework.boot:spring-boot-starter-jdbc:jar:2.0.1.RELEASE:compile,ASLv
 org.springframework.boot:spring-boot-starter-json:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-logging:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-logging:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-starter-log4j2:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-security:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-security:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-tomcat:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot

@@ -17,15 +17,23 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import org.apache.metron.common.configuration.SensorParserGroup;
+import org.apache.metron.parsers.topology.ParserTopologyCLI;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.TopologyResponse;
+import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.model.TopologyStatusCode;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorParserConfigService;
+import org.apache.metron.rest.service.SensorParserGroupService;
 import org.apache.metron.rest.service.StormAdminService;
+import org.apache.metron.rest.service.StormStatusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -37,14 +45,29 @@ public class StormAdminServiceImpl implements StormAdminService {
 
     private SensorParserConfigService sensorParserConfigService;
 
+    private SensorParserGroupService sensorParserGroupService;
+
+    private StormStatusService stormStatusService;
+
     @Autowired
-    public StormAdminServiceImpl(StormCLIWrapper stormCLIClientWrapper, GlobalConfigService globalConfigService, SensorParserConfigService sensorParserConfigService) {
+    public StormAdminServiceImpl(StormCLIWrapper stormCLIClientWrapper,
+                                 GlobalConfigService globalConfigService,
+                                 SensorParserConfigService sensorParserConfigService,
+                                 SensorParserGroupService sensorParserGroupService,
+                                 StormStatusService stormStatusService) {
         this.stormCLIClientWrapper = stormCLIClientWrapper;
         this.globalConfigService = globalConfigService;
         this.sensorParserConfigService = sensorParserConfigService;
+        this.sensorParserGroupService = sensorParserGroupService;
+        this.stormStatusService = stormStatusService;
     }
 
-
+    /**
+     * Starts a parser topology.  The name should either be a sensor name or group name in the case of aggregate parser topologies.
+     * @param name SensorParserConfig or SensorParserGroup name
+     * @return ToplogyResponse
+     * @throws RestException Global Config or SensorParserConfigs not found or starting the topology resulted in an error.
+     */
     @Override
     public TopologyResponse startParserTopology(String name) throws RestException {
         TopologyResponse topologyResponse = new TopologyResponse();
@@ -53,7 +76,12 @@ public class StormAdminServiceImpl implements StormAdminService {
             return topologyResponse;
         }
 
-        String[] sensorTypes = name.split(",");
+        List<String> sensorTypes = Collections.singletonList(name);
+        // If name is a group then look up sensors to build the actual topology name
+        SensorParserGroup sensorParserGroup = sensorParserGroupService.findOne(name);
+        if (sensorParserGroup != null) {
+          sensorTypes = new ArrayList<>(sensorParserGroup.getSensors());
+        }
         for (String sensorType : sensorTypes) {
             if (sensorParserConfigService.findOne(sensorType.trim()) == null) {
                 topologyResponse
@@ -62,16 +90,28 @@ public class StormAdminServiceImpl implements StormAdminService {
             }
         }
 
+        // sort the sensor types so the topology name is consistent
+        Collections.sort(sensorTypes);
         return createResponse(
-            stormCLIClientWrapper.startParserTopology(name),
+            stormCLIClientWrapper.startParserTopology(String.join(ParserTopologyCLI.TOPOLOGY_OPTION_SEPARATOR, sensorTypes)),
                 TopologyStatusCode.STARTED,
                 TopologyStatusCode.START_ERROR
         );
     }
 
+    /**
+     * Stops a parser topology.  The name should either be a sensor name or group name in the case of aggregate parser topologies.
+     * @param name SensorParserConfig or SensorParserGroup name
+     * @param stopNow Stop the topology immediately
+     * @return ToplogyResponse
+     * @throws RestException Stopping the topology resulted in an error.
+     */
     @Override
     public TopologyResponse stopParserTopology(String name, boolean stopNow) throws RestException {
-        return createResponse(stormCLIClientWrapper.stopParserTopology(name.replaceAll(",", "__"), stopNow), TopologyStatusCode.STOPPED, TopologyStatusCode.STOP_ERROR);
+        // Supplied name could be a group so get the actual job name from Storm
+        TopologyStatus topologyStatus = stormStatusService.getTopologyStatus(name);
+        String jobName = topologyStatus != null ? topologyStatus.getName() : name;
+        return createResponse(stormCLIClientWrapper.stopParserTopology(jobName, stopNow), TopologyStatusCode.STOPPED, TopologyStatusCode.STOP_ERROR);
     }
 
     @Override

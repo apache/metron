@@ -15,21 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest;
+package org.apache.metron.rest.service;
 
-import org.apache.metron.rest.util.ParserIndex;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
+import org.apache.metron.common.configuration.SensorParserGroup;
+import org.apache.metron.rest.RestException;
 
-@SpringBootApplication
-@EnableAutoConfiguration(exclude = { GsonAutoConfiguration.class, KafkaAutoConfiguration.class })
-public class MetronRestApplication {
+import java.util.Collection;
+import java.util.Map;
 
-  public static void main(String[] args) {
-    ParserIndex.reload();
-    SpringApplication.run(MetronRestApplication.class, args);
-  }
+/**
+ * Exposes CRUD operations for SensorParserGroup objects stored in Zookeeper.  An array of SensorParserGroups are stored
+ * in the Global Config using the 'parser.groups' key.
+ */
+public interface SensorParserGroupService {
+
+  SensorParserGroup save(SensorParserGroup sensorParserGroup) throws RestException;
+
+  SensorParserGroup findOne(String name);
+
+  Map<String, SensorParserGroup> getAll();
+
+  boolean delete(String name) throws RestException;
 }

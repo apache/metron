@@ -18,17 +18,24 @@
 package org.apache.metron.rest.service.impl;
 
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.configuration.SensorParserGroup;
 import org.apache.metron.rest.model.TopologyResponse;
+import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.model.TopologyStatusCode;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorParserConfigService;
+import org.apache.metron.rest.service.SensorParserGroupService;
 import org.apache.metron.rest.service.StormAdminService;
+import org.apache.metron.rest.service.StormStatusService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -44,13 +51,17 @@ public class StormAdminServiceImplTest {
   StormAdminService stormAdminService;
   GlobalConfigService globalConfigService;
   SensorParserConfigService sensorParserConfigService;
+  SensorParserGroupService sensorParserGroupService;
+  StormStatusService stormStatusService;
 
   @Before
   public void setUp() throws Exception {
     stormCLIClientWrapper = mock(StormCLIWrapper.class);
     globalConfigService = mock(GlobalConfigService.class);
     sensorParserConfigService = mock(SensorParserConfigService.class);
-    stormAdminService = new StormAdminServiceImpl(stormCLIClientWrapper, globalConfigService, sensorParserConfigService);
+    sensorParserGroupService = mock(SensorParserGroupService.class);
+    stormStatusService = mock(StormStatusService.class);
+    stormAdminService = new StormAdminServiceImpl(stormCLIClientWrapper, globalConfigService, sensorParserConfigService, sensorParserGroupService, stormStatusService);
   }
 
   @Test
@@ -62,6 +73,28 @@ public class StormAdminServiceImplTest {
     TopologyResponse expected = new TopologyResponse();
     expected.setSuccessMessage(TopologyStatusCode.STARTED.toString());
     TopologyResponse actual = stormAdminService.startParserTopology("bro");
+
+    assertEquals(expected, actual);
+    assertEquals(expected.hashCode(), actual.hashCode());
+  }
+
+  @Test
+  public void startParserTopologyByGroupShouldProperlyReturnSuccessTopologyResponse() throws Exception {
+    SensorParserGroup group = new SensorParserGroup();
+    group.setName("group");
+    group.setSensors(new HashSet<String>() {{
+      add("bro");
+      add("snort");
+    }});
+    when(sensorParserGroupService.findOne("group")).thenReturn(group);
+    when(stormCLIClientWrapper.startParserTopology("bro,snort")).thenReturn(0);
+    when(globalConfigService.get()).thenReturn(new HashMap<String, Object>());
+    when(sensorParserConfigService.findOne("bro")).thenReturn(new SensorParserConfig());
+    when(sensorParserConfigService.findOne("snort")).thenReturn(new SensorParserConfig());
+
+    TopologyResponse expected = new TopologyResponse();
+    expected.setSuccessMessage(TopologyStatusCode.STARTED.toString());
+    TopologyResponse actual = stormAdminService.startParserTopology("group");
 
     assertEquals(expected, actual);
     assertEquals(expected.hashCode(), actual.hashCode());
@@ -90,9 +123,10 @@ public class StormAdminServiceImplTest {
 
   @Test
   public void stopParserTopologyShouldProperlyReturnErrorTopologyResponse() throws Exception {
+    TopologyStatus topologyStatus = new TopologyStatus();
+    topologyStatus.setName("bro");
     when(stormCLIClientWrapper.stopParserTopology("bro", false)).thenReturn(1);
-    when(globalConfigService.get()).thenReturn(new HashMap<String, Object>());
-    when(sensorParserConfigService.findOne("bro")).thenReturn(new SensorParserConfig());
+    when(stormStatusService.getTopologyStatus("bro")).thenReturn(topologyStatus);
 
     TopologyResponse expected = new TopologyResponse();
     expected.setErrorMessage(TopologyStatusCode.STOP_ERROR.toString());
