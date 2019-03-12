@@ -12,7 +12,7 @@
   the specific language governing permissions and limitations under the License.
   -->
 <div class="metron-slider-pane-editable load-right-to-left dialog2x">
-  <div class="container-fluid mh-100 h-100 overflow-auto">
+  <div class="container-fluid mh-100 h-100">
     <div class="row mb-3">
       <div class="col-md-12">
         <div class="d-flex pb-3">
@@ -27,8 +27,9 @@
         </div>
       </div>
     </div>
-    <div class="table-config row mx-0 mh-100 h-100">
+    <div class="table-config row mx-0 mh-100 h-100 overflow-auto">
 
+<<<<<<< HEAD
       <table class="table">
         <thead>
           <tr>
@@ -95,6 +96,74 @@
           </tr>
         </tbody>
       </table>
+=======
+        <table class="table">
+            <thead>
+              <tr>
+                <th class="main-column"> Visible </th>
+                <th> Short Name </th>
+                <th> Type  </th>
+                <th> </th>
+                <th> </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="background-tiber">
+                <td>
+                  <input #selectColName id="select-deselect-score" class="fontawesome-checkbox"
+                  type="checkbox" [checked]="true" disabled><label for="select-deselect-score"></label>&nbsp;
+                  <span> Score </span>
+                </td>
+                <td> </td>
+                <td> <span> STRING </span></td>
+                <td> - </td>
+                <td> - </td>
+              </tr>
+              <tr *ngFor="let column of visibleColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+                <td #element>
+                  <input #selectColName id="select-deselect-{{ column.columnMetadata.name }}" class="fontawesome-checkbox" type="checkbox"
+                    [checked]="column.selected" (click)="onColumnRemoved(column)">
+                  <label for="select-deselect-{{ column.columnMetadata.name }}"></label>&nbsp;
+                  <span [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
+                </td>
+                <td>
+                  <input class="input" placeholder="rename" [(ngModel)]="column.displayName">
+                </td>
+                <td>
+                  <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
+                </td>
+                <td>
+                  <span id="up-{{ column.columnMetadata.name }}" class="up" (click)="swapUp(i)" [ngClass]="{'disabled': i === 0}"></span>
+                </td>
+                <td>
+                  <span id="down-{{ column.columnMetadata.name }}" class="down" (click)="swapDown(i)" [ngClass]="{'disabled': i + 1 === visibleColumns.length}"></span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table class="table">
+              <thead>
+                <tr>
+                  <th class="main-column"> Available </th>
+                  <th> Type  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let column of availableColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+                  <td #element>
+                    <input #selectColName id="select-deselect-{{ column.columnMetadata.name }}" class="fontawesome-checkbox" type="checkbox"
+                      [checked]="column.selected" (click)="onColumnAdded(column)">
+                    <label for="select-deselect-{{ column.columnMetadata.name }}"></label>&nbsp;
+                    <span [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
+                  </td>
+                  <td>
+                    <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+>>>>>>> [table-config] aligning functionality to the DOM changes
 
     </div>
   </div>

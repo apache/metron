@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import {Router, ActivatedRoute} from '@angular/router';
-import {forkJoin as observableForkJoin, fromEvent, Observable, of, Subject} from 'rxjs';
+import { Router, ActivatedRoute } from '@angular/router';
+import { forkJoin as observableForkJoin, fromEvent, Observable, Subject } from 'rxjs';
 
 import {ConfigureTableService} from '../../service/configure-table.service';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
@@ -26,7 +26,6 @@ import {ColumnNamesService} from '../../service/column-names.service';
 import {ColumnNames} from '../../model/column-names';
 import {SearchService} from '../../service/search.service';
 import { debounceTime } from 'rxjs/operators';
-import { map } from 'rxjs/operators';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -59,6 +58,8 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
   allColumns$: Subject<ColumnMetadataWrapper[]> = new Subject<ColumnMetadataWrapper[]>();
   visibleColumns$: Observable<ColumnMetadataWrapper[]>;
   availableColumns$: Observable<ColumnMetadataWrapper[]>;
+  visibleColumns: ColumnMetadataWrapper[];
+  availableColumns: ColumnMetadataWrapper[];
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute,
               private configureTableService: ConfigureTableService,
@@ -95,20 +96,12 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
       this.searchService.getColumnMetaData(),
       this.configureTableService.getTableMetadata()
     ).subscribe((response: any) => {
-      this.prepareData(response[0], response[1], response[2].tableColumns);
+      const allColumns = this.prepareData(response[0], response[1], response[2].tableColumns);
       // TODO eliminate original impl, refactore this
       // column data need to be prepared by this.prepareData
-      this.allColumns$.next(this.allColumns);
+      this.visibleColumns = allColumns.filter(column => column.selected);
+      this.availableColumns = allColumns.filter(column => !column.selected);
     });
-
-    this.visibleColumns$ = this.allColumns$
-      .pipe(
-        map(columns => columns.filter(column => column.selected))
-      );
-    this.availableColumns$ = this.allColumns$
-      .pipe(
-        map(columns => columns.filter(column => !column.selected))
-      );
   }
 
   ngAfterViewInit() {
@@ -145,12 +138,12 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
   }
 
   /* Slight variation of insertion sort with bucketing the items in the display order*/
-  prepareData(defaultColumns: ColumnMetadata[], allColumns: ColumnMetadata[], savedColumns: ColumnMetadata[]) {
+  prepareData(defaultColumns: ColumnMetadata[], allColumns: ColumnMetadata[], savedColumns: ColumnMetadata[]): ColumnMetadataWrapper[] {
     let configuredColumns: ColumnMetadata[] = (savedColumns && savedColumns.length > 0) ?  savedColumns : defaultColumns;
     let configuredColumnNames: string[] = configuredColumns.map((mData: ColumnMetadata) => mData.name);
 
     allColumns = allColumns.filter((mData: ColumnMetadata) => configuredColumnNames.indexOf(mData.name) === -1);
-    allColumns = allColumns.sort((mData1: ColumnMetadata, mData2: ColumnMetadata) => { return mData1.name.localeCompare(mData2.name); });
+    allColumns = allColumns.sort(this.defaultColumnSorter);
 
     let sortedConfiguredColumns = JSON.parse(JSON.stringify(configuredColumns));
     sortedConfiguredColumns = sortedConfiguredColumns.sort((mData1: ColumnMetadata, mData2: ColumnMetadata) => {
@@ -168,11 +161,15 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
       allColumns.splice.apply(allColumns, [indexInAll, 0].concat(itemsToInsert));
     }
 
-    this.allColumns = allColumns.map(mData => {
+    return allColumns.map(mData => {
       return new ColumnMetadataWrapper(mData, configuredColumnNames.indexOf(mData.name) > -1,
                                         ColumnNamesService.columnNameToDisplayValueMap[mData.name]);
       });
     this.filteredColumns = this.allColumns;
+  }
+
+  private defaultColumnSorter(col1: ColumnMetadata, col2: ColumnMetadata): number {
+    return col1.name.localeCompare(col2.name);
   }
 
   postSave() {
@@ -181,21 +178,18 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
   }
 
   save() {
-    let selectedColumns = this.allColumns.filter((mDataWrapper: ColumnMetadataWrapper) => mDataWrapper.selected)
-                          .map((mDataWrapper: ColumnMetadataWrapper) => mDataWrapper.columnMetadata);
-
-    this.configureTableService.saveColumnMetaData(selectedColumns).subscribe(() => {
-      this.saveColumnNames();
-    }, error => {
-      console.log('Unable to save column preferences ...');
-      this.saveColumnNames();
-    });
-
-
+    this.configureTableService.saveColumnMetaData(
+      this.visibleColumns.map(columnMetaWrapper => columnMetaWrapper.columnMetadata))
+      .subscribe(() => {
+        this.saveColumnNames();
+      }, error => {
+        console.log('Unable to save column preferences ...');
+        this.saveColumnNames();
+      });
   }
 
   saveColumnNames() {
-    let columnNames = this.allColumns.map(mDataWrapper => {
+    let columnNames = this.visibleColumns.map(mDataWrapper => {
       return new ColumnNames(mDataWrapper.columnMetadata.name, mDataWrapper.displayName);
     });
 
@@ -207,19 +201,41 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
     });
   }
 
-  selectColumn(columns: ColumnMetadataWrapper) {
-    columns.selected = !columns.selected;
+  onColumnAdded(column: ColumnMetadataWrapper) {
+    this.markColumn(column);
+    this.swapList(column, this.availableColumns, this.visibleColumns);
+  }
+
+  onColumnRemoved(column: ColumnMetadataWrapper) {
+    this.markColumn(column);
+    this.swapList(column, this.visibleColumns, this.availableColumns);
+  }
+
+  private markColumn(column: ColumnMetadataWrapper) {
+    column.selected = !column.selected;
+  }
+
+  private swapList(column: ColumnMetadataWrapper,
+    source: ColumnMetadataWrapper[],
+    target: ColumnMetadataWrapper[]) {
+
+    target.push(column);
+    source.splice(source.indexOf(column), 1);
+
+    this.availableColumns.sort((colWrapper1: ColumnMetadataWrapper, colWrapper2: ColumnMetadataWrapper) => {
+      return this.defaultColumnSorter(colWrapper1.columnMetadata, colWrapper2.columnMetadata)
+    });
   }
 
   swapUp(index: number) {
     if (index > 0) {
-      [this.allColumns[index], this.allColumns[index - 1]] = [this.allColumns[index - 1], this.allColumns[index]];
+      [this.visibleColumns[index], this.visibleColumns[index - 1]] = [this.visibleColumns[index - 1], this.visibleColumns[index]];
     }
   }
 
   swapDown(index: number) {
-    if (index + 1 < this.allColumns.length) {
-      [this.allColumns[index], this.allColumns[index + 1]] = [this.allColumns[index + 1], this.allColumns[index]];
+    if (index + 1 < this.visibleColumns.length) {
+      [this.visibleColumns[index], this.visibleColumns[index + 1]] = [this.visibleColumns[index + 1], this.visibleColumns[index]];
     }
   }
 }
