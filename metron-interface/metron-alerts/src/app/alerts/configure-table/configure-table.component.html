@@ -57,7 +57,7 @@
               <span [attr.title]="columns.key"> {{ columns.columnMetadata.name | centerEllipses }} </span>
             </td>
             <td>
-              <input class="input" placeholder="rename" [(ngModel)]="columns.displayName">
+              <input class="input" attr.data-qe-id="display-name-{{ columns.columnMetadata.name }}" placeholder="rename" [(ngModel)]="columns.displayName">
             </td>
             <td>
               <span class="text-uppercase"> {{ columns.columnMetadata.type }} </span>
@@ -74,7 +74,7 @@
     </div>
   </div>
   <div class="container-fluid metron-floating-button-bar-2x">
-    <button type="submit" class="btn btn-all_ports" (click)="save()">SAVE</button>
+    <button type="submit" data-qe-id="save-table-config" class="btn btn-all_ports" (click)="save()">SAVE</button>
     <button class="btn btn-mine_shaft_2" (click)="goBack()">CANCEL</button>
   </div>
 </div>

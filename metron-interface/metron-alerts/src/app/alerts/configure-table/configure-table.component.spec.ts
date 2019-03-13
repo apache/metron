@@ -148,4 +148,20 @@ describe('ConfigureTableComponent', () => {
     expect(component.filteredColumns.length).toBe(18);
   }));
 
+  it('should filter by display name if display name is present', fakeAsync(() => {
+    const filter = fixture.nativeElement.querySelector('[data-qe-id="filter-input"]');
+
+    component.ngOnInit();
+    component.ngAfterViewInit();
+    expect(component.filteredColumns.length).toBe(18);
+
+    component.filteredColumns[0].displayName = 'Test Display Name';
+
+    filter.value = 'test';
+    filter.dispatchEvent(new Event('keyup'));
+    tick(300);
+    fixture.detectChanges();
+    expect(component.filteredColumns.length).toBe(1);
+  }));
+
 });
