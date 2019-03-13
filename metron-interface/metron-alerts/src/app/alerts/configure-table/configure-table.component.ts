@@ -106,14 +106,14 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
   filterColumns(val) {
     const words = val.trim().split(' ');
     this.filteredColumns = this.allColumns.filter(col => {
-      if (typeof col.displayName === 'undefined') {
-        if (this.colMissingFilterKeyword(words, col)) {
+      if (col.displayName) {
+        if (this.colMissingFilterKeyword(words, col, true)) {
           return false;
         } else {
           return true;
         }
       } else {
-        if (this.colMissingFilterKeyword(words, col, true)) {
+        if (this.colMissingFilterKeyword(words, col)) {
           return false;
         } else {
           return true;
@@ -123,10 +123,10 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
   }
 
   colMissingFilterKeyword(words, col, displayName = false) {
-    if (!displayName) {
-      return words.map(word => col.columnMetadata.name.toLowerCase().includes(word.toLowerCase())).includes(false);
-    } else {
+    if (displayName) {
       return words.map(word => col.displayName.toLowerCase().includes(word.toLowerCase())).includes(false);
+    } else {
+      return words.map(word => col.columnMetadata.name.toLowerCase().includes(word.toLowerCase())).includes(false);
     }
   }
 
