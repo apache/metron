@@ -198,11 +198,32 @@ METRON_SERVICE_KEYTAB="/etc/security/keytabs/metron.keytab"
 
 ### LDAP
 
-Metron REST can be configured to use LDAP for authentication and roles. Configuration can be performed via Ambari in the "Security" tab.
+Metron REST can be configured to use LDAP for authentication and roles. Use the following steps to enable LDAP.
 
-Configuration will default to matching Knox's Demo LDAP for convenience. This should only be used for development purposes. Manual instructions for setting up demo LDAP and finalizing configuration (e.g. setting up the user LDIF file) can be found in the [Development README](../../metron-deployment/development/README.md#knox-demo-ldap).
+1. In Ambari, go to Metron > Config > Security > Roles
+
+    * Set "User Role Name" to the name of the role at the authentication provider that provides user level access to Metron.
+
+    * Set "Admin Role Name" to the name of the role at the authentication provider that provides administrative access to Metron.
+
+1. In Ambari, go to Metron > Config > Security > LDAP
+
+    * Turn on LDAP using the toggle.
+
+    * Set "LDAP URL" to your LDAP instance. For example, `ldap://<host>:<port>`.
+
+    * Set "Bind User" to the name of the bind user.  For example, `cn=admin,dc=apache,dc=org`.
+
+    * Set the "Bind User Password"
+
+    * Other fields may be required depending on your LDAP configuration.
+
+1. Save the changes and restart the required services.
+
+By default, configuration will default to matching Knox's Demo LDAP for convenience. This should only be used for development purposes. Manual instructions for setting up demo LDAP and finalizing configuration (e.g. setting up the user LDIF file) can be found in the [Development README](../../metron-deployment/development/README.md#knox-demo-ldap).
 
 #### LDAPS
+
 There is configuration to provide a path to a truststore with SSL certificates and provide a password. Users should import certificates as needed to appropriate truststores.  An example of doing this is:
 ```
 keytool -import -alias <alias> -file <certificate> -keystore <keystore_file> -storepass <password>
@@ -280,12 +301,12 @@ REST will supply the script with raw pcap data through standard in and expects P
 Pcap query jobs can be configured for submission to a YARN queue.  This setting is exposed as the Spring property `pcap.yarn.queue` and can be set in the PCAP tab under Metron service -> Configs in Ambari.  If configured, the REST application will set the `mapreduce.job.queuename` Hadoop property to that value.
 It is highly recommended that a dedicated YARN queue be created and configured for Pcap queries to prevent a job from consuming too many cluster resources.  More information about setting up YARN queues can be found [here](https://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/CapacityScheduler.html#Setting_up_queues).
 
-Pcap query results are stored in HDFS.  The location of query results when run through the REST app is determined by a couple factors.  The root of Pcap query results defaults to `/apps/metron/pcap/output` but can be changed with the 
+Pcap query results are stored in HDFS.  The location of query results when run through the REST app is determined by a couple factors.  The root of Pcap query results defaults to `/apps/metron/pcap/output` but can be changed with the
 Spring property `pcap.final.output.path`.  Assuming the default Pcap query output directory, the path to a result page will follow this pattern:
 ```
 /apps/metron/pcap/output/{username}/MAP_REDUCE/{job id}/page-{page number}.pcap
 ```
-Over time Pcap query results will accumulate in HDFS.  Currently these results are not cleaned up automatically so cluster administrators should be aware of this and monitor them.  It is highly recommended that a process be put in place to 
+Over time Pcap query results will accumulate in HDFS.  Currently these results are not cleaned up automatically so cluster administrators should be aware of this and monitor them.  It is highly recommended that a process be put in place to
 periodically delete files and directories under the Pcap query results root.
 
 Users should also be mindful of date ranges used in queries so they don't produce result sets that are too large.  Currently there are no limits enforced on date ranges.
@@ -405,7 +426,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * alerts - The alerts to be escalated
   * Returns:
     * 200 - Alerts were escalated
-    
+
 ### `GET /api/v1/alerts/ui/settings`
   * Description: Retrieves the current user's settings
   * Returns:
@@ -595,21 +616,21 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * fixedPcapRequest - A Fixed Pcap Request which includes fixed filter fields like ip source address and protocol
   * Returns:
     * 200 - Returns a job status with job ID.
-    
+
 ### `POST /api/v1/pcap/query`
   * Description: Executes a Query Filter Pcap Query.
   * Input:
     * queryPcapRequest - A Query Pcap Request which includes Stellar query field
   * Returns:
     * 200 - Returns a job status with job ID.
-    
+
 ### `GET /api/v1/pcap`
   * Description: Gets a list of job statuses for Pcap query jobs that match the requested state.
   * Input:
     * state - Job state
   * Returns:
     * 200 - Returns a list of job statuses for jobs that match the requested state.  
- 
+
 ### `GET /api/v1/pcap/{jobId}`
   * Description: Gets job status for Pcap query job.
   * Input:
@@ -617,7 +638,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns a job status for the Job ID.
     * 404 - Job is missing.
-    
+
 ### `GET /api/v1/pcap/{jobId}/pdml`
   * Description: Gets Pcap Results for a page in PDML format.
   * Input:
@@ -626,7 +647,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns PDML in json format.
     * 404 - Job or page is missing.
-    
+
 ### `GET /api/v1/pcap/{jobId}/raw`
   * Description: Download Pcap Results for a page.
   * Input:
@@ -635,14 +656,14 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns Pcap as a file download.
     * 404 - Job or page is missing.
-    
+
 ### `DELETE /api/v1/pcap/kill/{jobId}`
   * Description: Kills running job.
   * Input:
     * jobId - Job ID of submitted job
   * Returns:
     * 200 - Kills passed job.
-    
+
 ### `GET /api/v1/pcap/{jobId}/config`
   * Description: Gets job configuration for Pcap query job.
   * Input:
@@ -809,7 +830,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns SensorParserConfig
     * 404 - SensorParserConfig is missing
-    
+
 ### `POST /api/v1/sensor/parser/group`
   * Description: Updates or creates a SensorParserGroup in Zookeeper
   * Input:
@@ -817,7 +838,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - SensorParserGroup updated. Returns saved SensorParserGroup
     * 201 - SensorParserGroup created. Returns saved SensorParserGroup
-    
+
 ### `GET /api/v1/sensor/parser/group/{name}`
   * Description: Retrieves a SensorParserGroup from Zookeeper
   * Input:
@@ -825,12 +846,12 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns SensorParserGroup
     * 404 - SensorParserGroup is missing
-    
+
 ### `GET /api/v1/sensor/parser/group`
   * Description: Retrieves all SensorParserGroups from Zookeeper
   * Returns:
     * 200 - Returns all SensorParserGroups
-    
+
 ### `DELETE /api/v1/sensor/parser/group/{name}`
   * Description: Deletes a SensorParserGroup from Zookeeper
   * Input:
@@ -1028,14 +1049,14 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Nothing
     * 404 - Document not found
-    
+
 ### `POST /api/v1/update/add/comment`
   * Description: Add a comment to an alert
   * Input:
     * request - Comment add request
   * Returns:
     * 200 - Returns the complete alert document with comments added.
-    
+
 ### `POST /api/v1/update/remove/comment`
   * Description: Remove a comment from an alert
   * Input:
