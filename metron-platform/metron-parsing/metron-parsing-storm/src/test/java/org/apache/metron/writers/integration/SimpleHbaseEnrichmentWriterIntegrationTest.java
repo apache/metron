@@ -37,7 +37,7 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
+import org.apache.metron.integration.components.ConfigUploadComponent;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.hbase.mock.MockHTable;

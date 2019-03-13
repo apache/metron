@@ -22,7 +22,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
-import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;

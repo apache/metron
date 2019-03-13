@@ -17,7 +17,7 @@
  */
 package org.apache.metron.enrichment.adapters.host;
 
-import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.cache.CacheKey;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;

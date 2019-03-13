@@ -17,7 +17,7 @@
  */
 package org.apache.metron.enrichment.parallel;
 
-import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 

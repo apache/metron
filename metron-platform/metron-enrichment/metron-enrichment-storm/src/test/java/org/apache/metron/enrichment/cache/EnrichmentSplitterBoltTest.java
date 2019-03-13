@@ -15,17 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.bolt;
+package org.apache.metron.enrichment.cache;
+
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
-import org.apache.metron.enrichment.configuration.Enrichment;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,11 +28,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.mockito.Mockito.when;
+import org.apache.metron.enrichment.configuration.Enrichment;
+import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
+import org.junit.Assert;
+import org.junit.Test;
 
 
 public class EnrichmentSplitterBoltTest extends BaseEnrichmentBoltTest {
+
+  private static final String enrichmentConfigPath = "../" + sampleSensorEnrichmentConfigPath;
 
   @Test
   public void test() throws ParseException, IOException {
@@ -59,7 +60,7 @@ public class EnrichmentSplitterBoltTest extends BaseEnrichmentBoltTest {
     EnrichmentSplitterBolt enrichmentSplitterBolt = new EnrichmentSplitterBolt("zookeeperUrl").withEnrichments(enrichments);
     enrichmentSplitterBolt.setCuratorFramework(client);
     enrichmentSplitterBolt.setZKCache(cache);
-    enrichmentSplitterBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
+    enrichmentSplitterBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(enrichmentConfigPath));
     enrichmentSplitterBolt.prepare(new HashMap<>(), topologyContext, outputCollector);
 
     String key = enrichmentSplitterBolt.getKey(tuple, sampleMessage);

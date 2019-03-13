@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 
-package org.apache.metron.enrichment.bolt;
+package org.apache.metron.enrichment.cache;
+
+import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -70,7 +72,6 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   private PerformanceLogger perfLog; // not static bc multiple bolts may exist in same worker
   private static final Logger LOG = LoggerFactory
           .getLogger(GenericEnrichmentBolt.class);
-  public static final String STELLAR_CONTEXT_CONF = "stellarContext";
   private static final String ERROR_STREAM = "error";
   private OutputCollector collector;
   private Context stellarContext;

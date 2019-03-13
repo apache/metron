@@ -15,8 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.bolt;
+package org.apache.metron.enrichment.cache;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
@@ -28,16 +36,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public class EnrichmentJoinBoltTest extends BaseEnrichmentBoltTest {
+
+  private static final String enrichmentConfigPath = "../" + sampleSensorEnrichmentConfigPath;
 
   /**
    * {
@@ -74,7 +75,7 @@ public class EnrichmentJoinBoltTest extends BaseEnrichmentBoltTest {
     EnrichmentJoinBolt enrichmentJoinBolt = new EnrichmentJoinBolt("zookeeperUrl");
     enrichmentJoinBolt.setCuratorFramework(client);
     enrichmentJoinBolt.setZKCache(cache);
-    enrichmentJoinBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
+    enrichmentJoinBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(enrichmentConfigPath));
     enrichmentJoinBolt.withMaxCacheSize(100);
     enrichmentJoinBolt.withMaxTimeRetain(10000);
     enrichmentJoinBolt.prepare(new HashMap<>(), topologyContext, outputCollector);

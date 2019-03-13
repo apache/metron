@@ -18,7 +18,7 @@
 package org.apache.metron.enrichment.adapters.host;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.cache.CacheKey;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;

@@ -577,7 +577,12 @@ perfLog.log(&quot;mark1&quot;);
 </pre></div></div>
 
 <p><b>Configuration</b></p>
-<p>The first argument to the logger is a java.util.function.Supplier&lt;Map&lt;String, Object&gt;&gt;. The offers flexibility in being able to provide multiple configuration &#x201c;suppliers&#x201d; depending on your individual usage requirements. The example above, taken from org.apache.metron.enrichment.bolt.GenericEnrichmentBolt, leverages the global config to dymanically provide configuration from Zookeeper. Any updates to the global config via Zookeeper are reflected live at runtime. Currently, the PerformanceLogger supports the following options:</p>
+<p>The first argument to the logger is a java.util.function.Supplier&lt;Map&lt;String, Object&gt;&gt;.
+  The offers flexibility in being able to provide multiple configuration &#x201c;suppliers&#x201d;
+  depending on your individual usage requirements. The example above, taken from
+  org.apache.metron.enrichment.cache.GenericEnrichmentBolt, leverages the global config to
+  dymanically provide configuration from Zookeeper. Any updates to the global config via Zookeeper
+  are reflected live at runtime. Currently, the PerformanceLogger supports the following options:</p>
 <table border="0" class="table table-striped">
 <thead>
 

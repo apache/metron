@@ -15,7 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.bolt;
+package org.apache.metron.enrichment.cache;
+
+import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
 
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
@@ -70,8 +72,6 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
   private PerformanceLogger perfLog; // not static bc multiple bolts may exist in same worker
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  public static final String STELLAR_CONTEXT_CONF = "stellarContext";
 
   /**
    * The number of threads in the threadpool.  One threadpool is created per process.

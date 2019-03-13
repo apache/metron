@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.bolt;
+package org.apache.metron.enrichment.cache;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.adrianwalker.multilinestring.Multiline;
@@ -41,7 +41,6 @@ import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;

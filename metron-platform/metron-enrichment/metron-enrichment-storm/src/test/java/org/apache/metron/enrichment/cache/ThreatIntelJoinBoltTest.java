@@ -15,9 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.bolt;
+package org.apache.metron.enrichment.cache;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
@@ -35,18 +45,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
+
+  private static final String enrichmentConfigPath = "../" + sampleSensorEnrichmentConfigPath;
 
   /**
    * {
@@ -161,7 +162,7 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
     threatIntelJoinBolt.setZKCache(cache);
 
     SensorEnrichmentConfig enrichmentConfig = JSONUtils.INSTANCE.load(
-            new FileInputStream(sampleSensorEnrichmentConfigPath), SensorEnrichmentConfig.class);
+            new FileInputStream(enrichmentConfigPath), SensorEnrichmentConfig.class);
     boolean withThreatTriage = threatTriageConfig != null;
     if (withThreatTriage) {
       try {
@@ -177,7 +178,7 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
     }
     threatIntelJoinBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, enrichmentConfig);
     HashMap<String, Object> globalConfig = new HashMap<>();
-    String baseDir = UnitTestHelper.findDir("GeoLite");
+    String baseDir = UnitTestHelper.findDir(new File("../metron-enrichment-common"), "GeoLite");
     File geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");
     globalConfig.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
     File asnHdfsFile = new File(new File(baseDir), "GeoLite2-ASN.tar.gz");

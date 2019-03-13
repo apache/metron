@@ -33,7 +33,7 @@ public class UnifiedEnrichmentIntegrationTest extends EnrichmentIntegrationTest 
    * @return The path to the topology properties template.
    */
   public String getTemplatePath() {
-    return "../metron-enrichment/src/main/config/enrichment-unified.properties.j2";
+    return "src/main/config/enrichment-unified.properties.j2";
   }
 
   /**
@@ -91,6 +91,6 @@ public class UnifiedEnrichmentIntegrationTest extends EnrichmentIntegrationTest 
 
   @Override
   public String fluxPath() {
-    return "../metron-enrichment/src/main/flux/enrichment/remote-unified.yaml";
+    return "src/main/flux/enrichment/remote-unified.yaml";
   }
 }

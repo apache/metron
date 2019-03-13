@@ -44,7 +44,7 @@ import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
+import org.apache.metron.integration.components.ConfigUploadComponent;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
@@ -91,14 +91,15 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public static final String threatIntelTableName = "threat_intel";
   public static final String enrichmentsTableName = "enrichments";
 
-  protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
+  protected String enrichmentConfigPath = "../" + TestConstants.SAMPLE_CONFIG_PATH;
+  protected String sampleParsedPath = "../" + TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   private final List<byte[]> inputMessages = getInputMessages(sampleParsedPath);
 
   private static File geoHdfsFile;
   private static File asnHdfsFile;
 
   protected String fluxPath() {
-    return "../metron-enrichment/src/main/flux/enrichment/remote-splitjoin.yaml";
+    return "src/main/flux/enrichment/remote-splitjoin.yaml";
   }
 
   private static List<byte[]> getInputMessages(String path){
@@ -119,7 +120,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
   @BeforeClass
   public static void setupOnce() throws ParseException {
-    String baseDir = UnitTestHelper.findDir("GeoLite");
+    String baseDir = UnitTestHelper.findDir(new File("../metron-enrichment-common"), "GeoLite");
     geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");
     asnHdfsFile = new File(new File(baseDir), "GeoLite2-ASN.tar.gz");
   }
@@ -130,7 +131,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
    * @return The path to the topology properties template.
    */
   public String getTemplatePath() {
-    return "../metron-enrichment/src/main/config/enrichment-splitjoin.properties.j2";
+    return "src/main/config/enrichment-splitjoin.properties.j2";
   }
 
   /**
@@ -185,7 +186,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }});
     String globalConfigStr = null;
     {
-      File globalConfig = new File(new File(TestConstants.SAMPLE_CONFIG_PATH), "global.json");
+      File globalConfig = new File(enrichmentConfigPath, "global.json");
       Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER);
       config.put(SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF, MockHBaseTableProvider.class.getName());
       config.put(SimpleHBaseEnrichmentFunctions.ACCESS_TRACKER_TYPE_CONF, "PERSISTENT_BLOOM");
@@ -198,7 +199,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
             .withGlobalConfig(globalConfigStr)
-            .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH);
+            .withEnrichmentConfigsPath(enrichmentConfigPath);
 
     //create MockHBaseTables
     final MockHTable trackerTable = (MockHTable) MockHBaseTableProvider.addToCache(trackerHBaseTableName, cf);

@@ -19,7 +19,7 @@ package org.apache.metron.enrichment.parallel;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.cache.CacheKey;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 

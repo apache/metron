@@ -17,7 +17,7 @@
  */
 package org.apache.metron.enrichment.adapters.jdbc;
 
-import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -20,7 +20,7 @@ package org.apache.metron.enrichment.adapters.host;
 
 import java.util.Map;
 
-import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.cache.CacheKey;
 import org.json.simple.JSONObject;
 
 @SuppressWarnings("serial")

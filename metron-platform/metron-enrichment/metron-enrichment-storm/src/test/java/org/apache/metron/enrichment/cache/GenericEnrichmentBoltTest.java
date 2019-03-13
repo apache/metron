@@ -15,9 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.bolt;
+package org.apache.metron.enrichment.cache;
+
+import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
 import org.apache.metron.TestConstants;
@@ -42,22 +57,10 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
+
+  private static final String sampleConfigPath = "../" + TestConstants.SAMPLE_CONFIG_PATH;
+  private static final String enrichmentConfigPath = "../" + sampleSensorEnrichmentConfigPath;
 
   protected class EnrichedMessageMatcher extends ArgumentMatcher<Values> {
 
@@ -161,10 +164,10 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     };
     genericEnrichmentBolt.setCuratorFramework(client);
     genericEnrichmentBolt.setZKCache(cache);
-    genericEnrichmentBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
+    genericEnrichmentBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(enrichmentConfigPath));
 
     HashMap<String, Object> globalConfig = new HashMap<>();
-    String baseDir = UnitTestHelper.findDir("GeoLite");
+    String baseDir = UnitTestHelper.findDir(new File("../metron-enrichment-common"), "GeoLite");
     File geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");
     globalConfig.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
     genericEnrichmentBolt.getConfigurations().updateGlobalConfig(globalConfig);
@@ -213,8 +216,8 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     reset(enrichmentAdapter);
 
     SensorEnrichmentConfig sensorEnrichmentConfig = SensorEnrichmentConfig.
-            fromBytes(ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(TestConstants.SAMPLE_CONFIG_PATH).get(sensorType));
-    sensorEnrichmentConfig.getConfiguration().put(GenericEnrichmentBolt.STELLAR_CONTEXT_CONF, genericEnrichmentBolt.getStellarContext());
+            fromBytes(ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(sampleConfigPath).get(sensorType));
+    sensorEnrichmentConfig.getConfiguration().put(STELLAR_CONTEXT_CONF, genericEnrichmentBolt.getStellarContext());
     CacheKey cacheKey1 = new CacheKey("field1", "value1", sensorEnrichmentConfig);
     CacheKey cacheKey2 = new CacheKey("field2", "value2", sensorEnrichmentConfig);
     genericEnrichmentBolt.cache.invalidateAll();

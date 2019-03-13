@@ -17,22 +17,18 @@
  */
 package org.apache.metron.enrichment.adapters.stellar;
 
-import static org.apache.metron.enrichment.bolt.GenericEnrichmentBolt.STELLAR_CONTEXT_CONF;
+import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
-
-import com.google.common.base.Joiner;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
-import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.utils.ConversionUtils;

@@ -15,24 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.integration.components;
+package org.apache.metron.integration.components;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.integration.InMemoryComponent;
-import org.apache.metron.integration.UnableToStartException;
-import org.apache.metron.integration.components.ZKServerComponent;
-import org.apache.zookeeper.KeeperException;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.getClient;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readSensorParserConfigFromZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.uploadConfigsToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeGlobalConfigToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeSensorParserConfigToZookeeper;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Consumer;
-import java.util.function.Function;
-
-import static org.apache.metron.common.configuration.ConfigurationsUtils.*;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.UnableToStartException;
 
 public class ConfigUploadComponent implements InMemoryComponent {
 
