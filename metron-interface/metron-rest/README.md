@@ -19,6 +19,14 @@ limitations under the License.
 
 This module provides a RESTful API for interacting with Metron.
 
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+* [Configuration](#configuration)
+* [Usage](#usage)
+* [Security](#security)
+* [API](#api)
+* [Testing](#testing)
+
 ## Prerequisites
 
 * A running Metron cluster
@@ -98,10 +106,130 @@ No optional parameter has a default.
 
 These are set in the `/etc/default/metron` file.
 
-## Database setup
+## Usage
+
+The REST application can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8082.
+
+### Logging
+
+Logging for the REST application can be configured in Ambari.  Log levels can be changed at the root, package and class level:
+
+1. Navigate to Services > Metron > Configs > REST and locate the `Metron Spring options` setting.
+
+1. Logging configuration is exposed through Spring properties as explained [here](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-logging).
+
+1. The root logging level defaults to ERROR but can be changed to INFO by adding `--logging.level.root=INFO` to the `Metron Spring options` setting.
+
+1. The Metron REST logging level can be changed to INFO by adding `--logging.level.org.apache.metron.rest=INFO`.
+
+1. HTTP request and response logging can be enabled by adding `--logging.level.org.springframework.web.filter.CommonsRequestLoggingFilter=DEBUG --logging.level.org.apache.metron.rest.web.filter.ResponseLoggingFilter=DEBUG`.
+
+### Spring Profiles
+
+The REST application comes with a few [Spring Profiles](http://docs.spring.io/autorepo/docs/spring-boot/current/reference/html/boot-features-profiles.html) to aid in testing and development.
+
+| Profile                  | Description                                   |
+| ------------------------ | --------------------------------------------- |
+| test                     | adds test users `[user, user1, user2, admin]` to the database with password "`password`". sets variables to in-memory services, only used for integration testing |
+| dev                      | adds test users `[user, user1, user2, admin]` to the database with password "`password`" |
+| vagrant                  | sets configuration variables to match the Metron vagrant environment |
+| docker                   | sets configuration variables to match the Metron docker environment |
+
+Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/default/metron` to configure the REST application for the Vagrant environment and add a test user:
+```
+METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
+```
+
+## Security
+
+* [Kerberos](#kerberos)
+* [LDAP Authentication](#ldap-authentication)
+* [JDBC Authentication](#jdbc-authentication)
+
+### Authentication
+
+### Kerberos
+
+Metron REST can be configured for a cluster with Kerberos enabled.  A client JAAS file is required for Kafka and Zookeeper and a Kerberos keytab for the metron user principal is required for all other services.  Configure these settings in the `/etc/default/metron` file:
+```
+SECURITY_ENABLED=true
+METRON_JVMFLAGS="-Djava.security.auth.login.config=$METRON_HOME/client_jaas.conf"
+METRON_PRINCIPAL_NAME="metron@EXAMPLE.COM"
+METRON_SERVICE_KEYTAB="/etc/security/keytabs/metron.keytab"
+```
+
+### LDAP Authentication
+
+Metron REST can be configured to use LDAP for authentication and roles. Use the following steps to enable LDAP.
+
+1. In Ambari, go to Metron > Config > Security > Roles
+
+    * Set "User Role Name" to the name of the role at the authentication provider that provides user level access to Metron.
+
+    * Set "Admin Role Name" to the name of the role at the authentication provider that provides administrative access to Metron.
+
+1. In Ambari, go to Metron > Config > Security > LDAP
+
+    * Turn on LDAP using the toggle.
+
+    * Set "LDAP URL" to your LDAP instance. For example, `ldap://<host>:<port>`.
+
+    * Set "Bind User" to the name of the bind user.  For example, `cn=admin,dc=apache,dc=org`.
+
+    * Set the "Bind User Password"
+
+    * Other fields may be required depending on your LDAP configuration.
+
+1. Save the changes and restart the required services.
+
+By default, configuration will default to matching Knox's Demo LDAP for convenience. This should only be used for development purposes. Manual instructions for setting up demo LDAP and finalizing configuration (e.g. setting up the user LDIF file) can be found in the [Development README](../../metron-deployment/development/README.md#knox-demo-ldap).
+
+#### LDAPS
+
+There is configuration to provide a path to a truststore with SSL certificates and provide a password. Users should import certificates as needed to appropriate truststores.  An example of doing this is:
+```
+keytool -import -alias <alias> -file <certificate> -keystore <keystore_file> -storepass <password>
+```
+
+#### Roles
+
+Roles used by Metron are `ROLE_ADMIN` and `ROLE_USER`. Metron will use a property in a group containing the appropriate role to construct this.
+
+Metron can be configured to map the roles defined in your authorization provider to the authorities used internally for access control.  This can be configured under Security > Roles in Ambari.
+
+For example, our ldif file could create this group:
+```
+dn: cn=admin,ou=groups,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass: groupofnames
+cn: admin
+description:admin group
+member: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
+```
+
+If we are using "cn" as our role attribute, Metron will give the "admin" user the role "ROLE_ADMIN".
+
+Similarly, we could give a user "sam" ROLE_USER with the following group:
+```
+dn: cn=user,ou=groups,dc=hadoop,dc=apache,dc=org
+objectclass:top
+objectclass: groupofnames
+cn: user
+description: user group
+member: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org
+```
+
+### JDBC Authentication
 
 The REST application persists data in a relational database and requires a dedicated database user and database (see https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html for more detail).  
 Spring uses Hibernate as the default ORM framework but another framework is needed becaused Hibernate is not compatible with the Apache 2 license.  For this reason Metron uses [EclipseLink](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support).  See the [Spring Data JPA - EclipseLink](https://github.com/spring-projects/spring-data-examples/tree/master/jpa/eclipselink) project for an example on how to configure EclipseLink in Spring.
+
+The metron-rest module uses [Spring Security](http://projects.spring.io/spring-security/) for authentication and stores user credentials in the relational database configured above.  The required tables are created automatically the first time the application is started so that should be done first.  For example (continuing the MySQL example above), users can be added by connecting to MySQL and running:
+```
+use metronrest;
+insert into users (username, password, enabled) values ('your_username','your_password',1);
+insert into authorities (username, authority) values ('your_username', 'ROLE_USER');
+```
 
 ### Development
 
@@ -171,121 +299,6 @@ The following configures the application for MySQL:
     unset METRON_JDBC_PASSWORD;
     ```
 
-## Usage
-
-The REST application can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8082.
-
-## Security
-
-### Authentication
-
-The metron-rest module uses [Spring Security](http://projects.spring.io/spring-security/) for authentication and stores user credentials in the relational database configured above.  The required tables are created automatically the first time the application is started so that should be done first.  For example (continuing the MySQL example above), users can be added by connecting to MySQL and running:
-```
-use metronrest;
-insert into users (username, password, enabled) values ('your_username','your_password',1);
-insert into authorities (username, authority) values ('your_username', 'ROLE_USER');
-```
-
-### Kerberos
-
-Metron REST can be configured for a cluster with Kerberos enabled.  A client JAAS file is required for Kafka and Zookeeper and a Kerberos keytab for the metron user principal is required for all other services.  Configure these settings in the `/etc/default/metron` file:
-```
-SECURITY_ENABLED=true
-METRON_JVMFLAGS="-Djava.security.auth.login.config=$METRON_HOME/client_jaas.conf"
-METRON_PRINCIPAL_NAME="metron@EXAMPLE.COM"
-METRON_SERVICE_KEYTAB="/etc/security/keytabs/metron.keytab"
-```
-
-### LDAP
-
-Metron REST can be configured to use LDAP for authentication and roles. Use the following steps to enable LDAP.
-
-1. In Ambari, go to Metron > Config > Security > Roles
-
-    * Set "User Role Name" to the name of the role at the authentication provider that provides user level access to Metron.
-
-    * Set "Admin Role Name" to the name of the role at the authentication provider that provides administrative access to Metron.
-
-1. In Ambari, go to Metron > Config > Security > LDAP
-
-    * Turn on LDAP using the toggle.
-
-    * Set "LDAP URL" to your LDAP instance. For example, `ldap://<host>:<port>`.
-
-    * Set "Bind User" to the name of the bind user.  For example, `cn=admin,dc=apache,dc=org`.
-
-    * Set the "Bind User Password"
-
-    * Other fields may be required depending on your LDAP configuration.
-
-1. Save the changes and restart the required services.
-
-By default, configuration will default to matching Knox's Demo LDAP for convenience. This should only be used for development purposes. Manual instructions for setting up demo LDAP and finalizing configuration (e.g. setting up the user LDIF file) can be found in the [Development README](../../metron-deployment/development/README.md#knox-demo-ldap).
-
-#### LDAPS
-
-There is configuration to provide a path to a truststore with SSL certificates and provide a password. Users should import certificates as needed to appropriate truststores.  An example of doing this is:
-```
-keytool -import -alias <alias> -file <certificate> -keystore <keystore_file> -storepass <password>
-```
-
-#### Roles
-
-Roles used by Metron are `ROLE_ADMIN` and `ROLE_USER`. Metron will use a property in a group containing the appropriate role to construct this.
-
-Metron can be configured to map the roles defined in your authorization provider to the authorities used internally for access control.  This can be configured under Security > Roles in Ambari.
-
-For example, our ldif file could create this group:
-```
-dn: cn=admin,ou=groups,dc=hadoop,dc=apache,dc=org
-objectclass:top
-objectclass: groupofnames
-cn: admin
-description:admin group
-member: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
-```
-
-If we are using "cn" as our role attribute, Metron will give the "admin" user the role "ROLE_ADMIN".
-
-Similarly, we could give a user "sam" ROLE_USER with the following group:
-```
-dn: cn=user,ou=groups,dc=hadoop,dc=apache,dc=org
-objectclass:top
-objectclass: groupofnames
-cn: user
-description: user group
-member: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org
-```
-
-## Spring Profiles
-
-The REST application comes with a few [Spring Profiles](http://docs.spring.io/autorepo/docs/spring-boot/current/reference/html/boot-features-profiles.html) to aid in testing and development.
-
-| Profile                  | Description                                   |
-| ------------------------ | --------------------------------------------- |
-| test                     | adds test users `[user, user1, user2, admin]` to the database with password "`password`". sets variables to in-memory services, only used for integration testing |
-| dev                      | adds test users `[user, user1, user2, admin]` to the database with password "`password`" |
-| vagrant                  | sets configuration variables to match the Metron vagrant environment |
-| docker                   | sets configuration variables to match the Metron docker environment |
-
-Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/default/metron` to configure the REST application for the Vagrant environment and add a test user:
-```
-METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
-```
-
-## Logging
-
-Logging for the REST application can be configured in Ambari.  Log levels can be changed at the root, package and class level:
-
-1. Navigate to Services > Metron > Configs > REST and locate the `Metron Spring options` setting.
-
-1. Logging configuration is exposed through Spring properties as explained [here](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-logging).
-
-1. The root logging level defaults to ERROR but can be changed to INFO by adding `--logging.level.root=INFO` to the `Metron Spring options` setting.
-
-1. The Metron REST logging level can be changed to INFO by adding `--logging.level.org.apache.metron.rest=INFO`.
-
-1. HTTP request and response logging can be enabled by adding `--logging.level.org.springframework.web.filter.CommonsRequestLoggingFilter=DEBUG --logging.level.org.apache.metron.rest.web.filter.ResponseLoggingFilter=DEBUG`.
 
 ## Pcap Query
 
