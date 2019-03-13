@@ -107,31 +107,27 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
     const words = val.trim().split(' ');
     this.filteredColumns = this.allColumns.filter(col => {
       if (typeof col.displayName === 'undefined') {
-        if (
-          words
-            .map(word =>
-              col.columnMetadata.name.toLowerCase().includes(word.toLowerCase())
-            )
-            .includes(false)
-        ) {
+        if (this.colMissingFilterKeyword(words, col)) {
           return false;
         } else {
           return true;
         }
       } else {
-        if (
-          words
-            .map(word =>
-              col.displayName.toLowerCase().includes(word.toLowerCase())
-            )
-            .includes(false)
-        ) {
+        if (this.colMissingFilterKeyword(words, col, true)) {
           return false;
         } else {
           return true;
         }
       }
     });
+  }
+
+  colMissingFilterKeyword(words, col, displayName = false) {
+    if (!displayName) {
+      return words.map(word => col.columnMetadata.name.toLowerCase().includes(word.toLowerCase())).includes(false);
+    } else {
+      return words.map(word => col.displayName.toLowerCase().includes(word.toLowerCase())).includes(false);
+    }
   }
 
   clearFilter() {
