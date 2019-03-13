@@ -28,8 +28,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <commons.config.version>1.10</commons.config.version>
+        <guava_version>16.0.1</guava_version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava_version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-kafka-client</artifactId>
@@ -93,7 +99,6 @@
             </exclusions>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -123,7 +128,7 @@
                           <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.apache.metron.storm.kafka.override.guava.common</shadedPattern>
+                                    <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.thirdparty</pattern>

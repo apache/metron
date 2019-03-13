@@ -28,6 +28,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <commons.config.version>1.10</commons.config.version>
+        <guava_version>${global_guava_version}</guava_version>
     </properties>
     <repositories>
         <repository>
@@ -193,7 +194,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${global_guava_version}</version>
+            <version>${guava_version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -443,13 +444,12 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.apache.metron.guava</shadedPattern>
+                                    <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.apache.commons.beanutils</pattern>
                                     <shadedPattern>org.apache.metron.beanutils</shadedPattern>
                                 </relocation>
-
                             </relocations>
                             <transformers>
                                 <transformer
