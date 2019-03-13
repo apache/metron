@@ -17,11 +17,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.metron</groupId>
-        <artifactId>metron-platform</artifactId>
+        <artifactId>metron-common-streaming</artifactId>
         <version>0.7.1</version>
     </parent>
-    <artifactId>metron-storm-common</artifactId>
-    <name>metron-storm-common</name>
+    <artifactId>metron-common-storm</artifactId>
+    <name>metron-common-storm</name>
     <description>Components common to Storm</description>
     <url>https://metron.apache.org/</url>
     <properties>
