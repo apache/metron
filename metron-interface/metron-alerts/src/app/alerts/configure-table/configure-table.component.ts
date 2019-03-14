@@ -103,30 +103,18 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
       });
   }
 
-  filterColumns(val) {
+  filterColumns(val: string) {
     const words = val.trim().split(' ');
     this.filteredColumns = this.allColumns.filter(col => {
-      if (col.displayName) {
-        if (this.colMissingFilterKeyword(words, col, true)) {
-          return false;
-        } else {
-          return true;
-        }
-      } else {
-        if (this.colMissingFilterKeyword(words, col)) {
-          return false;
-        } else {
-          return true;
-        }
-      }
+      return !this.isColMissingFilterKeyword(words, col, col.displayName);
     });
   }
 
-  colMissingFilterKeyword(words, col, displayName = false) {
+  isColMissingFilterKeyword(words: string[], col: ColumnMetadataWrapper, displayName?: string) {
     if (displayName) {
-      return words.map(word => col.displayName.toLowerCase().includes(word.toLowerCase())).includes(false);
+      return !words.every(word => col.displayName.toLowerCase().includes(word.toLowerCase()));
     } else {
-      return words.map(word => col.columnMetadata.name.toLowerCase().includes(word.toLowerCase())).includes(false);
+      return !words.every(word => col.columnMetadata.name.toLowerCase().includes(word.toLowerCase()));
     }
   }
 
