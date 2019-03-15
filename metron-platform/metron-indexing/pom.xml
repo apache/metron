@@ -31,12 +31,9 @@
         <guava_version>${global_hbase_guava_version}</guava_version>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.8.2</version>
-            <scope>test</scope>
-        </dependency>
+
+        <!-- Metron -->
+
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-common</artifactId>
@@ -44,9 +41,29 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
+            <artifactId>metron-writer</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-storm-kafka</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
             <artifactId>metron-hbase</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+
+        <!-- Other -->
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${global_log4j_core_version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
@@ -75,6 +92,10 @@
                 <exclusion>
                     <artifactId>servlet-api</artifactId>
                     <groupId>javax.servlet</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
                 </exclusion>
             </exclusions>
             <scope>provided</scope>
@@ -137,6 +158,10 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -150,6 +175,9 @@
             <artifactId>commons-validator</artifactId>
             <version>1.4.0</version>
         </dependency>
+
+        <!-- Test -->
+
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-test-utilities</artifactId>

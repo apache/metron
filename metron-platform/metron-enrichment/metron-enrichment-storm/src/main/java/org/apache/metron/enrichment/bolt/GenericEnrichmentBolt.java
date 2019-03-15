@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.enrichment.cache;
+package org.apache.metron.enrichment.bolt;
 
 import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
 
@@ -34,6 +34,7 @@ import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.performance.PerformanceLogger;
 import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;

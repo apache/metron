@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.cache;
+package org.apache.metron.enrichment.bolt;
 
 import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
 import static org.junit.Assert.fail;
@@ -41,6 +41,7 @@ import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
+import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
