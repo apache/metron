@@ -151,9 +151,9 @@ export class TimeRangeComponent implements OnChanges {
 
     let toDate = this.datePickerToDate.length > 0 ? new Date(this.toDateStr).getTime() : null;
     let fromDate = new Date(this.fromDateStr).getTime();
-    let toDateExpression = this.datePickerToDate.length > 0 ?  (' AND ' + ' <=' + toDate) : '';
+    let toDateExpression = this.datePickerToDate.length > 0 ?  (' TO ' + toDate) : '';
 
-    let value = '(>=' + fromDate + toDateExpression + ')';
+    let value = '[' + fromDate + toDateExpression + ']';
     let filter = new Filter(TIMESTAMP_FIELD_NAME, value, false);
     filter.dateFilterValue = new DateFilterValue(fromDate, toDate);
     this.timeRangeChange.emit(filter);
