@@ -58,8 +58,9 @@
         [ngClass]="{
           'active': isSelected(sensor),
           'parent': sensor.isGroup,
-          'highlighted': sensor.config.getName() === highlightedElementId,
-          'dragged-over': sensor.config.getName() === draggedOverElementId,
+          'highlighted': sensor.config.getName() === highlightedElementId && !sensor.isRunning,
+          'dragged-over': sensor.config.getName() === draggedOverElementId && !sensor.isRunning && !sensor.startStopInProgress,
+          'drop-not-allowed': sensor.config.getName() === draggedOverElementId && sensor.isRunning && !sensor.startStopInProgress,
           'dirty': sensor.isDirty,
           'deleted': sensor.isDeleted,
           'phantom': sensor.isPhantom

@@ -289,7 +289,9 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
       return;
     }
     setTimeout(() => {
-      this.setHighlighted(groupName);
+      if (!sensor.isRunning && !sensor.isDeleted && !sensor.startStopInProgress) {
+        this.setHighlighted(groupName);
+      }
     });
   }
 
@@ -320,43 +322,86 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
 
     const el = e.currentTarget as HTMLElement;
     const dragged = this.draggedElement;
-    if (dragged.config.getName() !== referenceMetaInfo.config.getName() && !referenceMetaInfo.isDeleted) {
+
+    // If not dropping it on itself
+    if (dragged.config.getName() !== referenceMetaInfo.config.getName()) {
+
+      // If being about to drop after of before a certan row item
       if (el.classList.contains('drop-before') || el.classList.contains('drop-after')) {
-        if (referenceMetaInfo.config.group !== dragged.config.group || referenceMetaInfo.isGroup) {
+
+        // if being a group OR the dragged element is not in the same group as the reference
+        if (referenceMetaInfo.isGroup || dragged.config.group !== referenceMetaInfo.config.group) {
+
+          // If the reference item has a group --> put the dragged element to the same group
+          // If the reference item is a group --> put the dragged element to that group
+          // Otherwise remove the dragged element from any group
           const groupName = this.hasGroup(referenceMetaInfo)
               ? referenceMetaInfo.config.group
               : referenceMetaInfo.isGroup
                 ? referenceMetaInfo.config.getName()
                 : '';
-          this.store.dispatch(new fromActions.AddToGroup({
-            groupName,
-            parserIds: [dragged.config.getName()]
-          }));
-          if (groupName === '') {
+          const unsetGroup = groupName === '';
+
+          if (unsetGroup && dragged.config.group) {
+            // In case of unsetting the group...
             this.store.pipe(select(fromReducers.getGroupByName), first())
               .subscribe((getGroup) => {
                 const group = getGroup(dragged.config.group);
+                // We have to check if the group has any other items remaining
                 if ((group.config as ParserGroupModel).sensors.length === 0) {
+                  // If not, we have to remove the group too
                   this.store.dispatch(new fromActions.MarkAsDeleted({
                     parserIds: [dragged.config.group]
                   }));
                 }
+                // and then remove the dragged element from any group
+                this.store.dispatch(new fromActions.AddToGroup({
+                  groupName: '', // <-- it's removing from any groups
+                  parserIds: [dragged.config.getName()]
+                }));
+                if (el.classList.contains('drop-before')) {
+                  this.store.dispatch(new fromActions.InjectBefore({
+                    reference: referenceMetaInfo.config.getName(),
+                    parserId: dragged.config.getName(),
+                  }));
+                } else if (el.classList.contains('drop-after')) {
+                  this.store.dispatch(new fromActions.InjectAfter({
+                    reference: referenceMetaInfo.config.getName(),
+                    parserId: dragged.config.getName(),
+                  }));
+                }
+              });
+          } else {
+            // otherwise we want to add the item to a certain group IF it's allowed
+            this.store.pipe(select(fromReducers.getGroupByName), first())
+              .subscribe((getGroup) => {
+                const group = getGroup(groupName);
+                if (!group.isRunning && !group.isDeleted && !group.startStopInProgress) {
+                  this.store.dispatch(new fromActions.AddToGroup({
+                    groupName: group.config.getName(),
+                    parserIds: [dragged.config.getName()]
+                  }));
+                  if (el.classList.contains('drop-before')) {
+                    this.store.dispatch(new fromActions.InjectBefore({
+                      reference: referenceMetaInfo.config.getName(),
+                      parserId: dragged.config.getName(),
+                    }));
+                  } else if (el.classList.contains('drop-after')) {
+                    this.store.dispatch(new fromActions.InjectAfter({
+                      reference: referenceMetaInfo.config.getName(),
+                      parserId: dragged.config.getName(),
+                    }));
+                  }
+                }
               });
           }
         }
-      }
-      if (el.classList.contains('drop-before')) {
-        this.store.dispatch(new fromActions.InjectBefore({
-          reference: referenceMetaInfo.config.getName(),
-          parserId: dragged.config.getName(),
-        }));
-      } else if (el.classList.contains('drop-after')) {
-        this.store.dispatch(new fromActions.InjectAfter({
-          reference: referenceMetaInfo.config.getName(),
-          parserId: dragged.config.getName(),
-        }));
       } else {
-        if (referenceMetaInfo.isGroup && !referenceMetaInfo.isDeleted) {
+        if (referenceMetaInfo.isGroup
+          && !referenceMetaInfo.isDeleted
+          && !referenceMetaInfo.isRunning
+          && !referenceMetaInfo.startStopInProgress) {
+
           this.store.dispatch(new fromActions.AddToGroup({
             groupName: referenceMetaInfo.config.getName(),
             parserIds: [dragged.config.getName()]
@@ -371,6 +416,7 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
           this.router.navigateByUrl('/sensors(dialog:sensor-aggregate)');
         }
       }
+
     }
     el.classList.remove('drop-before');
     el.classList.remove('drop-after');

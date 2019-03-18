@@ -613,6 +613,7 @@ export const getMergedConfigs = createSelector(
       return {
         ...item,
         status: status ? new TopologyStatus(status) : new TopologyStatus(),
+        isRunning: status ? status.status === 'ACTIVE' : false,
       };
     });
 

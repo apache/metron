@@ -30,4 +30,5 @@ export interface ParserMetaInfoModel {
   startStopInProgress?: boolean;
   modifiedByDate?: string;
   modifiedBy?: string;
+  isRunning?: boolean;
 }

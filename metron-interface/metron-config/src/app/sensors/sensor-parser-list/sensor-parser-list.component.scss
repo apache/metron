@@ -165,3 +165,8 @@ table tr td, table tr th {
 .dropdown .disabled {
   pointer-events: none;
 }
+
+.drop-not-allowed {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
