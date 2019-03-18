@@ -146,8 +146,6 @@ METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 * [LDAP Authentication](#ldap-authentication)
 * [JDBC Authentication](#jdbc-authentication)
 
-### Authentication
-
 ### Kerberos
 
 Metron REST can be configured for a cluster with Kerberos enabled.  A client JAAS file is required for Kafka and Zookeeper and a Kerberos keytab for the metron user principal is required for all other services.  Configure these settings in the `/etc/default/metron` file:
