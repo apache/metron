@@ -40,7 +40,7 @@ import { ParserConfigModel } from '../models/parser-config.model';
 })
 export class SensorParserConfigReadonlyComponent implements OnInit {
   selectedSensorName: string;
-  startStopInProgress: boolean = false;
+  startStopInProgress = false;
   kafkaTopic: KafkaTopic = new KafkaTopic();
   sensorParserConfigHistory: SensorParserConfigHistory = new SensorParserConfigHistory();
   sensorParserConfig: ParserConfigModel = new ParserConfigModel('TestConfigId01');
