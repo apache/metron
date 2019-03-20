@@ -96,9 +96,10 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-client</artifactId>
-            <version>${global_hbase_version}</version>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-hbase-client</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.hadoop</groupId>
@@ -111,6 +112,14 @@
                 <exclusion>
                     <groupId>org.apache.hadoop</groupId>
                     <artifactId>hadoop-mapreduce-client-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -195,21 +204,6 @@
                                   </transformer>
                               </transformers>
                           </configuration>
-                      </execution>
-                  </executions>
-              </plugin>
-              <plugin>
-                  <artifactId>maven-assembly-plugin</artifactId>
-                  <configuration>
-                      <descriptor>src/main/assembly/assembly.xml</descriptor>
-                  </configuration>
-                  <executions>
-                      <execution>
-                          <id>make-assembly</id> <!-- this is used for inheritance merges -->
-                          <phase>package</phase> <!-- bind to the packaging phase -->
-                          <goals>
-                              <goal>single</goal>
-                          </goals>
                       </execution>
                   </executions>
               </plugin>

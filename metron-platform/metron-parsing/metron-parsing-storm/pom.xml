@@ -40,6 +40,12 @@
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-parsers-common</artifactId>
       <version>${project.parent.version}</version>
+        <exclusions>
+            <exclusion>
+                <artifactId>metron-profiler-client</artifactId>
+                <groupId>org.apache.metron</groupId>
+            </exclusion>
+        </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.metron</groupId>
@@ -89,7 +95,13 @@
       <artifactId>metron-parsers-common</artifactId>
       <version>${project.parent.version}</version>
       <scope>test</scope>
-      <type>test-jar</type>
+        <exclusions>
+            <exclusion>
+                <artifactId>metron-profiler-client</artifactId>
+                <groupId>org.apache.metron</groupId>
+            </exclusion>
+        </exclusions>
+        <type>test-jar</type>
     </dependency>
     <dependency>
       <groupId>org.apache.metron</groupId>
