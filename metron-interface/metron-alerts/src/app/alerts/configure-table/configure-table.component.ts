@@ -97,8 +97,7 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
       this.configureTableService.getTableMetadata()
     ).subscribe((response: any) => {
       const allColumns = this.prepareData(response[0], response[1], response[2].tableColumns);
-      // TODO eliminate original impl, refactore this
-      // column data need to be prepared by this.prepareData
+
       this.visibleColumns = allColumns.filter(column => column.selected);
       this.availableColumns = allColumns.filter(column => !column.selected);
     });

@@ -20,13 +20,14 @@ import { FormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
-import { ConfigureTableComponent } from './configure-table.component';
+import { ConfigureTableComponent, ColumnMetadataWrapper } from './configure-table.component';
 import { ConfigureTableService } from '../../service/configure-table.service';
 import { SwitchComponent } from '../../shared/switch/switch.component';
 import { CenterEllipsesPipe } from '../../shared/pipes/center-ellipses.pipe';
 import { ClusterMetaDataService } from 'app/service/cluster-metadata.service';
 import { SearchService } from 'app/service/search.service';
 import { ColumnNamesService } from 'app/service/column-names.service';
+import { By } from '@angular/platform-browser';
 
 class FakeClusterMetaDataService {
   getDefaultColumns() {
@@ -164,4 +165,132 @@ describe('ConfigureTableComponent', () => {
     expect(component.filteredColumns.length).toBe(1);
   }));
 
+  it('should mark default columns as visible', () => {
+    expect(component.visibleColumns.length).toBe(8);
+  });
+
+  it('should mark other columns as available', () => {
+    expect(component.availableColumns.length).toBe(10);
+  });
+
+  it('should mark added element as selected', () => {
+    const itemToAdd: ColumnMetadataWrapper = component.availableColumns[0];
+
+    expect(itemToAdd.selected).toEqual(false);
+
+    component.onColumnAdded(itemToAdd);
+
+    expect(itemToAdd.selected).toEqual(true);
+  });
+
+  it('should mark removed element as deselected', () => {
+    const itemToRemove: ColumnMetadataWrapper = component.visibleColumns[0];
+
+    expect(itemToRemove.selected).toEqual(true);
+
+    component.onColumnRemoved(itemToRemove);
+
+    expect(itemToRemove.selected).toEqual(false);
+  });
+
+  it('should update list of visible items on add', () => {
+    const itemToAdd: ColumnMetadataWrapper = component.availableColumns[0];
+
+    expect(component.visibleColumns.includes(itemToAdd)).toEqual(false);
+
+    component.onColumnAdded(itemToAdd);
+
+    expect(component.visibleColumns.includes(itemToAdd)).toEqual(true);
+  });
+
+  it('should update list of available items on add', () => {
+    const itemToAdd: ColumnMetadataWrapper = component.availableColumns[0];
+
+    expect(component.availableColumns.includes(itemToAdd)).toEqual(true);
+
+    component.onColumnAdded(itemToAdd);
+
+    expect(component.availableColumns.includes(itemToAdd)).toEqual(false);
+  });
+
+  it('should update list of visible items on remove', () => {
+    const itemToRemove: ColumnMetadataWrapper = component.visibleColumns[0];
+
+    expect(component.visibleColumns.includes(itemToRemove)).toEqual(true);
+
+    component.onColumnRemoved(itemToRemove);
+
+    expect(component.visibleColumns.includes(itemToRemove)).toEqual(false);
+  });
+
+  it('should update list of available items on remove', () => {
+    const itemToRemove: ColumnMetadataWrapper = component.visibleColumns[0];
+
+    expect(component.availableColumns.includes(itemToRemove)).toEqual(false);
+
+    component.onColumnRemoved(itemToRemove);
+
+    expect(component.availableColumns.includes(itemToRemove)).toEqual(true);
+  });
+
+  it('should sort available items on change', () => {
+    spyOn(component.availableColumns, 'sort');
+
+    const itemToRemove: ColumnMetadataWrapper = component.visibleColumns[0];
+    component.onColumnRemoved(itemToRemove);
+
+    expect(component.availableColumns.sort).toHaveBeenCalled();
+  });
+
+  describe('Config Pane Rendering', () => {
+    it('should render visible and availble items separatedly', () => {
+      expect(fixture.debugElement.queryAll(By.css('table')).length).toBe(2);
+      expect(fixture.debugElement.queryAll(By.css('table'))[0].queryAll(By.css('tr')).length).toBe(10);
+      expect(fixture.debugElement.queryAll(By.css('table'))[1].queryAll(By.css('tr')).length).toBe(11);
+    });
+
+    it('should refres both list on remove', () => {
+      fixture.debugElement.queryAll(By.css('input[type="checkbox"]'))[1].nativeElement.click();
+      fixture.detectChanges();
+      expect(fixture.debugElement.queryAll(By.css('table'))[0].queryAll(By.css('tr')).length).toBe(9);
+      expect(fixture.debugElement.queryAll(By.css('table'))[1].queryAll(By.css('tr')).length).toBe(12);
+    });
+
+    it('should refres both list on add', () => {
+      fixture.debugElement.queryAll(By.css('input[type="checkbox"]'))[14].nativeElement.click();
+      fixture.detectChanges();
+      expect(fixture.debugElement.queryAll(By.css('table'))[0].queryAll(By.css('tr')).length).toBe(11);
+      expect(fixture.debugElement.queryAll(By.css('table'))[1].queryAll(By.css('tr')).length).toBe(10);
+    });
+
+    it('should be able to move visible item DOWN in order', () => {
+      const origIndex = 2;
+      const newIndex = 3;
+      let tableOfVisibles = fixture.debugElement.queryAll(By.css('table'))[0];
+      let row = tableOfVisibles.queryAll(By.css('tr'))[origIndex];
+      const rowId = row.query(By.css('td')).query(By.css('span')).nativeElement.innerText;
+
+      row.query(By.css('span[id^="down-"]')).nativeElement.click();
+      fixture.detectChanges();
+
+      row = tableOfVisibles.queryAll(By.css('tr'))[newIndex];
+
+      expect(row.query(By.css('td')).query(By.css('span')).nativeElement.innerText).toBe(rowId);
+    });
+
+    it('should be able to move visible item UP in order', () => {
+      const origIndex = 3;
+      const newIndex = 2;
+      let tableOfVisibles = fixture.debugElement.queryAll(By.css('table'))[0];
+      let row = tableOfVisibles.queryAll(By.css('tr'))[origIndex];
+      const rowId = row.query(By.css('td')).query(By.css('span')).nativeElement.innerText;
+
+      row.query(By.css('span[id^="up-"]')).nativeElement.click();
+      fixture.detectChanges();
+
+      row = tableOfVisibles.queryAll(By.css('tr'))[newIndex];
+
+      expect(row.query(By.css('td')).query(By.css('span')).nativeElement.innerText).toBe(rowId);
+    });
+  });
 });
