@@ -163,6 +163,9 @@ public class DataStructureFunctions {
         String val = (String) list.get(0);
         return val == null || val.isEmpty() ? true : false;
       }
+      else if(o instanceof Map) {
+        return (((Map)o).isEmpty());
+      }
       else {
         return o == null;
       }
