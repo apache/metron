@@ -14,10 +14,18 @@
 <div class="metron-slider-pane-editable load-right-to-left dialog2x">
   <div class="container-fluid">
     <div class="row mb-3">
-      <div class="col-md-10">
-        <div class="form-title font-weight-bold">Configure Table</div>
+      <div class="col-md-12">
+        <div class="d-flex pb-3">
+          <div class="form-title font-weight-bold">Configure Table</div>
+          <i class="fa fa-times ml-auto close-button" aria-hidden="true" (click)="goBack()"></i>
+        </div>
+        <div class="input-group">
+          <input class="input flex-fill" data-qe-id="filter-input" type="text" placeholder="Filter list" #filterColResults >
+          <div class="input-group-append">
+            <button class="btn btn-secondary btn-search-clear" data-qe-id="filter-reset" (click)="clearFilter()"></button>
+          </div>
+        </div>
       </div>
-      <div class="col-md-2"><i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i></div>
     </div>
     <div class="row mx-0">
       <table class="table">
@@ -40,7 +48,7 @@
             <td> - </td>
             <td> - </td>
           </tr>
-          <tr *ngFor="let columns of allColumns; let i = index" [ngClass]="{'background-tiber': columns.selected}">
+          <tr *ngFor="let columns of filteredColumns; let i = index" [ngClass]="{'background-tiber': columns.selected}">
             <td>
               <input #selectColName id="select-deselect-{{ columns.columnMetadata.name }}" class="fontawesome-checkbox" type="checkbox" [checked]="columns.selected" (click)="selectColumn(columns)">
               <label for="select-deselect-{{ columns.columnMetadata.name }}"></label>
@@ -49,7 +57,7 @@
               <span [attr.title]="columns.key"> {{ columns.columnMetadata.name | centerEllipses }} </span>
             </td>
             <td>
-              <input class="input" placeholder="rename" [(ngModel)]="columns.displayName">
+              <input class="input" attr.data-qe-id="display-name-{{ columns.columnMetadata.name }}" placeholder="rename" [(ngModel)]="columns.displayName">
             </td>
             <td>
               <span class="text-uppercase"> {{ columns.columnMetadata.type }} </span>
@@ -66,7 +74,7 @@
     </div>
   </div>
   <div class="container-fluid metron-floating-button-bar-2x">
-    <button type="submit" class="btn btn-all_ports" (click)="save()">SAVE</button>
+    <button type="submit" data-qe-id="save-table-config" class="btn btn-all_ports" (click)="save()">SAVE</button>
     <button class="btn btn-mine_shaft_2" (click)="goBack()">CANCEL</button>
   </div>
 </div>
