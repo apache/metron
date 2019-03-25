@@ -124,11 +124,12 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
     def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
         is_secured = self.isSecurityEnabled(services)
 
-        putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
+
         #Suggest HDFS URL
-        # TODO
-        # if "hdfs-site" in services["configurations"]:
-        putMetronEnvProperty("hdfs_url", "hdfs://node1:8020")
+        if "core-site" in services["configurations"]:
+          hdfsUrl = services["configurations"]["core-site"]["properties"]["fs.defaultFS"]
+          putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
+          putMetronEnvProperty("hdfs_url", hdfsUrl)
 
         #Suggest Storm Rest URL
         if "storm-site" in services["configurations"]:
@@ -139,7 +140,7 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
                 stormUIServerPort = services["configurations"]["storm-site"]["properties"]["ui.https.port"]
                 stormUIProtocol = "https://"
             stormUIServerURL = stormUIProtocol + stormUIServerHost + ":" + stormUIServerPort
-        #    putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
+            putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
             putMetronEnvProperty("storm_rest_addr",stormUIServerURL)
 
             storm_site = services["configurations"]["storm-site"]["properties"]
@@ -161,7 +162,7 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             zeppelinServerHost = self.getComponentHostNames(services, "ZEPPELIN", "ZEPPELIN_MASTER")[0]
             zeppelinServerPort = services["configurations"]["zeppelin-config"]["properties"]["zeppelin.server.port"]
             zeppelinServerUrl = zeppelinServerHost + ":" + zeppelinServerPort
-        #    putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
+            putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
             putMetronEnvProperty("zeppelin_server_url", zeppelinServerUrl)
 
         #Suggest Zookeeper quorum
@@ -170,7 +171,7 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             zookeeperClientPort = services["configurations"]["zoo.cfg"]["properties"]["clientPort"]
             solrZkDir = services["configurations"]["solr-cloud"]["properties"]["solr_cloud_zk_directory"]
             solrZookeeperUrl = zookeeperHost + ":" + zookeeperClientPort + solrZkDir
-        #    putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
+            putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
             putMetronEnvProperty("solr_zookeeper_url", solrZookeeperUrl)
 
 

@@ -124,7 +124,7 @@
     <property>
         <name>hdfs_url</name>
         <display-name>HDFS URL</display-name>
-        <description>URL of Storm UI (hdfs://hdfs.namenode.hostname:8020).</description>
+        <description>URL of HDFS Namenode (hdfs://hdfs.namenode.hostname:8020). This would commonly be fs.defaultFS from Hadoop core-site.xml.</description>
         <value-attributes>
             <empty-value-valid>true</empty-value-valid>
         </value-attributes>
