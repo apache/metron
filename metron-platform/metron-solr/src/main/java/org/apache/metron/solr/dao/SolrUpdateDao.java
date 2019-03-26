@@ -72,6 +72,7 @@ public class SolrUpdateDao implements UpdateDao {
           .getIndex(config.getIndexSupplier(), newVersion.getSensorType(), rawIndex);
       if (index.isPresent()) {
         this.client.add(index.get(), solrInputDocument);
+        System.out.println("Committing doc id " + update.getGuid() + " to index " + update.getSensorType());
         this.client.commit(index.get());
       } else {
         throw new IllegalStateException("Index must be specified or inferred.");

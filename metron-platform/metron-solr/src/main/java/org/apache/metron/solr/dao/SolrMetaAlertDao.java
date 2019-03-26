@@ -144,10 +144,11 @@ public class SolrMetaAlertDao implements MetaAlertDao {
       }
     };
 
-    SolrClient solrClient = solrDao.getSolrClient(solrDao.getZkHosts());
+    SolrClient solrClient = solrDao.getSolrClient();
     this.metaAlertSearchDao = new SolrMetaAlertSearchDao(solrClient, solrDao.getSolrSearchDao(), config);
-    this.metaAlertRetrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao);
+    this.metaAlertRetrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrClient, solrDao);
     this.metaAlertUpdateDao = new SolrMetaAlertUpdateDao(
+        solrClient,
         solrDao,
         metaAlertSearchDao,
         metaAlertRetrieveLatestDao,

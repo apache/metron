@@ -168,18 +168,21 @@ public class SolrDao implements IndexDao {
   }
 
   /**
-   * Builds a Solr client using the ZK hosts from the global config.
+   * Returns the SolrClient.
    * @return SolrClient
    */
   public SolrClient getSolrClient() {
-    return new CloudSolrClient.Builder().withZkHost(getZkHosts()).build();
+    if (this.client == null) {
+      throw new IllegalStateException("The SolrDao must be initialized first");
+    }
+    return this.client;
   }
 
   /**
    * Builds a Solr client using the ZK hosts specified.
    * @return SolrClient
    */
-  public SolrClient getSolrClient(List<String> zkHosts) {
+  protected SolrClient getSolrClient(List<String> zkHosts) {
     return new CloudSolrClient.Builder().withZkHost(zkHosts).build();
   }
 
