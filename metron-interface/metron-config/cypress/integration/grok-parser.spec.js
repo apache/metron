@@ -50,7 +50,7 @@ describe('Grok Parser Creation', function() {
   });
 
   it('should add e2e parser', () => {
-    cy.get('.metron-add-button.hexa-button').click();
+    cy.get('metron-config-sensor-parser-list [data-qe-id="add-new-sensor-btn"]').click();
 
     cy.get('metron-config-sensor [data-qe-id="sensor-name-input"]').type('test-grok-parser');
     cy.get('metron-config-sensor [data-qe-id="kafka-topic-input"]').type('test-topic');
