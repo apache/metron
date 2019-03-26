@@ -52,34 +52,34 @@ describe('Grok Parser Creation', function() {
   it('should add e2e parser', () => {
     cy.get('.metron-add-button.hexa-button').click();
 
-    cy.get('input[name="sensorName"]').type('test-grok-parser');
-    cy.get('input[name="sensorTopic"]').type('test-topic');
-    cy.get('select[formcontrolname="parserClassName"]').select('Grok');
-    cy.wait('@sample').get('input[formcontrolname="grokStatement"] + span').click();
+    cy.get('metron-config-sensor [data-qe-id="sensor-name-input"]').type('test-grok-parser');
+    cy.get('metron-config-sensor [data-qe-id="kafka-topic-input"]').type('test-topic');
+    cy.get('metron-config-sensor [data-qe-id="parser-type-select"]').select('Grok');
+    cy.wait('@sample').get('metron-config-sensor [data-qe-id="grok-statement-details"]').click();
 
     const sampleMessage = 'DIRECT/207.109.73.154 text/html';
     const grokStatement = '%{{}NUMBER:timestamp} %{{}INT:elapsed}';
 
-    cy.get('metron-config-sensor-grok .form-control.sample-input')
+    cy.get('metron-config-sensor-grok [data-qe-id="sample-data-input"]')
       .focus({ force: true })
       .clear({ force: true });
 
-    cy.get('metron-config-sensor-grok .form-control.sample-input').type(sampleMessage);
+    cy.get('metron-config-sensor-grok [data-qe-id="sample-data-input"]').type(sampleMessage);
 
-    cy.get('metron-config-sensor-grok .ace_text-input')
+    cy.get('metron-config-sensor-grok [data-qe-id="ace-editor"] textarea')
       .focus({ force: true })
       .clear({ force: true });
 
-    cy.get('metron-config-sensor-grok .ace_text-input').type(grokStatement, { force: true }).type(' ', { force: true });
+    cy.get('metron-config-sensor-grok [data-qe-id="ace-editor"] textarea').type(grokStatement, { force: true }).type(' ', { force: true });
 
-    cy.get('metron-config-sensor-grok button').contains('TEST').click();
+    cy.get('metron-config-sensor-grok [data-qe-id="grok-statement-test-btn"]').click();
 
-    cy.get('.pattern-label-dropdown').select('%{NUMBER:timestamp}');
+    cy.get('metron-config-sensor-grok [data-qe-id="pattern-label-select"]').select('%{NUMBER:timestamp}');
 
-    cy.get('metron-config-sensor-grok button').contains('SAVE').click();
+    cy.get('metron-config-sensor-grok [data-qe-id="parser-save-btn"]').click();
 
     const expectedStatement = '%{NUMBER:timestamp} %{INT:elapsed} '
 
-    cy.get('[formcontrolname="grokStatement"]').should('have.value', expectedStatement);
+    cy.get('metron-config-sensor [data-qe-id="grok-statement-input"]').should('have.value', expectedStatement);
   });
 });
