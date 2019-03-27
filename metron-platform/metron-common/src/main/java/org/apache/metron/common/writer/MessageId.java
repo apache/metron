@@ -15,30 +15,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.elasticsearch.writer;
 
-import org.apache.metron.indexing.dao.update.Document;
-import org.apache.storm.tuple.Tuple;
+package org.apache.metron.common.writer;
 
-import java.util.Map;
+import java.util.Objects;
 
-/**
- * An {@link Document} that is created from the contents of a {@link Tuple}.
- */
-public class TupleBasedDocument extends Document {
+public class MessageId {
 
-    private Tuple tuple;
+  private String id;
 
-    public TupleBasedDocument(Map<String, Object> document,
-                              String guid,
-                              String sensorType,
-                              Long timestamp,
-                              Tuple tuple) {
-        super(document, guid, sensorType, timestamp);
-        this.tuple = tuple;
-    }
+  public MessageId(String id) {
+    this.id = id;
+  }
 
-    public Tuple getTuple() {
-        return tuple;
-    }
+  public String getId() {
+    return id;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    MessageId messageId = (MessageId) o;
+    return Objects.equals(id, messageId.id);
+  }
+
+  @Override
+  public int hashCode() {
+
+    return Objects.hash(id);
+  }
+
+  @Override
+  public String toString() {
+    return "MessageId{" +
+            "id='" + id + '\'' +
+            '}';
+  }
+
+
 }

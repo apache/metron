@@ -53,10 +53,10 @@ public class SequenceFileIterable implements Iterable<byte[]> {
   }
 
   /**
-   * Cleans up all files read by this Iterable
+   * Cleans up all files read by this Iterable.
    *
    * @return true if success, false if any files were not deleted
-   * @throws IOException
+   * @throws IOException if there's an error cleaning up files
    */
   public boolean cleanup() throws IOException {
     FileSystem fileSystem = FileSystem.get(config);

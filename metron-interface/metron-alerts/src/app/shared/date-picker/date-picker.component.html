@@ -13,5 +13,7 @@
   -->
 <div #inputText class="input-group">
   <input class="form-control" [(ngModel)]="dateStr" (click)="toggleDatePicker($event)">
-  <span class="input-group-addon calendar"></span>
+  <div class="input-group-append">
+    <span class="input-group-text calendar"></span>
+  </div>
 </div>

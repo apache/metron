@@ -165,6 +165,7 @@ Where:
 | ----------                                                                                         |
 | [ `ABS`](../../metron-analytics/metron-statistics#abs)                                             |
 | [ `APPEND_IF_MISSING`](#append_if_missing)                                                         |
+| [ `ASN_GET`](#asn_get)                                                         |
 | [ `BIN`](../../metron-analytics/metron-statistics#bin)                                             |
 | [ `BLOOM_ADD`](#bloom_add)                                                                         |
 | [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |

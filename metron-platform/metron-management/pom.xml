@@ -29,9 +29,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <commons.config.version>1.10</commons.config.version>
         <antlr.version>4.5</antlr.version>
+        <guava_version>${global_guava_version}</guava_version>
     </properties>
     <dependencies>
-
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-common</artifactId>
@@ -91,7 +91,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${global_guava_version}</version>
+            <version>${guava_version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -229,7 +229,7 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.apache.metron.guava</shadedPattern>
+                                    <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>

@@ -19,7 +19,6 @@
  */
 package org.apache.metron.profiler.client.stellar;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.Range;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
@@ -58,11 +57,11 @@ public class WindowLookbackTest {
     //profile duration to 1 minute instead of 15 minutes (the default), then we should see
     //the correct number of profiles.
     long durationMs = 60000;
-    State state = test("1 hour", new Date()
-                      , Optional.of(
-                              ImmutableMap.of( ProfilerClientConfig.PROFILER_PERIOD.getKey(), 1 )
-                                   )
-                      ,Assertions.NOT_EMPTY,Assertions.CONTIGUOUS);
+
+    Map<String, Object> config = new HashMap<>();
+    config.put(ProfilerClientConfig.PROFILER_PERIOD.getKey(), 1);
+
+    State state = test("1 hour", new Date(), Optional.of(config), Assertions.NOT_EMPTY, Assertions.CONTIGUOUS);
     Assert.assertEquals(TimeUnit.HOURS.toMillis(1) / durationMs, state.periods.size());
   }
 

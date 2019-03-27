@@ -18,14 +18,15 @@
 
 package org.apache.metron.parsers.bolt;
 
-import java.util.Collections;
-import java.util.Map;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.common.utils.MessageUtils;
+import org.apache.metron.common.writer.BulkMessage;
+import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -33,13 +34,20 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 
+import java.util.Collections;
+import java.util.Map;
+
 public class WriterBolt extends BaseRichBolt {
   private WriterHandler handler;
   private ParserConfigurations configuration;
   private String sensorType;
   private Constants.ErrorType errorType = Constants.ErrorType.DEFAULT_ERROR;
+  //In test scenarios, maxBatchTimeout may not be correctly initialized, so do it here.
+  //This is a conservative maxBatchTimeout for a vanilla bolt with batchTimeoutDivisor=2
+  public static final int UNINITIALIZED_MAX_BATCH_TIMEOUT = 6;
   private transient MessageGetStrategy messageGetStrategy;
   private transient OutputCollector collector;
+  private transient AckTuplesPolicy ackTuplesPolicy;
   public WriterBolt(WriterHandler handler, ParserConfigurations configuration, String sensorType) {
     this.handler = handler;
     this.configuration = configuration;
@@ -55,7 +63,8 @@ public class WriterBolt extends BaseRichBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.collector = collector;
     messageGetStrategy = MessageGetters.DEFAULT_JSON_FROM_FIELD.get();
-    handler.init(stormConf, context, collector, configuration);
+    ackTuplesPolicy = new AckTuplesPolicy(collector, messageGetStrategy);
+    handler.init(stormConf, context, collector, configuration, ackTuplesPolicy, UNINITIALIZED_MAX_BATCH_TIMEOUT);
   }
 
   private JSONObject getMessage(Tuple tuple) {
@@ -76,10 +85,9 @@ public class WriterBolt extends BaseRichBolt {
     JSONObject message = null;
     try {
       message = (JSONObject) messageGetStrategy.get(tuple);
-      handler.write(sensorType, tuple, message, configuration, messageGetStrategy);
-      if(!handler.handleAck()) {
-        collector.ack(tuple);
-      }
+      String messageId = MessageUtils.getGuid(message);
+      ackTuplesPolicy.addTupleMessageIds(tuple, Collections.singleton(messageId));
+      handler.write(sensorType, new BulkMessage<>(messageId, message), configuration);
     } catch (Throwable e) {
       MetronError error = new MetronError()
               .withErrorType(errorType)

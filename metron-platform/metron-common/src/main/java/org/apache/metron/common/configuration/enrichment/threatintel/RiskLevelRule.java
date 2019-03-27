@@ -18,19 +18,18 @@
 package org.apache.metron.common.configuration.enrichment.threatintel;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 /**
  * This class represents a rule that is used to triage threats.
  *
- * The goal of threat triage is to prioritize the alerts that pose the greatest
+ * <p>The goal of threat triage is to prioritize the alerts that pose the greatest
  * threat and thus need urgent attention.  To perform threat triage, a set of rules
  * are applied to each message.  Each rule has a predicate to determine if the rule
  * applies or not.  The threat score from each applied rule is aggregated into a single
  * threat triage score that can be used to prioritize high risk threats.
  *
- * Tuning the threat triage process involves creating one or more rules, adjusting
+ * <p>Tuning the threat triage process involves creating one or more rules, adjusting
  * the score of each rule, and changing the way that each rule's score is aggregated.
  */
 public class RiskLevelRule {
@@ -61,7 +60,7 @@ public class RiskLevelRule {
    * Allows a rule author to provide contextual information when a rule is applied
    * to a message.  This can assist a SOC analyst when actioning a threat.
    *
-   * This is expected to be a valid Stellar expression and can refer to any of the
+   * <p>This is expected to be a valid Stellar expression and can refer to any of the
    * fields within the message itself.
    */
   private String reason;
@@ -95,6 +94,12 @@ public class RiskLevelRule {
     return scoreExpression;
   }
 
+  /**
+   * Sets the score expression based on an input object, taking care to properly handle numbers or
+   * strings.
+   *
+   * @param scoreExpression The raw object containing the score expression.
+   */
   @JsonProperty("score")
   public void setScoreExpression(Object scoreExpression) {
     if(scoreExpression instanceof Number) {

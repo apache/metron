@@ -36,7 +36,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  * Based on the parser config field `COLUMNS_KEY` the log line is
  * transformed into a intermediate result using the CSV parser.
  *
- * All keys in `COLUMNS_KEY` and values extracted from the log line
+ * <p>All keys in `COLUMNS_KEY` and values extracted from the log line
  * will be trimmed before adding to `values`.
  */
 public class CSVConverter implements Serializable {
@@ -53,6 +53,13 @@ public class CSVConverter implements Serializable {
     return parser;
   }
 
+  /**
+   * Converts a CSV line to a map of column name -> value.
+   *
+   * @param line The line to be turned into a map
+   * @return A map from column name -> value in the line
+   * @throws IOException If there's an issue parsing the line
+   */
   public Map<String, String> toMap(String line) throws IOException {
     if(ignore(line)) {
       return null;
@@ -65,6 +72,12 @@ public class CSVConverter implements Serializable {
     return values;
   }
 
+  /**
+   * Initializes the CSVConverter based on the provided config. The config should contain
+   * an entry for {@code columns}, and can optionally contain a {@code separator}.
+   *
+   * @param config The configuration used for setup
+   */
   public void initialize(Map<String, Object> config) {
     if(config.containsKey(COLUMNS_KEY)) {
       columnMap = getColumnMap(config);
@@ -80,6 +93,7 @@ public class CSVConverter implements Serializable {
     parser = new CSVParserBuilder().withSeparator(separator)
               .build();
   }
+
   protected boolean ignore(String line) {
     if(null == line) {
       return true;
@@ -87,6 +101,15 @@ public class CSVConverter implements Serializable {
     String trimmedLine = line.trim();
     return trimmedLine.startsWith("#") || isEmpty(trimmedLine);
   }
+
+  /**
+   * Given a column determines the column -> position. If the column contains data in the format
+   * {@code columnName:position}, use that. Otherwise, use the provided value of i.
+   *
+   * @param column The data in the column
+   * @param i The default position to use
+   * @return A map entry of column value -> position
+   */
   public static Map.Entry<String, Integer> getColumnMapEntry(String column, int i) {
     if(column.contains(":")) {
       Iterable<String> tokens = Splitter.on(':').split(column);
@@ -99,6 +122,22 @@ public class CSVConverter implements Serializable {
     }
 
   }
+
+  /**
+   * Retrieves the column map based on the columns key in the config map.
+   *
+   * <p>If the data is a string, the default is to split on ',' as a list of column names.
+   *
+   * <p>If the data is a list, the default is to used as the list of column names.
+   *
+   * <p>If the data is a map, it must be in the form columnName -> position.
+   *
+   * <p>For string and list, the data can be in the form columnName:position, and extracted
+   * appropriately.
+   *
+   * @param config Uses the columns key if defined to retrieve columns.
+   * @return A map from column -> position
+   */
   public static Map<String, Integer> getColumnMap(Map<String, Object> config) {
     Map<String, Integer> columnMap = new HashMap<>();
     if(config.containsKey(COLUMNS_KEY)) {

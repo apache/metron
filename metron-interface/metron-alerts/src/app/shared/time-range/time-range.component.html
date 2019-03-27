@@ -16,12 +16,12 @@
   <br/> <span class="time-range-value"> {{ selectedTimeRangeValue === 'All time' ? '' : fromDateStr +' to ' + toDateStr }}</span>
 </button>
 
-<div #datePicker class="collapse" id="time-range">
-  <div class="card card-block">
+<div #datePicker class="collapse mt-5" id="time-range">
+  <div class="card p-3">
     <div class="container-fluid no-gutters h-100">
       <div class="row h-100">
         <div class="col-4 time-range">
-          <div class="title">Time Range</div> <br>
+          <div class="title">Time Range</div>
           <form>
             <div class="form-group">
               <label>FROM</label>
@@ -35,7 +35,7 @@
           </form>
         </div>
         <div class="col-8 quick-ranges pr-0">
-          <div class="title"> Quick Ranges </div> <br>
+          <div class="title"> Quick Ranges </div>
           <div class="row no-gutters">
             <div class="col-3">
               <span *ngFor="let key of timeRangeMappingCol1 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol1[key])" [attr.id]="timeRangeMappingCol1[key]">  {{ key }} </span> <br>

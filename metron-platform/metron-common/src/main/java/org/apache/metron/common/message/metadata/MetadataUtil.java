@@ -50,7 +50,7 @@ public enum MetadataUtil {
    * 'metron.metadata'.
    *
    * @param config The rawMessageStrategyConfig
-   * @return
+   * @return the prefix for metadata keys
    */
   public String getMetadataPrefix(Map<String, Object> config) {
     String prefix = (String) config.getOrDefault(METADATA_PREFIX_CONFIG, METADATA_PREFIX);
@@ -82,10 +82,11 @@ public enum MetadataUtil {
    *   <li>The kafka key</li>
    *   <li>The tuple fields outside of the value (e.g. the topic)</li>
    * </ul>
-   * In addition to extracting the metadata into a map, it applies the appropriate prefix (as configured in the rawMessageStrategyConfig).
-   * @param prefix
-   * @param t
-   * @return
+   *
+   * <p>In addition to extracting the metadata into a map, it applies the appropriate prefix (as configured in the rawMessageStrategyConfig).
+   * @param prefix The prefix of the metadata keys
+   * @param t The tuple to get metadata from
+   * @return A map containing the metadata
    */
   public Map<String, Object> extractMetadata(String prefix, Tuple t) {
     Map<String, Object> metadata = new HashMap<>();

@@ -726,13 +726,11 @@ describe('Component: SensorParserConfig', () => {
 
   it('should handle onSetKafkaTopic', async(() => {
     spyOn(component, 'getKafkaStatus');
-    spyOn(component, 'isConfigValid');
 
     component.init('new');
 
     component.onSetKafkaTopic();
     expect(component.getKafkaStatus).not.toHaveBeenCalled();
-    expect(component.isConfigValid).toHaveBeenCalled();
 
     component.sensorParserConfig.sensorTopic = 'bro';
     component.onSetKafkaTopic();
@@ -741,10 +739,8 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should handle onSetSensorName', async(() => {
-    spyOn(component, 'isConfigValid');
 
     component.onSetSensorName();
-    expect(component.isConfigValid).toHaveBeenCalled();
     expect(component.sensorNameValid).toEqual(false);
 
     component.sensorName = 'squid';
@@ -800,13 +796,11 @@ describe('Component: SensorParserConfig', () => {
 
   it('should handle onParserTypeChange', async(() => {
     spyOn(component, 'hidePane');
-    spyOn(component, 'isConfigValid');
 
     component.init('new');
 
     component.onParserTypeChange();
     expect(component.hidePane).not.toHaveBeenCalled();
-    expect(component.isConfigValid).toHaveBeenCalled();
 
     component.sensorParserConfig.parserClassName =
       'org.apache.metron.parsers.GrokParser';
@@ -820,40 +814,31 @@ describe('Component: SensorParserConfig', () => {
     expect(component.hidePane).toHaveBeenCalledWith(Pane.GROK);
   }));
 
-  it('should handle onGrokStatementChange', async(() => {
-    spyOn(component, 'isConfigValid');
+  it('isGrokStatementValid should validate grokStatement', async(() => {
+    expect(component.isGrokStatementValid()).toEqual(false);
 
-    component.onGrokStatementChange();
-    expect(component.grokStatementValid).toEqual(false);
-    expect(component.isConfigValid).toHaveBeenCalled();
+    component.grokStatement = '';
+    expect(component.isGrokStatementValid()).toEqual(false);
 
     component.grokStatement = 'grok statement';
-    component.onGrokStatementChange();
-    expect(component.grokStatementValid).toEqual(true);
+    expect(component.isGrokStatementValid()).toEqual(true);
   }));
 
   it('should handle isConfigValid', async(() => {
-    component.init('bro');
-
-    component.isConfigValid();
-    expect(component.configValid).toEqual(false);
-
+    expect(component.isConfigValid()).toEqual(false);
     component.sensorNameValid = true;
     component.kafkaTopicValid = true;
     component.parserClassValid = true;
-    component.sensorParserConfig.parserClassName = '';
-    component.isConfigValid();
-    expect(component.configValid).toEqual(true);
+
+    expect(component.isConfigValid()).toEqual(true);
 
     component.sensorParserConfig.parserClassName =
       'org.apache.metron.parsers.GrokParser';
-    component.isConfigValid();
-    expect(component.configValid).toEqual(false);
+    expect(component.isConfigValid()).toEqual(false);
 
-    component.sensorParserConfig.parserClassName = '';
-    component.grokStatementValid = true;
-    component.isConfigValid();
-    expect(component.configValid).toEqual(true);
+    component.grokStatement = 'grok statement';
+    expect(component.isConfigValid()).toEqual(true);
+
   }));
 
   it('should getKafkaStatus', async(() => {
@@ -1148,16 +1133,6 @@ describe('Component: SensorParserConfig', () => {
 
     component.onShowGrokPane();
     expect(component.patternLabel).toEqual('PATTERN_LABEL');
-  }));
-
-  it('should handle onRawJsonChanged', async(() => {
-    // fixture.whenStable();
-    // spyOn(component.sensorFieldSchema, 'createFieldSchemaRows');
-    // component.onRawJsonChanged();
-
-    // expect(
-    //   component.sensorFieldSchema.createFieldSchemaRows
-    // ).toHaveBeenCalled();
   }));
 
   it('should handle onAdvancedConfigFormClose', async(() => {

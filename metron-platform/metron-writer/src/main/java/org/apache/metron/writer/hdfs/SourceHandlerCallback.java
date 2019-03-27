@@ -18,9 +18,18 @@
 
 package org.apache.metron.writer.hdfs;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * Callback intended to be able to manage open files in {@link HdfsWriter}. This callback will close
+ * the associated {@link SourceHandler} and remove it from the map of open files.
+ */
 public class SourceHandlerCallback {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   Map<SourceHandlerKey, SourceHandler> sourceHandlerMap;
   SourceHandlerKey key;
   SourceHandlerCallback(Map<SourceHandlerKey, SourceHandler> sourceHandlerMap, SourceHandlerKey key) {
@@ -28,8 +37,20 @@ public class SourceHandlerCallback {
     this.key = key;
   }
 
+  /**
+   * Removes {@link SourceHandler} from the map of open files. Also closes it to ensure resources such as
+   * {@link java.util.Timer} is closed.
+   */
   public void removeKey() {
-    sourceHandlerMap.remove(key);
+    SourceHandler removed = sourceHandlerMap.remove(key);
+    if(removed != null) {
+      removed.close();
+    }
+    LOG.debug("Removed {} -> {}. Current state of sourceHandlerMap: {}",
+        key,
+        removed,
+        sourceHandlerMap
+    );
   }
 }
 

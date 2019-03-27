@@ -83,13 +83,6 @@
 			<url>http://clojars.org/repo</url>
 		</repository>
 		<repository>
-			<id>multiline-release-repo</id>
-			<url>https://raw.github.com/benelog/multiline/master/maven-repository</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
 			<id>sonatype.org</id>
 			<url>https://oss.sonatype.org/content/groups/public/</url>
 			<snapshots>

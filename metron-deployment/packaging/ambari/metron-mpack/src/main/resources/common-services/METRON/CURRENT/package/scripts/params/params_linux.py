@@ -294,6 +294,10 @@ metron_ldap_group_role = config['configurations']['metron-security-env']['metron
 metron_ldap_ssl_truststore = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore']
 metron_ldap_ssl_truststore_password = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore.password']
 
+# Roles
+metron_user_role = config['configurations']['metron-security-env']['metron_user_role']
+metron_admin_role = config['configurations']['metron-security-env']['metron_admin_role']
+
 # REST
 metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']
 metron_rest_pid = 'metron-rest.pid'

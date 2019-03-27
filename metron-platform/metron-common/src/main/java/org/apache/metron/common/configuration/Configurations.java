@@ -32,6 +32,9 @@ import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Allows for retrieval and update of configurations, particularly global configurations.
+ */
 public class Configurations implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private List<FieldValidator> validations = new ArrayList<>();
@@ -64,6 +67,11 @@ public class Configurations implements Serializable {
     updateGlobalConfig(globalConfig);
   }
 
+  /**
+   * Updates the global config from a provided map.
+   *
+   * @param globalConfig The map to update the config to
+   */
   public void updateGlobalConfig(Map<String, Object> globalConfig) {
     if(globalConfig != null) {
       getConfigurations().put(ConfigurationType.GLOBAL.getTypeName(), globalConfig);
@@ -75,6 +83,17 @@ public class Configurations implements Serializable {
     getConfigurations().remove(ConfigurationType.GLOBAL.getTypeName());
   }
 
+  /**
+   * Retrieves a key from a map, casts it to a provided class. If there is no entry for the key,
+   * a default is returned.
+   *
+   * @param key The key to retrieve from the map
+   * @param map The map to retrieve the key from
+   * @param defaultValue The default value to return if no value is found
+   * @param clazz The class to cast the result to
+   * @param <T> The type value of the class being casted to
+   * @return The casted value if found, the default value otherwise
+   */
   public static <T> T getAs(String key, Map<String, Object> map, T defaultValue, Class<T> clazz) {
     return map == null ? defaultValue
         : ConversionUtils.convert(map.getOrDefault(key, defaultValue), clazz);

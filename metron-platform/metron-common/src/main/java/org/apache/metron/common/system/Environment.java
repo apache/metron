@@ -18,7 +18,7 @@
 package org.apache.metron.common.system;
 
 /**
- * Useful so we can test mock dependency injection with environment variables
+ * Useful so we can test mock dependency injection with environment variables.
  */
 public class Environment {
   public String get(String variable) {

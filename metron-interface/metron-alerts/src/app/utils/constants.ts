@@ -34,7 +34,7 @@ export let CUSTOMM_DATE_RANGE_LABEL = 'Date Range';
 
 export let TREE_SUB_GROUP_SIZE = 5;
 export let INDEXES =  environment.indices ? environment.indices.split(',') : [];
-export let POLLING_DEFAULT_STATE = environment.defaultPollingState;
+export let POLLING_DEFAULT_STATE = !environment.defaultPollingState;
 
 export let MAX_ALERTS_IN_META_ALERTS = 350;
 

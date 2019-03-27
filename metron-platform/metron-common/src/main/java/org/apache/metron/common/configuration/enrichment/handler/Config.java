@@ -31,11 +31,12 @@ public interface Config {
   /**
    * Split a message by the fields.  Certain configs will do this differently than others, but
    * these are the messages sent to the enrichment adapter downstream.
-   * @param message
-   * @param fields
-   * @param fieldToEnrichmentKey
+   *
+   * @param message The Json message to be split
+   * @param fields The fields to split by
+   * @param fieldToEnrichmentKey A function to get the enrichment key
    * @param config The config to use
-   * @return
+   * @return A list of Json objects that have been split from the message.
    */
   List<JSONObject> splitByFields( JSONObject message
                           , Object fields
@@ -52,10 +53,9 @@ public interface Config {
   }
 
   /**
-   *
    * Return the subgroups for a given enrichment.  This will allow the join bolt to know when the join is complete.
    * NOTE: this implies that a given enrichment may have a 1 to many relationship with subgroups.
-   * @param config
+   * @param config An iterable of config entries
    * @return The list of subgroups
    */
   List<String> getSubgroups(Iterable<Map.Entry<String, Object>> config);
@@ -67,7 +67,7 @@ public interface Config {
   /**
    * Convert a config object (currently either a map or list is supported) to a list of configs.
    * @param c Either a map or list representing the enrichment adapter configuration.
-   * @return
+   * @return an iterable of config entries
    */
   Iterable<Map.Entry<String, Object>> toConfig(Object c);
 }
