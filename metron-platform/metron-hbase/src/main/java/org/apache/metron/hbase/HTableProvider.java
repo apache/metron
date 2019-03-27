@@ -17,16 +17,11 @@
  */
 package org.apache.metron.hbase;
 
+import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.HTableInterface;
 
-import java.io.IOException;
-
-/**
- * Note: HBase, like Hadoop, occasionally deprecates interfaces. We anticipate this HTable API
- * should be around for quite some time.
- */
 public class HTableProvider implements TableProvider {
     @Override
     public HTableInterface getTable(Configuration config, String tableName) throws IOException {

@@ -29,8 +29,11 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 import java.util.HashMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.rest.service.GlobalConfigService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,9 +71,20 @@ public class HBaseConfigTest {
   }
 
   @Test
-  public void hBaseClientShouldBeCreated() {
-    hBaseConfig.hBaseClient();
+  public void hBaseClientShouldBeCreatedWithDefaultProvider() throws Exception {
+    when(globalConfigService.get()).thenReturn(new HashMap<String, Object>() {{
+      put(EnrichmentConfigurations.TABLE_NAME, "enrichment_list_hbase_table_name");
+    }});
+    Assert.assertNotNull(hBaseConfig.hBaseClient());
   }
 
+  @Test
+  public void hBaseClientShouldBeCreatedWithSpecifiedProvider() throws Exception {
+    when(globalConfigService.get()).thenReturn(new HashMap<String, Object>() {{
+      put(EnrichmentConfigurations.TABLE_PROVIDER, MockHBaseTableProvider.class.getName());
+      put(EnrichmentConfigurations.TABLE_NAME, "enrichment_list_hbase_table_name");
+    }});
+    Assert.assertNotNull(hBaseConfig.hBaseClient());
+  }
 
 }

@@ -76,7 +76,7 @@ public class HBaseConfig {
         throw new IllegalStateException("Unable to create table provider", e);
       }
       return new HBaseClient(provider, HBaseConfiguration.create(),
-          (String) restConfig.get(""));
+          (String) restConfig.get(EnrichmentConfigurations.TABLE_NAME));
     }
 
 }
