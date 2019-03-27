@@ -46,6 +46,11 @@
       <artifactId>metron-parsers</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
+      <dependency>
+          <groupId>org.apache.metron</groupId>
+          <artifactId>metron-enrichment-common</artifactId>
+          <version>${project.parent.version}</version>
+      </dependency>
 
     <!-- Storm dependencies -->
     <dependency>
@@ -138,13 +143,6 @@
       <version>${global_log4j_core_version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.metron</groupId>
-      <artifactId>metron-enrichment-common</artifactId>
-      <version>${project.parent.version}</version>
-      <scope>test</scope>
-    </dependency>
-
   </dependencies>
   <build>
     <plugins>

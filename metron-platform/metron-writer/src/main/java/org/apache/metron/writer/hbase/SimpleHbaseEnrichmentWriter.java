@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.enrichment.writer;
+package org.apache.metron.writer.hbase;
 
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageId;
@@ -47,6 +47,9 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Used primarily for streaming enrichments.
+ */
 public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(SimpleHbaseEnrichmentWriter.class);
