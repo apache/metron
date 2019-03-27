@@ -826,19 +826,18 @@ describe('Component: SensorParserConfig', () => {
 
   it('should handle isConfigValid', async(() => {
     expect(component.isConfigValid()).toEqual(false);
+
     component.sensorNameValid = true;
     component.kafkaTopicValid = true;
     component.parserClassValid = true;
 
     expect(component.isConfigValid()).toEqual(true);
 
-    component.sensorParserConfig.parserClassName =
-      'org.apache.metron.parsers.GrokParser';
+    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
     expect(component.isConfigValid()).toEqual(false);
 
     component.grokStatement = 'grok statement';
     expect(component.isConfigValid()).toEqual(true);
-
   }));
 
   it('should getKafkaStatus', async(() => {

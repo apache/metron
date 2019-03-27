@@ -63,7 +63,7 @@ export class SensorParserConfigComponent implements OnInit {
   transformsValidationForm: FormGroup;
 
   sensorName: string = '';
-  sensorParserConfig: ParserConfigModel;
+  sensorParserConfig: ParserConfigModel = new ParserConfigModel('');
   sensorEnrichmentConfig: SensorEnrichmentConfig = new SensorEnrichmentConfig();
   indexingConfigurations: IndexingConfigurations = new IndexingConfigurations();
 
