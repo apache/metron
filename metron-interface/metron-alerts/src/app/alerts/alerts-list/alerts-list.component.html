@@ -14,27 +14,27 @@
 <div class="container-fluid px-0">
     <div class="mrow">
         <div class="col-md-12 px-0">
-            <div class="col-padding-50">
-                <div class="input-group search">
-                    <span class="input-group-btn">
+            <div >
+                <div class="input-group flex-nowrap search">
+                    <span class="input-group-prepend">
                         <button class="btn btn-secondary btn-saved-searches" type="button" (click)="showSavedSearches()">Searches</button>
                     </span>
                     <div appAceEditor style="width:100%;" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
-                    <span class="input-group-btn">
+                    <span class="input-group-append">
                         <button class="btn btn-secondary btn-search-clear" type="button" (click)="onClear()"></button>
                     </span>
-                    <span class="input-group-btn">
-                        <app-time-range (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampfilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
+                    <span class="input-group-append" style="white-space: nowrap;">
+                        <app-time-range class="d-flex position-relative" (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampfilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
                     </span>
-                    <span class="input-group-btn">
-                        <button class="btn btn-secondary btn-search" type="button" data-name="search" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
+                    <span class="input-group-append">
+                        <button class="btn btn-secondary btn-search rounded-right" type="button" data-name="search" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
                     </span>
+                    <div class="input-group-append">
+                        <span class="save-button" (click)="showSaveSearch()">
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-fixed-50">
-            <span class="save-button" (click)="showSaveSearch()">
-            </span>
         </div>
     </div>
     <div class="mrow">
@@ -51,8 +51,8 @@
                 </div>
                 <app-configure-rows [srcElement]="settingsIcon" [tableMetaData]="tableMetaData" [(interval)]="refreshInterval" [(size)]="tableMetaData.size" (configRowsChange)="onConfigRowsChange()" > </app-configure-rows>
                 <div class="btn  pause-play" (click)="onPausePlay()">
-                    <i *ngIf="!pauseRefresh" class="fa fa-pause" aria-hidden="true"></i>
-                    <i *ngIf="pauseRefresh" class="fa fa-play" aria-hidden="true"></i>
+                    <i *ngIf="!isRefreshPaused" class="fa fa-pause" aria-hidden="true"></i>
+                    <i *ngIf="isRefreshPaused" class="fa fa-play" aria-hidden="true"></i>
                 </div>
                 <div id="table-actions" class="dropdown d-inline-block">
                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACTIONS</button>

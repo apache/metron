@@ -91,5 +91,23 @@ $popover-border-color: #1B596C;
       border-left-color: $popover-background-color;
       right: -9px;
     }
+    .arrow {
+      transform: translateY(calc(-50% - .25rem));
+    }
+  }
+}
+
+.bs-popover-left {
+
+  .arrow::before {
+    border-left-color: #1B596C;
+  }
+
+  .arrow::after {
+    border-left-color: #0C3B43;
+  }
+
+  .popover-body {
+    color: inherit;
   }
 }

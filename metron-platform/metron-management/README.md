@@ -54,8 +54,41 @@ The functions are split roughly into a few sections:
 * File functions - Functions around interacting with local or HDFS files
 * Configuration functions - Functions surrounding pulling and pushing configs from zookeeper
 * Parser functions - Functions surrounding adding, viewing, and removing Parser functions.
+* Indexing functions - Functions surrounding setting indexing parameters (batch size and timeout), setting the index, enabling/disabling index writer for sensors.
 * Enrichment functions - Functions surrounding adding, viewing and removing Stellar enrichments as well as managing batch size, batch timeout, and index names for the enrichment topology configuration
 * Threat Triage functions - Functions surrounding adding, viewing and removing threat triage functions.
+
+| Type                        | Function Name                                                                 |
+| :-------------------------: | :---------------------------------------------------------------------------: |
+| **Grok Functions**          | [`GROK_EVAL`](#grok_eval)                                                     |
+|                             | [`GROK_PREDICT`](#grok_predict)                                               |
+| **File Functions (Local)**  | [`LOCAL_LS`](#local_ls)                                                       |
+|                             | [`LOCAL_RM`](#local_rm)                                                       |
+|                             | [`LOCAL_READ`](#local_read)                                                   |
+| **File Functions (HDFS)**   | [`HDFS_LS`](#hdfs_ls)                                                         |
+|                             | [`HDFS_RM`](#hdfs_rm)                                                         |
+|                             | [`HDFS_READ`](#hdfs_read)                                                     |
+| **Configuration Functions** | [`CONFIG_GET`](#config_get)                                                   |
+|                             | [`CONFIG_PUT`](#config_put)                                                   |
+| **Parser Functions**        | [`PARSER_CONFIG`](#parser_config)                                             |
+|                             | [`PARSER_INIT`](#parser_init)                                                 |
+|                             | [`PARSER_PARSE`](#parser_parse)                                               |
+|                             | [`PARSER_STELLAR_TRANSFORM_ADD`](#parser_stellar_transform_add)               |
+|                             | [`PARSER_STELLAR_TRANSFORM_PRINT`](#parser_stellar_transform_print)           |
+|                             | [`PARSER_STELLAR_TRANSFORM_REMOVE`](#parser_stellar_transform_remove)         |
+| **Threat Triage Functions** | [`THREAT_TRIAGE_INIT`](#threat_triage_init)                                   |
+|                             | [`THREAT_TRIAGE_CONFIG`](#threat_triage_config)                               |
+|                             | [`THREAT_TRIAGE_SCORE`](#threat_triage_score)                                 |
+|                             | [`THREAT_TRIAGE_ADD`](#threat_triage_add)                                     |
+|                             | [`THREAT_TRIAGE_REMOVE`](#threat_triage_remove)                               |
+|                             | [`THREAT_TRIAGE_PRINT`](#threat_triage_print)                                 |
+|                             | [`THREAT_TRIAGE_SET_AGGREGATOR`](#threat_triage_set_aggregator)               |
+| **Indexing Functions**      | [`INDEXING_SET_BATCH`](#indexing_set_batch)                                   |
+|                             | [`INDEXING_SET_ENABLED`](#indexing_set_enabled)                               |
+|                             | [`INDEXING_SET_INDEX`](#indexing_set_index)                                   |
+| **Enrichment Functions**    | [`ENRICHMENT_STELLAR_TRANSFORM_ADD`](#enrichment_stellar_transform_add)       |
+|                             | [`ENRICHMENT_STELLAR_TRANSFORM_PRINT`](#enrichment_stellar_transform_print)   |
+|                             | [`ENRICHMENT_STELLAR_TRANSFORM_REMOVE`](#enrichment_stellar_transform_remove) |
 
 ### Grok Functions
 

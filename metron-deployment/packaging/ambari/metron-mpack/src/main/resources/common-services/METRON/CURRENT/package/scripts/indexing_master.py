@@ -99,26 +99,20 @@ class Indexing(Script):
         commands = IndexingCommands(params)
         if params.ra_indexing_writer == 'Solr':
             # Install Solr schemas
-            try:
-                if not commands.is_solr_schema_installed():
-                    commands.solr_schema_install(env)
+            if not commands.is_solr_schema_installed():
+                if commands.solr_schema_install(env):
                     commands.set_solr_schema_installed()
 
-            except Exception as e:
-                msg = "WARNING: Solr schemas could not be installed.  " \
-                      "Is Solr running?  Will reattempt install on next start.  error={0}"
-                Logger.warning(msg.format(e))
-        else:
+        elif params.ra_indexing_writer == 'Elasticsearch':
             # Install elasticsearch templates
-            try:
-                if not commands.is_elasticsearch_template_installed():
-                    self.elasticsearch_template_install(env)
+            if not commands.is_elasticsearch_template_installed():
+                if self.elasticsearch_template_install(env):
                     commands.set_elasticsearch_template_installed()
 
-            except Exception as e:
-                msg = "WARNING: Elasticsearch index templates could not be installed.  " \
-                      "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
-                Logger.warning(msg.format(e))
+        else :
+            msg = "WARNING:  index schemas/templates could not be installed.  " \
+                  "Is Indexing server configured properly ?  Will reattempt install on next start.  index server configured={0}"
+            Logger.warning(msg.format(params.ra_indexing_writer))
 
         commands.start_indexing_topology(env)
 
@@ -138,26 +132,50 @@ class Indexing(Script):
     def restart(self, env):
         from params import params
         env.set_params(params)
-
         self.configure(env)
         commands = IndexingCommands(params)
+
+        if params.ra_indexing_writer == 'Solr':
+            # Install Solr schemas
+            if not commands.is_solr_schema_installed():
+                if commands.solr_schema_install(env):
+                    commands.set_solr_schema_installed()
+
+        elif params.ra_indexing_writer == 'Elasticsearch':
+            # Install elasticsearch templates
+            if not commands.is_elasticsearch_template_installed():
+                if self.elasticsearch_template_install(env):
+                    commands.set_elasticsearch_template_installed()
+
+        else :
+            msg = "WARNING:  index schemas/templates could not be installed.  " \
+                  "Is Indexing server configured properly ?  Will reattempt install on next start.  index server configured={0}"
+            Logger.warning(msg.format(params.ra_indexing_writer))
+
         commands.restart_indexing_topology(env)
 
     def elasticsearch_template_install(self, env):
         from params import params
         env.set_params(params)
         Logger.info("Installing Elasticsearch index templates")
-        metron_service.check_indexer_parameters()
 
-        commands = IndexingCommands(params)
-        for template_name, template_path in commands.get_templates().iteritems():
+        try:
+            metron_service.check_indexer_parameters()
+            commands = IndexingCommands(params)
+            for template_name, template_path in commands.get_templates().iteritems():
+                # install the index template
+                File(template_path, mode=0755, content=StaticFile("{0}.template".format(template_name)))
+                cmd = "curl -s -XPOST http://{0}/_template/{1} -d @{2}"
+                Execute(
+                  cmd.format(params.es_http_url, template_name, template_path),
+                  logoutput=True)
+            return True
 
-            # install the index template
-            File(template_path, mode=0755, content=StaticFile("{0}.template".format(template_name)))
-            cmd = "curl -s -XPOST http://{0}/_template/{1} -d @{2}"
-            Execute(
-              cmd.format(params.es_http_url, template_name, template_path),
-              logoutput=True)
+        except Exception as e:
+            msg = "WARNING: Elasticsearch index templates could not be installed.  " \
+                  "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
+            Logger.warning(msg.format(e))
+            return False
 
     def elasticsearch_template_delete(self, env):
         from params import params

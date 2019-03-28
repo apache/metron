@@ -209,19 +209,26 @@ class IndexingCommands:
                                   self.__params.solr_principal_name,
                                   self.__params.solr_user)
 
-        commands = IndexingCommands(params)
-        for collection_name in commands.get_solr_schemas():
-
-            # install the schema
-            cmd = format((
+        try:
+            commands = IndexingCommands(params)
+            for collection_name in commands.get_solr_schemas():
+                # install the schema
+                cmd = format((
                 "export ZOOKEEPER={solr_zookeeper_url};"
                 "export SECURITY_ENABLED={security_enabled};"
-            ))
-            cmd += "{0}/bin/create_collection.sh {1};"
+                ))
+                cmd += "{0}/bin/create_collection.sh {1};"
 
-            Execute(
+                Execute(
                 cmd.format(params.metron_home, collection_name),
                 user=self.__params.solr_user)
+            return True
+
+        except Exception as e:
+            msg = "WARNING: Solr schemas could not be installed.  " \
+                  "Is Solr running?  Will reattempt install on next start.  error={0}"
+            Logger.warning(msg.format(e))
+            return False
 
     def solr_schema_delete(self, env):
         from params import params

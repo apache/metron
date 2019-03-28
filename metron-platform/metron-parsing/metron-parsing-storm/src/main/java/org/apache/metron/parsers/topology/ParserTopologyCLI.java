@@ -53,7 +53,8 @@ import org.apache.storm.utils.Utils;
 
 public class ParserTopologyCLI {
 
-  private static final String STORM_JOB_SEPARATOR = "__";
+  public static final String STORM_JOB_SEPARATOR = "__";
+  public static final String TOPOLOGY_OPTION_SEPARATOR = ",";
 
   public enum ParserOptions {
     HELP("h", code -> {
@@ -171,7 +172,7 @@ public class ParserTopologyCLI {
       Option o = new Option(code, "extra_topology_options", true
                            , "Extra options in the form of a JSON file with a map for content." +
                              "  Available options are those in the Kafka Consumer Configs at http://kafka.apache.org/0100/documentation.html#newconsumerconfigs" +
-                             " and " + Joiner.on(",").join(SpoutConfiguration.allOptions())
+                             " and " + Joiner.on(TOPOLOGY_OPTION_SEPARATOR).join(SpoutConfiguration.allOptions())
                            );
       o.setArgName("JSON_FILE");
       o.setRequired(false);
@@ -325,7 +326,7 @@ public class ParserTopologyCLI {
     String zookeeperUrl = ParserOptions.ZK_QUORUM.get(cmd);
     Optional<String> brokerUrl = ParserOptions.BROKER_URL.has(cmd)?Optional.of(ParserOptions.BROKER_URL.get(cmd)):Optional.empty();
     String sensorTypeRaw= ParserOptions.SENSOR_TYPES.get(cmd);
-    List<String> sensorTypes = Arrays.stream(sensorTypeRaw.split(",")).map(String::trim).collect(
+    List<String> sensorTypes = Arrays.stream(sensorTypeRaw.split(TOPOLOGY_OPTION_SEPARATOR)).map(String::trim).collect(
         Collectors.toList());
 
     /*
@@ -357,7 +358,7 @@ public class ParserTopologyCLI {
 
         // Handle the multiple explicitly passed spout parallelism's case.
         String parallelismRaw = ParserOptions.SPOUT_PARALLELISM.get(cmd, "1");
-        List<String> parallelisms = Arrays.stream(parallelismRaw.split(",")).map(String::trim).collect(
+        List<String> parallelisms = Arrays.stream(parallelismRaw.split(TOPOLOGY_OPTION_SEPARATOR)).map(String::trim).collect(
             Collectors.toList());
         if (parallelisms.size() != parserConfigs.size()) {
           throw new IllegalArgumentException("Spout parallelism should match number of sensors 1:1");
@@ -387,7 +388,7 @@ public class ParserTopologyCLI {
 
         // Handle the multiple explicitly passed spout parallelism's case.
         String numTasksRaw = ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1");
-        List<String> numTasks = Arrays.stream(numTasksRaw.split(",")).map(String::trim).collect(
+        List<String> numTasks = Arrays.stream(numTasksRaw.split(TOPOLOGY_OPTION_SEPARATOR)).map(String::trim).collect(
             Collectors.toList());
         if (numTasks.size() != parserConfigs.size()) {
           throw new IllegalArgumentException("Spout num tasks should match number of sensors 1:1");
@@ -602,14 +603,15 @@ public class ParserTopologyCLI {
       ParserTopologyCLI cli = new ParserTopologyCLI();
       ParserTopologyBuilder.ParserTopology topology = cli.createParserTopology(cmd);
       String sensorTypes = ParserOptions.SENSOR_TYPES.get(cmd);
+      String topologyName = sensorTypes.replaceAll(TOPOLOGY_OPTION_SEPARATOR, STORM_JOB_SEPARATOR);
       if (ParserOptions.TEST.has(cmd)) {
         topology.getTopologyConfig().put(Config.TOPOLOGY_DEBUG, true);
         LocalCluster cluster = new LocalCluster();
-        cluster.submitTopology(sensorTypes.replaceAll(",", STORM_JOB_SEPARATOR), topology.getTopologyConfig(), topology.getBuilder().createTopology());
+        cluster.submitTopology(topologyName, topology.getTopologyConfig(), topology.getBuilder().createTopology());
         Utils.sleep(300000);
         cluster.shutdown();
       } else {
-        StormSubmitter.submitTopology(sensorTypes.replaceAll(",", STORM_JOB_SEPARATOR), topology.getTopologyConfig(), topology.getBuilder().createTopology());
+        StormSubmitter.submitTopology(topologyName, topology.getTopologyConfig(), topology.getBuilder().createTopology());
       }
     } catch (Exception e) {
       e.printStackTrace();

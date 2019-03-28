@@ -37,6 +37,7 @@ import org.apache.storm.task.TopologyContext;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -52,6 +53,13 @@ public class HdfsWriterTest {
 
   private File folder;
   private FileNameFormat testFormat;
+
+  @BeforeClass
+  public static void beforeAll() throws Exception {
+    // See https://issues.apache.org/jira/browse/METRON-2036
+    // The need for this should go away when JUnit 4.13 is released and we can upgrade.
+    Thread.interrupted();
+  }
 
   @Before
   public void setup() throws IOException {

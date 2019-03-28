@@ -42,6 +42,12 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-profiler-client</artifactId>
             <version>${project.parent.version}</version>
+            <exclusions>
+              <exclusion>
+                  <groupId>com.google.guava</groupId>
+                  <artifactId>guava</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>

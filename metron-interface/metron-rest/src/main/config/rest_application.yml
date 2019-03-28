@@ -78,3 +78,7 @@ ldap:
     searchBase: ${METRON_LDAP_GROUP_SEARCHBASE}
     searchFilter: ${METRON_LDAP_GROUP_SEARCHFILTER}
     roleAttribute: ${METRON_LDAP_GROUP_ROLE}
+
+authorities:
+  user: ${METRON_USER_ROLE}
+  admin: ${METRON_ADMIN_ROLE}
