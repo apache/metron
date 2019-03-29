@@ -11,96 +11,94 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div class="metron-slider-pane-editable d-flex load-right-to-left dialog2x">
-  <div class="container-fluid mh-100 h-100">
-    <div class="row mb-3">
-      <div class="col-md-12">
-        <div class="d-flex pb-3">
-          <div class="form-title font-weight-bold">Configure Table</div>
-          <i class="fa fa-times ml-auto close-button" aria-hidden="true" (click)="goBack()"></i>
-        </div>
-        <div class="input-group">
-          <input class="input flex-fill" data-qe-id="filter-input" type="text" placeholder="Filter list" #filterColResults >
-          <div class="input-group-append">
-            <button class="btn btn-secondary btn-search-clear" data-qe-id="filter-reset" (click)="clearFilter()"></button>
-          </div>
-        </div>
+<div class="metron-slider-pane-editable pb-0 d-flex flex-column load-right-to-left dialog2x">
+
+  <div class="container-fluid mb-3">
+    <div class="d-flex pb-3">
+      <div class="form-title font-weight-bold">Configure Table</div>
+      <i class="fa fa-times ml-auto close-button" aria-hidden="true" (click)="goBack()"></i>
+    </div>
+    <div class="input-group">
+      <input class="input flex-fill" data-qe-id="filter-input" type="text" placeholder="Filter list" #filterColResults >
+      <div class="input-group-append">
+        <button class="btn btn-secondary btn-search-clear" data-qe-id="filter-reset" (click)="clearFilter()"></button>
       </div>
     </div>
-    <div class="table-config d-flex align-content-start flex-wrap mx-0 mh-100 h-100 overflow-auto">
-
-      <table class="table">
-        <thead>
-          <tr>
-            <th class="main-column" colspan=2> Visible </th>
-            <th> Short Name </th>
-            <th> Type  </th>
-            <th> </th>
-            <th> </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="background-tiber">
-            <td>
-                <button class="btn btn-secondary btn-sm" disabled>remove</button>
-            </td>
-            <td>
-              <span> Score </span>
-            </td>
-            <td> </td>
-            <td> <span> STRING </span></td>
-            <td> - </td>
-            <td> - </td>
-          </tr>
-          <tr *ngFor="let column of visibleColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
-            <td>
-              <button (click)="onColumnRemoved(column)" class="btn btn-secondary btn-sm">remove</button>
-            </td>
-            <td #element>
-              <span [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
-            </td>
-            <td>
-              <input class="input" placeholder="rename" [(ngModel)]="column.displayName">
-            </td>
-            <td>
-              <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
-            </td>
-            <td>
-              <span id="up-{{ column.columnMetadata.name }}" class="up" (click)="swapUp(i)" [ngClass]="{'disabled': i === 0}"></span>
-            </td>
-            <td>
-              <span id="down-{{ column.columnMetadata.name }}" class="down" (click)="swapDown(i)" [ngClass]="{'disabled': i + 1 === visibleColumns.length}"></span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <table class="table">
-        <thead>
-          <tr>
-            <th class="main-column" colspan=2> Available </th>
-            <th> Type  </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let column of filteredColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
-            <td>
-              <button (click)="onColumnAdded(column)" class="btn btn-primary btn-sm">add</button>
-            </td>
-            <td #element>
-              <span [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
-            </td>
-            <td>
-              <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-    </div>
   </div>
-  <div class="container-fluid metron-floating-button-bar-2x">
+
+  <div class="container-fluid pt-0 table-config d-flex flex-wrap overflow-auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="main-column" colspan=2> Visible </th>
+          <th> Short Name </th>
+          <th> Type  </th>
+          <th> </th>
+          <th> </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="background-tiber">
+          <td>
+              <button class="btn btn-secondary btn-sm" disabled>remove</button>
+          </td>
+          <td>
+            <span> Score </span>
+          </td>
+          <td> </td>
+          <td> <span> STRING </span></td>
+          <td> - </td>
+          <td> - </td>
+        </tr>
+        <tr *ngFor="let column of visibleColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+          <td>
+            <button (click)="onColumnRemoved(column)" class="btn btn-secondary btn-sm">remove</button>
+          </td>
+          <td #element>
+            <span [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
+          </td>
+          <td>
+            <input class="input" placeholder="rename" [(ngModel)]="column.displayName">
+          </td>
+          <td>
+            <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
+          </td>
+          <td>
+            <span id="up-{{ column.columnMetadata.name }}" class="up" (click)="swapUp(i)" [ngClass]="{'disabled': i === 0}"></span>
+          </td>
+          <td>
+            <span id="down-{{ column.columnMetadata.name }}" class="down" (click)="swapDown(i)" [ngClass]="{'disabled': i + 1 === visibleColumns.length}"></span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="main-column" colspan=2> Available </th>
+          <th> Type  </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let column of filteredColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+          <td>
+            <button (click)="onColumnAdded(column)" class="btn btn-primary btn-sm">add</button>
+          </td>
+          <td #element>
+            <span [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
+          </td>
+          <td>
+            <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="container-fluid metron-button-bar-2x">
     <button type="submit" data-qe-id="save-table-config" class="btn btn-all_ports" (click)="save()">SAVE</button>
     <button class="btn btn-mine_shaft_2" (click)="goBack()">CANCEL</button>
   </div>
 </div>
+
