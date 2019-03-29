@@ -52,14 +52,13 @@ export class ColumnMetadataWrapper {
 export class ConfigureTableComponent implements OnInit, AfterViewInit {
   @ViewChild('filterColResults') filterColResults: ElementRef;
 
-  allColumns: ColumnMetadataWrapper[] = [];
-  filteredColumns: ColumnMetadataWrapper[] = [];
   columnHeaders: string;
   allColumns$: Subject<ColumnMetadataWrapper[]> = new Subject<ColumnMetadataWrapper[]>();
   visibleColumns$: Observable<ColumnMetadataWrapper[]>;
   availableColumns$: Observable<ColumnMetadataWrapper[]>;
   visibleColumns: ColumnMetadataWrapper[];
   availableColumns: ColumnMetadataWrapper[];
+  filteredColumns: ColumnMetadataWrapper[] = [];
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute,
               private configureTableService: ConfigureTableService,
@@ -100,6 +99,7 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
 
       this.visibleColumns = allColumns.filter(column => column.selected);
       this.availableColumns = allColumns.filter(column => !column.selected);
+      this.filteredColumns = this.availableColumns;
     });
   }
 
@@ -113,7 +113,7 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
 
   filterColumns(val: string) {
     const words = val.trim().split(' ');
-    this.filteredColumns = this.allColumns.filter(col => {
+    this.filteredColumns = this.availableColumns.filter(col => {
       return !this.isColMissingFilterKeyword(words, col, col.displayName);
     });
   }
@@ -128,12 +128,7 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
 
   clearFilter() {
     this.filterColResults.nativeElement.value = '';
-    this.filteredColumns = this.allColumns;
-  }
-
-  onSelectDeselectAll($event) {
-    let checked = $event.target.checked;
-    this.allColumns.forEach(colMetaData => colMetaData.selected = checked);
+    this.filteredColumns = this.availableColumns;
   }
 
   /* Slight variation of insertion sort with bucketing the items in the display order*/
@@ -164,7 +159,7 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
       return new ColumnMetadataWrapper(mData, configuredColumnNames.indexOf(mData.name) > -1,
                                         ColumnNamesService.columnNameToDisplayValueMap[mData.name]);
       });
-    this.filteredColumns = this.allColumns;
+    this.filteredColumns = this.availableColumns;
   }
 
   private defaultColumnSorter(col1: ColumnMetadata, col2: ColumnMetadata): number {
