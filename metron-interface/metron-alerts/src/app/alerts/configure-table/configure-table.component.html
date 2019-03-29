@@ -11,7 +11,7 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div class="metron-slider-pane-editable load-right-to-left dialog2x">
+<div class="metron-slider-pane-editable d-flex load-right-to-left dialog2x">
   <div class="container-fluid mh-100 h-100">
     <div class="row mb-3">
       <div class="col-md-12">
@@ -27,34 +27,12 @@
         </div>
       </div>
     </div>
-    <div class="table-config d-flex flex-row mx-0 mh-100 h-100 overflow-auto">
+    <div class="table-config d-flex align-content-start flex-wrap mx-0 mh-100 h-100 overflow-auto">
 
       <table class="table">
         <thead>
           <tr>
-            <th class="main-column"> Available </th>
-            <th> Type  </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let column of filteredColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
-            <td #element>
-              <input #selectColName id="select-deselect-{{ column.columnMetadata.name }}" class="fontawesome-checkbox" type="checkbox"
-                [checked]="column.selected" (click)="onColumnAdded(column)">
-              <label for="select-deselect-{{ column.columnMetadata.name }}"></label>&nbsp;
-              <span [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
-            </td>
-            <td>
-              <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <table class="table">
-        <thead>
-          <tr>
-            <th class="main-column"> Visible </th>
+            <th class="main-column" colspan=2> Visible </th>
             <th> Short Name </th>
             <th> Type  </th>
             <th> </th>
@@ -64,8 +42,9 @@
         <tbody>
           <tr class="background-tiber">
             <td>
-              <input #selectColName id="select-deselect-score" class="fontawesome-checkbox"
-              type="checkbox" [checked]="true" disabled><label for="select-deselect-score"></label>&nbsp;
+                <button class="btn btn-secondary btn-sm" disabled>remove</button>
+            </td>
+            <td>
               <span> Score </span>
             </td>
             <td> </td>
@@ -74,10 +53,10 @@
             <td> - </td>
           </tr>
           <tr *ngFor="let column of visibleColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+            <td>
+              <button (click)="onColumnRemoved(column)" class="btn btn-secondary btn-sm">remove</button>
+            </td>
             <td #element>
-              <input #selectColName id="select-deselect-{{ column.columnMetadata.name }}" class="fontawesome-checkbox" type="checkbox"
-                [checked]="column.selected" (click)="onColumnRemoved(column)">
-              <label for="select-deselect-{{ column.columnMetadata.name }}"></label>&nbsp;
               <span [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
             </td>
             <td>
@@ -91,6 +70,28 @@
             </td>
             <td>
               <span id="down-{{ column.columnMetadata.name }}" class="down" (click)="swapDown(i)" [ngClass]="{'disabled': i + 1 === visibleColumns.length}"></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="main-column" colspan=2> Available </th>
+            <th> Type  </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let column of filteredColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+            <td>
+              <button (click)="onColumnAdded(column)" class="btn btn-primary btn-sm">add</button>
+            </td>
+            <td #element>
+              <span [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
+            </td>
+            <td>
+              <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
             </td>
           </tr>
         </tbody>

@@ -22,7 +22,7 @@ $edit-background-border: #5C5C5C;
 
 $dialog-1x-width: 340px;
 $dialog-2x-width: 680px;
-$dialog-4x-width: 1380px;
+$dialog-4x-width: 1340px;
 
 .metron-slider-pane-details
 {
@@ -59,7 +59,7 @@ $dialog-4x-width: 1380px;
   }
 }
 
-@media only screen and (min-width: 2020px) {
+@media only screen and (min-width: 1900px) {
   .dialog1x {
     width: $dialog-2x-width;
   }
@@ -120,12 +120,12 @@ $dialog-4x-width: 1380px;
 
 @include keyframes("keyframe-dialog-rtl", "320px", "0px")
 
-.load-right-to-left{
+.load-right-to-left {
   @include animation("keyframe-dialog-rtl", "0.5s", "linear");
 }
 
 @include keyframes("keyframe-dialog-ltr", "-320px", "0px")
 
-.load-left-to-right{
+.load-left-to-right {
   @include animation("keyframe-dialog-ltr", "0.5s", "linear")
 }
