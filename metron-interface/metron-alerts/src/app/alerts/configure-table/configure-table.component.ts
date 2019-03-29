@@ -56,8 +56,8 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
   allColumns$: Subject<ColumnMetadataWrapper[]> = new Subject<ColumnMetadataWrapper[]>();
   visibleColumns$: Observable<ColumnMetadataWrapper[]>;
   availableColumns$: Observable<ColumnMetadataWrapper[]>;
-  visibleColumns: ColumnMetadataWrapper[];
-  availableColumns: ColumnMetadataWrapper[];
+  visibleColumns: ColumnMetadataWrapper[] = [];
+  availableColumns: ColumnMetadataWrapper[] = [];
   filteredColumns: ColumnMetadataWrapper[] = [];
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute,

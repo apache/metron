@@ -15,11 +15,11 @@
 
   <div class="container-fluid mb-3">
     <div class="d-flex pb-3">
-      <div class="form-title font-weight-bold">Configure Table</div>
+      <div class="form-title font-weight-bold">Configure Table Columns</div>
       <i class="fa fa-times ml-auto close-button" aria-hidden="true" (click)="goBack()"></i>
     </div>
     <div class="input-group">
-      <input class="input flex-fill" data-qe-id="filter-input" type="text" placeholder="Filter list" #filterColResults >
+      <input class="input flex-fill" data-qe-id="filter-input" type="text" placeholder="Filter list of available fields" #filterColResults >
       <div class="input-group-append">
         <button class="btn btn-secondary btn-search-clear" data-qe-id="filter-reset" (click)="clearFilter()"></button>
       </div>
@@ -27,7 +27,12 @@
   </div>
 
   <div class="container-fluid pt-0 table-config d-flex flex-wrap overflow-auto">
-    <table class="table">
+
+    <div class="d-flex w-100 justify-content-center" *ngIf="!visibleColumns.length">
+      <div class="spinner-border" role="status"></div>
+    </div>
+
+    <table class="table" *ngIf="visibleColumns.length">
       <thead>
         <tr>
           <th class="main-column" colspan=2> Visible </th>
@@ -73,7 +78,7 @@
       </tbody>
     </table>
 
-    <table class="table">
+    <table class="table" *ngIf="filteredColumns.length">
       <thead>
         <tr>
           <th class="main-column" colspan=2> Available </th>
