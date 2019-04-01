@@ -88,11 +88,11 @@ fdescribe('AlertsListComponent', () => {
     expect(component.selectedTimeRange.value).toBe('last-15-minutes');
   });
 
-  it('default query time range from date should be sat', () => {
+  it('default query time range from date should be set', () => {
     expect(component.selectedTimeRange.dateFilterValue.fromDate).toBeTruthy();
   });
 
-  it('default query time range to date should be sat', () => {
+  it('default query time range to date should be set', () => {
     expect(component.selectedTimeRange.dateFilterValue.toDate).toBeTruthy();
   });
 
