@@ -25,7 +25,7 @@ import { PcapFilterFormValue } from '../pcap/pcap-filters/pcap-filters.component
 import { FormGroup } from '@angular/forms';
 
 export class Utils {
-  
+
   public static escapeESField(field: string): string {
     return field.replace(/:/g, '\\:');
   }
@@ -45,7 +45,7 @@ export class Utils {
     }
   }
 
-  public static timeRangeToDateObj(range:string) {
+  public static timeRangeToDateObj(range: string): DateFilterValue {
     let timeRangeToDisplayStr = Utils.timeRangeToDisplayStr(range);
     if (timeRangeToDisplayStr != null) {
       let toDate = new Date((timeRangeToDisplayStr.toDate)).getTime();
@@ -60,7 +60,7 @@ export class Utils {
     return null;
   }
 
-  public static parseTimeRange(range:string) {
+  public static parseTimeRange(range: string): { toDate: number, fromDate: number } {
     let parsed = range.replace(/^\[/, '')
     .replace(/]$/, '')
     .split('TO');
@@ -74,7 +74,7 @@ export class Utils {
     return null;
   }
 
-  public static timeRangeToDisplayStr(range:string) {
+  public static timeRangeToDisplayStr(range: string): { toDate: string, fromDate: string } {
     let toDate = '';
     let fromDate = '';
 

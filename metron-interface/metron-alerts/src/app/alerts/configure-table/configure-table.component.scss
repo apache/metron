@@ -53,3 +53,25 @@
   opacity: 0.3;
   cursor: default;
 }
+
+.input {
+  padding-left: .5rem;
+}
+
+.btn-search-clear {
+  background: #2D2D2D;
+  border-bottom: 1px solid #4D4D4D;
+  border-left: none;
+  border-right: 1px solid #4D4D4D;
+  border-top: 1px solid #4D4D4D;
+  cursor: pointer;
+  padding: 0px 5px 0px 0px;
+  width: 30px;
+
+  &::before {
+    font-family: "FontAwesome";
+    content: '\f057';
+    color: #909090;
+    padding-left: 5px;
+  }
+}

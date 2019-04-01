@@ -72,12 +72,22 @@
                     </execution>
                     <execution>
                         <phase>test</phase>
-                        <id>npm testCI</id>
+                        <id>npm test:ci</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
                         <configuration>
-                            <arguments>run testCI</arguments>
+                            <arguments>run test:ci</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>test</phase>
+                        <id>npm cypress:ci</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run cypress:ci</arguments>
                         </configuration>
                     </execution>
                 </executions>
