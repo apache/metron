@@ -166,9 +166,9 @@ export class TimeRangeComponent implements OnChanges {
     this.toDateStr = this.datePickerToDate.length > 0  ? moment(this.datePickerToDate).format(DEFAULT_TIMESTAMP_FORMAT) : 'now';
     this.fromDateStr = moment(this.datePickerFromDate).format(DEFAULT_TIMESTAMP_FORMAT);
 
-    let toDate = this.datePickerToDate.length > 0 ? new Date(this.toDateStr).getTime() : null;
+    let toDate = this.datePickerToDate.length > 0 ? new Date(this.toDateStr).getTime() : new Date().getTime();
     let fromDate = new Date(this.fromDateStr).getTime();
-    let toDateExpression = this.datePickerToDate.length > 0 ?  (' TO ' + toDate) : '';
+    let toDateExpression = ' TO ' + toDate;
 
     let value = '[' + fromDate + toDateExpression + ']';
     let filter = new Filter(TIMESTAMP_FIELD_NAME, value, false);
