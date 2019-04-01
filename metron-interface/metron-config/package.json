@@ -55,13 +55,12 @@
     "zone.js": "^0.8.26"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^0.8.3",
+    "@angular-devkit/build-angular": "^0.13.7",
     "@angular/compiler-cli": "^6.1.8",
     "@types/request": "2.0.3",
     "buffer-shims": "^1.0.0",
     "codelyzer": "~4.2.1",
     "copy": "^0.3.0",
-    "cypress": "^3.2.0",
     "jasmine-core": "~2.99.1",
     "jasmine-spec-reporter": "~4.2.1",
     "karma": "^3.0.0",
