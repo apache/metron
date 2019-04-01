@@ -22,15 +22,15 @@
         <metron-config-sample-data [topic]="sensorParserConfig.sensorTopic"
                                    (onSampleDataChanged)="onSampleDataChanged($event)"></metron-config-sample-data>
         <label attr.for="patternLabel">PATTERN LABEL</label>
-        <select class="form-control pattern-label-dropdown" [ngModelOptions]="{standalone: true}" [(ngModel)]="newPatternLabel">
+        <select data-qe-id="pattern-label-select" class="form-control pattern-label-dropdown" [ngModelOptions]="{standalone: true}" [(ngModel)]="newPatternLabel">
           <option *ngFor="let patternLabel of availablePatternLabels" [value]="patternLabel"> {{ patternLabel }} </option>
         </select>
         <label attr.for="grokStatement">STATEMENT</label>
         <metron-config-ace-editor [(ngModel)]="newGrokStatement" [ngModelOptions]="{standalone: true}" [type]="'GROK'" [options]="grokFunctionList" [placeHolder]="'Enter Grok statement'" (ngModelChange)="getAvailablePatternLabels()"> </metron-config-ace-editor>
 
         <div class="buttons-bar">
-            <button type="submit" class="btn form-enable-disable-button" [disabled]="isTestDisabled()" (click)="onTestGrokStatement()">TEST</button>
-            <button type="submit" class="btn form-enable-disable-button ml-1" [disabled]="isSaveDisabled()" (click)="onSaveGrok()">SAVE</button>
+            <button type="submit" data-qe-id="grok-statement-test-btn" class="btn form-enable-disable-button" [disabled]="isTestDisabled()" (click)="onTestGrokStatement()">TEST</button>
+            <button type="submit" data-qe-id="parser-save-btn" class="btn form-enable-disable-button ml-1" [disabled]="isSaveDisabled()" (click)="onSaveGrok()">SAVE</button>
         </div>
 
         <label> PREVIEW </label>

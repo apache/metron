@@ -64,7 +64,7 @@
     <name>metron.ldap.user.searchbase</name>
     <display-name>User Search Base</display-name>
     <value>ou=people,dc=hadoop,dc=apache,dc=org</value>
-    <description>The location where the search starts for user entries.</description>
+    <description>The location from which the search starts for user entries.</description>
     <value-attributes>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>
@@ -75,7 +75,7 @@
     <name>metron.ldap.group.searchbase</name>
     <display-name>Group Search Base</display-name>
     <value>ou=groups,dc=hadoop,dc=apache,dc=org</value>
-    <description>The location where the search starts for group entries.</description>
+    <description>The location from which the search starts for group entries.</description>
     <value-attributes>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>
@@ -119,7 +119,7 @@
     <name>metron.ldap.user.password</name>
     <value>userPassword</value>
     <display-name>User password attribute</display-name>
-    <description>The attribute containing the SHA encoded user password.  To use bind authentication, leave this field blank.</description>
+    <description>The name of an attribute containing the SHA-encoded user password. This attribute is used to perform a remote compare operation to authenticate the user. To use bind authentication, leave this field blank.</description>
     <value-attributes>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>

@@ -47,14 +47,14 @@
             <form role="form" [formGroup]="sensorConfigForm">
                 <div class="form-group">
                     <label attr.for="sensorName">NAME * </label>
-                    <input type="text" class="form-control" name="sensorName" formControlName="sensorName"  [(ngModel)]="sensorName" (ngModelChange)="onSetSensorName()" [readonly]="editMode">
+                    <input type="text" class="form-control" data-qe-id="sensor-name-input" name="sensorName" formControlName="sensorName"  [(ngModel)]="sensorName" (ngModelChange)="onSetSensorName()" [readonly]="editMode">
                     <div *ngIf="!sensorNameUnique"><label><span class="warning-text"> Sensor already exists </span></label></div>
                     <div *ngIf="!sensorNameNoSpecChars"><label><span class="warning-text"> Sensor name contains special characters </span></label></div>
                 </div>
 
                 <div class="form-group">
                     <label attr.for="sensorTopic">KAFKA TOPIC </label>
-                    <input type="text" class="form-control" name="sensorTopic" formControlName="sensorTopic"  [(ngModel)]="sensorParserConfig.sensorTopic" (ngModelChange)="onSetKafkaTopic()">
+                    <input type="text" class="form-control" data-qe-id="kafka-topic-input" name="sensorTopic" formControlName="sensorTopic"  [(ngModel)]="sensorParserConfig.sensorTopic" (ngModelChange)="onSetKafkaTopic()">
                     <div *ngIf="!kafkaTopicValid"><label ><span class="warning-text"> Kafka Topic Name Is Invalid </span></label></div>
                     <div *ngIf="kafkaTopicValid">
                         <label *ngIf="currentKafkaStatus !== null && currentKafkaStatus === kafkaStatus.NO_TOPIC"><span class="warning-text"> No Matching Kafka Topic </span></label>
@@ -65,7 +65,7 @@
 
                 <div class="form-group">
                     <label attr.for="parserClassName">PARSER TYPE * </label>
-                    <select  class="form-control" formControlName="parserClassName" [(ngModel)]="sensorParserConfig.parserClassName" (ngModelChange)="onParserTypeChange()" >
+                    <select  class="form-control" formControlName="parserClassName" data-qe-id="parser-type-select" [(ngModel)]="sensorParserConfig.parserClassName" (ngModelChange)="onParserTypeChange()" >
                         <option *ngFor="let parserName of availableParserNames" [value]="availableParsers[parserName]">{{parserName}}</option>
                     </select>
                 </div>
@@ -73,8 +73,8 @@
                 <div class="form-group" [ngClass]="{'panel-selected': showGrokValidator }" *ngIf="isGrokParser(sensorParserConfig)" >
                     <label attr.for="grokStatement">GROK STATEMENT</label>
                     <div  class="input-group" [attr.disabled]="!sensorNameValid || !parserClassValid">
-                        <input type="text" class="form-control" formControlName="grokStatement"  [(ngModel)]="this.grokStatement" readonly>
-                        <span class="input-group-btn">
+                        <input type="text" data-qe-id="grok-statement-input" class="form-control" formControlName="grokStatement"  [(ngModel)]="this.grokStatement" readonly>
+                        <span class="input-group-btn" data-qe-id="grok-statement-details">
                             <button class="btn btn-default" type="button" (click)="sensorNameValid && parserClassValid && onShowGrokPane()" readonly>
                             <i class="fa fa-columns" aria-hidden="true"></i>
                             <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
