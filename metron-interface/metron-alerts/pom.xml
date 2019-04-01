@@ -80,16 +80,6 @@
                             <arguments>run test:ci</arguments>
                         </configuration>
                     </execution>
-                    <execution>
-                        <phase>test</phase>
-                        <id>npm cypress:ci</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>run cypress:ci</arguments>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
