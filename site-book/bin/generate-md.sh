@@ -66,7 +66,8 @@ RESOURCE_LIST=(
     metron-platform/metron-job/metron-job_state_statechart_diagram.svg
     metron-platform/metron-parsing/parser_arch.png
     metron-platform/metron-indexing/indexing_arch.png
-    metron-platform/metron-enrichment/enrichment_arch.png
+    metron-platform/metron-enrichment/metron-enrichment-storm/enrichment_arch.png
+    metron-platform/metron-enrichment/metron-enrichment-storm/unified_enrichment_arch.svg
     metron-analytics/metron-maas-service/maas_arch.png
     metron-contrib/metron-performance/performance_measurement.png
     use-cases/forensic_clustering/find_alerts.png
@@ -75,7 +76,6 @@ RESOURCE_LIST=(
     use-cases/parser_chaining/aggregated_parser_chaining_flow.svg
     use-cases/typosquat_detection/squid_search.png
     use-cases/typosquat_detection/drill_down.png
-    metron-platform/metron-enrichment/unified_enrichment_arch.svg
 )
 
 ## This is a list of duples, flattened into a bash array.  Even fields are relative paths to a .md file
