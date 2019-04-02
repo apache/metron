@@ -77,7 +77,7 @@ class FakeColumnNamesService {
 
 }
 
-describe('ConfigureTableComponent', () => {
+fdescribe('ConfigureTableComponent', () => {
   let component: ConfigureTableComponent;
   let fixture: ComponentFixture<ConfigureTableComponent>;
 
@@ -114,20 +114,20 @@ describe('ConfigureTableComponent', () => {
 
     component.ngOnInit();
     component.ngAfterViewInit();
-    expect(component.filteredColumns.length).toBe(18);
+    expect(component.filteredColumns.length).toBe(10);
 
-    filter.value = 'guid';
+    filter.value = 'timestamp';
     filter.dispatchEvent(new Event('keyup'));
     tick(300);
     fixture.detectChanges();
     expect(component.filteredColumns.length).toBe(1);
-    expect(component.filteredColumns[0].columnMetadata.name).toBe('guid');
+    expect(component.filteredColumns[0].columnMetadata.name).toBe('bro_timestamp');
 
     filter.value = '';
     filter.dispatchEvent(new Event('keyup'));
     tick(300);
     fixture.detectChanges();
-    expect(component.filteredColumns.length).toBe(18);
+    expect(component.filteredColumns.length).toBe(10);
   }));
 
   it('should reset filter input and available columns when clear button is clicked', fakeAsync(() => {
@@ -137,7 +137,7 @@ describe('ConfigureTableComponent', () => {
     component.ngOnInit();
     component.ngAfterViewInit();
 
-    filter.value = 'guid';
+    filter.value = 'timestamp';
     filter.dispatchEvent(new Event('keyup'));
     tick(300);
     fixture.detectChanges();
@@ -146,23 +146,7 @@ describe('ConfigureTableComponent', () => {
     filterReset.dispatchEvent(new Event('click'));
     fixture.detectChanges();
     expect(filter.value).toBe('');
-    expect(component.filteredColumns.length).toBe(18);
-  }));
-
-  it('should filter by display name if display name is present', fakeAsync(() => {
-    const filter = fixture.nativeElement.querySelector('[data-qe-id="filter-input"]');
-
-    component.ngOnInit();
-    component.ngAfterViewInit();
-    expect(component.filteredColumns.length).toBe(18);
-
-    component.filteredColumns[0].displayName = 'Test Display Name';
-
-    filter.value = 'test';
-    filter.dispatchEvent(new Event('keyup'));
-    tick(300);
-    fixture.detectChanges();
-    expect(component.filteredColumns.length).toBe(1);
+    expect(component.filteredColumns.length).toBe(10);
   }));
 
   it('should mark default columns as visible', () => {
@@ -243,21 +227,21 @@ describe('ConfigureTableComponent', () => {
   });
 
   describe('Config Pane Rendering', () => {
-    it('should render visible and availble items separatedly', () => {
+    it('should render visible and available items separately', () => {
       expect(fixture.debugElement.queryAll(By.css('table')).length).toBe(2);
       expect(fixture.debugElement.queryAll(By.css('table'))[0].queryAll(By.css('tr')).length).toBe(10);
       expect(fixture.debugElement.queryAll(By.css('table'))[1].queryAll(By.css('tr')).length).toBe(11);
     });
 
-    it('should refres both list on remove', () => {
-      fixture.debugElement.queryAll(By.css('input[type="checkbox"]'))[1].nativeElement.click();
+    it('should refresh both list on remove', () => {
+      fixture.debugElement.query(By.css('[data-qe-id="remove-btn-1"]')).nativeElement.click();
       fixture.detectChanges();
       expect(fixture.debugElement.queryAll(By.css('table'))[0].queryAll(By.css('tr')).length).toBe(9);
       expect(fixture.debugElement.queryAll(By.css('table'))[1].queryAll(By.css('tr')).length).toBe(12);
     });
 
-    it('should refres both list on add', () => {
-      fixture.debugElement.queryAll(By.css('input[type="checkbox"]'))[14].nativeElement.click();
+    it('should refresh both list on add', () => {
+      fixture.debugElement.query(By.css('[data-qe-id="add-btn-4"]')).nativeElement.click();
       fixture.detectChanges();
       expect(fixture.debugElement.queryAll(By.css('table'))[0].queryAll(By.css('tr')).length).toBe(11);
       expect(fixture.debugElement.queryAll(By.css('table'))[1].queryAll(By.css('tr')).length).toBe(10);
@@ -266,31 +250,27 @@ describe('ConfigureTableComponent', () => {
     it('should be able to move visible item DOWN in order', () => {
       const origIndex = 2;
       const newIndex = 3;
-      let tableOfVisibles = fixture.debugElement.queryAll(By.css('table'))[0];
-      let row = tableOfVisibles.queryAll(By.css('tr'))[origIndex];
-      const rowId = row.query(By.css('td')).query(By.css('span')).nativeElement.innerText;
+      let tableOfVisible = fixture.debugElement.query(By.css('[data-qe-id="table-visible"]'));
+      const rowId = tableOfVisible.query(By.css(`[data-qe-id="field-label-${origIndex}"]`)).nativeElement.innerText;
 
-      row.query(By.css('span[id^="down-"]')).nativeElement.click();
+      tableOfVisible.query(By.css(`[data-qe-id="row-${origIndex}"]`)).query(By.css('span[id^="down-"]')).nativeElement.click();
       fixture.detectChanges();
 
-      row = tableOfVisibles.queryAll(By.css('tr'))[newIndex];
-
-      expect(row.query(By.css('td')).query(By.css('span')).nativeElement.innerText).toBe(rowId);
+      tableOfVisible = fixture.debugElement.query(By.css('[data-qe-id="table-visible"]'));
+      expect(tableOfVisible.query(By.css(`[data-qe-id="field-label-${newIndex}"]`)).nativeElement.innerText).toBe(rowId);
     });
 
     it('should be able to move visible item UP in order', () => {
       const origIndex = 3;
       const newIndex = 2;
-      let tableOfVisibles = fixture.debugElement.queryAll(By.css('table'))[0];
-      let row = tableOfVisibles.queryAll(By.css('tr'))[origIndex];
-      const rowId = row.query(By.css('td')).query(By.css('span')).nativeElement.innerText;
+      let tableOfVisible = fixture.debugElement.query(By.css('[data-qe-id="table-visible"]'));
+      const rowId = tableOfVisible.query(By.css(`[data-qe-id="field-label-${origIndex}"]`)).nativeElement.innerText;
 
-      row.query(By.css('span[id^="up-"]')).nativeElement.click();
+      tableOfVisible.query(By.css(`[data-qe-id="row-${origIndex}"]`)).query(By.css('span[id^="up-"]')).nativeElement.click();
       fixture.detectChanges();
 
-      row = tableOfVisibles.queryAll(By.css('tr'))[newIndex];
-
-      expect(row.query(By.css('td')).query(By.css('span')).nativeElement.innerText).toBe(rowId);
+      tableOfVisible = fixture.debugElement.queryAll(By.css('table'))[0];
+      expect(tableOfVisible.query(By.css(`[data-qe-id="field-label-${newIndex}"]`)).nativeElement.innerText).toBe(rowId);
     });
   });
 });

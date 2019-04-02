@@ -32,7 +32,7 @@
       <div class="spinner-border" role="status"></div>
     </div>
 
-    <table class="table" *ngIf="visibleColumns.length">
+    <table data-qe-id="table-visible" class="table" *ngIf="visibleColumns.length">
       <thead>
         <tr>
           <th class="main-column" colspan=2> Visible </th>
@@ -45,7 +45,7 @@
       <tbody>
         <tr class="background-tiber">
           <td>
-              <button class="btn btn-secondary btn-sm" disabled>remove</button>
+            <button class="btn btn-secondary btn-sm" disabled>remove</button>
           </td>
           <td>
             <span> Score </span>
@@ -55,12 +55,12 @@
           <td> - </td>
           <td> - </td>
         </tr>
-        <tr *ngFor="let column of visibleColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+        <tr attr.data-qe-id="row-{{ i }}" *ngFor="let column of visibleColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
           <td>
-            <button (click)="onColumnRemoved(column)" class="btn btn-secondary btn-sm">remove</button>
+            <button attr.data-qe-id="remove-btn-{{ i }}" (click)="onColumnRemoved(column)" class="btn btn-secondary btn-sm">remove</button>
           </td>
           <td #element>
-            <span [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
+            <span attr.data-qe-id="field-label-{{ i }}" [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
           </td>
           <td>
             <input class="input" placeholder="rename" [(ngModel)]="column.displayName">
@@ -78,7 +78,7 @@
       </tbody>
     </table>
 
-    <table class="table" *ngIf="filteredColumns.length">
+    <table data-qe-id="table-available" class="table" *ngIf="filteredColumns.length">
       <thead>
         <tr>
           <th class="main-column" colspan=2> Available </th>
@@ -86,12 +86,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let column of filteredColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+        <tr attr.data-qe-id="row-{{ i }}" *ngFor="let column of filteredColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
           <td>
-            <button (click)="onColumnAdded(column)" class="btn btn-primary btn-sm">add</button>
+            <button attr.data-qe-id="add-btn-{{ i }}" (click)="onColumnAdded(column)" class="btn btn-primary btn-sm">add</button>
           </td>
           <td #element>
-            <span [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
+            <span attr.data-qe-id="field-label-{{ i }}" [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
           </td>
           <td>
             <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
