@@ -46,6 +46,7 @@ import {Facets} from '../../model/facets';
 import { GlobalConfigService } from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
+import { Utils } from 'app/utils/utils';
 import {AlertSource} from "../../model/alert-source";
 
 @Component({
@@ -68,7 +69,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   lastIsRefreshPausedValue = false;
   isMetaAlertPresentInSelectedAlerts = false;
   timeStampfilterPresent = false;
-  selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
+
+  readonly DEFAULT_TIME_RANGE = 'last-15-minutes';
+  selectedTimeRange: Filter;
 
   @ViewChild('table') table: ElementRef;
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
@@ -139,7 +142,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   setSelectedTimeRange(filters: Filter[]) {
     filters.forEach(filter => {
       if (filter.field === TIMESTAMP_FIELD_NAME && filter.dateFilterValue) {
-        this.selectedTimeRange = JSON.parse(JSON.stringify(filter));
+        this.selectedTimeRange = filter;
+        this.updateQueryBuilder(filter);
       }
     });
   }
@@ -203,10 +207,18 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         }
       }
     });
+
+    this.setDefaultTimeRange(this.DEFAULT_TIME_RANGE);
     this.getAlertColumnNames(true);
     this.addAlertColChangedListner();
     this.addLoadSavedSearchListner();
     this.addAlertChangedListner();
+  }
+
+  private setDefaultTimeRange(timeRangeId: string) {
+    const timeRange = new Filter(TIMESTAMP_FIELD_NAME, timeRangeId, false);
+    timeRange.dateFilterValue = Utils.timeRangeToDateObj(timeRange.value);
+    this.setSelectedTimeRange([timeRange]);
   }
 
   onClear() {
@@ -233,7 +245,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onSelectedAlertsChange(selectedAlerts) {
     this.selectedAlerts = selectedAlerts;
-    this.isMetaAlertPresentInSelectedAlerts = this.selectedAlerts.some(alert => (alert.source.metron_alert && alert.source.metron_alert.length > 0));
+    this.isMetaAlertPresentInSelectedAlerts = this.selectedAlerts.some(
+      alert => (alert.source.metron_alert && alert.source.metron_alert.length > 0)
+    );
 
     if (selectedAlerts.length > 0) {
       this.pause();
@@ -270,17 +284,20 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onResize() {
     clearTimeout(this.colNumberTimerId);
-    this.colNumberTimerId = setTimeout(() => { this.calcColumnsToDisplay(); }, 500);
+    this.colNumberTimerId = window.setTimeout(() => { this.calcColumnsToDisplay(); }, 500);
   }
 
   onTimeRangeChange(filter: Filter) {
-    if (filter.value === ALL_TIME) {
-      this.queryBuilder.removeFilter(filter.field);
-    } else {
-      this.queryBuilder.addOrUpdateFilter(filter);
-    }
-
+    this.updateQueryBuilder(filter);
     this.search();
+  }
+
+  private updateQueryBuilder(timeRangeFilter: Filter) {
+    if (timeRangeFilter.value === ALL_TIME) {
+      this.queryBuilder.removeFilter(timeRangeFilter.field);
+    } else {
+      this.queryBuilder.addOrUpdateFilter(timeRangeFilter);
+    }
   }
 
   prepareColumnData(configuredColumns: ColumnMetadata[], defaultColumns: ColumnMetadata[]) {

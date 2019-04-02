@@ -228,6 +228,12 @@
             <artifactId>stellar-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${global_httpclient_version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
