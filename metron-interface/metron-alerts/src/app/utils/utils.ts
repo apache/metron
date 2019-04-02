@@ -61,9 +61,9 @@ export class Utils {
   }
 
   public static parseTimeRange(range: string): { toDate: number, fromDate: number } {
-    let parsed = range.replace(/^\(>=/, '')
-    .replace(/\)$/, '')
-    .replace(/<=/, '').split('AND');
+    let parsed = range.replace(/^\[/, '')
+    .replace(/]$/, '')
+    .split('TO');
     if (parsed.length === 2 && !isNaN(Number(parsed[0])) && !isNaN(Number(parsed[1]))) {
       return {toDate: Number(parsed[1]), fromDate: Number(parsed[0])};
     }

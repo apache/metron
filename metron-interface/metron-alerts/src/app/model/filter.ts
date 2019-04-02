@@ -51,7 +51,7 @@ export class Filter {
       this.dateFilterValue = Utils.timeRangeToDateObj(this.value);
       if (this.dateFilterValue !== null && this.dateFilterValue.toDate !== null) {
         return this.createNestedQueryWithoutValueEscaping(this.field,
-            '(>=' + this.dateFilterValue.fromDate + ' AND ' + ' <=' + this.dateFilterValue.toDate + ')');
+            '[' + this.dateFilterValue.fromDate + ' TO ' + this.dateFilterValue.toDate + ']');
       } else {
         return this.createNestedQueryWithoutValueEscaping(this.field,  this.value);
       }
