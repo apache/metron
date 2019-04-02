@@ -225,5 +225,18 @@
       <overridable>false</overridable>
     </value-attributes>
   </property>
-
+  <property>
+    <name>metron_user_role</name>
+    <display-name>User Role Name</display-name>
+    <value>USER</value>
+    <description>Name of the role at the authentication provider that provides user access to Metron.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>metron_admin_role</name>
+    <display-name>Admin Role Name</display-name>
+    <value>ADMIN</value>
+    <description>Name of the role at the authentication provider that provides administrative access to Metron.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

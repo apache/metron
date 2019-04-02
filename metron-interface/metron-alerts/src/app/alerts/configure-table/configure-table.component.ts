@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import {Router, ActivatedRoute} from '@angular/router';
-import {forkJoin as observableForkJoin} from 'rxjs';
+import {forkJoin as observableForkJoin, fromEvent} from 'rxjs';
 
 import {ConfigureTableService} from '../../service/configure-table.service';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
@@ -25,6 +25,7 @@ import {ColumnMetadata} from '../../model/column-metadata';
 import {ColumnNamesService} from '../../service/column-names.service';
 import {ColumnNames} from '../../model/column-names';
 import {SearchService} from '../../service/search.service';
+import { debounceTime } from 'rxjs/operators';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -48,9 +49,12 @@ export class ColumnMetadataWrapper {
   styleUrls: ['./configure-table.component.scss']
 })
 
-export class ConfigureTableComponent implements OnInit {
+export class ConfigureTableComponent implements OnInit, AfterViewInit {
+  @ViewChild('filterColResults') filterColResults: ElementRef;
 
   allColumns: ColumnMetadataWrapper[] = [];
+  filteredColumns: ColumnMetadataWrapper[] = [];
+  columnHeaders: string;
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute,
               private configureTableService: ConfigureTableService,
@@ -91,6 +95,34 @@ export class ConfigureTableComponent implements OnInit {
     });
   }
 
+  ngAfterViewInit() {
+    fromEvent(this.filterColResults.nativeElement, 'keyup')
+      .pipe(debounceTime(250))
+      .subscribe(e => {
+        this.filterColumns(e['target'].value);
+      });
+  }
+
+  filterColumns(val: string) {
+    const words = val.trim().split(' ');
+    this.filteredColumns = this.allColumns.filter(col => {
+      return !this.isColMissingFilterKeyword(words, col, col.displayName);
+    });
+  }
+
+  isColMissingFilterKeyword(words: string[], col: ColumnMetadataWrapper, displayName?: string) {
+    if (displayName) {
+      return !words.every(word => col.displayName.toLowerCase().includes(word.toLowerCase()));
+    } else {
+      return !words.every(word => col.columnMetadata.name.toLowerCase().includes(word.toLowerCase()));
+    }
+  }
+
+  clearFilter() {
+    this.filterColResults.nativeElement.value = '';
+    this.filteredColumns = this.allColumns;
+  }
+
   onSelectDeselectAll($event) {
     let checked = $event.target.checked;
     this.allColumns.forEach(colMetaData => colMetaData.selected = checked);
@@ -124,6 +156,7 @@ export class ConfigureTableComponent implements OnInit {
       return new ColumnMetadataWrapper(mData, configuredColumnNames.indexOf(mData.name) > -1,
                                         ColumnNamesService.columnNameToDisplayValueMap[mData.name]);
       });
+    this.filteredColumns = this.allColumns;
   }
 
   postSave() {

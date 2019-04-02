@@ -16,7 +16,7 @@
 <label attr.for="sampleData">SAMPLE&nbsp;( {{sampleDataIndex + 1}} of {{sampleData.length}} )</label>
 <div>
   <i class="fa fa-caret-left sample-iterator sample-unavailable" aria-hidden="true" [class.sample-available]="sampleDataIndex > 0" [class.sample-unavailable]="sampleDataIndex < 1" (click)="getPreviousSample()"></i>
-  <textarea #sampleDataElement type="text" class="form-control sample-input" name="sampleData"  [ngModel]="sampleData[sampleDataIndex]" (blur)="onBlur()"
+  <textarea #sampleDataElement type="text" data-qe-id="sample-data-input" class="form-control sample-input" name="sampleData"  [ngModel]="sampleData[sampleDataIndex]" (blur)="onBlur()"
             [attr.placeholder]="placeHolderText" (focus)="sampleDataElement.placeholder=''"> </textarea>
   <i class="fa fa-caret-right sample-iterator sample-available" aria-hidden="true" (click)="getNextSample()"></i>
 </div>
