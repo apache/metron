@@ -31,7 +31,7 @@ import { DialogService } from 'app/service/dialog.service';
 import { Observable } from 'rxjs';
 import { Filter } from 'app/model/filter';
 
-fdescribe('AlertsListComponent', () => {
+describe('AlertsListComponent', () => {
 
   let component: AlertsListComponent;
   let fixture: ComponentFixture<AlertsListComponent>;

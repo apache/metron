@@ -77,7 +77,7 @@ class FakeColumnNamesService {
 
 }
 
-fdescribe('ConfigureTableComponent', () => {
+describe('ConfigureTableComponent', () => {
   let component: ConfigureTableComponent;
   let fixture: ComponentFixture<ConfigureTableComponent>;
 
