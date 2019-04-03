@@ -50,7 +50,7 @@ export class ColumnMetadataWrapper {
 })
 
 export class ConfigureTableComponent implements OnInit, AfterViewInit {
-  @ViewChild('filterColResults') filterColResults: ElementRef;
+  @ViewChild('columnFilterInput') columnFilterInput: ElementRef;
 
   columnHeaders: string;
   allColumns$: Subject<ColumnMetadataWrapper[]> = new Subject<ColumnMetadataWrapper[]>();
@@ -104,7 +104,7 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    fromEvent(this.filterColResults.nativeElement, 'keyup')
+    fromEvent(this.columnFilterInput.nativeElement, 'keyup')
       .pipe(debounceTime(250))
       .subscribe(e => {
         this.filterColumns(e['target'].value);
@@ -114,20 +114,16 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
   filterColumns(val: string) {
     const words = val.trim().split(' ');
     this.filteredColumns = this.availableColumns.filter(col => {
-      return !this.isColMissingFilterKeyword(words, col, col.displayName);
+      return !this.isColMissingFilterKeyword(words, col);
     });
   }
 
-  isColMissingFilterKeyword(words: string[], col: ColumnMetadataWrapper, displayName?: string) {
-    if (displayName) {
-      return !words.every(word => col.displayName.toLowerCase().includes(word.toLowerCase()));
-    } else {
-      return !words.every(word => col.columnMetadata.name.toLowerCase().includes(word.toLowerCase()));
-    }
+  isColMissingFilterKeyword(words: string[], col: ColumnMetadataWrapper) {
+    return !words.every(word => col.columnMetadata.name.toLowerCase().includes(word.toLowerCase()));
   }
 
   clearFilter() {
-    this.filterColResults.nativeElement.value = '';
+    this.columnFilterInput.nativeElement.value = '';
     this.filteredColumns = this.availableColumns;
   }
 
@@ -198,11 +194,13 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
   onColumnAdded(column: ColumnMetadataWrapper) {
     this.markColumn(column);
     this.swapList(column, this.availableColumns, this.visibleColumns);
+    this.filterColumns(this.columnFilterInput.nativeElement.value);
   }
 
   onColumnRemoved(column: ColumnMetadataWrapper) {
     this.markColumn(column);
     this.swapList(column, this.visibleColumns, this.availableColumns);
+    this.filterColumns(this.columnFilterInput.nativeElement.value);
   }
 
   private markColumn(column: ColumnMetadataWrapper) {

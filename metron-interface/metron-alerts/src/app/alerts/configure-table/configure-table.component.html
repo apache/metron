@@ -19,7 +19,7 @@
       <i class="fa fa-times ml-auto close-button" aria-hidden="true" (click)="goBack()"></i>
     </div>
     <div class="input-group">
-      <input class="input flex-fill" data-qe-id="filter-input" type="text" placeholder="Filter list of available fields" #filterColResults >
+      <input class="input flex-fill" data-qe-id="filter-input" type="text" placeholder="Filter list of available fields" #columnFilterInput >
       <div class="input-group-append">
         <button class="btn btn-secondary btn-search-clear" data-qe-id="filter-reset" (click)="clearFilter()"></button>
       </div>
@@ -78,7 +78,7 @@
       </tbody>
     </table>
 
-    <table data-qe-id="table-available" class="table" *ngIf="filteredColumns.length">
+    <table data-qe-id="table-available" class="table" *ngIf="availableColumns.length">
       <thead>
         <tr>
           <th class="main-column" colspan=2> Available </th>
