@@ -246,11 +246,12 @@ class EnrichmentCommands:
         Execute(command, user=self.__params.metron_user, tries=1, logoutput=True)
 
         Logger.info("HBase coprocessor setup - altering table and adding coprocessor.")
-        command_template = "echo \"alter '{0}', METHOD => 'table_att', 'Coprocessor'=>'{1}/{2}|{3}||zookeeperUrl={4}'\" | hbase shell -n"
-        command = command_template.format(self.__params.enrichment_hbase_table,
+        command_template = "{0}/bin/load_enrichment_coprocessor.sh {1} {2} {3} {4} {5}"
+        command = command_template.format(self.__params.metron_home,
+                                          self.__params.enrichment_hbase_table,
                                           self.__params.hdfs_url,
                                           self.__params.hbase_coprocessor_hdfs_dir,
-                                          self.__params.enrichment_hbase_coprocessor_impl,
+                                          self.__params.enrichment_list_hbase_coprocessor_impl,
                                           self.__params.zookeeper_quorum)
         Logger.info("Executing command " + command)
         Execute(command, user=self.__params.metron_user, tries=1, logoutput=True)

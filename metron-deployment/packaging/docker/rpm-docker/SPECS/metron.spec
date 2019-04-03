@@ -669,6 +669,8 @@ This package installs the Metron HBase Server files
 %dir %{metron_root}
 %dir %{metron_home}
 %dir %{metron_home}/coprocessor
+%dir %{metron_home}/bin
+%{metron_home}/bin/load_enrichment_coprocessor.sh
 %attr(0644,root,root) %{metron_home}/coprocessor/metron-hbase-server-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
