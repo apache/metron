@@ -21,7 +21,11 @@ package org.apache.metron.solr.client;
 import com.google.common.base.Splitter;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
@@ -32,13 +36,39 @@ import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
  */
 public class SolrClientFactory {
 
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static SolrClient solrClient;
+
   /**
    * Creates a SolrClient.
    * @param globalConfig Global config
    * @return SolrClient
    */
   public static SolrClient create(Map<String, Object> globalConfig) {
-    return new CloudSolrClient.Builder().withZkHost(getZkHosts(globalConfig)).build();
+    if (solrClient == null) {
+      synchronized (SolrClientFactory.class) {
+        if (solrClient == null) {
+          solrClient = new CloudSolrClient.Builder().withZkHost(getZkHosts(globalConfig)).build();
+        }
+      }
+    }
+    return solrClient;
+  }
+
+  /**
+   * Closes the SolrClient connection and releases the reference.
+   */
+  public static void close() {
+    if (solrClient != null) {
+      try {
+        solrClient.close();
+      } catch (IOException e) {
+        LOG.error(e.getMessage(), e);
+      } finally {
+        solrClient = null;
+      }
+
+    }
   }
 
   /**

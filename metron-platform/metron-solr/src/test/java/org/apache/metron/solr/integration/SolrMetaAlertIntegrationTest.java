@@ -45,6 +45,7 @@ import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SortField;
+import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.dao.SolrMetaAlertDao;
 import org.apache.metron.solr.dao.SolrMetaAlertRetrieveLatestDao;
@@ -114,7 +115,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
       }
     };
 
-    SolrClient solrClient = solrDao.getSolrClient();
+    SolrClient solrClient = SolrClientFactory.create(globalConfig);
     SolrMetaAlertSearchDao searchDao = new SolrMetaAlertSearchDao(
         solrClient,
         solrDao.getSolrSearchDao(), config);
@@ -134,6 +135,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
   @AfterClass
   public static void teardown() {
+    SolrClientFactory.close();
     if (solr != null) {
       solr.stop();
     }
