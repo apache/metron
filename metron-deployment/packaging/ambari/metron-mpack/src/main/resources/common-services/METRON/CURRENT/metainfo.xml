@@ -441,6 +441,9 @@
               <name>metron-data-management</name>
             </package>
             <package>
+              <name>metron-hbase-server</name>
+            </package>
+            <package>
               <name>metron-management</name>
             </package>
             <package>
@@ -497,7 +500,6 @@
             <package>
               <name>metron-performance</name>
             </package>
-
           </packages>
         </osSpecific>
         <osSpecific>
