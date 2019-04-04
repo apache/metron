@@ -310,35 +310,54 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.prepareColumnData(tableMetaData.tableColumns, defaultColumns);
   }
 
-  processEscalate() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(() => {
-      const alerts = [...this.selectedAlerts];
-      this.updateSelectedAlertStatus('ESCALATE');
-      this.alertsService.escalate(alerts).subscribe();
-    });
+  preventDropdownOptionIfDisabled(e: Event): boolean {
+    if ((e.target as HTMLElement).classList.contains('disabled')) {
+      e.stopPropagation();
+      e.preventDefault();
+      return false;
+    }
+    return true
   }
 
-  processDismiss() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS', false).subscribe(results => {
-      this.updateSelectedAlertStatus('DISMISS');
-    });
+  processEscalate(e) {
+    if (this.preventDropdownOptionIfDisabled(e) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(() => {
+        const alerts = [...this.selectedAlerts];
+        this.updateSelectedAlertStatus('ESCALATE');
+        this.alertsService.escalate(alerts).subscribe();
+      });
+    }
   }
 
-  processOpen() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'OPEN', false).subscribe(results => {
-      this.updateSelectedAlertStatus('OPEN');
-    });
+  processDismiss(e) {
+    if (this.preventDropdownOptionIfDisabled(e) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS', false).subscribe(results => {
+        this.updateSelectedAlertStatus('DISMISS');
+      });
+    }
   }
 
-  processResolve() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE', false).subscribe(results => {
-      this.updateSelectedAlertStatus('RESOLVE');
-    });
+  processOpen(e) {
+    if (this.preventDropdownOptionIfDisabled(e) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'OPEN', false).subscribe(results => {
+        this.updateSelectedAlertStatus('OPEN');
+      });
+    }
   }
 
-  processAddToAlert() {
-    this.metaAlertsService.selectedAlerts = this.selectedAlerts;
-    this.router.navigateByUrl('/alerts-list(dialog:add-to-meta-alert)');
+  processResolve(e) {
+    if (this.preventDropdownOptionIfDisabled(e) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE', false).subscribe(results => {
+        this.updateSelectedAlertStatus('RESOLVE');
+      });
+    }
+  }
+
+  processAddToAlert(e) {
+    if (this.preventDropdownOptionIfDisabled(e) === true) {
+      this.metaAlertsService.selectedAlerts = this.selectedAlerts;
+      this.router.navigateByUrl('/alerts-list(dialog:add-to-meta-alert)');
+    }
   }
 
   removeFilter(field: string) {
