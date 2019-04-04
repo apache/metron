@@ -18,7 +18,7 @@
 import { Utils } from './utils';
 import { DateFilterValue } from 'app/model/date-filter-value';
 
-fdescribe('utils.Utils', () => {
+describe('utils.Utils', () => {
 
   it('Converting time range based on From/To', () => {
     expect(Utils.timeRangeToDateObj('949273200000 TO 951692400000')).toEqual(new DateFilterValue(949273200000, 951692400000));
