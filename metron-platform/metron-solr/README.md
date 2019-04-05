@@ -103,8 +103,8 @@ Elasticsearch is the real-time store used by default in Metron.  Solr can be ena
 1. Stop the Metron Indexing component in Ambari.
 1. Update Ambari UI -> Services -> Metron -> Configs -> Index Settings -> Solr Zookeeper Urls to match the Solr installation described in the previous section.
 1. Change Ambari UI -> Services -> Metron -> Configs -> Indexing -> Index Writer - Random Access -> Random Access Search Engine to `Solr`.
-1. Set the `source.type.field` property to `source.type` in the [Global Configuration](../metron-common#global-configuration).
-1. Set the `threat.triage.score.field` property to `threat.triage.score` in the [Global Configuration](../metron-common#global-configuration).
+1. Change Ambari UI -> Services -> Metron -> Configs -> REST -> Source Type Field Name to `source.type`.
+1. Change Ambari UI -> Services -> Metron -> Configs -> REST -> Threat Triage Score Field Name to `threat.triage.score`.
 1. Start the Metron Indexing component in Ambari.
 1. Restart Metron REST and the Alerts UI in Ambari.
 
