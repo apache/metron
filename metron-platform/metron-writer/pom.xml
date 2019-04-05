@@ -165,7 +165,6 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${global_httpclient_version}</version>
-            <!--<scope>test</scope>-->
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
