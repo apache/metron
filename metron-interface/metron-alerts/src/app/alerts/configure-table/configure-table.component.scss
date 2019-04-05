@@ -19,38 +19,15 @@
 @import "../../../variables";
 @import "../../../styles";
 
-
-$dialog-3x-width: 780px;
-$dialog-4x-width: 1200px;
-$dialog-5x-width: 1540px;
-
-.custom-metron-button-bar-2x {
-  @extend .metron-button-bar-2x;
-  width: 100%;
-}
-
-@media (min-width: 995px) and (max-width: 1200px) {
-  .custom-dialog2x {
-    width: $dialog-3x-width;
-  }
-}
-
-@media (min-width: 1201px) and (max-width: 1900) {
-  .custom-dialog2x {
-    width: $dialog-4x-width;
-  }
-}
-
-@media (min-width: 1901px) {
-  .custom-dialog2x {
-    width: $dialog-5x-width;
-  }
-}
-
 @include keyframes("keyframe-dialog-rtl", $dialog-4x-width, "0px")
 
 .load-right-to-left {
   @include animation("keyframe-dialog-rtl", "0.3s", "ease");
+}
+
+.custom-metron-button-bar-2x {
+  @extend .metron-button-bar-2x;
+  width: 100%;
 }
 
 .container-fluid {
@@ -64,18 +41,23 @@ $dialog-5x-width: 1540px;
   text-overflow: ellipsis;
 }
 
-.table-config {
+.custom-dialog2x {
+  width: 75%;
 
-  flex-grow: 1;
+  .table-config {
 
-  table {
-    flex: 1;
-    margin: 0 1rem 0 0;
-  }
+    flex-grow: 1;
+    flex-wrap: wrap;
 
-  .main-column {
-    text-transform: uppercase;
-    font-size: 1.1rem;
+    table {
+      flex: 1;
+      margin: 0 1rem 0 0;
+    }
+
+    .main-column {
+      text-transform: uppercase;
+      font-size: 1.1rem;
+    }
   }
 }
 
@@ -131,13 +113,4 @@ $dialog-5x-width: 1540px;
   padding: 0.1rem 0.25rem;
   font-size: 0.75rem;
   line-height: 1.1rem;
-}
-
-
-@media only screen and (min-width: 500px) {
-
-}
-
-@media only screen and (min-width: 1900px) {
-
 }
