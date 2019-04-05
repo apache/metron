@@ -93,7 +93,8 @@ HREF_REWRITE_LIST=(
     metron-deployment/Kerberos-ambari-setup.md 's#(readme-images/enable-kerberos-configure-kerberos.png)#(../images/enable-kerberos-configure-kerberos.png)#g'
     metron-deployment/Kerberos-ambari-setup.md 's#(readme-images/enable-kerberos-started.png)#(../images/enable-kerberos-started.png)#g'
     metron-deployment/Kerberos-ambari-setup.md 's#(readme-images/enable-kerberos.png)#(../images/enable-kerberos.png)#g'
-    metron-platform/metron-enrichment/README.md 's#(enrichment_arch.png)#(../../images/enrichment_arch.png)#g'
+    metron-platform/metron-enrichment/metron-enrichment-storm/README.md 's#(enrichment_arch.png)#(../../../images/enrichment_arch.png)#g'
+    metron-platform/metron-enrichment/metron-enrichment-storm/README.md 's#(unified_enrichment_arch.svg)#(../../../images/unified_enrichment_arch.svg)#g'
     metron-platform/metron-indexing/README.md 's#(indexing_arch.png)#(../../images/indexing_arch.png)#g'
     metron-platform/metron-job/README.md 's#(metron-job_state_statechart_diagram.svg)#(../../images/metron-job_state_statechart_diagram.svg)#g'
     metron-platform/metron-parsing/README.md 's#(parser_arch.png)#(../../images/parser_arch.png)#g'
@@ -106,7 +107,6 @@ HREF_REWRITE_LIST=(
     use-cases/parser_chaining/README.md 's#(aggregated_parser_chaining_flow.svg)#(../../images/aggregated_parser_chaining_flow.svg)#g'
     use-cases/typosquat_detection/README.md 's#(squid_search.png)#(../../images/squid_search.png)#g'
     use-cases/typosquat_detection/README.md 's#(drill_down.png)#(../../images/drill_down.png)#g'
-    metron-platform/metron-enrichment/README.md 's#(unified_enrichment_arch.svg)#(../../images/unified_enrichment_arch.svg)#g'
 )
 
 TEMPLATES_DIR="$METRON_SOURCE/site-book/src/site/src-resources/templates"
