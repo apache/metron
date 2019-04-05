@@ -342,8 +342,6 @@ This package installs the Metron Enrichment Common files
 %{metron_home}/config/zookeeper/enrichments/websphere.json
 %{metron_home}/config/zookeeper/enrichments/yaf.json
 %{metron_home}/config/zookeeper/enrichments/asa.json
-%{metron_home}/flux/enrichment/remote-splitjoin.yaml
-%{metron_home}/flux/enrichment/remote-unified.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-common-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
