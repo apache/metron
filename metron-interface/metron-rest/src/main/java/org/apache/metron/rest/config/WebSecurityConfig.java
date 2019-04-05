@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -150,25 +152,36 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // Note that we can switch profiles on the fly in Ambari.
         List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
         if (activeProfiles.contains(MetronRestConstants.LDAP_PROFILE)) {
-            LOG.debug("Setting up LDAP authentication against {}.", providerUrl);
-            auth.ldapAuthentication()
-                .authoritiesMapper(authoritiesMapper)
-                .userDnPatterns(userDnPatterns)
-                .userSearchBase(userSearchBase)
-                .userSearchFilter(userSearchFilter)
-                .groupRoleAttribute(groupRoleAttribute)
-                .groupSearchFilter(groupSearchFilter)
-                .groupSearchBase(groupSearchBase)
-                .contextSource()
-                .url(providerUrl)
-                .managerDn(providerUserDn)
-                .managerPassword(providerPassword)
-                .and()
-                .passwordCompare()
-                .passwordEncoder(new LdapShaPasswordEncoder())
-                .passwordAttribute(passwordAttribute);
+          LOG.info("Setting up LDAP authentication; url={}.", providerUrl);
+          LdapAuthenticationProviderConfigurer providerConf = auth
+                  .ldapAuthentication()
+                  .authoritiesMapper(authoritiesMapper)
+                  .userDnPatterns(userDnPatterns)
+                  .userSearchBase(userSearchBase)
+                  .userSearchFilter(userSearchFilter)
+                  .groupRoleAttribute(groupRoleAttribute)
+                  .groupSearchFilter(groupSearchFilter)
+                  .groupSearchBase(groupSearchBase)
+                  .contextSource()
+                  .url(providerUrl)
+                  .managerDn(providerUserDn)
+                  .managerPassword(providerPassword)
+                  .and();
+          if(StringUtils.isNotBlank(passwordAttribute)) {
+            // if a password attribute is provided, use that for authentication
+            providerConf
+                    .passwordCompare()
+                    .passwordEncoder(new LdapShaPasswordEncoder())
+                    .passwordAttribute(passwordAttribute);
+          } else {
+            // if no password attribute, set encoder to null which forces bind authentication
+            providerConf
+                    .passwordCompare()
+                    .passwordEncoder(null);
+          }
         } else if (activeProfiles.contains(MetronRestConstants.DEV_PROFILE) ||
             activeProfiles.contains(MetronRestConstants.TEST_PROFILE)) {
+            LOG.info("Setting up JDBC authentication with dev/test profiles");
             auth.jdbcAuthentication()
                 .dataSource(dataSource)
                 .withUser("user").password("password").roles(SECURITY_ROLE_USER).and()
@@ -176,6 +189,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .withUser("user2").password("password").roles(SECURITY_ROLE_USER).and()
                 .withUser("admin").password("password").roles(SECURITY_ROLE_USER, SECURITY_ROLE_ADMIN);
         } else {
+            LOG.debug("Setting up JDBC authentication");
             auth.jdbcAuthentication().dataSource(dataSource);
         }
     }
