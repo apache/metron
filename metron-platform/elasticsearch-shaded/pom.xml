@@ -23,11 +23,14 @@
     <artifactId>elasticsearch-shaded</artifactId>
     <name>elasticsearch-shaded</name>
     <url>https://metron.apache.org/</url>
+    <properties>
+      <guava_version>18.0</guava_version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>18.0</version>
+            <version>${guava_version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
@@ -118,7 +121,7 @@
                                 <exclude>META-INF/*.RSA</exclude>
                               </excludes>
                             </filter>
-                          </filters>  
+                          </filters>
                           <relocations>
                                 <!-- The REST API has conflicts with these packages -->
                                 <relocation>
@@ -127,7 +130,7 @@
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.apache.metron.guava.elasticsearch-shaded</shadedPattern>
+                                    <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
                                 </relocation>
                             </relocations>
                             <artifactSet>

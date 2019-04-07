@@ -65,6 +65,9 @@ To manage the output path, a base path argument is provided by the Flux file, wi
 This means that all output will land in `/apps/metron/`.  With no further adjustment, it will be `/apps/metron/<sensor>/`.
 However, by modifying the sensor's JSON config, it is possible to provide additional pathing based on the the message itself.
 
+The output format of a file will be `{prefix}{componentId}-{taskId}-{rotationNum}-{timestamp}{extension}`. Notably, because of the way
+file rotations are handled by the HdfsWriter, `rotationNum` will always be 0, but RotationActions still get executed normally.
+
 E.g.
 ```
 {

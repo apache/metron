@@ -22,6 +22,10 @@ import org.json.simple.JSONObject;
 
 public class MessageUtils {
 
+  public static String getGuid(JSONObject message) {
+    return (String) message.get(Constants.GUID);
+  }
+
   public static String getSensorType(JSONObject message) {
     return (String) message.get(Constants.SENSOR_TYPE);
   }

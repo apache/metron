@@ -48,7 +48,7 @@ public class SensorParserConfig implements Serializable {
    * Allows logic to be defined to filter or ignore messages.  Messages that have been
    * filtered will not be parsed.
    *
-   * This should be a fully qualified name of a class that implements the
+   * <p>This should be a fully qualified name of a class that implements the
    * org.apache.metron.parsers.interfaces.MessageFilter interface.
    */
   private String filterClassName;
@@ -424,12 +424,22 @@ public class SensorParserConfig implements Serializable {
     this.parserConfig = parserConfig;
   }
 
+  /**
+   * Creates a SensorParserConfig from the raw bytes of a Json string.
+   *
+   * @param config The raw bytes value of the config as a Json string
+   * @return SensorParserConfig containing the configuration
+   * @throws IOException If the config cannot be loaded
+   */
   public static SensorParserConfig fromBytes(byte[] config) throws IOException {
     SensorParserConfig ret = JSONUtils.INSTANCE.load(new String(config), SensorParserConfig.class);
     ret.init();
     return ret;
   }
 
+  /**
+   * Init method that retrieves, initializes, and validates field transformations for this config.
+   */
   public void init() {
     for(FieldTransformer h : getFieldTransformations()) {
       h.initAndValidate();

@@ -38,33 +38,33 @@ public class BatchTimeoutHelperTest {
   private final TimeoutListSupplier illegalTimeoutsList = new TimeoutListSupplier(Arrays.asList(5, 2, -3, 6));
 
   @Test
-  public void testGetDefaultBatchTimeout() throws Exception {
-    //The defaultBatchTimeout is dependent only on batchTimeoutDivisor and the Storm config
+  public void testGetMaxBatchTimeout() throws Exception {
+    //The maxBatchTimeout is dependent only on batchTimeoutDivisor and the Storm config
     //and CLI overrides, which aren't of interest here.
     assertEquals(30, Utils.readStormConfig().getOrDefault(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, 0));
     BatchTimeoutHelper bth;
     bth = new BatchTimeoutHelper(defaultConfigList, 1);
-    assertEquals(14, bth.getDefaultBatchTimeout());
+    assertEquals(14, bth.getMaxBatchTimeout());
     bth = new BatchTimeoutHelper(defaultConfigList, 2);
-    assertEquals(6, bth.getDefaultBatchTimeout());
+    assertEquals(6, bth.getMaxBatchTimeout());
     bth = new BatchTimeoutHelper(defaultConfigList, 3);
-    assertEquals(4, bth.getDefaultBatchTimeout());
+    assertEquals(4, bth.getMaxBatchTimeout());
     bth = new BatchTimeoutHelper(defaultConfigList, 4);
-    assertEquals(2, bth.getDefaultBatchTimeout());
+    assertEquals(2, bth.getMaxBatchTimeout());
     bth = new BatchTimeoutHelper(defaultConfigList, 6);
-    assertEquals(1, bth.getDefaultBatchTimeout());
+    assertEquals(1, bth.getMaxBatchTimeout());
     bth = new BatchTimeoutHelper(defaultConfigList, 20);
-    assertEquals(1, bth.getDefaultBatchTimeout());
+    assertEquals(1, bth.getMaxBatchTimeout());
 
     bth = new BatchTimeoutHelper(disabledConfigList, 2);
-    assertEquals(6, bth.getDefaultBatchTimeout());
+    assertEquals(6, bth.getMaxBatchTimeout());
     bth = new BatchTimeoutHelper(smallTimeoutsList, 2);
-    assertEquals(6, bth.getDefaultBatchTimeout());
+    assertEquals(6, bth.getMaxBatchTimeout());
   }
 
   @Test
   public void testGetRecommendedTickInterval() throws Exception {
-    //The recommendedTickInterval is the min of defaultBatchTimeout and the configured TimeoutsList.
+    //The recommendedTickInterval is the min of maxBatchTimeout and the configured TimeoutsList.
     BatchTimeoutHelper bth;
     bth = new BatchTimeoutHelper(defaultConfigList, 2);
     assertEquals(6, bth.getRecommendedTickInterval());

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Injectable, Inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { HttpUtil } from '../util/httpUtil';
@@ -41,7 +41,7 @@ export class HdfsService {
 
   public read(path: string): Observable<Object> {
     const options: HttpParams = new HttpParams().set('path', path);
-    return this.http.get(this.url, { params: options }).pipe(
+    return this.http.get(this.url, { params: options, responseType: 'text' }).pipe(
       map(HttpUtil.extractString),
       catchError(HttpUtil.handleError)
     );

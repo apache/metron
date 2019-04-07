@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 /**
  * Routines to help figure out the effective batchTimeout(s), using information from
  * multiple configuration sources, topology.message.timeout.secs, and batchTimeoutDivisor,
- * and use it to calculate defaultBatchTimeout and appropriate topology.tick.tuple.freq.secs.
+ * and use it to calculate maxBatchTimeout and appropriate topology.tick.tuple.freq.secs.
  *
  * These methods cause no side effects outside of setting the internal member variables.
  * "base" config are from defaults and storm.yaml (subordinate to Component config settings)
@@ -108,7 +108,7 @@ public class BatchTimeoutHelper {
   }
 
   private void calcMaxBatchTimeoutAllowed() {
-    // The max batchTimeout allowed also becomes the default batchTimeout.
+    // The max batchTimeout allowed also becomes the max batchTimeout.
     effectiveMessageTimeoutSecs = (cliMessageTimeoutSecs == 0 ? baseMessageTimeoutSecs : cliMessageTimeoutSecs);
     if (effectiveMessageTimeoutSecs == 0) {
       LOG.info("topology.message.timeout.secs is disabled in both Storm config and CLI.  Allowing unlimited batchTimeouts.");
@@ -130,7 +130,7 @@ public class BatchTimeoutHelper {
    * @return the max batchTimeout allowed, in seconds
    * Guaranteed positive number.
    */
-  public int getDefaultBatchTimeout() {
+  public int getMaxBatchTimeout() {
     if (!initialized) {this.init();}
     return maxBatchTimeoutAllowedSecs;
   }

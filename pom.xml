@@ -38,6 +38,24 @@
         <module>metron-stellar</module>
     </modules>
 
+    <!--
+        Note: Regarding adding dependencies and managing classpath:
+
+            https://docs.oracle.com/javase/8/docs/technotes/tools/findingclasses.html
+
+        * In general, classes referenced by a JAR-class-path entry are found as though they were part of the JAR file. The
+          JAR files that appear in the JAR-class-path are searched after any earlier class path entries, and before any
+          entries that appear later in the class path.
+
+        * However, if the JAR-class-path points to a JAR file that was already searched (for example, an extension, or a
+          JAR file that was listed earlier in the class path) then that JAR file will not be searched again. (This
+          optimization improves efficiency and prevents circular searches.) Such a JAR file is searched at the point that it
+          appears, earlier in the class path.
+
+        * If a JAR file is installed as an extension, then any JAR-class-path it defines is ignored. All the classes
+          required by an extension are presumed to be part of the SDK or to have themselves been installed as extensions.
+    -->
+
     <repositories>
         <repository>
             <id>clojars.org</id>
@@ -62,13 +80,6 @@
             <name>HDP Releases</name>
             <url>http://repo.hortonworks.com/content/repositories/releases/</url>
             <layout>default</layout>
-        </repository>
-        <repository>
-            <id>multiline-release-repo</id>
-            <url>https://raw.github.com/benelog/multiline/master/maven-repository</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
         </repository>
     </repositories>
     <properties>

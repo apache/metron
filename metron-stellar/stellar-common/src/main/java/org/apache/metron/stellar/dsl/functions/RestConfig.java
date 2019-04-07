@@ -98,10 +98,15 @@ public class RestConfig extends HashMap<String, Object> {
    */
   public final static String POOLING_DEFAULT_MAX_PER_RUOTE = "pooling.default.max.per.route";
 
+  /**
+   * Setting this to true will verify the actual body content length equals the content length header
+   */
+  public final static String VERIFY_CONTENT_LENGTH = "verify.content.length";
 
   public RestConfig() {
     put(TIMEOUT, 1000);
     put(RESPONSE_CODES_ALLOWED, Collections.singletonList(200));
+    put(VERIFY_CONTENT_LENGTH, false);
   }
 
   public String getBasicAuthUser() {
@@ -163,5 +168,9 @@ public class RestConfig extends HashMap<String, Object> {
 
   public Integer getPoolingDefaultMaxPerRoute() {
     return (Integer) get(POOLING_DEFAULT_MAX_PER_RUOTE);
+  }
+
+  public Boolean verifyContentLength() {
+    return (Boolean) get(VERIFY_CONTENT_LENGTH);
   }
 }

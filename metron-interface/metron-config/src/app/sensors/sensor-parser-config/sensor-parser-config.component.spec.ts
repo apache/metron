@@ -554,10 +554,12 @@ describe('Component: SensorParserConfig', () => {
     router = TestBed.get(Router);
   }));
 
+  afterEach(() => {
+    fixture.destroy();
+  })
+
   it('should create an instance of SensorParserConfigComponent', async(() => {
     expect(component).toBeDefined();
-
-    fixture.destroy();
   }));
 
   it('should handle ngOnInit', async(() => {
@@ -572,8 +574,6 @@ describe('Component: SensorParserConfig', () => {
     expect(component.init).toHaveBeenCalledWith('squid');
     expect(component.createForms).toHaveBeenCalled();
     expect(component.getAvailableParsers).toHaveBeenCalled();
-
-    fixture.destroy();
   }));
 
   it('should createForms', async(() => {
@@ -593,8 +593,6 @@ describe('Component: SensorParserConfig', () => {
     component.showAdvancedParserConfiguration = false;
     component.createForms();
     expect(component.showAdvancedParserConfiguration).toEqual(false);
-
-    fixture.destroy();
   }));
 
   it('should getAvailableParsers', async(() => {
@@ -604,8 +602,6 @@ describe('Component: SensorParserConfig', () => {
       Grok: 'org.apache.metron.parsers.GrokParser'
     });
     expect(component.availableParserNames).toEqual(['Bro', 'Grok']);
-
-    fixture.destroy();
   }));
 
   it('should init', async(() => {
@@ -706,8 +702,6 @@ describe('Component: SensorParserConfig', () => {
 
     component.init('bro');
     expect(component.showAdvancedParserConfiguration).toEqual(false);
-
-    fixture.destroy();
   }));
 
   it('should getMessagePrefix', async(() => {
@@ -715,31 +709,23 @@ describe('Component: SensorParserConfig', () => {
     expect(component.getMessagePrefix()).toEqual('Created');
     component.editMode = true;
     expect(component.getMessagePrefix()).toEqual('Modified');
-
-    fixture.destroy();
   }));
 
   it('should handle onSetKafkaTopic', async(() => {
     spyOn(component, 'getKafkaStatus');
-    spyOn(component, 'isConfigValid');
 
     component.onSetKafkaTopic();
     expect(component.getKafkaStatus).not.toHaveBeenCalled();
-    expect(component.isConfigValid).toHaveBeenCalled();
 
     component.sensorParserConfig.sensorTopic = 'bro';
     component.onSetKafkaTopic();
     expect(component.kafkaTopicValid).toEqual(true);
     expect(component.getKafkaStatus).toHaveBeenCalled();
-
-    fixture.destroy();
   }));
 
   it('should handle onSetSensorName', async(() => {
-    spyOn(component, 'isConfigValid');
 
     component.onSetSensorName();
-    expect(component.isConfigValid).toHaveBeenCalled();
     expect(component.sensorNameValid).toEqual(false);
 
     component.sensorName = 'squid';
@@ -752,17 +738,52 @@ describe('Component: SensorParserConfig', () => {
     component.onSetSensorName();
     expect(component.sensorNameUnique).toEqual(true);
     expect(component.sensorNameValid).toEqual(true);
-
-    fixture.destroy();
   }));
+
+  it('sensor name should be validated agains special characters', () => {
+    component.sensorName = 'squidWithSpecChar@';
+    component.onSetSensorName();
+    expect(component.sensorNameNoSpecChars).toEqual(false);
+    expect(component.sensorNameValid).toEqual(false);
+
+    component.sensorName = 'squidWithSpecChar#';
+    component.onSetSensorName();
+    expect(component.sensorNameNoSpecChars).toEqual(false);
+    expect(component.sensorNameValid).toEqual(false);
+
+    component.sensorName = 'squidWithSpecChar/';
+    component.onSetSensorName();
+    expect(component.sensorNameNoSpecChars).toEqual(false);
+    expect(component.sensorNameValid).toEqual(false);
+
+    component.sensorName = 'squidWithSpecChar?';
+    component.onSetSensorName();
+    expect(component.sensorNameNoSpecChars).toEqual(false);
+    expect(component.sensorNameValid).toEqual(false);
+
+    component.sensorName = 'squidWithSpecChar?$&%';
+    component.onSetSensorName();
+    expect(component.sensorNameNoSpecChars).toEqual(false);
+    expect(component.sensorNameValid).toEqual(false);
+  });
+
+  it('sensor name validation should accept dash and lowdash chars', () => {
+    component.sensorName = 'squidWithSpecChar-';
+    component.onSetSensorName();
+    expect(component.sensorNameNoSpecChars).toEqual(true);
+    expect(component.sensorNameValid).toEqual(true);
+
+    component.sensorName = 'squidWithSpecChar_';
+    component.onSetSensorName();
+    expect(component.sensorNameNoSpecChars).toEqual(true);
+    expect(component.sensorNameValid).toEqual(true);
+  })
 
   it('should handle onParserTypeChange', async(() => {
     spyOn(component, 'hidePane');
-    spyOn(component, 'isConfigValid');
 
     component.onParserTypeChange();
     expect(component.hidePane).not.toHaveBeenCalled();
-    expect(component.isConfigValid).toHaveBeenCalled();
 
     component.sensorParserConfig.parserClassName =
       'org.apache.metron.parsers.GrokParser';
@@ -774,45 +795,33 @@ describe('Component: SensorParserConfig', () => {
       'org.apache.metron.parsers.bro.BasicBroParser';
     component.onParserTypeChange();
     expect(component.hidePane).toHaveBeenCalledWith(Pane.GROK);
-
-    fixture.destroy();
   }));
 
-  it('should handle onGrokStatementChange', async(() => {
-    spyOn(component, 'isConfigValid');
+  it('isGrokStatementValid should validate grokStatement', async(() => {
+    expect(component.isGrokStatementValid()).toEqual(false);
 
-    component.onGrokStatementChange();
-    expect(component.grokStatementValid).toEqual(false);
-    expect(component.isConfigValid).toHaveBeenCalled();
+    component.grokStatement = '';
+    expect(component.isGrokStatementValid()).toEqual(false);
 
     component.grokStatement = 'grok statement';
-    component.onGrokStatementChange();
-    expect(component.grokStatementValid).toEqual(true);
-
-    fixture.destroy();
+    expect(component.isGrokStatementValid()).toEqual(true);
   }));
 
   it('should handle isConfigValid', async(() => {
-    component.isConfigValid();
-    expect(component.configValid).toEqual(false);
+    expect(component.isConfigValid()).toEqual(false);
 
     component.sensorNameValid = true;
     component.kafkaTopicValid = true;
     component.parserClassValid = true;
 
-    component.isConfigValid();
-    expect(component.configValid).toEqual(true);
+    expect(component.isConfigValid()).toEqual(true);
 
     component.sensorParserConfig.parserClassName =
       'org.apache.metron.parsers.GrokParser';
-    component.isConfigValid();
-    expect(component.configValid).toEqual(false);
+    expect(component.isConfigValid()).toEqual(false);
 
-    component.grokStatementValid = true;
-    component.isConfigValid();
-    expect(component.configValid).toEqual(true);
-
-    fixture.destroy();
+    component.grokStatement = 'grok statement';
+    expect(component.isConfigValid()).toEqual(true);
   }));
 
   it('should getKafkaStatus', async(() => {
@@ -834,8 +843,6 @@ describe('Component: SensorParserConfig', () => {
     kafkaService.setSampleData('squid', 'message');
     component.getKafkaStatus();
     expect(component.currentKafkaStatus).toEqual(KafkaStatus.EMITTING);
-
-    fixture.destroy();
   }));
 
   it('should getTransforms', async(() => {
@@ -849,8 +856,6 @@ describe('Component: SensorParserConfig', () => {
     );
 
     expect(component.getTransforms()).toEqual('3 Transformations Applied');
-
-    fixture.destroy();
   }));
 
   it('should handle onSaveGrokStatement', async(() => {
@@ -873,8 +878,6 @@ describe('Component: SensorParserConfig', () => {
     expect(component.sensorParserConfig.parserConfig['grokPath']).toEqual(
       '/custom/grok/path'
     );
-
-    fixture.destroy();
   }));
 
   it('should onSavePatternLabel', async(() => {
@@ -883,8 +886,6 @@ describe('Component: SensorParserConfig', () => {
     expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual(
       'PATTERN_LABEL'
     );
-
-    fixture.destroy();
   }));
 
   it('should goBack', async(() => {
@@ -893,8 +894,6 @@ describe('Component: SensorParserConfig', () => {
     router.navigateByUrl = jasmine.createSpy('navigateByUrl');
     component.goBack();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/sensors');
-
-    fixture.destroy();
   }));
 
   it('should save sensor configuration', async(() => {
@@ -980,8 +979,6 @@ describe('Component: SensorParserConfig', () => {
     expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0]).toEqual(
       'Created Sensor parser config but unable to save indexing configuration: IndexingConfigurations post error'
     );
-
-    fixture.destroy();
   }));
 
   it('should getTransformationCount', async(() => {
@@ -1015,7 +1012,6 @@ describe('Component: SensorParserConfig', () => {
       transforms[0]
     ];
     expect(component.getTransformationCount()).toEqual(0);
-    fixture.destroy();
   }));
 
   it('should getEnrichmentCount', async(() => {
@@ -1028,8 +1024,6 @@ describe('Component: SensorParserConfig', () => {
     ] = ['ip_src_addr', 'ip_dst_addr'];
 
     expect(component.getEnrichmentCount()).toEqual(4);
-
-    fixture.destroy();
   }));
 
   it('should getThreatIntelCount', async(() => {
@@ -1038,8 +1032,6 @@ describe('Component: SensorParserConfig', () => {
     ] = ['ip_src_addr', 'ip_dst_addr'];
 
     expect(component.getThreatIntelCount()).toEqual(2);
-
-    fixture.destroy();
   }));
 
   it('should getRuleCount', async(() => {
@@ -1061,8 +1053,6 @@ describe('Component: SensorParserConfig', () => {
     );
 
     expect(component.getRuleCount()).toEqual(2);
-
-    fixture.destroy();
   }));
 
   it('should showPane', async(() => {
@@ -1080,8 +1070,6 @@ describe('Component: SensorParserConfig', () => {
     expect(component.showGrokValidator).toEqual(false);
     expect(component.showFieldSchema).toEqual(false);
     expect(component.showRawJson).toEqual(true);
-
-    fixture.destroy();
   }));
 
   it('should hidePane', async(() => {
@@ -1099,8 +1087,6 @@ describe('Component: SensorParserConfig', () => {
     expect(component.showGrokValidator).toEqual(false);
     expect(component.showFieldSchema).toEqual(false);
     expect(component.showRawJson).toEqual(false);
-
-    fixture.destroy();
   }));
 
   it('should handle onShowGrokPane', async(() => {
@@ -1115,8 +1101,6 @@ describe('Component: SensorParserConfig', () => {
 
     component.onShowGrokPane();
     expect(component.patternLabel).toEqual('PATTERN_LABEL');
-
-    fixture.destroy();
   }));
 
   it('should handle onRawJsonChanged', async(() => {
@@ -1127,15 +1111,11 @@ describe('Component: SensorParserConfig', () => {
     expect(
       component.sensorFieldSchema.createFieldSchemaRows
     ).toHaveBeenCalled();
-
-    fixture.destroy();
   }));
 
   it('should handle onAdvancedConfigFormClose', async(() => {
     component.onAdvancedConfigFormClose();
 
     expect(component.showAdvancedParserConfiguration).toEqual(false);
-
-    fixture.destroy();
   }));
 });

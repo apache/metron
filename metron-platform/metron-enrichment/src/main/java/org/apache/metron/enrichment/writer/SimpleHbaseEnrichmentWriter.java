@@ -18,8 +18,9 @@
 
 package org.apache.metron.enrichment.writer;
 
+import org.apache.metron.common.writer.BulkMessage;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
@@ -313,8 +314,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   @Override
   public BulkWriterResponse write(String sensorType
                     , WriterConfiguration configurations
-                    , Iterable<Tuple> tuples
-                    , List<JSONObject> messages
+                    , List<BulkMessage<JSONObject>> messages
                     ) throws Exception
   {
     Map<String, Object> sensorConfig = configurations.getSensorConfig(sensorType);
@@ -324,9 +324,9 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
     String enrichmentType = enrichmentTypeObj == null?null:enrichmentTypeObj.toString();
     Set<String> valueColumns = new HashSet<>(getColumns(Configurations.VALUE_COLUMNS.get(sensorConfig), true));
     List<Put> puts = new ArrayList<>();
-    for(JSONObject message : messages) {
-      EnrichmentKey key = getKey(message, transformer, enrichmentType);
-      EnrichmentValue value = getValue(message, transformer.keySet, valueColumns);
+    for(BulkMessage<JSONObject> bulkWriterMessage : messages) {
+      EnrichmentKey key = getKey(bulkWriterMessage.getMessage(), transformer, enrichmentType);
+      EnrichmentValue value = getValue(bulkWriterMessage.getMessage(), transformer.keySet, valueColumns);
       if(key == null || value == null) {
         continue;
       }
@@ -336,17 +336,17 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
         puts.add(put);
       }
     }
-
+    Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
     BulkWriterResponse response = new BulkWriterResponse();
     try {
       table.put(puts);
     } catch (Exception e) {
-      response.addAllErrors(e, tuples);
+      response.addAllErrors(e, ids);
       return response;
     }
 
     // Can return no errors, because put will throw Exception on error.
-    response.addAllSuccesses(tuples);
+    response.addAllSuccesses(ids);
     return response;
   }
 

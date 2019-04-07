@@ -28,6 +28,7 @@ import java.util.Map;
  * Configures a writer to write messages to an endpoint.
  *
  * <p>Each destination will have its own {@link WriterConfiguration}; for example HDFS, Elasticsearch, and Solr.
+ *
  * <p>A writer can be configured independently for each source type.
  */
 public interface WriterConfiguration extends Serializable {
@@ -73,8 +74,10 @@ public interface WriterConfiguration extends Serializable {
   boolean isEnabled(String sensorName);
 
   /**
+   * Returns the sensor config for a specific sensor.
+   *
    * @param sensorName The name of a sensor.
-   * @return
+   * @return a map containing the config
    */
   Map<String, Object> getSensorConfig(String sensorName);
 
@@ -97,7 +100,7 @@ public interface WriterConfiguration extends Serializable {
    * when writing messages.
    *
    * @param sensorName The name of the sensor;
-   * @return
+   * @return The {@link FieldNameConverter}
    */
   String getFieldNameConverter(String sensorName);
 }
