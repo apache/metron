@@ -18,20 +18,17 @@
 package org.apache.metron.solr.dao;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -39,6 +36,7 @@ import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.solr.client.solrj.SolrClient;
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,7 +47,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SolrDao.class})
+@PrepareForTest({SolrDao.class, SolrClientFactory.class})
 public class SolrDaoTest {
 
   @Rule
@@ -70,6 +68,7 @@ public class SolrDaoTest {
     solrUpdateDao = mock(SolrUpdateDao.class);
     solrRetrieveLatestDao = mock(SolrRetrieveLatestDao.class);
     solrColumnMetadataDao = mock(SolrColumnMetadataDao.class);
+    mockStatic(SolrClientFactory.class);
   }
 
   @Test
@@ -105,7 +104,7 @@ public class SolrDaoTest {
     );
 
     solrDao = spy(new SolrDao());
-    doReturn(client).when(solrDao).getSolrClient(Collections.singletonList("zookeeper:2181"));
+    when(SolrClientFactory.create(accessConfig.getGlobalConfigSupplier().get())).thenReturn(client);
     whenNew(SolrSearchDao.class).withArguments(client, accessConfig).thenReturn(solrSearchDao);
     whenNew(SolrRetrieveLatestDao.class).withArguments(client, accessConfig)
         .thenReturn(solrRetrieveLatestDao);
@@ -144,42 +143,5 @@ public class SolrDaoTest {
 
     solrDao.getColumnMetadata(Arrays.asList("bro", "snort"));
     verify(solrColumnMetadataDao).getColumnMetadata(Arrays.asList("bro", "snort"));
-  }
-
-  @Test
-  public void testGetZkHostsSingle() {
-    AccessConfig accessConfig = new AccessConfig();
-    accessConfig.setGlobalConfigSupplier(() ->
-        new HashMap<String, Object>() {{
-          put(SOLR_ZOOKEEPER, "   zookeeper:2181   ");
-        }}
-    );
-
-    SolrDao solrDao = new SolrDao();
-    solrDao.init(accessConfig);
-
-    List<String> actual = solrDao.getZkHosts();
-    List<String> expected = new ArrayList<>();
-    expected.add("zookeeper:2181");
-    assertEquals(expected, actual);
-  }
-
-  @Test
-  public void testGetZkHostsMultiple() {
-    AccessConfig accessConfig = new AccessConfig();
-    accessConfig.setGlobalConfigSupplier(() ->
-        new HashMap<String, Object>() {{
-          put(SOLR_ZOOKEEPER, "   zookeeper:2181    ,   zookeeper2:2181    ");
-        }}
-    );
-
-    SolrDao solrDao = new SolrDao();
-    solrDao.init(accessConfig);
-
-    List<String> actual = solrDao.getZkHosts();
-    List<String> expected = new ArrayList<>();
-    expected.add("zookeeper:2181");
-    expected.add("zookeeper2:2181");
-    assertEquals(expected, actual);
   }
 }

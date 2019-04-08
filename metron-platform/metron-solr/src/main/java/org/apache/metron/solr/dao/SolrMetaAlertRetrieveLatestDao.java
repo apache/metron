@@ -27,6 +27,7 @@ import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -36,8 +37,10 @@ public class SolrMetaAlertRetrieveLatestDao implements
     MetaAlertRetrieveLatestDao {
 
   private SolrDao solrDao;
+  private SolrClient solrClient;
 
-  public SolrMetaAlertRetrieveLatestDao(SolrDao solrDao) {
+  public SolrMetaAlertRetrieveLatestDao(SolrClient client, SolrDao solrDao) {
+    this.solrClient = client;
     this.solrDao = solrDao;
   }
 
@@ -52,8 +55,7 @@ public class SolrMetaAlertRetrieveLatestDao implements
           .setFields("*", "[child parentFilter=" + guidClause + " limit=999]");
 
       try {
-        QueryResponse response = solrDao.getSolrClient(solrDao.getZkHosts())
-            .query(METAALERTS_COLLECTION, query);
+        QueryResponse response = solrClient.query(METAALERTS_COLLECTION, query);
         // GUID is unique, so it's definitely the first result
         if (response.getResults().size() == 1) {
           SolrDocument result = response.getResults().get(0);
