@@ -466,7 +466,7 @@ function finish_bro_docker {
     ./finish_end_to_end.sh
 
     rc=$?; if [[ ${rc} != 0 ]]; then
-        echo "ERROR> FAILED run_end_to_end"
+        echo "ERROR> FAILED finish_end_to_end"
         exit ${rc}
     fi
     cd .. &> /dev/null || { echo "failed to change directory to plugin root";
