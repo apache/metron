@@ -162,6 +162,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${global_httpclient_version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.10</artifactId>
             <version>${global_kafka_version}</version>
@@ -212,9 +217,14 @@
             </exclusions>
             <scope>provided</scope>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-common-storm</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+         <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-enrichment-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
@@ -222,6 +232,13 @@
             <artifactId>metron-test-utilities</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-hbase</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>test</scope>
+            <type>test-jar</type>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>

@@ -453,7 +453,10 @@
               <name>metron-parsing-storm</name>
             </package>
             <package>
-              <name>metron-enrichment</name>
+              <name>metron-enrichment-common</name>
+            </package>
+            <package>
+              <name>metron-enrichment-storm</name>
             </package>
             <package>
               <name>metron-profiler-storm</name>

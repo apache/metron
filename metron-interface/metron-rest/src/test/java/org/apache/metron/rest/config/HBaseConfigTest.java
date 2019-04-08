@@ -17,6 +17,16 @@
  */
 package org.apache.metron.rest.config;
 
+import static org.apache.metron.hbase.client.UserSettingsClient.USER_SETTINGS_HBASE_CF;
+import static org.apache.metron.hbase.client.UserSettingsClient.USER_SETTINGS_HBASE_TABLE;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
+
+import java.util.HashMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.hbase.HTableProvider;
@@ -26,14 +36,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.HashMap;
-
-import static org.apache.metron.hbase.client.UserSettingsClient.USER_SETTINGS_HBASE_CF;
-import static org.apache.metron.hbase.client.UserSettingsClient.USER_SETTINGS_HBASE_TABLE;
-import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({HTableProvider.class, HBaseConfiguration.class, HBaseConfig.class})
