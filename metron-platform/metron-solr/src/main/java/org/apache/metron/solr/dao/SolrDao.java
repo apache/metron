@@ -164,17 +164,6 @@ public class SolrDao implements IndexDao {
     return this.solrUpdateDao.removeCommentFromAlert(request, latest);
   }
 
-  /**
-   * Returns the SolrClient.
-   * @return SolrClient
-   */
-  public SolrClient getSolrClient() {
-    if (this.client == null) {
-      throw new IllegalStateException("The SolrDao must be initialized first");
-    }
-    return this.client;
-  }
-
   void enableKerberos() {
     HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
   }

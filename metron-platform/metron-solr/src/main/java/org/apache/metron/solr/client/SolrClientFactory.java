@@ -59,15 +59,16 @@ public class SolrClientFactory {
    * Closes the SolrClient connection and releases the reference.
    */
   public static void close() {
-    if (solrClient != null) {
-      try {
-        solrClient.close();
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-      } finally {
-        solrClient = null;
+    synchronized (SolrClientFactory.class) {
+      if (solrClient != null) {
+        try {
+          solrClient.close();
+        } catch (IOException e) {
+          LOG.error(e.getMessage(), e);
+        } finally {
+          solrClient = null;
+        }
       }
-
     }
   }
 
