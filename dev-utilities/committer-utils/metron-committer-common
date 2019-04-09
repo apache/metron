@@ -453,7 +453,7 @@ function run_bro_docker {
 
     rc=$?; if [[ ${rc} != 0 ]]; then
         echo "ERROR> FAILED run_end_to_end"
-        exit ${rc}
+        # do NOT exit here
     fi
     cd .. &> /dev/null || { echo "failed to change directory to plugin root"; exit 1; }
 }
