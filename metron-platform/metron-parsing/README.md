@@ -154,7 +154,7 @@ messages or marking messages as invalid.
 
 There are two reasons a message will be marked as invalid:
 * Fail [global validation](../../metron-common#validation-framework)
-* Fail the parser's validate function. Generally, that means to not have a `timestamp` field or an `original_string` field.
+* Fail the parser's validate function. Generally, that means not having a `timestamp` field or an `original_string` field.
 
 Those messages which are marked as invalid are sent to the error queue with an indication that they
 are invalid in the error message.  The messages will contain "error_type":"parser_invalid". Note,
@@ -264,7 +264,7 @@ The document is structured in the following way
         }
         ```
 
-* `sensorTopic` : The kafka topic to send the parsed messages to.  If the topic is prefixed and suffixed by `/`
+* `sensorTopic` : The kafka topic to that the parser will read messages from.  If the topic is prefixed and suffixed by `/`
 then it is assumed to be a regex and will match any topic matching the pattern (e.g. `/bro.*/` would match `bro_cust0`, `bro_cust1` and `bro_cust2`)
 * `readMetadata` : Boolean indicating whether to read metadata or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
 * `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (The default is raw message strategy dependent).  See below for a discussion about metadata.

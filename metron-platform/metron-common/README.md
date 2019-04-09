@@ -119,7 +119,10 @@ As already pointed out in the main project README, Apache Metron is a [Kappa arc
 * Solr and Elasticsearch (plus Kibana) for real-time access. We provide out of the box compatibility with both Solr and Elasticsearch, and custom dashboards for data exploration in Kibana.
 * Zeppelin for providing dashboards to do custom analytics.
 
-Getting data "into" Metron is accomplished by setting up a Kafka topic
+Getting data "into" Metron is accomplished by setting up a Kafka topic for parsers to read from. There are a variety of options, including, but not limited to:
+* [Bro Kafka plugin](https://github.com/apache/metron-bro-plugin-kafka)
+* [Fastcapa](../../metron-sensors/fastcapa)
+* [NiFi](https://nifi.apache.org)
 
 # Validation Framework
 
