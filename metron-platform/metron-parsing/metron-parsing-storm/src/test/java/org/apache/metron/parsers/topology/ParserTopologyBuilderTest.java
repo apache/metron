@@ -91,7 +91,7 @@ public class ParserTopologyBuilderTest {
   }
 
   @Test
-  public void shouldCreateWriterConfigWithOutputTopic() {
+  public void shouldCreateWriterConfigWithSensorParserConfigOutputTopic() {
     SensorParserConfig snortConfig = new SensorParserConfig();
     snortConfig.setSensorTopic("snort");
     snortConfig.setOutputTopic("snort_topic");
@@ -115,6 +115,32 @@ public class ParserTopologyBuilderTest {
     assertEquals(snortTestWriter, writerConfigs.get("snort").getBulkMessageWriter());
     verify(snortTestWriter, times(1)).configure(eq("snort"), any(ParserWriterConfiguration.class));
     verifyNoMoreInteractions(snortTestWriter);
+  }
+
+  @Test
+  public void shouldCreateWriterConfigWithSuppliedOutputTopic() {
+    SensorParserConfig snortConfig = new SensorParserConfig();
+    snortConfig.setSensorTopic("snort");
+    when(configs.getSensorParserConfig("snort")).thenReturn(snortConfig);
+    KafkaWriter suppliedTopicWriter = mock(KafkaWriter.class);
+    when(kafkaWriter.withTopic("supplied_topic")).thenReturn(suppliedTopicWriter);
+
+    Map<String, SensorParserConfig> sensorTypeToParserConfig = new HashMap<String, SensorParserConfig>() {{
+      put("snort", snortConfig);
+    }};
+
+    Map<String, WriterHandler> writerConfigs = ParserTopologyBuilder
+            .createWriterConfigs("zookeeperUrl",
+                    Optional.of("brokerUrl"),
+                    sensorTypeToParserConfig,
+                    Optional.of("securityProtocol"),
+                    configs,
+                    Optional.of("supplied_topic"));
+
+    assertEquals(1, writerConfigs.size());
+    assertEquals(suppliedTopicWriter, writerConfigs.get("snort").getBulkMessageWriter());
+    verify(suppliedTopicWriter, times(1)).configure(eq("snort"), any(ParserWriterConfiguration.class));
+    verifyNoMoreInteractions(suppliedTopicWriter);
   }
 
   @Test

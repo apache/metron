@@ -144,6 +144,19 @@ There are two general types types of parsers:
         ```
         "timestamp":"TO_EPOCH_TIMESTAMP(timestamp_str, timestamp_format, timezone_name )"
         ```
+        
+## Parser Message Routing
+
+Messages are routed to the Kafka `enrichments` topic by default.  The output topic can be changed with the `output_topic` 
+option when [Starting the Parser Topology](metron-parsing-storm/README.md#starting-the-parser-topology) or with the `outputTopic` 
+[Parser Configuration](#parser-configuration) setting.  The order of precedence from highest to lowest is as follows:
+
+1. Parser start script option
+2. Parser configuration setting
+3. Default `enrichments` topic
+
+A message can also be routed to other locations besides Kafka with the `writerClassName` [Parser Configuration](#parser-configuration) setting.
+Messages can be routed independently for each sensor type when configured with [Parser Configuration](#parser-configuration) settings.
 
 ## Parser Error Routing
 
@@ -261,6 +274,7 @@ The document is structured in the following way
         }
         ```
 
+* `writerClassName` : The class used to write messages after they have been parsed.  Defaults to `org.apache.metron.writer.kafka.KafkaWriter`.
 * `sensorTopic` : The kafka topic to send the parsed messages to.  If the topic is prefixed and suffixed by `/`
 then it is assumed to be a regex and will match any topic matching the pattern (e.g. `/bro.*/` would match `bro_cust0`, `bro_cust1` and `bro_cust2`)
 * `readMetadata` : Boolean indicating whether to read metadata or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
