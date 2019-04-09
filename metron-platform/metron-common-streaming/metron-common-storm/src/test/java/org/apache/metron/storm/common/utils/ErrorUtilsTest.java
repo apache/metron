@@ -19,6 +19,7 @@ package org.apache.metron.storm.common.utils;
 
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.OutputCollector;
 import org.junit.Rule;
@@ -79,7 +80,7 @@ public class ErrorUtilsTest {
     MetronError error = new MetronError().withMessage("error message").withThrowable(e);
     OutputCollector collector = mock(OutputCollector.class);
 
-    ErrorUtils.handleError(collector, error);
+    StormErrorUtils.handleError(collector, error);
     verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
     verify(collector, times(1)).reportError(any());
   }

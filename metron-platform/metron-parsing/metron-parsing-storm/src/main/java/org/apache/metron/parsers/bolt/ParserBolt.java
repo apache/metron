@@ -39,9 +39,9 @@ import org.apache.metron.storm.common.message.MessageGetStrategy;
 import org.apache.metron.storm.common.message.MessageGetters;
 import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.storm.common.message.metadata.RawMessageUtil;
-import org.apache.metron.storm.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkMessage;
+import org.apache.metron.storm.common.utils.StormErrorUtils;
 import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.parsers.ParserRunner;
 import org.apache.metron.parsers.ParserRunnerResults;
@@ -255,7 +255,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
               , sensorParserConfig.getRawMessageStrategyConfig()
       );
       ParserRunnerResults<JSONObject> parserRunnerResults = parserRunner.execute(sensorType, rawMessage, parserConfigurations);
-      parserRunnerResults.getErrors().forEach(error -> ErrorUtils.handleError(collector, error));
+      parserRunnerResults.getErrors().forEach(error -> StormErrorUtils.handleError(collector, error));
 
       WriterHandler writer = sensorToWriterMap.get(sensorType);
       int numWritten = 0;
@@ -326,7 +326,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             .withThrowable(ex)
             .withSensorType(Collections.singleton(sensorType))
             .addRawMessage(originalMessage);
-    ErrorUtils.handleError(collector, error);
+    StormErrorUtils.handleError(collector, error);
   }
 
   @Override

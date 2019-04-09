@@ -36,11 +36,11 @@ import org.apache.metron.common.error.MetronError;
 import org.apache.metron.storm.common.message.MessageGetStrategy;
 import org.apache.metron.storm.common.message.MessageGetters;
 import org.apache.metron.common.system.Clock;
-import org.apache.metron.storm.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageWriter;
+import org.apache.metron.storm.common.utils.StormErrorUtils;
 import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.metron.writer.WriterToBulkWriter;
@@ -366,7 +366,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
             .withThrowable(e);
     collector.ack(tuple);
-    ErrorUtils.handleError(collector, error);
+    StormErrorUtils.handleError(collector, error);
   }
 
   @Override
