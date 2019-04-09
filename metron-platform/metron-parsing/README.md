@@ -15,7 +15,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
+
 # Parsers
+
+## Contents
+
+* [Introduction](#introduction)
+* [Parser Error Routing](#parser-error-routing)
+* [Filtering](#filtering)
+* [Parser Architecture](#parser-architecture)
+* [Message Format](#message-format)
+* [Global Configuration](#global-configuration)
+* [Parser Configuration](#parser-configuration)
+* [Parser Adapters](#parser-adapters)
+* [Kafka Queue](#kafka-queue)
+* [JSON Path](#json-path)
 
 ## Introduction
 
@@ -169,7 +183,7 @@ parse, are sent along to the error queue with a message indicating that
 there was an error in parse along with a stacktrace.  This is to
 distinguish from the invalid messages.
 
-## Filtered
+## Filtering
 
 One can also filter a message by specifying a `filterClassName` in the
 parser config.  Filtered messages are just dropped rather than passed
