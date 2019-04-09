@@ -112,7 +112,7 @@ overwritten.
 
 # High Level Architecture
 
-As already pointed out in the main project README, Apache Metron is a [Kappa architecture](../../#navigating-the-architecture) primarily backed by Storm and Kafka. We additionally leverage:
+As already pointed out in the main project README, Apache Metron is a Kappa architecture (see [Navigating the Architecture](../../#navigating-the-architecture)) primarily backed by Storm and Kafka. We additionally leverage:
 * Zookeeper for dynamic configuration updates to running Storm topologies. This enables us to push updates to our Storm topologies without restarting them.
 * HBase primarily for enrichments. But we also use it to store user state for our UI's.
 * HDFS for long term storage. Our parsed and enriched messages land here, along with any reported exceptions or errors encountered along the way.
