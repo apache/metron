@@ -75,6 +75,12 @@ public class SensorEnrichmentUpdateConfig {
     this.sensorToFieldList = sensorToFieldList;
   }
 
+  /**
+   * Updates the sensor configs using a {@link ZKSourceConfigHandler} to read configs from
+   * ZooKeeper and the internal {@code sensorToFieldList}.
+   *
+   * @throws Exception If there's an issue reading from ZK or updating configs
+   */
   public void updateSensorConfigs( ) throws Exception {
     CuratorFramework client = ConfigurationsUtils.getClient(getZkQuorum());
     try {
@@ -112,6 +118,14 @@ public class SensorEnrichmentUpdateConfig {
     }
   }
 
+  /**
+   * Updates the sensor configs with the provided @{link SourceConfigHandler} and the provided
+   * {@code sensorToFieldList}.
+   *
+   * @param scHandler Handles retrieval of configs
+   * @param sensorToFieldList Map from sensor to @{link FieldList}
+   * @throws Exception If there's an issue updating config
+   */
   public static void updateSensorConfigs( SourceConfigHandler scHandler
                                         , Map<String, FieldList> sensorToFieldList
                                         ) throws Exception

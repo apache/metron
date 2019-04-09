@@ -165,6 +165,7 @@ Where:
 | ----------                                                                                         |
 | [ `ABS`](../../metron-analytics/metron-statistics#abs)                                             |
 | [ `APPEND_IF_MISSING`](#append_if_missing)                                                         |
+| [ `ASN_GET`](#asn_get)                                                         |
 | [ `BIN`](../../metron-analytics/metron-statistics#bin)                                             |
 | [ `BLOOM_ADD`](#bloom_add)                                                                         |
 | [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
@@ -329,6 +330,13 @@ Where:
     * suffix - The string suffix to append to the end of the string.
     * additionalsuffix - Optional - Additional string suffix that is a valid terminator.
   * Returns: A new String if prefix was prepended, the same string otherwise.
+
+### `ASN_GET`
+* Description: Look up an IPV4 address and returns Autonomous System Number information about it
+* Input:
+    * ip - The IPV4 address to lookup
+    * fields - Optional list of ASN fields to grab. Options are network, autonomous_system_number, autonomous_system_organization.
+* Returns: If a Single field is requested a string of the field, If multiple fields a map of string of the fields, and null otherwise
 
 ### `BLOOM_ADD`
   * Description: Adds an element to the bloom filter passed in
@@ -1510,7 +1518,7 @@ operating system.
 
 
 ```bash
-metron-stellar/stellar-common/target/stellar-common-0.7.0-stand-alone.tar.gz
+metron-stellar/stellar-common/target/stellar-common-0.7.1-stand-alone.tar.gz
 ```
 
 When unpacked, the following structure will be created:
@@ -1520,7 +1528,7 @@ When unpacked, the following structure will be created:
 ├── bin
 │   └── stellar
 └── lib
-    └── stellar-common-0.7.0-uber.jar
+    └── stellar-common-0.7.1-uber.jar
 ```
 
 To run the Stellar Shell run the following from the directory you unpacked to:

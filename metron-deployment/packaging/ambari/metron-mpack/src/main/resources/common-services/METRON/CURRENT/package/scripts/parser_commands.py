@@ -65,14 +65,20 @@ class ParserCommands:
     def __get_aggr_parsers(self, params):
         """
         Fetches the list of aggregated (and regular) parsers and returns a list.
-        If the input list of parsers were "bro,snort,yaf", "bro,snort" and yaf, for example,
-        then this method will return ["bro,snort,yaf", "bro,snort", "yaf"]
+        If the input list of parsers were "bro,yaf,snort", "bro,snort" and yaf, for example,
+        then this method will return ["bro,snort,yaf", "bro,snort", "yaf"].  Sensors within
+        a group are sorted alphabetically.
         :param params:
         :return: List containing the names of parsers
         """
         parserList = []
         parsers = shlex.shlex(params.parsers)
         for name in parsers:
+            sensors = name.strip('",').split(",")
+            # if name contains multiple sensors, sort them alphabetically
+            if len(sensors) > 1:
+                sensors.sort()
+                name = '"' + ",".join(sensors) + '"'
             parserList.append(name.strip(','))
         return [s.translate(None, "'[]") for s in filter(None, parserList)]
 

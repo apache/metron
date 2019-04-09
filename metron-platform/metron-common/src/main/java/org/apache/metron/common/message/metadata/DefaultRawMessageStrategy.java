@@ -25,7 +25,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Map;
 
 /**
- * The default implementation, which defines:
+ * The default implementation. Defines:
  * <ul>
  *   <li>Metadata: The data which comes in via the
  *   kafka key and the other bits of the tuple from the storm spout (e.g. the topic, etc).
@@ -44,7 +44,7 @@ public class DefaultRawMessageStrategy implements RawMessageStrategy {
    * @param rawMessage The raw message from the kafka value
    * @param readMetadata True if we want to read read the metadata
    * @param config The config for the RawMessageStrategy (See the rawMessageStrategyConfig in the SensorParserConfig)
-   * @return
+   * @return The {@link RawMessage} that includes metadata.
    */
   @Override
   public RawMessage get(Map<String, Object> rawMetadata, byte[] rawMessage, boolean readMetadata, Map<String, Object> config) {
@@ -68,7 +68,7 @@ public class DefaultRawMessageStrategy implements RawMessageStrategy {
 
   /**
    * The default mergeMetadata is false.
-   * @return
+   * @return false
    */
   @Override
   public boolean mergeMetadataDefault() {
@@ -77,7 +77,7 @@ public class DefaultRawMessageStrategy implements RawMessageStrategy {
 
   /**
    * The default readMetadata is false.
-   * @return
+   * @return false
    */
   @Override
   public boolean readMetadataDefault() {

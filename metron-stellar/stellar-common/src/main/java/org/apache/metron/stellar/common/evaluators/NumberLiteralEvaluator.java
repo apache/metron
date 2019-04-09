@@ -52,13 +52,13 @@ public enum NumberLiteralEvaluator {
     }
   }
 
-  Token<? extends Number> evaluate(StellarParser.Arithmetic_operandsContext context
-                                         , Map<Class<? extends StellarParser.Arithmetic_operandsContext>, NumberEvaluator> instanceMap
-                                         , FrameContext.Context contextVariety
-                                         )
-  {
+  @SuppressWarnings("unchecked")
+  Token<? extends Number> evaluate(StellarParser.Arithmetic_operandsContext context,
+                                          Map<Class<? extends StellarParser.Arithmetic_operandsContext>, NumberEvaluator> instanceMap,
+                                          FrameContext.Context contextVariety
+                                         ) {
     NumberEvaluator evaluator = instanceMap.get(context.getClass());
-    if(evaluator == null) {
+    if (evaluator == null) {
       throw new ParseException("Does not support evaluation for type " + context.getClass());
     }
     return evaluator.evaluate(context, contextVariety);

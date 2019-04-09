@@ -17,22 +17,31 @@
  */
 package org.apache.metron.writer.bolt;
 
+import static java.lang.String.format;
 import static org.apache.storm.utils.TupleUtils.isTick;
 
 import com.google.common.collect.ImmutableList;
+
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+
+import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredBolt;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.system.Clock;
+import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageWriter;
+import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.metron.writer.WriterToBulkWriter;
 import org.apache.storm.Config;
@@ -41,10 +50,37 @@ import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This bolt implements message batching and writing, with both flush on queue size, and flush on queue timeout.
+ * There is a queue for each sensorType.
+ * Ideally each queue would have its own timer, but we only have one global timer, the Tick Tuple
+ * generated at fixed intervals by the system and received by the Bolt.  Given this constraint,
+ * we use the following strategy:
+ *   - The default batchTimeout is, as recommended by Storm, 1/2 the Storm 'topology.message.timeout.secs',
+ *   modified by batchTimeoutDivisor, in case multiple batching writers are daisy-chained in one topology.
+ *   - If some sensors configure their own batchTimeouts, they are compared with the default.  Batch
+ *   timeouts greater than the default will be ignored, because they can cause message recycling in Storm.
+ *   Batch timeouts configured to {@literal <}= zero, or undefined, mean use the default.
+ *   - The *smallest* configured batchTimeout among all sensor types, greater than zero and less than
+ *   the default, will be used to configure the 'topology.tick.tuple.freq.secs' for the Bolt.  If there are no
+ *   valid configured batchTimeouts, the maxBatchTimeout will be used.
+ *   - The age of the queue is checked every time a sensor message arrives.  Thus, if at least one message
+ *   per second is received for a given sensor, that queue will flush on timeout or sooner, depending on batchSize.
+ *   - On each Tick Tuple received, *all* queues will be checked, and if any are older than their respective
+ *   batchTimeout, they will be flushed.  Note that this does NOT guarantee timely flushing, depending on the
+ *   phase relationship between the queue's batchTimeout and the tick interval.  The maximum age of a queue
+ *   before it flushes is its batchTimeout + the tick interval, which is guaranteed to be less than 2x the
+ *   batchTimeout, and also less than the 'topology.message.timeout.secs'.  This guarantees that the messages
+ *   will not age out of the Storm topology, but it does not guarantee the flush interval requested, for
+ *   sensor types not receiving at least one message every second.
+ *
+ * @param <CONFIG_T>
+ */
 public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends ConfiguredBolt<CONFIG_T> {
 
   private static final Logger LOG = LoggerFactory
@@ -57,8 +93,9 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
   private transient OutputCollector collector;
   private transient Function<WriterConfiguration, WriterConfiguration> configurationTransformation = null;
   private int requestedTickFreqSecs;
-  private int defaultBatchTimeout;
+  private int maxBatchTimeout;
   private int batchTimeoutDivisor = 1;
+  private transient AckTuplesPolicy ackTuplesPolicy = null;
 
   public BulkMessageWriterBolt(String zookeeperUrl, String configurationStrategy) {
     super(zookeeperUrl, configurationStrategy);
@@ -112,17 +149,17 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
 
   /**
    * Used only for unit testing
-   * @param defaultBatchTimeout
+   * @param maxBatchTimeout
    */
-  protected void setDefaultBatchTimeout(int defaultBatchTimeout) {
-    this.defaultBatchTimeout = defaultBatchTimeout;
+  protected void setMaxBatchTimeout(int maxBatchTimeout) {
+    this.maxBatchTimeout = maxBatchTimeout;
   }
 
   /**
    * Used only for unit testing
    */
-  public int getDefaultBatchTimeout() {
-    return defaultBatchTimeout;
+  public int getMaxBatchTimeout() {
+    return maxBatchTimeout;
   }
 
   public BulkWriterComponent<JSONObject> getWriterComponent() {
@@ -156,8 +193,8 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
 
     BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
     this.requestedTickFreqSecs = timeoutHelper.getRecommendedTickInterval();
-    //And while we've got BatchTimeoutHelper handy, capture the defaultBatchTimeout for writerComponent.
-    this.defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
+    //And while we've got BatchTimeoutHelper handy, capture the maxBatchTimeout for writerComponent.
+    this.maxBatchTimeout = timeoutHelper.getMaxBatchTimeout();
 
     Map<String, Object> conf = super.getComponentConfiguration();
     if (conf == null) {
@@ -172,7 +209,6 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
 
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-    setWriterComponent(new BulkWriterComponent<>(collector));
     this.collector = collector;
     super.prepare(stormConf, context, collector);
     if (messageGetField != null) {
@@ -186,16 +222,19 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
     else {
       configurationTransformation = x -> x;
     }
+    ackTuplesPolicy = new AckTuplesPolicy(collector, messageGetStrategy);
     try {
       WriterConfiguration writerconf = configurationTransformation
           .apply(getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations()));
-      if (defaultBatchTimeout == 0) {
-        //This means getComponentConfiguration was never called to initialize defaultBatchTimeout,
+      if (maxBatchTimeout == 0) {
+        //This means getComponentConfiguration was never called to initialize maxBatchTimeout,
         //probably because we are in a unit test scenario.  So calculate it here.
         BatchTimeoutHelper timeoutHelper = new BatchTimeoutHelper(writerconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
-        defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
+        maxBatchTimeout = timeoutHelper.getMaxBatchTimeout();
       }
-      getWriterComponent().setDefaultBatchTimeout(defaultBatchTimeout);
+      BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(maxBatchTimeout);
+      bulkWriterComponent.addFlushPolicy(ackTuplesPolicy);
+      setWriterComponent(bulkWriterComponent);
       bulkMessageWriter.init(stormConf, context, writerconf);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -207,7 +246,9 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
    */
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector, Clock clock) {
     prepare(stormConf, context, collector);
-    getWriterComponent().withClock(clock);
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(maxBatchTimeout, clock);
+    bulkWriterComponent.addFlushPolicy(ackTuplesPolicy);
+    setWriterComponent(bulkWriterComponent);
   }
 
   @SuppressWarnings("unchecked")
@@ -218,9 +259,8 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
         if (!(bulkMessageWriter instanceof WriterToBulkWriter)) {
           //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
           LOG.debug("Flushing message queues older than their batchTimeouts");
-          getWriterComponent().flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
-              getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations())),
-              messageGetStrategy);
+          getWriterComponent().flushAll(bulkMessageWriter, configurationTransformation.apply(
+              getConfigurationStrategy().createWriterConfig(bulkMessageWriter, getConfigurations())));
         }
       }
       catch(Exception e) {
@@ -254,13 +294,12 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
         //want to warn, but not fail the tuple
         collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
       }
-
+      String messagesId = MessageUtils.getGuid(message);
+      ackTuplesPolicy.addTupleMessageIds(tuple, Collections.singleton(messagesId));
       getWriterComponent().write(sensorType
-              , tuple
-              , message
+              , new BulkMessage<>(messagesId, message)
               , bulkMessageWriter
               , writerConfiguration
-              , messageGetStrategy
       );
     }
     catch(Exception e) {
@@ -295,11 +334,19 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
   private void handleMissingSensorType(Tuple tuple, JSONObject message) {
     // sensor type somehow ended up being null.  We want to error this message directly.
     LOG.debug("Message is missing sensor type");
-    getWriterComponent().error("null",
-            new Exception("Sensor type is not specified for message " + message.toJSONString()),
-            ImmutableList.of(tuple),
-            messageGetStrategy
-    );
+    String sensorType = "null";
+    Exception e = new Exception("Sensor type is not specified for message " + message.toJSONString());
+    LOG.error(format("Failing %d tuple(s); sensorType=%s", Iterables.size(ImmutableList.of(tuple)), sensorType), e);
+    MetronError error = new MetronError()
+            .withSensorType(Collections.singleton(sensorType))
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+            .withThrowable(e)
+            .addRawMessage(messageGetStrategy.get(tuple));
+    collector.emit(Constants.ERROR_STREAM, new Values(error.getJSONObject()));
+
+    // there is only one error to report for all of the failed tuples
+    collector.reportError(e);
+    collector.ack(tuple);
   }
 
   /**
@@ -309,10 +356,13 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
    */
   private void handleMissingMessage(Tuple tuple) {
     LOG.debug("Unable to extract message from tuple; expected valid JSON");
-    getWriterComponent().error(
-            new Exception("Unable to extract message from tuple; expected valid JSON"),
-            tuple
-    );
+    Exception e = new Exception("Unable to extract message from tuple; expected valid JSON");
+    LOG.error("Failing tuple", e);
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+            .withThrowable(e);
+    collector.ack(tuple);
+    ErrorUtils.handleError(collector, error);
   }
 
   @Override

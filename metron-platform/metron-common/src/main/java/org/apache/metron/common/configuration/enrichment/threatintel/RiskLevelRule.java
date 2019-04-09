@@ -17,16 +17,19 @@
  */
 package org.apache.metron.common.configuration.enrichment.threatintel;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
+
 /**
  * This class represents a rule that is used to triage threats.
  *
- * The goal of threat triage is to prioritize the alerts that pose the greatest
+ * <p>The goal of threat triage is to prioritize the alerts that pose the greatest
  * threat and thus need urgent attention.  To perform threat triage, a set of rules
  * are applied to each message.  Each rule has a predicate to determine if the rule
  * applies or not.  The threat score from each applied rule is aggregated into a single
  * threat triage score that can be used to prioritize high risk threats.
  *
- * Tuning the threat triage process involves creating one or more rules, adjusting
+ * <p>Tuning the threat triage process involves creating one or more rules, adjusting
  * the score of each rule, and changing the way that each rule's score is aggregated.
  */
 public class RiskLevelRule {
@@ -34,33 +37,33 @@ public class RiskLevelRule {
   /**
    * The name of the rule. This field is optional.
    */
-  String name;
+  private String name;
 
   /**
    * A description of the rule. This field is optional.
    */
-  String comment;
+  private String comment;
 
   /**
    * A predicate, in the form of a Stellar expression, that determines whether
    * the rule is applied to an alert or not.  This field is required.
    */
-  String rule;
+  private String rule;
 
   /**
-   * A numeric value that represents the score that is applied to the alert. This
-   * field is required.
+   * A Stellar expression that when evaluated results in a numeric score. The expression
+   * can refer to fields within the message undergoing triage.
    */
-  Number score;
+  private String scoreExpression;
 
   /**
    * Allows a rule author to provide contextual information when a rule is applied
    * to a message.  This can assist a SOC analyst when actioning a threat.
    *
-   * This is expected to be a valid Stellar expression and can refer to any of the
+   * <p>This is expected to be a valid Stellar expression and can refer to any of the
    * fields within the message itself.
    */
-  String reason;
+  private String reason;
 
   public String getName() {
     return name;
@@ -86,12 +89,32 @@ public class RiskLevelRule {
     this.rule = rule;
   }
 
-  public Number getScore() {
-    return score;
+  @JsonProperty("score")
+  public String getScoreExpression() {
+    return scoreExpression;
   }
 
-  public void setScore(Number score) {
-    this.score = score;
+  /**
+   * Sets the score expression based on an input object, taking care to properly handle numbers or
+   * strings.
+   *
+   * @param scoreExpression The raw object containing the score expression.
+   */
+  @JsonProperty("score")
+  public void setScoreExpression(Object scoreExpression) {
+    if(scoreExpression instanceof Number) {
+      // a numeric value was provided
+      scoreExpression = Number.class.cast(scoreExpression).toString();
+
+    } else if (scoreExpression instanceof String) {
+      // a stellar expression was provided
+      scoreExpression = String.class.cast(scoreExpression);
+
+    } else {
+      throw new IllegalArgumentException(String.format("Expected 'score' to be number or string, but got '%s'", scoreExpression));
+    }
+
+    this.scoreExpression = scoreExpression.toString();
   }
 
   public String getReason() {
@@ -105,25 +128,18 @@ public class RiskLevelRule {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
+    if (!(o instanceof RiskLevelRule)) return false;
     RiskLevelRule that = (RiskLevelRule) o;
-
-    if (name != null ? !name.equals(that.name) : that.name != null) return false;
-    if (comment != null ? !comment.equals(that.comment) : that.comment != null) return false;
-    if (rule != null ? !rule.equals(that.rule) : that.rule != null) return false;
-    if (score != null ? !score.equals(that.score) : that.score != null) return false;
-    return reason != null ? reason.equals(that.reason) : that.reason == null;
+    return Objects.equals(name, that.name) &&
+            Objects.equals(comment, that.comment) &&
+            Objects.equals(rule, that.rule) &&
+            Objects.equals(scoreExpression, that.scoreExpression) &&
+            Objects.equals(reason, that.reason);
   }
 
   @Override
   public int hashCode() {
-    int result = name != null ? name.hashCode() : 0;
-    result = 31 * result + (comment != null ? comment.hashCode() : 0);
-    result = 31 * result + (rule != null ? rule.hashCode() : 0);
-    result = 31 * result + (score != null ? score.hashCode() : 0);
-    result = 31 * result + (reason != null ? reason.hashCode() : 0);
-    return result;
+    return Objects.hash(name, comment, rule, scoreExpression, reason);
   }
 
   @Override
@@ -132,7 +148,7 @@ public class RiskLevelRule {
             "name='" + name + '\'' +
             ", comment='" + comment + '\'' +
             ", rule='" + rule + '\'' +
-            ", score=" + score +
+            ", scoreExpression='" + scoreExpression + '\'' +
             ", reason='" + reason + '\'' +
             '}';
   }

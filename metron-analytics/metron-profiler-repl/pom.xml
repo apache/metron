@@ -24,7 +24,7 @@
     <parent>
         <artifactId>metron-analytics</artifactId>
         <groupId>org.apache.metron</groupId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
     </parent>
     <artifactId>metron-profiler-repl</artifactId>
     <url>https://metron.apache.org/</url>
@@ -42,6 +42,12 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-profiler-client</artifactId>
             <version>${project.parent.version}</version>
+            <exclusions>
+              <exclusion>
+                  <groupId>com.google.guava</groupId>
+                  <artifactId>guava</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>

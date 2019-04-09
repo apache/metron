@@ -20,19 +20,18 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { HttpUtil } from '../util/httpUtil';
-import { IAppConfig } from '../app.config.interface';
 import { SensorParserConfigHistory } from '../model/sensor-parser-config-history';
-import { APP_CONFIG } from '../app.config';
 import { SensorParserConfig } from '../model/sensor-parser-config';
 import { RestError } from '../model/rest-error';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class SensorParserConfigHistoryService {
-  url = this.config.apiEndpoint + '/sensor/parser/config';
+  url = this.appConfigService.getApiRoot() + '/sensor/parser/config';
 
   constructor(
     private http: HttpClient,
-    @Inject(APP_CONFIG) private config: IAppConfig
+    private appConfigService: AppConfigService
   ) {}
 
   public get(name: string): Observable<RestError | SensorParserConfigHistory> {

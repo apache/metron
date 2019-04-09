@@ -58,5 +58,13 @@ class SourceHandlerKey {
     result = 31 * result + (stellarResult != null ? stellarResult.hashCode() : 0);
     return result;
   }
+
+  @Override
+  public String toString() {
+    return "SourceHandlerKey{" +
+        "sourceType='" + sourceType + '\'' +
+        ", stellarResult='" + stellarResult + '\'' +
+        '}';
+  }
 }
 

@@ -20,7 +20,7 @@ import {ColumnMetadata} from './column-metadata';
 
 export class TableMetadata {
   size = PageSize.TWENTY_FIVE;
-  refreshInterval = RefreshInterval.ONE_MIN;
+  refreshInterval = RefreshInterval.TEN_MIN;
   hideResolvedAlerts = true;
   hideDismissedAlerts = true;
   tableColumns: ColumnMetadata[];

@@ -21,6 +21,14 @@ import java.lang.reflect.InvocationTargetException;
 
 public class ReflectionUtils {
 
+  /**
+   * Creates an instance of a provided class.
+   *
+   * @param className The name of the class to create an instance of
+   * @param defaultClass The default if the class name is null/empty or is an inner class
+   * @param <T> The type parameter of the default class
+   * @return An instance of the provided class.
+   */
   public static <T> T createInstance(String className, T defaultClass) {
     T instance;
     if (className == null || className.length() == 0 || className.charAt(0) == '$') {
@@ -51,7 +59,7 @@ public class ReflectionUtils {
 
 
   /**
-   * Create instance from no-args constructor
+   * Create instance from no-args constructor.
    *
    * @param clazz Class to create instance from
    * @param <T> Instance created from passed class

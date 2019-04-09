@@ -20,7 +20,7 @@
     <i> {{ 'No ' +  data.groupName  | centerEllipses: strLength }}  </i>
   </div>
   <ul  *ngIf="data.groupItems.length > 0"  class="list-group">
-    <li *ngFor="let groupItem of data.groupItems" class="list-group-item justify-content-between anchor"
+    <li *ngFor="let groupItem of data.groupItems" class="list-group-item justify-content-between anchor d-flex"
         [ngClass]="{'font-size-12' : fontSize === 12, 'font-size-15' : fontSize === 15}" [attr.title]="groupItem.name"
         (click)="onSelectClick(groupItem.name)">
       {{ groupItem.name | centerEllipses: strLength }}

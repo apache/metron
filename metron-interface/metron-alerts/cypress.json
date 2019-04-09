@@ -3,5 +3,8 @@
   "viewportHeight": 850,
   "video": false,
   "supportFile": false,
-  "pluginsFile": false
+  "pluginsFile": false,
+  "baseUrl": "http://localhost:4200",
+  "defaultCommandTimeout": 30000,
+  "requestTimeout": 30000
 }

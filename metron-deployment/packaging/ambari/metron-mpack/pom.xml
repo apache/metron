@@ -20,13 +20,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.metron.packaging.mpacks</groupId>
     <artifactId>metron_mpack</artifactId>
-    <version>0.7.0.0</version>
+    <version>0.7.1.0</version>
     <name>Metron Ambari Management Pack</name>
 
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-deployment</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
         <relativePath>../../..</relativePath>
     </parent>
 
@@ -108,7 +108,7 @@
                             <outputDirectory>${basedir}/src/main/resources/common-services/METRON/CURRENT/package/templates</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${basedir}/../../../../metron-platform/metron-enrichment/src/main/config</directory>
+                                    <directory>${basedir}/../../../../metron-platform/metron-enrichment/metron-enrichment-storm/src/main/config</directory>
                                     <includes>
                                         <include>enrichment-splitjoin.properties.j2</include>
                                         <include>enrichment-unified.properties.j2</include>

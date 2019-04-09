@@ -20,6 +20,8 @@
 
 package org.apache.metron.hbase.client;
 
+import static org.apache.commons.collections4.CollectionUtils.size;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -67,7 +69,9 @@ public class HBaseClient implements Closeable {
     try {
       this.table = provider.getTable(configuration, tableName);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      String msg = String.format("Unable to open connection to HBase for table '%s'", tableName);
+      LOG.error(msg, e);
+      throw new RuntimeException(msg, e);
     }
   }
 
@@ -142,9 +146,10 @@ public class HBaseClient implements Closeable {
       table.batch(mutations, result);
       mutations.clear();
 
-    } catch (InterruptedException | IOException e) {
-      LOG.warn("Error performing a mutation to HBase.", e);
-      throw new RuntimeException(e);
+    } catch (Exception e) {
+      String msg = String.format("'%d' HBase write(s) failed on table '%s'", size(mutations), tableName(table));
+      LOG.error(msg, e);
+      throw new RuntimeException(msg, e);
     }
 
     return mutationCount;
@@ -187,8 +192,9 @@ public class HBaseClient implements Closeable {
       return results;
 
     } catch (Exception e) {
-      LOG.warn("Could not perform HBase lookup.", e);
-      throw new RuntimeException(e);
+      String msg = String.format("'%d' HBase read(s) failed on table '%s'", size(gets), tableName(table));
+      LOG.error(msg, e);
+      throw new RuntimeException(msg, e);
     }
   }
 
@@ -197,7 +203,9 @@ public class HBaseClient implements Closeable {
    */
   @Override
   public void close() throws IOException {
-    table.close();
+    if(table != null) {
+      table.close();
+    }
   }
 
   /**
@@ -275,5 +283,21 @@ public class HBaseClient implements Closeable {
     inc.setTTL(timeToLiveMillis);
     cols.getCounters().forEach(cnt -> inc.addColumn(cnt.getFamily(), cnt.getQualifier(), cnt.getIncrement()));
     return inc;
+  }
+
+  /**
+   * Returns the name of the HBase table.
+   * <p>Attempts to avoid any null pointers that might be encountered along the way.
+   * @param table The table to retrieve the name of.
+   * @return The name of the table
+   */
+  private static String tableName(HTableInterface table) {
+    String tableName = "null";
+    if(table != null) {
+      if(table.getName() != null) {
+        tableName = table.getName().getNameAsString();
+      }
+    }
+    return tableName;
   }
 }

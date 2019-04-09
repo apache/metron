@@ -21,11 +21,11 @@
     <artifactId>metron-debs</artifactId>
     <packaging>pom</packaging>
     <name>metron-debs</name>
-    <version>0.7.0</version>
+    <version>0.7.1</version>
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-deployment</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
         <relativePath>../../..</relativePath>
     </parent>
     <description>DEB Package Builder for Apache Metron</description>
@@ -90,7 +90,13 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-enrichment/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-enrichment/metron-enrichment-common/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-enrichment/metron-enrichment-storm/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

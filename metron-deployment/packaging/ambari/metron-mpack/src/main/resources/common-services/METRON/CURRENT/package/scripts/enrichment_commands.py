@@ -35,7 +35,7 @@ class EnrichmentCommands:
     __kafka_acl_configured = False
     __hbase_configured = False
     __hbase_acl_configured = False
-    __geo_configured = False
+    __maxmind_configured = False
 
     def __init__(self, params):
         if params is None:
@@ -47,7 +47,7 @@ class EnrichmentCommands:
         self.__kafka_acl_configured = os.path.isfile(self.__params.enrichment_kafka_acl_configured_flag_file)
         self.__hbase_configured = os.path.isfile(self.__params.enrichment_hbase_configured_flag_file)
         self.__hbase_acl_configured = os.path.isfile(self.__params.enrichment_hbase_acl_configured_flag_file)
-        self.__geo_configured = os.path.isfile(self.__params.enrichment_geo_configured_flag_file)
+        self.__maxmind_configured = os.path.isfile(self.__params.enrichment_maxmind_configured_flag_file)
 
     def __get_topics(self):
         return [self.__enrichment_topic, self.__params.enrichment_error_topic]
@@ -67,8 +67,8 @@ class EnrichmentCommands:
     def is_hbase_acl_configured(self):
         return self.__hbase_acl_configured
 
-    def is_geo_configured(self):
-        return self.__geo_configured
+    def is_maxmind_configured(self):
+        return self.__maxmind_configured
 
     def set_kafka_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_kafka_configured_flag_file, "Setting Kafka configured to True for enrichment")
@@ -82,11 +82,11 @@ class EnrichmentCommands:
     def set_hbase_acl_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True for enrichment")
 
-    def set_geo_configured(self):
-        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_geo_configured_flag_file, "Setting GEO configured to True for enrichment")
+    def set_maxmind_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_maxmind_configured_flag_file, "Setting Maxmind databases configured to True for enrichment")
 
-    def init_geo(self):
-        Logger.info("Creating HDFS location for GeoIP database")
+    def init_maxmind(self):
+        Logger.info("Creating HDFS locations for MaxMind databases")
         self.__params.HdfsResource(self.__params.geoip_hdfs_dir,
                                    type="directory",
                                    action="create_on_execute",
@@ -95,20 +95,32 @@ class EnrichmentCommands:
                                    mode=0755,
                                    )
 
-        Logger.info("Creating and loading GeoIp database")
-        command_template = """{0}/bin/geo_enrichment_load.sh \
+        self.__params.HdfsResource(self.__params.asn_hdfs_dir,
+                                   type="directory",
+                                   action="create_on_execute",
+                                   owner=self.__params.metron_user,
+                                   group=self.__params.metron_group,
+                                   mode=0755,
+                                   )
+
+        Logger.info("Creating and loading Maxmind databases")
+        command_template = """{0}/bin/maxmind_enrichment_load.sh \
                                 -g {1} \
-                                -r {2} \
-                                -z {3}"""
+                                -a {2} \
+                                -r {3} \
+                                -ra {4} \
+                                -z {5}"""
         command = command_template.format(self.__params.metron_home,
                                           self.__params.geoip_url,
+                                          self.__params.asn_url,
                                           self.__params.geoip_hdfs_dir,
+                                          self.__params.asn_hdfs_dir,
                                           self.__params.zookeeper_quorum
                                           )
         Logger.info("Executing command " + command)
         Execute(command, user=self.__params.metron_user, tries=1, logoutput=True)
-        Logger.info("Done intializing GeoIP data")
-        self.set_geo_configured()
+        Logger.info("Done intializing Maxmind databases")
+        self.set_maxmind_configured()
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for enrichment')
@@ -238,7 +250,10 @@ class EnrichmentCommands:
         :param env: Environment
         """
         Logger.info("Checking for Geo database")
-        metron_service.check_hdfs_file_exists(self.__params, self.__params.geoip_hdfs_dir + "/GeoLite2-City.mmdb.gz")
+        metron_service.check_hdfs_file_exists(self.__params, self.__params.geoip_hdfs_dir + "/GeoLite2-City.tar.gz")
+
+        Logger.info("Checking for ASN database")
+        metron_service.check_hdfs_file_exists(self.__params, self.__params.asn_hdfs_dir + "/GeoLite2-ASN.tar.gz")
 
         Logger.info('Checking Kafka topics for Enrichment')
         metron_service.check_kafka_topics(self.__params, self.__get_topics())

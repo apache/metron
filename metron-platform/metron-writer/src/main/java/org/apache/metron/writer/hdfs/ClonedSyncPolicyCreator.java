@@ -37,6 +37,9 @@ public class ClonedSyncPolicyCreator implements SyncPolicyCreator {
       // SyncPolicy object does not implement Cloneable, so we'll need to clone it via serialization
       //to get a fresh policy object.  Note: this would be expensive if it was in the critical path,
       // but should be called infrequently (once per sync).
+
+      // Reset the SyncPolicy to ensure that the new count properly resets.
+      syncPolicy.reset();
       byte[] serializedForm = SerDeUtils.toBytes(syncPolicy);
       return SerDeUtils.fromBytes(serializedForm, SyncPolicy.class);
     }

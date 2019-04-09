@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-parsing</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
     </parent>
     <artifactId>metron-parsers-common</artifactId>
     <name>metron-parsers-common</name>
@@ -41,25 +41,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-enrichment</artifactId>
-            <version>${project.parent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.metron</groupId>
             <artifactId>metron-hbase</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>test</scope>
-            <type>test-jar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.metron</groupId>
-            <artifactId>metron-enrichment</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>
             <type>test-jar</type>
@@ -217,6 +199,11 @@
             <artifactId>json-path</artifactId>
             <version>2.3.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.palindromicity</groupId>
+            <artifactId>simple-syslog</artifactId>
+            <version>${global_simple_syslog_version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -276,7 +263,6 @@
                                 </excludes>
                             </artifactSet>
                             <transformers>
-                                <transformer implementation="org.atteo.classindex.ClassIndexTransformer"/>
                                 <transformer
                                   implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                                      <resources>
@@ -297,6 +283,8 @@
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass></mainClass>
                                 </transformer>
+                                <!-- ClassIndexTransformer needs to go LAST. For some reason it will clobber other transformers from operating when it is put first -->
+                                <transformer implementation="org.atteo.classindex.ClassIndexTransformer"/>
                             </transformers>
                         </configuration>
                     </execution>

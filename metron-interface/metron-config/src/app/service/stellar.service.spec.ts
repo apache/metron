@@ -19,12 +19,13 @@ import { TestBed } from '@angular/core/testing';
 import { StellarService } from './stellar.service';
 import { SensorParserContext } from '../model/sensor-parser-context';
 import { SensorParserConfig } from '../model/sensor-parser-config';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
 import { StellarFunctionDescription } from '../model/stellar-function-description';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('StellarService', () => {
   let mockBackend: HttpTestingController;
@@ -35,7 +36,7 @@ describe('StellarService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         StellarService,
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     mockBackend = TestBed.get(HttpTestingController);

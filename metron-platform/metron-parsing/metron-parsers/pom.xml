@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-parsing</artifactId>
-    <version>0.7.0</version>
+    <version>0.7.1</version>
   </parent>
   <artifactId>metron-parsers</artifactId>
   <name>metron-parsers</name>
@@ -62,17 +62,6 @@
           <groupId>org.apache.commons</groupId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.github.palindromicity</groupId>
-      <artifactId>simple-syslog-5424</artifactId>
-      <version>${global_simple_syslog_version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.metron</groupId>
-      <artifactId>metron-parsers-common</artifactId>
-      <version>${project.parent.version}</version>
-      <scope>compile</scope>
     </dependency>
 
     <!-- Test dependencies -->

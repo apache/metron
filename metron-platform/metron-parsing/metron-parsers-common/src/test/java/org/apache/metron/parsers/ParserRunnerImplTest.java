@@ -327,9 +327,14 @@ public class ParserRunnerImplTest {
 
   @Test
   public void shouldReturnMetronErrorOnInvalidMessage() {
+    Map<String, Object> metadata = new HashMap<>();
+    metadata.put("metron.metadata.topic", "bro");
+    metadata.put("metron.metadata.partition", 0);
+    metadata.put("metron.metadata.offset", 123);
+
     JSONObject inputMessage = new JSONObject();
     inputMessage.put("guid", "guid");
-    RawMessage rawMessage = new RawMessage("raw_message".getBytes(), new HashMap<>());
+    RawMessage rawMessage = new RawMessage("raw_message".getBytes(), metadata);
 
     JSONObject expectedOutput  = new JSONObject();
     expectedOutput.put("guid", "guid");
@@ -337,6 +342,7 @@ public class ParserRunnerImplTest {
     MetronError expectedMetronError = new MetronError()
             .withErrorType(Constants.ErrorType.PARSER_INVALID)
             .withSensorType(Collections.singleton("bro"))
+            .withMetadata(metadata)
             .addRawMessage(inputMessage);
 
     when(stellarFilter.emit(expectedOutput, parserRunner.getStellarContext())).thenReturn(true);
@@ -355,11 +361,16 @@ public class ParserRunnerImplTest {
 
   @Test
   public void shouldReturnMetronErrorOnFailedFieldValidator() {
+    Map<String, Object> metadata = new HashMap<>();
+    metadata.put("metron.metadata.topic", "bro");
+    metadata.put("metron.metadata.partition", 0);
+    metadata.put("metron.metadata.offset", 123);
+
     JSONObject inputMessage = new JSONObject();
     inputMessage.put("guid", "guid");
     inputMessage.put("ip_src_addr", "test");
     inputMessage.put("ip_dst_addr", "test");
-    RawMessage rawMessage = new RawMessage("raw_message".getBytes(), new HashMap<>());
+    RawMessage rawMessage = new RawMessage("raw_message".getBytes(), metadata);
 
     JSONObject expectedOutput  = new JSONObject();
     expectedOutput.put("guid", "guid");
@@ -370,6 +381,7 @@ public class ParserRunnerImplTest {
             .withErrorType(Constants.ErrorType.PARSER_INVALID)
             .withSensorType(Collections.singleton("bro"))
             .addRawMessage(inputMessage)
+            .withMetadata(metadata)
             .withErrorFields(new HashSet<>(Arrays.asList("ip_src_addr", "ip_dst_addr")));
 
     when(stellarFilter.emit(expectedOutput, parserRunner.getStellarContext())).thenReturn(true);

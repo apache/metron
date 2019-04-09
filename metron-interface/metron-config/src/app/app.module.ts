@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
+import {APP_INITIALIZER, NgModule} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BrowserModule} from '@angular/platform-browser';
 import {HttpClientModule, HTTP_INTERCEPTORS} from '@angular/common/http';
@@ -45,17 +45,23 @@ import {SensorParserConfigHistoryService} from './service/sensor-parser-config-h
 import {SensorIndexingConfigService} from './service/sensor-indexing-config.service';
 import {HdfsService} from './service/hdfs.service';
 import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.interceptor';
+import {AppConfigService} from './service/app-config.service';
 
+export function initConfig(appConfigService: AppConfigService) {
+  return () => appConfigService.loadAppConfig();
+}
 
 @NgModule({
   imports: [ BrowserModule, FormsModule, ReactiveFormsModule, HttpClientModule, SensorParserListModule,
     SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule, MetronConfigRoutingModule ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
-  providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
+  providers: [  AppConfigService, AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
     StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
-    GlobalConfigService, MetronAlerts, MetronDialogBox, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
-    { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true }],
+    GlobalConfigService, MetronAlerts, MetronDialogBox,
+    { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true },
+    { provide: APP_INITIALIZER, useFactory: initConfig, deps: [AppConfigService], multi: true }
+    ],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule {

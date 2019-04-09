@@ -30,13 +30,15 @@ public class TimeFunction {
             returns="Timestamp"
           )
   public static class Now implements StellarFunction {
-    
+    @Override
     public Object apply(List<Object> list, Context context) throws ParseException {
       return System.currentTimeMillis();
     }
-    
+
+    @Override
     public void initialize(Context context) { }
-    
+
+    @Override
     public boolean isInitialized() {
       return true;
     }

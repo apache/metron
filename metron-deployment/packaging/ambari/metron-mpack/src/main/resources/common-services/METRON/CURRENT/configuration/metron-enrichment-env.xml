@@ -24,9 +24,15 @@
   -->
   <property>
     <name>geoip_url</name>
-    <value>http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz</value>
+    <value>http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz</value>
     <description>Location of the GeoIP data to load.</description>
     <display-name>GEOIP Load Datafile URL</display-name>
+  </property>
+  <property>
+    <name>asn_url</name>
+    <value>http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz</value>
+    <description>Location of the ASN data to load.</description>
+    <display-name>ASN Load Datafile URL</display-name>
   </property>
   <property>
     <name>enrichment_host_known_hosts</name>
