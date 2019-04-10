@@ -120,7 +120,6 @@ required_configurations:
       es_hosts: "{{ elasticsearch_hosts }}"
       zeppelin_server_url: "{{ groups.zeppelin[0] }}:9995"
       solr_zookeeper_url: "{{ groups.search[0] }}:9983"
-      hdfs_url: "hdfs://{{ groups.ambari_slave[0] }}:8020"
   - metron-rest-env:
       metron_jdbc_driver: "org.h2.Driver"
       metron_jdbc_url: "jdbc:h2:file:~/metrondb"

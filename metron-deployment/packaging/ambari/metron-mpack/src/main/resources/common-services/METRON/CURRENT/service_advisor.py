@@ -124,13 +124,6 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
     def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
         is_secured = self.isSecurityEnabled(services)
 
-
-        #Suggest HDFS URL
-        if "core-site" in services["configurations"]:
-          hdfsUrl = services["configurations"]["core-site"]["properties"]["fs.defaultFS"]
-          putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
-          putMetronEnvProperty("hdfs_url", hdfsUrl)
-
         #Suggest Storm Rest URL
         if "storm-site" in services["configurations"]:
             stormUIServerHost = self.getComponentHostNames(services, "STORM", "STORM_UI_SERVER")[0]

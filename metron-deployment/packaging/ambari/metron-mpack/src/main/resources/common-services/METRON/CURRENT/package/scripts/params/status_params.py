@@ -105,7 +105,10 @@ metron_management_ui_host = default("/clusterHostInfo/metron_management_ui_hosts
 metron_management_ui_port = config['configurations']['metron-management-ui-env']['metron_management_ui_port']
 
 # HDFS
-hdfs_url = config['configurations']['metron-env']['hdfs_url']
+# This should always grab the full namenode url, e.g. "hdfs://mynamenodehost:8020"
+# In the case of namenode HA, it will refer to the nameservice ID
+# https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithNFS.html
+hdfs_url = config["configurations"]["core-site"]["fs.defaultFS"]
 
 # Storm
 storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
