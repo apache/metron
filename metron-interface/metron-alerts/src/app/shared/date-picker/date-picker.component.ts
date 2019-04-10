@@ -37,6 +37,7 @@ export class DatePickerComponent implements OnInit, OnChanges, ControlValueAcces
 
   private onChange: Function;
   private onTouched: Function;
+  private isManualMode = false;
 
   @Input() date = '';
   @Input() minDate = '';
@@ -52,17 +53,42 @@ export class DatePickerComponent implements OnInit, OnChanges, ControlValueAcces
       showSeconds: true,
       use24hour: true,
       onSelect: function() {
-        _datePickerComponent.dateStr = this.getMoment().format('YYYY-MM-DD HH:mm:ss');
-        setTimeout(() => {
-          _datePickerComponent.dateChange.emit(_datePickerComponent.dateStr);
-          if (_datePickerComponent.onChange) {
-            _datePickerComponent.onChange(_datePickerComponent.dateStr);
-          }
-        }, 0);
+        if (_datePickerComponent.isManualMode) {
+          return;
+        }
+        _datePickerComponent.performChange.call(_datePickerComponent, this.getMoment().format('YYYY-MM-DD HH:mm:ss'));
       }
     };
     this.picker = new Pikaday(pikadayConfig);
     this.setDate();
+  }
+
+  performChange(date: string) {
+    this.dateStr = date;
+      setTimeout(() => {
+        this.dateChange.emit(this.dateStr);
+        if (this.onChange) {
+          this.onChange(this.dateStr);
+        }
+      }, 0);
+  }
+
+  onKeyup(e) {
+    if (e.code === 'Enter' && new Date(e.target.value).toString() !== 'Invalid Date') {
+      this.performChange(e.target.value);
+      this.picker.hide();
+    }
+  }
+
+  onFocus() {
+    this.isManualMode = true;
+  }
+
+  onBlur(e) {
+    if (new Date(e.target.value).toString() !== 'Invalid Date') {
+      this.performChange(e.target.value);
+    }
+    this.isManualMode = false;
   }
 
   ngOnChanges(changes: SimpleChanges) {
