@@ -18,7 +18,7 @@
         <div class="pt-2"><small>Loading...</small></div>
     </div>
 
-    <div class="container-fluid pl-0 h-100" [ngClass]="{'pr-0': isMetaAlert}" *ngIf="alertSources.length">
+    <div class="container-fluid pl-0 pr-0 h-100" *ngIf="alertSources.length">
         <div class="h-100 d-flex">
             <div class="nav-container" *ngIf="!isMetaAlert">
                 <ul class="nav flex-column">
