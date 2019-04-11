@@ -15,7 +15,10 @@
 #  limitations under the License.
 #
 ---
-- name: Install python-requests module
-  pip:
-    name: requests
-    version: 2.21.0
+- hosts: all
+  roles:
+    - { role: libselinux-python, tags: libselinux-python }
+    #- { role: enable-swap,       tags: enable-swap }
+    - { role: enable-remote-ssh, tags: enable-remote-ssh }
+
+- import_playbook: ../../../ansible/playbooks/metron_full_install.yml

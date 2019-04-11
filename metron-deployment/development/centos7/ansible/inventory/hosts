@@ -14,8 +14,34 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- name: Install python-requests module
-  pip:
-    name: requests
-    version: 2.21.0
+
+[ambari_master]
+node1
+
+[ambari_slave]
+node1
+
+[metron]
+node1
+
+[search]
+node1
+
+[sensors]
+node1
+
+[pcap_server]
+node1
+
+[web]
+node1
+
+[zeppelin]
+node1
+
+[monit:children]
+sensors
+pcap_server
+
+[local]
+127.0.0.1

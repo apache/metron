@@ -128,8 +128,15 @@ except ImportError:
 else:
     REQUESTS_FOUND = True
 
+import logging
+import contextlib
+try:
+    from httplib import HTTPConnection # py2
+except ImportError:
+		from http.client import HTTPConnection # py3
 
 def main():
+    debug_requests_on()
 
     argument_spec = dict(
         host=dict(type='str', default=None, required=True),
@@ -146,7 +153,6 @@ def main():
     )
 
     required_together = ['blueprint_var', 'blueprint_name']
-
     module = AnsibleModule(
         argument_spec=argument_spec,
         required_together=required_together
@@ -157,7 +163,6 @@ def main():
             msg='requests library is required for this module')
 
     p = module.params
-
     host = p.get('host')
     port = p.get('port')
     username = p.get('password')
@@ -166,7 +171,6 @@ def main():
     cluster_state = p.get('cluster_state')
     blueprint_name = p.get('blueprint_name')
     wait_for_complete = p.get('wait_for_complete')
-
     ambari_url = 'http://{0}:{1}'.format(host, port)
 
     try:
@@ -189,6 +193,7 @@ def main():
                 if status != 'COMPLETED':
                     module.fail_json(msg="Request failed with status {0}".format(status))
             module.exit_json(changed=True, results=request.content)
+
         elif cluster_state == 'absent':
             if not cluster_exists(ambari_url, username, password, cluster_name):
                 module.exit_json(changed=False, msg='Skipping. Cluster does not exist')
@@ -200,6 +205,7 @@ def main():
                     module.fail_json(msg="Request failed with status {0}".format(status))
             request = delete_cluster(ambari_url, username, password, cluster_name)
             module.exit_json(changed=True, results=request.content)
+
         elif cluster_state == 'present':
             if not p.get('blueprint_var') or not blueprint_name:  # have neither name nor file
                 module.fail_json(msg="Must provide blueprint_var and blueprint_name when cluster_state=='present'")
@@ -311,8 +317,13 @@ def get_blueprints(ambari_url, user, password):
         msg = 'Could not get blueprint list: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
         raise Exception(msg)
+    try:
+      #services = json.loads(r.content)
+      services = r.json()
+    except:
+      msg = "Could not get blueprint list; got {0}, requests path {1}".format(r.content, requests.__file__)
+      raise Exception(msg)
 
-    services = json.loads(r.content)
     return services['items']
 
 
@@ -389,6 +400,27 @@ def blueprint_var_to_ambari_converter(blueprint_var):
     blueprint['host_groups'] = new_groups
     blueprint['Blueprints'] = {'stack_name': blueprint_var['stack_name'], 'stack_version': blueprint_var['stack_version']}
     return blueprint, host_map
+
+
+def debug_requests_on():
+  	'''Switches on logging of the requests module.'''
+  	HTTPConnection.debuglevel = 1
+  	logging.basicConfig()
+  	logging.getLogger().setLevel(logging.DEBUG)
+  	requests_log = logging.getLogger("requests.packages.urllib3")
+  	requests_log.setLevel(logging.DEBUG)
+  	requests_log.propagate = True
+
+
+def debug_requests_off():
+		'''Switches off logging of the requests module, might be some side-effects'''
+		HTTPConnection.debuglevel = 0
+		root_logger = logging.getLogger()
+		root_logger.setLevel(logging.WARNING)
+		root_logger.handlers = []
+		requests_log = logging.getLogger("requests.packages.urllib3")
+		requests_log.setLevel(logging.WARNING)
+		requests_log.propagate = False
 
 from ansible.module_utils.basic import *
 if __name__ == '__main__':

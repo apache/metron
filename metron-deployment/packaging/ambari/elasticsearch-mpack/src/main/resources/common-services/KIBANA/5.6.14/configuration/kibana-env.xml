@@ -27,6 +27,12 @@
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
+      <user-groups>
+          <property>
+              <type>kibana-env</type>
+              <name>kibana_group</name>
+          </property>
+      </user-groups>
     </value-attributes>
   </property>
   <property>
@@ -34,10 +40,6 @@
     <value>kibana</value>
     <property-type>GROUP</property-type>
     <description>Service Group for Kibana</description>
-    <value-attributes>
-      <type>user</type>
-      <overridable>false</overridable>
-    </value-attributes>
   </property>
   <property require-input="true">
     <name>kibana_server_host</name>
