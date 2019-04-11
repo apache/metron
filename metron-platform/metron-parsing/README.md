@@ -15,7 +15,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
+
 # Parsers
+
+## Contents
+
+* [Introduction](#introduction)
+* [Parser Error Routing](#parser-error-routing)
+* [Filtering](#filtering)
+* [Parser Architecture](#parser-architecture)
+* [Message Format](#message-format)
+* [Global Configuration](#global-configuration)
+* [Parser Configuration](#parser-configuration)
+* [Parser Adapters](#parser-adapters)
+* [Kafka Queue](#kafka-queue)
+* [JSON Path](#json-path)
 
 ## Introduction
 
@@ -27,12 +41,12 @@ There are two general types types of parsers:
 * A parser written in Java which conforms to the `MessageParser` interface.  This kind of parser is optimized for speed and performance and is built for use with higher velocity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  
 * A general purpose parser.  This type of parser is primarily designed for lower-velocity topologies or for quickly standing up a parser for a new telemetry before a permanent Java parser can be written for it.  As of the time of this writing, we have:
     * Grok parser: `org.apache.metron.parsers.GrokParser` with possible `parserConfig` entries of
-        * `grokPath` : The path in HDFS (or in the Jar) to the grok statement
+        * `grokPath` : The path in HDFS (or in the Jar) to the grok statement. By default attempts to load from HDFS, then falls back to the classpath, and finally throws an exception if unable to load a pattern.
         * `patternLabel` : The pattern label to use from the grok statement
         * `multiLine` : The raw data passed in should be handled as a long with multiple lines, with each line to be parsed separately. This setting's valid values are 'true' or 'false'.  The default if unset is 'false'. When set the parser will handle multiple lines with successfully processed lines emitted normally, and lines with errors sent to the error topic.
-        * `timestampField` : The field to use for timestamp
-        * `timeFields` : A list of fields to be treated as time
-        * `dateFormat` : The date format to use to parse the time fields
+        * `timestampField` : The field to use for timestamp. If your data does not have a field exactly named "timestamp" this field is required, otherwise the record will not pass validation. If the timestampField is also included in the list of timeFields, it will first be parsed using the provided dateFormat.
+        * `timeFields` : A list of fields to be treated as time.
+        * `dateFormat` : The date format to use to parse the time fields. Default is "yyyy-MM-dd HH:mm:ss.S z".
         * `timezone` : The timezone to use. `UTC` is default.
         * The Grok parser supports either 1 line to parse per incoming message, or incoming messages with multiple log lines, and will produce a json message per line
     * CSV Parser: `org.apache.metron.parsers.csv.CSVParser` with possible `parserConfig` entries of
@@ -167,10 +181,13 @@ messages or marking messages as invalid.
 
 There are two reasons a message will be marked as invalid:
 * Fail [global validation](../../metron-common#validation-framework)
-* Fail the parser's validate function (generally that means to not have a `timestamp` field or a `original_string` field.
+* Fail the parser's validate function. Generally, that means not having a `timestamp` field or an `original_string` field.
 
-Those messages which are marked as invalid are sent to the error queue
-with an indication that they are invalid in the error message.
+Those messages which are marked as invalid are sent to the error queue with an indication that they
+are invalid in the error message.  The messages will contain "error_type":"parser_invalid". Note,
+you will not see additional exceptions in the logs for this type of failure, rather the error messages
+are written directly to the configured error topic. See [Topology Errors](../../metron-common#topology-errors)
+for more.
 
 ### Parser Errors
 
@@ -179,7 +196,7 @@ parse, are sent along to the error queue with a message indicating that
 there was an error in parse along with a stacktrace.  This is to
 distinguish from the invalid messages.
 
-## Filtered
+## Filtering
 
 One can also filter a message by specifying a `filterClassName` in the
 parser config.  Filtered messages are just dropped rather than passed
@@ -275,7 +292,7 @@ The document is structured in the following way
         ```
 
 * `writerClassName` : The class used to write messages after they have been parsed.  Defaults to `org.apache.metron.writer.kafka.KafkaWriter`.
-* `sensorTopic` : The kafka topic to send the parsed messages to.  If the topic is prefixed and suffixed by `/`
+* `sensorTopic` : The kafka topic to that the parser will read messages from.  If the topic is prefixed and suffixed by `/`
 then it is assumed to be a regex and will match any topic matching the pattern (e.g. `/bro.*/` would match `bro_cust0`, `bro_cust1` and `bro_cust2`)
 * `readMetadata` : Boolean indicating whether to read metadata or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
 * `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (The default is raw message strategy dependent).  See below for a discussion about metadata.

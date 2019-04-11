@@ -29,14 +29,15 @@ import {Patch} from '../model/patch';
 import { GlobalConfigService } from './global-config.service';
 import {CommentAddRemoveRequest} from "../model/comment-add-remove-request";
 import { AppConfigService } from './app-config.service';
+import {AlertSource} from "../model/alert-source";
 
 @Injectable()
 export class UpdateService {
 
-  alertChangedSource = new Subject<PatchRequest>();
+  alertChangedSource = new Subject<AlertSource>();
   alertChanged$ = this.alertChangedSource.asObservable();
   sourceType = 'source:type';
-  alertCommentChangedSource = new Subject<CommentAddRemoveRequest>();
+  alertCommentChangedSource = new Subject<AlertSource>();
   alertCommentChanged$ = this.alertCommentChangedSource.asObservable();
 
   constructor(private http: HttpClient, private globalConfigService: GlobalConfigService, private appConfigService: AppConfigService) {
@@ -45,39 +46,42 @@ export class UpdateService {
     });
   }
 
-  public addComment(commentRequest: CommentAddRemoveRequest, fireChangeListener = true): Observable<{}> {
+  public addComment(commentRequest: CommentAddRemoveRequest, fireChangeListener = true): Observable<AlertSource> {
     let url = this.appConfigService.getApiRoot() + '/update/add/comment';
     return this.http.post(url, commentRequest).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
+      let alertSource = result['document'];
       if (fireChangeListener) {
-        this.alertCommentChangedSource.next(commentRequest);
+        this.alertCommentChangedSource.next(alertSource);
       }
-      return result;
+      return alertSource;
     }));
   }
 
-  public removeComment(commentRequest: CommentAddRemoveRequest, fireChangeListener = true): Observable<{}> {
+  public removeComment(commentRequest: CommentAddRemoveRequest, fireChangeListener = true): Observable<AlertSource> {
     let url = this.appConfigService.getApiRoot() + '/update/remove/comment';
     return this.http.post(url, commentRequest).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
+      let alertSource = result['document'];
       if (fireChangeListener) {
-        this.alertCommentChangedSource.next(commentRequest);
+        this.alertCommentChangedSource.next(alertSource);
       }
-      return result;
+      return alertSource;
     }));
   }
 
-  public patch(patchRequest: PatchRequest, fireChangeListener = true): Observable<{}> {
+  public patch(patchRequest: PatchRequest, fireChangeListener = true): Observable<AlertSource> {
     let url = this.appConfigService.getApiRoot() + '/update/patch';
     return this.http.patch(url, patchRequest).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
+      let alertSource = result['document'];
       if (fireChangeListener) {
-        this.alertChangedSource.next(patchRequest);
+        this.alertChangedSource.next(alertSource);
       }
-      return result;
+      return alertSource;
     }),);
   }
 

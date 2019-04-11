@@ -48,20 +48,21 @@ Source1:        metron-parsers-common-%{full_version}-archive.tar.gz
 Source2:        metron-elasticsearch-%{full_version}-archive.tar.gz
 Source3:        metron-data-management-%{full_version}-archive.tar.gz
 Source4:        metron-solr-%{full_version}-archive.tar.gz
-Source5:        metron-enrichment-%{full_version}-archive.tar.gz
-Source6:        metron-indexing-%{full_version}-archive.tar.gz
-Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
-Source8:        metron-profiler-storm-%{full_version}-archive.tar.gz
-Source9:        metron-rest-%{full_version}-archive.tar.gz
-Source10:       metron-config-%{full_version}-archive.tar.gz
-Source11:       metron-management-%{full_version}-archive.tar.gz
-Source12:       metron-maas-service-%{full_version}-archive.tar.gz
-Source13:       metron-alerts-%{full_version}-archive.tar.gz
-Source14:       metron-performance-%{full_version}-archive.tar.gz
-Source15:       metron-profiler-spark-%{full_version}-archive.tar.gz
-Source16:       metron-profiler-repl-%{full_version}-archive.tar.gz
-Source17:       metron-parsing-storm-%{full_version}-archive.tar.gz
-Source18:        metron-parsers-%{full_version}-archive.tar.gz
+Source5:        metron-enrichment-common-%{full_version}-archive.tar.gz
+Source6:        metron-enrichment-storm-%{full_version}-archive.tar.gz
+Source7:        metron-indexing-%{full_version}-archive.tar.gz
+Source8:        metron-pcap-backend-%{full_version}-archive.tar.gz
+Source9:        metron-profiler-storm-%{full_version}-archive.tar.gz
+Source10:       metron-rest-%{full_version}-archive.tar.gz
+Source11:       metron-config-%{full_version}-archive.tar.gz
+Source12:       metron-management-%{full_version}-archive.tar.gz
+Source13:       metron-maas-service-%{full_version}-archive.tar.gz
+Source14:       metron-alerts-%{full_version}-archive.tar.gz
+Source15:       metron-performance-%{full_version}-archive.tar.gz
+Source16:       metron-profiler-spark-%{full_version}-archive.tar.gz
+Source17:       metron-profiler-repl-%{full_version}-archive.tar.gz
+Source18:       metron-parsing-storm-%{full_version}-archive.tar.gz
+Source19:       metron-parsers-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -103,6 +104,7 @@ tar -xzf %{SOURCE15} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE16} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE17} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE18} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE19} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
@@ -318,15 +320,15 @@ This package installs the Metron Solr files
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-%package        enrichment
-Summary:        Metron Enrichment Files
+%package        enrichment-common
+Summary:        Metron Enrichment Common Files
 Group:          Applications/Internet
-Provides:       enrichment = %{version}
+Provides:       enrichment-common = %{version}
 
-%description    enrichment
-This package installs the Metron Enrichment files
+%description    enrichment-common
+This package installs the Metron Enrichment Common files
 
-%files          enrichment
+%files          enrichment-common
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
@@ -334,20 +336,37 @@ This package installs the Metron Enrichment files
 %dir %{metron_home}/config
 %dir %{metron_home}/config/zookeeper
 %dir %{metron_home}/config/zookeeper/enrichments
-%dir %{metron_home}/flux
-%dir %{metron_home}/flux/enrichment
 %{metron_home}/bin/latency_summarizer.sh
-%{metron_home}/bin/start_enrichment_topology.sh
-%{metron_home}/config/enrichment-splitjoin.properties
-%{metron_home}/config/enrichment-unified.properties
 %{metron_home}/config/zookeeper/enrichments/bro.json
 %{metron_home}/config/zookeeper/enrichments/snort.json
 %{metron_home}/config/zookeeper/enrichments/websphere.json
 %{metron_home}/config/zookeeper/enrichments/yaf.json
 %{metron_home}/config/zookeeper/enrichments/asa.json
+%attr(0644,root,root) %{metron_home}/lib/metron-enrichment-common-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        enrichment-storm
+Summary:        Metron Enrichment Storm Files
+Group:          Applications/Internet
+Provides:       enrichment-storm = %{version}
+
+%description    enrichment-storm
+This package installs the Metron Enrichment Storm files
+
+%files          enrichment-storm
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/flux
+%dir %{metron_home}/flux/enrichment
+%{metron_home}/bin/start_enrichment_topology.sh
+%{metron_home}/config/enrichment-splitjoin.properties
+%{metron_home}/config/enrichment-unified.properties
 %{metron_home}/flux/enrichment/remote-splitjoin.yaml
 %{metron_home}/flux/enrichment/remote-unified.yaml
-%attr(0644,root,root) %{metron_home}/lib/metron-enrichment-%{full_version}-uber.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-enrichment-storm-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -644,6 +663,8 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Tue Mar 12 2019 Apache Metron <dev@metron.apache.og> - 0.7.1
+- Split metron-enrichment into submodules
 * Thu Dec 27 2018 Apache Metron <dev@metron.apache.og> - 0.7.1
 - Updat metron SPEC to move syslog configurations to right place
 * Wed Dec 26 2018 Apache Metron <dev@metron.apache.org> - 0.7.1

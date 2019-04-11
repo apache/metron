@@ -162,6 +162,7 @@ public class HdfsWriterTest {
     writer.init(new HashMap<String, String>(), createTopologyContext(), config);
     String filename = writer.fileNameFormat.getName(1,1);
     Assert.assertEquals("prefix-Xcom-7-1-1.json", filename);
+    writer.close();
   }
 
   @Test
@@ -209,6 +210,7 @@ public class HdfsWriterTest {
 
     JSONObject message = new JSONObject();
     writer.getHdfsPathExtension(SENSOR_NAME, "{'key':'value'}", message);
+    writer.close();
   }
 
   @Test
@@ -223,6 +225,7 @@ public class HdfsWriterTest {
     for(int i = 0; i < maxFiles; i++) {
       writer.getSourceHandler(SENSOR_NAME, Integer.toString(i), null);
     }
+    writer.close();
   }
 
   @Test(expected=IllegalStateException.class)
@@ -237,6 +240,7 @@ public class HdfsWriterTest {
     for(int i = 0; i < maxFiles+1; i++) {
       writer.getSourceHandler(SENSOR_NAME, Integer.toString(i), null);
     }
+    writer.close();
   }
 
   @Test

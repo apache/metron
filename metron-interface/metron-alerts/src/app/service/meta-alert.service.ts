@@ -27,11 +27,12 @@ import { HttpClient } from '@angular/common/http';
 import {MetaAlertCreateRequest} from '../model/meta-alert-create-request';
 import {MetaAlertAddRemoveRequest} from '../model/meta-alert-add-remove-request';
 import { AppConfigService } from './app-config.service';
+import {AlertSource} from "../model/alert-source";
 
 @Injectable()
 export class MetaAlertService {
   private _selectedAlerts: Alert[];
-  alertChangedSource = new Subject<MetaAlertAddRemoveRequest>();
+  alertChangedSource = new Subject<AlertSource>();
   alertChanged$ = this.alertChangedSource.asObservable();
 
   constructor(private http: HttpClient, private appConfigService: AppConfigService) {
@@ -51,23 +52,25 @@ export class MetaAlertService {
     catchError(HttpUtil.handleError));
   }
 
-  public addAlertsToMetaAlert(metaAlertAddRemoveRequest: MetaAlertAddRemoveRequest) {
+  public addAlertsToMetaAlert(metaAlertAddRemoveRequest: MetaAlertAddRemoveRequest): Observable<AlertSource> {
     let url = this.appConfigService.getApiRoot() + '/metaalert/add/alert';
     return this.http.post(url, metaAlertAddRemoveRequest).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
-        this.alertChangedSource.next(metaAlertAddRemoveRequest);
-      return result;
+      let alertSource = result['document'];
+      this.alertChangedSource.next(alertSource);
+      return alertSource;
     }));
   }
 
-  public  removeAlertsFromMetaAlert(metaAlertAddRemoveRequest: MetaAlertAddRemoveRequest) {
+  public  removeAlertsFromMetaAlert(metaAlertAddRemoveRequest: MetaAlertAddRemoveRequest): Observable<AlertSource> {
     let url = this.appConfigService.getApiRoot() + '/metaalert/remove/alert';
     return this.http.post(url, metaAlertAddRemoveRequest).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
-      this.alertChangedSource.next(metaAlertAddRemoveRequest);
-      return result;
+      let alertSource = result['document'];
+      this.alertChangedSource.next(alertSource);
+      return alertSource;
     }));
   }
 
@@ -76,11 +79,9 @@ export class MetaAlertService {
     return this.http.post(url, {}).pipe(
     catchError(HttpUtil.handleError),
     map(result => {
-      let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
-      metaAlertAddRemoveRequest.metaAlertGuid = guid;
-      metaAlertAddRemoveRequest.alerts = null;
-      this.alertChangedSource.next(metaAlertAddRemoveRequest);
-      return result;
+      let alertSource = result['document'];
+      this.alertChangedSource.next(alertSource);
+      return alertSource;
     }));
   }
 }
