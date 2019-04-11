@@ -43,7 +43,7 @@ elastic_group = config['configurations']['elastic-env']['elastic_group']
 log_dir = config['configurations']['elastic-env']['elastic_log_dir']
 pid_dir = config['configurations']['elastic-env']['elastic_pid_dir']
 
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 java64_home = config['ambariLevelParams']['java_home']
 elastic_env_sh_template = config['configurations']['elastic-env']['content']
 sysconfig_template = config['configurations']['elastic-sysconfig']['content']

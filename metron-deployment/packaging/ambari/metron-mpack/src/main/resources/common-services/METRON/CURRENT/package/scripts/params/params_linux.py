@@ -41,7 +41,7 @@ tmp_dir = Script.get_tmp_dir()
 
 hdp_version = default("/commandParams/version", None)
 
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 metron_home = status_params.metron_home
 
 parsers = status_params.parsers

@@ -25,7 +25,7 @@ from resource_management.libraries.functions.version import format_stack_version
 
 config = Script.get_config()
 
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 metron_user = config['configurations']['metron-env']['metron_user']
 metron_home = config['configurations']['metron-env']['metron_home']
 metron_zookeeper_config_dir = config['configurations']['metron-env']['metron_zookeeper_config_dir']
