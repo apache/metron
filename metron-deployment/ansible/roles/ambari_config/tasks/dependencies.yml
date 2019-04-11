@@ -15,7 +15,16 @@
 #  limitations under the License.
 #
 ---
-- name: Install python-requests module
-  pip:
-    name: requests
-    version: 2.21.0
+# - name: Install python-requests module
+#   pip:
+#     name: requests
+#     version: 2.21.0
+  # when centos/6
+
+- name: Install Ambari dependencies
+  yum: name={{ item }}
+  with_items:
+      - python-urllib3
+      - python-requests
+  when: ansible_distribution == "CentOS"
+  # when centos/7

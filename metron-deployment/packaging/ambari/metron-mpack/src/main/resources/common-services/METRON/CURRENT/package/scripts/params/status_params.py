@@ -106,10 +106,6 @@ storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
 zeppelin_server_url = config['configurations']['metron-env']['zeppelin_server_url']
 zeppelin_shiro_ini_content = config['configurations']['zeppelin-shiro-ini']['shiro_ini_content']
 
-# Security
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-stack_version_formatted = format_stack_version(stack_version_unformatted)
-
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 tmp_dir = Script.get_tmp_dir()

@@ -45,6 +45,5 @@ kibana_port = config['configurations']['kibana-env']['kibana_server_port']
 kibana_server_host = config['configurations']['kibana-env']['kibana_server_host']
 kibana_default_application = config['configurations']['kibana-env']['kibana_default_application']
 hostname = config['hostname']
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 kibana_yml_template = config['configurations']['kibana-site']['content']
-
