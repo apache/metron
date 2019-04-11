@@ -15,8 +15,11 @@
 #  limitations under the License.
 #
 ---
+- name: "Disable swap space"
+  shell: swapoff -a
+
 - name: "Allocate {{ swapspace }} for swap space"
-  shell: fallocate -l {{ swapspace }} {{ swapfile }}
+  shell: dd if=/dev/zero of={{ swapfile }} count={{ swapspace }} bs=1MiB
 
 - name: "Permissioning {{ swapfile }}"
   file:

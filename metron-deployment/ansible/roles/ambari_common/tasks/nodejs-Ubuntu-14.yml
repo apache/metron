@@ -15,8 +15,8 @@
 #  limitations under the License.
 #
 ---
-- name: Setup Ambari repo on CentOS
-  get_url: url="{{ centos_ambari_install_url }}" dest=/etc/yum.repos.d/ambari.repo
-
-- name: Update package cache on CentOS
-  yum: name=* update_cache=yes
+- name: Install Node.js repo on Ubuntu 14
+  shell: curl -sL https://deb.nodesource.com/setup_6.x | bash -
+  args:
+    warn: false
+  become: true

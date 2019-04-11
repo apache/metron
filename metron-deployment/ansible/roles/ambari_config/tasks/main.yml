@@ -17,7 +17,7 @@
 ---
 - include_vars: "{{ cluster_type }}.yml"
 
-- include: dependencies.yml
+- include_tasks: "dependencies-{{ansible_distribution}}-{{ansible_distribution_major_version}}.yml"
 
 - name : Wait for Ambari to start; http://{{ ambari_host }}:{{ ambari_port }}
   wait_for :
