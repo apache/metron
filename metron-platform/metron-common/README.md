@@ -83,10 +83,16 @@ but a convenient index is provided here:
 |---------------------------------------------------------------------------------------------------------------------|---------------|------------|----------------------------------------|
 | [`es.clustername`](../metron-elasticsearch#esclustername)                                                           | Indexing      | String     | `es_cluster_name`                      |
 | [`es.ip`](../metron-elasticsearch#esip)                                                                             | Indexing      | String     | `es_hosts` & `es_port`                 |
-| [`es.port`](../metron-elasticsearch#esport)                                                                         | Indexing      | String     |                                        |
+| [`es.port`](../metron-elasticsearch#esport)                                                                         | Indexing      | String     | N/A                                    |
 | [`es.date.format`](../metron-elasticsearch#esdateformat)                                                            | Indexing      | String     | `es_date_format`                       |
 | [`es.client.settings`](../metron-elasticsearch#esclientsettings)                                                    | Indexing      | Object     | N/A                                    |
 | [`solr.zookeeper`](../metron-solr#configuration)                                                                    | Indexing      | String     | `solr_zookeeper_url`                   |
+| [`solr.commitPerBatch`](../metron-solr#configuration)                                                               | Indexing      | String     | N/A                                    |
+| [`solr.commit.soft`](../metron-solr#configuration)                                                                  | Indexing      | String     | N/A                                    |
+| [`solr.commit.waitSearcher`](../metron-solr#configuration)                                                          | Indexing      | String     | N/A                                    |
+| [`solr.commit.waitFlush`](../metron-solr#configuration)                                                             | Indexing      | String     | N/A                                    |
+| [`solr.collection`](../metron-solr#configuration)                                                                   | Indexing      | String     | N/A                                    |
+| [`solr.http.config`](../metron-solr#configuration)                                                                  | Indexing      | String     | N/A                                    |
 | [`fieldValidations`](#validation-framework)                                                                         | Parsing       | Object     | N/A                                    |
 | [`parser.error.topic`](../metron-parsers#parsererrortopic)                                                          | Parsing       | String     | `parser_error_topic`                   |
 | [`stellar.function.paths`](../../metron-stellar/stellar-common#stellarfunctionpaths)                                | Stellar       | CSV String | N/A                                    |
