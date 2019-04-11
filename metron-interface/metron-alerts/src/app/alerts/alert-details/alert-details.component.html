@@ -13,7 +13,7 @@
   -->
 <div class="metron-slider-pane-details d-flex load-right-to-left dialog1x" [ngClass]="{'is-meta-alert': isMetaAlert}">
 
-    <div class="d-flex flex-column w-100 h-100 justify-content-center align-items-center" *ngIf="!alertSources.length">
+    <div data-qe-id="preloader" class="d-flex flex-column w-100 h-100 justify-content-center align-items-center" *ngIf="!alertSources.length">
         <div class="spinner-border text-info" role="status"></div>
         <div class="pt-2"><small>Loading...</small></div>
     </div>
