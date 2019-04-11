@@ -34,6 +34,7 @@ import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -85,6 +86,7 @@ public class SolrRetrieveLatestIntegrationTest {
 
   @AfterClass
   public static void teardown() {
+    SolrClientFactory.close();
     solrComponent.stop();
   }
 

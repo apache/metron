@@ -19,6 +19,9 @@
 package org.apache.metron.solr.dao;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -42,11 +45,20 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.solr.client.SolrClientFactory;
+import org.apache.solr.client.solrj.SolrClient;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({SolrMetaAlertDao.class, SolrClientFactory.class})
 public class SolrMetaAlertDaoTest {
   private static AccessConfig accessConfig = new AccessConfig();
+  private SolrClient client;
 
   @BeforeClass
   public static void setupBefore() {
@@ -55,6 +67,14 @@ public class SolrMetaAlertDaoTest {
           put(SOLR_ZOOKEEPER, "zookeeper:2181");
         }}
     );
+  }
+
+  @SuppressWarnings("unchecked")
+  @Before
+  public void setUp() {
+    client = mock(SolrClient.class);
+    mockStatic(SolrClientFactory.class);
+    when(SolrClientFactory.create(accessConfig.getGlobalConfigSupplier().get())).thenReturn(client);
   }
 
   @Test(expected = IllegalArgumentException.class)

@@ -64,6 +64,12 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
+            <artifactId>metron-enrichment-common</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
             <artifactId>stellar-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
@@ -118,6 +124,9 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- Test -->
+
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-test</artifactId>

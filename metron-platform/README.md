@@ -27,4 +27,4 @@ Extensible set of Storm topologies and topology attributes for streaming, enrich
 
 # Documentation
 
-Please see documentation within each individual module for description and usage instructions. Sample topologies are provided under Metron_Topologies to get you started with the framework. We pre-assume knowledge of Hadoop, Storm, Kafka, and HBase.
+Please see documentation within each individual module for description and usage instructions. Sample topologies are provided under Metron_Topologies to get you started with the framework. We pre-assume knowledge of Hadoop, Storm, Kafka, Zookeeper, and HBase.

@@ -20,13 +20,13 @@
 
 package org.apache.metron.hbase.client;
 
+import static org.apache.commons.collections4.CollectionUtils.size;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Get;
@@ -40,8 +40,6 @@ import org.apache.metron.hbase.bolt.mapper.ColumnList;
 import org.apache.metron.hbase.bolt.mapper.HBaseProjectionCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.apache.commons.collections4.CollectionUtils.size;
 
 /**
  * A client that interacts with HBase.
