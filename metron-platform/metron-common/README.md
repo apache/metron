@@ -79,33 +79,33 @@ This configuration is stored in zookeeper, but looks something like
 Various parts of our stack uses the global config are documented throughout the Metron documentation,
 but a convenient index is provided here:
 
-| Property Name                                                                                                       | Subsystem     | Type       | Ambari Property            |
-|---------------------------------------------------------------------------------------------------------------------|---------------|------------|----------------------------|
-| [`es.clustername`](../metron-elasticsearch#esclustername)                                                           | Indexing      | String     | `es_cluster_name`          |
-| [`es.ip`](../metron-elasticsearch#esip)                                                                             | Indexing      | String     | `es_hosts`                 |
-| [`es.port`](../metron-elasticsearch#esport)                                                                         | Indexing      | String     | `es_port`                  |
-| [`es.date.format`](../metron-elasticsearch#esdateformat)                                                            | Indexing      | String     | `es_date_format`           |
-| [`es.client.settings`](../metron-elasticsearch#esclientsettings)                                                    | Indexing      | Object     | N/A                        |
-| [`fieldValidations`](#validation-framework)                                                                         | Parsing       | Object     | N/A                        |
-| [`parser.error.topic`](../metron-parsers#parsererrortopic)                                                          | Parsing       | String     | N/A                        |
-| [`stellar.function.paths`](../../metron-stellar/stellar-common#stellarfunctionpaths)                                | Stellar       | CSV String | N/A                        |
-| [`stellar.function.resolver.includes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes) | Stellar       | CSV String | N/A                        |
-| [`stellar.function.resolver.excludes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes) | Stellar       | CSV String | N/A                        |
-| [`profiler.period.duration`](../../metron-analytics/metron-profiler#profilerperiodduration)                         | Profiler      | Integer    | `profiler_period_duration` |
-| [`profiler.period.duration.units`](../../metron-analytics/metron-profiler#profilerperioddurationunits)              | Profiler      | String     | `profiler_period_units`    |
-| [`profiler.writer.batchSize`](../../metron-analytics/metron-profiler/#profilerwriterbatchsize)                      | Profiler      | Integer    |  N/A                       |
-| [`profiler.writer.batchTimeout`](../../metron-analytics/metron-profiler/#profilerwriterbatchtimeout)                | Profiler      | Integer    |  N/A                       |
-| [`update.hbase.table`](../metron-indexing#updatehbasetable)                                                         | REST/Indexing | String     | `update_hbase_table`       |
-| [`update.hbase.cf`](../metron-indexing#updatehbasecf)                                                               | REST/Indexing | String     | `update_hbase_cf`          |
-| [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`            |
-| [`enrichment.writer.batchSize`](../metron-enrichment#enrichmentwriterbatchsize)                                     | Enrichment    | Integer    |  N/A                       |
-| [`enrichment.writer.batchTimeout`](../metron-enrichment#enrichmentwriterbatchtimeout)                               | Enrichment    | Integer    |  N/A                       |
-| [`enrichment.list.hbase.provider.impl`](../metron-enrichment#enrichmentlisthbaseproviderimpl)                       | Enrichment    | String     |  N/A                       |
-| [`enrichment.list.hbase.table`](../metron-enrichment#enrichmentlisthbasetable)                                      | Enrichment    | String     |  N/A                       |
-| [`enrichment.list.hbase.cf`](../metron-enrichment#enrichmentlisthbasecf)                                            | Enrichment    | String     |  N/A                       |
-| [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`            |
-| [`source.type.field`](../../metron-interface/metron-alerts#sourcetypefield)                                         | UI            | String     |  `source_type_field`       |
-| [`threat.triage.score.field`](../../metron-interface/metron-alerts#threattriagescorefield)                          | UI            | String     |  `threat_triage_score_field`       |
+| Property Name                                                                                                       | Subsystem     | Type       | Ambari Property                         |
+|---------------------------------------------------------------------------------------------------------------------|---------------|------------|-----------------------------------------|
+| [`es.clustername`](../metron-elasticsearch#esclustername)                                                           | Indexing      | String     | `es_cluster_name`                       |
+| [`es.ip`](../metron-elasticsearch#esip)                                                                             | Indexing      | String     | `es_hosts`                              |
+| [`es.port`](../metron-elasticsearch#esport)                                                                         | Indexing      | String     | `es_port`                               |
+| [`es.date.format`](../metron-elasticsearch#esdateformat)                                                            | Indexing      | String     | `es_date_format`                        |
+| [`es.client.settings`](../metron-elasticsearch#esclientsettings)                                                    | Indexing      | Object     |  N/A                                    |
+| [`fieldValidations`](#validation-framework)                                                                         | Parsing       | Object     |  N/A                                    |
+| [`parser.error.topic`](../metron-parsers#parsererrortopic)                                                          | Parsing       | String     |  N/A                                    |
+| [`stellar.function.paths`](../../metron-stellar/stellar-common#stellarfunctionpaths)                                | Stellar       | CSV String |  N/A                                    |
+| [`stellar.function.resolver.includes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes) | Stellar       | CSV String |  N/A                                    |
+| [`stellar.function.resolver.excludes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes) | Stellar       | CSV String |  N/A                                    |
+| [`profiler.period.duration`](../../metron-analytics/metron-profiler#profilerperiodduration)                         | Profiler      | Integer    | `profiler_period_duration`              |
+| [`profiler.period.duration.units`](../../metron-analytics/metron-profiler#profilerperioddurationunits)              | Profiler      | String     | `profiler_period_units`                 |
+| [`profiler.writer.batchSize`](../../metron-analytics/metron-profiler/#profilerwriterbatchsize)                      | Profiler      | Integer    |  N/A                                    |
+| [`profiler.writer.batchTimeout`](../../metron-analytics/metron-profiler/#profilerwriterbatchtimeout)                | Profiler      | Integer    |  N/A                                    |
+| [`update.hbase.table`](../metron-indexing#updatehbasetable)                                                         | REST/Indexing | String     | `update_hbase_table`                    |
+| [`update.hbase.cf`](../metron-indexing#updatehbasecf)                                                               | REST/Indexing | String     | `update_hbase_cf`                       |
+| [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`                         |
+| [`enrichment.writer.batchSize`](../metron-enrichment#enrichmentwriterbatchsize)                                     | Enrichment    | Integer    |  N/A                                    |
+| [`enrichment.writer.batchTimeout`](../metron-enrichment#enrichmentwriterbatchtimeout)                               | Enrichment    | Integer    |  N/A                                    |
+| [`enrichment.list.hbase.provider.impl`](../metron-hbase-server#enrichmentlisthbaseproviderimpl)                       | Enrichment    | String     | `enrichment_list_hbase_provider_impl`   |
+| [`enrichment.list.hbase.table`](../metron-hbase-server#enrichmentlisthbasetable)                                      | Enrichment    | String     | `enrichment_list_hbase_table`           |
+| [`enrichment.list.hbase.cf`](../metron-hbase-server#enrichmentlisthbasecf)                                            | Enrichment    | String     | `enrichment_list_hbase_cf`              |
+| [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`                         |
+| [`source.type.field`](../../metron-interface/metron-alerts#sourcetypefield)                                         | UI            | String     | `source_type_field`                     |
+| [`threat.triage.score.field`](../../metron-interface/metron-alerts#threattriagescorefield)                          | UI            | String     | `threat_triage_score_field`             |
 
 ## Note Configs in Ambari
 If a field is managed via ambari, you should change the field via

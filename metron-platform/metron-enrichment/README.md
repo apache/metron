@@ -51,17 +51,4 @@ The alternative approach that mitigates these performance bottlenecks is to leve
 Coprocessor which will listen to postPut calls from the RegionServer, extract the enrichment type from the rowkey, and
 perform an insert into a separate `enrichment_list` HBase table.
 
-Below is the list of properties to configure the HBase enrichment coprocessor `org.apache.metron.hbase.coprocessor.EnrichmentCoprocessor`
-for writing to HBase.
-
-#### `enrichment.list.hhase.provider.impl`
-
-Provider to use for obtaining the HBase table. Defaults to `org.apache.metron.hbase.HTableProvider`.
-
-#### `enrichment.list.hbase.table`
-
-HBase table name for the enrichments list.
-
-#### `enrichment.list.hbase.cf`
-
-HBase table column family for the enrichments list.
+See more about configuring the coprocessor here [Enrichment Coprocessor](../metron-hbase-server/#enrichment-coprocessor)

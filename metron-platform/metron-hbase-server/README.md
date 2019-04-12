@@ -17,6 +17,28 @@ limitations under the License.
 -->
 # HBase Server
 
-## Introduction
+# Introduction
 
 This project provides HBase server-side code such as coprocessors.
+
+# Coprocessors
+
+## Enrichment Coprocessor
+
+### Properties
+
+Below is the list of properties to configure the HBase enrichment coprocessor `org.apache.metron.hbase.coprocessor.EnrichmentCoprocessor`
+for writing to HBase. These configuration properties all pulled from the global config.
+
+#### `enrichment.list.hhase.provider.impl`
+
+Provider to use for obtaining the HBase table. This class implementation implements `TableProvider` and provides access to an `HTableInterface`.
+Defaults to `org.apache.metron.hbase.HTableProvider`.
+
+#### `enrichment.list.hbase.table`
+
+HBase table name for the enrichments list. Defaults to `enrichment_list`.
+
+#### `enrichment.list.hbase.cf`
+
+HBase table column family for the enrichments list. Defaults to `t`.
