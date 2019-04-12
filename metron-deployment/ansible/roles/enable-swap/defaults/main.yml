@@ -16,4 +16,4 @@
 #
 ---
 swapfile: /swapfile
-swapspace: 4G
+swapspace: 4096
