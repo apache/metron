@@ -61,31 +61,35 @@ describe('TimeRangeComponent', () => {
       component.datePickerFromDate = '2000-01-31 00:00:00';
       component.datePickerToDate = '2000-02-28 00:00:00';
 
+      const fromTS = new Date(component.datePickerFromDate).getTime();
+      const toTS = new Date(component.datePickerToDate).getTime();
+
       spyOn(component.timeRangeChange, 'emit');
       component.applyCustomDate();
 
-      const filter = new Filter(TIMESTAMP_FIELD_NAME, '[949273200000 TO 951692400000]', false);
-      filter.dateFilterValue = new DateFilterValue(949273200000, 951692400000);
+      const filter = new Filter(TIMESTAMP_FIELD_NAME, `[${fromTS} TO ${toTS}]`, false);
+      filter.dateFilterValue = new DateFilterValue(fromTS, toTS);
 
       expect(component.timeRangeChange.emit).toHaveBeenCalledWith(filter);
     });
 
     it('should apply current date and time if To field empty', () => {
-      const currentTs = new Date().getTime();
+      jasmine.clock().mockDate(new Date('2000-02-01T12:00:01'));
 
       component.datePickerFromDate = '2000-01-31 00:00:00';
       component.datePickerToDate = '';
 
+      const fromTS = new Date(component.datePickerFromDate).getTime();
+      const currentTs = new Date().getTime();
+
       spyOn(component.timeRangeChange, 'emit');
       component.applyCustomDate();
 
-      const filter = new Filter(TIMESTAMP_FIELD_NAME, `[949273200000 TO ${currentTs}]`, false);
-      filter.dateFilterValue = new DateFilterValue(949273200000, currentTs);
+      const filter = new Filter(TIMESTAMP_FIELD_NAME, `[${fromTS} TO ${currentTs}]`, false);
+      filter.dateFilterValue = new DateFilterValue(fromTS, currentTs);
 
       expect(component.timeRangeChange.emit).toHaveBeenCalledWith(filter);
     });
-
-
   });
 
   describe('Quick Ranges', () => {
