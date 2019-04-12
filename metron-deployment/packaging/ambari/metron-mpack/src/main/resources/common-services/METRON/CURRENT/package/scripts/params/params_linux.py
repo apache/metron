@@ -126,17 +126,11 @@ kafka_home = os.path.join(stack_root, "current", "kafka-broker")
 kafka_bin_dir = os.path.join(kafka_home, "bin")
 
 # zookeeper
-zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
-has_zk_host = not len(zk_hosts) == 0
-zookeeper_quorum = None
-if has_zk_host:
-    if 'zoo.cfg' in config['configurations'] and 'clientPort' in config['configurations']['zoo.cfg']:
-        zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
-    else:
-        zookeeper_clientPort = '2181'
-    zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(config['clusterHostInfo']['zookeeper_hosts'])
-    # last port config
-    zookeeper_quorum += ':' + zookeeper_clientPort
+zookeeper_port = default('/configurations/zoo.cfg/clientPort', '2181')
+zookeeper_hosts_property = 'zookeeper_hosts' if 'zookeeper_hosts' in config['clusterHostInfo'] else "zookeeper_server_hosts"
+zookeeper_hosts = config['clusterHostInfo'][zookeeper_hosts_property]
+zookeeper_host_ports = map(lambda host: host + ":" + str(zookeeper_port), zookeeper_hosts)
+zookeeper_quorum = ",".join(zookeeper_host_ports)
 
 # Solr params
 solr_version = '6.6.2'
