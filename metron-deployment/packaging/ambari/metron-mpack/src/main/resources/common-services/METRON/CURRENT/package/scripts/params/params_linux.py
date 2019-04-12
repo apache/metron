@@ -178,7 +178,7 @@ smokeuser_principal = config['configurations']['cluster-env']['smokeuser_princip
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
-dfs_type = default("/commandParams/dfs_type", "")
+dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 # create partial functions with common arguments for every HdfsResource call
 # to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
