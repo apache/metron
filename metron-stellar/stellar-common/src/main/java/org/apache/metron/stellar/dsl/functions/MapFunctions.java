@@ -18,6 +18,7 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import java.util.HashMap;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Stellar;
 
@@ -52,15 +53,15 @@ public class MapFunctions {
   }
 
   @Stellar(name="GET"
-          ,namespace="MAP"
-          , description="Gets the value associated with a key from a map"
-          , params = {
-                      "key - The key"
-                     ,"map - The map"
-                     ,"default - Optionally the default value to return if the key is not in the map."
-                     }
-          , returns = "The object associated with the key in the map.  If no value is associated with the key and default is specified, then default is returned. If no value is associated with the key or default, then null is returned."
-          )
+      ,namespace="MAP"
+      , description="Gets the value associated with a key from a map"
+      , params = {
+      "key - The key"
+      ,"map - The map"
+      ,"default - Optionally the default value to return if the key is not in the map."
+  }
+      , returns = "The object associated with the key in the map.  If no value is associated with the key and default is specified, then default is returned. If no value is associated with the key or default, then null is returned."
+  )
   public static class MapGet extends BaseStellarFunction {
     @Override
     @SuppressWarnings("unchecked")
@@ -80,6 +81,32 @@ public class MapFunctions {
         return defaultObj;
       }
       return ret;
+    }
+  }
+
+  @Stellar(name="PUT"
+          ,namespace="MAP"
+          , description="Gets the value associated with a key from a map"
+          , params = {
+                      "key - The key"
+                     ,"value - The value"
+                     ,"map - The map"
+                     }
+          , returns = "The original map modified."
+          )
+  public static class MapPut extends BaseStellarFunction {
+    @Override
+    @SuppressWarnings("unchecked")
+    public Object apply(List<Object> objects) {
+      Object keyObj = objects.get(0);
+      Object valueObj = objects.get(1);
+      Object mapObj = objects.get(2);
+      if(mapObj == null) {
+        mapObj = new HashMap<>();
+      }
+      Map<Object, Object> map = (Map)mapObj;
+      map.put(keyObj, valueObj);
+      return map;
     }
   }
 }

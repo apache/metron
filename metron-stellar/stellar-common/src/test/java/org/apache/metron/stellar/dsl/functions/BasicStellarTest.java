@@ -43,6 +43,7 @@ import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -639,6 +640,16 @@ public class BasicStellarTest {
                                                    )
                             )
                        );
+  }
+
+  @Test
+  public void testMapPut() {
+    // key, value, map
+    String query = "MAP_PUT('foo','bar',mymap)";
+    Map vars = ImmutableMap.of("mymap", new HashMap<String, String>());
+    Assert.assertThat(run(query, vars), CoreMatchers.notNullValue());
+    query = "MAP_GET('foo', mymap)";
+    Assert.assertEquals("bar", run(query, vars));
   }
 
   @Test
