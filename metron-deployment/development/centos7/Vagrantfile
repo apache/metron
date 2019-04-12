@@ -103,7 +103,7 @@ Vagrant.configure(2) do |config|
     ansible.inventory_path = "ansible/inventory"
     ansible.compatibility_mode = "auto"
     ansible.raw_arguments  = [
-      "-vvvv",
+      "-v",
     ]
   end
 end
