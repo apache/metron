@@ -58,7 +58,7 @@ def get_topologies(storm_ui_host, requested_owner):
                     t_id = ''
                     t_owner = ''
                     for k, v in topology.iteritems():
-                        if k == 'id':
+                        if k == 'name':
                             t_id = v
                         if k == 'owner':
                             t_owner = v

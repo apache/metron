@@ -31,6 +31,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 * [Push Data](#push-data)
 * [More Information](#more-information)
 * [Elasticseach X-Pack](#X-Pack)
+* [TGT Ticket Renew](#tgt-ticket-renew)
 
 Setup
 -----
@@ -636,3 +637,43 @@ The random access indexer topology fails with the following exception.  This exc
 #### Solution
 
 This can occur when an HDFS Client is not installed on the Storm worker nodes.  This might occur on any Storm worker node where an HDFS Client is not installed.  Installing the HDFS Client on all Storm worker nodes should resolve the problem.
+
+## TGT Ticket Renew
+
+Apache Storm doesn't handle automatic TGT ticket renewal for their running topologies. Instead, it is left up to the operations team deploying the Storm topologies
+in a Kerberized environment to manage this themselves. We've included a Python script that can be setup with a cron process to automatically manage the renewal
+process for you. The script should be run on an interval that is shorter than the renew_lifetime configured for your TGT.
+
+### Setup Instructions
+
+Run the following on a node with a Storm and Metron client installed. We need python 2.7 via virtualenv for this to work correctly.
+
+```
+su - metron
+for item in epel-release centos-release-scl "@Development tools" python27 python27-scldevel python27-python-virtualenv libselinux-python; do yum install -y $item; done
+sudo yum install -y gcc krb5-devel python-devel
+sudo yum install -y libffi libffi-devel
+sudo yum install -y python-cffi
+sudo yum install -y openssl-devel
+export PYTHON27_HOME=/opt/rh/python27/root
+export LD_LIBRARY_PATH="/opt/rh/python27/root/usr/lib64"
+mkdir project_dir
+cd project_dir
+${PYTHON27_HOME}/usr/bin/virtualenv venv
+source venv/bin/activate
+pip install --upgrade setuptools==18.5
+pip install requests-kerberos
+```
+
+The script `$METRON_HOME/bin/tgt_renew.py` takes two arguments:
+
+* arg1 = host:port for Storm UI server
+* arg2 = topology owner - typically "metron" for a kerberized cluster with metron topologies
+
+Execute it like the following example:
+
+```
+python $METRON_HOME/bin/tgt_renew.py node1:8744 metron
+```
+
+
