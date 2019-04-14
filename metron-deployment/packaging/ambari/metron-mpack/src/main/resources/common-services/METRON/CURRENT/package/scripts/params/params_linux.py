@@ -43,11 +43,14 @@ hdp_version = default("/commandParams/version", None)
 
 hostname = config['hostname']
 metron_home = status_params.metron_home
+metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
 
 parsers = status_params.parsers
 parser_error_topic = config['configurations']['metron-parsers-env']['parser_error_topic']
-geoip_hdfs_dir = "/apps/metron/geo/default/"
-asn_hdfs_dir = "/apps/metron/asn/default/"
+geoip_hdfs_dir = metron_apps_hdfs_dir + "/geo/default/"
+asn_hdfs_dir = metron_apps_hdfs_dir + "/asn/default/"
+hbase_coprocessor_local_dir = format("{metron_home}/coprocessor")
+hbase_coprocessor_hdfs_dir = metron_apps_hdfs_dir + "/coprocessor"
 metron_user = status_params.metron_user
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
@@ -89,6 +92,7 @@ parsers_acl_configured_flag_file = status_params.parsers_acl_configured_flag_fil
 enrichment_kafka_configured_flag_file = status_params.enrichment_kafka_configured_flag_file
 enrichment_kafka_acl_configured_flag_file = status_params.enrichment_kafka_acl_configured_flag_file
 enrichment_hbase_configured_flag_file = status_params.enrichment_hbase_configured_flag_file
+enrichment_hbase_coprocessor_configured_flag_file = status_params.enrichment_hbase_coprocessor_configured_flag_file
 enrichment_hbase_acl_configured_flag_file = status_params.enrichment_hbase_acl_configured_flag_file
 enrichment_maxmind_configured_flag_file = status_params.enrichment_maxmind_configured_flag_file
 indexing_configured_flag_file = status_params.indexing_configured_flag_file
@@ -146,6 +150,9 @@ solr_user = config['configurations']['solr-config-env']['solr_config_user']
 solr_principal_name = config['configurations']['solr-config-env']['solr_principal_name']
 solr_keytab_path = config['configurations']['solr-config-env']['solr_keytab_path']
 
+# HDFS
+hdfs_url = status_params.hdfs_url
+
 # Storm
 storm_rest_addr = status_params.storm_rest_addr
 
@@ -163,8 +170,6 @@ if has_kafka_host:
         kafka_broker_port = '6667'
     kafka_brokers = (':' + kafka_broker_port + ',').join(config['clusterHostInfo']['kafka_broker_hosts'])
     kafka_brokers += ':' + kafka_broker_port
-
-metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
 
 # the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works
 # well enough until we find a better way via Ambari
@@ -208,6 +213,11 @@ HdfsResource = functools.partial(
 enrichment_hbase_provider_impl = 'org.apache.metron.hbase.HTableProvider'
 enrichment_hbase_table = status_params.enrichment_hbase_table
 enrichment_hbase_cf = status_params.enrichment_hbase_cf
+# coprocessor config for enrichment list
+enrichment_list_hbase_provider_impl = status_params.enrichment_list_hbase_provider_impl
+enrichment_list_hbase_coprocessor_impl = status_params.enrichment_list_hbase_coprocessor_impl
+enrichment_list_hbase_table = status_params.enrichment_list_hbase_table
+enrichment_list_hbase_cf = status_params.enrichment_list_hbase_cf
 update_hbase_table = status_params.update_hbase_table
 update_hbase_cf = status_params.update_hbase_cf
 
