@@ -17,6 +17,7 @@
  *  limitations under the License.
  *
  */
+
 package org.apache.metron.profiler.spark.cli;
 
 import com.google.common.base.Joiner;
@@ -34,10 +35,22 @@ import java.util.function.Supplier;
  * Profiler.
  */
 public enum BatchProfilerCLIOptions {
+  PROFILE_ZK(() -> {
+    Option o = new Option("z", "zookeeper", true, "Zookeeper quorum for profile definitions");
+    o.setRequired(false);
+    return o;
+  }),
+
+  PROFILE_TIMESTAMP_FLD(() -> {
+    Option o = new Option("t", "timestampfield", true,
+            "When pulling profile definitions from zookeeper, the name of a field to source event time from is required");
+    o.setRequired(false);
+    return o;
+  }),
 
   PROFILE_DEFN_FILE(() -> {
     Option o = new Option("p", "profiles", true, "Path to the profile definitions.");
-    o.setRequired(true);
+    o.setRequired(false);
     return o;
   }),
 

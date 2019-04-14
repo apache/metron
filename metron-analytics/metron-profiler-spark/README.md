@@ -42,8 +42,9 @@ The portion of a profile produced by the Batch Profiler should be indistinguisha
 For an introduction to the Profiler, see the [Profiler README](../metron-profiler-common/README.md).
 
 ## Getting Started
+1. Either:
 
-1. Create a profile definition by editing `$METRON_HOME/config/zookeeper/profiler.json` as follows.  
+    i. Create a profile definition by editing `$METRON_HOME/config/zookeeper/profiler.json` as follows.
 
     ```
     cat $METRON_HOME/config/zookeeper/profiler.json
@@ -60,6 +61,11 @@ For an introduction to the Profiler, see the [Profiler README](../metron-profile
       "timestampField": "timestamp"
     }
     ```
+    or
+
+    ii. Choose to use profiles already loaded into zookeeper (e.g. for use by the storm profiler bolt) by setting the environment variable `$SPARK_PROFILER_USE_ZOOKEEPER`. This will cause the spark profiler to extract profiles from the zookeeper quorum located at `$ZOOKEEPER`. 
+    Batch processing MUST use event time processing - specify the field to use for the event time via the `--timestampfield` command line argument. 
+    The field to use for event time can also be specified via environment variable `$SPARK_PROFILER_EVENT_TIMESTAMP_FIELD`
 
 1. Ensure that you have archived telemetry available for the Batch Profiler to consume.  By default, Metron will store this in HDFS at `/apps/metron/indexing/indexed/*/*`.
 
@@ -74,7 +80,7 @@ For an introduction to the Profiler, see the [Profiler README](../metron-profile
 	  ```
 	  log4j.logger.org.apache.metron.profiler.spark=DEBUG
 	  ```
-
+1. Edit 
 1. Run the Batch Profiler.
 
     ```
@@ -141,8 +147,9 @@ The Batch Profiler requires Spark version 2.3.0+.
 
 A script located at `$METRON_HOME/bin/start_batch_profiler.sh` has been provided to simplify running the Batch Profiler.  This script makes the following assumptions.
 
-  * The script builds the profiles defined in `$METRON_HOME/config/zookeeper/profiler.json`.
-
+  * The script either 
+       * builds the profiles defined in `$METRON_HOME/config/zookeeper/profiler.json`. or
+       * utilises the profiles already loaded into zookeeper quorum at `$ZOOKEEPER` if the environment variable `$SPARK_PROFILER_USE_ZOOKEEPER` is set.
   * The properties defined in `$METRON_HOME/config/batch-profiler.properties` are passed to both the Profiler and Spark.  You can define both Spark and Profiler properties in this same file.
 
   * The script assumes that Spark is installed at `/usr/hdp/current/spark2-client`.  This can be overridden if you define an environment variable called `SPARK_HOME` prior to executing the script.
@@ -165,6 +172,8 @@ The Batch Profiler accepts the following arguments when run from the command lin
 | Argument                              | Description
 |---                                    |---
 | [`-p`, `--profiles`](#--profiles)     | Path to the profile definitions.
+| [`-z`, `--zookeeper`](#--zookeeper)   | Zookeeper quorum to read profile definitions from.
+| [`-t`, `--timestampfield`](#--timestampfield) | if using zookeeper, which data field to use for event time.
 | [`-c`, `--config`](#--config)         | Path to the profiler properties file.
 | [`-g`, `--globals`](#--globals)       | Path to the Stellar global config file.
 | [`-r`, `--reader`](#--reader)         | Path to properties for the DataFrameReader.
@@ -172,7 +181,15 @@ The Batch Profiler accepts the following arguments when run from the command lin
 
 #### `--profiles`
 
-The path to a file containing the profile definition in JSON.
+The path to a file containing the profile definition in JSON. Only one of `--zookeeper` or `--profiles` should be used
+
+#### `--zookeeper`
+
+Read profile definitions from the zookeeper quorum at this address. Only one of `--zookeeper` or `--profiles` should be used.
+
+#### `--timestampfield`
+
+When utilising profiles stored in zookeeper the user will need to specify which data field to utilising for event time information. 
 
 #### `--config`
 

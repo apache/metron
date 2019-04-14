@@ -17,15 +17,20 @@
  *  limitations under the License.
  *
  */
+
 package org.apache.metron.profiler.spark.cli;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.*;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.profiler.spark.BatchProfiler;
+import org.apache.metron.zookeeper.ZKCache;
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;
 import org.slf4j.Logger;
@@ -35,19 +40,17 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.util.Optional;
 import java.util.Properties;
 
-import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.PROFILER_PROPS_FILE;
-import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.GLOBALS_FILE;
-import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.PROFILE_DEFN_FILE;
-import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.READER_PROPS_FILE;
-import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.parse;
+
 
 /**
- * The main entry point which launches the Batch Profiler in Spark.
- *
+ * The main entry point which launches the Batch Profiler iin Spark.
+ * Profiles can be read from either files (utilising --profiles)
+ * or zookeeper (utilising --zookeeper)
  * With this class the Batch Profiler can be submitted using the following command.
- *
+ * <p></p>
  * <pre>{@code
  *  $SPARK_HOME/bin/spark-submit \
  *    --class org.apache.metron.profiler.spark.cli.BatchProfilerCLI \
@@ -58,6 +61,17 @@ import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.parse
  *     --profiles profiles.json \
  *     --reader reader.properties
  * }</pre>
+ * <p></p>
+ *  Or to pull the profile information from zookeeper
+ *  <pre>{@code
+ *   $SPARK_HOME/bin/spark-submit \
+ *     --class org.apache.metron.profiler.spark.cli.BatchProfilerCLI \
+ *     --properties-file spark.properties \
+ *     metron-profiler-spark-<version>.jar \
+ *     --globals global.properties \
+ *     --zookeeper ZookeeperQuorumForProfiles
+ *     --reader reader.properties
+ *  }</pre>
  */
 public class BatchProfilerCLI implements Serializable {
 
@@ -71,14 +85,16 @@ public class BatchProfilerCLI implements Serializable {
   public static void main(String[] args) throws IOException, org.apache.commons.cli.ParseException {
     // parse the command line
     CommandLine commandLine = parseCommandLine(args);
+
+    // read profile information
+    profiles = handleProfileDefinitions(commandLine);
     profilerProps = handleProfilerProperties(commandLine);
     globals = handleGlobals(commandLine);
-    profiles = handleProfileDefinitions(commandLine);
     readerProps = handleReaderProperties(commandLine);
 
     // the batch profiler must use 'event time'
     if(!profiles.getTimestampField().isPresent()) {
-      throw new IllegalArgumentException("The Batch Profiler must use event time. The 'timestampField' must be defined.");
+      throw new IllegalArgumentException("The Batch Profiler must use event time. The 'timestampField' must be defined in the profile definitions file or via the --timestampField argument.");
     }
 
     // one or more profiles must be defined
@@ -94,6 +110,65 @@ public class BatchProfilerCLI implements Serializable {
     BatchProfiler profiler = new BatchProfiler();
     long count = profiler.run(spark, profilerProps, globals, readerProps, profiles);
     LOG.info("Profiler produced {} profile measurement(s)", count);
+  }
+
+  /**
+   * Extracts profile information from a file or from zookeeper
+   * @param commandLine Command line information.
+   * @return Profile information
+   * @throws MissingOptionException if command line options are missing
+   * @throws IOException If there are disk or network issues retrieving profiles
+   */
+  private static ProfilerConfig handleProfileDefinitions(CommandLine commandLine) throws MissingOptionException, IOException {
+    final String PROFILE_LOCATION_ERROR =
+            "A single profile location (--profiles or --zookeeper) must be specified";
+    ProfilerConfig profiles;
+
+    if ((!PROFILE_ZK.has(commandLine)) && (!PROFILE_DEFN_FILE.has(commandLine))) {
+      throw new MissingOptionException(PROFILE_LOCATION_ERROR);
+    }
+    if (PROFILE_ZK.has(commandLine) && PROFILE_DEFN_FILE.has(commandLine)) {
+      throw new IllegalArgumentException(PROFILE_LOCATION_ERROR);
+    }
+
+    if (PROFILE_ZK.has(commandLine)) {
+      try (final CuratorFramework zkClient = createZKClient(commandLine)) {
+        try {
+          profiles = handleProfileDefinitionsZK(zkClient);
+        } catch (Exception ex) {
+          throw new IOException(
+                  String.format("Error reading configuration from Zookeeper client %s",
+                          zkClient.toString()),
+                  ex);
+        }
+      }
+    } else {
+      profiles = handleProfileDefinitionsFile(commandLine);
+    }
+
+    // event time can specified via command line override
+    if (PROFILE_TIMESTAMP_FLD.has(commandLine)) {
+      final String timestampField = PROFILE_TIMESTAMP_FLD.get(commandLine);
+      Preconditions.checkArgument(!Strings.isNullOrEmpty(timestampField), "timestampField must be not be empty if specified");
+      profiles.setTimestampField(timestampField);
+    }
+    LOG.info("Utilising profile: {}", profiles.toString());
+    return profiles;
+  }
+
+  /**
+   * Loads Zookeeper client if one is configured.
+   * @param commandLine Command line to extract ZK configuration from
+   * @return CuratorFramework client if zookeeper configuration defined
+   */
+  private static CuratorFramework createZKClient(final CommandLine commandLine) {
+    Preconditions.checkArgument(PROFILE_ZK.has(commandLine));
+    final String zkQuorum = PROFILE_ZK.get(commandLine);
+    LOG.info("Loading profiler properties from zookeeper quorum '{}'", zkQuorum);
+    final CuratorFramework zkClient = ZKCache.createClient(zkQuorum, Optional.empty());
+    zkClient.start();
+    LOG.info("Zookeeper client created successfully");
+    return zkClient;
   }
 
   /**
@@ -155,7 +230,7 @@ public class BatchProfilerCLI implements Serializable {
    *
    * @param commandLine The command line.
    */
-  private static ProfilerConfig handleProfileDefinitions(CommandLine commandLine) throws IOException {
+  private static ProfilerConfig handleProfileDefinitionsFile(CommandLine commandLine) throws IOException {
     ProfilerConfig profiles;
     if(PROFILE_DEFN_FILE.has(commandLine)) {
       String profilePath = PROFILE_DEFN_FILE.get(commandLine);
@@ -169,6 +244,19 @@ public class BatchProfilerCLI implements Serializable {
     } else {
       throw new IllegalArgumentException("No profile(s) defined");
     }
+    return profiles;
+  }
+
+  /**
+   * Load the profile definitions from ZK.
+   * @param zkClient Zookeeper client
+   * @return ProfileConfig object stored in zookeeper
+   * @throws Exception if error occurs during zookeeper read
+   */
+  private static ProfilerConfig handleProfileDefinitionsZK(final CuratorFramework zkClient) throws Exception {
+    LOG.info("Loading profiles from zookeeper");
+    final ProfilerConfig profiles = ConfigurationsUtils.readProfilerConfigFromZookeeper(zkClient);
+    LOG.info("Loaded {} profile(s)", profiles.getProfiles().size());
     return profiles;
   }
 

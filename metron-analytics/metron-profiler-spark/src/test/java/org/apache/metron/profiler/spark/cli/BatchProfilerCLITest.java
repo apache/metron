@@ -40,13 +40,27 @@ public class BatchProfilerCLITest {
   }
 
   /**
-   * The user must define the -p, --profiles option.  The Profiler cannot work without profiles.
+   * The user must define the -p, --profiles, -z, --zookeeper options.
+   * The Profiler cannot work without profiles.
    */
   @Test(expected = MissingOptionException.class)
   public void mustDefineProfilesOption() throws Exception {
     String[] args = new String[] {};
     BatchProfilerCLI.main(args);
   }
+
+  /**
+   * The user must define one of  -p, --profiles, -z, --zookeeper options.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void mustDefineOnlyOneProfilesOption() throws Exception {
+    String[] args = new String[] {
+            "--profiles", "src/test/resources/profiles-no-timestamp-field.json",
+            "--zookeeper", "node1:2181"
+    };
+    BatchProfilerCLI.main(args);
+  }
+
 
   /**
    * If the profile definition contains no valid profiles, we have a problem.
