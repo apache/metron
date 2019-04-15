@@ -20,14 +20,13 @@ package org.apache.metron.enrichment.bolt;
 import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
 
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
+import org.apache.metron.storm.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.common.message.MessageGetStrategy;
-import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.storm.common.message.MessageGetStrategy;
+import org.apache.metron.storm.common.message.MessageGetters;
 import org.apache.metron.common.performance.PerformanceLogger;
-import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.enrichment.adapters.maxmind.asn.GeoLiteAsnDatabase;
 import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
@@ -41,6 +40,7 @@ import org.apache.metron.enrichment.parallel.ConcurrencyContext;
 import org.apache.metron.enrichment.parallel.WorkerPoolStrategies;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.storm.common.utils.StormErrorUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -285,7 +285,7 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
                 .withMessage(t.getValue().getMessage())
                 .withThrowable(t.getValue())
                 .addRawMessage(t.getKey());
-        ErrorUtils.handleError(collector, error);
+        StormErrorUtils.handleError(collector, error);
       }
     } catch (Exception e) {
       //If something terrible and unexpected happens then we want to send an error along, but this
@@ -296,7 +296,7 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
               .withMessage(e.getMessage())
               .withThrowable(e)
               .addRawMessage(message);
-      ErrorUtils.handleError(collector, error);
+      StormErrorUtils.handleError(collector, error);
     }
     finally {
       collector.ack(input);

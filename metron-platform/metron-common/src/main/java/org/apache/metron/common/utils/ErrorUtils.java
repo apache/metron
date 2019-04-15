@@ -26,10 +26,6 @@ import java.lang.management.ThreadMXBean;
 import java.util.Optional;
 import java.util.function.Function;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.error.MetronError;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,22 +83,6 @@ public class ErrorUtils {
         return format("%s", reason);
       }
     }
-  }
-
-  /**
-   * Handles a {@link MetronError} that occurs.
-   *
-   * @param collector The Storm output collector being reported to
-   * @param error The error that occurred
-   */
-  public static void handleError(OutputCollector collector, MetronError error)
-  {
-    collector.emit(Constants.ERROR_STREAM, new Values(error.getJSONObject()));
-    Optional<Throwable> throwable = error.getThrowable();
-    if (throwable.isPresent()) {
-      collector.reportError(throwable.get());
-    }
-
   }
 
   /**

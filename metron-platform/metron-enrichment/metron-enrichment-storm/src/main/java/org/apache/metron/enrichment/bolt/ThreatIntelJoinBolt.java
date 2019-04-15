@@ -23,7 +23,7 @@ import java.util.Map;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
-import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.storm.common.message.MessageGetStrategy;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.enrichment.adapters.maxmind.asn.GeoLiteAsnDatabase;
 import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;

@@ -44,7 +44,6 @@ import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.writer.AbstractWriter;
-import org.apache.storm.task.TopologyContext;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -200,7 +199,7 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
   }
 
   @Override
-  public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration config)
+  public void init(Map stormConf, WriterConfiguration config)
       throws Exception {
     if(this.zkQuorum != null && this.brokerUrl == null) {
       try {

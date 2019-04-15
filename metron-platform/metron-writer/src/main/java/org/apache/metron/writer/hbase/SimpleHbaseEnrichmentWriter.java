@@ -20,7 +20,6 @@ package org.apache.metron.writer.hbase;
 
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageId;
-import org.apache.storm.task.TopologyContext;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
@@ -178,7 +177,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   }
 
   @Override
-  public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configuration) throws Exception {
+  public void init(Map stormConf, WriterConfiguration configuration) throws Exception {
     if(converter == null) {
       converter = new EnrichmentConverter();
     }

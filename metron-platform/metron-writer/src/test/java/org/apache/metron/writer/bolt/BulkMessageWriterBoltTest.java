@@ -42,7 +42,7 @@ import org.apache.log4j.Level;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.storm.common.message.MessageGetters;
 import org.apache.metron.common.system.FakeClock;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkMessage;
@@ -51,7 +51,6 @@ import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.metron.writer.BulkWriterComponent;
-import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
@@ -163,7 +162,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType,
             new FileInputStream(sampleSensorIndexingConfigPath));
     {
-      doThrow(new Exception()).when(bulkMessageWriter).init(eq(stormConf),any(TopologyContext.class), any(WriterConfiguration.class));
+      doThrow(new Exception()).when(bulkMessageWriter).init(eq(stormConf), any(WriterConfiguration.class));
       try {
         bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
         fail("A runtime exception should be thrown when bulkMessageWriter.init throws an exception");
@@ -173,7 +172,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     {
       when(bulkMessageWriter.getName()).thenReturn("hdfs");
       bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
-      verify(bulkMessageWriter, times(1)).init(eq(stormConf),any(TopologyContext.class), any(WriterConfiguration.class));
+      verify(bulkMessageWriter, times(1)).init(eq(stormConf), any(WriterConfiguration.class));
     }
     {
       for(int i = 0; i < 4; i++) {
@@ -222,7 +221,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       Map stormConf = new HashMap();
       when(bulkMessageWriter.getName()).thenReturn("elasticsearch");
       bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector, clock);
-      verify(bulkMessageWriter, times(1)).init(eq(stormConf),any(TopologyContext.class), any(WriterConfiguration.class));
+      verify(bulkMessageWriter, times(1)).init(eq(stormConf), any(WriterConfiguration.class));
     }
     {
       int batchTimeout = bulkMessageWriterBolt.getMaxBatchTimeout();
@@ -260,8 +259,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       Map stormConf = new HashMap();
       when(bulkMessageWriter.getName()).thenReturn("elasticsearch");
       bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector, clock);
-      verify(bulkMessageWriter, times(1)).init(eq(stormConf),any(TopologyContext.class)
-              , any(WriterConfiguration.class));
+      verify(bulkMessageWriter, times(1)).init(eq(stormConf), any(WriterConfiguration.class));
     }
     {
       int batchTimeout = bulkMessageWriterBolt.getMaxBatchTimeout();

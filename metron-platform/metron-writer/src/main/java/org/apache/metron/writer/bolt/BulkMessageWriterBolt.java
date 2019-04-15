@@ -29,21 +29,22 @@ import java.util.function.Function;
 
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredBolt;
+import org.apache.metron.storm.common.bolt.ConfiguredBolt;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.common.message.MessageGetStrategy;
-import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.storm.common.message.MessageGetStrategy;
+import org.apache.metron.storm.common.message.MessageGetters;
 import org.apache.metron.common.system.Clock;
-import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageWriter;
+import org.apache.metron.storm.common.utils.StormErrorUtils;
 import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.metron.writer.WriterToBulkWriter;
+import org.apache.metron.writer.hdfs.HdfsWriter;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -235,7 +236,10 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
       BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(maxBatchTimeout);
       bulkWriterComponent.addFlushPolicy(ackTuplesPolicy);
       setWriterComponent(bulkWriterComponent);
-      bulkMessageWriter.init(stormConf, context, writerconf);
+      bulkMessageWriter.init(stormConf, writerconf);
+      if (bulkMessageWriter instanceof HdfsWriter) {
+        ((HdfsWriter) bulkMessageWriter).initFileNameFormat(context);
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -362,7 +366,7 @@ public class BulkMessageWriterBolt<CONFIG_T extends Configurations> extends Conf
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
             .withThrowable(e);
     collector.ack(tuple);
-    ErrorUtils.handleError(collector, error);
+    StormErrorUtils.handleError(collector, error);
   }
 
   @Override

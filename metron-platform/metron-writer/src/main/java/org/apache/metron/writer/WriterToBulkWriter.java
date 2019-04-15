@@ -20,7 +20,6 @@ package org.apache.metron.writer;
 
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageId;
-import org.apache.storm.task.TopologyContext;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.writer.SingleBatchConfigurationFacade;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
@@ -44,7 +43,7 @@ public class WriterToBulkWriter<MESSAGE_T> implements BulkMessageWriter<MESSAGE_
     this.messageWriter = messageWriter;
   }
   @Override
-  public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration config) throws Exception {
+  public void init(Map stormConf, WriterConfiguration config) throws Exception {
     messageWriter.init();
   }
 

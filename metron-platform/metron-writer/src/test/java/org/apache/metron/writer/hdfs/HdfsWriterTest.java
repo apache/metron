@@ -76,7 +76,8 @@ public class HdfsWriterTest {
   public void testGetHdfsPathNull() {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, new IndexingConfigurations());
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(),createTopologyContext(), config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
     Object result = writer.getHdfsPathExtension(SENSOR_NAME,null, message);
@@ -89,7 +90,8 @@ public class HdfsWriterTest {
   public void testGetHdfsPathEmptyString() {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, new IndexingConfigurations());
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
     Object result = writer.getHdfsPathExtension(SENSOR_NAME, "", message);
@@ -102,7 +104,8 @@ public class HdfsWriterTest {
   public void testGetHdfsPathConstant() {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, new IndexingConfigurations());
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
     Object result = writer.getHdfsPathExtension(SENSOR_NAME, "'new'", message);
@@ -115,7 +118,8 @@ public class HdfsWriterTest {
   public void testGetHdfsPathDirectVariable() {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, new IndexingConfigurations());
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
@@ -129,7 +133,8 @@ public class HdfsWriterTest {
   public void testGetHdfsPathFormatConstant() {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, new IndexingConfigurations());
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
     Object result = writer.getHdfsPathExtension(SENSOR_NAME, "FORMAT('/test/folder/')", message);
@@ -143,7 +148,8 @@ public class HdfsWriterTest {
     IndexingConfigurations indexingConfig = new IndexingConfigurations();
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, indexingConfig);
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
@@ -159,7 +165,8 @@ public class HdfsWriterTest {
     IndexingConfigurations indexingConfig = new IndexingConfigurations();
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, indexingConfig);
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
     String filename = writer.fileNameFormat.getName(1,1);
     Assert.assertEquals("prefix-Xcom-7-1-1.json", filename);
     writer.close();
@@ -171,7 +178,8 @@ public class HdfsWriterTest {
     IndexingConfigurations indexingConfig = new IndexingConfigurations();
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, indexingConfig);
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
@@ -193,7 +201,8 @@ public class HdfsWriterTest {
     IndexingConfigurations indexingConfig = new IndexingConfigurations();
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, indexingConfig);
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(),  config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
@@ -206,7 +215,8 @@ public class HdfsWriterTest {
   public void testGetHdfsPathNonString() {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, new IndexingConfigurations());
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(),  config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
     writer.getHdfsPathExtension(SENSOR_NAME, "{'key':'value'}", message);
@@ -220,7 +230,8 @@ public class HdfsWriterTest {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, indexingConfig);
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat)
             .withMaxOpenFiles(maxFiles);
-    writer.init(new HashMap<String, String>(), createTopologyContext(),  config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     for(int i = 0; i < maxFiles; i++) {
       writer.getSourceHandler(SENSOR_NAME, Integer.toString(i), null);
@@ -235,7 +246,8 @@ public class HdfsWriterTest {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, indexingConfig);
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat)
                                         .withMaxOpenFiles(maxFiles);
-    writer.init(new HashMap<String, String>(), createTopologyContext(),  config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     for(int i = 0; i < maxFiles+1; i++) {
       writer.getSourceHandler(SENSOR_NAME, Integer.toString(i), null);
@@ -253,7 +265,8 @@ public class HdfsWriterTest {
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(format);
     IndexingConfigurations indexingConfig = new IndexingConfigurations();
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, indexingConfig);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
@@ -296,7 +309,8 @@ public class HdfsWriterTest {
             .withExtension(".json")
             .withPrefix("prefix-");
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(format);
-    writer.init(new HashMap<String, String>(), createTopologyContext(),  config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     // These two messages will be routed to the same folder, because test.key is the same
     JSONObject message = new JSONObject();
@@ -339,7 +353,8 @@ public class HdfsWriterTest {
             .withExtension(".json")
             .withPrefix("prefix-");
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(format);
-    writer.init(new HashMap<String, String>(), createTopologyContext(),  config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     // These two messages will be routed to the same folder, because test.key is the same
     JSONObject message = new JSONObject();
@@ -395,7 +410,8 @@ public class HdfsWriterTest {
             .withExtension(".json")
             .withPrefix("prefix-");
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(format);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     // These two messages will be routed to the same folder, because test.key is the same
     JSONObject message = new JSONObject();
@@ -428,7 +444,8 @@ public class HdfsWriterTest {
     String function = "FORMAT('test-%s/%s', test.key, test.key)";
     WriterConfiguration config = buildWriterConfiguration(function);
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
-    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+    writer.init(new HashMap<String, String>(), config);
+    writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");

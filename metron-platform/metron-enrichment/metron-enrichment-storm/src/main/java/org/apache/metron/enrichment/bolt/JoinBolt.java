@@ -30,12 +30,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
+import org.apache.metron.storm.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.common.message.MessageGetStrategy;
-import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.storm.common.message.MessageGetStrategy;
+import org.apache.metron.storm.common.message.MessageGetters;
 import org.apache.metron.common.performance.PerformanceLogger;
-import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.storm.common.utils.StormErrorUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -169,7 +169,7 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
               .withMessage("Joining problem: " + message)
               .withThrowable(e)
               .addRawMessage(message);
-      ErrorUtils.handleError(collector, error);
+      StormErrorUtils.handleError(collector, error);
       collector.ack(tuple);
     }
     perfLog.log("execute", "key={}, elapsed time to run execute", key);

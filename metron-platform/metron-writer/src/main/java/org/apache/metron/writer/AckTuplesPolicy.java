@@ -20,7 +20,7 @@ package org.apache.metron.writer;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.storm.common.message.MessageGetStrategy;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;

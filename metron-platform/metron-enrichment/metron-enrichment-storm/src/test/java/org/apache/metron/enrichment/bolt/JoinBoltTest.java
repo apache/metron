@@ -21,7 +21,7 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.storm.common.message.MessageGetStrategy;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.TopologyContext;

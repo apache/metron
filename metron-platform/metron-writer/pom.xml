@@ -219,7 +219,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-common</artifactId>
+            <artifactId>metron-common-storm</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
          <dependency>
