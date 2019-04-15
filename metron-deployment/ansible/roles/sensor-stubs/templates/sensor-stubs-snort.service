@@ -1,7 +1,5 @@
 [Unit]
  Description=Sends canned Snort telemetry to a Kafka topic
 
-Sends
-
 [Service]
  ExecStart={{ sensor_stubs_bin }}/start-snort-stub
