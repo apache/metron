@@ -35,10 +35,14 @@ import { By } from '@angular/platform-browser';
 import { AlertComment } from './alert-comment';
 import { Subject } from 'rxjs';
 import { ConfirmationType } from 'app/model/confirmation-type';
+import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
+import {AlertSource} from "../../model/alert-source";
+import {of} from "rxjs/index";
 
 describe('AlertDetailsComponent', () => {
   let component: AlertDetailsComponent;
   let fixture: ComponentFixture<AlertDetailsComponent>;
+  let updateService: UpdateService;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -83,14 +87,26 @@ describe('AlertDetailsComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(AlertDetailsComponent);
     component = fixture.componentInstance;
+    updateService = fixture.debugElement.injector.get(UpdateService);
     fixture.detectChanges();
   });
 
   it('should delete a comment.', fakeAsync(() => {
+    const responseMock = new AlertSource();
+    responseMock.guid = 'guid';
+    const removeCommentSpy = spyOn(updateService, 'removeComment').and.returnValue(
+            of(responseMock)
+    );
+    const setAlertSpy = spyOn(component, 'setAlert');
+
     expect(component).toBeTruthy();
+    component.alertSource = new AlertSource();
+    component.alertSource.guid = 'guid';
+    component.alertSourceType = 'sourceType';
+    const now = Date.now();
     component.alertCommentsWrapper = [
       new AlertCommentWrapper(
-        new AlertComment('lorem ipsum', 'user', Date.now()),
+        new AlertComment('lorem ipsum', 'user', now),
         (new Date()).toString()
       )
     ];
@@ -101,8 +117,20 @@ describe('AlertDetailsComponent', () => {
     deleteComment.nativeElement.click();
     tick(500);
     fixture.detectChanges();
-    expect(component.alertCommentsWrapper.length).toEqual(0);
-    const comments = fixture.debugElement.queryAll(By.css('[data-qe-id="comment"]'));
-    expect(comments.length).toEqual(0);
+
+    const expectedCommentRequest = new CommentAddRemoveRequest();
+    expectedCommentRequest.guid = 'guid';
+    expectedCommentRequest.comment = 'lorem ipsum';
+    expectedCommentRequest.username = 'user';
+    expectedCommentRequest.sensorType = 'sourceType';
+    expectedCommentRequest.timestamp = now;
+
+    const expectedAlertSource = new AlertSource();
+    expectedAlertSource.guid = 'guid';
+
+    expect(removeCommentSpy).toHaveBeenCalledWith(expectedCommentRequest);
+    expect(removeCommentSpy).toHaveBeenCalledTimes(1);
+    expect(setAlertSpy).toHaveBeenCalledWith(expectedAlertSource);
+    expect(setAlertSpy).toHaveBeenCalledTimes(1);
   }));
 });

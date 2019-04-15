@@ -15,35 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.hbase.client;
+package org.apache.metron.rest.user;
 
+
+import static org.apache.metron.rest.user.UserSettingsClient.USER_SETTINGS_HBASE_CF;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-
-import static org.apache.metron.hbase.client.UserSettingsClient.USER_SETTINGS_HBASE_CF;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class UserSettingsClientTest {
 
@@ -75,7 +73,7 @@ public class UserSettingsClientTest {
     when(userSettingsTable.get(get)).thenReturn(result);
 
     UserSettingsClient userSettingsClient = new UserSettingsClient(userSettingsTable, cf);
-    Assert.assertEquals("userSettings1String", userSettingsClient.findOne("user1", "type").get());
+    assertEquals("userSettings1String", userSettingsClient.findOne("user1", "type").get());
     assertFalse(userSettingsClient.findOne("missingUser", "type").isPresent());
   }
 
