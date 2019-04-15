@@ -1,0 +1,5 @@
+[Unit]
+ Description=Sends canned YAF telemetry to a Kafka topic
+
+[Service]
+ ExecStart={{ sensor_stubs_bin }}/start-yaf-stub

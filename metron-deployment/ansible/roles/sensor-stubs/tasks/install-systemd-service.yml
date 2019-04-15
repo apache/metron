@@ -15,29 +15,18 @@
 #  limitations under the License.
 #
 ---
-- name: Create home directory
-  file: path={{ item }} state=directory mode=0755
+- name: Install systemd services
+  template: src={{ item }} dest=/etc/systemd/system/ mode=0755
   with_items:
-    - "{{ sensor_stubs_home }}"
-    - "{{ sensor_stubs_bin }}"
-    - "{{ sensor_stubs_data }}"
+    - sensor-stubs-bro.service
+    - sensor-stubs-yaf.service
+    - sensor-stubs-snort.service
 
-- name: Distribute stub data
-  copy: src={{ item }} dest={{ sensor_stubs_data }}/
+- name: Start sensor stubs
+  systemd:
+    name: "{{ item }}"
+    state: restarted
   with_items:
-    - bro.out
-    - snort.out
-    - yaf.out
-
-- name: Install sensor stubs scripts
-  template: src={{ item }} dest={{ sensor_stubs_bin }}/ mode=0755
-  with_items:
-    - start-bro-stub
-    - start-snort-stub
-    - start-yaf-stub
-
-- include_tasks: install-initd-service.yml
-  when: ansible_distribution == "CentOS" and ansible_distribution_major_version <= '6'
-
-- include_tasks: install-systemd-service.yml
-  when: ansible_distribution == "CentOS" and ansible_distribution_major_version >= '7'
+    - sensor-stubs-bro
+    - sensor-stubs-yaf
+    - sensor-stubs-snort
