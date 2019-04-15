@@ -17,7 +17,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.metron</groupId>
-        <artifactId>metron-platform</artifactId>
+        <artifactId>metron-writer</artifactId>
         <version>0.7.1</version>
     </parent>
     <artifactId>metron-writer-common</artifactId>
