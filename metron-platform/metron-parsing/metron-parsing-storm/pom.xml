@@ -51,6 +51,11 @@
           <artifactId>metron-enrichment-common</artifactId>
           <version>${project.parent.version}</version>
       </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>metron-writer-storm</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
 
     <!-- Storm dependencies -->
     <dependency>
@@ -143,6 +148,7 @@
       <version>${global_log4j_core_version}</version>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
   <build>
     <plugins>

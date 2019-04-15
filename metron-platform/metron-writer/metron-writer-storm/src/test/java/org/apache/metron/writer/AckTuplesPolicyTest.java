@@ -27,6 +27,7 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -102,8 +103,8 @@ public class AckTuplesPolicyTest {
 
     ackTuplesPolicy.onFlush(sensorType, response);
 
-    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
-    assertEquals(0, ackTuplesPolicy.getTupleErrorMap().size());
+    Assert.assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
+    Assert.assertEquals(0, ackTuplesPolicy.getTupleErrorMap().size());
     verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
             new Values(argThat(new MetronErrorJSONMatcher(expectedError1.getJSONObject()))));
     verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
@@ -155,8 +156,8 @@ public class AckTuplesPolicyTest {
 
     ackTuplesPolicy.onFlush(sensorType, response);
 
-    assertEquals(2, ackTuplesPolicy.getTupleMessageMap().size());
-    assertEquals(1, ackTuplesPolicy.getTupleErrorMap().size());
+    Assert.assertEquals(2, ackTuplesPolicy.getTupleMessageMap().size());
+    Assert.assertEquals(1, ackTuplesPolicy.getTupleErrorMap().size());
     verify(collector, times(0)).ack(any());
     verify(collector, times(0)).reportError(any());
     verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM), new Values(argThat(new MetronErrorJSONMatcher(expectedError1.getJSONObject()))));
@@ -167,8 +168,8 @@ public class AckTuplesPolicyTest {
 
     ackTuplesPolicy.onFlush(sensorType, response);
 
-    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
-    assertEquals(0, ackTuplesPolicy.getTupleErrorMap().size());
+    Assert.assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
+    Assert.assertEquals(0, ackTuplesPolicy.getTupleErrorMap().size());
     verify(collector, times(1)).ack(tuple1);
     verify(collector, times(1)).ack(tuple2);
     verify(collector, times(1)).reportError(e1);
@@ -189,7 +190,7 @@ public class AckTuplesPolicyTest {
 
     ackTuplesPolicy.onFlush(sensorType, response);
 
-    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
+    Assert.assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
     verify(collector, times(1)).ack(tuple1);
     verify(collector, times(1)).ack(tuple2);
     verifyNoMoreInteractions(collector);
@@ -211,7 +212,7 @@ public class AckTuplesPolicyTest {
 
     ackTuplesPolicy.onFlush(sensorType, response);
 
-    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
+    Assert.assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
     verify(collector, times(1)).ack(tuple1);
     verifyNoMoreInteractions(collector);
   }
