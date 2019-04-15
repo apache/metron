@@ -19,11 +19,11 @@
 package org.apache.metron.stellar.dsl.functions;
 
 import java.util.HashMap;
-import org.apache.metron.stellar.dsl.BaseStellarFunction;
-import org.apache.metron.stellar.dsl.Stellar;
-
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.metron.stellar.dsl.BaseStellarFunction;
+import org.apache.metron.stellar.dsl.Stellar;
 
 public class MapFunctions {
 
@@ -84,29 +84,66 @@ public class MapFunctions {
     }
   }
 
-  @Stellar(name="PUT"
-          ,namespace="MAP"
-          , description="Gets the value associated with a key from a map"
-          , params = {
-                      "key - The key"
-                     ,"value - The value"
-                     ,"map - The map"
-                     }
-          , returns = "The original map modified."
+  @Stellar(name = "PUT",
+           namespace = "MAP",
+           description = "Adds a key/value pair to a map",
+           params = {
+                      "key - The key",
+                      "value - The value",
+                      "map - The map to perform the put on"
+                    },
+           returns = "The original map modified with the key/value. If the map argument is null, a new map will be created and returned that contains the provided key and value - note: if the 'map' argument is null, only the returned map will be non-null and contain the key/value."
           )
   public static class MapPut extends BaseStellarFunction {
+
     @Override
     @SuppressWarnings("unchecked")
     public Object apply(List<Object> objects) {
-      Object keyObj = objects.get(0);
-      Object valueObj = objects.get(1);
-      Object mapObj = objects.get(2);
-      if(mapObj == null) {
-        mapObj = new HashMap<>();
+      if (objects.size() < 3) {
+        throw new IllegalArgumentException("Must pass a key, value, and map");
+      } else {
+        Object keyObj = objects.get(0);
+        Object valueObj = objects.get(1);
+        Object mapObj = objects.get(2);
+        if (mapObj == null) {
+          mapObj = new HashMap<>();
+        }
+        Map<Object, Object> map = (Map) mapObj;
+        map.put(keyObj, valueObj);
+        return map;
       }
-      Map<Object, Object> map = (Map)mapObj;
-      map.put(keyObj, valueObj);
-      return map;
+    }
+  }
+
+  @Stellar(name = "MERGE",
+           namespace = "MAP",
+           description = "Merges a list of maps",
+           params = {"maps - A collection of maps to merge"},
+           returns = "A Map. null if the list of maps is empty."
+          )
+  public static class MapMerge extends BaseStellarFunction {
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Object apply(List<Object> list) {
+      if (list.size() < 1) {
+        return null;
+      }
+      LinkedHashMap<Object, Object> ret = new LinkedHashMap<>();
+      Object o = list.get(0);
+      if (o != null) {
+        if (!(o instanceof Iterable)) {
+          throw new IllegalArgumentException("Expected an Iterable, but " + o + " is of type " + o.getClass());
+        }
+        Iterable<? extends Map> maps = (Iterable<? extends Map>) o;
+
+        for (Map m : maps) {
+          if (m != null) {
+            ret.putAll(m);
+          }
+        }
+      }
+      return ret;
     }
   }
 }

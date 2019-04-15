@@ -21,6 +21,9 @@ package org.apache.metron.stellar.dsl.functions;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.validate;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -35,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
@@ -43,7 +47,6 @@ import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver;
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -644,12 +647,70 @@ public class BasicStellarTest {
 
   @Test
   public void testMapPut() {
-    // key, value, map
-    String query = "MAP_PUT('foo','bar',mymap)";
     Map vars = ImmutableMap.of("mymap", new HashMap<String, String>());
-    Assert.assertThat(run(query, vars), CoreMatchers.notNullValue());
+    String query = "MAP_PUT('foo','bar',mymap)";
+    assertThat(run(query, vars), instanceOf(Map.class));
     query = "MAP_GET('foo', mymap)";
-    Assert.assertEquals("bar", run(query, vars));
+    assertThat(run(query, vars), equalTo("bar"));
+  }
+
+  @Test
+  public void testMapPutDefault() {
+    Map vars = new HashMap() {{
+      put("mymap", null);
+    }};
+    String query = "MAP_PUT('foo','bar', mymap)";
+    Map result = (Map) run(query, vars);
+    assertThat(result, instanceOf(Map.class));
+    assertThat(result.size(), equalTo(1));
+    assertThat(result.get("foo"), equalTo("bar"));
+  }
+
+  @Test(expected=ParseException.class)
+  public void mapPutTest_wrongType() throws Exception {
+    Map s = (Map) run("MAP_PUT( 'foo', 'bar', [ 'baz' ] )", new HashMap<>());
+  }
+
+  @Test
+  public void testMapMerge() {
+    {
+      Map m = (Map) StellarProcessorUtils.run("MAP_MERGE([{}, null])", new HashMap<>());
+      Assert.assertEquals(0, m.size());
+    }
+    {
+      Map vars = new HashMap() {{
+        put("map1", ImmutableMap.of("a", 1, "b", 2));
+        put("map2", ImmutableMap.of("c", 3, "d", 4));
+        put("map3", ImmutableMap.of("e", 5, "f", 6));
+      }};
+      String query = "MAP_MERGE([map1, map2, map3])";
+      Map result = (Map) run(query, vars);
+      assertThat(result, instanceOf(Map.class));
+      assertThat(result.size(), equalTo(6));
+      assertThat(result.get("a"), equalTo(1));
+      assertThat(result.get("b"), equalTo(2));
+      assertThat(result.get("c"), equalTo(3));
+      assertThat(result.get("d"), equalTo(4));
+      assertThat(result.get("e"), equalTo(5));
+      assertThat(result.get("f"), equalTo(6));
+    }
+    {
+      String query = "MAP_MERGE( [ { 'a' : '1', 'b' : '2' }, { 'c' : '3', 'd' : '4' }, { 'e' : '5', 'f' : '6' } ] )";
+      Map result = (Map) run(query, new HashMap<>());
+      assertThat(result, instanceOf(Map.class));
+      assertThat(result.size(), equalTo(6));
+      assertThat(result.get("a"), equalTo("1"));
+      assertThat(result.get("b"), equalTo("2"));
+      assertThat(result.get("c"), equalTo("3"));
+      assertThat(result.get("d"), equalTo("4"));
+      assertThat(result.get("e"), equalTo("5"));
+      assertThat(result.get("f"), equalTo("6"));
+    }
+  }
+
+  @Test(expected=ParseException.class)
+  public void mapMergeTest_wrongType() throws Exception {
+    Map s = (Map) run("MAP_MERGE( [ 'foo', 'bar' ] )", new HashMap<>());
   }
 
   @Test
