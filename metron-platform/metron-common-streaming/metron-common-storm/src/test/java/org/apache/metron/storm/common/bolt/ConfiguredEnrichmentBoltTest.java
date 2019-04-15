@@ -37,6 +37,10 @@ import java.util.Set;
 
 public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
 
+  private static final String sampleConfigPath = "../" + TestConstants.SAMPLE_CONFIG_PATH;
+  private static final String enrichmentsConfigPath = "../" + TestConstants.ENRICHMENTS_CONFIGS_PATH;
+  private static final String parserConfigsPath = "../" + TestConstants.PARSER_CONFIGS_PATH;
+
   private Set<String> enrichmentConfigurationTypes = new HashSet<>();
   private String zookeeperUrl;
 
@@ -64,15 +68,15 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
   public void setupConfiguration() throws Exception {
     TestingServer testZkServer = new TestingServer(true);
     this.zookeeperUrl = testZkServer.getConnectString();
-    byte[] globalConfig = ConfigurationsUtils.readGlobalConfigFromFile("../" + TestConstants.SAMPLE_CONFIG_PATH);
+    byte[] globalConfig = ConfigurationsUtils.readGlobalConfigFromFile(sampleConfigPath);
     ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig, zookeeperUrl);
     enrichmentConfigurationTypes.add(ConfigurationType.GLOBAL.getTypeName());
-    Map<String, byte[]> sensorEnrichmentConfigs = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile("../" + TestConstants.ENRICHMENTS_CONFIGS_PATH);
+    Map<String, byte[]> sensorEnrichmentConfigs = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(enrichmentsConfigPath);
     for (String sensorType : sensorEnrichmentConfigs.keySet()) {
       ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, sensorEnrichmentConfigs.get(sensorType), zookeeperUrl);
       enrichmentConfigurationTypes.add(sensorType);
     }
-    Map<String, byte[]> sensorParserConfigs = ConfigurationsUtils.readSensorParserConfigsFromFile("../" + TestConstants.PARSER_CONFIGS_PATH);
+    Map<String, byte[]> sensorParserConfigs = ConfigurationsUtils.readSensorParserConfigsFromFile(parserConfigsPath);
     for (String sensorType : sensorParserConfigs.keySet()) {
       ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorType, sensorParserConfigs.get(sensorType), zookeeperUrl);
     }
@@ -90,8 +94,8 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     UnitTestHelper.setLog4jLevel(ConfiguredBolt.class, Level.ERROR);
 
     configsUpdated = new HashSet<>();
-    sampleConfigurations.updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile("../" + TestConstants.SAMPLE_CONFIG_PATH));
-    Map<String, byte[]> sensorEnrichmentConfigs = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile("../" + TestConstants.ENRICHMENTS_CONFIGS_PATH);
+    sampleConfigurations.updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile(sampleConfigPath));
+    Map<String, byte[]> sensorEnrichmentConfigs = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(enrichmentsConfigPath);
     for (String sensorType : sensorEnrichmentConfigs.keySet()) {
       sampleConfigurations.updateSensorEnrichmentConfig(sensorType, sensorEnrichmentConfigs.get(sensorType));
     }
