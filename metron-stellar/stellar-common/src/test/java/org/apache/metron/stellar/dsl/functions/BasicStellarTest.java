@@ -672,40 +672,67 @@ public class BasicStellarTest {
   }
 
   @Test
-  public void testMapMerge() {
-    {
-      Map m = (Map) StellarProcessorUtils.run("MAP_MERGE([{}, null])", new HashMap<>());
-      Assert.assertEquals(0, m.size());
-    }
-    {
-      Map vars = new HashMap() {{
-        put("map1", ImmutableMap.of("a", 1, "b", 2));
-        put("map2", ImmutableMap.of("c", 3, "d", 4));
-        put("map3", ImmutableMap.of("e", 5, "f", 6));
-      }};
-      String query = "MAP_MERGE([map1, map2, map3])";
-      Map result = (Map) run(query, vars);
-      assertThat(result, instanceOf(Map.class));
-      assertThat(result.size(), equalTo(6));
-      assertThat(result.get("a"), equalTo(1));
-      assertThat(result.get("b"), equalTo(2));
-      assertThat(result.get("c"), equalTo(3));
-      assertThat(result.get("d"), equalTo(4));
-      assertThat(result.get("e"), equalTo(5));
-      assertThat(result.get("f"), equalTo(6));
-    }
-    {
-      String query = "MAP_MERGE( [ { 'a' : '1', 'b' : '2' }, { 'c' : '3', 'd' : '4' }, { 'e' : '5', 'f' : '6' } ] )";
-      Map result = (Map) run(query, new HashMap<>());
-      assertThat(result, instanceOf(Map.class));
-      assertThat(result.size(), equalTo(6));
-      assertThat(result.get("a"), equalTo("1"));
-      assertThat(result.get("b"), equalTo("2"));
-      assertThat(result.get("c"), equalTo("3"));
-      assertThat(result.get("d"), equalTo("4"));
-      assertThat(result.get("e"), equalTo("5"));
-      assertThat(result.get("f"), equalTo("6"));
-    }
+  public void testMapMergeEmpty() {
+    Map m = (Map) StellarProcessorUtils.run("MAP_MERGE([{}, null])", new HashMap<>());
+    Assert.assertEquals(0, m.size());
+  }
+
+  @Test
+  public void testMapMergeFromVariables() {
+    Map vars = new HashMap() {{
+      put("map1", ImmutableMap.of("a", 1, "b", 2));
+      put("map2", ImmutableMap.of("c", 3, "d", 4));
+      put("map3", ImmutableMap.of("e", 5, "f", 6));
+    }};
+    String query = "MAP_MERGE([map1, map2, map3])";
+    Map result = (Map) run(query, vars);
+    assertThat(result, instanceOf(Map.class));
+    assertThat(result.size(), equalTo(6));
+    assertThat(result.get("a"), equalTo(1));
+    assertThat(result.get("b"), equalTo(2));
+    assertThat(result.get("c"), equalTo(3));
+    assertThat(result.get("d"), equalTo(4));
+    assertThat(result.get("e"), equalTo(5));
+    assertThat(result.get("f"), equalTo(6));
+  }
+
+  @Test
+  public void testMapMergeSingleMap() {
+    String query = "MAP_MERGE( [ { 'a' : '1', 'b' : '2', 'c' : '3' } ] )";
+    Map result = (Map) run(query, new HashMap<>());
+    assertThat(result, instanceOf(Map.class));
+    assertThat(result.size(), equalTo(3));
+    assertThat(result.get("a"), equalTo("1"));
+    assertThat(result.get("b"), equalTo("2"));
+    assertThat(result.get("c"), equalTo("3"));
+  }
+
+  @Test
+  public void testMapMergeFromInlineMaps() {
+    String query = "MAP_MERGE( [ { 'a' : '1', 'b' : '2' }, { 'c' : '3', 'd' : '4' }, { 'e' : '5', 'f' : '6' } ] )";
+    Map result = (Map) run(query, new HashMap<>());
+    assertThat(result, instanceOf(Map.class));
+    assertThat(result.size(), equalTo(6));
+    assertThat(result.get("a"), equalTo("1"));
+    assertThat(result.get("b"), equalTo("2"));
+    assertThat(result.get("c"), equalTo("3"));
+    assertThat(result.get("d"), equalTo("4"));
+    assertThat(result.get("e"), equalTo("5"));
+    assertThat(result.get("f"), equalTo("6"));
+  }
+
+  @Test
+  public void testMapMergeWithOverlappingMapsAndMixedTypes() {
+    String query = "MAP_MERGE( [ { 'a' : '1', 'b' : 2, 'c' : '3' }, { 'c' : '3b', 'd' : '4' }, { 'd' : '4b', 'e' : 5, 'f' : '6' } ] )";
+    Map result = (Map) run(query, new HashMap<>());
+    assertThat(result, instanceOf(Map.class));
+    assertThat(result.size(), equalTo(6));
+    assertThat(result.get("a"), equalTo("1"));
+    assertThat(result.get("b"), equalTo(2));
+    assertThat(result.get("c"), equalTo("3b"));
+    assertThat(result.get("d"), equalTo("4b"));
+    assertThat(result.get("e"), equalTo(5));
+    assertThat(result.get("f"), equalTo("6"));
   }
 
   @Test(expected=ParseException.class)

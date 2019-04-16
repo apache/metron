@@ -809,7 +809,7 @@ Where:
 ### `MAP_MERGE`
   * Description: Merges a list of maps
   * Input:
-    * maps - A collection of maps to merge
+    * maps - A collection of maps to merge. Last entry wins for overlapping keys.
   * Returns: A Map. null if the list of maps is empty.
 
 ### `MAP_PUT`

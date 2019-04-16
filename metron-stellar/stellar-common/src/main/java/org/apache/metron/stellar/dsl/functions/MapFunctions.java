@@ -18,6 +18,7 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import com.google.common.collect.Iterables;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -118,7 +119,7 @@ public class MapFunctions {
   @Stellar(name = "MERGE",
            namespace = "MAP",
            description = "Merges a list of maps",
-           params = {"maps - A collection of maps to merge"},
+           params = {"maps - A collection of maps to merge. Last entry wins for overlapping keys."},
            returns = "A Map. null if the list of maps is empty."
           )
   public static class MapMerge extends BaseStellarFunction {
@@ -136,6 +137,10 @@ public class MapFunctions {
           throw new IllegalArgumentException("Expected an Iterable, but " + o + " is of type " + o.getClass());
         }
         Iterable<? extends Map> maps = (Iterable<? extends Map>) o;
+
+        if (Iterables.size(maps) == 1) {
+          return Iterables.getFirst(maps, null);
+        }
 
         for (Map m : maps) {
           if (m != null) {
