@@ -649,12 +649,14 @@ process for you. The script should be run on an interval that is shorter than th
 Run the following on a node with a Storm and Metron client installed. We need python 2.7 via virtualenv for this to work correctly.
 
 ```
-su - metron
+# run yum commands as root
 for item in epel-release centos-release-scl "@Development tools" python27 python27-scldevel python27-python-virtualenv libselinux-python; do yum install -y $item; done
 sudo yum install -y gcc krb5-devel python-devel
 sudo yum install -y libffi libffi-devel
 sudo yum install -y python-cffi
 sudo yum install -y openssl-devel
+# setup python with metron user
+su - metron
 export PYTHON27_HOME=/opt/rh/python27/root
 export LD_LIBRARY_PATH="/opt/rh/python27/root/usr/lib64"
 mkdir project_dir
@@ -673,6 +675,8 @@ The script `$METRON_HOME/bin/tgt_renew.py` takes two arguments:
 Execute it like the following example:
 
 ```
+# run as the metron user
+su - metron
 python $METRON_HOME/bin/tgt_renew.py node1:8744 metron
 ```
 
