@@ -228,7 +228,7 @@ public class ParserTopologyBuilder {
    * @param securityProtocol An optional security protocol in use.
    * @return
    */
-  private static KafkaWriter createKafkaWriter(Optional<String> broker,
+  protected static KafkaWriter createKafkaWriter(Optional<String> broker,
                                                String zkQuorum,
                                                Optional<String> securityProtocol) {
     KafkaWriter writer = new KafkaWriter();
@@ -266,6 +266,21 @@ public class ParserTopologyBuilder {
                                               Optional<String> securityProtocol,
                                               ParserConfigurations configs,
                                               Optional<String> outputTopic) {
+    Map<String, WriterHandler> writerConfigs = createWriterConfigs(zookeeperUrl,
+            brokerUrl,
+            sensorTypeToParserConfig,
+            securityProtocol,
+            configs,
+            outputTopic);
+    return new ParserBolt(zookeeperUrl, new ParserRunnerImpl(new HashSet<>(sensorTypeToParserConfig.keySet())), writerConfigs);
+  }
+
+  protected static Map<String, WriterHandler> createWriterConfigs(String zookeeperUrl,
+                                                                  Optional<String> brokerUrl,
+                                                                  Map<String, SensorParserConfig> sensorTypeToParserConfig,
+                                                                  Optional<String> securityProtocol,
+                                                                  ParserConfigurations configs,
+                                                                  Optional<String> outputTopic) {
     Map<String, WriterHandler> writerConfigs = new HashMap<>();
     for( Entry<String, SensorParserConfig> entry : sensorTypeToParserConfig.entrySet()) {
       String sensorType = entry.getKey();
@@ -276,7 +291,8 @@ public class ParserTopologyBuilder {
       if (parserConfig.getWriterClassName() == null) {
         // if not configured, use a sensible default
         writer = createKafkaWriter(brokerUrl, zookeeperUrl, securityProtocol)
-            .withTopic(outputTopic.orElse(Constants.ENRICHMENT_TOPIC));
+                .withTopic(outputTopic.orElse(
+                        parserConfig.getOutputTopic() != null ? parserConfig.getOutputTopic() : Constants.ENRICHMENT_TOPIC));
 
       } else {
         writer = ReflectionUtils.createInstance(parserConfig.getWriterClassName());
@@ -289,8 +305,7 @@ public class ParserTopologyBuilder {
       WriterHandler writerHandler = createWriterHandler(writer);
       writerConfigs.put(sensorType, writerHandler);
     }
-
-    return new ParserBolt(zookeeperUrl, new ParserRunnerImpl(new HashSet<>(sensorTypeToParserConfig.keySet())), writerConfigs);
+    return writerConfigs;
   }
 
   /**
