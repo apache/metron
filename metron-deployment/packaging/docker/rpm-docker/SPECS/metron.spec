@@ -136,6 +136,7 @@ This package installs the Metron common files %{metron_home}
 %{metron_home}/bin/zk_load_configs.sh
 %{metron_home}/bin/stellar
 %{metron_home}/bin/cluster_info.py
+%{metron_home}/bin/tgt_renew.py
 %{metron_home}/config/zookeeper/global.json
 %attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}.jar
 
