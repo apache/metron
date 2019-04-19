@@ -27,7 +27,7 @@ public class SampleUtil {
 
   public static Configurations getSampleConfigs() throws IOException {
     Configurations configurations = new Configurations();
-    configurations.updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH));
+    configurations.updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile("../" + TestConstants.SAMPLE_CONFIG_PATH));
     return configurations;
   }
 

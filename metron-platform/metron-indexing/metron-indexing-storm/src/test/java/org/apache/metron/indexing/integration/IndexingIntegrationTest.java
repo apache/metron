@@ -50,7 +50,8 @@ import org.junit.Test;
 
 public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   protected static final String ERROR_TOPIC = "indexing_error";
-  protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
+  protected String sampleParsedPath = "../" + TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
+  protected String sampleConfigPath = "../" + TestConstants.SAMPLE_CONFIG_PATH;
   protected String testSensorType = "test";
   protected final int NUM_RETRIES = 100;
   protected final long TOTAL_TIME_MS = 150000L;
@@ -88,9 +89,9 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     final AtomicBoolean isLoaded = new AtomicBoolean(false);
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
-            .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
-            .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
-            .withIndexingConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
+            .withGlobalConfigsPath(sampleConfigPath)
+            .withEnrichmentConfigsPath(sampleConfigPath)
+            .withIndexingConfigsPath(sampleConfigPath)
             .withPostStartCallback(component -> {
               try {
                 waitForIndex(component.getTopologyProperties().getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY));

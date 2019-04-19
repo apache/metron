@@ -19,6 +19,7 @@
 package org.apache.metron.indexing.integration;
 
 import com.google.common.collect.Iterables;
+import org.apache.metron.TestConstants;
 import org.apache.metron.common.field.FieldNameConverter;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.integration.*;
@@ -102,7 +103,7 @@ public class HDFSIndexingIntegrationTest extends IndexingIntegrationTest {
           throw new IllegalStateException("Unable to retrieve indexed documents.", e);
         }
         if (docs.size() < inputMessages.size()) {
-          errors = kafkaComponent.readMessages(ERROR_TOPIC);
+          errors = kafkaComponent.readMessages(IndexingIntegrationTest.ERROR_TOPIC);
           if(errors.size() > 0 && errors.size() + docs.size() == inputMessages.size()){
               return ReadinessState.READY;
           }
@@ -151,11 +152,11 @@ public class HDFSIndexingIntegrationTest extends IndexingIntegrationTest {
 
   @Override
   public String getTemplatePath() {
-    return "../metron-indexing/src/main/config/hdfs.properties.j2";
+    return "../metron-indexing-common/src/main/config/hdfs.properties.j2";
   }
 
   @Override
   public String getFluxPath() {
-    return "../metron-indexing/src/main/flux/indexing/batch/remote.yaml";
+    return "../metron-indexing-common/src/main/flux/indexing/batch/remote.yaml";
   }
 }

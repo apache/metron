@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.elasticsearch.integration;
+package org.apache.metron.indexing.integration;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.field.FieldNameConverter;
@@ -146,11 +146,11 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
 
   @Override
   public String getTemplatePath() {
-    return "../metron-elasticsearch/src/main/config/elasticsearch.properties.j2";
+    return "../../metron-elasticsearch/src/main/config/elasticsearch.properties.j2";
   }
 
   @Override
   public String getFluxPath() {
-    return "../metron-indexing/src/main/flux/indexing/random_access/remote.yaml";
+    return "../metron-indexing-common/src/main/flux/indexing/random_access/remote.yaml";
   }
 }

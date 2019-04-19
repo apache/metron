@@ -15,15 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.solr.integration;
-
-import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+package org.apache.metron.indexing.integration;
 
 import com.google.common.base.Function;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.annotation.Nullable;
+
+import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.field.FieldNameConverter;
@@ -37,6 +37,7 @@ import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.solr.SolrConstants;
 import org.apache.metron.solr.integration.components.SolrComponent;
 
 
@@ -53,7 +54,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
   @Override
   public InMemoryComponent getSearchComponent(final Properties topologyProperties) throws Exception {
     SolrComponent solrComponent = new SolrComponent.Builder()
-        .addInitialCollection(collection, "../metron-solr/src/main/config/schema/yaf")
+        .addInitialCollection(collection, "../../metron-solr/src/main/config/schema/yaf")
         .withPostStartCallback(new Function<SolrComponent, Void>() {
               @Nullable
               @Override
@@ -63,7 +64,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
                   String testZookeeperUrl = topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY);
                   Configurations configurations = SampleUtil.getSampleConfigs();
                   Map<String, Object> globalConfig = configurations.getGlobalConfig();
-                  globalConfig.put(SOLR_ZOOKEEPER, solrComponent.getZookeeperUrl());
+                  globalConfig.put(SolrConstants.SOLR_ZOOKEEPER, solrComponent.getZookeeperUrl());
                   ConfigurationsUtils.writeGlobalConfigToZookeeper(JSONUtils.INSTANCE.toJSONPretty(globalConfig), testZookeeperUrl);
                 } catch (Exception e) {
                   e.printStackTrace();
@@ -126,11 +127,11 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
 
   @Override
   public String getTemplatePath() {
-    return "../metron-solr/src/main/config/solr.properties.j2";
+    return "../../metron-solr/src/main/config/solr.properties.j2";
   }
 
   @Override
   public String getFluxPath() {
-    return "../metron-indexing/src/main/flux/indexing/random_access/remote.yaml";
+    return "../metron-indexing-common/src/main/flux/indexing/random_access/remote.yaml";
   }
 }
