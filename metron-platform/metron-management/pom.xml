@@ -45,7 +45,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.metron</groupId>
-                    <artifactId>metron-writer</artifactId>
+                    <artifactId>metron-writer-common</artifactId>
                 </exclusion>
             </exclusions>
             <scope>provided</scope>
@@ -57,7 +57,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.metron</groupId>
-                    <artifactId>metron-writer</artifactId>
+                    <artifactId>metron-writer-common</artifactId>
                 </exclusion>
             </exclusions>
             <scope>provided</scope>

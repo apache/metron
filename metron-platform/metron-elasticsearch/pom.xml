@@ -46,7 +46,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-writer</artifactId>
+            <artifactId>metron-writer-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>

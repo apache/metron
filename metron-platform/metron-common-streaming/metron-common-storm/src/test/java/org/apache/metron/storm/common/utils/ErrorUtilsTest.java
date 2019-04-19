@@ -19,17 +19,10 @@ package org.apache.metron.storm.common.utils;
 
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.OutputCollector;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
-
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
@@ -38,41 +31,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class ErrorUtilsTest {
-
-  @Rule
-  public ExpectedException exception = ExpectedException.none();
-
-  @Test
-  public void illegal_arg_throws_exception_with_reason() throws Exception {
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("illegal arg happened");
-    exception.expectCause(nullValue(Throwable.class));
-    ErrorUtils.RuntimeErrors.ILLEGAL_ARG.throwRuntime("illegal arg happened");
-  }
-
-  @Test
-  public void illegal_arg_throws_exception_with_reason_and_cause() throws Exception {
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("illegal arg happened");
-    exception.expectCause(instanceOf(IOException.class));
-    ErrorUtils.RuntimeErrors.ILLEGAL_ARG.throwRuntime("illegal arg happened", new IOException("bad io"));
-  }
-
-  @Test
-  public void illegal_state_throws_exception_with_reason() throws Exception {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("illegal state happened");
-    exception.expectCause(nullValue(Throwable.class));
-    ErrorUtils.RuntimeErrors.ILLEGAL_STATE.throwRuntime("illegal state happened");
-  }
-
-  @Test
-  public void illegal_state_throws_exception_with_reason_and_cause() throws Exception {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("illegal state happened");
-    exception.expectCause(instanceOf(IOException.class));
-    ErrorUtils.RuntimeErrors.ILLEGAL_STATE.throwRuntime("illegal state happened", new IOException("bad io"));
-  }
 
   @Test
   public void handleErrorShouldEmitAndReportError() throws Exception {

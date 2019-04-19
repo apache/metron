@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
@@ -50,7 +49,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BulkWriterComponent.class, ErrorUtils.class})
+@PrepareForTest({BulkWriterComponent.class})
 public class BulkWriterComponentTest {
 
   @Rule
@@ -76,7 +75,6 @@ public class BulkWriterComponentTest {
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
-    mockStatic(ErrorUtils.class);
     message1.put("value", "message1");
     message2.put("value", "message2");
     messageIds = Arrays.asList(messageId1, messageId2);
