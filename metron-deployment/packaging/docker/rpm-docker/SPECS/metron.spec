@@ -50,7 +50,7 @@ Source3:        metron-data-management-%{full_version}-archive.tar.gz
 Source4:        metron-solr-%{full_version}-archive.tar.gz
 Source5:        metron-enrichment-common-%{full_version}-archive.tar.gz
 Source6:        metron-enrichment-storm-%{full_version}-archive.tar.gz
-Source7:        metron-indexing-%{full_version}-archive.tar.gz
+Source7:        metron-indexing-common-%{full_version}-archive.tar.gz
 Source8:        metron-pcap-backend-%{full_version}-archive.tar.gz
 Source9:        metron-profiler-storm-%{full_version}-archive.tar.gz
 Source10:       metron-rest-%{full_version}-archive.tar.gz
@@ -373,15 +373,15 @@ This package installs the Metron Enrichment Storm files
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-%package        indexing
+%package        indexing-common
 Summary:        Metron Indexing Files
 Group:          Applications/Internet
-Provides:       indexing = %{version}
+Provides:       indexing-common = %{version}
 
-%description    indexing
+%description    indexing-common
 This package installs the Metron Indexing files
 
-%files          indexing
+%files          indexing-common
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}

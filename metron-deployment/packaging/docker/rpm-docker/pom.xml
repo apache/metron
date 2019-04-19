@@ -144,7 +144,7 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-indexing/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-indexing/metron-indexing-common/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
