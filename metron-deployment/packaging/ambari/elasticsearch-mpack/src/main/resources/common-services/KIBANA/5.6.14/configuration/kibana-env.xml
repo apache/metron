@@ -36,7 +36,7 @@
     </value-attributes>
   </property>
   <property>
-    <name>kabana_group</name>
+    <name>kibana_group</name>
     <value>kibana</value>
     <property-type>GROUP</property-type>
     <description>Service Group for Kibana</description>
