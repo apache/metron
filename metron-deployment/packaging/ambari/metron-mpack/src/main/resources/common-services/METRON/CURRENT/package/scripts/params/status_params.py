@@ -23,9 +23,17 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import default, format
 from resource_management.libraries.functions.version import format_stack_version
 
+def get_hostname(config):
+  if 'agentLevelParams' in config.keys():
+    # Ambari 2.7.x
+    return config['agentLevelParams']['hostname']
+  else:
+    # Ambari 2.6.x
+    return config['hostname']
+
 config = Script.get_config()
 
-hostname = config['agentLevelParams']['hostname']
+hostname = get_hostname(config)
 metron_user = config['configurations']['metron-env']['metron_user']
 metron_home = config['configurations']['metron-env']['metron_home']
 metron_zookeeper_config_dir = config['configurations']['metron-env']['metron_zookeeper_config_dir']
