@@ -26,17 +26,7 @@ $dialog-4x-width: 1340px;
 
 .metron-slider-pane-details
 {
-<<<<<<< HEAD
   position: fixed;
-=======
-  display: inline-block;
-  float: right;
-  word-wrap: break-word;
-  height: 100%;
-  min-height: 100%;
-  position: absolute;
-
->>>>>>> [details-loading] adding loader to alerts detail pane
   top: 0;
   right: 0;
   height: 100%;
@@ -44,10 +34,7 @@ $dialog-4x-width: 1340px;
   z-index: 9;
 
   background: $edit-child-background;
-<<<<<<< HEAD
-=======
   border-left: 1px solid $edit-background-border;
->>>>>>> [details-loading] adding loader to alerts detail pane
 
   .close-button
   {
