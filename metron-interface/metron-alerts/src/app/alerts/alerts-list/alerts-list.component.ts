@@ -310,17 +310,17 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.prepareColumnData(tableMetaData.tableColumns, defaultColumns);
   }
 
-  preventDropdownOptionIfDisabled(e: Event): boolean {
-    if ((e.target as HTMLElement).classList.contains('disabled')) {
-      e.stopPropagation();
-      e.preventDefault();
+  preventDropdownOptionIfDisabled(event: Event): boolean {
+    if ((event.target as HTMLElement).classList.contains('disabled')) {
+      event.stopPropagation();
+      event.preventDefault();
       return false;
     }
     return true
   }
 
-  processEscalate(e) {
-    if (this.preventDropdownOptionIfDisabled(e) === true) {
+  processEscalate(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
       this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(() => {
         const alerts = [...this.selectedAlerts];
         this.updateSelectedAlertStatus('ESCALATE');
@@ -329,32 +329,32 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  processDismiss(e) {
-    if (this.preventDropdownOptionIfDisabled(e) === true) {
+  processDismiss(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
       this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS', false).subscribe(results => {
         this.updateSelectedAlertStatus('DISMISS');
       });
     }
   }
 
-  processOpen(e) {
-    if (this.preventDropdownOptionIfDisabled(e) === true) {
+  processOpen(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
       this.updateService.updateAlertState(this.selectedAlerts, 'OPEN', false).subscribe(results => {
         this.updateSelectedAlertStatus('OPEN');
       });
     }
   }
 
-  processResolve(e) {
-    if (this.preventDropdownOptionIfDisabled(e) === true) {
+  processResolve(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
       this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE', false).subscribe(results => {
         this.updateSelectedAlertStatus('RESOLVE');
       });
     }
   }
 
-  processAddToAlert(e) {
-    if (this.preventDropdownOptionIfDisabled(e) === true) {
+  processAddToAlert(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
       this.metaAlertsService.selectedAlerts = this.selectedAlerts;
       this.router.navigateByUrl('/alerts-list(dialog:add-to-meta-alert)');
     }
