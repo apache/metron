@@ -39,6 +39,7 @@ import { GlobalConfigService } from '../../../service/global-config.service';
 import { DialogService } from '../../../service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
 import { ConfirmationType } from 'app/model/confirmation-type';
+import {AlertSource} from "../../../model/alert-source";
 
 @Component({
   selector: 'app-tree-view',
@@ -55,7 +56,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   treeGroupSubscriptionMap: {[key: string]: TreeAlertsSubscription } = {};
   alertsChangedSubscription: Subscription;
   configSubscription: Subscription;
-  dialogService: DialogService
+  dialogService: DialogService;
 
   constructor(searchService: SearchService,
               updateService: UpdateService,
@@ -66,8 +67,8 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   addAlertChangedListner() {
-    this.alertsChangedSubscription = this.updateService.alertChanged$.subscribe(patchRequest => {
-      this.updateAlert(patchRequest);
+    this.alertsChangedSubscription = this.updateService.alertChanged$.subscribe(alertSource => {
+      this.updateAlert(alertSource);
     });
   }
 
@@ -436,16 +437,13 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     return false;
   }
 
-  updateAlert(patchRequest: PatchRequest) {
-    this.searchService.getAlert(patchRequest.sensorType, patchRequest.guid).subscribe(alertSource => {
-
-      Object.keys(this.treeGroupSubscriptionMap).forEach(key => {
-        let group = this.treeGroupSubscriptionMap[key].group;
-        if (group.response && group.response.results && group.response.results.length > 0) {
-          group.response.results.filter(alert => alert.source.guid === patchRequest.guid)
-          .map(alert => alert.source = alertSource);
-        }
-      });
+  updateAlert(alertSource: AlertSource) {
+    Object.keys(this.treeGroupSubscriptionMap).forEach(key => {
+      let group = this.treeGroupSubscriptionMap[key].group;
+      if (group.response && group.response.results && group.response.results.length > 0) {
+        group.response.results.filter(alert => alert.source.guid === alertSource.guid)
+        .forEach(alert => alert.source = alertSource);
+      }
     });
   }
 }

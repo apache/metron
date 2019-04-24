@@ -47,6 +47,7 @@ import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.solr.client.solrj.SolrClient;
 
 public class SolrMetaAlertDao implements MetaAlertDao {
@@ -144,10 +145,11 @@ public class SolrMetaAlertDao implements MetaAlertDao {
       }
     };
 
-    SolrClient solrClient = solrDao.getSolrClient(solrDao.getZkHosts());
+    SolrClient solrClient = SolrClientFactory.create(globalConfigSupplier.get());
     this.metaAlertSearchDao = new SolrMetaAlertSearchDao(solrClient, solrDao.getSolrSearchDao(), config);
-    this.metaAlertRetrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrDao);
+    this.metaAlertRetrieveLatestDao = new SolrMetaAlertRetrieveLatestDao(solrClient, solrDao);
     this.metaAlertUpdateDao = new SolrMetaAlertUpdateDao(
+        solrClient,
         solrDao,
         metaAlertSearchDao,
         metaAlertRetrieveLatestDao,

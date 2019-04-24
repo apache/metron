@@ -25,7 +25,6 @@ import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
-import org.apache.storm.task.TopologyContext;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,13 +46,10 @@ import static org.mockito.Mockito.when;
 public class ElasticsearchWriterTest {
 
     Map stormConf;
-    TopologyContext topologyContext;
     WriterConfiguration writerConfiguration;
 
     @Before
     public void setup() {
-        topologyContext = mock(TopologyContext.class);
-
         writerConfiguration = mock(WriterConfiguration.class);
         when(writerConfiguration.getGlobalConfig()).thenReturn(globals());
 
@@ -74,7 +70,7 @@ public class ElasticsearchWriterTest {
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
-        esWriter.init(stormConf, topologyContext, writerConfiguration);
+        esWriter.init(stormConf, writerConfiguration);
         BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // response should only contain successes
@@ -98,7 +94,7 @@ public class ElasticsearchWriterTest {
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
-        esWriter.init(stormConf, topologyContext, writerConfiguration);
+        esWriter.init(stormConf, writerConfiguration);
         BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // response should only contain successes
@@ -123,7 +119,7 @@ public class ElasticsearchWriterTest {
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
-        esWriter.init(stormConf, topologyContext, writerConfiguration);
+        esWriter.init(stormConf, writerConfiguration);
         BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // the writer response should only contain failures
@@ -151,7 +147,7 @@ public class ElasticsearchWriterTest {
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
-        esWriter.init(stormConf, topologyContext, writerConfiguration);
+        esWriter.init(stormConf, writerConfiguration);
         BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // the writer response should only contain failures
@@ -180,7 +176,7 @@ public class ElasticsearchWriterTest {
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
-        esWriter.init(stormConf, topologyContext, writerConfiguration);
+        esWriter.init(stormConf, writerConfiguration);
         BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // response should contain some successes and some failures
@@ -214,7 +210,7 @@ public class ElasticsearchWriterTest {
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
-        esWriter.init(stormConf, topologyContext, writerConfiguration);
+        esWriter.init(stormConf, writerConfiguration);
         BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // response should only contain successes
@@ -239,7 +235,7 @@ public class ElasticsearchWriterTest {
         // attempt to write
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         esWriter.setDocumentWriter(docWriter);
-        esWriter.init(stormConf, topologyContext, writerConfiguration);
+        esWriter.init(stormConf, writerConfiguration);
         BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
         // response should only contain successes
