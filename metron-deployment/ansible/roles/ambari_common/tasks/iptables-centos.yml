@@ -18,3 +18,4 @@
 - name: Stop iptables on CentOS
   ignore_errors: yes
   service: name=iptables state=stopped enabled=no
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version == '6'

@@ -33,9 +33,6 @@
 
 - import_playbook: sensor_install.yml
 
-#
-# deployment report
-#
 - hosts: metron
   become: false
   roles:
