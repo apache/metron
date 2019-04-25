@@ -299,7 +299,7 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-printf "Extracting LICENSE, NOTICE, and KEYS from tarball\n" # Only pull from core
+printf "Extracting LICENSE and NOTICE from tarball\n" # Only pull from core
 cd ${ART_DIR}
 
 if [ "${CHOSEN_REPO}" = "${BRO_PLUGIN_REPO_NAME}" ]; then
@@ -311,7 +311,6 @@ fi
 
 # TODO figure out what to do for bro repo here. The KEYS file only needs to live in the /dist root, rather than in each sub repo.
 # Should we have a separate process for adding to the KEYS file without doing a Metron release?
-#tar --strip-components=1 -zxvf "${ARTIFACT}.tar.gz" "${ARTIFACT}/KEYS"
 tar --strip-components=1 -zxvf "${ARTIFACT}.tar.gz" "${ARTIFACT}/NOTICE"
 
 # Add the directory and commit to subversion
