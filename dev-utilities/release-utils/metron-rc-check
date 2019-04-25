@@ -239,7 +239,7 @@ read -p "  run test suite [install, unit tests, integration tests, ui tests, lic
 echo
 DID_BUILD=0
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  cd "apache-metron-$METRON_VERSION-$RC" || exit 1
+  cd "apache-metron_${METRON_VERSION}-$RC" || exit 1
   if ! mvn -q -T 2C -DskipTests clean install  ; then
     echo "[ERROR] failed to mvn install metron"
     exit 1
@@ -274,7 +274,7 @@ echo ""
 read -p "  run vagrant full_dev? [yN] " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  cd "$WORK/apache-metron-$METRON_VERSION-$RC/metron-deployment/development/centos6" || exit 1
+  cd "$WORK/apache-metron_${METRON_VERSION}-$RC/metron-deployment/development/centos6" || exit 1
   if [[ ${DID_BUILD} -ne 1 ]]; then
     vagrant up
   else
