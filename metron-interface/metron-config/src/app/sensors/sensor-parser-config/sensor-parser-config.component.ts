@@ -329,7 +329,7 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   isGrokStatementValid(): boolean {
-    return this.grokStatement !== undefined && Object.keys(this.grokStatement).length > 0;
+    return !!this.grokStatement;
   }
 
   isConfigValid() {
@@ -469,13 +469,7 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   isGrokParser(sensorParserConfig: SensorParserConfig): boolean {
-    if (sensorParserConfig && sensorParserConfig.parserClassName) {
-      return (
-        sensorParserConfig.parserClassName ===
-        'org.apache.metron.parsers.GrokParser'
-      );
-    }
-    return false;
+    return sensorParserConfig && sensorParserConfig.parserClassName === 'org.apache.metron.parsers.GrokParser';
   }
 
   getTransformationCount(): number {
@@ -577,6 +571,4 @@ export class SensorParserConfigComponent implements OnInit {
   onAdvancedConfigFormClose(): void {
     this.showAdvancedParserConfiguration = false;
   }
-
-  log(v) {console.log(v)}
 }
