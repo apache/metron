@@ -16,13 +16,21 @@
 package org.apache.metron.rest.service.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import org.apache.metron.common.configuration.SensorParserGroup;
+import org.apache.metron.parsers.topology.ParserTopologyCLI;
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.SupervisorSummary;
 import org.apache.metron.rest.model.TopologyResponse;
 import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.model.TopologyStatusCode;
 import org.apache.metron.rest.model.TopologySummary;
+import org.apache.metron.rest.service.SensorParserGroupService;
 import org.apache.metron.rest.service.StormStatusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -38,13 +46,14 @@ import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_URL;
 public class StormStatusServiceImpl implements StormStatusService {
 
   private Environment environment;
-
   private RestTemplate restTemplate;
+  private SensorParserGroupService sensorParserGroupService;
 
   @Autowired
-  public StormStatusServiceImpl(Environment environment, RestTemplate restTemplate) {
+  public StormStatusServiceImpl(Environment environment, RestTemplate restTemplate, SensorParserGroupService sensorParserGroupService) {
     this.environment = environment;
     this.restTemplate = restTemplate;
+    this.sensorParserGroupService = sensorParserGroupService;
   }
 
   @Override
@@ -62,13 +71,7 @@ public class StormStatusServiceImpl implements StormStatusService {
   @Override
   public TopologyStatus getTopologyStatus(String name) {
     TopologyStatus topologyResponse = null;
-    String id = null;
-    for (TopologyStatus topology : getTopologySummary().getTopologies()) {
-      if (name.equals(topology.getName())) {
-        id = topology.getId();
-        break;
-      }
-    }
+    String id = getTopologyId(name);
     if (id != null) {
       topologyResponse = restTemplate
           .getForObject(getStormUiProperty() + TOPOLOGY_URL + "/" + id, TopologyStatus.class);
@@ -90,13 +93,7 @@ public class StormStatusServiceImpl implements StormStatusService {
   @Override
   public TopologyResponse activateTopology(String name) {
     TopologyResponse topologyResponse = new TopologyResponse();
-    String id = null;
-    for (TopologyStatus topology : getTopologySummary().getTopologies()) {
-      if (name.equals(topology.getName())) {
-        id = topology.getId();
-        break;
-      }
-    }
+    String id = getTopologyId(name);
     if (id != null) {
       Map result = restTemplate
           .postForObject(getStormUiProperty() + TOPOLOGY_URL + "/" + id + "/activate", null,
@@ -115,13 +112,7 @@ public class StormStatusServiceImpl implements StormStatusService {
   @Override
   public TopologyResponse deactivateTopology(String name) {
     TopologyResponse topologyResponse = new TopologyResponse();
-    String id = null;
-    for (TopologyStatus topology : getTopologySummary().getTopologies()) {
-      if (name.equals(topology.getName())) {
-        id = topology.getId();
-        break;
-      }
-    }
+    String id = getTopologyId(name);
     if (id != null) {
       Map result = restTemplate
           .postForObject(getStormUiProperty() + TOPOLOGY_URL + "/" + id + "/deactivate", null,
@@ -144,5 +135,36 @@ public class StormStatusServiceImpl implements StormStatusService {
       return "http://" + baseValue;
     }
     return baseValue;
+  }
+
+  /**
+   * Retrieves the Storm topology id from the given topology name.  If a topology name is detected to be an aggregate
+   * parser topology, the SensorParserGroups are checked for a match.
+   * @param name Topology or SensorParserGroup name
+   * @return Topology id
+   */
+  protected String getTopologyId(String name) {
+    String id = null;
+    for (TopologyStatus topology : getTopologySummary().getTopologies()) {
+      String topologyName = topology.getName();
+
+      // check sensor group
+      if (topologyName.contains(ParserTopologyCLI.STORM_JOB_SEPARATOR)) {
+        Set<String> sensors = new HashSet<>(Arrays.asList(topologyName.split(ParserTopologyCLI.STORM_JOB_SEPARATOR)));
+        SensorParserGroup group = sensorParserGroupService.findOne(name);
+        if (group == null) {
+          break;
+        } else if (sensors.equals(group.getSensors())){
+          id = topology.getId();
+          break;
+        }
+      }
+
+      if (topologyName.equals(name)) {
+        id = topology.getId();
+        break;
+      }
+    }
+    return id;
   }
 }

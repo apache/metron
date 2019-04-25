@@ -25,7 +25,6 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.utils.TestUtils;
-import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
 
 import java.io.File;
 import java.io.IOException;
@@ -139,7 +138,7 @@ public class HDFSIndexingIntegrationTest extends IndexingIntegrationTest {
     topologyProperties.setProperty("batch_indexing_acker_executors", "0");
     topologyProperties.setProperty("batch_indexing_topology_max_spout_pending", "");
     topologyProperties.setProperty("batch_indexing_kafka_spout_parallelism", "1");
-    topologyProperties.setProperty("bolt_hdfs_rotation_policy", TimedRotationPolicy.class.getCanonicalName());
+    topologyProperties.setProperty("bolt_hdfs_rotation_policy", "org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy");
     topologyProperties.setProperty("bolt_hdfs_rotation_policy_count", "1");
     topologyProperties.setProperty("bolt_hdfs_rotation_policy_units", "DAYS");
     topologyProperties.setProperty("metron_apps_indexed_hdfs_dir", hdfsDir);

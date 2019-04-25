@@ -12,17 +12,27 @@
   the specific language governing permissions and limitations under the License.
   -->
 <div class="metron-slider-pane-details load-right-to-left dialog1x" [ngClass]="{'is-meta-alert': isMetaAlert}">
-    <div class="container-fluid pl-0 h-100" [ngClass]="{'pr-0': isMetaAlert}">
+    <div class="container-fluid pl-0 pr-0 h-100">
         <div class="h-100 d-flex">
             <div class="nav-container" *ngIf="!isMetaAlert">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link" [ngClass]="{'active': activeTab === tabs.DETAILS}" (click)="activeTab=tabs.DETAILS">
+                        <a
+                            class="nav-link"
+                            [ngClass]="{'active': activeTab === tabs.DETAILS}"
+                            (click)="activeTab=tabs.DETAILS"
+                            data-qe-id="details"
+                        >
                             <i class="fa fa-info-circle" aria-hidden="true"></i>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" [ngClass]="{'active': activeTab === tabs.COMMENTS}" (click)="activeTab=tabs.COMMENTS">
+                        <a
+                            class="nav-link"
+                            [ngClass]="{'active': activeTab === tabs.COMMENTS}"
+                            (click)="activeTab=tabs.COMMENTS"
+                            data-qe-id="comments"
+                        >
                             <i class="fa fa-comment" aria-hidden="true"></i>
                         </a>
                     </li>
@@ -71,27 +81,38 @@
                         </table>
                     </div>
 
-                    <div class="ml-1 my-3 form" *ngIf="activeTab === tabs.DETAILS">
-                        <ng-container *ngFor="let alert of alertSources; let i = index;" >
-                            <div class="pb-2 alert-details-title"> Alert {{ i + 1 }} of {{ alertSources.length }}</div>
-                            <div *ngFor="let field of alert | alertDetailsKeys" class="row ml-1">
-                                <div class="col-6 mb-1 key">{{ field }}</div>   <div class="col-6"> {{ alert[field] }} </div>
-                            </div>
-                        </ng-container>
-                    </div>
+                    <div class="tabContainer">
+                        <div *ngIf="activeTab === tabs.DETAILS" class="ml-1 my-3 form" >
+                            <ng-container *ngFor="let alert of alertSources; let i = index;" >
+                                <div class="pb-2 alert-details-title"> Alert {{ i + 1 }} of {{ alertSources.length }}</div>
+                                <ul>
+                                    <li *ngFor="let field of alert | alertDetailsKeys">
+                                        <div class="key">{{ field }}</div>
+                                        <div> {{ alert[field] }} </div>
+                                    </li>
+                                </ul>
+                            </ng-container>
+                        </div>
 
-                    <div *ngIf="activeTab === tabs.COMMENTS" class="my-4">
-                        <div> Comments <span *ngIf="alertCommentsWrapper.length > 0"> ({{alertCommentsWrapper.length}}) </span></div>
-                        <textarea class="form-control" [(ngModel)]="alertCommentStr"> </textarea>
-                        <button class="btn btn-mine_shaft_2" [disabled]="alertCommentStr.trim().length === 0" (click)="onAddComment()">ADD COMMENT</button>
-                        <ng-container *ngFor="let alertCommentWrapper of alertCommentsWrapper; let i = index">
-                            <hr>
-                            <div class="comment-container">
-                                <i class="fa fa-trash-o" aria-hidden="true" (click)="onDeleteComment(i)"></i>
-                                <div class="comment"> {{ alertCommentWrapper.alertComment.comment }} </div>
-                                <div class="font-italic username-timestamp"> - {{ alertCommentWrapper.alertComment.username }} - {{alertCommentWrapper.displayTime}}</div>
-                            </div>
-                        </ng-container>
+                        <div *ngIf="activeTab === tabs.COMMENTS" class="my-4">
+                            <div> Comments <span *ngIf="alertCommentsWrapper.length > 0"> ({{alertCommentsWrapper.length}}) </span></div>
+                            <textarea class="form-control" [(ngModel)]="alertCommentStr"> </textarea>
+                            <button class="btn btn-mine_shaft_2" [disabled]="alertCommentStr.trim().length === 0" (click)="onAddComment()">ADD COMMENT</button>
+                            <ng-container *ngFor="let alertCommentWrapper of alertCommentsWrapper; let i = index">
+                                <hr>
+                                <div class="comment-container" data-qe-id="comment">
+                                    <i
+                                        class="fa fa-trash-o"
+                                        aria-hidden="true"
+                                        (click)="onDeleteComment(i)"
+                                        data-qe-id="delete-comment"
+                                    >
+                                    </i>
+                                    <div class="comment"> {{ alertCommentWrapper.alertComment.comment }} </div>
+                                    <div class="font-italic username-timestamp"> - {{ alertCommentWrapper.alertComment.username }} - {{alertCommentWrapper.displayTime}}</div>
+                                </div>
+                            </ng-container>
+                        </div>
                     </div>
                 </div>
             </div>

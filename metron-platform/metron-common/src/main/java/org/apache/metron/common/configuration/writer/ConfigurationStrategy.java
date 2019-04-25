@@ -26,15 +26,15 @@ import org.apache.metron.common.zookeeper.configurations.Reloadable;
 public interface ConfigurationStrategy<T extends Configurations> {
 
   /**
-   * Create a specific writer configuration
+   * Create a specific writer configuration.
    * @param writer provided for the underlying creator to access metadata as needed
-   * @param configs a WriterConfiguration will typically access the pass configs
-   * @return
+   * @param configs a {@link WriterConfiguration} will typically access the pass configs
+   * @return A {@link WriterConfiguration} created from the configs
    */
   WriterConfiguration createWriterConfig(BulkMessageWriter writer, Configurations configs);
 
   /**
-   * Create specific config updater for the type of config extending Configurations
+   * Create specific {@link ConfigurationsUpdater} for the type of config extending Configurations.
    * @param reloadable setup as a callback by the updater
    * @param configSupplier supplies config to the updater
    * @return updater

@@ -194,6 +194,7 @@ com.google.guava:guava:jar:18.0:compile,ASLv2,
 com.google.inject.extensions:guice-servlet:jar:3.0:compile,ASLv2,
 com.google.inject:guice:jar:3.0:compile,ASLv2,
 com.googlecode.disruptor:disruptor:jar:2.10.4:compile,The Apache Software License, Version 2.0,http://code.google.com/p/disruptor/
+com.lmax:disruptor:jar:3.3.0:compile,The Apache Software License, Version 2.0,https://github.com/LMAX-Exchange/disruptor/
 com.lmax:disruptor:jar:3.3.2:compile,The Apache Software License, Version 2.0,https://github.com/LMAX-Exchange/disruptor/
 com.googlecode.json-simple:json-simple:jar:1.1:compile,The Apache Software License, Version 2.0,http://code.google.com/p/json-simple/
 com.googlecode.json-simple:json-simple:jar:1.1.1:compile,The Apache Software License, Version 2.0,http://code.google.com/p/json-simple/
@@ -301,6 +302,10 @@ org.jboss.resteasy:resteasy-jaxrs:jar:3.0.1.Final:compile,ASLv2,
 org.joda:joda-convert:jar:1.2:compile,Apache 2,http://joda-convert.sourceforge.net
 org.mortbay.jetty:jetty-util:jar:6.1.26:compile,ASLv2,
 org.mortbay.jetty:jetty:jar:6.1.26:compile,ASLv2,
+org.mortbay.jetty:jetty-sslengine:jar:6.1.26:compile,ASLv2,
+org.mortbay.jetty:jsp-2.1:jar:6.1.14:compile,ASLv2,
+org.mortbay.jetty:jsp-api-2.1:jar:6.1.14:compile,ASLv2,
+org.mortbay.jetty:servlet-api-2.5:jar:6.1.14:compile,ASLv2,
 org.noggit:noggit:jar:0.6:compile,Apache License, Version 2.0,http://github.com/yonik/noggit
 org.scannotation:scannotation:jar:1.0.3:compile,Apache License V2.0,http://scannotation.sf.net
 org.slf4j:log4j-over-slf4j:jar:1.6.6:compile,Apache Software Licenses,http://www.slf4j.org
@@ -385,6 +390,7 @@ org.springframework.boot:spring-boot-starter-jdbc:jar:2.0.1.RELEASE:compile,ASLv
 org.springframework.boot:spring-boot-starter-json:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-logging:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-logging:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
+org.springframework.boot:spring-boot-starter-log4j2:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-security:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-security:jar:2.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
 org.springframework.boot:spring-boot-starter-tomcat:jar:1.4.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-boot
@@ -497,4 +503,4 @@ joda-time:joda-time:jar:2.10:compile
 org.elasticsearch:securesm:jar:1.2:compile
 com.github.stephenc.jcip:jcip-annotations:jar:1.0-1:compile,ASLv2,http://stephenc.github.io/jcip-annotations/
 com.nimbusds:nimbus-jose-jwt:jar:4.41.2:compile,ASLv2,https://bitbucket.org/connect2id/nimbus-jose-jwt/wiki/Home
-
+tomcat:jasper-compiler:jar:5.5.23:compile,ASLv2,https://tomcat.apache.org/

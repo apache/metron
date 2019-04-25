@@ -18,7 +18,6 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.nio.charset.StandardCharsets;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.aggregator.Aggregators;
 import org.apache.metron.common.configuration.ConfigurationType;
@@ -26,18 +25,16 @@ import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
+import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
-import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,11 +46,16 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
 
     private ConfigurationsCache cache;
 
+    private HBaseClient hBaseClient;
+
     @Autowired
-    public SensorEnrichmentConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client, ConfigurationsCache cache) {
+    public SensorEnrichmentConfigServiceImpl(final ObjectMapper objectMapper,
+        final CuratorFramework client, final ConfigurationsCache cache,
+        final HBaseClient hBaseClient) {
       this.objectMapper = objectMapper;
       this.client = client;
       this.cache = cache;
+      this.hBaseClient = hBaseClient;
     }
 
     @Override
@@ -104,13 +106,18 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
       return true;
     }
 
+    /**
+     * Lexicographically sorted list of available enrichments.
+     */
     @Override
-    public List<String> getAvailableEnrichments() {
-        return new ArrayList<String>() {{
-            add("geo");
-            add("host");
-            add("whois");
-        }};
+    public List<String> getAvailableEnrichments() throws RestException {
+      try {
+        List<String> enrichments = hBaseClient.readRecords();
+        enrichments.sort(Comparator.naturalOrder());
+        return enrichments;
+      } catch (IOException e) {
+        throw new RestException("Unable to retrieve enrichments", e);
+      }
     }
 
     @Override

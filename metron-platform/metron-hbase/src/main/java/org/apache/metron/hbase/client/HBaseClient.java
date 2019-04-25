@@ -20,13 +20,13 @@
 
 package org.apache.metron.hbase.client;
 
+import static org.apache.commons.collections4.CollectionUtils.size;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Get;
@@ -35,13 +35,14 @@ import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.bolt.mapper.ColumnList;
 import org.apache.metron.hbase.bolt.mapper.HBaseProjectionCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.apache.commons.collections4.CollectionUtils.size;
 
 /**
  * A client that interacts with HBase.
@@ -302,4 +303,35 @@ public class HBaseClient implements Closeable {
     }
     return tableName;
   }
+
+  /**
+   * Puts a record into the configured HBase table synchronously (not batched).
+   */
+  public void put(String rowKey, String columnFamily, String columnQualifier, String value)
+      throws IOException {
+    Put put = new Put(Bytes.toBytes(rowKey));
+    put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(columnQualifier),
+        Bytes.toBytes(value));
+    table.put(put);
+  }
+
+  /**
+   * Scans an entire table returning all row keys as a List of Strings.
+   *
+   * <p>
+   * <b>**WARNING**:</b> Do not use this method unless you're absolutely crystal clear about the performance
+   * impact. Doing full table scans in HBase can adversely impact performance.
+   *
+   * @return List of all row keys as Strings for this table.
+   */
+  public List<String> readRecords() throws IOException {
+    Scan scan = new Scan();
+    ResultScanner scanner = table.getScanner(scan);
+    List<String> rows = new ArrayList<>();
+    for (Result r = scanner.next(); r != null; r = scanner.next()) {
+      rows.add(Bytes.toString(r.getRow()));
+    }
+    return rows;
+  }
+
 }

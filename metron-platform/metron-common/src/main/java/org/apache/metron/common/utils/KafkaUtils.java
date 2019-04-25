@@ -35,6 +35,14 @@ import java.util.Map;
 public enum KafkaUtils {
   INSTANCE;
   public static final String SECURITY_PROTOCOL = "security.protocol";
+
+  /**
+   * Retrieves the list of Kafka brokers from ZooKeeper.
+   *
+   * @param zkQuorum The ZK quorum to use to connect with ZK
+   * @return List of string for Kafka brokers in host:port format
+   * @throws Exception If there's an issue retrieving brokers
+   */
   public List<String> getBrokersFromZookeeper(String zkQuorum) throws Exception {
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
     CuratorFramework framework = CuratorFrameworkFactory.newClient(zkQuorum, retryPolicy);
@@ -46,6 +54,13 @@ public enum KafkaUtils {
     }
   }
 
+  /**
+   * Retrieves the list of Kafka brokers from ZooKeeper.
+   *
+   * @param client ZK client to use during lookup
+   * @return List of string for Kafka brokers in host:port format
+   * @throws Exception If there's an issue retrieving brokers
+   */
   public List<String> getBrokersFromZookeeper(CuratorFramework client) throws Exception {
     List<String> ret = new ArrayList<>();
     for(String id : client.getChildren().forPath("/brokers/ids")) {
@@ -69,6 +84,13 @@ public enum KafkaUtils {
     return ret;
   }
 
+  /**
+   * Normalizes the Kafka security protocol name found in configs, in order to handle the
+   * inconsistencies seen in Kafka versions (PLAINTEXTSASL vs. SASL_PLAINTEXT)
+   *
+   * @param configs The config to normalize the protocol in
+   * @return The map with protocol adjusted
+   */
   public Map<String, Object> normalizeProtocol(Map<String, Object> configs) {
     if(configs.containsKey(SECURITY_PROTOCOL)) {
       String protocol = normalizeProtocol((String)configs.get(SECURITY_PROTOCOL));
@@ -77,6 +99,13 @@ public enum KafkaUtils {
     return configs;
   }
 
+  /**
+   * Normalizes the Kafka security protocol name, in order to handle the inconsistencies seen in
+   * Kafka versions (PLAINTEXTSASL vs. SASL_PLAINTEXT)
+   *
+   * @param protocol The protocol to normalize
+   * @return The protocol recognized by Kafka
+   */
   public String normalizeProtocol(String protocol) {
     if(protocol.equalsIgnoreCase("PLAINTEXTSASL") || protocol.equalsIgnoreCase("SASL_PLAINTEXT")) {
       if(SecurityProtocol.getNames().contains("PLAINTEXTSASL")) {

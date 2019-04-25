@@ -92,6 +92,15 @@ public enum JSONUtils {
     return _mapper.get().readValue(is, (TypeReference<T>)ref.get());
   }
 
+  /**
+   * Loads JSON from a file and ensures it's located in the specified class.
+   *
+   * @param f The file to read from
+   * @param ref A {@link ReferenceSupplier} for the class to be loaded into.
+   * @param <T> The type parameter of the class
+   * @return The JSON loaded into the provided class
+   * @throws IOException If there's an issue loading the JSON
+   */
   public <T> T load(File f, ReferenceSupplier<T> ref) throws IOException {
     try (InputStream is = new BufferedInputStream(new FileInputStream(f))) {
       return _mapper.get().readValue(is, (TypeReference<T>)ref.get());
@@ -102,6 +111,15 @@ public enum JSONUtils {
     return _mapper.get().readValue(is, clazz);
   }
 
+  /**
+   * Loads JSON from a file and ensures it's located in the provided class.
+   *
+   * @param f The file to read from
+   * @param clazz The class to read into
+   * @param <T> The type parameter of the class
+   * @return The JSON loaded into the provided class
+   * @throws IOException If there's an issue loading the JSON
+   */
   public <T> T load(File f, Class<T> clazz) throws IOException {
     try (InputStream is = new BufferedInputStream(new FileInputStream(f))) {
       return _mapper.get().readValue(is, clazz);
@@ -112,6 +130,14 @@ public enum JSONUtils {
     return _mapper.get().readValue(is, clazz);
   }
 
+  /**
+   * Converts an object to a JSON string. Can be a pretty string
+   *
+   * @param o The object to convert
+   * @param pretty Pretty formatted string if true, otherwise not pretty formatted.
+   * @return A JSON string representation of the object
+   * @throws JsonProcessingException If there's an issue converting to JSON.
+   */
   public String toJSON(Object o, boolean pretty) throws JsonProcessingException {
     if (pretty) {
       return _mapper.get().writerWithDefaultPrettyPrinter().writeValueAsString(o);
@@ -136,7 +162,7 @@ public enum JSONUtils {
   }
 
   /**
-   * Reads a JSON string into a JsonNode Object
+   * Reads a JSON string into a JsonNode Object.
    *
    * @param json JSON value to deserialize
    * @return deserialized JsonNode Object
@@ -146,7 +172,7 @@ public enum JSONUtils {
   }
 
   /**
-   * Reads a JSON byte array into a JsonNode Object
+   * Reads a JSON byte array into a JsonNode Object.
    *
    * @param json JSON value to deserialize
    * @return deserialized JsonNode Object
@@ -177,12 +203,31 @@ public enum JSONUtils {
     return toJSONPretty(JsonPatch.apply(patchNode, sourceNode));
   }
 
+  /**
+   * Update JSON given a JSON Patch (see RFC 6902 at https://tools.ietf.org/html/rfc6902)
+   *
+   * @param patch Array of JSON patches in raw bytes
+   * @param source Source JSON in raw bytes to apply patch to
+   * @return new json after applying the patch
+   *
+   * @see JSONUtils#applyPatch(String, String)
+   */
   public byte[] applyPatch(byte[] patch, byte[] source) throws IOException {
     JsonNode patchNode = readTree(patch);
     JsonNode sourceNode = readTree(source);
     return toJSONPretty(JsonPatch.apply(patchNode, sourceNode));
   }
 
+
+  /**
+   * Update JSON given a JSON Patch (see RFC 6902 at https://tools.ietf.org/html/rfc6902)
+   *
+   * @param patch List of JSON patches in map form
+   * @param source Source JSON in map form to apply patch to
+   * @return new json after applying the patch
+   *
+   * @see JSONUtils#applyPatch(String, String)
+   */
   public Map<String, Object> applyPatch(List<Map<String, Object>> patch, Map<String, Object> source) {
     JsonNode originalNode = convert(source, JsonNode.class);
     JsonNode patchNode = convert(patch, JsonNode.class);

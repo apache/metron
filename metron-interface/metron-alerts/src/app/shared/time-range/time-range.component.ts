@@ -15,15 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, ViewChild, ElementRef, HostListener, EventEmitter, Output, Input, OnChanges, SimpleChanges} from '@angular/core';
+import {
+  Component,
+  ViewChild,
+  ElementRef,
+  HostListener,
+  EventEmitter,
+  Output,
+  Input,
+  OnChanges,
+  SimpleChanges
+} from '@angular/core';
 import * as moment from 'moment/moment';
 
-import {Filter} from '../../model/filter';
+import { Filter } from '../../model/filter';
 import {
     DEFAULT_TIMESTAMP_FORMAT, CUSTOMM_DATE_RANGE_LABEL,
     TIMESTAMP_FIELD_NAME, ALL_TIME
 } from '../../utils/constants';
-import {DateFilterValue} from '../../model/date-filter-value';
+import { DateFilterValue } from '../../model/date-filter-value';
 
 @Component({
   selector: 'app-time-range',
@@ -35,14 +45,14 @@ export class TimeRangeComponent implements OnChanges {
   fromDateStr = '';
   datePickerFromDate = '';
   datePickerToDate = '';
-  selectedTimeRangeValue = 'All time';
+  selectedTimeRangeValue = 'Last 15 minutes';
 
   @Input() disabled = false;
   @Input() selectedTimeRange: Filter;
   @ViewChild('datePicker') datePicker: ElementRef;
   @Output() timeRangeChange = new EventEmitter<Filter>();
 
-  timeRangeMappingCol1 = {
+  readonly timeRangeMappingCol1 = {
     'Last 7 days':            'last-7-days',
     'Last 30 days':           'last-30-days',
     'Last 60 days':           'last-60-days',
@@ -52,7 +62,7 @@ export class TimeRangeComponent implements OnChanges {
     'Last 2 years':           'last-2-years',
     'Last 5 years':           'last-5-years'
   };
-  timeRangeMappingCol2 = {
+  readonly timeRangeMappingCol2 = {
     'Yesterday':              'yesterday',
     'Day before yesterday':   'day-before-yesterday',
     'This day last week':     'this-day-last-week',
@@ -61,7 +71,7 @@ export class TimeRangeComponent implements OnChanges {
     'Previous year':          'previous-year',
     'All time':               ALL_TIME
   };
-  timeRangeMappingCol3 = {
+  readonly timeRangeMappingCol3 = {
     'Today':                  'today',
     'Today so far':           'today-so-far',
     'This week':              'this-week',
@@ -69,7 +79,7 @@ export class TimeRangeComponent implements OnChanges {
     'This month':             'this-month',
     'This year':              'this-year'
   };
-  timeRangeMappingCol4 = {
+  readonly timeRangeMappingCol4 = {
     'Last 5 minutes':         'last-5-minutes',
     'Last 15 minutes':        'last-15-minutes',
     'Last 30 minutes':        'last-30-minutes',
@@ -90,7 +100,14 @@ export class TimeRangeComponent implements OnChanges {
 
   onSelectedTimeRangeChange() {
     let foundQuickRange = false;
-    let merged = Object.assign({}, this.timeRangeMappingCol1, this.timeRangeMappingCol2, this.timeRangeMappingCol3, this.timeRangeMappingCol4);
+    const merged = Object.assign(
+      {},
+      this.timeRangeMappingCol1,
+      this.timeRangeMappingCol2,
+      this.timeRangeMappingCol3,
+      this.timeRangeMappingCol4
+    );
+
     Object.keys(merged).forEach(key => {
       if (this.selectedTimeRange.value === merged[key]) {
         foundQuickRange = true;
@@ -149,18 +166,18 @@ export class TimeRangeComponent implements OnChanges {
     this.toDateStr = this.datePickerToDate.length > 0  ? moment(this.datePickerToDate).format(DEFAULT_TIMESTAMP_FORMAT) : 'now';
     this.fromDateStr = moment(this.datePickerFromDate).format(DEFAULT_TIMESTAMP_FORMAT);
 
-    let toDate = this.datePickerToDate.length > 0 ? new Date(this.toDateStr).getTime() : null;
+    let toDate = this.datePickerToDate.length > 0 ? new Date(this.toDateStr).getTime() : new Date().getTime();
     let fromDate = new Date(this.fromDateStr).getTime();
-    let toDateExpression = this.datePickerToDate.length > 0 ?  (' AND ' + ' <=' + toDate) : '';
+    let toDateExpression = ' TO ' + toDate;
 
-    let value = '(>=' + fromDate + toDateExpression + ')';
+    let value = '[' + fromDate + toDateExpression + ']';
     let filter = new Filter(TIMESTAMP_FIELD_NAME, value, false);
     filter.dateFilterValue = new DateFilterValue(fromDate, toDate);
     this.timeRangeChange.emit(filter);
   }
 
   isPikaSelectElement(targetElement: HTMLElement): boolean {
-    while(targetElement) {
+    while (targetElement) {
       if (targetElement.classList.toString().startsWith('pika')){
         return true;
       }
@@ -176,7 +193,7 @@ export class TimeRangeComponent implements OnChanges {
       return;
     }
 
-    if(this.isPikaSelectElement(targetElement)) {
+    if (this.isPikaSelectElement(targetElement)) {
       return;
     }
 

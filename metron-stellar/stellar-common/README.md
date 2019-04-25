@@ -165,6 +165,7 @@ Where:
 | ----------                                                                                         |
 | [ `ABS`](../../metron-analytics/metron-statistics#abs)                                             |
 | [ `APPEND_IF_MISSING`](#append_if_missing)                                                         |
+| [ `ASN_GET`](#asn_get)                                                                             |
 | [ `BIN`](../../metron-analytics/metron-statistics#bin)                                             |
 | [ `BLOOM_ADD`](#bloom_add)                                                                         |
 | [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
@@ -175,7 +176,7 @@ Where:
 | [ `CHOP`](#chop)                                                                                   |
 | [ `CHOMP`](#chomp)                                                                                 |
 | [ `COUNT_MATCHES`](#count_matches)                                                                 |
-| [ `DATE_FORMAT`](#date_format)
+| [ `DATE_FORMAT`](#date_format)                                                                     |
 | [ `DAY_OF_MONTH`](#day_of_month)                                                                   |
 | [ `DAY_OF_WEEK`](#day_of_week)                                                                     |
 | [ `DAY_OF_YEAR`](#day_of_year)                                                                     |
@@ -237,6 +238,8 @@ Where:
 | [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MAP_GET`](#map_get)                                                                             |
+| [ `MAP_MERGE`](#map_merge)                                                                         |
+| [ `MAP_PUT`](#map_put)                                                                             |
 | [ `MAX`](#MAX)                                                                                     |
 | [ `MIN`](#MIN)                                                                                     |
 | [ `MONTH`](#month)                                                                                 |
@@ -248,15 +251,15 @@ Where:
 | [ `OBJECT_GET`](#object_get)                                                                       |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
-| [ `PROFILE_VERBOSE`](#profile_verbose)                                                                     |
+| [ `PROFILE_VERBOSE`](#profile_verbose)                                                             |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
 | [ `PROFILE_WINDOW`](#profile_window)                                                               |
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
 | [ `REDUCE`](#reduce)                                                                               |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                           |
-| [ `REGEXP_REPLACE`](#regexp_replace)
-| [ `REST_GET`](#rest_get)
+| [ `REGEXP_REPLACE`](#regexp_replace)                                                               |
+| [ `REST_GET`](#rest_get)                                                                           |
 | [ `ROUND`](#round)                                                                                 |
 | [ `SAMPLE_ADD`](../../metron-analytics/metron-statistics#sample_add)                               |
 | [ `SAMPLE_GET`](../../metron-analytics/metron-statistics#sample_get)                               |
@@ -802,6 +805,20 @@ Where:
     * map - The map
     * default - Optionally the default value to return if the key is not in the map.
   * Returns: The object associated with the key in the map.  If no value is associated with the key and default is specified, then default is returned. If no value is associated with the key or default, then null is returned.
+
+### `MAP_MERGE`
+  * Description: Merges a list of maps
+  * Input:
+    * maps - A collection of maps to merge. Last entry wins for overlapping keys.
+  * Returns: A Map. null if the list of maps is empty.
+
+### `MAP_PUT`
+  * Description: Adds a key/value pair to a map
+  * Input:
+    * key - The key
+    * value - The value
+    * map - The map to perform the put on
+  * Returns: The original map modified with the key/value. If the map argument is null, a new map will be created and returned that contains the provided key and value - note: if the 'map' argument is null, only the returned map will be non-null and contain the key/value.
 
 ### `MAX`
   * Description: Returns the maximum value of a list of input values.

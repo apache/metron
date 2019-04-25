@@ -17,17 +17,11 @@
  */
 package org.apache.metron.common.message.metadata;
 
-import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.storm.tuple.Fields;
-import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -44,14 +38,13 @@ public enum MetadataUtil {
    * The config key for defining the prefix.
    */
   public static final String METADATA_PREFIX_CONFIG = "metadataPrefix";
-  static final int KEY_INDEX = 1;
 
   /**
    * Return the prefix that we want to use for metadata keys.  This comes from the config and is defaulted to
    * 'metron.metadata'.
    *
    * @param config The rawMessageStrategyConfig
-   * @return
+   * @return the prefix for metadata keys
    */
   public String getMetadataPrefix(Map<String, Object> config) {
     String prefix = (String) config.getOrDefault(METADATA_PREFIX_CONFIG, METADATA_PREFIX);
@@ -75,51 +68,5 @@ public enum MetadataUtil {
     else {
       return prefix + "." + key;
     }
-  }
-
-  /**
-   * Default extraction of metadata.  This handles looking in the normal places for metadata
-   * <ul>
-   *   <li>The kafka key</li>
-   *   <li>The tuple fields outside of the value (e.g. the topic)</li>
-   * </ul>
-   * In addition to extracting the metadata into a map, it applies the appropriate prefix (as configured in the rawMessageStrategyConfig).
-   * @param prefix
-   * @param t
-   * @return
-   */
-  public Map<String, Object> extractMetadata(String prefix, Tuple t) {
-    Map<String, Object> metadata = new HashMap<>();
-    if(t == null) {
-      return metadata;
-    }
-    Fields tupleFields = t.getFields();
-    if(tupleFields == null) {
-      return metadata;
-    }
-    for (int i = 2; i < tupleFields.size(); ++i) {
-      String envMetadataFieldName = tupleFields.get(i);
-      Object envMetadataFieldValue = t.getValue(i);
-      if (!StringUtils.isEmpty(envMetadataFieldName) && envMetadataFieldValue != null) {
-        metadata.put(prefixKey(prefix, envMetadataFieldName), envMetadataFieldValue);
-      }
-    }
-    byte[] keyObj = t.getBinary(KEY_INDEX);
-    String keyStr = null;
-    try {
-      keyStr = keyObj == null ? null : new String(keyObj, StandardCharsets.UTF_8);
-      if (!StringUtils.isEmpty(keyStr)) {
-        Map<String, Object> rawMetadata = JSONUtils.INSTANCE.load(keyStr, JSONUtils.MAP_SUPPLIER);
-        for (Map.Entry<String, Object> kv : rawMetadata.entrySet()) {
-          metadata.put(prefixKey(prefix, kv.getKey()), kv.getValue());
-        }
-
-      }
-    } catch (IOException e) {
-      String reason = "Unable to parse metadata; expected JSON Map: " + (keyStr == null ? "NON-STRING!" : keyStr);
-      LOG.error(reason, e);
-      throw new IllegalStateException(reason, e);
-    }
-    return metadata;
   }
 }

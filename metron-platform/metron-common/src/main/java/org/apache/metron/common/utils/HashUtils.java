@@ -26,8 +26,19 @@ import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ * A set of utilities for converted a message to a SHA-256 hex-encoded hash string. Can be applied
+ * to JSON messages (or a subset of fields of a JSON message), or raw bytes.
+ */
 public class HashUtils {
 
+  /**
+   * Produces a hash of a JSON message from a subset of the fields.
+   *
+   * @param message The JSON message to be hashed
+   * @param hashFields The fields to hash
+   * @return A string containing the resulting hash
+   */
   public static String getMessageHash(JSONObject message, Collection<String> hashFields) {
     List<String> hashElements = hashFields.stream().map(errorField ->
             String.format("%s-%s", errorField, message.get(errorField))).collect(Collectors.toList());

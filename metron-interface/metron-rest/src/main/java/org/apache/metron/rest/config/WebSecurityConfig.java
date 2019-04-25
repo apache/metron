@@ -17,20 +17,7 @@
  */
 package org.apache.metron.rest.config;
 
-import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_ADMIN;
-import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_USER;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.interfaces.RSAPublicKey;
-import java.util.Arrays;
-import java.util.List;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,35 +26,30 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpMethod;
-import org.springframework.ldap.core.AttributesMapper;
-import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.core.support.LdapContextSource;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
-import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
-import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.sql.DataSource;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_ADMIN;
+import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_USER;
 
 @Configuration
 @EnableWebSecurity
@@ -84,6 +66,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired(required = false)
     private LdapTemplate ldapTemplate;
+
+    @Autowired
+    private MetronAuthoritiesMapper authoritiesMapper;
 
     @Value("${ldap.provider.url}")
     private String providerUrl;
@@ -123,7 +108,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${knox.sso.cookie:hadoop-jwt}")
     private String knoxCookie;
-
 
     @RequestMapping(value = {"/login", "/logout", "/sensors", "/sensors*/**"}, method = RequestMethod.GET)
     public String handleNGRequests() {
@@ -168,24 +152,36 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // Note that we can switch profiles on the fly in Ambari.
         List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
         if (activeProfiles.contains(MetronRestConstants.LDAP_PROFILE)) {
-            LOG.debug("Setting up LDAP authentication against {}.", providerUrl);
-            auth.ldapAuthentication()
-                .userDnPatterns(userDnPatterns)
-                .userSearchBase(userSearchBase)
-                .userSearchFilter(userSearchFilter)
-                .groupRoleAttribute(groupRoleAttribute)
-                .groupSearchFilter(groupSearchFilter)
-                .groupSearchBase(groupSearchBase)
-                .contextSource()
-                .url(providerUrl)
-                .managerDn(providerUserDn)
-                .managerPassword(providerPassword)
-                .and()
-                .passwordCompare()
-                .passwordEncoder(new LdapShaPasswordEncoder())
-                .passwordAttribute(passwordAttribute);
+          LOG.info("Setting up LDAP authentication; url={}.", providerUrl);
+          LdapAuthenticationProviderConfigurer providerConf = auth
+                  .ldapAuthentication()
+                  .authoritiesMapper(authoritiesMapper)
+                  .userDnPatterns(userDnPatterns)
+                  .userSearchBase(userSearchBase)
+                  .userSearchFilter(userSearchFilter)
+                  .groupRoleAttribute(groupRoleAttribute)
+                  .groupSearchFilter(groupSearchFilter)
+                  .groupSearchBase(groupSearchBase)
+                  .contextSource()
+                  .url(providerUrl)
+                  .managerDn(providerUserDn)
+                  .managerPassword(providerPassword)
+                  .and();
+          if(StringUtils.isNotBlank(passwordAttribute)) {
+            // if a password attribute is provided, use that for authentication
+            providerConf
+                    .passwordCompare()
+                    .passwordEncoder(new LdapShaPasswordEncoder())
+                    .passwordAttribute(passwordAttribute);
+          } else {
+            // if no password attribute, set encoder to null which forces bind authentication
+            providerConf
+                    .passwordCompare()
+                    .passwordEncoder(null);
+          }
         } else if (activeProfiles.contains(MetronRestConstants.DEV_PROFILE) ||
             activeProfiles.contains(MetronRestConstants.TEST_PROFILE)) {
+            LOG.info("Setting up JDBC authentication with dev/test profiles");
             auth.jdbcAuthentication()
                 .dataSource(dataSource)
                 .withUser("user").password("password").roles(SECURITY_ROLE_USER).and()
@@ -193,6 +189,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .withUser("user2").password("password").roles(SECURITY_ROLE_USER).and()
                 .withUser("admin").password("password").roles(SECURITY_ROLE_USER, SECURITY_ROLE_ADMIN);
         } else {
+            LOG.debug("Setting up JDBC authentication");
             auth.jdbcAuthentication().dataSource(dataSource);
         }
     }

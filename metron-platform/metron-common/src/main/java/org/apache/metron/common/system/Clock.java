@@ -28,6 +28,12 @@ public class Clock {
     return System.currentTimeMillis();
   }
 
+  /**
+   * Retrieves the current time in a given format compatible with {@link SimpleDateFormat}.
+   *
+   * @param stdDateFormat The format to use
+   * @return String representation of the current time
+   */
   public String currentTimeFormatted(String stdDateFormat) {
     SimpleDateFormat format = new SimpleDateFormat(stdDateFormat);
     format.setTimeZone(TimeZone.getTimeZone(UTC));

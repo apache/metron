@@ -117,6 +117,21 @@ def build_global_config_patch(params, patch_file):
     },
     {
         "op": "add",
+        "path": "/enrichment.list.hbase.provider.impl",
+        "value": "{{enrichment_list_hbase_provider_impl}}"
+    },
+    {
+        "op": "add",
+        "path": "/enrichment.list.hbase.table",
+        "value": "{{enrichment_list_hbase_table}}"
+    },
+    {
+        "op": "add",
+        "path": "/enrichment.list.hbase.cf",
+        "value": "{{enrichment_list_hbase_cf}}"
+    },
+    {
+        "op": "add",
         "path": "/update.hbase.table",
         "value": "{{update_hbase_table}}"
     },
@@ -383,7 +398,6 @@ def create_hbase_table(params, table, cf):
             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
             user=params.hbase_user
             )
-
 
 def check_hbase_table(params, table):
     """
