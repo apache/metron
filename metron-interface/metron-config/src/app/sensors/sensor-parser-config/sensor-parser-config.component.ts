@@ -210,6 +210,10 @@ export class SensorParserConfigComponent implements OnInit {
       this.sensorParserConfig.parserClassName,
       Validators.required
     );
+    group['timestampField'] = new FormControl(
+      this.sensorParserConfig.timestampField,
+      Validators.required
+    );
     group['grokStatement'] = new FormControl(this.grokStatement);
     group['transforms'] = new FormControl(
       this.sensorParserConfig['transforms']
@@ -333,7 +337,8 @@ export class SensorParserConfigComponent implements OnInit {
     return this.sensorNameValid &&
             this.kafkaTopicValid &&
             this.parserClassValid &&
-            (!isGrokParser || this.isGrokStatementValid());
+            (!isGrokParser || this.isGrokStatementValid()) &&
+            (!isGrokParser || !!this.sensorParserConfig.timestampField);
   }
 
   getKafkaStatus() {
@@ -572,4 +577,6 @@ export class SensorParserConfigComponent implements OnInit {
   onAdvancedConfigFormClose(): void {
     this.showAdvancedParserConfiguration = false;
   }
+
+  log(v) {console.log(v)}
 }

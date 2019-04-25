@@ -583,7 +583,7 @@ describe('Component: SensorParserConfig', () => {
     );
     component.createForms();
 
-    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(16);
+    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(17);
     expect(
       Object.keys(component.transformsValidationForm.controls).length
     ).toEqual(2);
