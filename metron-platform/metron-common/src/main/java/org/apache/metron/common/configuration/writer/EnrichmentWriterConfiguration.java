@@ -67,7 +67,7 @@ public class EnrichmentWriterConfiguration implements WriterConfiguration {
   }
 
   /**
-   * n/a for enrichment
+   * n/a for enrichment.
    * @param sensorName n/a
    * @return null
    */
@@ -77,7 +77,7 @@ public class EnrichmentWriterConfiguration implements WriterConfiguration {
   }
 
   /**
-   * Always enabled in enrichment
+   * Always enabled in enrichment.
    * @param sensorName n/a
    * @return true
    */

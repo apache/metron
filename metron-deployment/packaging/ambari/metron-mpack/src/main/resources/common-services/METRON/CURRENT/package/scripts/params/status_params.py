@@ -44,11 +44,16 @@ enrichment_input_topic = config['configurations']['metron-enrichment-env']['enri
 enrichment_kafka_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_kafka_configured'
 enrichment_kafka_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_kafka_acl_configured'
 enrichment_hbase_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_hbase_configured'
+enrichment_hbase_coprocessor_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_hbase_coprocessor_configured'
 enrichment_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_hbase_acl_configured'
-enrichment_geo_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_geo_configured'
+enrichment_maxmind_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_maxmind_configured'
 
 enrichment_hbase_table = config['configurations']['metron-enrichment-env']['enrichment_hbase_table']
 enrichment_hbase_cf = config['configurations']['metron-enrichment-env']['enrichment_hbase_cf']
+enrichment_list_hbase_provider_impl = config['configurations']['metron-enrichment-env']['enrichment_list_hbase_provider_impl']
+enrichment_list_hbase_coprocessor_impl = config['configurations']['metron-enrichment-env']['enrichment_list_hbase_coprocessor_impl']
+enrichment_list_hbase_table = config['configurations']['metron-enrichment-env']['enrichment_list_hbase_table']
+enrichment_list_hbase_cf = config['configurations']['metron-enrichment-env']['enrichment_list_hbase_cf']
 threatintel_hbase_table = config['configurations']['metron-enrichment-env']['threatintel_hbase_table']
 threatintel_hbase_cf = config['configurations']['metron-enrichment-env']['threatintel_hbase_cf']
 update_hbase_table = config['configurations']['metron-indexing-env']['update_hbase_table']
@@ -82,6 +87,7 @@ elasticsearch_template_installed_flag_file = metron_zookeeper_config_path + '/..
 solr_schema_installed_flag_file = metron_zookeeper_config_path + '/../metron_solr_schema_installed_flag_file'
 
 # REST
+metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
 metron_rest_port = config['configurations']['metron-rest-env']['metron_rest_port']
 rest_kafka_configured_flag_file = metron_zookeeper_config_path + '/../metron_rest_kafka_configured'
 rest_kafka_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_rest_kafka_acl_configured'
@@ -97,6 +103,12 @@ metron_alerts_ui_port = config['configurations']['metron-alerts-ui-env']['metron
 # Management UI
 metron_management_ui_host = default("/clusterHostInfo/metron_management_ui_hosts", [hostname])[0]
 metron_management_ui_port = config['configurations']['metron-management-ui-env']['metron_management_ui_port']
+
+# HDFS
+# This should always grab the full namenode url, e.g. "hdfs://mynamenodehost:8020"
+# In the case of namenode HA, it will refer to the nameservice ID
+# https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithNFS.html
+hdfs_url = config["configurations"]["core-site"]["fs.defaultFS"]
 
 # Storm
 storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
@@ -127,3 +139,6 @@ pcap_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_pcap_
 
 # MapReduce
 metron_user_hdfs_dir_configured_flag_file = metron_zookeeper_config_path + '/../metron_user_hdfs_dir_configured'
+
+# Knox
+metron_knox_installed_flag_file = metron_zookeeper_config_path + '/../metron_knox_installed'

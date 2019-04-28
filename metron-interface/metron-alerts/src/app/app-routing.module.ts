@@ -21,7 +21,7 @@ import {AuthGuard} from './shared/auth-guard';
 import {LoginGuard} from './shared/login-guard';
 
 const routes: Routes = [
-  { path: '',  redirectTo: 'login', pathMatch: 'full'},
+  { path: '',  redirectTo: 'alerts-list', pathMatch: 'full'},
   { path: 'login', loadChildren: 'app/login/login.module#LoginModule', canActivate: [LoginGuard]},
   { path: 'alerts-list', loadChildren: 'app/alerts/alerts-list/alerts-list.module#AlertsListModule', canActivate: [AuthGuard]},
   { path: 'save-search', loadChildren: 'app/alerts/save-search/save-search.module#SaveSearchModule', canActivate: [AuthGuard]},

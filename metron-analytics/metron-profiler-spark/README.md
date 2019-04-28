@@ -50,6 +50,12 @@ For an introduction to the Profiler, see the [Profiler README](../metron-profile
     hdfs dfs -cat /apps/metron/indexing/indexed/*/* | wc -l
     ```
 
+1. Copy the `hbase-site.xml` file from `/etc/hbase/conf` to `/etc/spark2/conf`. It is advised to create a symlink to avoid the duplication of file, also to keep consistency between files while config updates.
+
+   ```
+    ln -s /etc/hbase/conf/hbase-site.xml /etc/spark2/conf/hbase-site.xml
+   ```
+
 1. Review the Batch Profiler's properties located at `$METRON_HOME/config/batch-profiler.properties`.  See [Configuring the Profiler](#configuring-the-profiler) for more information on these properties.
 
 1. You may want to edit the log4j properties that sits in your config directory in `${SPARK_HOME}` or create one.  It may be helpful to turn on `DEBUG` logging for the Profiler by adding the following line.

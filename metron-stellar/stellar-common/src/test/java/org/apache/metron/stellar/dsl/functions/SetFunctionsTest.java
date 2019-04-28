@@ -30,11 +30,13 @@ import java.util.Set;
 public class SetFunctionsTest {
 
   @Test(expected=ParseException.class)
+  @SuppressWarnings("unchecked")
   public void multisetInitTest_wrongType() throws Exception {
     Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_INIT({ 'foo' : 'bar'})", new HashMap<>());
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void multisetInitTest() throws Exception {
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_INIT()", new HashMap<>());
@@ -66,6 +68,7 @@ public class SetFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void multisetAddTest() throws Exception {
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_ADD(MULTISET_INIT(), 1)", new HashMap<>());
@@ -107,6 +110,7 @@ public class SetFunctionsTest {
     }
   }
 @Test
+@SuppressWarnings("unchecked")
   public void multisetRemoveTest() throws Exception {
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_REMOVE(MULTISET_INIT([1]), 1)", new HashMap<>());
@@ -141,12 +145,14 @@ public class SetFunctionsTest {
   }
 
   @Test(expected=ParseException.class)
+  @SuppressWarnings("unchecked")
   public void multisetMergeTest_wrongType() throws Exception {
 
     Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_MERGE({ 'bar' : 'foo' } )", new HashMap<>());
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void multisetMergeTest() throws Exception {
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_MERGE([MULTISET_INIT(), MULTISET_INIT(null), null])", new HashMap<>());

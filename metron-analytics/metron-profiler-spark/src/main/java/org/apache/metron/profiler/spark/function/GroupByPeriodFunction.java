@@ -47,6 +47,8 @@ public class GroupByPeriodFunction implements MapFunction<MessageRoute, String> 
    */
   private TimeUnit periodDurationUnits;
 
+  private static final String SEPARATOR = "__";
+
   public GroupByPeriodFunction(Properties profilerProperties) {
     periodDurationUnits = TimeUnit.valueOf(PERIOD_DURATION_UNITS.get(profilerProperties, String.class));
     periodDuration = PERIOD_DURATION.get(profilerProperties, Integer.class);
@@ -55,6 +57,52 @@ public class GroupByPeriodFunction implements MapFunction<MessageRoute, String> 
   @Override
   public String call(MessageRoute route) {
     ProfilePeriod period = ProfilePeriod.fromTimestamp(route.getTimestamp(), periodDuration, periodDurationUnits);
-    return route.getProfileDefinition().getProfile() + "-" + route.getEntity() + "-" + period.getPeriod();
+    return new StringBuilder()
+            .append(route.getProfileDefinition().getProfile())
+            .append(SEPARATOR)
+            .append(route.getEntity())
+            .append(SEPARATOR)
+            .append(period.getPeriod())
+            .toString();
   }
+
+  /**
+   * @param groupKey The group key used to group {@link MessageRoute}s.
+   * @return The name of the profile.
+   */
+  public static String profileFromKey(String groupKey) {
+    String[] pieces = groupKey.split(SEPARATOR);
+    if(pieces.length == 3) {
+      return pieces[0];
+    } else {
+      return "unknown";
+    }
+  }
+
+  /**
+   * @param groupKey The group key used to group {@link MessageRoute}s.
+   * @return The name of the entity.
+   */
+  public static String entityFromKey(String groupKey) {
+    String[] pieces = groupKey.split(SEPARATOR);
+    if(pieces.length == 3) {
+      return pieces[1];
+    } else {
+      return "unknown";
+    }
+  }
+
+  /**
+   * @param groupKey The group key used to group {@link MessageRoute}s.
+   * @return The period identifier.
+   */
+  public static String periodFromKey(String groupKey) {
+    String[] pieces = groupKey.split(SEPARATOR);
+    if(pieces.length == 3) {
+      return pieces[2];
+    } else {
+      return "unknown";
+    }
+  }
+
 }

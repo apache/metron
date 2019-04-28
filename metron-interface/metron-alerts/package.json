@@ -1,6 +1,6 @@
 {
   "name": "metron-alerts",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "license": "Apache-2.0",
   "angular-cli": {},
   "scripts": {
@@ -13,7 +13,8 @@
     "e2e": "protractor-flake --protractor-path=./node_modules/.bin/protractor --max-attempts=3 -- ./protractor.conf.js",
     "cypress:run": "cypress run",
     "cypress:open": "cypress open",
-    "cypress:ci": "run-p --race start cypress:run"
+    "cypress:ci": "ng build --prod && run-p --race start:ci cypress:run",
+    "start:ci": "node ./scripts/alerts-server.js -c alerts_ui_cypress.yml"
   },
   "private": true,
   "dependencies": {
@@ -30,12 +31,14 @@
     "ace-builds": "^1.2.6",
     "ajv": "^6.5.1",
     "angular-confirmation-popover": "^4.2.0",
-    "bootstrap": "4.0.0-alpha.6",
+    "bootstrap": "^4.2.1",
     "core-js": "^2.4.1",
     "font-awesome": "^4.7.0",
+    "jquery": "^3.3.1",
     "moment": "^2.22.2",
     "ng2-dragula": "^1.5.0",
     "pikaday-time": "^1.6.1",
+    "popper.js": "^1.14.7",
     "puppeteer": "^1.7.0",
     "rxjs": "^6.3.0",
     "ts-node": "^7.0.0",
@@ -75,6 +78,7 @@
     "serve-static": "^1.13.2",
     "ssh2": "^0.5.5",
     "tslint": "~5.0.0",
-    "typescript": "~2.9.2"
+    "typescript": "~2.9.2",
+    "yamljs": "^0.3.0"
   }
 }

@@ -46,6 +46,10 @@ public class DataStructureFunctionsTest {
       boolean empty = (boolean) isEmpty.apply(ImmutableList.of(1));
       Assert.assertThat("should be false", empty, CoreMatchers.equalTo(false));
     }
+    {
+      boolean empty = (boolean) isEmpty.apply(ImmutableList.of(ImmutableMap.of("mykey", "myvalue")));
+      Assert.assertThat("should be false", empty, CoreMatchers.equalTo(false));
+    }
   }
 
   @Test
@@ -63,9 +67,14 @@ public class DataStructureFunctionsTest {
       boolean empty = (boolean) isEmpty.apply(ImmutableList.of(""));
       Assert.assertThat("should be true", empty, CoreMatchers.equalTo(true));
     }
+    {
+      boolean empty = (boolean) isEmpty.apply(ImmutableList.of(ImmutableMap.of()));
+      Assert.assertThat("should be true", empty, CoreMatchers.equalTo(true));
+    }
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void listAdd_number() {
     for(String expr : ImmutableList.of("LIST_ADD(my_list, 1)"
                                       ,"LIST_ADD([], 1)"
@@ -82,6 +91,7 @@ public class DataStructureFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void listAdd_mixed() {
     for(String expr : ImmutableList.of("LIST_ADD(my_list, 1)"
                                       ,"LIST_ADD(['foo'], 1)"
@@ -101,6 +111,7 @@ public class DataStructureFunctionsTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void listAdd_number_nonempty() {
     for(String expr : ImmutableList.of("LIST_ADD(my_list, 2)"
                                       ,"LIST_ADD([1], 2)"

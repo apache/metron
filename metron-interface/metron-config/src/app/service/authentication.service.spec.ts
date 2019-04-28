@@ -23,7 +23,9 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 import { AuthenticationService } from './authentication.service';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
+import {AppConfigService} from "./app-config.service";
+import {MockAppConfigService} from './mock.app-config.service';
+import {HttpUtil} from '../util/httpUtil';
 
 class MockRouter {
   navigateByUrl(url: string) {}
@@ -40,7 +42,7 @@ describe('AuthenticationService', () => {
       providers: [
         AuthenticationService,
         { provide: Router, useClass: MockRouter },
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     authenticationService = TestBed.get(AuthenticationService);
@@ -86,31 +88,31 @@ describe('AuthenticationService', () => {
     });
 
     it('logout', () => {
-      spyOn(router, 'navigateByUrl');
+      spyOn(HttpUtil, 'navigateToLogin');
       spyOn(authenticationService.onLoginEvent, 'next');
 
       authenticationService.logout();
-      const req = mockBackend.match('/logout');
+      const req = mockBackend.match('/api/v1/logout');
       const req2 = mockBackend.expectOne('/api/v1/user');
       req.map(r => r.flush(''));
       expect(req[0].request.method).toBe('POST');
 
-      expect(router.navigateByUrl).toHaveBeenCalledWith('/login');
+      expect(HttpUtil.navigateToLogin).toHaveBeenCalledWith();
       expect(authenticationService.onLoginEvent.getValue()).toEqual(false);
     });
 
     it('checkAuthentication', () => {
       let isAuthenticated = false;
-      spyOn(router, 'navigateByUrl');
+      spyOn(HttpUtil, 'navigateToLogin');
       spyOn(authenticationService, 'isAuthenticated').and.callFake(function() {
         return isAuthenticated;
       });
 
       authenticationService.checkAuthentication();
-      expect(router.navigateByUrl).toHaveBeenCalledWith('/login');
+      expect(HttpUtil.navigateToLogin).toHaveBeenCalledWith();
       isAuthenticated = true;
       authenticationService.checkAuthentication();
-      expect(router.navigateByUrl['calls'].count()).toEqual(1);
+      expect(HttpUtil.navigateToLogin['calls'].count()).toEqual(1);
       const req = mockBackend.expectOne('/api/v1/user');
     });
 

@@ -132,7 +132,7 @@ public enum ConfigurationsStrategies implements ConfigurationStrategy {
   }
 
   /**
-   * Config updater
+   * Config updater.
    * @param reloadable callback
    * @param configSupplier Supplier provides config of type {@code <? extends Configurations>}
    * @return Config updater

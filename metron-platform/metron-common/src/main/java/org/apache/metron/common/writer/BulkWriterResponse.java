@@ -18,27 +18,38 @@
 
 package org.apache.metron.common.writer;
 
-import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This class contains the results of a {@link org.apache.metron.common.writer.BulkMessageWriter#write(String, WriterConfiguration, List)}
+ * call.  Each message in a batch either succeeds or fails and is represented in the response as a
+ * {@link org.apache.metron.common.writer.MessageId}.
+ */
 public class BulkWriterResponse {
-    private Multimap<Throwable, Tuple> errors = ArrayListMultimap.create();
-    private List<Tuple> successes = new ArrayList<>();
+    private Multimap<Throwable, MessageId> errors = ArrayListMultimap.create();
+    private List<MessageId> successes = new ArrayList<>();
 
-    public void addError(Throwable error, Tuple tuple) {
-        errors.put(error, tuple);
+    public void addError(Throwable error, MessageId id) {
+        errors.put(error, id);
     }
 
-    public void addAllErrors(Throwable error, Iterable<Tuple> tuples) {
-        if(tuples != null) {
-            errors.putAll(error, tuples);
+  /**
+   * Adds provided errors and associated tuples.
+   *
+   * @param error The error to add
+   * @param ids Iterable of all messages with the error
+   */
+    public void addAllErrors(Throwable error, Iterable<MessageId> ids) {
+        if(ids != null) {
+            errors.putAll(error, ids);
         }
     }
 
@@ -46,21 +57,26 @@ public class BulkWriterResponse {
         return !errors.isEmpty();
     }
 
-    public void addSuccess(Tuple success) {
+    public void addSuccess(MessageId success) {
         successes.add(success);
     }
 
-    public void addAllSuccesses(Iterable<Tuple> allSuccesses) {
+  /**
+   * Adds all provided successes.
+   *
+   * @param allSuccesses Successes to add
+   */
+    public void addAllSuccesses(Iterable<MessageId> allSuccesses) {
         if(allSuccesses != null) {
             Iterables.addAll(successes, allSuccesses);
         }
     }
 
-    public Map<Throwable, Collection<Tuple>> getErrors() {
+    public Map<Throwable, Collection<MessageId>> getErrors() {
         return errors.asMap();
     }
 
-    public List<Tuple> getSuccesses() {
+    public List<MessageId> getSuccesses() {
         return successes;
     }
 

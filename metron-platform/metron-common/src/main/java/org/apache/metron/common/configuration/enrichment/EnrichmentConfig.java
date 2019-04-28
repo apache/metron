@@ -25,6 +25,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Holds the enrichment configuration.
+ */
 public class EnrichmentConfig {
   private Map<String, Object> fieldMap = new HashMap<>();
   private Map<String, ConfigHandler> enrichmentConfigs = new HashMap<>();
@@ -48,7 +51,13 @@ public class EnrichmentConfig {
     return enrichmentConfigs;
   }
 
-
+  /**
+   * Builds enrichment configs map of enrichment type to {@link ConfigHandler}, based on a
+   * provided map.
+   *
+   * @param fieldMap Map of enrichment bolts names to configuration handlers which know how to
+   *     split the message up.
+   */
   public void setFieldMap(Map<String, Object> fieldMap) {
     this.fieldMap = fieldMap;
     for(Map.Entry<String, Object> kv : fieldMap.entrySet()) {

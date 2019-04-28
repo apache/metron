@@ -25,6 +25,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Allows for retrieval and update of enrichment configurations.
+ */
 public class SensorEnrichmentConfig {
 
   private EnrichmentConfig enrichment = new EnrichmentConfig();

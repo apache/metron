@@ -24,6 +24,7 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.resources.system import Execute
+from resource_management.core.source import Template
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
@@ -113,6 +114,21 @@ def build_global_config_patch(params, patch_file):
         "op": "add",
         "path": "/parser.error.topic",
         "value": "{{parser_error_topic}}"
+    },
+    {
+        "op": "add",
+        "path": "/enrichment.list.hbase.provider.impl",
+        "value": "{{enrichment_list_hbase_provider_impl}}"
+    },
+    {
+        "op": "add",
+        "path": "/enrichment.list.hbase.table",
+        "value": "{{enrichment_list_hbase_table}}"
+    },
+    {
+        "op": "add",
+        "path": "/enrichment.list.hbase.cf",
+        "value": "{{enrichment_list_hbase_cf}}"
     },
     {
         "op": "add",
@@ -383,7 +399,6 @@ def create_hbase_table(params, table, cf):
             user=params.hbase_user
             )
 
-
 def check_hbase_table(params, table):
     """
     Validates that an HBase table exists.  An exception is raised if the table
@@ -588,3 +603,41 @@ def check_indexer_parameters():
 
     if len(missing) > 0:
       raise Fail("Missing required indexing parameters(s): indexer={0}, missing={1}".format(indexer, missing))
+
+def install_metron_knox(params):
+    if os.path.exists(params.knox_home):
+        template = """export KNOX_HOME={0}; \
+            export KNOX_USER={1}; \
+            export KNOX_GROUP={2}; \
+            {3}/bin/install_metron_knox.sh; \
+            unset KNOX_USER; \
+            unset KNOX_GROUP; \
+            unset KNOX_HOME;"""
+        cmd = template.format(params.knox_home, params.knox_user, params.knox_group, params.metron_home)
+        Execute(cmd)
+        set_metron_knox_installed(params)
+
+def is_metron_knox_installed(params):
+    return os.path.isfile(params.metron_knox_installed_flag_file)
+
+def set_metron_knox_installed(params):
+    Directory(params.metron_zookeeper_config_path,
+              mode=0755,
+              owner=params.metron_user,
+              group=params.metron_group,
+              create_parents=True
+              )
+    set_configured(params.metron_user, params.metron_knox_installed_flag_file, "Setting Metron Knox installed to true")
+
+def metron_knox_topology_setup(params):
+    if os.path.exists(params.knox_home):
+        File(ambari_format("{knox_home}/conf/topologies/metron.xml"),
+             content=Template("metron.xml.j2"),
+             owner=params.knox_user,
+             group=params.knox_group
+             )
+        File(ambari_format("{knox_home}/conf/topologies/metronsso.xml"),
+             content=Template("metronsso.xml.j2"),
+             owner=params.knox_user,
+             group=params.knox_group
+             )

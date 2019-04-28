@@ -264,6 +264,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
    * @return The global configuration.
    */
   @Override
+  @SuppressWarnings("unchecked")
   public Map<String, Object> getGlobalConfig() {
     Map<String, Object> globals;
     Optional<Object> capability = getContext().getCapability(GLOBAL_CONFIG, false);
@@ -294,6 +295,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Map<String, VariableResult> getState() {
     return UnmodifiableMap.decorate(variables);
   }

@@ -17,6 +17,18 @@
  */
 @import "../../../slider";
 @import "../../../variables";
+@import "../../../styles";
+
+@include keyframes("keyframe-dialog-rtl", $dialog-4x-width, "0px")
+
+.load-right-to-left {
+  @include animation("keyframe-dialog-rtl", "0.3s", "ease");
+}
+
+.custom-metron-button-bar-2x {
+  @extend .metron-button-bar-2x;
+  width: 100%;
+}
 
 .container-fluid {
   padding-top: 15px;
@@ -29,8 +41,29 @@
   text-overflow: ellipsis;
 }
 
+.custom-dialog2x {
+  width: 75%;
+
+  .table-config {
+
+    flex-grow: 1;
+    flex-wrap: wrap;
+
+    table {
+      flex: 1;
+      margin: 0 1rem 0 0;
+    }
+
+    .main-column {
+      text-transform: uppercase;
+      font-size: 1.1rem;
+    }
+  }
+}
+
 .table th, .table td {
   padding: 0.6rem 0.25rem;
+  text-overflow: ellipsis;
 }
 
 .up:before {
@@ -52,4 +85,32 @@
 .disabled:before {
   opacity: 0.3;
   cursor: default;
+}
+
+.input {
+  padding-left: .5rem;
+}
+
+.btn-search-clear {
+  background: #2D2D2D;
+  border-bottom: 1px solid #4D4D4D;
+  border-left: none;
+  border-right: 1px solid #4D4D4D;
+  border-top: 1px solid #4D4D4D;
+  cursor: pointer;
+  padding: 0px 5px 0px 0px;
+  width: 30px;
+
+  &::before {
+    font-family: "FontAwesome";
+    content: '\f057';
+    color: #909090;
+    padding-left: 5px;
+  }
+}
+
+.btn-sm {
+  padding: 0.1rem 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.1rem;
 }

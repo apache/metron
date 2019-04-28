@@ -355,19 +355,22 @@ The parameters for the utility are as follows:
 
 ### GeoLite2 Loader
 
-The shell script `$METRON_HOME/bin/geo_enrichment_load.sh` will retrieve MaxMind GeoLite2 data and load data into HDFS, and update the configuration.
+The shell script `$METRON_HOME/bin/maxmind_enrichment_load.sh` will retrieve MaxMind GeoLite2 data and load data into HDFS, and update the configuration.
+The script will retrieve both the City and ASN databases.
 
 THIS SCRIPT WILL NOT UPDATE AMBARI'S GLOBAL.JSON, JUST THE ZK CONFIGS.  CHANGES WILL GO INTO EFFECT, BUT WILL NOT PERSIST PAST AN AMBARI RESTART UNTIL UPDATED THERE.
 
 The parameters for the utility are as follows:
 
-| Short Code | Long Code           | Is Required? | Description                                                                                      |
-|------------|---------------------|--------------|--------------------------------------------------------------------------------------------------|
-| -h         |                     | No           | Generate the help screen/set of options                                                          |
-| -g         | --geo_url           | No           | GeoIP URL - defaults to http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz |
-| -r         | --remote_dir        | No           | HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/\<epoch millis\>/     |
-| -t         | --tmp_dir           | No           | Directory for landing the temporary GeoIP data - defaults to /tmp                                |
-| -z         | --zk_quorum         | Yes          | Zookeeper Quorum URL (zk1:port,zk2:port,...)                                                     |
+| Short Code | Long Code           | Is Required? | Description                                                                                         |
+|------------|---------------------|--------------|-----------------------------------------------------------------------------------------------------|
+| -h         |                     | No           | Generate the help screen/set of options                                                             |
+| -g         | --geo_url           | No           | GeoIP URL - defaults to http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz     |
+| -r         | --remote_dir        | No           | HDFS directory to land formatted GeoIP City file - defaults to /apps/metron/geo/\<epoch millis\>/   |
+| -ra        | --remote_asn_dir    | No           | HDFS directory to land formatted GeoIP ASN file - defaults to /apps/metron/asn/\<epoch millis\>/    |
+| -re        | --retries           | No           | Number of GeoLite2 database download retries, after an initial failure.                             |
+| -t         | --tmp_dir           | No           | Directory for landing the temporary GeoIP data - defaults to /tmp                                   |
+| -z         | --zk_quorum         | Yes          | Zookeeper Quorum URL (zk1:port,zk2:port,...)                                                        |
 
 ### Flatfile Summarizer
 

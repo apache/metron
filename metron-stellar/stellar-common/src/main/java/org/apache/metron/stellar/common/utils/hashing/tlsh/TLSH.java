@@ -28,7 +28,7 @@ import java.util.Optional;
  * The abstraction around interacting with TLSH.
  */
 public class TLSH {
-  TlshCreator creator;
+  private TlshCreator creator;
   public TLSH(BucketOption bucketOption, ChecksumOption checksumOption) {
     creator = new TlshCreator(bucketOption, checksumOption);
   }
@@ -37,16 +37,20 @@ public class TLSH {
     try {
       creator.update(data);
       return creator.getHash(force).getEncoded();
-    }
-    finally {
+    } finally {
       creator.reset();
     }
   }
 
   public static int distance(String hash1, String hash2, Optional<Boolean> includeLength) {
-    if(hash1 == null || hash2 == null && hash1 != hash2) {
+    if (hash1 == null || hash2 == null) {
       return -1;
     }
+
+    if (hash1.equals(hash2)) {
+      return 0;
+    }
+
     Tlsh t1 = Tlsh.fromTlshStr(hash1);
     Tlsh t2 = Tlsh.fromTlshStr(hash2);
     return t1.totalDiff(t2, includeLength.orElse(false));

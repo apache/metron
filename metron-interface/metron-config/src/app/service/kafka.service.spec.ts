@@ -18,11 +18,12 @@
 import { TestBed } from '@angular/core/testing';
 import { KafkaService } from './kafka.service';
 import { KafkaTopic } from '../model/kafka-topic';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('KafkaService', () => {
   let mockBackend: HttpTestingController;
@@ -33,7 +34,7 @@ describe('KafkaService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         KafkaService,
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     mockBackend = TestBed.get(HttpTestingController);

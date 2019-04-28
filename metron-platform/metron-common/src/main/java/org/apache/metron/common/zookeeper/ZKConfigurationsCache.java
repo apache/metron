@@ -73,6 +73,13 @@ public class ZKConfigurationsCache implements ConfigurationsCache {
   private CuratorFramework client;
   ReadWriteLock lock = new ReentrantReadWriteLock();
 
+  /**
+   * Constructor that sets up the cache.
+   *
+   * @param client The client to use for ZooKeeper communications
+   * @param reloadable Callback for handling reloading
+   * @param types The types to be handled by the cache
+   */
   public ZKConfigurationsCache(CuratorFramework client, Reloadable reloadable, ConfiguredTypes... types) {
     updaters = new ArrayList<>();
     configs = new HashMap<>();
@@ -119,6 +126,9 @@ public class ZKConfigurationsCache implements ConfigurationsCache {
     }
   }
 
+  /**
+   * Closes and reinitializes the instance.
+   */
   public void reset() {
     Lock writeLock = lock.writeLock();
     try {
@@ -163,7 +173,13 @@ public class ZKConfigurationsCache implements ConfigurationsCache {
     }
   }
 
-
+  /**
+   * Retrieves the {@link Configurations} for the provided config class.
+   *
+   * @param configClass The Configurations class to return
+   * @param <T> The type parameter of the config class to return
+   * @return The appropriate configurations class
+   */
   public <T extends Configurations> T get(Class<T> configClass){
     Lock readLock = lock.readLock();
     try {

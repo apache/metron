@@ -133,10 +133,10 @@ java -cp $METRON_HOME/lib/metron-elasticsearch-0.4.2-uber.jar org.apache.metron.
   ~/dashboard-bulkload.json
 ```
 
-Locate the "create" command for setting the default index by searching for "5.6.2". Change "create" to "index" so that it modifies the existing value. It should look similar to line 1 below.
+Locate the "create" command for setting the default index by searching for "5.6.14". Change "create" to "index" so that it modifies the existing value. It should look similar to line 1 below.
 
 ```
-{ "index" : { "_id": "5.6.2", "_type": "config" } }
+{ "index" : { "_id": "5.6.14", "_type": "config" } }
 {"defaultIndex":"AV-S2e81hKs1cXXnFMqN"}
 ```
 
@@ -183,7 +183,9 @@ A custom action is available in Ambari to import Zeppelin dashboards. See the [m
 
 #### Offline Installation
 
-Retrieval of the GeoIP database is the only point during installation that reaches out to the internet. For an offline installation, the URL for the GeoIP database can be manually set to a local path on the file system such as  `file:///home/root/geoip/GeoLite2-City.mmdb.gz`.
+Retrieval of the GeoIP and ASN databases (both from MaxMind) is the only point during installation that reaches out to the internet. For an offline installation, the URL for the databases can be manually set to a local path on the file system such as  `file:///home/root/geoip/GeoLite2-City.tar.gz`.
+
+The properties for configuration are `geoip_url` and `asn_url` in the `Enrichment` section.
 
 The RPMs DO NOT reach out to the internet (because there is currently no hosting for them).  They look on the local filesystem in `/localrepo`.
 

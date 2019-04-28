@@ -11,62 +11,100 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div class="metron-slider-pane-editable load-right-to-left dialog2x">
-  <div class="container-fluid">
-    <div class="row mb-3">
-      <div class="col-md-10">
-        <div class="form-title font-weight-bold">Configure Table</div>
-      </div>
-      <div class="col-md-2"><i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i></div>
+<div class="metron-slider-pane-editable pb-0 d-flex flex-column load-right-to-left custom-dialog2x">
+
+  <div class="container-fluid mb-3">
+    <div class="d-flex pb-3">
+      <div class="form-title font-weight-bold">Configure Table Columns</div>
+      <i class="fa fa-times ml-auto close-button" aria-hidden="true" (click)="goBack()"></i>
     </div>
-    <div class="row mx-0">
-      <table class="table">
-        <thead>
-          <tr>
-            <th style="width: 10%"> <input id="select-deselect-all-col" class="fontawesome-checkbox" type="checkbox" (click)="onSelectDeselectAll($event)"><label for="select-deselect-all-col"></label> </th>
-            <th style="width: 30%"> Field </th>
-            <th style="width: 10%"> Short Name </th>
-            <th style="width: 30%"> Type  </th>
-            <th style="width: 10%"> </th>
-            <th style="width: 10%"> </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><input #selectColName id="select-deselect-score" class="fontawesome-checkbox" type="checkbox" [checked]="true" disabled><label for="select-deselect-score"></label></td>
-            <td> <span> Score </span></td>
-            <td> </td>
-            <td> <span> STRING </span></td>
-            <td> - </td>
-            <td> - </td>
-          </tr>
-          <tr *ngFor="let columns of allColumns; let i = index" [ngClass]="{'background-tiber': columns.selected}">
-            <td>
-              <input #selectColName id="select-deselect-{{ columns.columnMetadata.name }}" class="fontawesome-checkbox" type="checkbox" [checked]="columns.selected" (click)="selectColumn(columns)">
-              <label for="select-deselect-{{ columns.columnMetadata.name }}"></label>
-            </td>
-            <td #element>
-              <span [attr.title]="columns.key"> {{ columns.columnMetadata.name | centerEllipses }} </span>
-            </td>
-            <td>
-              <input class="input" placeholder="rename" [(ngModel)]="columns.displayName">
-            </td>
-            <td>
-              <span class="text-uppercase"> {{ columns.columnMetadata.type }} </span>
-            </td>
-            <td>
-              <span id="up-{{ columns.columnMetadata.name }}" class="up" (click)="swapUp(i)" [ngClass]="{'disabled': i === 0}"></span>
-            </td>
-            <td>
-              <span id="down-{{ columns.columnMetadata.name }}" class="down" (click)="swapDown(i)" [ngClass]="{'disabled': i + 1 === allColumns.length}"></span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="input-group">
+      <input class="input flex-fill" data-qe-id="filter-input" type="text" placeholder="Filter list of available fields" #columnFilterInput >
+      <div class="input-group-append">
+        <button class="btn btn-secondary btn-search-clear" data-qe-id="filter-reset" (click)="clearFilter()"></button>
+      </div>
     </div>
   </div>
-  <div class="container-fluid metron-floating-button-bar-2x">
-    <button type="submit" class="btn btn-all_ports" (click)="save()">SAVE</button>
+
+  <div class="container-fluid pt-0 table-config d-flex flex-wrap overflow-auto">
+
+    <div class="d-flex w-100 justify-content-center align-items-center" *ngIf="!visibleColumns.length">
+        <div class="spinner-border text-info" role="status"></div>
+        <div class="pt-2"><small>Loading...</small></div>
+    </div>
+
+    <table data-qe-id="table-visible" class="table" *ngIf="visibleColumns.length">
+      <thead>
+        <tr>
+          <th class="main-column" colspan=2> Visible </th>
+          <th> Short Name </th>
+          <th> Type  </th>
+          <th> </th>
+          <th> </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="background-tiber">
+          <td>
+            <button class="btn btn-secondary btn-sm" disabled>remove</button>
+          </td>
+          <td>
+            <span> Score </span>
+          </td>
+          <td> </td>
+          <td> <span> STRING </span></td>
+          <td> - </td>
+          <td> - </td>
+        </tr>
+        <tr attr.data-qe-id="row-{{ i }}" *ngFor="let column of visibleColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+          <td>
+            <button attr.data-qe-id="remove-btn-{{ i }}" (click)="onColumnRemoved(column)" class="btn btn-secondary btn-sm">remove</button>
+          </td>
+          <td #element>
+            <span attr.data-qe-id="field-label-{{ i }}" [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
+          </td>
+          <td>
+            <input class="input" placeholder="rename" [(ngModel)]="column.displayName">
+          </td>
+          <td>
+            <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
+          </td>
+          <td>
+            <span id="up-{{ column.columnMetadata.name }}" class="up" (click)="swapUp(i)" [ngClass]="{'disabled': i === 0}"></span>
+          </td>
+          <td>
+            <span id="down-{{ column.columnMetadata.name }}" class="down" (click)="swapDown(i)" [ngClass]="{'disabled': i + 1 === visibleColumns.length}"></span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table data-qe-id="table-available" class="table" *ngIf="availableColumns.length">
+      <thead>
+        <tr>
+          <th class="main-column" colspan=2> Available </th>
+          <th> Type  </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr attr.data-qe-id="row-{{ i }}" *ngFor="let column of filteredColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+          <td>
+            <button attr.data-qe-id="add-btn-{{ i }}" (click)="onColumnAdded(column)" class="btn btn-primary btn-sm">add</button>
+          </td>
+          <td #element>
+            <span attr.data-qe-id="field-label-{{ i }}" [attr.title]="column.columnMetadata.name"> {{ column.columnMetadata.name | centerEllipses }} </span>
+          </td>
+          <td>
+            <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="container-fluid custom-metron-button-bar-2x">
+    <button type="submit" data-qe-id="save-table-config" class="btn btn-all_ports" (click)="save()">SAVE</button>
     <button class="btn btn-mine_shaft_2" (click)="goBack()">CANCEL</button>
   </div>
 </div>
+

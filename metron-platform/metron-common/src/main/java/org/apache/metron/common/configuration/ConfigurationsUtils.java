@@ -54,6 +54,10 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A Utility class for managing various configs, including global configs, sensor specific configs,
+ * and profiler configs.
+ */
 public class ConfigurationsUtils {
   protected static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -62,16 +66,38 @@ public class ConfigurationsUtils {
     return CuratorFrameworkFactory.newClient(zookeeperUrl, retryPolicy);
   }
 
+  /**
+   * Writes the global config from a map to ZooKeeper.
+   *
+   * @param globalConfig The key -> value config to upload
+   * @param zookeeperUrl The ZK URL in host:port format
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeGlobalConfigToZookeeper(Map<String, Object> globalConfig, String zookeeperUrl) throws Exception {
     try(CuratorFramework client = getClient(zookeeperUrl)) {
      client.start();
       writeGlobalConfigToZookeeper(globalConfig, client);
     }
   }
+
+  /**
+   * Writes the global config from a map to ZooKeeper.
+   *
+   * @param globalConfig The key -> value config to upload
+   * @param client The ZK client to use
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeGlobalConfigToZookeeper(Map<String, Object> globalConfig, CuratorFramework client) throws Exception {
     writeGlobalConfigToZookeeper(JSONUtils.INSTANCE.toJSONPretty(globalConfig), client);
   }
 
+  /**
+   * Writes the global config from raw bytes to ZooKeeper.
+   *
+   * @param globalConfig The config to upload as bytes
+   * @param zookeeperUrl The ZK URL in host:port format
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeGlobalConfigToZookeeper(byte[] globalConfig, String zookeeperUrl) throws Exception {
     try(CuratorFramework client = getClient(zookeeperUrl)) {
       client.start();
@@ -79,20 +105,50 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Writes the global config from raw bytes to ZooKeeper.
+   *
+   * @param globalConfig The config to upload as bytes
+   * @param client The ZK client to use
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeGlobalConfigToZookeeper(byte[] globalConfig, CuratorFramework client) throws Exception {
     GLOBAL.deserialize(new String(globalConfig));
     writeToZookeeper(GLOBAL.getZookeeperRoot(), globalConfig, client);
   }
 
+  /**
+   * Writes the profiler config from raw bytes to ZooKeeper.
+   *
+   * @param config The config to upload as bytes
+   * @param client The ZK client to use
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeProfilerConfigToZookeeper(byte[] config, CuratorFramework client) throws Exception {
     PROFILER.deserialize(new String(config));
     writeToZookeeper(PROFILER.getZookeeperRoot(), config, client);
   }
 
+  /**
+   * Writes sensor parser config to ZooKeeper for a specific sensor.
+   *
+   * @param sensorType The specific sensor to write configs for
+   * @param sensorParserConfig The config for the sensor
+   * @param zookeeperUrl The ZK URL in host:port format
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeSensorParserConfigToZookeeper(String sensorType, SensorParserConfig sensorParserConfig, String zookeeperUrl) throws Exception {
     writeSensorParserConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSONPretty(sensorParserConfig), zookeeperUrl);
   }
 
+  /**
+   * Writes sensor parser config from raw bytes to ZooKeeper for a specific sensor.
+   *
+   * @param sensorType The specific sensor to write configs for
+   * @param configData The config for the sensor in raw bytes
+   * @param zookeeperUrl The ZK URL in host:port format
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeSensorParserConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
     try(CuratorFramework client = getClient(zookeeperUrl)) {
       client.start();
@@ -100,16 +156,40 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Writes sensor parser config from raw bytes to ZooKeeper for a specific sensor.
+   *
+   * @param sensorType The specific sensor to write configs for
+   * @param configData The config for the sensor in raw bytes
+   * @param client The ZK client to use
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeSensorParserConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
     SensorParserConfig c = (SensorParserConfig) PARSER.deserialize(new String(configData));
     c.init();
     writeToZookeeper(PARSER.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
+  /**
+   * Writes sensor indexing config to ZooKeeper for a specific sensor.
+   *
+   * @param sensorType The specific sensor to write configs for
+   * @param sensorIndexingConfig The config for the sensor
+   * @param zookeeperUrl The ZK URL in host:port format
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, Map<String, Object> sensorIndexingConfig, String zookeeperUrl) throws Exception {
     writeSensorIndexingConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSONPretty(sensorIndexingConfig), zookeeperUrl);
   }
 
+  /**
+   * Writes sensor indexing config from raw bytes to ZooKeeper for a specific sensor.
+   *
+   * @param sensorType The specific sensor to write configs for
+   * @param configData The config for the sensor in raw bytes
+   * @param zookeeperUrl The ZK URL in host:port format
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
     try(CuratorFramework client = getClient(zookeeperUrl)) {
       client.start();
@@ -117,15 +197,39 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Writes sensor indexing config from raw bytes to ZooKeeper for a specific sensor.
+   *
+   * @param sensorType The specific sensor to write configs for
+   * @param configData The config for the sensor in raw bytes
+   * @param client The ZK client to use
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
     INDEXING.deserialize(new String(configData));
     writeToZookeeper(INDEXING.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
+  /**
+   * Writes sensor enrichment config to ZooKeeper for a specific sensor.
+   *
+   * @param sensorType The specific sensor to write configs for
+   * @param sensorEnrichmentConfig The config for the sensor
+   * @param zookeeperUrl The ZK URL in host:port format
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig, String zookeeperUrl) throws Exception {
     writeSensorEnrichmentConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSONPretty(sensorEnrichmentConfig), zookeeperUrl);
   }
 
+  /**
+   * Writes sensor enrichment config from raw bytes to ZooKeeper for a specific sensor.
+   *
+   * @param sensorType The specific sensor to write configs for
+   * @param configData The config for the sensor in raw bytes
+   * @param zookeeperUrl The ZK URL in host:port format
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
     try(CuratorFramework client = getClient(zookeeperUrl)) {
       client.start();
@@ -133,6 +237,14 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Writes sensor enrichment config from raw bytes to ZooKeeper for a specific sensor.
+   *
+   * @param sensorType The specific sensor to write configs for
+   * @param configData The config for the sensor in raw bytes
+   * @param client The ZK client to use
+   * @throws Exception If there's an error writing to ZK
+   */
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
     ENRICHMENT.deserialize(new String(configData));
     writeToZookeeper(ENRICHMENT.getZookeeperRoot() + "/" + sensorType, configData, client);
@@ -163,7 +275,7 @@ public class ConfigurationsUtils {
   }
 
   /**
-   * Writes config to path in Zookeeper, /metron/topology/$CONFIG_TYPE/$CONFIG_NAME
+   * Writes config to path in Zookeeper, /metron/topology/$CONFIG_TYPE/$CONFIG_NAME.
    */
   public static void writeConfigToZookeeper(String configPath, byte[] config, String zookeeperUrl)
       throws Exception {
@@ -173,6 +285,14 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Writes raw bytes data to a specified path in ZooKeeper.
+   *
+   * @param path The path to write data to
+   * @param configData The config data to write
+   * @param client The ZK client to use
+   * @throws Exception If there's an error writing data
+   */
   public static void writeToZookeeper(String path, byte[] configData, CuratorFramework client) throws Exception {
     try {
       client.setData().forPath(path, configData);
@@ -181,10 +301,15 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Updates global config from ZooKeeper.
+   * @param configurations The configurations to load into
+   * @param client The Zk client to use
+   * @throws Exception If there's an error reading data
+   */
   public static void updateConfigsFromZookeeper(Configurations configurations, CuratorFramework client) throws Exception {
     configurations.updateGlobalConfig(readGlobalConfigBytesFromZookeeper(client));
   }
-
 
   private interface Callback {
     void apply(String sensorType) throws Exception;
@@ -213,6 +338,13 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Update parser configs from ZooKeeper.
+   *
+   * @param configurations The configurations to load into
+   * @param client The Zk client to use
+   * @throws Exception If there's an error reading data
+   */
   public static void updateParserConfigsFromZookeeper(ParserConfigurations configurations, CuratorFramework client) throws Exception {
     updateConfigsFromZookeeper( configurations
                               , PARSER
@@ -221,6 +353,13 @@ public class ConfigurationsUtils {
                               );
   }
 
+  /**
+   * Update indexing configs from ZooKeeper.
+   *
+   * @param configurations The configurations to load into
+   * @param client The Zk client to use
+   * @throws Exception If there's an error reading data
+   */
   public static void updateSensorIndexingConfigsFromZookeeper(IndexingConfigurations configurations, CuratorFramework client) throws Exception {
     updateConfigsFromZookeeper( configurations
                               , INDEXING
@@ -229,6 +368,13 @@ public class ConfigurationsUtils {
                               );
   }
 
+  /**
+   * Update enrichment configs from ZooKeeper.
+   *
+   * @param configurations The configurations to load into
+   * @param client The Zk client to use
+   * @throws Exception If there's an error reading data
+   */
   public static void updateEnrichmentConfigsFromZookeeper(EnrichmentConfigurations configurations, CuratorFramework client) throws Exception {
     updateConfigsFromZookeeper( configurations
                               , ENRICHMENT
@@ -242,7 +388,7 @@ public class ConfigurationsUtils {
    *
    * @param client The Zookeeper client.
    * @return The global configuration, if one exists.  Otherwise, null.
-   * @throws Exception
+   * @throws Exception If there's an error reading from ZK
    */
   public static Map<String, Object> readGlobalConfigFromZookeeper(CuratorFramework client) throws Exception {
     Map<String, Object> config = null;
@@ -262,7 +408,7 @@ public class ConfigurationsUtils {
    * @param sensorType The type of sensor.
    * @param client The Zookeeper client.
    * @return The indexing configuration for the given sensor type, if one exists.  Otherwise, null.
-   * @throws Exception
+   * @throws Exception If there's an error reading from ZK
    */
   public static Map<String, Object> readSensorIndexingConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
     Map<String, Object> config = null;
@@ -282,7 +428,7 @@ public class ConfigurationsUtils {
    * @param sensorType The type of sensor.
    * @param client The Zookeeper client.
    * @return The Enrichment configuration for the given sensor type, if one exists. Otherwise, null.
-   * @throws Exception
+   * @throws Exception If there's an error reading from ZK
    */
   public static SensorEnrichmentConfig readSensorEnrichmentConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
     SensorEnrichmentConfig config = null;
@@ -301,7 +447,7 @@ public class ConfigurationsUtils {
    * @param sensorType The type of sensor.
    * @param client The Zookeeper client.
    * @return The Parser configuration for the given sensor type, if one exists. Otherwise, null.
-   * @throws Exception
+   * @throws Exception If there's an error reading from ZK
    */
   public static SensorParserConfig readSensorParserConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
     SensorParserConfig config = null;
@@ -319,7 +465,7 @@ public class ConfigurationsUtils {
    *
    * @param client The Zookeeper client.
    * @return THe Profiler configuration.
-   * @throws Exception
+   * @throws Exception If there's an error reading from ZK
    */
   public static ProfilerConfig readProfilerConfigFromZookeeper(CuratorFramework client) throws Exception {
     ProfilerConfig config = null;
@@ -371,6 +517,14 @@ public class ConfigurationsUtils {
     return readFromZookeeper(getConfigZKPath(configType, configName), zookeeperUrl);
   }
 
+  /**
+   * Reads data from ZooKeeper located in a given path.
+   *
+   * @param path The path to read from
+   * @param zookeeperUrl The ZK URL in host:port format
+   * @return The raw bytes of the data
+   * @throws Exception If there's an error reading data
+   */
   public static byte[] readFromZookeeper(String path, String zookeeperUrl) throws Exception {
     try (CuratorFramework client = getClient(zookeeperUrl)) {
       client.start();
@@ -384,7 +538,7 @@ public class ConfigurationsUtils {
    * @param path The path to the Zookeeper node to read.
    * @param client The Zookeeper client.
    * @return The bytes read from Zookeeper, if node exists.  Otherwise, null.
-   * @throws Exception
+   * @throws Exception If there's an issue reading from ZK
    */
   public static Optional<byte[]> readFromZookeeperSafely(String path, CuratorFramework client) throws Exception {
     Optional<byte[]> result = Optional.empty();
@@ -415,6 +569,17 @@ public class ConfigurationsUtils {
     return new byte[]{};
   }
 
+  /**
+   * Uploads configs from local storage into ZooKeeper.
+   *
+   * @param globalConfigPath The local path of the global configs
+   * @param parsersConfigPath The local path of the parser configs
+   * @param enrichmentsConfigPath The local path of enrichment configs
+   * @param indexingConfigPath The local path of indexing configs
+   * @param profilerConfigPath The local path of profiler configs
+   * @param zookeeperUrl The ZK url in host:port format
+   * @throws Exception If there's an error reading or uploading configs
+   */
   public static void uploadConfigsToZookeeper(String globalConfigPath,
                                               String parsersConfigPath,
                                               String enrichmentsConfigPath,
@@ -427,6 +592,12 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Uploads local filesystem stored configs to ZooKeeper based on the specified rootFilePath.
+   * @param rootFilePath Base configuration path on the local FSj
+   * @param client The ZK client to use
+   * @throws Exception If there's an issue reading local or uploading local configs
+   */
   public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client) throws Exception {
     uploadConfigsToZookeeper(rootFilePath, rootFilePath, rootFilePath, rootFilePath, rootFilePath, client);
   }
@@ -503,6 +674,17 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Uploads configs from local storage into ZooKeeper.
+   *
+   * @param globalConfigPath The local path of the global configs
+   * @param parsersConfigPath The local path of the parser configs
+   * @param enrichmentsConfigPath The local path of enrichment configs
+   * @param indexingConfigPath The local path of indexing configs
+   * @param profilerConfigPath The local path of profiler configs
+   * @param client The ZK client to use
+   * @throws Exception If there's an error reading or uploading configs
+   */
   public static void uploadConfigsToZookeeper(String globalConfigPath,
                                               String parsersConfigPath,
                                               String enrichmentsConfigPath,
@@ -552,6 +734,12 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Sets up Stellar statically with a connection to ZooKeeper and optionally, global configuration
+   * to be used. Global config will be pulled from ZooKeeper.
+   *
+   * @param client The ZK client to be used
+   */
   public static void setupStellarStatically(CuratorFramework client) throws Exception {
     byte[] ret = null;
     try {
@@ -568,6 +756,13 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Sets up Stellar statically with a connection to ZooKeeper and optionally, global configuration
+   * to be used.
+   *
+   * @param client The ZK client to be used
+   * @param globalConfig Optional global configuration to be used
+   */
   public static void setupStellarStatically(CuratorFramework client, Optional<String> globalConfig) {
     /*
       In order to validate stellar functions, the function resolver must be initialized.  Otherwise,
@@ -588,6 +783,13 @@ public class ConfigurationsUtils {
     StellarFunctions.FUNCTION_RESOLVER().initialize(stellarContext);
   }
 
+  /**
+   * Reads global configs from a file on local disk.
+   *
+   * @param rootPath root FS location to read configs from
+   * @return map of file names to the contents of that file as a byte array
+   * @throws IOException If there's an issue reading the configs
+   */
   public static byte[] readGlobalConfigFromFile(String rootPath) throws IOException {
     byte[] globalConfig = new byte[0];
     File configPath = new File(rootPath, GLOBAL.getTypeName() + ".json");
@@ -597,14 +799,35 @@ public class ConfigurationsUtils {
     return globalConfig;
   }
 
+  /**
+   * Reads sensor parser configs from a file on local disk.
+   *
+   * @param rootPath root FS location to read configs from
+   * @return map of file names to the contents of that file as a byte array
+   * @throws IOException If there's an issue reading the configs
+   */
   public static Map<String, byte[]> readSensorParserConfigsFromFile(String rootPath) throws IOException {
     return readSensorConfigsFromFile(rootPath, PARSER, Optional.empty());
   }
 
+  /**
+   * Reads sensor enrichment configs from a file on local disk.
+   *
+   * @param rootPath root FS location to read configs from
+   * @return map of file names to the contents of that file as a byte array
+   * @throws IOException If there's an issue reading the configs
+   */
   public static Map<String, byte[]> readSensorEnrichmentConfigsFromFile(String rootPath) throws IOException {
     return readSensorConfigsFromFile(rootPath, ENRICHMENT, Optional.empty());
   }
 
+  /**
+   * Reads sensor indexing configs from a file on local disk.
+   *
+   * @param rootPath root FS location to read configs from
+   * @return map of file names to the contents of that file as a byte array
+   * @throws IOException If there's an issue reading the configs
+   */
   public static Map<String, byte[]> readSensorIndexingConfigsFromFile(String rootPath) throws IOException {
     return readSensorConfigsFromFile(rootPath, INDEXING, Optional.empty());
   }
@@ -624,6 +847,14 @@ public class ConfigurationsUtils {
     return config;
   }
 
+  /**
+   * Reads sensor configs from a file on local disk.
+   *
+   * @param rootPath root FS location to read configs from
+   * @param configType e.g. GLOBAL, PARSER, ENRICHMENT, etc.
+   * @return map of file names to the contents of that file as a byte array
+   * @throws IOException If there's an issue reading the configs
+   */
   public static Map<String, byte[]> readSensorConfigsFromFile(String rootPath, ConfigurationType configType) throws IOException {
     return readSensorConfigsFromFile(rootPath, configType, Optional.empty());
   }
@@ -636,7 +867,7 @@ public class ConfigurationsUtils {
    * @param configType e.g. GLOBAL, PARSER, ENRICHMENT, etc.
    * @param configName a specific config, for instance a sensor name like bro, yaf, snort, etc.
    * @return map of file names to the contents of that file as a byte array
-   * @throws IOException
+   * @throws IOException If there's an issue reading the configs
    */
   public static Map<String, byte[]> readSensorConfigsFromFile(String rootPath,
       ConfigurationType configType, Optional<String> configName) throws IOException {
@@ -724,10 +955,20 @@ public class ConfigurationsUtils {
     writeConfigToZookeeper(configurationType, configName, prettyPatchedConfig, client);
   }
 
+  /**
+   * Interface for handling a Visitor pattern on configurations.
+   */
   public interface ConfigurationVisitor{
     void visit(ConfigurationType configurationType, String name, String data);
   }
 
+  /**
+   * Visits the configs in ZooKeeper for retrieving data in Visitor pattern style.
+   *
+   * @param client The ZK client used to retrieve the configs
+   * @param callback A callback to be run at each config location
+   * @throws Exception If there's an issue encountered during traversal
+   */
   public static void visitConfigs(CuratorFramework client, final ConfigurationVisitor callback) throws Exception {
     visitConfigs(client, (type, name, data) -> {
       setupStellarStatically(client, Optional.ofNullable(data));
@@ -739,6 +980,15 @@ public class ConfigurationsUtils {
     visitConfigs(client, callback, PROFILER, Optional.empty());
   }
 
+  /**
+   * Visits the configs in ZooKeeper for retrieving data in Visitor pattern style.
+   *
+   * @param client The ZK client used to retrieve configs
+   * @param callback A callback to be run at each config location
+   * @param configType The config type to check
+   * @param configName The specific config to visit, if present
+   * @throws Exception If there's an issue encountered during traversal
+   */
   public static void visitConfigs(CuratorFramework client, ConfigurationVisitor callback, ConfigurationType configType, Optional<String> configName) throws Exception {
 
     if (client.checkExists().forPath(configType.getZookeeperRoot()) != null) {
@@ -771,7 +1021,7 @@ public class ConfigurationsUtils {
    *
    * @param out stream to use as output
    * @param client zk client
-   * @throws Exception
+   * @throws Exception If there's an issue writing the configs out
    */
   public static void dumpConfigs(PrintStream out, CuratorFramework client) throws Exception {
     ConfigurationsUtils.visitConfigs(client, (type, name, data) -> {
@@ -789,7 +1039,7 @@ public class ConfigurationsUtils {
    * @param client zk client
    * @param configType GLOBAL, PARSER, ENRICHMENT, etc.
    * @param configName Typically a sensor name like bro, snort, yaf, etc.
-   * @throws Exception
+   * @throws Exception If there's an error writing the configs out
    */
   public static void dumpConfigs(PrintStream out, CuratorFramework client,
       ConfigurationType configType, Optional<String> configName) throws Exception {
@@ -800,6 +1050,15 @@ public class ConfigurationsUtils {
     }, configType, configName);
   }
 
+  /**
+   * Gets the field name from a map of the global config. Returns a default if the global config
+   * itself is null or the key isn't found.
+   *
+   * @param globalConfig Map of the global config
+   * @param globalConfigKey The key too retrieve from the map
+   * @param defaultFieldName The default to use if config is null or key not found
+   * @return The config value or the default if config is null or key not found
+   */
   public static String getFieldName(Map<String, Object> globalConfig, String globalConfigKey, String defaultFieldName) {
     if (globalConfig == null) {
       return defaultFieldName;

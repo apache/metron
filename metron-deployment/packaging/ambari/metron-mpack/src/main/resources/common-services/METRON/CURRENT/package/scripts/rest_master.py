@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.exceptions import ExecutionFailed
+from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
 from resource_management.core.source import Template
@@ -58,6 +59,9 @@ class RestMaster(Script):
         if params.security_enabled and not commands.is_kafka_acl_configured():
             commands.init_kafka_acls()
             commands.set_kafka_acl_configured()
+
+        if params.metron_knox_enabled and not params.metron_ldap_enabled:
+            raise Fail("Enabling Metron with Knox requires LDAP authentication.  Please set 'LDAP Enabled' to true in the Metron Security tab.")
 
     def start(self, env, upgrade_type=None):
         from params import params

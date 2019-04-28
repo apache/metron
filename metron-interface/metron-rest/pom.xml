@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-interface</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
     </parent>
     <artifactId>metron-rest</artifactId>
     <url>https://metron.apache.org/</url>
@@ -39,8 +39,18 @@
         <spring.version>5.0.5.RELEASE</spring.version>
         <eclipse.link.version>2.6.4</eclipse.link.version>
         <jsonpath.version>2.4.0</jsonpath.version>
+        <jwt.version>4.41.2</jwt.version>
     </properties>
     <dependencies>
+        <dependency>
+            <!-- There's an issue with the Javassist versions used by our version of Powermock. Keep the explicit test dep at the top
+            so it takes precedence during testing - https://github.com/powermock/powermock/issues/729
+            -->
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.20.0-GA</version>
+            <scope>test</scope>
+        </dependency>
       <dependency>
           <groupId>com.github.ben-manes.caffeine</groupId>
           <artifactId>caffeine</artifactId>
@@ -77,19 +87,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>log4j-over-slf4j</artifactId>
-                </exclusion>
+              <exclusion>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-logging</artifactId>
+              </exclusion>
                 <exclusion>
                     <groupId>org.hibernate</groupId>
                     <artifactId>hibernate-validator</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -237,7 +247,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-parsers</artifactId>
+            <artifactId>metron-parsers-common</artifactId>
             <version>${project.parent.version}</version>
             <scope>provided</scope>
             <exclusions>
@@ -267,6 +277,44 @@
                 </exclusion>
             </exclusions>
         </dependency>
+      <dependency>
+        <groupId>org.apache.metron</groupId>
+        <artifactId>metron-parsers</artifactId>
+        <version>${project.parent.version}</version>
+        <scope>provided</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-profiler-client</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-statistics</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-writer</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.metron</groupId>
+        <artifactId>metron-parsing-storm</artifactId>
+        <version>${project.parent.version}</version>
+        <scope>provided</scope>
+      </dependency>
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
@@ -311,6 +359,12 @@
             <artifactId>powermock-module-junit4</artifactId>
             <version>${powermock.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>javassist</artifactId>
+                    <groupId>org.javassist</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
@@ -347,6 +401,10 @@
                 <exclusion>
                     <groupId>javax.servlet</groupId>
                     <artifactId>servlet-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>javassist</artifactId>
+                    <groupId>org.javassist</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -425,6 +483,11 @@
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${jwt.version}</version>
         </dependency>
     </dependencies>
 

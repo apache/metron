@@ -19,6 +19,7 @@
  */
 package org.apache.metron.profiler.spark.function;
 
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.ProfilePeriod;
@@ -39,13 +40,25 @@ import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATI
 
 public class ProfileBuilderFunctionTest {
 
+  /**
+   * {
+   *    "profile": "total-count",
+   *    "foreach": "'total'",
+   *    "init": { "count": 0 },
+   *    "update": { "count": "count + 1" },
+   *    "result": "count"
+   * }
+   */
+  @Multiline
+  private String profileJSON;
+
   @Test
-  public void testBuildProfile() throws Exception {
+  public void shouldBuildProfileMeasurement() throws Exception {
     // setup the message and profile
     JSONObject message = getMessage();
     String entity = "192.168.1.1";
     long timestamp = (Long) message.get("timestamp");
-    ProfileConfig profile = getProfile();
+    ProfileConfig profile = ProfileConfig.fromJSON(profileJSON);
 
     // setup the route
     MessageRoute route = new MessageRoute(profile, entity, message, timestamp);
@@ -71,6 +84,39 @@ public class ProfileBuilderFunctionTest {
     Assert.assertEquals(expectedPeriod.getPeriod(), (long) measurement.getPeriodId());
   }
 
+  /**
+   * {
+   *    "profile": "total-count",
+   *    "foreach": "'total'",
+   *    "init": { "count": 0 },
+   *    "update": { "count": "count + 1" },
+   *    "result": "INVALID_FUNCTION(count)"
+   * }
+   */
+  @Multiline
+  private static String invalidProfileJson;
+
+  @Test(expected = IllegalStateException.class)
+  public void shouldThrowExceptionIfInvalidProfile() throws Exception {
+    // setup the message and profile
+    JSONObject message = getMessage();
+    String entity = "192.168.1.1";
+    long timestamp = (Long) message.get("timestamp");
+    ProfileConfig profile = ProfileConfig.fromJSON(invalidProfileJson);
+
+    // setup the route
+    MessageRoute route = new MessageRoute(profile, entity, message, timestamp);
+    List<MessageRoute> routes = new ArrayList();
+    routes.add(route);
+    routes.add(route);
+    routes.add(route);
+    Properties profilerProperties = getProfilerProperties();
+
+    // an exception should be thrown, if there is a bug in the profile definition
+    ProfileBuilderFunction function = new ProfileBuilderFunction(profilerProperties, getGlobals());
+    ProfileMeasurementAdapter measurement = function.call("profile1-192.168.1.1-0", routes.iterator());
+  }
+
   private JSONObject getMessage() {
     JSONObject message = new JSONObject();
     message.put("ip_src_addr", "192.168.1.1");
@@ -85,14 +131,5 @@ public class ProfileBuilderFunctionTest {
 
   private Map<String, String> getGlobals() {
     return Collections.emptyMap();
-  }
-
-  private ProfileConfig getProfile() {
-    return new ProfileConfig()
-            .withProfile("profile1")
-            .withForeach("ip_src_addr")
-            .withUpdate("count", "count + 1")
-            .withResult("count");
-
   }
 }

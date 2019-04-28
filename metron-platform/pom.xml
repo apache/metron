@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.apache.metron</groupId>
 		<artifactId>Metron</artifactId>
-		<version>0.7.0</version>
+		<version>0.7.1</version>
 	</parent>
 	<description>Stream analytics for Metron</description>
 	<url>https://metron.apache.org/</url>
@@ -45,7 +45,6 @@
 		<module>metron-common</module>
 		<module>metron-enrichment</module>
 		<module>metron-solr</module>
-		<module>metron-parsers</module>
  		<module>metron-job</module>
 		<module>metron-pcap-backend</module>
 		<module>metron-data-management</module>
@@ -61,7 +60,10 @@
 		<module>metron-storm-kafka</module>
 		<module>metron-storm-kafka-override</module>
 		<module>metron-zookeeper</module>
-	</modules>
+    <module>metron-parsing</module>
+    <module>metron-hbase-server</module>
+    <module>metron-common-streaming</module>
+  </modules>
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>

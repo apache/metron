@@ -35,19 +35,11 @@ import { Sort } from '../../util/enums';
 import 'jquery';
 import { SensorParserConfigHistoryService } from '../../service/sensor-parser-config-history.service';
 import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../../app.config';
 import { StormService } from '../../service/storm.service';
-import { IAppConfig } from '../../app.config.interface';
+import {AppConfigService} from '../../service/app-config.service';
+import {MockAppConfigService} from '../../service/mock.app-config.service';
 
 class MockAuthenticationService extends AuthenticationService {
-  constructor(
-    private http2: HttpClient,
-    private router2: Router,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, router2, config2);
-  }
-
   public checkAuthentication() {}
 
   public getCurrentUser(options: {}): Observable<HttpResponse<{}>> {
@@ -60,13 +52,6 @@ class MockAuthenticationService extends AuthenticationService {
 
 class MockSensorParserConfigHistoryService extends SensorParserConfigHistoryService {
   private allSensorParserConfigHistory: SensorParserConfigHistory[];
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setSensorParserConfigHistoryForTest(
     allSensorParserConfigHistory: SensorParserConfigHistory[]
@@ -84,13 +69,6 @@ class MockSensorParserConfigHistoryService extends SensorParserConfigHistoryServ
 
 class MockSensorParserConfigService extends SensorParserConfigService {
   private sensorParserConfigs: {};
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setSensorParserConfigForTest(sensorParserConfigs: {}) {
     this.sensorParserConfigs = sensorParserConfigs;
@@ -123,13 +101,6 @@ class MockSensorParserConfigService extends SensorParserConfigService {
 
 class MockStormService extends StormService {
   private topologyStatuses: TopologyStatus[];
-
-  constructor(
-    private http2: HttpClient,
-    @Inject(APP_CONFIG) private config2: IAppConfig
-  ) {
-    super(http2, config2);
-  }
 
   public setTopologyStatusForTest(topologyStatuses: TopologyStatus[]) {
     this.topologyStatuses = topologyStatuses;
@@ -198,7 +169,7 @@ describe('Component: SensorParserList', () => {
         },
         { provide: Router, useClass: MockRouter },
         { provide: MetronDialogBox, useClass: MockMetronDialogBox },
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
+        { provide: AppConfigService, useClass: MockAppConfigService },
         MetronAlerts
       ]
     });

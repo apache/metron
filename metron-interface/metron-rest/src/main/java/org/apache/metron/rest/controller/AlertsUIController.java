@@ -18,6 +18,7 @@
 package org.apache.metron.rest.controller;
 
 import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_ADMIN;
+import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_PREFIX;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -74,7 +75,7 @@ public class AlertsUIController {
     }
   }
 
-  @Secured({"ROLE_" + SECURITY_ROLE_ADMIN})
+  @Secured({SECURITY_ROLE_PREFIX + SECURITY_ROLE_ADMIN})
   @ApiOperation(value = "Retrieves all users' settings.  Only users that are part of "
           + "the \"ROLE_ADMIN\" role are allowed to get all user settings.")
   @ApiResponses(value = {@ApiResponse(message = "List of all user settings", code = 200),
@@ -103,7 +104,7 @@ public class AlertsUIController {
     return responseEntity;
   }
 
-  @Secured({"ROLE_" + SECURITY_ROLE_ADMIN})
+  @Secured({SECURITY_ROLE_PREFIX + SECURITY_ROLE_ADMIN})
   @ApiOperation(value = "Deletes a user's settings.  Only users that are part of "
           + "the \"ROLE_ADMIN\" role are allowed to delete user settings.")
   @ApiResponses(value = {@ApiResponse(message = "User settings were deleted", code = 200),

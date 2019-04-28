@@ -113,14 +113,15 @@ public class FunctionalFunctions {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private static Iterable<? extends Object> getIterable(Object o) {
-    if(o == null) {
+    if (o == null) {
       return null;
     }
-    if(o instanceof String) {
+    if (o instanceof String) {
       return Lists.charactersOf((String)o);
     }
-    else if(o instanceof Iterable) {
+    else if (o instanceof Iterable) {
       return (Iterable<Object>)o;
     }
     else {
@@ -171,16 +172,17 @@ public class FunctionalFunctions {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private static List<List<Object>> zip(List<Object> args, boolean jagged) {
     List<List<Object>> lists = new ArrayList<>();
     Integer resultSize = null;
-    for(Object o : args) {
-      if(o instanceof List) {
+    for (Object o : args) {
+      if (o instanceof List) {
         List<Object> l = (List<Object>)o;
-        if( resultSize == null) {
+        if (resultSize == null) {
           resultSize = l.size();
         }
-        else if(jagged) {
+        else if (jagged) {
           resultSize = Math.max(l.size(), resultSize);
         }
         else {
@@ -189,15 +191,15 @@ public class FunctionalFunctions {
         lists.add(l);
       }
     }
-    if(resultSize == null) {
+    if (resultSize == null) {
       return new ArrayList<>();
     }
 
     return IntStream.range(0, resultSize)
             .mapToObj(i -> {
               List<Object> o = new ArrayList<>();
-              for(List<Object> list : lists) {
-                o.add( i < list.size() ? list.get(i): null);
+              for (List<Object> list : lists) {
+                o.add(i < list.size() ? list.get(i) : null);
               }
               return o;
             })

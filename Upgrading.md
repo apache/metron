@@ -19,6 +19,20 @@ limitations under the License.
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
 
+## 0.7.1 to 0.7.2
+
+### [METRON-2053: Refactor metron-enrichment to decouple Storm dependencies](https://issues.apache.org/jira/browse/METRON-2053)
+`org.apache.metron.enrichment.writer.SimpleHbaseEnrichmentWriter` has had its packaged changed to `org.apache.metron.writer.hbase.SimpleHbaseEnrichmentWriter`. It has also been moved from the `metron-platform/metron-enrichment` module to a more appropriate home in `metron-platform/metron-writer`.
+
+## 0.7.0 to 0.7.1
+
+### [METRON-1929: Build GET_ASN Stellar function](https://issues.apache.org/jira/browse/METRON-1929)
+The script for `geo_enrichment_load.sh` has been renamed, and now is `maxmind_enrichment_load.sh`. A couple changes should happen for users who are upgrading.
+
+* The MaxMind GeoLite2 ASN database should be loaded onto HDFS at /apps/metron/asn/default/GeoLite2-ASN.tar.gz OR the global configuration property `asn.hdfs.file` can be set to point to a custom HDFS location.
+* Any custom scripts or tasks that use this script should be updated. In addition, this updated script also retrieves the GeoLite2 ASN database.  The `-ra` flag can be used to provide a custom location for this database if offline install is needed. Otherwise, it will retrieve the latest from MaxMind.
+
+
 ## 0.6.0 to 0.7.0
 
 ### [METRON-1834: Migrate Elasticsearch from TransportClient to new Java REST API](https://issues.apache.org/jira/browse/METRON-1834)
