@@ -43,7 +43,7 @@ public enum BatchProfilerCLIOptions {
 
   PROFILE_TIMESTAMP_FLD(() -> {
     Option o = new Option("t", "timestampfield", true,
-            "When pulling profile definitions from zookeeper, the name of a field to source event time from is required");
+            "The name of a field to source event time from");
     o.setRequired(false);
     return o;
   }),

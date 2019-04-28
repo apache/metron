@@ -26,10 +26,9 @@ SPARK_HOME=${SPARK_HOME:-"/usr/hdp/current/spark2-client"}
 PROFILES_FILE=${PROFILES:-"${METRON_HOME}/config/zookeeper/profiler.json"}
 ZOOKEEPER_LOCATION=${ZOOKEEPER:-"node1:2181"}
 
-# If pulling profile from zookeeper then you definitely need to specify which
-# field stores the event time to use for processing
+# allow for an override on event time source via environment variable
 if [ -n "$SPARK_PROFILER_EVENT_TIMESTAMP_FIELD" ]; then
-  EVENT_TIMESTAMP="--timestampField ${$SPARK_PROFILER_EVENT_TIMESTAMP_FIELD}"
+  EVENT_TIMESTAMP="--timestampfield ${SPARK_PROFILER_EVENT_TIMESTAMP_FIELD}"
 fi
 
 if [ -n "$SPARK_PROFILER_USE_ZOOKEEPER" ]; then

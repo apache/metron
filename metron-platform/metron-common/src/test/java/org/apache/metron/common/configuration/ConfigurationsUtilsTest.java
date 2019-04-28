@@ -18,73 +18,71 @@
 
 package org.apache.metron.common.configuration;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.util.Arrays;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.TestConstants;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.integration.TestZKServer;
+import org.junit.Assert;
+import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.test.TestingServer;
-import org.apache.metron.TestConstants;
-import org.apache.metron.common.utils.JSONUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class ConfigurationsUtilsTest {
+  private static final String SENSOR_TYPE = "yaf";
 
-  private TestingServer testZkServer;
-  private String zookeeperUrl;
-  private CuratorFramework client;
-  private byte[] expectedGlobalConfig;
-  private Map<String, byte[]> expectedSensorParserConfigMap;
-  private Map<String, byte[]> expectedSensorEnrichmentConfigMap;
+  @Test
+  public void testReadGlobalConfigZK() throws Exception {
+    TestZKServer.runWithZK( (zkServer, zkClient) -> {
+      ZKConfigAdapter config = new ZKConfigAdapter(zkClient);
+      config.loadGlobalConfig(TestConstants.SAMPLE_CONFIG_PATH);
 
-  @Before
-  public void setup() throws Exception {
-    testZkServer = new TestingServer(true);
-    zookeeperUrl = testZkServer.getConnectString();
-    client = ConfigurationsUtils.getClient(zookeeperUrl);
-    client.start();
-    expectedGlobalConfig = ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH);
-    expectedSensorParserConfigMap = ConfigurationsUtils.readSensorParserConfigsFromFile(TestConstants.PARSER_CONFIGS_PATH);
-    expectedSensorEnrichmentConfigMap = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(TestConstants.ENRICHMENTS_CONFIGS_PATH);
+      byte[] actualGlobalConfigBytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(zkClient);
+      Assert.assertArrayEquals(config.getExpectedGlobalConfig(), actualGlobalConfigBytes);
+    });
   }
 
   @Test
-  public void test() throws Exception {
-    Assert.assertTrue(expectedGlobalConfig.length > 0);
-    ConfigurationsUtils.writeGlobalConfigToZookeeper(expectedGlobalConfig, zookeeperUrl);
-    byte[] actualGlobalConfigBytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client);
-    Assert.assertTrue(Arrays.equals(expectedGlobalConfig, actualGlobalConfigBytes));
+  public void testReadSensorParserConfigZK() throws Exception {
+    TestZKServer.runWithZK( (zkServer, zkClient) -> {
+      ZKConfigAdapter config = new ZKConfigAdapter(zkClient);
+      config.loadSensorParserConfig(TestConstants.PARSER_CONFIGS_PATH, SENSOR_TYPE);
 
-    Assert.assertTrue(expectedSensorParserConfigMap.size() > 0);
-    String testSensorType = "yaf";
-    byte[] expectedSensorParserConfigBytes = expectedSensorParserConfigMap.get(testSensorType);
-    ConfigurationsUtils.writeSensorParserConfigToZookeeper(testSensorType, expectedSensorParserConfigBytes, zookeeperUrl);
-    byte[] actualSensorParserConfigBytes = ConfigurationsUtils.readSensorParserConfigBytesFromZookeeper(testSensorType, client);
-    Assert.assertTrue(Arrays.equals(expectedSensorParserConfigBytes, actualSensorParserConfigBytes));
+      byte[] actualSensorParserConfigBytes = ConfigurationsUtils.readSensorParserConfigBytesFromZookeeper(SENSOR_TYPE,
+              zkClient);
+      Assert.assertArrayEquals(config.getExpectedSensorParserConfigMap().get(SENSOR_TYPE),
+              actualSensorParserConfigBytes);
+    });
+  }
 
-    Assert.assertTrue(expectedSensorEnrichmentConfigMap.size() > 0);
-    byte[] expectedSensorEnrichmentConfigBytes = expectedSensorEnrichmentConfigMap.get(testSensorType);
-    ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(testSensorType, expectedSensorEnrichmentConfigBytes, zookeeperUrl);
-    byte[] actualSensorEnrichmentConfigBytes = ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(testSensorType, client);
-    Assert.assertTrue(Arrays.equals(expectedSensorEnrichmentConfigBytes, actualSensorEnrichmentConfigBytes));
+  @Test
+  public void testReadSensorEnrichmentConfigZK() throws Exception {
+    TestZKServer.runWithZK( (zkServer, zkClient) -> {
+      ZKConfigAdapter config = new ZKConfigAdapter(zkClient);
+      config.loadSensorEnrichmentConfig(TestConstants.ENRICHMENTS_CONFIGS_PATH, SENSOR_TYPE);
 
-    String name = "testConfig";
-    Map<String, Object> testConfig = new HashMap<>();
-    testConfig.put("stringField", "value");
-    testConfig.put("intField", 1);
-    testConfig.put("doubleField", 1.1);
-    ConfigurationsUtils.writeConfigToZookeeper(name, testConfig, zookeeperUrl);
-    byte[] readConfigBytes = ConfigurationsUtils.readConfigBytesFromZookeeper(name, client);
-    Assert.assertTrue(Arrays.equals(JSONUtils.INSTANCE.toJSONPretty(testConfig), readConfigBytes));
+      byte[] actualSensorEnrichmentConfigBytes = ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(SENSOR_TYPE,
+              zkClient);
+      Assert.assertArrayEquals(config.getExpectedSensorEnrichmentConfigMap().get(SENSOR_TYPE),
+              actualSensorEnrichmentConfigBytes);
+    });
+  }
 
+  @Test
+  public void testReadAdhocConfigZK() throws Exception {
+    TestZKServer.runWithZK( (zkServer, zkClient) -> {
+      String name = "testConfig";
+      Map<String, Object> testConfig = new HashMap<>();
+      testConfig.put("stringField", "value");
+      testConfig.put("intField", 1);
+      testConfig.put("doubleField", 1.1);
+      ConfigurationsUtils.writeConfigToZookeeper(name, testConfig, zkServer.getZookeeperUrl());
+      byte[] readConfigBytes = ConfigurationsUtils.readConfigBytesFromZookeeper(name, zkClient);
+      Assert.assertArrayEquals(JSONUtils.INSTANCE.toJSONPretty(testConfig), readConfigBytes);
+    });
   }
 
   /**
@@ -145,28 +143,31 @@ public class ConfigurationsUtilsTest {
 
   @Test
   public void modifiedGlobalConfiguration() throws Exception {
-
     // write global configuration
-    ConfigurationType type = ConfigurationType.GLOBAL;
-    ConfigurationsUtils.writeConfigToZookeeper(type, JSONUtils.INSTANCE.toJSONPretty(someParserConfig), zookeeperUrl);
+    TestZKServer.runWithZK( (zkServer, zkClient) -> {
+      ConfigurationType type = ConfigurationType.GLOBAL;
+      ConfigurationsUtils.writeConfigToZookeeper(type, JSONUtils.INSTANCE.toJSONPretty(someParserConfig), zkServer.getZookeeperUrl());
 
-    // validate the modified global configuration
-    byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, zookeeperUrl);
-    assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(someParserConfig)));
+      // validate the modified global configuration
+      byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, zkServer.getZookeeperUrl());
+      assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(someParserConfig)));
+    });
   }
 
   @Test
   public void modifiesSingleParserConfiguration() throws Exception {
+    TestZKServer.runWithZK( (zkServer, zkClient) -> {
+      // write parser configuration
+      ConfigurationType type = ConfigurationType.PARSER;
+      String parserName = "a-happy-metron-parser";
+      byte[] config = JSONUtils.INSTANCE.toJSONPretty(someParserConfig);
 
-    // write parser configuration
-    ConfigurationType type = ConfigurationType.PARSER;
-    String parserName = "a-happy-metron-parser";
-    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someParserConfig);
-    ConfigurationsUtils.writeConfigToZookeeper(type, Optional.of(parserName), config, zookeeperUrl);
+      ConfigurationsUtils.writeConfigToZookeeper(type, Optional.of(parserName), config, zkServer.getZookeeperUrl());
 
-    // validate the modified parser configuration
-    byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, Optional.of(parserName), zookeeperUrl);
-    assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(someParserConfig)));
+      // validate the modified parser configuration
+      byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, Optional.of(parserName), zkServer.getZookeeperUrl());
+      assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(someParserConfig)));
+    });
   }
 
   /**
@@ -177,45 +178,41 @@ public class ConfigurationsUtilsTest {
    */
   @Test
   public void patchesGlobalConfigurationViaPatchJSON() throws Exception {
+    TestZKServer.runWithZK( (zkServer, zkClient) -> {
+      // setup zookeeper with a configuration
+      final ConfigurationType type = ConfigurationType.GLOBAL;
+      byte[] config = JSONUtils.INSTANCE.toJSONPretty(someGlobalConfig);
+      ConfigurationsUtils.writeConfigToZookeeper(type, config, zkServer.getZookeeperUrl());
 
-    // setup zookeeper with a configuration
-    final ConfigurationType type = ConfigurationType.GLOBAL;
-    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someGlobalConfig);
-    ConfigurationsUtils.writeConfigToZookeeper(type, config, zookeeperUrl);
+      // patch the configuration
+      byte[] patch = JSONUtils.INSTANCE.toJSONPretty(patchGlobalConfig);
+      ConfigurationsUtils.applyConfigPatchToZookeeper(type, patch, zkServer.getZookeeperUrl());
 
-    // patch the configuration
-    byte[] patch = JSONUtils.INSTANCE.toJSONPretty(patchGlobalConfig);
-    ConfigurationsUtils.applyConfigPatchToZookeeper(type, patch, zookeeperUrl);
-
-    // validate the patched configuration
-    byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, zookeeperUrl);
-    byte[] expected = JSONUtils.INSTANCE.toJSONPretty(modifiedGlobalConfig);
-    assertThat(actual, equalTo(expected));
+      // validate the patched configuration
+      byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, zkServer.getZookeeperUrl());
+      byte[] expected = JSONUtils.INSTANCE.toJSONPretty(modifiedGlobalConfig);
+      assertThat(actual, equalTo(expected));
+    });
   }
 
   @Test
   public void patchesParserConfigurationViaPatchJSON() throws Exception {
+    TestZKServer.runWithZK((zkServer, zkClient) -> {
+      // setup zookeeper with a configuration
+      final ConfigurationType type = ConfigurationType.PARSER;
+      final String parserName = "patched-metron-parser";
+      byte[] config = JSONUtils.INSTANCE.toJSONPretty(someParserConfig);
+      ConfigurationsUtils.writeConfigToZookeeper(type, Optional.of(parserName), config, zkServer.getZookeeperUrl());
 
-    // setup zookeeper with a configuration
-    final ConfigurationType type = ConfigurationType.PARSER;
-    final String parserName = "patched-metron-parser";
-    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someParserConfig);
-    ConfigurationsUtils.writeConfigToZookeeper(type, Optional.of(parserName), config, zookeeperUrl);
+      // patch the configuration
+      byte[] patch = JSONUtils.INSTANCE.toJSONPretty(patchParserConfig);
+      ConfigurationsUtils.applyConfigPatchToZookeeper(type, Optional.of(parserName), patch, zkServer.getZookeeperUrl());
 
-    // patch the configuration
-    byte[] patch = JSONUtils.INSTANCE.toJSONPretty(patchParserConfig);
-    ConfigurationsUtils.applyConfigPatchToZookeeper(type, Optional.of(parserName), patch, zookeeperUrl);
-
-    // validate the patched configuration
-    byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, Optional.of(parserName), zookeeperUrl);
-    byte[] expected = JSONUtils.INSTANCE.toJSONPretty(modifiedParserConfig);
-    assertThat(actual, equalTo(expected));
+      // validate the patched configuration
+      byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, Optional.of(parserName), zkServer.getZookeeperUrl());
+      byte[] expected = JSONUtils.INSTANCE.toJSONPretty(modifiedParserConfig);
+      assertThat(actual, equalTo(expected));
+    });
   }
 
-  @After
-  public void tearDown() throws IOException {
-    client.close();
-    testZkServer.close();
-    testZkServer.stop();
-  }
 }

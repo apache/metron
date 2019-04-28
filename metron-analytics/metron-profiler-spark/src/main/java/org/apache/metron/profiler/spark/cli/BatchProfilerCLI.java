@@ -20,8 +20,6 @@
 
 package org.apache.metron.profiler.spark.cli;
 
-import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.*;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.apache.commons.cli.*;
@@ -43,7 +41,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Optional;
 import java.util.Properties;
 
-
+import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.*;
 
 /**
  * The main entry point which launches the Batch Profiler iin Spark.
@@ -82,12 +80,13 @@ public class BatchProfilerCLI implements Serializable {
   public static Properties readerProps;
   public static ProfilerConfig profiles;
 
-  public static void main(String[] args) throws IOException, org.apache.commons.cli.ParseException {
+  public static void main(String[] args) throws IOException, org.apache.commons.cli.ParseException, Exception {
     // parse the command line
     CommandLine commandLine = parseCommandLine(args);
 
     // read profile information
-    profiles = handleProfileDefinitions(commandLine);
+    profiles = Preconditions.checkNotNull(handleProfileDefinitions(commandLine), "An error occurred while reading profile data");
+
     profilerProps = handleProfilerProperties(commandLine);
     globals = handleGlobals(commandLine);
     readerProps = handleReaderProperties(commandLine);
@@ -132,16 +131,7 @@ public class BatchProfilerCLI implements Serializable {
     }
 
     if (PROFILE_ZK.has(commandLine)) {
-      try (final CuratorFramework zkClient = createZKClient(commandLine)) {
-        try {
-          profiles = handleProfileDefinitionsZK(zkClient);
-        } catch (Exception ex) {
-          throw new IOException(
-                  String.format("Error reading configuration from Zookeeper client %s",
-                          zkClient.toString()),
-                  ex);
-        }
-      }
+      profiles = handleProfileDefinitionsZK(commandLine);
     } else {
       profiles = handleProfileDefinitionsFile(commandLine);
     }
@@ -158,12 +148,10 @@ public class BatchProfilerCLI implements Serializable {
 
   /**
    * Loads Zookeeper client if one is configured.
-   * @param commandLine Command line to extract ZK configuration from
+   * @param zkQuorum Address if zookeeper server
    * @return CuratorFramework client if zookeeper configuration defined
    */
-  private static CuratorFramework createZKClient(final CommandLine commandLine) {
-    Preconditions.checkArgument(PROFILE_ZK.has(commandLine));
-    final String zkQuorum = PROFILE_ZK.get(commandLine);
+  private static CuratorFramework createZKClient(final String zkQuorum) {
     LOG.info("Loading profiler properties from zookeeper quorum '{}'", zkQuorum);
     final CuratorFramework zkClient = ZKCache.createClient(zkQuorum, Optional.empty());
     zkClient.start();
@@ -248,22 +236,44 @@ public class BatchProfilerCLI implements Serializable {
   }
 
   /**
-   * Load the profile definitions from ZK.
-   * @param zkClient Zookeeper client
+   * Load the profile definitions from ZK server identified in command line
+   * @param commandLine Address of Zookeeper server
    * @return ProfileConfig object stored in zookeeper
-   * @throws Exception if error occurs during zookeeper read
+   * @throws IOException if error occurs during zookeeper read
    */
-  private static ProfilerConfig handleProfileDefinitionsZK(final CuratorFramework zkClient) throws Exception {
-    LOG.info("Loading profiles from zookeeper");
-    final ProfilerConfig profiles = ConfigurationsUtils.readProfilerConfigFromZookeeper(zkClient);
-    LOG.info("Loaded {} profile(s)", profiles.getProfiles().size());
+  private static ProfilerConfig handleProfileDefinitionsZK(final CommandLine commandLine) throws IOException  {
+    Preconditions.checkArgument(PROFILE_ZK.has(commandLine));
+    final String zkQuorum = PROFILE_ZK.get(commandLine);
+    try (final CuratorFramework zkClient = createZKClient(zkQuorum)) {
+      readProfileFromZK(zkClient);
+    }
+    return profiles;
+  }
+
+  /**
+   * Reads profile information utilizing the passed zookeeper client
+   * @param zkClient Started zookeeper client
+   * @throws IOException if error occurs while reading profile information from zookeeper
+   */
+  static ProfilerConfig readProfileFromZK(CuratorFramework zkClient) throws IOException {
+    ProfilerConfig profiles;
+    try {
+      LOG.info("Loading profiles from zookeeper");
+      profiles = ConfigurationsUtils.readProfilerConfigFromZookeeper(zkClient);
+      LOG.info("Loaded {} profile(s)", profiles.getProfiles().size());
+    } catch (Exception ex) {
+      throw new IOException(
+              String.format("Error reading configuration from Zookeeper client %s",
+                      zkClient.toString()),
+              ex);
+    }
     return profiles;
   }
 
   /**
    * Parse the command line arguments submitted by the user.
    * @param args The command line arguments to parse.
-   * @throws org.apache.commons.cli.ParseException
+   * @throws org.apache.commons.cli.ParseException if command line has errors
    */
   private static CommandLine parseCommandLine(String[] args) throws ParseException {
     CommandLineParser parser = new PosixParser();
