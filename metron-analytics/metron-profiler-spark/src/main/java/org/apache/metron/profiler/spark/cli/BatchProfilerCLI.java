@@ -22,7 +22,11 @@ package org.apache.metron.profiler.spark.cli;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.commons.io.IOUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
@@ -41,7 +45,13 @@ import java.lang.invoke.MethodHandles;
 import java.util.Optional;
 import java.util.Properties;
 
-import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.*;
+import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.GLOBALS_FILE;
+import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.PROFILER_PROPS_FILE;
+import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.PROFILE_DEFN_FILE;
+import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.PROFILE_TIMESTAMP_FLD;
+import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.PROFILE_ZK;
+import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.READER_PROPS_FILE;
+import static org.apache.metron.profiler.spark.cli.BatchProfilerCLIOptions.parse;
 
 /**
  * The main entry point which launches the Batch Profiler iin Spark.
